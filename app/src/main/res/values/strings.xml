@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">melonDS</string>
+    <string name="error_load_rom">Could not load ROM</string>
+    <string name="action_refresh_rom_list">Refresh ROM list</string>
+    <string name="info_fps">FPS: %1$d</string>
+    <string name="info_loading">LOADING...</string>
+    <string name="settings">Settings</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="system">System</string>
+    <string name="info_no_storage_permission">Cannot find ROMS without storage permission</string>
+    <string name="exit">Exit</string>
+</resources>

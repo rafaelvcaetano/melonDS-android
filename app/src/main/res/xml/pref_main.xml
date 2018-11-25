@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="@string/system">
+
+        <com.github.angads25.filepicker.view.FilePickerPreference
+            android:key="bios_dir"
+            android:title="BIOS directory"
+            app:root_dir="/sdcard"
+            app:selection_mode="single_mode"
+            app:selection_type="dir_select" />
+    </PreferenceCategory>
+</PreferenceScreen>
