@@ -4,11 +4,30 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
-        android:title="@string/system">
+        android:title="@string/category_system">
 
         <com.github.angads25.filepicker.view.FilePickerPreference
             android:key="bios_dir"
-            android:title="BIOS directory"
+            android:title="@string/bios_directory"
+            app:root_dir="/sdcard"
+            app:selection_mode="single_mode"
+            app:selection_type="dir_select" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/category_save_files">
+
+        <SwitchPreference
+            android:key="use_rom_dir"
+            android:title="@string/save_next_rom"
+            android:defaultValue="true"
+            android:disableDependentsState="true" />
+
+        <com.github.angads25.filepicker.view.FilePickerPreference
+            android:key="sram_dir"
+            android:title="@string/save_file_directory"
+            android:dependency="use_rom_dir"
+            android:defaultValue="/sdcard"
             app:root_dir="/sdcard"
             app:selection_mode="single_mode"
             app:selection_type="dir_select" />

@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import com.github.angads25.filepicker.view.FilePickerPreference;
 
 import me.magnum.melonds.R;
+import me.magnum.melonds.utils.PreferenceDirectoryUtils;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -37,9 +38,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 			String stringValue = value.toString();
 
 			if (preference instanceof FilePickerPreference) {
-				String arr[] = stringValue.split(":");
-				if (arr.length > 0)
-					preference.setSummary(arr[0]);
+				String directory = PreferenceDirectoryUtils.getSingleDirectoryFromPreference(stringValue);
+				preference.setSummary(directory);
 			} else if (preference instanceof ListPreference) {
 				// For list preferences, look up the correct display value in
 				// the preference's 'entries' list.
@@ -130,6 +130,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 			addPreferencesFromResource(R.xml.pref_main);
 
 			bindPreferenceSummaryToValue(findPreference("bios_dir"));
+			bindPreferenceSummaryToValue(findPreference("sram_dir"));
 		}
 	}
 }

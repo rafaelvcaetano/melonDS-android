@@ -28,6 +28,7 @@ import me.magnum.melonds.BuildConfig;
 import me.magnum.melonds.MelonEmulator;
 import me.magnum.melonds.R;
 import me.magnum.melonds.renderer.DSRenderer;
+import me.magnum.melonds.utils.PreferenceDirectoryUtils;
 
 public class RenderActivity extends AppCompatActivity implements DSRenderer.RendererListener {
 	static {
@@ -198,26 +199,37 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 	}
 
 	private String getConfigDirPath() {
-		String path = PreferenceManager.getDefaultSharedPreferences(this)
+		String preference = PreferenceManager.getDefaultSharedPreferences(this)
 				.getString("bios_dir", null);
+
+		String path = PreferenceDirectoryUtils.getSingleDirectoryFromPreference(preference);
 
 		if (path == null)
 			throw new IllegalStateException("BIOS directory not set");
 
-		String[] parts = path.split(":");
-		if (parts.length == 0)
-			throw new IllegalStateException("BIOS directory not set");
-
-		return parts[0] + "/";
+		return path + "/";
 	}
 
 	private String getSRAMPath(String romPath) {
 		File romFile = new File(romPath);
 		String filename = romFile.getName();
 
-		File sramDir = new File(getExternalFilesDir(null), "battery");
-		if (!sramDir.isDirectory())
-			sramDir.mkdirs();
+		boolean useRomDir = PreferenceManager.getDefaultSharedPreferences(this)
+				.getBoolean("use_rom_dir", true);
+
+		String sramDir;
+		if (useRomDir) {
+			sramDir = romFile.getParent();
+		} else {
+			String preference = PreferenceManager.getDefaultSharedPreferences(this)
+					.getString("sram_dir", null);
+
+			sramDir = PreferenceDirectoryUtils.getSingleDirectoryFromPreference(preference);
+
+			// If no directory is set, revert to using the ROM's directory
+			if (sramDir == null)
+				sramDir = romFile.getParent();
+		}
 
 		String nameWithoutExtension = filename.substring(0, filename.length() - 4);
 		String sramFileName = nameWithoutExtension + ".sav";

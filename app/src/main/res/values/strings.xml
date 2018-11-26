@@ -6,7 +6,11 @@
     <string name="info_loading">LOADING...</string>
     <string name="settings">Settings</string>
     <string name="title_activity_settings">Settings</string>
-    <string name="system">System</string>
+    <string name="category_system">System</string>
     <string name="info_no_storage_permission">Cannot find ROMS without storage permission</string>
     <string name="exit">Exit</string>
+    <string name="bios_directory">BIOS directory</string>
+    <string name="category_save_files">Save Files</string>
+    <string name="save_next_rom">Save next to ROM file</string>
+    <string name="save_file_directory">Save file directory</string>
 </resources>
