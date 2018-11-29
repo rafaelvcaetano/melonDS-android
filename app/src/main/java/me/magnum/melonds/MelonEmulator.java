@@ -2,6 +2,8 @@ package me.magnum.melonds;
 
 import java.nio.ByteBuffer;
 
+import me.magnum.melonds.model.Input;
+
 public final class MelonEmulator {
 	private MelonEmulator() {
 	}
@@ -26,7 +28,15 @@ public final class MelonEmulator {
 
 	public static native void onScreenRelease();
 
-	public static native void onKeyPress(int key);
+	public static void onInputDown(Input input) {
+		onKeyPress(input.getKeyCode());
+	}
 
-	public static native void onKeyRelease(int key);
+	public static void onInputUp(Input input) {
+		onKeyRelease(input.getKeyCode());
+	}
+
+	private static native void onKeyPress(int key);
+
+	private static native void onKeyRelease(int key);
 }

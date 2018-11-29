@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="size_dpad">140dp</dimen>
+    <dimen name="size_buttons">150dp</dimen>
+    <dimen name="size_shoulder_button">60dp</dimen>
+    <dimen name="size_button_small">40dp</dimen>
+</resources>

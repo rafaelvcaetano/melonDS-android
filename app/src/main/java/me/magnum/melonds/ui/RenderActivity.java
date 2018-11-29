@@ -7,9 +7,9 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,10 +24,14 @@ import io.reactivex.CompletableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-import me.magnum.melonds.BuildConfig;
 import me.magnum.melonds.MelonEmulator;
 import me.magnum.melonds.R;
+import me.magnum.melonds.model.Input;
 import me.magnum.melonds.renderer.DSRenderer;
+import me.magnum.melonds.ui.input.ButtonsInputHandler;
+import me.magnum.melonds.ui.input.DpadInputHandler;
+import me.magnum.melonds.ui.input.SingleButtonInputHandler;
+import me.magnum.melonds.ui.input.TouchscreenInputHandler;
 import me.magnum.melonds.utils.PreferenceDirectoryUtils;
 
 public class RenderActivity extends AppCompatActivity implements DSRenderer.RendererListener {
@@ -54,6 +58,8 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 	private GLSurfaceView dsSurface;
 	private DSRenderer dsRenderer;
 	private View inputArea;
+	private RelativeLayout inputButtonsLayout;
+	private ImageView imageToggleTouch;
 	private TextView textFps;
 
 	private boolean emulatorReady;
@@ -81,27 +87,29 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		this.textFps.setVisibility(View.INVISIBLE);
 		final TextView loadingText = findViewById(R.id.text_loading);
 
-		this.inputArea = findViewById(R.id.view_input);
-		this.inputArea.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				switch (event.getAction()) {
-					case MotionEvent.ACTION_DOWN:
-						MelonEmulator.onKeyPress(16 + 6);
-					case MotionEvent.ACTION_MOVE:
-						float x = event.getX();
-						float y = event.getY();
-						int dsX = (int) (x / v.getWidth() * 256);
-						int dsY = (int) (y / v.getHeight() * 192);
+		this.imageToggleTouch = findViewById(R.id.image_touch_toggle);
+		this.inputButtonsLayout = findViewById(R.id.layout_input_buttons);
 
-						MelonEmulator.onScreenTouch(dsX, dsY);
-						break;
-					case MotionEvent.ACTION_UP:
-						MelonEmulator.onKeyRelease(16 + 6);
-						MelonEmulator.onScreenRelease();
-						break;
+		this.inputArea = findViewById(R.id.view_input);
+		this.inputArea.setOnTouchListener(new TouchscreenInputHandler());
+
+		findViewById(R.id.image_dpad).setOnTouchListener(new DpadInputHandler());
+		findViewById(R.id.image_buttons).setOnTouchListener(new ButtonsInputHandler());
+		findViewById(R.id.image_button_l).setOnTouchListener(new SingleButtonInputHandler(Input.L));
+		findViewById(R.id.image_button_r).setOnTouchListener(new SingleButtonInputHandler(Input.R));
+		findViewById(R.id.image_button_select).setOnTouchListener(new SingleButtonInputHandler(Input.SELECT));
+		findViewById(R.id.image_button_start).setOnTouchListener(new SingleButtonInputHandler(Input.START));
+
+		imageToggleTouch.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (inputButtonsLayout.getVisibility() == View.VISIBLE) {
+					inputButtonsLayout.setVisibility(View.INVISIBLE);
+					imageToggleTouch.setImageDrawable(getResources().getDrawable(R.drawable.ic_touch_disabled));
+				} else {
+					inputButtonsLayout.setVisibility(View.VISIBLE);
+					imageToggleTouch.setImageDrawable(getResources().getDrawable(R.drawable.ic_touch_enabled));
 				}
-				return true;
 			}
 		});
 

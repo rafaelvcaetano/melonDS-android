@@ -36,9 +36,8 @@ public final class PreferenceDirectoryUtils {
 	 */
 	public static String[] getMultipleDirectoryFromPreference(String preferenceValue) {
 		if (preferenceValue == null)
-			throw new IllegalStateException("BIOS directory not set");
+			return new String[0];
 
-		String[] parts = preferenceValue.split(":");
-		return parts;
+		return preferenceValue.split(":");
 	}
 }
