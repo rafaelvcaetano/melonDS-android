@@ -6,7 +6,6 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
 
@@ -107,7 +106,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 		int id = item.getItemId();
 		if (id == android.R.id.home) {
 			if (!super.onMenuItemSelected(featureId, item)) {
-				NavUtils.navigateUpFromSameTask(this);
+				finish();
 			}
 			return true;
 		}

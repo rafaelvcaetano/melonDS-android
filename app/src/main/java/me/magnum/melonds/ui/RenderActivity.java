@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
@@ -39,9 +40,12 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		System.loadLibrary("melonDS-android-frontend");
 	}
 
+	private static final int REQUEST_SETTINGS = 1;
+
 	public static final String KEY_ROM_PATH = "rom_path";
 
 	private enum PauseMenuOptions {
+		SETTINGS(R.string.settings),
 		EXIT(R.string.exit);
 
 		private int textResource;
@@ -201,6 +205,10 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						switch (values[which]) {
+							case SETTINGS:
+								Intent settingsIntent = new Intent(RenderActivity.this, SettingsActivity.class);
+								startActivityForResult(settingsIntent, REQUEST_SETTINGS);
+								break;
 							case EXIT:
 								finish();
 								break;
@@ -214,6 +222,16 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 					}
 				})
 				.show();
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		switch (requestCode) {
+			case REQUEST_SETTINGS:
+				this.adjustInputOpacity();
+				break;
+		}
 	}
 
 	private String getConfigDirPath() {
