@@ -99,6 +99,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		findViewById(R.id.image_button_r).setOnTouchListener(new SingleButtonInputHandler(Input.R));
 		findViewById(R.id.image_button_select).setOnTouchListener(new SingleButtonInputHandler(Input.SELECT));
 		findViewById(R.id.image_button_start).setOnTouchListener(new SingleButtonInputHandler(Input.START));
+		this.adjustInputOpacity();
 
 		imageToggleTouch.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -173,6 +174,15 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 			uiFlags |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
 
 		this.getWindow().getDecorView().setSystemUiVisibility(uiFlags);
+	}
+
+	private void adjustInputOpacity() {
+		int opacity = PreferenceManager.getDefaultSharedPreferences(this).
+				getInt("input_opacity", 50);
+
+		float alpha = opacity / 100f;
+		this.inputButtonsLayout.setAlpha(alpha);
+		this.imageToggleTouch.setAlpha(alpha);
 	}
 
 	@Override

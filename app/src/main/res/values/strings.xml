@@ -13,4 +13,5 @@
     <string name="category_save_files">Save Files</string>
     <string name="save_next_rom">Save next to ROM file</string>
     <string name="save_file_directory">Save file directory</string>
+    <string name="soft_input_opacity">Soft input opacity</string>
 </resources>

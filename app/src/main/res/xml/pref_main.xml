@@ -32,4 +32,14 @@
             app:selection_mode="single_mode"
             app:selection_type="dir_select" />
     </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Input">
+
+        <SeekBarPreference
+            android:key="input_opacity"
+            android:title="@string/soft_input_opacity"
+            android:defaultValue="50"
+            android:max="100" />
+    </PreferenceCategory>
 </PreferenceScreen>
