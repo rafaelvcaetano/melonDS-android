@@ -143,9 +143,9 @@ public class RomListFragment extends Fragment {
 	private void requestStoragePermission(boolean overrideRationaleRequest) {
 		if (!overrideRationaleRequest && shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
 			new AlertDialog.Builder(getContext())
-					.setTitle("Storage permission required")
-					.setMessage("Storage permission is required to search ROMs on your device. Please grant access to storage on the next dialog.")
-					.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+					.setTitle(R.string.storage_permission_required)
+					.setMessage(R.string.storage_permission_required_info)
+					.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							requestStoragePermission(true);
@@ -190,9 +190,9 @@ public class RomListFragment extends Fragment {
 		switch (dirStatus) {
 			case UNSET:
 				new AlertDialog.Builder(getContext())
-						.setTitle("BIOS directory not set")
-						.setMessage("BIOS directory is not set. Go to the Settings and select the directory that contains bios7.bin, bios9.bin and firmware.bin")
-						.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+						.setTitle(R.string.bios_dir_not_set)
+						.setMessage(R.string.bios_dir_not_set_info)
+						.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog, int which) {
 								Intent intent = new Intent(getContext(), SettingsActivity.class);
@@ -203,9 +203,9 @@ public class RomListFragment extends Fragment {
 				break;
 			case INVALID:
 				new AlertDialog.Builder(getContext())
-						.setTitle("Incorrect BIOS directory")
-						.setMessage("The BIOS directory that you specified is not correct. Make sure that the selected directory contains bios7.bin, bios9.bin and firmware.bin")
-						.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+						.setTitle(R.string.incorrect_bios_dir)
+						.setMessage(R.string.incorrect_bios_dir_info)
+						.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog, int which) {
 								Intent intent = new Intent(getContext(), SettingsActivity.class);

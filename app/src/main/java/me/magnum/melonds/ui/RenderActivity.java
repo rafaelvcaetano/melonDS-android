@@ -200,7 +200,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 
 		MelonEmulator.pauseEmulation();
 		new AlertDialog.Builder(this)
-				.setTitle("Pause")
+				.setTitle(R.string.pause)
 				.setItems(options, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {

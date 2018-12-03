@@ -34,7 +34,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="Input">
+        android:title="@string/input">
 
         <SeekBarPreference
             android:key="input_opacity"
