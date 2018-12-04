@@ -10,7 +10,7 @@ public final class MelonEmulator {
 
 	public static native void setupEmulator(String configDir);
 
-	public static native boolean loadRom(String romPath, String sramPath);
+	public static native boolean loadRom(String romPath, String sramPath, boolean loadDirect);
 
 	public static native void startEmulation();
 

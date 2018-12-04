@@ -22,12 +22,12 @@ Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jclass type, jst
 }
 
 JNIEXPORT jboolean JNICALL
-Java_me_magnum_melonds_MelonEmulator_loadRom(JNIEnv* env, jclass type, jstring romPath, jstring sramPath)
+Java_me_magnum_melonds_MelonEmulator_loadRom(JNIEnv* env, jclass type, jstring romPath, jstring sramPath, jboolean loadDirect)
 {
     const char* rom = env->GetStringUTFChars(romPath, JNI_FALSE);
     const char* sram = env->GetStringUTFChars(sramPath, JNI_FALSE);
 
-    return MelonDSAndroid::loadRom(const_cast<char*>(rom), const_cast<char*>(sram)) ? JNI_TRUE : JNI_FALSE;
+    return MelonDSAndroid::loadRom(const_cast<char*>(rom), const_cast<char*>(sram), loadDirect) ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT void JNICALL

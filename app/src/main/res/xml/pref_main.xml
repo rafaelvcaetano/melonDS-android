@@ -12,6 +12,11 @@
             app:root_dir="/sdcard"
             app:selection_mode="single_mode"
             app:selection_type="dir_select" />
+
+        <SwitchPreference
+            android:key="show_bios"
+            android:title="@string/show_boot_screen"
+            android:defaultValue="false" />
     </PreferenceCategory>
 
     <PreferenceCategory

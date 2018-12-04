@@ -121,10 +121,13 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		Completable.create(new CompletableOnSubscribe() {
 			@Override
 			public void subscribe(CompletableEmitter emitter) throws Exception {
+				boolean showBios = PreferenceManager.getDefaultSharedPreferences(RenderActivity.this)
+						.getBoolean("show_bios", false);
+
 				MelonEmulator.setupEmulator(getConfigDirPath());
 
 				String sramPath = getSRAMPath(romPath);
-				if (!MelonEmulator.loadRom(romPath, sramPath))
+				if (!MelonEmulator.loadRom(romPath, sramPath, !showBios))
 					throw new Exception("Failed to load ROM");
 
 				MelonEmulator.startEmulation();
