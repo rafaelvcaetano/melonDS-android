@@ -4,19 +4,25 @@ This is a WIP Android frontend for the melonDS Android port. For the Android por
 # What is working
 *  Device scanning for ROMS
 *  Games can boot and run
-*  Touch input
-*  Game saves (I think)
+*  Input
+*  Game saves
+*  Settings (WIP)
+
+# What is kinda working
+*  Sound (works properly at full speed only)
 
 # What is missing
-*  Hardware input
-*  Sound (must find the correct settings)
 *  Save states
-*  Settings
+*  Wi-Fi
+*  More settings
 
 # Performance
 Performance is currently terrible and not suitable for use. Right now, this is more of a proof of concept that anything else. But at least we now know that it (kinda) works.
 
 # Building
+To build the project you will need Android NDK.
+
+Build steps:
 1.  Clone the project, including submodules with:
     
     `git clone --recurse-submodules https://github.com/rafaelvcaetano/melonDS-android.git`
