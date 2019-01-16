@@ -15,6 +15,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import me.magnum.melonds.InternalRomLocationCache;
@@ -49,6 +51,7 @@ public class RomListFragment extends Fragment {
 	private RomListViewModel romViewModel;
 	private RomSelectedListener romSelectedListener;
 
+	private SwipeRefreshLayout swipeRefreshLayout;
 	private RecyclerView romList;
 
 	private Disposable romListDisposable;
@@ -63,6 +66,14 @@ public class RomListFragment extends Fragment {
 	                         @Nullable Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.rom_list_fragment, container, false);
 		this.romList = view.findViewById(R.id.list_roms);
+		this.swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_roms);
+
+		this.swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+			@Override
+			public void onRefresh() {
+				updateRomList(true);
+			}
+		});
 
 		setHasOptionsMenu(true);
 
@@ -119,19 +130,26 @@ public class RomListFragment extends Fragment {
 		if (this.romListDisposable != null && !this.romListDisposable.isDisposed())
 			this.romListDisposable.dispose();
 
+		this.swipeRefreshLayout.setRefreshing(true);
 		this.romListAdapter.clearRoms();
 		this.romListDisposable = romViewModel.getRoms(clearCache)
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread())
 				.subscribe(new Consumer<Rom>() {
 					@Override
-					public void accept(Rom newRom) throws Exception {
+					public void accept(Rom newRom) {
 						romListAdapter.addRom(newRom);
 					}
 				}, new Consumer<Throwable>() {
 					@Override
 					public void accept(Throwable throwable) {
+						swipeRefreshLayout.setRefreshing(false);
 						throwable.printStackTrace();
+					}
+				}, new Action() {
+					@Override
+					public void run() {
+						swipeRefreshLayout.setRefreshing(false);
 					}
 				});
 	}
