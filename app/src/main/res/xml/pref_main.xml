@@ -20,6 +20,18 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:title="@string/category_video">
+
+        <ListPreference
+            android:key="video_filtering"
+            android:title="Filtering"
+            android:summary="%s"
+            android:entries="@array/video_filtering_options"
+            android:entryValues="@array/video_filtering_values"
+            android:defaultValue="linear"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:title="@string/category_save_files">
 
         <SwitchPreference

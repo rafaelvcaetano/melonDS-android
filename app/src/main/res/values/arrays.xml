@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="video_filtering_values">
+        <item>none</item>
+        <item>linear</item>
+    </string-array>
+</resources>

@@ -12,6 +12,7 @@ import java.nio.FloatBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import me.magnum.melonds.model.RendererConfiguration;
 import me.magnum.melonds.utils.ShaderUtils;
 
 public class DSRenderer implements GLSurfaceView.Renderer {
@@ -20,7 +21,10 @@ public class DSRenderer implements GLSurfaceView.Renderer {
 	private static final int SCREEN_WIDTH = 256;
 	private static final int SCREEN_HEIGHT = 384;
 
+	private RendererConfiguration currentRendererConfiguration;
 	private RendererListener rendererListener;
+
+	private boolean mustUpdateConfiguration;
 
 	private int mainTexture;
 	private int program;
@@ -39,8 +43,23 @@ public class DSRenderer implements GLSurfaceView.Renderer {
 	private float height;
 	private float bottom;
 
+	public DSRenderer(RendererConfiguration rendererConfiguration) {
+		if (rendererConfiguration == null)
+			throw new IllegalArgumentException("A renderer configuration must be provided");
+
+		this.currentRendererConfiguration = rendererConfiguration;
+	}
+
 	public void setRendererListener(RendererListener listener) {
 		this.rendererListener = listener;
+	}
+
+	public void updateRendererConfiguration(RendererConfiguration rendererConfiguration) {
+		if (rendererConfiguration == null)
+			throw new IllegalArgumentException("A renderer configuration must be provided");
+
+		this.currentRendererConfiguration = rendererConfiguration;
+		this.mustUpdateConfiguration = true;
 	}
 
 	@Override
@@ -57,8 +76,6 @@ public class DSRenderer implements GLSurfaceView.Renderer {
 		GLES20.glGenTextures(1, texture, 0);
 		this.mainTexture = texture[0];
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, this.mainTexture);
-		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
 		GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
 		GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 
@@ -90,6 +107,31 @@ public class DSRenderer implements GLSurfaceView.Renderer {
 				.put(new float[] {0, 1, 1, 1, 0, 0, 1, 0});
 		this.texBuffer = ByteBuffer.allocateDirect(SCREEN_WIDTH * SCREEN_HEIGHT * 4)
 				.order(ByteOrder.nativeOrder());
+
+		this.applyRendererConfiguration();
+	}
+
+	private void applyRendererConfiguration() {
+		this.updateTextureParameters();
+	}
+
+	private void updateTextureParameters() {
+		int filtering;
+		switch (this.currentRendererConfiguration.getVideoFiltering()) {
+			case NONE:
+				filtering = GLES20.GL_NEAREST;
+				break;
+			case LINEAR:
+				filtering = GLES20.GL_LINEAR;
+				break;
+			default:
+				filtering = GLES20.GL_LINEAR;
+				break;
+		}
+
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, this.mainTexture);
+		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filtering);
+		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filtering);
 	}
 
 	@Override
@@ -117,6 +159,11 @@ public class DSRenderer implements GLSurfaceView.Renderer {
 
 	@Override
 	public void onDrawFrame(GL10 gl) {
+		if (this.mustUpdateConfiguration) {
+			this.applyRendererConfiguration();
+			this.mustUpdateConfiguration = false;
+		}
+
 		this.rendererListener.updateFrameBuffer(this.texBuffer);
 
 		this.posBuffer.position(0);

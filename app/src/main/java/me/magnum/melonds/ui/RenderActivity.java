@@ -2,6 +2,7 @@ package me.magnum.melonds.ui;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,6 +29,8 @@ import io.reactivex.schedulers.Schedulers;
 import me.magnum.melonds.MelonEmulator;
 import me.magnum.melonds.R;
 import me.magnum.melonds.model.Input;
+import me.magnum.melonds.model.RendererConfiguration;
+import me.magnum.melonds.model.VideoFiltering;
 import me.magnum.melonds.renderer.DSRenderer;
 import me.magnum.melonds.ui.input.ButtonsInputHandler;
 import me.magnum.melonds.ui.input.DpadInputHandler;
@@ -80,7 +83,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		if (romPath == null)
 			throw new NullPointerException("No ROM path was specified");
 
-		this.dsRenderer = new DSRenderer();
+		this.dsRenderer = new DSRenderer(this.buildRendererConfiguration());
 		this.dsRenderer.setRendererListener(this);
 
 		this.dsSurface = findViewById(R.id.surface_main);
@@ -170,6 +173,14 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		this.setupFullscreen();
 	}
 
+	private RendererConfiguration buildRendererConfiguration() {
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+		String filteringValue = preferences.getString("video_filtering", "");
+		VideoFiltering filtering = filteringValue != null ? VideoFiltering.valueOf(filteringValue.toUpperCase()) : VideoFiltering.LINEAR;
+		return new RendererConfiguration(filtering);
+	}
+
 	private void setupFullscreen() {
 		int uiFlags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
 					  View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
@@ -232,6 +243,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		super.onActivityResult(requestCode, resultCode, data);
 		switch (requestCode) {
 			case REQUEST_SETTINGS:
+				this.dsRenderer.updateRendererConfiguration(this.buildRendererConfiguration());
 				this.adjustInputOpacity();
 				break;
 		}
