@@ -1,5 +1,6 @@
 #include <jni.h>
 #include <pthread.h>
+#include <unistd.h>
 #include <MelonDS.h>
 #include <InputAndroid.h>
 
@@ -141,7 +142,17 @@ void* emulate(void*)
 
         clock_gettime(CLOCK_REALTIME, &now);
         nowMillis = (now.tv_sec * 1000.0) + now.tv_nsec / 1000000.0;
+
         MelonDSAndroid::loop(nowMillis);
+
+        clock_gettime(CLOCK_REALTIME, &now);
+        double afterMillis = (now.tv_sec * 1000.0) + now.tv_nsec / 1000000.0;
+
+        double delta = afterMillis - nowMillis;
+        if (delta < 1000 / 60.0)
+        {
+            usleep((1000 / 60.0 - delta) * 1000);
+        }
     }
 
     MelonDSAndroid::cleanup();
