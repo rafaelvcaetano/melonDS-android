@@ -3,25 +3,34 @@ package me.magnum.melonds.ui.input;
 import android.view.MotionEvent;
 import android.view.View;
 
+import me.magnum.melonds.IInputListener;
 import me.magnum.melonds.MelonEmulator;
 import me.magnum.melonds.model.Input;
+import me.magnum.melonds.model.Point;
 
-public class TouchscreenInputHandler implements View.OnTouchListener {
+public class TouchscreenInputHandler extends BaseInputHandler {
+	private Point touchPoint;
+
+	public TouchscreenInputHandler(IInputListener inputListener) {
+		super(inputListener);
+		this.touchPoint = new Point();
+	}
+
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
-				MelonEmulator.onInputDown(Input.TOUCHSCREEN);
+				this.inputListener.onKeyPress(Input.TOUCHSCREEN);
 			case MotionEvent.ACTION_MOVE:
 				float x = event.getX();
 				float y = event.getY();
-				int dsX = (int) (x / v.getWidth() * 256);
-				int dsY = (int) (y / v.getHeight() * 192);
+				touchPoint.x = (int) (x / v.getWidth() * 256);
+				touchPoint.y = (int) (y / v.getHeight() * 192);
 
-				MelonEmulator.onScreenTouch(dsX, dsY);
+				this.inputListener.onTouch(this.touchPoint);
 				break;
 			case MotionEvent.ACTION_UP:
-				MelonEmulator.onInputUp(Input.TOUCHSCREEN);
+				this.inputListener.onKeyReleased(Input.TOUCHSCREEN);
 				MelonEmulator.onScreenRelease();
 				break;
 		}

@@ -9,16 +9,14 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.File;
-import java.nio.ByteBuffer;
-
 import io.reactivex.Completable;
 import io.reactivex.CompletableEmitter;
 import io.reactivex.CompletableObserver;
@@ -26,8 +24,8 @@ import io.reactivex.CompletableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-import me.magnum.melonds.MelonEmulator;
-import me.magnum.melonds.R;
+import me.magnum.melonds.*;
+import me.magnum.melonds.model.ControllerConfiguration;
 import me.magnum.melonds.model.Input;
 import me.magnum.melonds.model.RendererConfiguration;
 import me.magnum.melonds.model.VideoFiltering;
@@ -37,6 +35,10 @@ import me.magnum.melonds.ui.input.DpadInputHandler;
 import me.magnum.melonds.ui.input.SingleButtonInputHandler;
 import me.magnum.melonds.ui.input.TouchscreenInputHandler;
 import me.magnum.melonds.utils.PreferenceDirectoryUtils;
+
+import java.io.File;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
 
 public class RenderActivity extends AppCompatActivity implements DSRenderer.RendererListener {
 	static {
@@ -69,6 +71,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 	private ImageView imageToggleTouch;
 	private TextView textFps;
 
+	private INativeInputListener nativeInputListener;
 	private boolean emulatorReady;
 
 	@Override
@@ -82,6 +85,8 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		final String romPath = getIntent().getStringExtra(KEY_ROM_PATH);
 		if (romPath == null)
 			throw new NullPointerException("No ROM path was specified");
+
+		MelonTouchHandler melonTouchHandler = new MelonTouchHandler();
 
 		this.dsRenderer = new DSRenderer(this.buildRendererConfiguration());
 		this.dsRenderer.setRendererListener(this);
@@ -98,15 +103,18 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		this.inputButtonsLayout = findViewById(R.id.layout_input_buttons);
 
 		this.inputArea = findViewById(R.id.view_input);
-		this.inputArea.setOnTouchListener(new TouchscreenInputHandler());
+		this.inputArea.setOnTouchListener(new TouchscreenInputHandler(melonTouchHandler));
 
-		findViewById(R.id.image_dpad).setOnTouchListener(new DpadInputHandler());
-		findViewById(R.id.image_buttons).setOnTouchListener(new ButtonsInputHandler());
-		findViewById(R.id.image_button_l).setOnTouchListener(new SingleButtonInputHandler(Input.L));
-		findViewById(R.id.image_button_r).setOnTouchListener(new SingleButtonInputHandler(Input.R));
-		findViewById(R.id.image_button_select).setOnTouchListener(new SingleButtonInputHandler(Input.SELECT));
-		findViewById(R.id.image_button_start).setOnTouchListener(new SingleButtonInputHandler(Input.START));
+		findViewById(R.id.image_dpad).setOnTouchListener(new DpadInputHandler(melonTouchHandler));
+		findViewById(R.id.image_buttons).setOnTouchListener(new ButtonsInputHandler(melonTouchHandler));
+		findViewById(R.id.image_button_l).setOnTouchListener(new SingleButtonInputHandler(melonTouchHandler, Input.L));
+		findViewById(R.id.image_button_r).setOnTouchListener(new SingleButtonInputHandler(melonTouchHandler, Input.R));
+		findViewById(R.id.image_button_select).setOnTouchListener(new SingleButtonInputHandler(melonTouchHandler, Input.SELECT));
+		findViewById(R.id.image_button_start).setOnTouchListener(new SingleButtonInputHandler(melonTouchHandler, Input.START));
 		this.adjustInputOpacity();
+
+		// TODO: load configuration from preferences
+		this.nativeInputListener = new InputProcessor(new ControllerConfiguration(new HashMap<Integer, Input>(), 0f), melonTouchHandler);
 
 		imageToggleTouch.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -302,6 +310,16 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 				inputArea.setLayoutParams(params);
 			}
 		});
+	}
+
+	@Override
+	public boolean dispatchGenericMotionEvent(MotionEvent ev) {
+		return this.nativeInputListener.onMotionEvent(ev);
+	}
+
+	@Override
+	public boolean dispatchKeyEvent(KeyEvent event) {
+		return this.nativeInputListener.onKeyEvent(event);
 	}
 
 	@Override
