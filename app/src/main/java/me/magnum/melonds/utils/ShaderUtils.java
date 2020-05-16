@@ -15,6 +15,7 @@ public class ShaderUtils {
             "}\n";
 
 	public static final String DEFAULT_FRAG_SHADER =
+			"precision mediump float;\n" +
 			"uniform sampler2D tex;\n" +
             "varying vec2 uv;\n" +
             "void main()\n" +
