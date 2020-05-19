@@ -6,6 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 
 import me.magnum.melonds.R;
 import me.magnum.melonds.model.Rom;
+import me.magnum.melonds.parcelables.RomParcelable;
+import me.magnum.melonds.ui.romlist.RomListFragment;
 
 public class MainActivity extends AppCompatActivity {
 	private static final String FRAGMENT_ROM_LIST = "ROM_LIST";
@@ -38,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
 	private void loadRom(Rom rom) {
 		Intent intent = new Intent(this, RenderActivity.class);
-		intent.putExtra(RenderActivity.KEY_ROM_PATH, rom.getPath());
+		intent.putExtra(RenderActivity.KEY_ROM, new RomParcelable(rom));
 		startActivity(intent);
 	}
 }

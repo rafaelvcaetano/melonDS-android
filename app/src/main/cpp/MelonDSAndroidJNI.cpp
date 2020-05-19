@@ -22,13 +22,15 @@ Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jclass type, jst
     MelonDSAndroid::setup(const_cast<char *>(dir));
 }
 
-JNIEXPORT jboolean JNICALL
-Java_me_magnum_melonds_MelonEmulator_loadRom(JNIEnv* env, jclass type, jstring romPath, jstring sramPath, jboolean loadDirect)
+JNIEXPORT jint JNICALL
+Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jclass type, jstring romPath, jstring sramPath, jboolean loadDirect, jboolean loadGbaRom, jstring gbaRomPath, jstring gbaSramPath)
 {
-    const char* rom = env->GetStringUTFChars(romPath, JNI_FALSE);
-    const char* sram = env->GetStringUTFChars(sramPath, JNI_FALSE);
+    const char* rom = romPath == nullptr ? nullptr : env->GetStringUTFChars(romPath, JNI_FALSE);
+    const char* sram = sramPath == nullptr ? nullptr : env->GetStringUTFChars(sramPath, JNI_FALSE);
+    const char* gbaRom = gbaRomPath == nullptr ? nullptr : env->GetStringUTFChars(gbaRomPath, JNI_FALSE);
+    const char* gbaSram = gbaSramPath == nullptr ? nullptr : env->GetStringUTFChars(gbaSramPath, JNI_FALSE);
 
-    return MelonDSAndroid::loadRom(const_cast<char*>(rom), const_cast<char*>(sram), loadDirect) ? JNI_TRUE : JNI_FALSE;
+    return MelonDSAndroid::loadRom(const_cast<char*>(rom), const_cast<char*>(sram), loadDirect, loadGbaRom, const_cast<char*>(gbaRom), const_cast<char*>(gbaSram));
 }
 
 JNIEXPORT void JNICALL

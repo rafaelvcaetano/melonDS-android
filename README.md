@@ -6,6 +6,7 @@ This is a WIP Android frontend for the melonDS Android port. For the Android por
 *  Games can boot and run
 *  Input
 *  Game saves
+*  GBA ROM support
 *  Settings (WIP)
 
 # What is kinda working
@@ -15,16 +16,20 @@ This is a WIP Android frontend for the melonDS Android port. For the Android por
 *  Save states
 *  Wi-Fi
 *  More settings
+*  Min input
+*  Controller support
+*  OpenGL renderer
 
 # Performance
-Performance is currently terrible and not suitable for use. Right now, this is more of a proof of concept that anything else. But at least we now know that it (kinda) works.
+Performance is far from OK, but acceptable on high end devices. Right now, this is more of a proof of concept that anything else. But at least we now know that it (kinda) works.
 
 # Building
-To build the project you will need Android NDK.
+To build the project you will need Android NDK and CMake.
 
 Build steps:
 1.  Clone the project, including submodules with:
     
     `git clone --recurse-submodules https://github.com/rafaelvcaetano/melonDS-android.git`
 2.  Open the project in Android Studio.
-3.  Hit Run
+3.  Install the Android NDK and CMake from the SDK Manager
+4.  Hit Run

@@ -6,6 +6,8 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="android:imageButtonStyle">@style/Button.RomConfig</item>
     </style>
 
     <style name="Theme.AppCompat.Light.NoActionBar.FullScreen" parent="@style/Base.Theme.AppCompat.Light">
@@ -13,5 +15,10 @@
         <item name="android:windowActionBar">false</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+    <style name="Button.RomConfig" parent="android:Widget.ImageButton">
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:tint"></item>
     </style>
 </resources>

@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+
+
+    <LinearLayout
+            android:id="@+id/layout_rom_config_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|left"
+            android:orientation="horizontal"
+            android:paddingLeft="?attr/dialogPreferredPadding"
+            android:paddingRight="?attr/dialogPreferredPadding"
+            android:paddingTop="18dp"
+            android:paddingBottom="8dp"
+            app:layout_constraintTop_toTopOf="parent" >
+
+        <android.support.v7.widget.DialogTitle
+                android:id="@+id/text_rom_config_title"
+                style="?android:attr/windowTitleStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                tools:text="Super Mario 64 DS"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+            android:id="@+id/layout_rom_config_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/layout_rom_config_title"
+            app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+                android:id="@+id/layout_rom_config_load_gba_rom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="?android:attr/listPreferredItemHeight"
+                android:background="?selectableItemBackground"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingLeft="@dimen/romConfigPrefPadding"
+                android:paddingRight="@dimen/romConfigPrefPadding">
+
+            <RelativeLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dip"
+                    android:layout_marginStart="6dip"
+                    android:layout_marginTop="6dip"
+                    android:layout_marginBottom="6dip"
+                    android:layout_weight="1">
+
+                <TextView
+                        android:id="@+id/label_preference_load_gba_cart"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:singleLine="true"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:ellipsize="marquee"
+                        android:fadingEdge="horizontal"
+                        android:text="@string/label_rom_config_load_gba_rom"/>
+            </RelativeLayout>
+
+            <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                <Switch
+                        android:id="@+id/switch_load_gba_rom"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:clickable="false"
+                        android:background="@null" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/romConfigPrefSeparator" />
+
+        <LinearLayout
+                android:id="@+id/layout_rom_config_gba_rom_path"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="?android:attr/listPreferredItemHeight"
+                android:background="?selectableItemBackground"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingLeft="@dimen/romConfigPrefPadding"
+                android:paddingRight="@dimen/romConfigPrefPadding" >
+
+            <RelativeLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dip"
+                    android:layout_marginStart="6dip"
+                    android:layout_marginTop="6dip"
+                    android:layout_marginBottom="6dip"
+                    android:layout_weight="1">
+
+                <TextView
+                        android:id="@+id/label_preference_gba_cart_path"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:singleLine="true"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:ellipsize="marquee"
+                        android:fadingEdge="horizontal"
+                        android:text="@string/label_rom_config_gba_rom_path"/>
+
+                <TextView
+                        android:id="@+id/label_preference_gba_cart_path_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/label_preference_gba_cart_path"
+                        android:layout_alignStart="@+id/label_preference_gba_cart_path"
+                        android:layout_alignLeft="@+id/label_preference_gba_cart_path"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:singleLine="true"
+                        android:ellipsize="start"
+                        tools:text="/storage/emulated/0/Emulators/GBA/Mario.gba" />
+            </RelativeLayout>
+        </LinearLayout>
+
+        <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/romConfigPrefSeparator" />
+
+        <LinearLayout
+                android:id="@+id/layout_rom_config_gba_save_path"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="?android:attr/listPreferredItemHeight"
+                android:background="?selectableItemBackground"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingLeft="@dimen/romConfigPrefPadding"
+                android:paddingRight="@dimen/romConfigPrefPadding" >
+
+            <RelativeLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dip"
+                    android:layout_marginStart="6dip"
+                    android:layout_marginTop="6dip"
+                    android:layout_marginBottom="6dip"
+                    android:layout_weight="1">
+
+                <TextView
+                        android:id="@+id/label_preference_gba_save_path"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:singleLine="true"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:ellipsize="marquee"
+                        android:fadingEdge="horizontal"
+                        android:text="@string/label_rom_config_gba_save_path"/>
+
+                <TextView
+                        android:id="@+id/label_preference_gba_save_path_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/label_preference_gba_save_path"
+                        android:layout_alignStart="@+id/label_preference_gba_save_path"
+                        android:layout_alignLeft="@+id/label_preference_gba_save_path"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:singleLine="true"
+                        android:ellipsize="start"
+                        tools:text="/storage/emulated/0/Emulators/GBA/Mario.sav" />
+            </RelativeLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/layout_rom_config_content"
+            android:gravity="bottom"
+            android:layoutDirection="locale"
+            android:orientation="horizontal"
+            android:paddingBottom="4dp"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:paddingTop="4dp">
+
+        <android.support.v4.widget.Space
+                android:id="@+id/spacer"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:visibility="invisible"/>
+
+        <Button
+                android:id="@+id/button_rom_config_cancel"
+                style="?attr/buttonBarNegativeButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cancel_button_label" />
+
+        <Button
+                android:id="@+id/button_rom_config_ok"
+                style="?attr/buttonBarPositiveButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ok" />
+    </LinearLayout>
+</android.support.constraint.ConstraintLayout>

@@ -17,18 +17,13 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import io.reactivex.Completable;
-import io.reactivex.CompletableEmitter;
-import io.reactivex.CompletableObserver;
-import io.reactivex.CompletableOnSubscribe;
+import io.reactivex.*;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import me.magnum.melonds.*;
-import me.magnum.melonds.model.ControllerConfiguration;
-import me.magnum.melonds.model.Input;
-import me.magnum.melonds.model.RendererConfiguration;
-import me.magnum.melonds.model.VideoFiltering;
+import me.magnum.melonds.model.*;
+import me.magnum.melonds.parcelables.RomParcelable;
 import me.magnum.melonds.renderer.DSRenderer;
 import me.magnum.melonds.ui.input.ButtonsInputHandler;
 import me.magnum.melonds.ui.input.DpadInputHandler;
@@ -47,7 +42,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 
 	private static final int REQUEST_SETTINGS = 1;
 
-	public static final String KEY_ROM_PATH = "rom_path";
+	public static final String KEY_ROM = "rom";
 
 	private enum PauseMenuOptions {
 		SETTINGS(R.string.settings),
@@ -82,9 +77,11 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		this.setupFullscreen();
 		setContentView(R.layout.activity_render);
 
-		final String romPath = getIntent().getStringExtra(KEY_ROM_PATH);
-		if (romPath == null)
-			throw new NullPointerException("No ROM path was specified");
+		RomParcelable romParcelable = getIntent().getParcelableExtra(KEY_ROM);
+		if (romParcelable == null || romParcelable.getRom() == null)
+			throw new NullPointerException("No ROM was specified");
+
+		final Rom rom = romParcelable.getRom();
 
 		MelonTouchHandler melonTouchHandler = new MelonTouchHandler();
 
@@ -129,30 +126,35 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 			}
 		});
 
-		Completable.create(new CompletableOnSubscribe() {
+		Single.create(new SingleOnSubscribe<MelonEmulator.LoadResult>() {
 			@Override
-			public void subscribe(CompletableEmitter emitter) throws Exception {
+			public void subscribe(SingleEmitter<MelonEmulator.LoadResult> emitter) throws Exception {
 				boolean showBios = PreferenceManager.getDefaultSharedPreferences(RenderActivity.this)
 						.getBoolean("show_bios", false);
 
 				MelonEmulator.setupEmulator(getConfigDirPath());
 
-				String sramPath = getSRAMPath(romPath);
-				if (!MelonEmulator.loadRom(romPath, sramPath, !showBios))
+				String sramPath = getSRAMPath(rom.getPath());
+
+				MelonEmulator.LoadResult loadResult = MelonEmulator.loadRom(rom.getPath(), sramPath, !showBios, rom.getConfig().loadGbaCart(), rom.getConfig().getGbaCartPath(), rom.getConfig().getGbaSavePath());
+				if (loadResult == MelonEmulator.LoadResult.NDS_FAILED)
 					throw new Exception("Failed to load ROM");
 
 				MelonEmulator.startEmulation();
-				emitter.onComplete();
+				emitter.onSuccess(loadResult);
 			}
 		}).subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread())
-				.subscribe(new CompletableObserver() {
+				.subscribe(new SingleObserver<MelonEmulator.LoadResult>() {
 					@Override
 					public void onSubscribe(Disposable d) {
 					}
 
 					@Override
-					public void onComplete() {
+					public void onSuccess(MelonEmulator.LoadResult loadResult) {
+						if (loadResult == MelonEmulator.LoadResult.SUCCESS_GBA_FAILED)
+							Toast.makeText(RenderActivity.this, R.string.error_load_gba_rom, Toast.LENGTH_SHORT).show();
+
 						textFps.setVisibility(View.VISIBLE);
 						loadingText.setVisibility(View.GONE);
 						emulatorReady = true;

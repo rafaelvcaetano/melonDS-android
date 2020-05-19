@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui;
+package me.magnum.melonds.ui.romlist;
 
 import android.Manifest;
 import android.arch.lifecycle.ViewModel;
@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -15,40 +16,38 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.ImageViewCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.File;
-import java.util.ArrayList;
-
+import com.squareup.moshi.Moshi;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import me.magnum.melonds.InternalRomLocationCache;
 import me.magnum.melonds.R;
+import me.magnum.melonds.impl.FileSystemRomsRepository;
 import me.magnum.melonds.model.Rom;
+import me.magnum.melonds.model.RomConfig;
+import me.magnum.melonds.ui.SettingsActivity;
 import me.magnum.melonds.utils.ConfigurationUtils;
 import me.magnum.melonds.utils.RomProcessor;
-import me.magnum.melonds.viewmodels.RomListViewModel;
+
+import java.io.File;
+import java.util.ArrayList;
 
 public class RomListFragment extends Fragment {
 	private static final int REQUEST_STORAGE_PERMISSION = 1;
 
-	private RomListViewModel romViewModel;
+	private RomListViewModel romListViewModel;
 	private RomSelectedListener romSelectedListener;
 
 	private SwipeRefreshLayout swipeRefreshLayout;
@@ -84,11 +83,11 @@ public class RomListFragment extends Fragment {
 	public void onActivityCreated(@Nullable Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
-		romViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
+		this.romListViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
 			@NonNull
 			@Override
 			public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-				return (T) new RomListViewModel(new InternalRomLocationCache(getActivity()));
+				return (T) new RomListViewModel(new FileSystemRomsRepository(getActivity(), new Moshi.Builder().build()));
 			}
 		}).get(RomListViewModel.class);
 
@@ -97,6 +96,18 @@ public class RomListFragment extends Fragment {
 			@Override
 			public void onRomClicked(Rom rom) {
 				selectRom(rom);
+			}
+
+			@Override
+			public void onRomConfigClicked(final Rom rom) {
+				new RomConfigDialog(getActivity(), rom.getName(), rom.getConfig().clone())
+						.setOnRomConfigSaveListener(new RomConfigDialog.OnRomConfigSavedListener() {
+							@Override
+							public void onRomConfigSaved(RomConfig romConfig) {
+								romListViewModel.updateRomConfig(rom, romConfig);
+							}
+						})
+						.show();
 			}
 		});
 
@@ -132,7 +143,7 @@ public class RomListFragment extends Fragment {
 
 		this.swipeRefreshLayout.setRefreshing(true);
 		this.romListAdapter.clearRoms();
-		this.romListDisposable = romViewModel.getRoms(clearCache)
+		this.romListDisposable = romListViewModel.getRoms(clearCache)
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread())
 				.subscribe(new Consumer<Rom>() {
@@ -339,6 +350,21 @@ public class RomListFragment extends Fragment {
 
 			romViewHolder.textRomName.setText(rom.getName());
 			romViewHolder.textRomPath.setText(rom.getPath());
+
+			int configButtonTint;
+			if (rom.getConfig().loadGbaCart())
+				configButtonTint = ContextCompat.getColor(context, R.color.romConfigButtonEnabled);
+			else
+				configButtonTint = ContextCompat.getColor(context, R.color.romConfigButtonDefault);
+
+			ImageViewCompat.setImageTintList(romViewHolder.buttonRomConfig, ColorStateList.valueOf(configButtonTint));
+			romViewHolder.buttonRomConfig.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					if (romClickListener != null)
+						romClickListener.onRomConfigClicked(rom);
+				}
+			});
 		}
 
 		@Override
@@ -350,18 +376,21 @@ public class RomListFragment extends Fragment {
 			public ImageView imageIcon;
 			public TextView textRomName;
 			public TextView textRomPath;
+			public AppCompatImageView buttonRomConfig;
 
 			public RomViewHolder(@NonNull View itemView) {
 				super(itemView);
 				this.imageIcon = itemView.findViewById(R.id.image_rom_icon);
 				this.textRomName = itemView.findViewById(R.id.text_rom_name);
 				this.textRomPath = itemView.findViewById(R.id.text_rom_path);
+				this.buttonRomConfig = itemView.findViewById(R.id.button_rom_config);
 			}
 		}
 	}
 
 	private interface RomClickListener {
 		void onRomClicked(Rom rom);
+		void onRomConfigClicked(Rom rom);
 	}
 
 	public interface RomSelectedListener {
