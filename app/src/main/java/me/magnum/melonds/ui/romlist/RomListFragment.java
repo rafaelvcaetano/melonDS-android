@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.romlist;
 
 import android.Manifest;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
@@ -28,21 +29,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.squareup.moshi.Moshi;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Action;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
 import me.magnum.melonds.R;
 import me.magnum.melonds.impl.FileSystemRomsRepository;
 import me.magnum.melonds.model.Rom;
 import me.magnum.melonds.model.RomConfig;
+import me.magnum.melonds.model.RomScanningStatus;
 import me.magnum.melonds.ui.SettingsActivity;
 import me.magnum.melonds.utils.ConfigurationUtils;
 import me.magnum.melonds.utils.RomProcessor;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 public class RomListFragment extends Fragment {
 	private static final int REQUEST_STORAGE_PERMISSION = 1;
@@ -53,7 +51,6 @@ public class RomListFragment extends Fragment {
 	private SwipeRefreshLayout swipeRefreshLayout;
 	private RecyclerView romList;
 
-	private Disposable romListDisposable;
 	private RomListAdapter romListAdapter;
 
 	public static RomListFragment newInstance() {
@@ -70,7 +67,7 @@ public class RomListFragment extends Fragment {
 		this.swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 			@Override
 			public void onRefresh() {
-				updateRomList(true);
+				updateRomList();
 			}
 		});
 
@@ -115,6 +112,21 @@ public class RomListFragment extends Fragment {
 		this.romList.setLayoutManager(layoutManager);
 		this.romList.addItemDecoration(new DividerItemDecoration(getContext(), layoutManager.getOrientation()));
 		this.romList.setAdapter(this.romListAdapter);
+
+		this.romListViewModel.getRomScanningStatus()
+				.observe(this, new Observer<RomScanningStatus>() {
+					@Override
+					public void onChanged(@Nullable RomScanningStatus status) {
+						swipeRefreshLayout.setRefreshing(status == RomScanningStatus.SCANNING);
+					}
+				});
+		this.romListViewModel.getRoms()
+				.observe(this, new Observer<List<Rom>>() {
+					@Override
+					public void onChanged(@Nullable List<Rom> roms) {
+						romListAdapter.setRoms(roms);
+					}
+				});
 	}
 
 	@Override
@@ -125,44 +137,17 @@ public class RomListFragment extends Fragment {
 
 		if (!this.isStoragePermissionGranted()) {
 			this.requestStoragePermission(false);
-			return;
 		}
-
-		this.updateRomList(false);
 	}
 
-	private void updateRomList(boolean clearCache) {
+	private void updateRomList() {
 		if (!isStoragePermissionGranted())
 			return;
 
 		if (!isConfigDirectorySetup())
 			return;
 
-		if (this.romListDisposable != null && !this.romListDisposable.isDisposed())
-			this.romListDisposable.dispose();
-
-		this.swipeRefreshLayout.setRefreshing(true);
-		this.romListAdapter.clearRoms();
-		this.romListDisposable = romListViewModel.getRoms(clearCache)
-				.subscribeOn(Schedulers.io())
-				.observeOn(AndroidSchedulers.mainThread())
-				.subscribe(new Consumer<Rom>() {
-					@Override
-					public void accept(Rom newRom) {
-						romListAdapter.addRom(newRom);
-					}
-				}, new Consumer<Throwable>() {
-					@Override
-					public void accept(Throwable throwable) {
-						swipeRefreshLayout.setRefreshing(false);
-						throwable.printStackTrace();
-					}
-				}, new Action() {
-					@Override
-					public void run() {
-						swipeRefreshLayout.setRefreshing(false);
-					}
-				});
+		this.romListViewModel.refreshRoms();
 	}
 
 	private boolean isStoragePermissionGranted() {
@@ -253,7 +238,7 @@ public class RomListFragment extends Fragment {
 		switch (requestCode) {
 			case REQUEST_STORAGE_PERMISSION:
 				if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-					this.updateRomList(false);
+					this.updateRomList();
 				else
 					Toast.makeText(getContext(), getString(R.string.info_no_storage_permission), Toast.LENGTH_LONG).show();
 				break;
@@ -264,7 +249,7 @@ public class RomListFragment extends Fragment {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.action_rom_list_refresh:
-				this.updateRomList(true);
+				this.updateRomList();
 				return true;
 			case R.id.action_settings:
 				Intent intent = new Intent(getContext(), SettingsActivity.class);
@@ -289,14 +274,6 @@ public class RomListFragment extends Fragment {
 			this.romSelectedListener.onRomSelected(rom);
 	}
 
-	@Override
-	public void onStop() {
-		if (this.romListDisposable != null)
-			this.romListDisposable.dispose();
-
-		super.onStop();
-	}
-
 	private class RomListAdapter extends RecyclerView.Adapter<RomListAdapter.RomViewHolder> {
 		private Context context;
 		private ArrayList<Rom> roms;
@@ -313,6 +290,12 @@ public class RomListFragment extends Fragment {
 
 		public void clearRoms() {
 			this.roms.clear();
+			this.notifyDataSetChanged();
+		}
+
+		public void setRoms(List<Rom> roms) {
+			this.roms.clear();
+			this.roms.addAll(roms);
 			this.notifyDataSetChanged();
 		}
 

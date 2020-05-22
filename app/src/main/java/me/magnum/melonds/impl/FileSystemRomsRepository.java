@@ -2,16 +2,20 @@ package me.magnum.melonds.impl;
 
 import android.content.Context;
 import android.os.Environment;
+import android.util.Log;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import com.squareup.moshi.Types;
 import io.reactivex.*;
-import io.reactivex.functions.Action;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.BehaviorSubject;
 import me.magnum.melonds.model.Rom;
 import me.magnum.melonds.model.RomConfig;
+import me.magnum.melonds.model.RomScanningStatus;
 import me.magnum.melonds.repositories.RomsRepository;
 import me.magnum.melonds.utils.RomProcessor;
 import okio.BufferedSink;
@@ -19,15 +23,19 @@ import okio.BufferedSource;
 import okio.Okio;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FileSystemRomsRepository implements RomsRepository {
-    private static final String ROM_CACHE_FILE = "rom_cache.json";
+    private static final String TAG = "FSRomsRepository";
+    private static final String ROM_DATA_FILE = "rom_data.json";
 
     private Context context;
     private JsonAdapter<List<Rom>> romListJsonAdapter;
+    private BehaviorSubject<List<Rom>> romsSubject;
+    private BehaviorSubject<RomScanningStatus> scanningStatusSubject;
 
     private boolean areRomsLoaded = false;
     private ArrayList<Rom> roms;
@@ -37,15 +45,33 @@ public class FileSystemRomsRepository implements RomsRepository {
 
         Type romListType = Types.newParameterizedType(List.class, Rom.class);
         this.romListJsonAdapter = moshi.adapter(romListType);
+        this.romsSubject = BehaviorSubject.create();
+        this.scanningStatusSubject = BehaviorSubject.createDefault(RomScanningStatus.NOT_SCANNING);
+        this.roms = new ArrayList<>();
+
+        this.romsSubject
+                .subscribeOn(Schedulers.io())
+                .subscribe(new Consumer<List<Rom>>() {
+                    @Override
+                    public void accept(List<Rom> roms) {
+                        saveRomData(roms);
+                    }
+                });
     }
 
     @Override
-    public Observable<Rom> getRoms(boolean force) {
-        if (areRomsLoaded && !force) {
-            return Observable.fromIterable(roms);
-        } else {
-            return loadCachedRoms(force);
+    public Observable<List<Rom>> getRoms() {
+        if (!areRomsLoaded) {
+            areRomsLoaded = true;
+            loadCachedRoms();
         }
+
+        return this.romsSubject;
+    }
+
+    @Override
+    public Observable<RomScanningStatus> getRomScanningStatus() {
+        return this.scanningStatusSubject;
     }
 
     @Override
@@ -56,98 +82,144 @@ public class FileSystemRomsRepository implements RomsRepository {
 
         rom.setConfig(romConfig);
         roms.set(romIndex, rom);
-        cacheRoms(roms).subscribe();
+        onRomsChanged();
     }
 
-    private Observable<Rom> loadCachedRoms(boolean force) {
-        Single<List<Rom>> initialListObservable;
-        if (force) {
-            initialListObservable = Observable.fromArray()
-                    .cast(Rom.class)
-                    .toList();
-        } else {
-            initialListObservable = this.getCachedRoms()
-                    .filter(new Predicate<Rom>() {
-                        @Override
-                        public boolean test(Rom rom) {
-                            return new File(rom.getPath()).isFile();
-                        }
-                    })
-                    .toList();
-        }
-
-        final ArrayList<Rom> loadedRoms = new ArrayList<>();
-        return initialListObservable
-                .flatMapObservable(new Function<List<Rom>, Observable<Rom>>() {
+    @Override
+    public void rescanRoms() {
+        this.scanForNewRoms()
+                .subscribeOn(Schedulers.io())
+                .subscribe(new Observer<Rom>() {
                     @Override
-                    public Observable<Rom> apply(final List<Rom> cachedRoms) {
-                        return Observable.create(new ObservableOnSubscribe<Rom>() {
-                            private void findFiles(File directory, ObservableEmitter<Rom> emitter) {
-                                File[] files = directory.listFiles();
-                                if (files == null)
-                                    return;
-
-                                for (File f : files) {
-                                    if (f.isDirectory())
-                                        findFiles(f, emitter);
-
-                                    if (romListContainsFile(cachedRoms, f.getAbsolutePath()))
-                                        continue;
-
-                                    String fileName = f.getName();
-
-                                    // TODO: support zip files
-                                    if (!fileName.endsWith(".nds"))
-                                        continue;
-
-                                    String filePath = f.getAbsolutePath();
-                                    try {
-                                        String romName = RomProcessor.getRomName(new File(filePath));
-                                        emitter.onNext(new Rom(romName, filePath, new RomConfig()));
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-
-                                        String name = new File(filePath).getName();
-                                        emitter.onNext(new Rom(name.substring(0, name.length() - 4), filePath, new RomConfig()));
-                                    }
-                                }
-                            }
-
-                            @Override
-                            public void subscribe(ObservableEmitter<Rom> emitter) {
-                                findFiles(Environment.getExternalStorageDirectory(), emitter);
-                                emitter.onComplete();
-                            }
-                        }).startWith(cachedRoms);
+                    public void onSubscribe(Disposable d) {
+                        scanningStatusSubject.onNext(RomScanningStatus.SCANNING);
                     }
-                })
-                .doOnNext(new Consumer<Rom>() {
-                    @Override
-                    public void accept(Rom rom) {
-                        loadedRoms.add(rom);
-                    }
-                })
-                .doOnComplete(new Action() {
-                    @Override
-                    public void run() {
-                        if (areRomsLoaded) {
-                            roms.clear();
-                        } else {
-                            roms = new ArrayList<>();
-                        }
 
-                        roms.addAll(loadedRoms);
-                        areRomsLoaded = true;
-                        cacheRoms(loadedRoms).subscribe();
+                    @Override
+                    public void onNext(Rom rom) {
+                        addRom(rom);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        scanningStatusSubject.onNext(RomScanningStatus.NOT_SCANNING);
                     }
                 });
+    }
+
+    private void addRom(Rom rom) {
+        if (this.roms.contains(rom))
+            return;
+
+        this.roms.add(rom);
+        onRomsChanged();
+    }
+
+    private void updateRom(Rom rom) {
+        int romIndex = roms.indexOf(rom);
+        if (romIndex < 0)
+            return;
+
+        roms.set(romIndex, rom);
+        onRomsChanged();
+    }
+
+    private void onRomsChanged() {
+        romsSubject.onNext(new ArrayList<>(roms));
+    }
+
+    private void loadCachedRoms() {
+        this.getCachedRoms()
+                .filter(new Predicate<Rom>() {
+                    @Override
+                    public boolean test(Rom rom) {
+                        return new File(rom.getPath()).isFile();
+                    }
+                })
+                .toList()
+                .doOnSuccess(new Consumer<List<Rom>>() {
+                    @Override
+                    public void accept(List<Rom> cachedRoms) throws Exception {
+                        roms.addAll(cachedRoms);
+                        onRomsChanged();
+                    }
+                })
+                .flatMapObservable(new Function<List<Rom>, ObservableSource<Rom>>() {
+                    @Override
+                    public ObservableSource<Rom> apply(List<Rom> roms) {
+                        return scanForNewRoms();
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .subscribe(new Observer<Rom>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        scanningStatusSubject.onNext(RomScanningStatus.SCANNING);
+                    }
+
+                    @Override
+                    public void onNext(Rom rom) {
+                        addRom(rom);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        scanningStatusSubject.onNext(RomScanningStatus.NOT_SCANNING);
+                    }
+                });
+    }
+
+    private Observable<Rom> scanForNewRoms() {
+        return Observable.create(new ObservableOnSubscribe<Rom>() {
+            private void findFiles(File directory, ObservableEmitter<Rom> emitter) {
+                File[] files = directory.listFiles();
+                if (files == null)
+                    return;
+
+                for (File f : files) {
+                    if (f.isDirectory())
+                        findFiles(f, emitter);
+
+                    String fileName = f.getName();
+
+                    // TODO: support zip files
+                    if (!fileName.endsWith(".nds"))
+                        continue;
+
+                    String filePath = f.getAbsolutePath();
+                    try {
+                        String romName = RomProcessor.getRomName(new File(filePath));
+                        emitter.onNext(new Rom(romName, filePath, new RomConfig()));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+
+                        String name = new File(filePath).getName();
+                        emitter.onNext(new Rom(name.substring(0, name.length() - 4), filePath, new RomConfig()));
+                    }
+                }
+            }
+
+            @Override
+            public void subscribe(ObservableEmitter<Rom> emitter) {
+                findFiles(Environment.getExternalStorageDirectory(), emitter);
+                emitter.onComplete();
+            }
+        });
     }
 
     private Observable<Rom> getCachedRoms() {
         return Observable.create(new ObservableOnSubscribe<Rom>() {
             @Override
             public void subscribe(ObservableEmitter<Rom> emitter) throws Exception {
-                File cacheFile = new File(context.getCacheDir(), ROM_CACHE_FILE);
+                File cacheFile = new File(context.getFilesDir(), ROM_DATA_FILE);
                 if (!cacheFile.isFile()) {
                     emitter.onComplete();
                     return;
@@ -167,25 +239,22 @@ public class FileSystemRomsRepository implements RomsRepository {
         });
     }
 
-    private Completable cacheRoms(final List<Rom> roms) {
-        return Completable.create(new CompletableOnSubscribe() {
-            @Override
-            public void subscribe(CompletableEmitter emitter) throws Exception {
-                File cacheFile = new File(context.getCacheDir(), ROM_CACHE_FILE);
-                BufferedSink sink = Okio.buffer(Okio.sink(cacheFile));
-                romListJsonAdapter.toJson(sink, roms);
-                sink.close();
+    private void saveRomData(List<Rom> romData) {
+        File cacheFile = new File(context.getFilesDir(), ROM_DATA_FILE);
+        BufferedSink sink = null;
 
-                emitter.onComplete();
+        try {
+            sink = Okio.buffer(Okio.sink(cacheFile));
+            romListJsonAdapter.toJson(sink, romData);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to save ROM data", e);
+        } finally {
+            if (sink != null) {
+                try {
+                    sink.close();
+                } catch (IOException ignored) {
+                }
             }
-        });
-    }
-
-    private boolean romListContainsFile(List<Rom> roms, String filePath) {
-        for (Rom rom : roms) {
-            if (rom.getPath().equals(filePath))
-                return true;
         }
-        return false;
     }
 }

@@ -26,4 +26,19 @@ public class Rom {
 	public void setConfig(RomConfig config) {
 		this.config = config;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Rom rom = (Rom) o;
+
+		return path.equals(rom.path);
+	}
+
+	@Override
+	public int hashCode() {
+		return path.hashCode();
+	}
 }
