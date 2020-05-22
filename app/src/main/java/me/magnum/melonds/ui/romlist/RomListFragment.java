@@ -2,7 +2,6 @@ package me.magnum.melonds.ui.romlist;
 
 import android.Manifest;
 import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
@@ -28,9 +27,8 @@ import android.view.*;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.squareup.moshi.Moshi;
 import me.magnum.melonds.R;
-import me.magnum.melonds.impl.FileSystemRomsRepository;
+import me.magnum.melonds.ServiceLocator;
 import me.magnum.melonds.model.Rom;
 import me.magnum.melonds.model.RomConfig;
 import me.magnum.melonds.model.RomScanningStatus;
@@ -80,13 +78,7 @@ public class RomListFragment extends Fragment {
 	public void onActivityCreated(@Nullable Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
-		this.romListViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
-			@NonNull
-			@Override
-			public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-				return (T) new RomListViewModel(new FileSystemRomsRepository(getActivity(), new Moshi.Builder().build()));
-			}
-		}).get(RomListViewModel.class);
+		this.romListViewModel = ViewModelProviders.of(this, ServiceLocator.get(ViewModelProvider.Factory.class)).get(RomListViewModel.class);
 
 		this.romListAdapter = new RomListAdapter(getContext());
 		this.romListAdapter.setRomClickListener(new RomClickListener() {
