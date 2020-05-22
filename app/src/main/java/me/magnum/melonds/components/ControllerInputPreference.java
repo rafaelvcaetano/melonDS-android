@@ -1,7 +1,7 @@
 package me.magnum.melonds.components;
 
 import android.content.Context;
-import android.support.v7.preference.Preference;
+import androidx.preference.Preference;
 import android.util.AttributeSet;
 
 public class ControllerInputPreference extends Preference {

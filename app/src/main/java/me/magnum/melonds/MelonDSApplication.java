@@ -1,10 +1,10 @@
 package me.magnum.melonds;
 
 import android.app.Application;
-import android.arch.lifecycle.ViewModel;
-import android.arch.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import com.squareup.moshi.Moshi;
 import me.magnum.melonds.impl.FileSystemRomsRepository;
 import me.magnum.melonds.repositories.RomsRepository;

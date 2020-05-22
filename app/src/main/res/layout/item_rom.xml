@@ -20,7 +20,7 @@
         android:id="@+id/text_rom_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@android:color/black"
+        android:textColor="?android:attr/textColorPrimary"
         android:textSize="18sp"
         android:layout_toRightOf="@id/image_rom_icon"
         android:layout_toEndOf="@id/image_rom_icon"
@@ -43,6 +43,7 @@
         android:gravity="bottom"
         android:singleLine="true"
         android:ellipsize="start"
+        android:textColor="?android:attr/textColorSecondary"
         tools:text="/sdcard/Roms/DS/Pearl.nds"/>
 
     <ImageView

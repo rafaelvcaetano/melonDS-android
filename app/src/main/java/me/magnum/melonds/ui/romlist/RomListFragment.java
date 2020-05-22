@@ -1,9 +1,6 @@
 package me.magnum.melonds.ui.romlist;
 
 import android.Manifest;
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProvider;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,22 +8,24 @@ import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.ImageViewCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.AppCompatImageView;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.*;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.AppCompatImageView;
+import androidx.core.content.ContextCompat;
+import androidx.core.widget.ImageViewCompat;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import me.magnum.melonds.R;
 import me.magnum.melonds.ServiceLocator;
 import me.magnum.melonds.model.Rom;
@@ -78,7 +77,7 @@ public class RomListFragment extends Fragment {
 	public void onActivityCreated(@Nullable Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
-		this.romListViewModel = ViewModelProviders.of(this, ServiceLocator.get(ViewModelProvider.Factory.class)).get(RomListViewModel.class);
+		this.romListViewModel = new ViewModelProvider(this, ServiceLocator.get(ViewModelProvider.Factory.class)).get(RomListViewModel.class);
 
 		this.romListAdapter = new RomListAdapter(getContext());
 		this.romListAdapter.setRomClickListener(new RomClickListener() {
@@ -106,14 +105,14 @@ public class RomListFragment extends Fragment {
 		this.romList.setAdapter(this.romListAdapter);
 
 		this.romListViewModel.getRomScanningStatus()
-				.observe(this, new Observer<RomScanningStatus>() {
+				.observe(getViewLifecycleOwner(), new Observer<RomScanningStatus>() {
 					@Override
 					public void onChanged(@Nullable RomScanningStatus status) {
 						swipeRefreshLayout.setRefreshing(status == RomScanningStatus.SCANNING);
 					}
 				});
 		this.romListViewModel.getRoms()
-				.observe(this, new Observer<List<Rom>>() {
+				.observe(getViewLifecycleOwner(), new Observer<List<Rom>>() {
 					@Override
 					public void onChanged(@Nullable List<Rom> roms) {
 						romListAdapter.setRoms(roms);

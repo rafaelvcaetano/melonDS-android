@@ -2,7 +2,7 @@ package me.magnum.melonds.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 
 import me.magnum.melonds.R;
 import me.magnum.melonds.model.Rom;
