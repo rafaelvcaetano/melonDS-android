@@ -1,13 +1,11 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.DarkActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-
-        <item name="android:imageButtonStyle">@style/Button.RomConfig</item>
     </style>
 
     <style name="Theme.AppCompat.Light.NoActionBar.FullScreen" parent="@style/Base.Theme.AppCompat.Light">
@@ -19,6 +17,5 @@
 
     <style name="Button.RomConfig" parent="android:Widget.ImageButton">
         <item name="android:background">?attr/selectableItemBackground</item>
-        <item name="android:tint"></item>
     </style>
 </resources>

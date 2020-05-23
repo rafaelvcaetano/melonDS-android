@@ -4,4 +4,10 @@
         <item>none</item>
         <item>linear</item>
     </string-array>
+
+    <string-array name="theme_values">
+        <item>light</item>
+        <item>dark</item>
+        <item>system</item>
+    </string-array>
 </resources>

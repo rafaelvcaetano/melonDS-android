@@ -4,6 +4,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
+        android:title="@string/category_general">
+
+        <ListPreference
+                android:key="theme"
+                android:title="@string/theme"
+                android:summary="%s"
+                android:entries="@array/theme_options"
+                android:entryValues="@array/theme_values"
+                android:defaultValue="light"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:title="@string/category_system">
 
         <com.github.angads25.filepicker.view.FilePickerPreference

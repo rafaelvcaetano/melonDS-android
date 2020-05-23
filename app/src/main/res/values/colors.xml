@@ -7,6 +7,6 @@
     <color name="itemSelected">#AAA</color>
 
     <color name="romConfigButtonDefault">#555</color>
-    <color name="romConfigButtonEnabled">@color/colorAccent</color>
+    <color name="romConfigButtonEnabled">#5C913B</color>
     <color name="romConfigPrefSeparator">#DDD</color>
 </resources>

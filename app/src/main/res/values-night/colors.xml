@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#333</color>
+    <color name="colorPrimaryDark">#222</color>
+    <color name="colorAccent">#f44336</color>
+
+    <color name="romConfigButtonDefault">#AAA</color>
+</resources>

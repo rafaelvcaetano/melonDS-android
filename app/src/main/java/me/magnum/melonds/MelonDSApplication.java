@@ -1,13 +1,16 @@
 package me.magnum.melonds;
 
 import android.app.Application;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import android.content.Context;
 import androidx.annotation.NonNull;
+import androidx.preference.PreferenceManager;
 import com.squareup.moshi.Moshi;
 import me.magnum.melonds.impl.FileSystemRomsRepository;
 import me.magnum.melonds.repositories.RomsRepository;
+import me.magnum.melonds.ui.Theme;
 import me.magnum.melonds.ui.romlist.RomListViewModel;
 
 public class MelonDSApplication extends Application {
@@ -15,6 +18,7 @@ public class MelonDSApplication extends Application {
     public void onCreate() {
         super.onCreate();
         initializeServiceLocator();
+        applyTheme();
     }
 
     private void initializeServiceLocator() {
@@ -32,5 +36,11 @@ public class MelonDSApplication extends Application {
                 throw new RuntimeException("ViewModel of type " + modelClass.getName() + " is not supported");
             }
         });
+    }
+
+    private void applyTheme() {
+        String themeValue = PreferenceManager.getDefaultSharedPreferences(this).getString("theme", "light");
+        Theme theme = Theme.valueOf(themeValue.toUpperCase());
+        AppCompatDelegate.setDefaultNightMode(theme.getNightMode());
     }
 }
