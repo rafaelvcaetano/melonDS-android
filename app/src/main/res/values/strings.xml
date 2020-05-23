@@ -26,6 +26,7 @@
     <string name="category_general">General</string>
     <string name="category_system">System</string>
     <string name="theme">Theme</string>
+    <string name="rom_search_directories">Search directories</string>
     <string name="bios_directory">BIOS directory</string>
     <string name="show_boot_screen">Show boot screen</string>
     <string name="category_video">Video</string>

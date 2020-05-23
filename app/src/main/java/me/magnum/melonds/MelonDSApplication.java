@@ -30,8 +30,8 @@ public class MelonDSApplication extends Application {
     private void initializeServiceLocator() {
         ServiceLocator.bindSingleton(new Moshi.Builder().build());
         ServiceLocator.bindSingleton(Context.class, getApplicationContext());
-        ServiceLocator.bindSingleton(RomsRepository.class, new FileSystemRomsRepository(ServiceLocator.get(Context.class), ServiceLocator.get(Moshi.class)));
         ServiceLocator.bindSingleton(SettingsRepository.class, new SharedPreferencesSettingsRepository(PreferenceManager.getDefaultSharedPreferences(this)));
+        ServiceLocator.bindSingleton(RomsRepository.class, new FileSystemRomsRepository(ServiceLocator.get(Context.class), ServiceLocator.get(Moshi.class), ServiceLocator.get(SettingsRepository.class)));
 
         ServiceLocator.bindSingleton(ViewModelProvider.Factory.class, new ViewModelProvider.Factory() {
             @NonNull

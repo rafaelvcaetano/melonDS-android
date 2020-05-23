@@ -7,6 +7,8 @@ import me.magnum.melonds.ui.Theme;
 public interface SettingsRepository {
     Theme getTheme();
 
+    String[] getRomSearchDirectories();
+
     String getBiosDirectory();
     boolean showBootScreen();
 
@@ -18,4 +20,5 @@ public interface SettingsRepository {
     int getSoftInputOpacity();
 
     Observable<Theme> observeTheme();
+    Observable<String[]> observeRomSearchDirectories();
 }

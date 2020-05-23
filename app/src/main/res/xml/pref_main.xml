@@ -16,6 +16,17 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:title="ROMs">
+
+        <com.github.angads25.filepicker.view.FilePickerPreference
+                android:key="rom_search_dirs"
+                android:title="@string/rom_search_directories"
+                app:root_dir="/sdcard"
+                app:selection_mode="multi_mode"
+                app:selection_type="dir_select" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:title="@string/category_system">
 
         <com.github.angads25.filepicker.view.FilePickerPreference

@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.MenuItem;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
@@ -21,11 +22,11 @@ public class SettingsActivity extends AppCompatActivity {
 			String stringValue = value.toString();
 
 			if (preference instanceof FilePickerPreference) {
-				String directory = PreferenceDirectoryUtils.getSingleDirectoryFromPreference(stringValue);
-				if (directory == null)
-					directory = preference.getContext().getString(R.string.not_set);
+				String[] directory = PreferenceDirectoryUtils.getMultipleDirectoryFromPreference(stringValue);
+				if (directory.length == 0)
+					directory = new String[] { preference.getContext().getString(R.string.not_set) };
 
-				preference.setSummary(directory);
+				preference.setSummary(TextUtils.join("\n", directory));
 			} else if (preference instanceof ListPreference) {
 				// For list preferences, look up the correct display value in
 				// the preference's 'entries' list.

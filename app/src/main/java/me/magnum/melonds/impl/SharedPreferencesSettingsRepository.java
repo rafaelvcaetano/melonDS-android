@@ -42,6 +42,16 @@ public class SharedPreferencesSettingsRepository implements SettingsRepository, 
     }
 
     @Override
+    public String[] getRomSearchDirectories() {
+        String dirPreference = this.preferences.getString("rom_search_dirs", null);
+        String[] dirs = getMultipleDirectoryFromPreference(dirPreference);
+        if (dirs.length == 0)
+            dirs = new String[] { "/sdcard" };
+
+        return dirs;
+    }
+
+    @Override
     public String getBiosDirectory() {
         String dirPreference = this.preferences.getString("bios_dir", null);
         return getSingleDirectoryFromPreference(dirPreference);
@@ -75,21 +85,33 @@ public class SharedPreferencesSettingsRepository implements SettingsRepository, 
     }
 
     @Override
-    public Observable<Theme> observeTheme() {
-        PublishSubject<Object> themeSubject;
-        if (this.preferenceObservers.containsKey("theme")) {
-            themeSubject = this.preferenceObservers.get("theme");
-        } else {
-            themeSubject = PublishSubject.create();
-            this.preferenceObservers.put("theme", themeSubject);
-        }
+    public Observable<String[]> observeRomSearchDirectories() {
+        return getOrCreatePreferenceObservable("rom_search_dirs", new Function<Object, String[]>() {
+            @Override
+            public String[] apply(Object o) {
+                return getRomSearchDirectories();
+            }
+        });
+    }
 
-        return themeSubject.map(new Function<Object, Theme>() {
+    @Override
+    public Observable<Theme> observeTheme() {
+        return getOrCreatePreferenceObservable("theme", new Function<Object, Theme>() {
             @Override
             public Theme apply(Object o) {
                 return getTheme();
             }
         });
+    }
+
+    private <T> Observable<T> getOrCreatePreferenceObservable(String preference, Function<Object, T> mapper) {
+        PublishSubject<Object> preferenceSubject = this.preferenceObservers.get(preference);
+        if (preferenceSubject == null) {
+            preferenceSubject = PublishSubject.create();
+            this.preferenceObservers.put(preference, preferenceSubject);
+        }
+
+        return preferenceSubject.map(mapper);
     }
 
     @Override

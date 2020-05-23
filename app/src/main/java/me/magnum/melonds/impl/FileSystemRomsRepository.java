@@ -1,7 +1,6 @@
 package me.magnum.melonds.impl;
 
 import android.content.Context;
-import android.os.Environment;
 import android.util.Log;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
@@ -17,6 +16,7 @@ import me.magnum.melonds.model.Rom;
 import me.magnum.melonds.model.RomConfig;
 import me.magnum.melonds.model.RomScanningStatus;
 import me.magnum.melonds.repositories.RomsRepository;
+import me.magnum.melonds.repositories.SettingsRepository;
 import me.magnum.melonds.utils.RomProcessor;
 import okio.BufferedSink;
 import okio.BufferedSource;
@@ -33,6 +33,7 @@ public class FileSystemRomsRepository implements RomsRepository {
     private static final String ROM_DATA_FILE = "rom_data.json";
 
     private Context context;
+    private SettingsRepository settingsRepository;
     private JsonAdapter<List<Rom>> romListJsonAdapter;
     private BehaviorSubject<List<Rom>> romsSubject;
     private BehaviorSubject<RomScanningStatus> scanningStatusSubject;
@@ -40,8 +41,9 @@ public class FileSystemRomsRepository implements RomsRepository {
     private boolean areRomsLoaded = false;
     private ArrayList<Rom> roms;
 
-    public FileSystemRomsRepository(Context context, Moshi moshi) {
+    public FileSystemRomsRepository(Context context, Moshi moshi, SettingsRepository settingsRepository) {
         this.context = context;
+        this.settingsRepository = settingsRepository;
 
         Type romListType = Types.newParameterizedType(List.class, Rom.class);
         this.romListJsonAdapter = moshi.adapter(romListType);
@@ -57,6 +59,47 @@ public class FileSystemRomsRepository implements RomsRepository {
                         saveRomData(roms);
                     }
                 });
+
+        settingsRepository.observeRomSearchDirectories()
+                .subscribe(new Consumer<String[]>() {
+                    @Override
+                    public void accept(String[] directories) {
+                        onRomSearchDirectoriesChanged(directories);
+                    }
+                });
+    }
+
+    private void onRomSearchDirectoriesChanged(String[] searchDirectories) {
+        ArrayList<Rom> romsToRemove = new ArrayList<>();
+
+        for (Rom rom : roms) {
+            File romFile = new File(rom.getPath());
+            if (!romFile.isFile()) {
+                romsToRemove.add(rom);
+                continue;
+            }
+
+            boolean isInDirectories = false;
+            for (String directory : searchDirectories) {
+                File dir = new File(directory);
+                if (!dir.isDirectory())
+                    continue;
+
+                if (romFile.getAbsolutePath().startsWith(dir.getAbsolutePath())) {
+                    isInDirectories = true;
+                    break;
+                }
+            }
+
+            if (!isInDirectories)
+                romsToRemove.add(rom);
+        }
+
+        for (Rom rom : romsToRemove) {
+            removeRom(rom);
+        }
+
+        rescanRoms();
     }
 
     @Override
@@ -119,13 +162,9 @@ public class FileSystemRomsRepository implements RomsRepository {
         onRomsChanged();
     }
 
-    private void updateRom(Rom rom) {
-        int romIndex = roms.indexOf(rom);
-        if (romIndex < 0)
-            return;
-
-        roms.set(romIndex, rom);
-        onRomsChanged();
+    private void removeRom(Rom rom) {
+        if (this.roms.remove(rom))
+            onRomsChanged();
     }
 
     private void onRomsChanged() {
@@ -209,7 +248,8 @@ public class FileSystemRomsRepository implements RomsRepository {
 
             @Override
             public void subscribe(ObservableEmitter<Rom> emitter) {
-                findFiles(Environment.getExternalStorageDirectory(), emitter);
+                for (String directory : settingsRepository.getRomSearchDirectories())
+                    findFiles(new File(directory), emitter);
                 emitter.onComplete();
             }
         });
