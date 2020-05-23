@@ -2,13 +2,9 @@ package me.magnum.melonds.ui;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -17,19 +13,27 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import io.reactivex.*;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleObserver;
+import io.reactivex.SingleOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import me.magnum.melonds.*;
-import me.magnum.melonds.model.*;
+import me.magnum.melonds.model.ControllerConfiguration;
+import me.magnum.melonds.model.Input;
+import me.magnum.melonds.model.RendererConfiguration;
+import me.magnum.melonds.model.Rom;
 import me.magnum.melonds.parcelables.RomParcelable;
 import me.magnum.melonds.renderer.DSRenderer;
+import me.magnum.melonds.repositories.SettingsRepository;
 import me.magnum.melonds.ui.input.ButtonsInputHandler;
 import me.magnum.melonds.ui.input.DpadInputHandler;
 import me.magnum.melonds.ui.input.SingleButtonInputHandler;
 import me.magnum.melonds.ui.input.TouchscreenInputHandler;
-import me.magnum.melonds.utils.PreferenceDirectoryUtils;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -66,6 +70,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 	private ImageView imageToggleTouch;
 	private TextView textFps;
 
+	private SettingsRepository settingsRepository;
 	private INativeInputListener nativeInputListener;
 	private boolean emulatorReady;
 
@@ -76,6 +81,8 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		this.setupFullscreen();
 		setContentView(R.layout.activity_render);
+
+		this.settingsRepository = ServiceLocator.get(SettingsRepository.class);
 
 		RomParcelable romParcelable = getIntent().getParcelableExtra(KEY_ROM);
 		if (romParcelable == null || romParcelable.getRom() == null)
@@ -129,8 +136,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		Single.create(new SingleOnSubscribe<MelonEmulator.LoadResult>() {
 			@Override
 			public void subscribe(SingleEmitter<MelonEmulator.LoadResult> emitter) throws Exception {
-				boolean showBios = PreferenceManager.getDefaultSharedPreferences(RenderActivity.this)
-						.getBoolean("show_bios", false);
+				boolean showBios = settingsRepository.showBootScreen();
 
 				MelonEmulator.setupEmulator(getConfigDirPath());
 
@@ -184,11 +190,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 	}
 
 	private RendererConfiguration buildRendererConfiguration() {
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-		String filteringValue = preferences.getString("video_filtering", "");
-		VideoFiltering filtering = filteringValue != null ? VideoFiltering.valueOf(filteringValue.toUpperCase()) : VideoFiltering.LINEAR;
-		return new RendererConfiguration(filtering);
+		return new RendererConfiguration(this.settingsRepository.getVideoFiltering());
 	}
 
 	private void setupFullscreen() {
@@ -205,8 +207,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 	}
 
 	private void adjustInputOpacity() {
-		int opacity = PreferenceManager.getDefaultSharedPreferences(this).
-				getInt("input_opacity", 50);
+		int opacity = this.settingsRepository.getSoftInputOpacity();
 
 		float alpha = opacity / 100f;
 		this.inputButtonsLayout.setAlpha(alpha);
@@ -260,10 +261,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 	}
 
 	private String getConfigDirPath() {
-		String preference = PreferenceManager.getDefaultSharedPreferences(this)
-				.getString("bios_dir", null);
-
-		String path = PreferenceDirectoryUtils.getSingleDirectoryFromPreference(preference);
+		String path = this.settingsRepository.getBiosDirectory();
 
 		if (path == null)
 			throw new IllegalStateException("BIOS directory not set");
@@ -275,17 +273,13 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		File romFile = new File(romPath);
 		String filename = romFile.getName();
 
-		boolean useRomDir = PreferenceManager.getDefaultSharedPreferences(this)
-				.getBoolean("use_rom_dir", true);
+		boolean useRomDir = this.settingsRepository.saveNextToRomFile();
 
 		String sramDir;
 		if (useRomDir) {
 			sramDir = romFile.getParent();
 		} else {
-			String preference = PreferenceManager.getDefaultSharedPreferences(this)
-					.getString("sram_dir", null);
-
-			sramDir = PreferenceDirectoryUtils.getSingleDirectoryFromPreference(preference);
+			sramDir = this.settingsRepository.getSaveFileDirectory();
 
 			// If no directory is set, revert to using the ROM's directory
 			if (sramDir == null)

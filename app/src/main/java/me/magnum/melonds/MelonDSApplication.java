@@ -8,12 +8,18 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.preference.PreferenceManager;
 import com.squareup.moshi.Moshi;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import me.magnum.melonds.impl.FileSystemRomsRepository;
+import me.magnum.melonds.impl.SharedPreferencesSettingsRepository;
 import me.magnum.melonds.repositories.RomsRepository;
+import me.magnum.melonds.repositories.SettingsRepository;
 import me.magnum.melonds.ui.Theme;
 import me.magnum.melonds.ui.romlist.RomListViewModel;
 
 public class MelonDSApplication extends Application {
+    private Disposable themeObserverDisposable;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -25,6 +31,7 @@ public class MelonDSApplication extends Application {
         ServiceLocator.bindSingleton(new Moshi.Builder().build());
         ServiceLocator.bindSingleton(Context.class, getApplicationContext());
         ServiceLocator.bindSingleton(RomsRepository.class, new FileSystemRomsRepository(ServiceLocator.get(Context.class), ServiceLocator.get(Moshi.class)));
+        ServiceLocator.bindSingleton(SettingsRepository.class, new SharedPreferencesSettingsRepository(PreferenceManager.getDefaultSharedPreferences(this)));
 
         ServiceLocator.bindSingleton(ViewModelProvider.Factory.class, new ViewModelProvider.Factory() {
             @NonNull
@@ -39,8 +46,23 @@ public class MelonDSApplication extends Application {
     }
 
     private void applyTheme() {
-        String themeValue = PreferenceManager.getDefaultSharedPreferences(this).getString("theme", "light");
-        Theme theme = Theme.valueOf(themeValue.toUpperCase());
+        SettingsRepository settingsRepository = ServiceLocator.get(SettingsRepository.class);
+
+        Theme theme = settingsRepository.getTheme();
         AppCompatDelegate.setDefaultNightMode(theme.getNightMode());
+
+        this.themeObserverDisposable = settingsRepository.observeTheme().subscribe(new Consumer<Theme>() {
+            @Override
+            public void accept(Theme theme) {
+                AppCompatDelegate.setDefaultNightMode(theme.getNightMode());
+            }
+        });
+    }
+
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+        if (themeObserverDisposable != null)
+            themeObserverDisposable.dispose();
     }
 }

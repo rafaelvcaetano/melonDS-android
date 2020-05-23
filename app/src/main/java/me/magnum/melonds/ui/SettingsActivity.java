@@ -5,8 +5,10 @@ import android.view.MenuItem;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.preference.*;
+import androidx.preference.ListPreference;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 import com.github.angads25.filepicker.view.FilePickerPreference;
 import me.magnum.melonds.R;
 import me.magnum.melonds.utils.PreferenceDirectoryUtils;
@@ -91,17 +93,6 @@ public class SettingsActivity extends AppCompatActivity {
 
 			bindPreferenceSummaryToValue(findPreference("bios_dir"));
 			bindPreferenceSummaryToValue(findPreference("sram_dir"));
-			findPreference("theme").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-				@Override
-				public boolean onPreferenceChange(Preference preference, Object newValue) {
-					String stringValue = newValue.toString();
-					Theme theme = Theme.valueOf(stringValue.toUpperCase());
-
-					AppCompatDelegate.setDefaultNightMode(theme.getNightMode());
-					((AppCompatActivity) getActivity()).getDelegate().applyDayNight();
-					return true;
-				}
-			});
 		}
 	}
 }

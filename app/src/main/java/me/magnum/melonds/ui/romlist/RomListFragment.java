@@ -21,7 +21,6 @@ import androidx.core.widget.ImageViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,6 +30,7 @@ import me.magnum.melonds.ServiceLocator;
 import me.magnum.melonds.model.Rom;
 import me.magnum.melonds.model.RomConfig;
 import me.magnum.melonds.model.RomScanningStatus;
+import me.magnum.melonds.repositories.SettingsRepository;
 import me.magnum.melonds.ui.SettingsActivity;
 import me.magnum.melonds.utils.ConfigurationUtils;
 import me.magnum.melonds.utils.RomProcessor;
@@ -43,6 +43,7 @@ public class RomListFragment extends Fragment {
 	private static final int REQUEST_STORAGE_PERMISSION = 1;
 
 	private RomListViewModel romListViewModel;
+	private SettingsRepository settingsRepository;
 	private RomSelectedListener romSelectedListener;
 
 	private SwipeRefreshLayout swipeRefreshLayout;
@@ -77,6 +78,7 @@ public class RomListFragment extends Fragment {
 	public void onActivityCreated(@Nullable Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
+		this.settingsRepository = ServiceLocator.get(SettingsRepository.class);
 		this.romListViewModel = new ViewModelProvider(this, ServiceLocator.get(ViewModelProvider.Factory.class)).get(RomListViewModel.class);
 
 		this.romListAdapter = new RomListAdapter(getContext());
@@ -165,28 +167,14 @@ public class RomListFragment extends Fragment {
 	}
 
 	private boolean isConfigDirectorySetup() {
-		String configDir = PreferenceManager.getDefaultSharedPreferences(getContext())
-				.getString("bios_dir", null);
-
-		if (configDir != null) {
-			String[] parts = configDir.split(":");
-			if (parts.length > 0)
-				configDir = parts[0];
-		}
+		String configDir = this.settingsRepository.getBiosDirectory();
 
 		ConfigurationUtils.ConfigurationDirStatus dirStatus = ConfigurationUtils.checkConfigurationDirectory(configDir);
 		return dirStatus == ConfigurationUtils.ConfigurationDirStatus.VALID;
 	}
 
 	private boolean checkConfigDirectorySetup() {
-		String configDir = PreferenceManager.getDefaultSharedPreferences(getContext())
-				.getString("bios_dir", null);
-
-		if (configDir != null) {
-			String[] parts = configDir.split(":");
-			if (parts.length > 0)
-				configDir = parts[0];
-		}
+		String configDir = this.settingsRepository.getBiosDirectory();
 
 		ConfigurationUtils.ConfigurationDirStatus dirStatus = ConfigurationUtils.checkConfigurationDirectory(configDir);
 		if (dirStatus == ConfigurationUtils.ConfigurationDirStatus.VALID)
