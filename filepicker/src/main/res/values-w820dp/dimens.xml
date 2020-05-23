@@ -1,0 +1,6 @@
+<resources>
+    <dimen name="activity_margin">8dp</dimen>
+    <dimen name="checkbox_margin">16dp</dimen>
+    <dimen name="toolbar_image_margin">32dp</dimen>
+    <dimen name="checkbox_dimens">32dp</dimen>
+</resources>
