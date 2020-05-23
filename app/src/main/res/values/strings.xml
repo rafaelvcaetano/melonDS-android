@@ -2,6 +2,7 @@
     <string name="app_name">melonDS</string>
 
     <string name="ok">OK</string>
+    <string name="not_set">Not set</string>
 
     <string name="error_load_rom">Could not load ROM</string>
     <string name="error_load_gba_rom">Could not load GBA ROM</string>

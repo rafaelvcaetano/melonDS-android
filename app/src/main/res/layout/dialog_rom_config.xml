@@ -86,11 +86,6 @@
             </LinearLayout>
         </LinearLayout>
 
-        <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/romConfigPrefSeparator" />
-
         <LinearLayout
                 android:id="@+id/layout_rom_config_gba_rom_path"
                 android:layout_width="match_parent"
@@ -138,11 +133,6 @@
                         tools:text="/storage/emulated/0/Emulators/GBA/Mario.gba" />
             </RelativeLayout>
         </LinearLayout>
-
-        <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/romConfigPrefSeparator" />
 
         <LinearLayout
                 android:id="@+id/layout_rom_config_gba_save_path"

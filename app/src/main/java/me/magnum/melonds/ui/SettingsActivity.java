@@ -22,6 +22,9 @@ public class SettingsActivity extends AppCompatActivity {
 
 			if (preference instanceof FilePickerPreference) {
 				String directory = PreferenceDirectoryUtils.getSingleDirectoryFromPreference(stringValue);
+				if (directory == null)
+					directory = preference.getContext().getString(R.string.not_set);
+
 				preference.setSummary(directory);
 			} else if (preference instanceof ListPreference) {
 				// For list preferences, look up the correct display value in
@@ -33,7 +36,7 @@ public class SettingsActivity extends AppCompatActivity {
 				preference.setSummary(
 						index >= 0
 								? listPreference.getEntries()[index]
-								: null);
+								: preference.getContext().getString(R.string.not_set));
 
 			} else {
 				// For all other preferences, set the summary to the value's
@@ -91,6 +94,7 @@ public class SettingsActivity extends AppCompatActivity {
 		public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
 			setPreferencesFromResource(R.xml.pref_main, rootKey);
 
+			bindPreferenceSummaryToValue(findPreference("rom_search_dirs"));
 			bindPreferenceSummaryToValue(findPreference("bios_dir"));
 			bindPreferenceSummaryToValue(findPreference("sram_dir"));
 		}

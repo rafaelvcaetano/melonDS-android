@@ -111,8 +111,8 @@ public class RomConfigDialog extends AlertDialog {
 
         ((DialogTitle) this.findViewById(R.id.text_rom_config_title)).setText(title);
         this.loadGbaRomSwitch.setChecked(romConfig.loadGbaCart());
-        this.gbaRomPathTextView.setText(romConfig.getGbaCartPath());
-        this.gbaSavePathTextView.setText(romConfig.getGbaSavePath());
+        this.gbaRomPathTextView.setText(getPathOrDefault(romConfig.getGbaCartPath()));
+        this.gbaSavePathTextView.setText(getPathOrDefault(romConfig.getGbaSavePath()));
         UIUtils.setViewEnabled(this.prefGbaRomPathView, romConfig.loadGbaCart());
         UIUtils.setViewEnabled(this.prefGbaSavePathView, romConfig.loadGbaCart());
 
@@ -145,11 +145,18 @@ public class RomConfigDialog extends AlertDialog {
 
     private void onGbaRomPathSelected(String romPath) {
         this.romConfig.setGbaCartPath(romPath);
-        this.gbaRomPathTextView.setText(romPath);
+        this.gbaRomPathTextView.setText(getPathOrDefault(romPath));
     }
 
     private void onGbaSavePathSelected(String savePath) {
         this.romConfig.setGbaSavePath(savePath);
-        this.gbaSavePathTextView.setText(savePath);
+        this.gbaSavePathTextView.setText(getPathOrDefault(savePath));
+    }
+
+    private String getPathOrDefault(String path) {
+        if (path != null)
+            return path;
+
+        return getContext().getString(R.string.not_set);
     }
 }
