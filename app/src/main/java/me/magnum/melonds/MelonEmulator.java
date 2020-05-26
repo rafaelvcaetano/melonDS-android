@@ -2,6 +2,7 @@ package me.magnum.melonds;
 
 import java.nio.ByteBuffer;
 
+import android.content.res.AssetManager;
 import me.magnum.melonds.model.Input;
 
 public final class MelonEmulator {
@@ -14,7 +15,7 @@ public final class MelonEmulator {
 	private MelonEmulator() {
 	}
 
-	public static native void setupEmulator(String configDir);
+	public static native void setupEmulator(String configDir, AssetManager assetManager);
 
 	public static LoadResult loadRom(String romPath, String sramPath, boolean loadDirect, boolean loadGbaRom, String gbaRomPath, String gbaSramPath) {
 		int loadResult = loadRomInternal(romPath, sramPath, loadDirect, loadGbaRom, gbaRomPath, gbaSramPath);

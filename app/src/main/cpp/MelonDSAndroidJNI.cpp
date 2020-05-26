@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <MelonDS.h>
 #include <InputAndroid.h>
+#include <android/asset_manager_jni.h>
 
 void* emulate(void*);
 
@@ -16,10 +17,14 @@ bool paused;
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jclass type, jstring configDir)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jclass type, jstring configDir, jobject javaAssetManager)
 {
     const char* dir = env->GetStringUTFChars(configDir, JNI_FALSE);
-    MelonDSAndroid::setup(const_cast<char *>(dir));
+
+    jobject globalAssetManager = env->NewGlobalRef(javaAssetManager);
+    AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
+
+    MelonDSAndroid::setup(const_cast<char *>(dir), assetManager);
 }
 
 JNIEXPORT jint JNICALL

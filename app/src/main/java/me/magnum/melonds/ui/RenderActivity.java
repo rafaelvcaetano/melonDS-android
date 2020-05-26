@@ -138,7 +138,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 			public void subscribe(SingleEmitter<MelonEmulator.LoadResult> emitter) throws Exception {
 				boolean showBios = settingsRepository.showBootScreen();
 
-				MelonEmulator.setupEmulator(getConfigDirPath());
+				MelonEmulator.setupEmulator(getConfigDirPath(), getAssets());
 
 				String sramPath = getSRAMPath(rom.getPath());
 
