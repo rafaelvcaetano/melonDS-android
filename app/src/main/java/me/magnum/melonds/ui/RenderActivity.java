@@ -315,7 +315,10 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent event) {
-		return this.nativeInputListener.onKeyEvent(event);
+		if (this.nativeInputListener.onKeyEvent(event))
+			return true;
+
+		return super.dispatchKeyEvent(event);
 	}
 
 	@Override
