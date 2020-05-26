@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <cstdlib>
 #include <MelonDS.h>
 #include <InputAndroid.h>
 #include <android/asset_manager_jni.h>
@@ -13,6 +14,9 @@ pthread_cond_t emuThreadCond;
 
 bool stop;
 bool paused;
+int observedFrames = 0;
+int fps = 0;
+bool limitFps = true;
 
 extern "C"
 {
@@ -43,6 +47,7 @@ Java_me_magnum_melonds_MelonEmulator_startEmulation( JNIEnv* env, jclass type)
 {
     stop = false;
     paused = false;
+    limitFps = true;
 
     pthread_mutex_init(&emuThreadMutex, NULL);
     pthread_cond_init(&emuThreadCond, NULL);
@@ -59,7 +64,7 @@ Java_me_magnum_melonds_MelonEmulator_copyFrameBuffer( JNIEnv* env, jclass type, 
 JNIEXPORT jint JNICALL
 Java_me_magnum_melonds_MelonEmulator_getFPS( JNIEnv* env, jclass type)
 {
-    return MelonDSAndroid::getFPS();
+    return fps;
 }
 
 JNIEXPORT void JNICALL
@@ -125,14 +130,20 @@ Java_me_magnum_melonds_MelonEmulator_onKeyRelease( JNIEnv* env, jclass type, jin
 }
 }
 
+double getCurrentMillis() {
+    timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+    return (now.tv_sec * 1000.0) + now.tv_nsec / 1000000.0;
+}
+
 void* emulate(void*)
 {
-    struct timespec now;
-    double nowMillis;
-    clock_gettime(CLOCK_REALTIME, &now);
+    double startTick = getCurrentMillis();
+    double lastTick = startTick;
+    double lastMeasureFpsTick = startTick;
+    int fpsLimitCount = 0;
 
-    nowMillis = (now.tv_sec * 1000.0) + now.tv_nsec / 1000000.0;
-    MelonDSAndroid::start(nowMillis);
+    MelonDSAndroid::start();
 
     for (;;)
     {
@@ -147,19 +158,42 @@ void* emulate(void*)
 
         pthread_mutex_unlock(&emuThreadMutex);
 
-        clock_gettime(CLOCK_REALTIME, &now);
-        nowMillis = (now.tv_sec * 1000.0) + now.tv_nsec / 1000000.0;
+        u32 nLines = MelonDSAndroid::loop();
 
-        MelonDSAndroid::loop(nowMillis);
+        float frameRate = (1000.0f * nLines) / (60.0f * 263.0f);
 
-        clock_gettime(CLOCK_REALTIME, &now);
-        double afterMillis = (now.tv_sec * 1000.0) + now.tv_nsec / 1000000.0;
+        double currentTick = getCurrentMillis();
+        double delay = currentTick - lastTick;
 
-        double delta = afterMillis - nowMillis;
-        if (delta < 1000 / 60.0)
+        if (limitFps)
         {
-            usleep((1000 / 60.0 - delta) * 1000);
+            double wantedTickF = startTick + (frameRate * (fpsLimitCount + 1));
+            u64 wantedTick = (u64) ceil(wantedTickF);
+            if (currentTick < wantedTick)
+                usleep((wantedTick - currentTick) * 1000);
+
+            lastTick = getCurrentMillis();
+            fpsLimitCount++;
+            if ((abs(wantedTickF - (float) wantedTick) < 0.001312) || fpsLimitCount > 60)
+            {
+                fpsLimitCount = 0;
+                startTick = lastTick;
+            }
+        } else {
+            if (delay < 1)
+                usleep(1000);
+
+            lastTick = getCurrentMillis();
         }
+
+        observedFrames++;
+        if (observedFrames >= 30) {
+            double currentFpsTick = getCurrentMillis();
+            fps = (int) (observedFrames * 1000.0) / (currentFpsTick - lastMeasureFpsTick);
+            lastMeasureFpsTick = currentFpsTick;
+            observedFrames = 0;
+        }
+
     }
 
     MelonDSAndroid::cleanup();
