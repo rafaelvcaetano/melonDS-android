@@ -26,6 +26,7 @@ public class RomProcessor {
 		fis.skip(bannerOffset + 576 - (0x68 + 4));
 		byte[] titleData = new byte[128];
 		fis.read(titleData);
+		fis.close();
 		return new String(titleData, Charset.forName("UTF-16LE"))
 				.trim()
 				.replace("\nNintendo", "")
@@ -53,6 +54,7 @@ public class RomProcessor {
 
 		byte[] paletteData = new byte[16 * 2];
 		fis.read(paletteData);
+		fis.close();
 		short[] palette = new short[16];
 		for (int i = 0; i < 16; i++) {
 			// Each palette color is 16 bits. Join pairs of bytes to create the correct color
@@ -73,7 +75,8 @@ public class RomProcessor {
 
 	private static int byteArrayToInt(byte[] intData) {
 		// NDS is little endian. Reorder bytes as needed
-		return (int) intData[0] | (intData[1] << 8) | (intData[2] << 16) | (intData[3] << 24);
+		// Also make sure that every byte is treated as an unsigned integer
+		return (intData[0] & 0xFF) | ((intData[1] & 0xFF) << 8) | ((intData[2] & 0xFF) << 16) | ((intData[3] & 0xFF) << 24);
 	}
 
 	private static short[] processTiles(byte[] tileData, short[] palette) {
