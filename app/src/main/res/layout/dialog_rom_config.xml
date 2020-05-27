@@ -195,7 +195,7 @@
             android:paddingRight="12dp"
             android:paddingTop="4dp">
 
-        <androidx.legacy.widget.Space
+        <Space
                 android:id="@+id/spacer"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
