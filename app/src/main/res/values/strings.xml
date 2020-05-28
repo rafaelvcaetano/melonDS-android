@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">melonDS</string>
 
     <string name="ok">OK</string>
@@ -44,6 +44,10 @@
     <string name="label_rom_config_gba_rom_path">GBA ROM path</string>
     <string name="label_rom_config_gba_save_path">GBA save path</string>
 
+    <string name="theme_option_light">Light</string>
+    <string name="theme_option_dark">Dark</string>
+    <string name="theme_option_system_default">System default</string>
+
     <string name="input_a">A</string>
     <string name="input_b">B</string>
     <string name="input_x">X</string>
@@ -60,9 +64,9 @@
     <string name="input_pause">Pause</string>
     <string name="input_fast_forward">Fast Forward</string>
 
-    <string-array name="theme_options">
-        <item>Light</item>
-        <item>Dark</item>
+    <string-array name="theme_options" tools:ignore="InconsistentArrays">
+        <item>@string/theme_option_light</item>
+        <item>@string/theme_option_dark</item>
     </string-array>
 
     <string-array name="video_filtering_options">
