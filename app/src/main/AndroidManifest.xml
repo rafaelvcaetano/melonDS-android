@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="me.magnum.melonds">
+        package="me.magnum.melonds">
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:name=".MelonDSApplication"
@@ -18,7 +18,6 @@
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
@@ -37,6 +36,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="me.magnum.melonds.ui.MainActivity"/>
         </activity>
+        <activity
+            android:name=".ui.inputsetup.InputSetupActivity"
+            android:label="@string/key_mapping"
+            android:parentActivityName=".ui.SettingsActivity">
+            <intent-filter>
+                <action android:name="me.magnum.melonds.SETUP_INPUT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
     </application>
-
 </manifest>

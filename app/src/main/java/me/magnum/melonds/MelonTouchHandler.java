@@ -2,6 +2,7 @@ package me.magnum.melonds;
 
 import me.magnum.melonds.model.Input;
 import me.magnum.melonds.model.Point;
+import me.magnum.melonds.ui.input.IInputListener;
 
 public class MelonTouchHandler implements IInputListener {
 	@Override

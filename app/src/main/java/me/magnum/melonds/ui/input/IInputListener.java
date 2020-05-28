@@ -1,4 +1,4 @@
-package me.magnum.melonds;
+package me.magnum.melonds.ui.input;
 
 import me.magnum.melonds.model.Input;
 import me.magnum.melonds.model.Point;

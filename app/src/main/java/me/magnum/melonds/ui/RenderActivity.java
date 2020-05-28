@@ -6,7 +6,6 @@ import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
@@ -23,21 +22,17 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import me.magnum.melonds.*;
-import me.magnum.melonds.model.ControllerConfiguration;
 import me.magnum.melonds.model.Input;
+import me.magnum.melonds.model.Point;
 import me.magnum.melonds.model.RendererConfiguration;
 import me.magnum.melonds.model.Rom;
 import me.magnum.melonds.parcelables.RomParcelable;
 import me.magnum.melonds.renderer.DSRenderer;
 import me.magnum.melonds.repositories.SettingsRepository;
-import me.magnum.melonds.ui.input.ButtonsInputHandler;
-import me.magnum.melonds.ui.input.DpadInputHandler;
-import me.magnum.melonds.ui.input.SingleButtonInputHandler;
-import me.magnum.melonds.ui.input.TouchscreenInputHandler;
+import me.magnum.melonds.ui.input.*;
 
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
 
 public class RenderActivity extends AppCompatActivity implements DSRenderer.RendererListener {
 	static {
@@ -71,6 +66,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 	private TextView textFps;
 
 	private SettingsRepository settingsRepository;
+	private MelonTouchHandler melonTouchHandler;
 	private INativeInputListener nativeInputListener;
 	private boolean emulatorReady;
 
@@ -90,7 +86,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 
 		final Rom rom = romParcelable.getRom();
 
-		MelonTouchHandler melonTouchHandler = new MelonTouchHandler();
+		this.melonTouchHandler = new MelonTouchHandler();
 
 		this.dsRenderer = new DSRenderer(this.buildRendererConfiguration());
 		this.dsRenderer.setRendererListener(this);
@@ -116,9 +112,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		findViewById(R.id.image_button_select).setOnTouchListener(new SingleButtonInputHandler(melonTouchHandler, Input.SELECT));
 		findViewById(R.id.image_button_start).setOnTouchListener(new SingleButtonInputHandler(melonTouchHandler, Input.START));
 		this.adjustInputOpacity();
-
-		// TODO: load configuration from preferences
-		this.nativeInputListener = new InputProcessor(new ControllerConfiguration(new HashMap<Integer, Input>(), 0f), melonTouchHandler);
+		this.setupInputHandling();
 
 		imageToggleTouch.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -214,8 +208,23 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		this.imageToggleTouch.setAlpha(alpha);
 	}
 
+	private void setupInputHandling() {
+		this.nativeInputListener = new InputProcessor(settingsRepository.getControllerConfiguration(), melonTouchHandler, new FrontendInputHandler() {
+			public void onPausePressed() {
+				pauseEmulation();
+			}
+
+			public void onFastForwardPressed() {
+			}
+		});
+	}
+
 	@Override
 	public void onBackPressed() {
+		this.pauseEmulation();
+	}
+
+	private void pauseEmulation() {
 		final PauseMenuOptions[] values = PauseMenuOptions.values();
 		String[] options = new String[values.length];
 		for (int i = 0; i < values.length; i++) {
@@ -256,6 +265,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 			case REQUEST_SETTINGS:
 				this.dsRenderer.updateRendererConfiguration(this.buildRendererConfiguration());
 				this.adjustInputOpacity();
+				this.setupInputHandling();
 				break;
 		}
 	}
@@ -306,11 +316,6 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 				inputArea.setLayoutParams(params);
 			}
 		});
-	}
-
-	@Override
-	public boolean dispatchGenericMotionEvent(MotionEvent ev) {
-		return this.nativeInputListener.onMotionEvent(ev);
 	}
 
 	@Override

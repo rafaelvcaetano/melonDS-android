@@ -15,6 +15,7 @@ import me.magnum.melonds.impl.SharedPreferencesSettingsRepository;
 import me.magnum.melonds.repositories.RomsRepository;
 import me.magnum.melonds.repositories.SettingsRepository;
 import me.magnum.melonds.ui.Theme;
+import me.magnum.melonds.ui.inputsetup.InputSetupViewModel;
 import me.magnum.melonds.ui.romlist.RomListViewModel;
 
 public class MelonDSApplication extends Application {
@@ -30,7 +31,7 @@ public class MelonDSApplication extends Application {
     private void initializeServiceLocator() {
         ServiceLocator.bindSingleton(new Moshi.Builder().build());
         ServiceLocator.bindSingleton(Context.class, getApplicationContext());
-        ServiceLocator.bindSingleton(SettingsRepository.class, new SharedPreferencesSettingsRepository(PreferenceManager.getDefaultSharedPreferences(this)));
+        ServiceLocator.bindSingleton(SettingsRepository.class, new SharedPreferencesSettingsRepository(this, PreferenceManager.getDefaultSharedPreferences(this), ServiceLocator.get(Moshi.class)));
         ServiceLocator.bindSingleton(RomsRepository.class, new FileSystemRomsRepository(ServiceLocator.get(Context.class), ServiceLocator.get(Moshi.class), ServiceLocator.get(SettingsRepository.class)));
 
         ServiceLocator.bindSingleton(ViewModelProvider.Factory.class, new ViewModelProvider.Factory() {
@@ -39,6 +40,8 @@ public class MelonDSApplication extends Application {
             public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
                 if (modelClass == RomListViewModel.class)
                     return (T) new RomListViewModel(ServiceLocator.get(RomsRepository.class));
+                if (modelClass == InputSetupViewModel.class)
+                    return (T) new InputSetupViewModel(ServiceLocator.get(SettingsRepository.class));
 
                 throw new RuntimeException("ViewModel of type " + modelClass.getName() + " is not supported");
             }

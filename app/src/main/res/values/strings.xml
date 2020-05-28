@@ -18,6 +18,8 @@
     <string name="storage_permission_required_info">Storage permission is required to search ROMs on your device. Please grant access to storage on the next dialog.</string>
     <string name="info_no_storage_permission">Cannot find ROMS without storage permission</string>
 
+    <string name="press_any_button">Press any button…</string>
+
     <string name="pause">Pause</string>
     <string name="exit">Exit</string>
 
@@ -30,15 +32,33 @@
     <string name="bios_directory">BIOS directory</string>
     <string name="show_boot_screen">Show boot screen</string>
     <string name="category_video">Video</string>
+    <string name="filtering">Filtering</string>
     <string name="category_save_files">Save Files</string>
     <string name="save_next_rom">Save next to ROM file</string>
     <string name="save_file_directory">Save file directory</string>
     <string name="input">Input</string>
+    <string name="key_mapping">Key mapping</string>
     <string name="soft_input_opacity">Soft input opacity</string>
 
     <string name="label_rom_config_load_gba_rom">Load GBA ROM</string>
     <string name="label_rom_config_gba_rom_path">GBA ROM path</string>
     <string name="label_rom_config_gba_save_path">GBA save path</string>
+
+    <string name="input_a">A</string>
+    <string name="input_b">B</string>
+    <string name="input_x">X</string>
+    <string name="input_y">Y</string>
+    <string name="input_left">Left</string>
+    <string name="input_right">Right</string>
+    <string name="input_up">Up</string>
+    <string name="input_down">Down</string>
+    <string name="input_l">L</string>
+    <string name="input_r">R</string>
+    <string name="input_start">Start</string>
+    <string name="input_select">Select</string>
+    <string name="input_lid">Toggle Lid</string>
+    <string name="input_pause">Pause</string>
+    <string name="input_fast_forward">Fast Forward</string>
 
     <string-array name="theme_options">
         <item>Light</item>

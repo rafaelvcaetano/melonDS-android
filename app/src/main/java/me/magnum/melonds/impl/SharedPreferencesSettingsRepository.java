@@ -1,22 +1,40 @@
 package me.magnum.melonds.impl;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.util.Log;
+import com.squareup.moshi.Moshi;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.reactivex.subjects.PublishSubject;
+import me.magnum.melonds.model.ControllerConfiguration;
 import me.magnum.melonds.model.VideoFiltering;
 import me.magnum.melonds.repositories.SettingsRepository;
 import me.magnum.melonds.ui.Theme;
+import okio.BufferedSink;
+import okio.BufferedSource;
+import okio.Okio;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 
 public class SharedPreferencesSettingsRepository implements SettingsRepository, SharedPreferences.OnSharedPreferenceChangeListener {
+    private static final String TAG = "SPSettingsRepository";
+    private static final String CONTROLLER_CONFIG_FILE = "controller_config.json";
+
+    private Context context;
     private SharedPreferences preferences;
+    private Moshi moshi;
+
+    private ControllerConfiguration controllerConfiguration;
     private HashMap<String, PublishSubject<Object>> preferenceObservers;
 
-    public SharedPreferencesSettingsRepository(SharedPreferences preferences) {
+    public SharedPreferencesSettingsRepository(Context context, SharedPreferences preferences, Moshi moshi) {
+        this.context = context;
         this.preferences = preferences;
+        this.moshi = moshi;
         this.preferenceObservers = new HashMap<>();
         this.preferences.registerOnSharedPreferenceChangeListener(this);
         setDefaultThemeIfRequired();
@@ -80,6 +98,26 @@ public class SharedPreferencesSettingsRepository implements SettingsRepository, 
     }
 
     @Override
+    public ControllerConfiguration getControllerConfiguration() {
+        if (this.controllerConfiguration == null) {
+            try {
+                File configFile = new File(this.context.getFilesDir(), CONTROLLER_CONFIG_FILE);
+                BufferedSource source = Okio.buffer(Okio.source(configFile));
+                ControllerConfiguration loadedConfiguration = this.moshi.adapter(ControllerConfiguration.class).fromJson(source);
+                source.close();
+
+                // Create new instance to validate loaded configuration
+                this.controllerConfiguration = new ControllerConfiguration(loadedConfiguration.getConfigList());
+            } catch (IOException e) {
+                Log.w(TAG, "Failed to load controller configuration", e);
+                this.controllerConfiguration = ControllerConfiguration.empty();
+            }
+        }
+
+        return this.controllerConfiguration;
+    }
+
+    @Override
     public int getSoftInputOpacity() {
         return this.preferences.getInt("input_opacity", 50);
     }
@@ -92,6 +130,19 @@ public class SharedPreferencesSettingsRepository implements SettingsRepository, 
                 return getRomSearchDirectories();
             }
         });
+    }
+
+    @Override
+    public void setControllerConfiguration(ControllerConfiguration controllerConfiguration) {
+        this.controllerConfiguration = controllerConfiguration;
+        try {
+            File configFile = new File(this.context.getFilesDir(), CONTROLLER_CONFIG_FILE);
+            BufferedSink output = Okio.buffer(Okio.sink(configFile));
+            this.moshi.adapter(ControllerConfiguration.class).toJson(output, controllerConfiguration);
+            output.close();
+        } catch (IOException e) {
+            Log.w(TAG, "Failed to save controller configuration", e);
+        }
     }
 
     @Override

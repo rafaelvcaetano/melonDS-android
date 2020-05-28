@@ -3,8 +3,6 @@ package me.magnum.melonds.ui.input;
 import android.view.MotionEvent;
 import android.view.View;
 
-import me.magnum.melonds.IInputListener;
-import me.magnum.melonds.MelonEmulator;
 import me.magnum.melonds.model.Input;
 
 public class DpadInputHandler extends BaseInputHandler {

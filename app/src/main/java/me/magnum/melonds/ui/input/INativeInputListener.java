@@ -1,9 +1,7 @@
-package me.magnum.melonds;
+package me.magnum.melonds.ui.input;
 
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 
 public interface INativeInputListener {
-	boolean onMotionEvent(MotionEvent motionEvent);
 	boolean onKeyEvent(KeyEvent keyEvent);
 }

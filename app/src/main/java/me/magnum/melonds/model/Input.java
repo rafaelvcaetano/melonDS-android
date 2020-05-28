@@ -15,15 +15,29 @@ public enum Input {
 	Y(17 + 1),
 	DEBUG(16 + 3),
 	TOUCHSCREEN(16 + 6),
-	HINGE(16 + 7);
+	HINGE(16 + 7),
+	PAUSE(-1),
+	FAST_FORWARD(-1);
 
 	private int keyCode;
 
+	/**
+	 * Creates a new Input representation assigned to the given key code. If the input does not
+	 * represent a system input (i.e., it represents additional functionality offered by the
+	 * emulator), a key code of -1 must be used.
+	 *
+	 * @param keyCode The key code that the input represents in the system or -1 if it is not
+	 *                   assigned to any system input
+	 */
 	Input(int keyCode) {
 		this.keyCode = keyCode;
 	}
 
 	public int getKeyCode() {
 		return this.keyCode;
+	}
+
+	public boolean isSystemInput() {
+		return keyCode != -1;
 	}
 }
