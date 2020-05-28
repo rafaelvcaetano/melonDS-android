@@ -82,6 +82,10 @@ public class InputSetupViewModel extends ViewModel {
         }
     }
 
+    public void clearInput(Input input) {
+        updateInputConfig(input, InputConfig.KEY_NOT_SET);
+    }
+
     private void onConfigsChanged() {
         inputConfigsBehaviour.onNext(this.inputConfigs);
 

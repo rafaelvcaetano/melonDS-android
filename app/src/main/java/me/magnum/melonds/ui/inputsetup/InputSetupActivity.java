@@ -5,6 +5,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -44,6 +45,19 @@ public class InputSetupActivity extends AppCompatActivity {
                 viewModel.startUpdatingInputConfig(inputConfig.getInput());
                 waitingForInput = true;
                 inputUnderConfiguration = inputConfig;
+            }
+
+            @Override
+            public void onInputConfigCleared(InputConfig inputConfig) {
+                if (inputUnderConfiguration != null) {
+                    if (inputConfig.getInput() == inputUnderConfiguration.getInput())
+                        viewModel.stopUpdatingInputConfig(inputConfig.getInput());
+
+                    inputUnderConfiguration = null;
+                    waitingForInput = false;
+                }
+
+                viewModel.clearInput(inputConfig.getInput());
             }
         });
         this.inputListAdapter.setHasStableIds(true);
@@ -104,6 +118,7 @@ public class InputSetupActivity extends AppCompatActivity {
         public class InputViewHolder extends RecyclerView.ViewHolder {
             private TextView textInputName;
             private TextView textAssignedInputName;
+            private ImageView imageClearInput;
 
             private StatefulInputConfig inputConfig;
 
@@ -111,6 +126,7 @@ public class InputSetupActivity extends AppCompatActivity {
                 super(itemView);
                 this.textInputName = itemView.findViewById(R.id.text_input_name);
                 this.textAssignedInputName = itemView.findViewById(R.id.text_assigned_input_name);
+                this.imageClearInput = itemView.findViewById(R.id.image_input_clear);
             }
 
             public void setInputConfig(StatefulInputConfig config) {
@@ -166,6 +182,12 @@ public class InputSetupActivity extends AppCompatActivity {
                     inputConfigClickedListener.onInputConfigClicked(viewHolder.getInputConfig());
                 }
             });
+            viewHolder.imageClearInput.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    inputConfigClickedListener.onInputConfigCleared(viewHolder.getInputConfig());
+                }
+            });
 
             return viewHolder;
         }
@@ -188,5 +210,6 @@ public class InputSetupActivity extends AppCompatActivity {
 
     private interface OnInputConfigClickedListener {
         void onInputConfigClicked(InputConfig inputConfig);
+        void onInputConfigCleared(InputConfig inputConfig);
     }
 }

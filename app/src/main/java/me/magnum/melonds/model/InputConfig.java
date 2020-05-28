@@ -3,6 +3,8 @@ package me.magnum.melonds.model;
 import androidx.annotation.NonNull;
 
 public class InputConfig {
+    public static final int KEY_NOT_SET = -1;
+
     private Input input;
     private int key;
 
@@ -12,7 +14,7 @@ public class InputConfig {
     }
 
     public InputConfig(Input input) {
-        this(input, -1);
+        this(input, KEY_NOT_SET);
     }
 
     public Input getInput() {
@@ -28,7 +30,7 @@ public class InputConfig {
     }
 
     public boolean hasKeyAssigned() {
-        return key != -1;
+        return key != KEY_NOT_SET;
     }
 
     @NonNull
