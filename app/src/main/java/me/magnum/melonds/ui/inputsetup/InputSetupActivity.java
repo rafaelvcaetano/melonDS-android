@@ -139,6 +139,8 @@ public class InputSetupActivity extends AppCompatActivity {
                 else
                     this.textInputName.setText(inputNameResource);
 
+                this.imageClearInput.setVisibility(config.getInputConfig().hasKeyAssigned() ? View.VISIBLE : View.GONE);
+
                 if (config.isBeingConfigured()) {
                     this.textAssignedInputName.setText(R.string.press_any_button);
                 } else {
