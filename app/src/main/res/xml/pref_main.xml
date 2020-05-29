@@ -81,9 +81,15 @@
             <intent android:action="me.magnum.melonds.SETUP_INPUT" />
         </Preference>
 
+        <SwitchPreference
+            android:key="input_show_soft"
+            android:title="@string/show_soft_input"
+            android:defaultValue="true" />
+
         <SeekBarPreference
             android:key="input_opacity"
             android:title="@string/soft_input_opacity"
+            android:dependency="input_show_soft"
             android:defaultValue="50"
             android:max="100" />
     </PreferenceCategory>

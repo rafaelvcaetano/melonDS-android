@@ -23,7 +23,6 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import me.magnum.melonds.*;
 import me.magnum.melonds.model.Input;
-import me.magnum.melonds.model.Point;
 import me.magnum.melonds.model.RendererConfiguration;
 import me.magnum.melonds.model.Rom;
 import me.magnum.melonds.parcelables.RomParcelable;
@@ -111,7 +110,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		findViewById(R.id.image_button_r).setOnTouchListener(new SingleButtonInputHandler(melonTouchHandler, Input.R));
 		findViewById(R.id.image_button_select).setOnTouchListener(new SingleButtonInputHandler(melonTouchHandler, Input.SELECT));
 		findViewById(R.id.image_button_start).setOnTouchListener(new SingleButtonInputHandler(melonTouchHandler, Input.START));
-		this.adjustInputOpacity();
+		this.setupSoftInput();
 		this.setupInputHandling();
 
 		imageToggleTouch.setOnClickListener(new View.OnClickListener() {
@@ -200,12 +199,19 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		this.getWindow().getDecorView().setSystemUiVisibility(uiFlags);
 	}
 
-	private void adjustInputOpacity() {
-		int opacity = this.settingsRepository.getSoftInputOpacity();
+	private void setupSoftInput() {
+		if (settingsRepository.showSoftInput()) {
+			int opacity = this.settingsRepository.getSoftInputOpacity();
 
-		float alpha = opacity / 100f;
-		this.inputButtonsLayout.setAlpha(alpha);
-		this.imageToggleTouch.setAlpha(alpha);
+			float alpha = opacity / 100f;
+			this.inputButtonsLayout.setVisibility(View.VISIBLE);
+			this.inputButtonsLayout.setAlpha(alpha);
+			this.imageToggleTouch.setVisibility(View.VISIBLE);
+			this.imageToggleTouch.setAlpha(alpha);
+		} else {
+			this.inputButtonsLayout.setVisibility(View.GONE);
+			this.imageToggleTouch.setVisibility(View.GONE);
+		}
 	}
 
 	private void setupInputHandling() {
@@ -264,7 +270,7 @@ public class RenderActivity extends AppCompatActivity implements DSRenderer.Rend
 		switch (requestCode) {
 			case REQUEST_SETTINGS:
 				this.dsRenderer.updateRendererConfiguration(this.buildRendererConfiguration());
-				this.adjustInputOpacity();
+				this.setupSoftInput();
 				this.setupInputHandling();
 				break;
 		}

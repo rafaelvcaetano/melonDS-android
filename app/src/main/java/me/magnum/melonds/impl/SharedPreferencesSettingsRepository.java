@@ -118,6 +118,11 @@ public class SharedPreferencesSettingsRepository implements SettingsRepository, 
     }
 
     @Override
+    public boolean showSoftInput() {
+        return this.preferences.getBoolean("input_show_soft", true);
+    }
+
+    @Override
     public int getSoftInputOpacity() {
         return this.preferences.getInt("input_opacity", 50);
     }

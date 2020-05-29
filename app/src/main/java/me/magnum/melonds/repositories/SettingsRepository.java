@@ -19,6 +19,7 @@ public interface SettingsRepository {
     String getSaveFileDirectory();
 
     ControllerConfiguration getControllerConfiguration();
+    boolean showSoftInput();
     int getSoftInputOpacity();
 
     Observable<Theme> observeTheme();
