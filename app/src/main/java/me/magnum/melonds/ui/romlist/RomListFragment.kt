@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.romlist
 
 import android.Manifest
+import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -9,6 +10,7 @@ import android.os.Bundle
 import android.view.*
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.fragment.app.Fragment
@@ -184,6 +186,26 @@ class RomListFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.rom_list_menu, menu)
+
+        val searchItem =  menu.findItem(R.id.action_search_roms)
+        ContextCompat.getSystemService(requireContext(), SearchManager::class.java)?.let { searchManager ->
+            val searchView = searchItem.actionView as SearchView
+            searchView.apply {
+                queryHint = getString(R.string.hint_search_roms)
+                setSearchableInfo(searchManager.getSearchableInfo(requireActivity().componentName))
+                setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                    override fun onQueryTextSubmit(query: String?): Boolean {
+                        return true
+                    }
+
+                    override fun onQueryTextChange(newText: String?): Boolean {
+                        romListViewModel.setRomSearchQuery(newText)
+                        return true
+                    }
+                })
+            }
+        }
+
         super.onCreateOptionsMenu(menu, inflater)
     }
 

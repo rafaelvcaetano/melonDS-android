@@ -3,16 +3,24 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_settings"
-        android:title="@string/settings"
-        android:icon="@drawable/ic_settings"
-        android:orderInCategory="2"
-        app:showAsAction="ifRoom" />
+        android:id="@+id/action_search_roms"
+        android:title="@string/action_search_roms"
+        android:icon="@drawable/ic_search"
+        android:orderInCategory="1"
+        app:showAsAction="ifRoom|collapseActionView"
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
 
     <item
         android:id="@+id/action_rom_list_refresh"
         android:title="@string/action_refresh_rom_list"
         android:icon="@drawable/ic_refresh"
-        android:orderInCategory="1"
+        android:orderInCategory="2"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_settings"
+        android:title="@string/settings"
+        android:icon="@drawable/ic_settings"
+        android:orderInCategory="3"
         app:showAsAction="never" />
 </menu>

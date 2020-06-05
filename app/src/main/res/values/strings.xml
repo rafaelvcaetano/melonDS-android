@@ -6,7 +6,9 @@
 
     <string name="error_load_rom">Could not load ROM</string>
     <string name="error_load_gba_rom">Could not load GBA ROM</string>
+    <string name="action_search_roms">Search ROMs</string>
     <string name="action_refresh_rom_list">Refresh ROM list</string>
+    <string name="hint_search_roms">Search ROMs…</string>
     <string name="info_fps">FPS: %1$d</string>
     <string name="info_loading">LOADING…</string>
 
