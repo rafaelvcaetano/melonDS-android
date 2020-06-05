@@ -23,7 +23,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.RenderActivity"
+            android:name=".ui.emulator.EmulatorActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="portrait">
@@ -40,7 +40,8 @@
         <activity
             android:name=".ui.inputsetup.InputSetupActivity"
             android:label="@string/key_mapping"
-            android:parentActivityName=".ui.SettingsActivity">
+            android:parentActivityName=".ui.SettingsActivity"
+            android:exported="false" >
             <intent-filter>
                 <action android:name="me.magnum.melonds.SETUP_INPUT" />
                 <category android:name="android.intent.category.DEFAULT" />

@@ -7,13 +7,14 @@
     tools:context=".ui.romlist.RomListFragment">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_refresh_roms"
+        android:id="@+id/swipeRefreshRoms"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/list_roms"
+            android:id="@+id/listRoms"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            tools:listitem="@layout/item_rom" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </FrameLayout>

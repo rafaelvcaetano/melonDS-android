@@ -1,0 +1,32 @@
+package me.magnum.melonds.model
+
+/**
+ * Input representation that is assigned to the given key code. If the input does not represent a
+ * system input (i.e., it represents additional functionality offered by the emulator), a key code
+ * of -1 must be used.
+ *
+ * @param keyCode The key code that the input represents in the system or -1 if it is not assigned
+ * to any system input
+ */
+enum class Input(val keyCode: Int) {
+    A(0),
+    B(1),
+    SELECT(2),
+    START(3),
+    RIGHT(4),
+    LEFT(5),
+    UP(6),
+    DOWN(7),
+    L(8),
+    R(9),
+    X(16 + 0),
+    Y(17 + 1),
+    DEBUG(16 + 3),
+    TOUCHSCREEN(16 + 6),
+    HINGE(16 + 7),
+    PAUSE(-1),
+    FAST_FORWARD(-1);
+
+    val isSystemInput: Boolean
+        get() = keyCode != -1
+}

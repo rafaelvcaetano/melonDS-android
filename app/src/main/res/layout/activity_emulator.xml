@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.emulator.EmulatorActivity"
+    tools:ignore="ObsoleteLayoutParam,RtlHardcoded" >
+
+    <android.opengl.GLSurfaceView
+        android:id="@+id/surfaceMain"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <View
+        android:id="@+id/viewInputArea"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_alignParentBottom="true"/>
+
+    <TextView
+        android:id="@+id/textFps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="48dp"
+        android:textColor="@android:color/white"
+        tools:text="FPS: 60"/>
+
+    <TextView
+        android:id="@+id/textLoading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:text="@string/info_loading"/>
+
+    <ImageView
+        android:id="@+id/imageTouchToggle"
+        android:layout_width="@dimen/size_button_small"
+        android:layout_height="@dimen/size_button_small"
+        android:src="@drawable/ic_touch_enabled"
+        android:layout_alignTop="@+id/viewInputArea"
+        android:layout_centerHorizontal="true"
+        android:alpha="0.5"/>
+
+    <RelativeLayout
+        android:id="@+id/layoutInputButtons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/viewInputArea"
+        android:alpha="0.5">
+
+        <ImageView
+            android:id="@+id/imageDpad"
+            android:layout_width="@dimen/size_dpad"
+            android:layout_height="@dimen/size_dpad"
+            android:src="@drawable/keypad"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true" />
+
+        <ImageView
+            android:id="@+id/imageButtons"
+            android:layout_width="@dimen/size_buttons"
+            android:layout_height="@dimen/size_buttons"
+            android:src="@drawable/buttons"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true" />
+
+        <ImageView
+            android:id="@+id/imageButtonL"
+            android:layout_width="@dimen/size_shoulder_button"
+            android:layout_height="@dimen/size_shoulder_button"
+            android:src="@drawable/button_l"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"/>
+
+        <ImageView
+            android:id="@+id/imageButtonR"
+            android:layout_width="@dimen/size_shoulder_button"
+            android:layout_height="@dimen/size_shoulder_button"
+            android:src="@drawable/button_r"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true">
+            <ImageView
+                android:id="@+id/imageButtonSelect"
+                android:layout_width="@dimen/size_button_small"
+                android:layout_height="@dimen/size_button_small"
+                android:src="@drawable/button_select" />
+
+            <Space
+                android:layout_width="4dp"
+                android:layout_height="0dp"/>
+
+            <ImageView
+                android:id="@+id/imageButtonStart"
+                android:layout_width="@dimen/size_button_small"
+                android:layout_height="@dimen/size_button_small"
+                android:src="@drawable/button_start" />
+        </LinearLayout>
+    </RelativeLayout>
+</RelativeLayout>

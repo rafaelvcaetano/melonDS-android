@@ -5,7 +5,6 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools">
 
-
     <LinearLayout
             android:id="@+id/layout_rom_config_title"
             android:layout_width="match_parent"
@@ -19,7 +18,7 @@
             app:layout_constraintTop_toTopOf="parent" >
 
         <androidx.appcompat.widget.DialogTitle
-                android:id="@+id/text_rom_config_title"
+                android:id="@+id/textRomConfigTitle"
                 style="?android:attr/windowTitleStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -38,7 +37,7 @@
             app:layout_constraintStart_toStartOf="parent">
 
         <LinearLayout
-                android:id="@+id/layout_rom_config_load_gba_rom"
+                android:id="@+id/layoutPrefLoadGbaRom"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="48dp"
@@ -77,7 +76,7 @@
                     android:gravity="center"
                     android:orientation="vertical">
                 <Switch
-                        android:id="@+id/switch_load_gba_rom"
+                        android:id="@+id/switchLoadGbaRom"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:focusable="false"
@@ -87,7 +86,7 @@
         </LinearLayout>
 
         <LinearLayout
-                android:id="@+id/layout_rom_config_gba_rom_path"
+                android:id="@+id/layoutPrefGbaRomPath"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="?android:attr/listPreferredItemHeight"
@@ -99,13 +98,14 @@
                 android:paddingLeft="@dimen/romConfigPrefPadding"
                 android:paddingRight="@dimen/romConfigPrefPadding" >
 
-            <RelativeLayout
+            <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="6dip"
                     android:layout_marginStart="6dip"
                     android:layout_marginTop="6dip"
                     android:layout_marginBottom="6dip"
+                    android:orientation="vertical"
                     android:layout_weight="1">
 
                 <TextView
@@ -120,22 +120,19 @@
                         android:text="@string/label_rom_config_gba_rom_path"/>
 
                 <TextView
-                        android:id="@+id/label_preference_gba_cart_path_value"
+                        android:id="@+id/textPrefGbaRomPath"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_below="@+id/label_preference_gba_cart_path"
-                        android:layout_alignStart="@+id/label_preference_gba_cart_path"
-                        android:layout_alignLeft="@+id/label_preference_gba_cart_path"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:textColor="?android:attr/textColorSecondary"
                         android:singleLine="true"
                         android:ellipsize="start"
                         tools:text="/storage/emulated/0/Emulators/GBA/Mario.gba" />
-            </RelativeLayout>
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
-                android:id="@+id/layout_rom_config_gba_save_path"
+                android:id="@+id/layoutPrefGbaSavePath"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="?android:attr/listPreferredItemHeight"
@@ -147,13 +144,14 @@
                 android:paddingLeft="@dimen/romConfigPrefPadding"
                 android:paddingRight="@dimen/romConfigPrefPadding" >
 
-            <RelativeLayout
+            <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="6dip"
                     android:layout_marginStart="6dip"
                     android:layout_marginTop="6dip"
                     android:layout_marginBottom="6dip"
+                    android:orientation="vertical"
                     android:layout_weight="1">
 
                 <TextView
@@ -168,18 +166,15 @@
                         android:text="@string/label_rom_config_gba_save_path"/>
 
                 <TextView
-                        android:id="@+id/label_preference_gba_save_path_value"
+                        android:id="@+id/textPrefGbaSavePath"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_below="@+id/label_preference_gba_save_path"
-                        android:layout_alignStart="@+id/label_preference_gba_save_path"
-                        android:layout_alignLeft="@+id/label_preference_gba_save_path"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:textColor="?android:attr/textColorSecondary"
                         android:singleLine="true"
                         android:ellipsize="start"
                         tools:text="/storage/emulated/0/Emulators/GBA/Mario.sav" />
-            </RelativeLayout>
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
