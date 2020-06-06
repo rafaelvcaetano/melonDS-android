@@ -5,10 +5,13 @@ import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Build
 import android.util.Log
+import androidx.core.content.edit
 import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import me.magnum.melonds.model.ControllerConfiguration
+import me.magnum.melonds.model.SortingMode
+import me.magnum.melonds.model.SortingOrder
 import me.magnum.melonds.model.VideoFiltering
 import me.magnum.melonds.repositories.SettingsRepository
 import me.magnum.melonds.ui.Theme
@@ -90,6 +93,19 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return VideoFiltering.valueOf(filteringPreference.toUpperCase(Locale.ROOT))
     }
 
+    override fun getRomSortingMode(): SortingMode {
+        val sortingMode = preferences.getString("rom_sorting_mode", "alphabetically")!!
+        return SortingMode.valueOf(sortingMode.toUpperCase(Locale.ROOT))
+    }
+
+    override fun getRomSortingOrder(): SortingOrder {
+        val sortingOrder = preferences.getString("rom_sorting_order", null)
+        return if (sortingOrder == null)
+            getRomSortingMode().defaultOrder
+        else
+            SortingOrder.valueOf(sortingOrder.toUpperCase(Locale.ROOT))
+    }
+
     override fun saveNextToRomFile(): Boolean {
         return preferences.getBoolean("use_rom_dir", true)
     }
@@ -141,6 +157,18 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
             }
         } catch (e: IOException) {
             Log.w(TAG, "Failed to save controller configuration", e)
+        }
+    }
+
+    override fun setRomSortingMode(sortingMode: SortingMode) {
+        preferences.edit {
+            putString("rom_sorting_mode", sortingMode.toString().toLowerCase())
+        }
+    }
+
+    override fun setRomSortingOrder(sortingOrder: SortingOrder) {
+        preferences.edit {
+            putString("rom_sorting_order", sortingOrder.toString().toLowerCase())
         }
     }
 

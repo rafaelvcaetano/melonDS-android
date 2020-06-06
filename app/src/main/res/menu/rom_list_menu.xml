@@ -11,16 +11,39 @@
         app:actionViewClass="androidx.appcompat.widget.SearchView" />
 
     <item
+        android:id="@+id/action_sort"
+        android:title="@string/action_sort_roms"
+        android:icon="@drawable/ic_sort"
+        android:orderInCategory="2"
+        app:showAsAction="ifRoom">
+        <menu>
+            <item
+                android:id="@+id/action_sort_alphabetically"
+                android:title="@string/action_sort_alphabetically"
+                android:icon="@drawable/ic_sort_alpha"
+                app:iconTint="@color/buttonContrasted"
+                android:orderInCategory="0" />
+
+            <item
+                android:id="@+id/action_sort_recent"
+                android:title="@string/action_sort_recently_played"
+                android:icon="@drawable/ic_clock"
+                    app:iconTint="@color/buttonContrasted"
+                android:orderInCategory="1" />
+        </menu>
+    </item>
+
+    <item
         android:id="@+id/action_rom_list_refresh"
         android:title="@string/action_refresh_rom_list"
         android:icon="@drawable/ic_refresh"
-        android:orderInCategory="2"
+        android:orderInCategory="3"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_settings"
         android:title="@string/settings"
         android:icon="@drawable/ic_settings"
-        android:orderInCategory="3"
+        android:orderInCategory="4"
         app:showAsAction="never" />
 </menu>

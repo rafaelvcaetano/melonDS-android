@@ -5,4 +5,6 @@
     <color name="colorAccent">#f44336</color>
 
     <color name="romConfigButtonDefault">#AAA</color>
+
+    <color name="buttonContrasted">#DFFF</color>
 </resources>

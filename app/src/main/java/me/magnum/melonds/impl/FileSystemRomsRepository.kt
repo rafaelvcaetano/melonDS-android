@@ -22,6 +22,8 @@ import java.io.FileOutputStream
 import java.io.FileReader
 import java.io.OutputStreamWriter
 import java.lang.reflect.Type
+import java.util.*
+import kotlin.collections.ArrayList
 
 class FileSystemRomsRepository(private val context: Context, private val gson: Gson, private val settingsRepository: SettingsRepository) : RomsRepository {
     companion object {
@@ -62,9 +64,11 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
             }
             if (!isInDirectories) romsToRemove.add(rom)
         }
+
         for (rom in romsToRemove) {
             removeRom(rom)
         }
+
         rescanRoms()
     }
 
@@ -82,8 +86,20 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
 
     override fun updateRomConfig(rom: Rom, romConfig: RomConfig) {
         val romIndex = roms.indexOf(rom)
-        if (romIndex < 0) return
+        if (romIndex < 0)
+            return
+
         rom.config = romConfig
+        roms[romIndex] = rom
+        onRomsChanged()
+    }
+
+    override fun setRomLastPlayed(rom: Rom, lastPlayed: Date) {
+        val romIndex = roms.indexOf(rom)
+        if (romIndex < 0)
+            return
+
+        rom.lastPlayed = lastPlayed
         roms[romIndex] = rom
         onRomsChanged()
     }

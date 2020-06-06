@@ -9,4 +9,6 @@
     <color name="romConfigButtonDefault">#555</color>
     <color name="romConfigButtonEnabled">#5C913B</color>
     <color name="romConfigPrefSeparator">#DDD</color>
+
+    <color name="buttonContrasted">#D000</color>
 </resources>

@@ -6,6 +6,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="actionOverflowMenuStyle">@style/Menu.OverflowUnder</item>
     </style>
 
     <style name="Theme.AppCompat.Light.NoActionBar.FullScreen" parent="@style/Base.Theme.AppCompat.Light">
@@ -17,5 +18,10 @@
 
     <style name="Button.RomConfig" parent="android:Widget.ImageButton">
         <item name="android:background">?attr/selectableItemBackground</item>
+    </style>
+
+    <style name="Menu.OverflowUnder" parent="Widget.AppCompat.PopupMenu.Overflow">
+        <item name="overlapAnchor">false</item>
+        <item name="android:overlapAnchor">false</item>
     </style>
 </resources>

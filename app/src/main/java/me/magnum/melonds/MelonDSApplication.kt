@@ -33,7 +33,7 @@ class MelonDSApplication : Application() {
         ServiceLocator.bindSingleton(ViewModelProvider.Factory::class, object : ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T {
                 if (modelClass == RomListViewModel::class.java)
-                    return RomListViewModel(ServiceLocator[RomsRepository::class]) as T
+                    return RomListViewModel(ServiceLocator[RomsRepository::class], ServiceLocator[SettingsRepository::class]) as T
                 if (modelClass == InputSetupViewModel::class.java)
                     return InputSetupViewModel(ServiceLocator[SettingsRepository::class]) as T
 

@@ -28,6 +28,7 @@ import me.magnum.melonds.ServiceLocator
 import me.magnum.melonds.model.Rom
 import me.magnum.melonds.model.RomConfig
 import me.magnum.melonds.model.RomScanningStatus
+import me.magnum.melonds.model.SortingMode
 import me.magnum.melonds.repositories.SettingsRepository
 import me.magnum.melonds.ui.SettingsActivity
 import me.magnum.melonds.ui.romlist.RomConfigDialog.OnRomConfigSavedListener
@@ -64,6 +65,7 @@ class RomListFragment : Fragment() {
 
         val romListAdapter = RomListAdapter(requireContext(), object : RomClickListener {
             override fun onRomClicked(rom: Rom) {
+                romListViewModel.setRomLastPlayedNow(rom)
                 romSelectedListener?.invoke(rom)
             }
 
@@ -171,6 +173,14 @@ class RomListFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.action_sort_alphabetically -> {
+                romListViewModel.setRomSorting(SortingMode.ALPHABETICALLY)
+                return true
+            }
+            R.id.action_sort_recent -> {
+                romListViewModel.setRomSorting(SortingMode.RECENTLY_PLAYED)
+                return true
+            }
             R.id.action_rom_list_refresh -> {
                 updateRomList()
                 return true

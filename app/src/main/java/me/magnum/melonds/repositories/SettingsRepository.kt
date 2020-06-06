@@ -2,6 +2,8 @@ package me.magnum.melonds.repositories
 
 import io.reactivex.Observable
 import me.magnum.melonds.model.ControllerConfiguration
+import me.magnum.melonds.model.SortingMode
+import me.magnum.melonds.model.SortingOrder
 import me.magnum.melonds.model.VideoFiltering
 import me.magnum.melonds.ui.Theme
 
@@ -15,6 +17,8 @@ interface SettingsRepository {
 
     fun getVideoFiltering(): VideoFiltering
 
+    fun getRomSortingMode(): SortingMode
+    fun getRomSortingOrder(): SortingOrder
     fun saveNextToRomFile(): Boolean
     fun getSaveFileDirectory(): String?
 
@@ -26,4 +30,6 @@ interface SettingsRepository {
     fun observeRomSearchDirectories(): Observable<Array<String>>
 
     fun setControllerConfiguration(controllerConfiguration: ControllerConfiguration)
+    fun setRomSortingMode(sortingMode: SortingMode)
+    fun setRomSortingOrder(sortingOrder: SortingOrder)
 }
