@@ -15,31 +15,33 @@ class ButtonsInputHandler(inputListener: IInputListener) : BaseInputHandler(inpu
         inputListener.onKeyReleased(Input.Y)
 
         when (event.action) {
-            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> if (relativeX < 0.32f) {
-                if (relativeY < 0.32f) {
-                    inputListener.onKeyPress(Input.X)
-                    inputListener.onKeyPress(Input.Y)
-                } else if (relativeY < 0.68f) {
-                    inputListener.onKeyPress(Input.Y)
+            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
+                if (relativeX < 0.32f) {
+                    if (relativeY < 0.32f) {
+                        inputListener.onKeyPress(Input.X)
+                        inputListener.onKeyPress(Input.Y)
+                    } else if (relativeY < 0.68f) {
+                        inputListener.onKeyPress(Input.Y)
+                    } else {
+                        inputListener.onKeyPress(Input.Y)
+                        inputListener.onKeyPress(Input.B)
+                    }
+                } else if (relativeX < 0.68f) {
+                    if (relativeY < 0.32f) {
+                        inputListener.onKeyPress(Input.X)
+                    } else if (relativeY > 0.68f) {
+                        inputListener.onKeyPress(Input.B)
+                    }
                 } else {
-                    inputListener.onKeyPress(Input.Y)
-                    inputListener.onKeyPress(Input.B)
-                }
-            } else if (relativeX < 0.68f) {
-                if (relativeY < 0.32f) {
-                    inputListener.onKeyPress(Input.X)
-                } else if (relativeY > 0.68f) {
-                    inputListener.onKeyPress(Input.B)
-                }
-            } else {
-                if (relativeY < 0.32f) {
-                    inputListener.onKeyPress(Input.X)
-                    inputListener.onKeyPress(Input.A)
-                } else if (relativeY < 0.68f) {
-                    inputListener.onKeyPress(Input.A)
-                } else {
-                    inputListener.onKeyPress(Input.A)
-                    inputListener.onKeyPress(Input.B)
+                    if (relativeY < 0.32f) {
+                        inputListener.onKeyPress(Input.X)
+                        inputListener.onKeyPress(Input.A)
+                    } else if (relativeY < 0.68f) {
+                        inputListener.onKeyPress(Input.A)
+                    } else {
+                        inputListener.onKeyPress(Input.A)
+                        inputListener.onKeyPress(Input.B)
+                    }
                 }
             }
         }
