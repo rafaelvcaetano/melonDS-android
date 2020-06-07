@@ -10,8 +10,8 @@ import com.github.angads25.filepicker.model.DialogProperties
 import com.github.angads25.filepicker.view.FilePickerDialog
 import kotlinx.android.synthetic.main.dialog_rom_config.*
 import me.magnum.melonds.R
+import me.magnum.melonds.extensions.setViewEnabledRecursive
 import me.magnum.melonds.model.RomConfig
-import me.magnum.melonds.utils.UIUtils
 import java.io.File
 
 class RomConfigDialog(context: Context, private val title: String, private val romConfig: RomConfig) : AlertDialog(context) {
@@ -60,8 +60,8 @@ class RomConfigDialog(context: Context, private val title: String, private val r
         textPrefGbaRomPath.text = getPathOrDefault(romConfig.gbaCartPath)
         textPrefGbaSavePath.text = getPathOrDefault(romConfig.gbaSavePath)
 
-        UIUtils.setViewEnabled(layoutPrefGbaRomPath, romConfig.loadGbaCart())
-        UIUtils.setViewEnabled(layoutPrefGbaSavePath, romConfig.loadGbaCart())
+        layoutPrefGbaRomPath.setViewEnabledRecursive(romConfig.loadGbaCart())
+        layoutPrefGbaSavePath.setViewEnabledRecursive(romConfig.loadGbaCart())
 
         findViewById<View>(R.id.button_rom_config_ok)?.setOnClickListener {
             saveListener?.onRomConfigSaved(romConfig)
@@ -77,8 +77,8 @@ class RomConfigDialog(context: Context, private val title: String, private val r
 
     private fun setLoadGbaRom(loadGbaRom: Boolean) {
         romConfig.setLoadGbaCart(loadGbaRom)
-        UIUtils.setViewEnabled(layoutPrefGbaRomPath, loadGbaRom)
-        UIUtils.setViewEnabled(layoutPrefGbaSavePath, loadGbaRom)
+        layoutPrefGbaRomPath.setViewEnabledRecursive(loadGbaRom)
+        layoutPrefGbaSavePath.setViewEnabledRecursive(loadGbaRom)
     }
 
     private fun onGbaRomPathSelected(romPath: String) {
