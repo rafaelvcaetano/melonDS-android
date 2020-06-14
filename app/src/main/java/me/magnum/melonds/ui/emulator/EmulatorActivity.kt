@@ -50,6 +50,19 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     private lateinit var settingsRepository: SettingsRepository
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
+    private val frontendInputHandler = object : FrontendInputHandler() {
+        private var fastForwardEnabled = false
+
+        override fun onPausePressed() {
+            pauseEmulation()
+        }
+
+        override fun onFastForwardPressed() {
+            fastForwardEnabled = !fastForwardEnabled
+            MelonEmulator.setFastForwardEnabled(fastForwardEnabled)
+        }
+    }
+
     private var emulatorReady = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,6 +93,8 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         imageButtonR.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.R))
         imageButtonSelect.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.SELECT))
         imageButtonStart.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.START))
+        imageButtonLid.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.HINGE, true))
+        imageButtonFastForward.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.FAST_FORWARD, true))
         setupSoftInput()
         setupInputHandling()
 
@@ -172,13 +187,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     private fun setupInputHandling() {
-        nativeInputListener = InputProcessor(settingsRepository.getControllerConfiguration(), melonTouchHandler, object : FrontendInputHandler() {
-            override fun onPausePressed() {
-                pauseEmulation()
-            }
-
-            override fun onFastForwardPressed() {}
-        })
+        nativeInputListener = InputProcessor(settingsRepository.getControllerConfiguration(), melonTouchHandler, frontendInputHandler)
     }
 
     override fun onBackPressed() {

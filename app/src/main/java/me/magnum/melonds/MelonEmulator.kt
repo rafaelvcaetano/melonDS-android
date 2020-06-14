@@ -62,4 +62,7 @@ object MelonEmulator {
     private external fun onKeyPress(key: Int)
 
     private external fun onKeyRelease(key: Int)
+
+    @JvmStatic
+    external fun setFastForwardEnabled(enabled: Boolean)
 }

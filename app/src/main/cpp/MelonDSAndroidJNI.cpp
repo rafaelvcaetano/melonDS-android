@@ -128,6 +128,12 @@ Java_me_magnum_melonds_MelonEmulator_onKeyRelease( JNIEnv* env, jclass type, jin
 {
     MelonDSAndroid::releaseKey(key);
 }
+
+JNIEXPORT void JNICALL
+Java_me_magnum_melonds_MelonEmulator_setFastForwardEnabled( JNIEnv* env, jclass type, jboolean enabled)
+{
+    limitFps = !enabled;
+}
 }
 
 double getCurrentMillis() {

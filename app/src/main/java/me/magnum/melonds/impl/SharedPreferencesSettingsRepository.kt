@@ -162,13 +162,13 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
 
     override fun setRomSortingMode(sortingMode: SortingMode) {
         preferences.edit {
-            putString("rom_sorting_mode", sortingMode.toString().toLowerCase())
+            putString("rom_sorting_mode", sortingMode.toString().toLowerCase(Locale.ROOT))
         }
     }
 
     override fun setRomSortingOrder(sortingOrder: SortingOrder) {
         preferences.edit {
-            putString("rom_sorting_order", sortingOrder.toString().toLowerCase())
+            putString("rom_sorting_order", sortingOrder.toString().toLowerCase(Locale.ROOT))
         }
     }
 
