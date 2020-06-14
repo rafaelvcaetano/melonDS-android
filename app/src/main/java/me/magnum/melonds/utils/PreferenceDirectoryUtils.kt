@@ -30,6 +30,8 @@ object PreferenceDirectoryUtils {
      */
 	@JvmStatic
 	fun getMultipleDirectoryFromPreference(preferenceValue: String?): Array<String> {
-        return preferenceValue?.split(":")?.toTypedArray() ?: emptyArray()
+        return preferenceValue?.split(":")
+                ?.filter { it.isNotEmpty() }
+                ?.toTypedArray() ?: emptyArray()
     }
 }

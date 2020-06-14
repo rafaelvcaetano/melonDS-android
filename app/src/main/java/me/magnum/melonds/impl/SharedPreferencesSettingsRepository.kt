@@ -15,6 +15,7 @@ import me.magnum.melonds.model.SortingOrder
 import me.magnum.melonds.model.VideoFiltering
 import me.magnum.melonds.repositories.SettingsRepository
 import me.magnum.melonds.ui.Theme
+import me.magnum.melonds.utils.PreferenceDirectoryUtils
 import java.io.*
 import java.util.*
 
@@ -22,32 +23,6 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
     companion object {
         private const val TAG = "SPSettingsRepository"
         private const val CONTROLLER_CONFIG_FILE = "controller_config.json"
-
-        /**
-         * Retrieves a single directory from the given directory preference value. If multiple
-         * directories are stored in the preference, only the first value is returned. If no directory
-         * is stored in the preference value, `null` is returned. Directories are assumed to be
-         * separated by a column (:).
-         *
-         * @param preferenceValue The directory preference value
-         * @return The first directory found in the preference or `null` if there is none
-         */
-        private fun getSingleDirectoryFromPreference(preferenceValue: String?): String? {
-            val parts = getMultipleDirectoryFromPreference(preferenceValue)
-            return if (parts.isNotEmpty()) parts[0] else null
-        }
-
-        /**
-         * Retrieves all directory from the given directory preference value. If no directory is stored
-         * in the preference value, an empty array is returned. Directories are assumed to be separated
-         * by a column (:).
-         *
-         * @param preferenceValue The directory preference value
-         * @return The directories found in the preference
-         */
-        private fun getMultipleDirectoryFromPreference(preferenceValue: String?): Array<String> {
-            return preferenceValue?.split(":")?.toTypedArray() ?: emptyArray()
-        }
     }
 
     private var controllerConfiguration: ControllerConfiguration? = null
@@ -71,7 +46,7 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
 
     override fun getRomSearchDirectories(): Array<String> {
         val dirPreference = preferences.getString("rom_search_dirs", null)
-        var dirs: Array<String> = getMultipleDirectoryFromPreference(dirPreference)
+        var dirs: Array<String> = PreferenceDirectoryUtils.getMultipleDirectoryFromPreference(dirPreference)
 
         if (dirs.isEmpty())
             dirs = arrayOf("/sdcard")
@@ -81,7 +56,7 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
 
     override fun getBiosDirectory(): String? {
         val dirPreference = preferences.getString("bios_dir", null)
-        return getSingleDirectoryFromPreference(dirPreference)
+        return PreferenceDirectoryUtils.getSingleDirectoryFromPreference(dirPreference)
     }
 
     override fun showBootScreen(): Boolean {
@@ -112,7 +87,7 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
 
     override fun getSaveFileDirectory(): String? {
         val dirPreference = preferences.getString("sram_dir", null)
-        return getSingleDirectoryFromPreference(dirPreference)
+        return PreferenceDirectoryUtils.getSingleDirectoryFromPreference(dirPreference)
     }
 
     override fun getControllerConfiguration(): ControllerConfiguration {
