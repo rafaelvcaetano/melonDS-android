@@ -51,6 +51,7 @@ class RomListFragment : Fragment() {
     private var romSelectedListener: ((Rom) -> Unit)? = null
     private val romListViewModel: RomListViewModel by viewModels { ServiceLocator[ViewModelProvider.Factory::class] }
     private lateinit var settingsRepository: SettingsRepository
+    private lateinit var romListAdapter: RomListAdapter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         setHasOptionsMenu(true)
@@ -63,7 +64,7 @@ class RomListFragment : Fragment() {
 
         swipeRefreshRoms.setOnRefreshListener { updateRomList() }
 
-        val romListAdapter = RomListAdapter(requireContext(), object : RomClickListener {
+        romListAdapter = RomListAdapter(requireContext(), object : RomClickListener {
             override fun onRomClicked(rom: Rom) {
                 romListViewModel.setRomLastPlayedNow(rom)
                 romSelectedListener?.invoke(rom)
@@ -89,9 +90,11 @@ class RomListFragment : Fragment() {
 
         romListViewModel.getRomScanningStatus().observe(viewLifecycleOwner, Observer { status ->
             swipeRefreshRoms.isRefreshing = status == RomScanningStatus.SCANNING
+            displayEmptyListViewIfRequired()
         })
         romListViewModel.getRoms().observe(viewLifecycleOwner, Observer { roms ->
             romListAdapter.setRoms(roms)
+            displayEmptyListViewIfRequired()
         })
     }
 
@@ -102,6 +105,12 @@ class RomListFragment : Fragment() {
 
         if (!isStoragePermissionGranted())
             requestStoragePermission(false)
+    }
+
+    private fun displayEmptyListViewIfRequired() {
+        val isScanning = swipeRefreshRoms.isRefreshing
+        val emptyViewVisible = !isScanning && romListAdapter.itemCount == 0
+        textRomListEmpty.visibility = if (emptyViewVisible) View.VISIBLE else View.GONE
     }
 
     private fun updateRomList() {

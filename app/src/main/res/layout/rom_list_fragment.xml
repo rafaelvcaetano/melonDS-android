@@ -18,4 +18,13 @@
             android:layout_height="match_parent"
             tools:listitem="@layout/item_rom" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <TextView
+            android:id="@+id/textRomListEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            style="?android:attr/textAppearanceMedium"
+            android:text="@string/no_roms_found" />
 </FrameLayout>

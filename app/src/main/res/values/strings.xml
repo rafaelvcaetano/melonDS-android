@@ -23,6 +23,7 @@
     <string name="storage_permission_required">Storage permission required</string>
     <string name="storage_permission_required_info">Storage permission is required to search ROMs on your device. Please grant access to storage on the next dialog.</string>
     <string name="info_no_storage_permission">Cannot find ROMS without storage permission</string>
+    <string name="no_roms_found">No ROMs found</string>
 
     <string name="press_any_button">Press any button…</string>
 
