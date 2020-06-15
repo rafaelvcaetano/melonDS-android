@@ -224,6 +224,17 @@ class RomListFragment : Fragment() {
                 })
             }
         }
+        // Fix for action items not appearing after closing the search view
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
+                requireActivity().invalidateOptionsMenu()
+                return true
+            }
+        })
 
         super.onCreateOptionsMenu(menu, inflater)
     }
