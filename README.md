@@ -23,6 +23,13 @@ This is a WIP Android frontend for the melonDS Android port. For the Android por
 # Performance
 Performance is far from OK, but acceptable on high end devices. Right now, this is more of a proof of concept that anything else. But at least we now know that it (kinda) works.
 
+# Integration with third party frontends
+It's possible to launch melonDS from third part frontends. For that, you simply need to call the emulation activity with the absolute path to the ROM file. The parameters are the following:
+*  Package name: `me.magnum.melonds`
+*  Activity name: `me.magnum.melonds.ui.emulator.EmulatorActivity`
+*  Parameters:
+    * `PATH` - a string with the absolute path to the NDS ROM (ZIP files are not yet supported)
+
 # Building
 To build the project you will need Android NDK and CMake.
 

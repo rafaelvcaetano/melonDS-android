@@ -23,7 +23,10 @@ import me.magnum.melonds.R
 import me.magnum.melonds.ServiceLocator
 import me.magnum.melonds.model.Input
 import me.magnum.melonds.model.RendererConfiguration
+import me.magnum.melonds.model.Rom
+import me.magnum.melonds.model.RomConfig
 import me.magnum.melonds.parcelables.RomParcelable
+import me.magnum.melonds.repositories.RomsRepository
 import me.magnum.melonds.repositories.SettingsRepository
 import me.magnum.melonds.ui.SettingsActivity
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
@@ -35,11 +38,14 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     companion object {
         private const val REQUEST_SETTINGS = 1
         const val KEY_ROM = "rom"
+        const val KEY_PATH = "PATH"
 
         init {
             System.loadLibrary("melonDS-android-frontend")
         }
     }
+
+    private class RomLoadFailedException : Exception("Failed to load ROM")
 
     private enum class PauseMenuOptions(val textResource: Int) {
         SETTINGS(R.string.settings),
@@ -47,6 +53,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     private lateinit var dsRenderer: DSRenderer
+    private lateinit var romsRepository: RomsRepository
     private lateinit var settingsRepository: SettingsRepository
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
@@ -71,10 +78,8 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         setupFullscreen()
         setContentView(R.layout.activity_emulator)
 
+        romsRepository = ServiceLocator[RomsRepository::class]
         settingsRepository = ServiceLocator[SettingsRepository::class]
-
-        val romParcelable = intent.getParcelableExtra(KEY_ROM) as RomParcelable?
-        val rom = romParcelable?.rom ?: throw NullPointerException("No ROM was specified")
 
         melonTouchHandler = MelonTouchHandler()
         dsRenderer = DSRenderer(buildRendererConfiguration())
@@ -108,22 +113,73 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             }
         }
 
-        Single.create<LoadResult> { emitter ->
-            MelonEmulator.setupEmulator(getConfigDirPath(), assets)
+        launchEmulator()
+    }
 
-            val showBios = settingsRepository.showBootScreen()
-            val sramPath = getSRAMPath(rom.path)
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
 
-            val loadResult = MelonEmulator.loadRom(rom.path, sramPath, !showBios, rom.config.loadGbaCart(), rom.config.gbaCartPath, rom.config.gbaSavePath)
-            if (loadResult === LoadResult.NDS_FAILED)
-                throw Exception("Failed to load ROM")
+        if (emulatorReady) {
+            MelonEmulator.pauseEmulation()
+            emulatorReady = false
 
-            MelonEmulator.startEmulation()
-            emitter.onSuccess(loadResult)
+            AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.title_emulator_running))
+                    .setMessage(getString(R.string.message_stop_emulation))
+                    .setPositiveButton(R.string.ok) { _, _ ->
+                        MelonEmulator.stopEmulation()
+                        setIntent(intent)
+                        launchEmulator()
+                    }
+                    .setNegativeButton(R.string.no) { _, _ ->
+                        emulatorReady = true
+                        MelonEmulator.resumeEmulation()
+                    }
+                    .show()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        surfaceMain.onResume()
+
+        if (emulatorReady)
+            MelonEmulator.resumeEmulation()
+    }
+
+    private fun launchEmulator() {
+        val bundle = intent.extras ?: throw NullPointerException("No ROM was specified")
+
+        val romParcelable = bundle.getParcelable(KEY_ROM) as RomParcelable?
+
+        val romLoader = if (romParcelable?.rom != null)
+            Single.just(romParcelable.rom)
+        else {
+            val romPath = bundle.getString(KEY_PATH) ?: throw NullPointerException("No ROM was specified")
+            romsRepository.getRomAtPath(romPath).defaultIfEmpty(Rom(romPath, romPath, RomConfig())).toSingle()
+        }
+
+        romLoader.flatMap {
+            Single.create<LoadResult> { emitter ->
+                MelonEmulator.setupEmulator(getConfigDirPath(), assets)
+
+                val showBios = settingsRepository.showBootScreen()
+                val sramPath = getSRAMPath(it.path)
+
+                val loadResult = MelonEmulator.loadRom(it.path, sramPath, !showBios, it.config.loadGbaCart(), it.config.gbaCartPath, it.config.gbaSavePath)
+                if (loadResult === LoadResult.NDS_FAILED)
+                    throw RomLoadFailedException()
+
+                MelonEmulator.startEmulation()
+                emitter.onSuccess(loadResult)
+            }
         }.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(object : SingleObserver<LoadResult> {
-                    override fun onSubscribe(disposable: Disposable) {}
+                    override fun onSubscribe(disposable: Disposable) {
+                        textFps.visibility = View.GONE
+                        textLoading.visibility = View.VISIBLE
+                    }
 
                     override fun onSuccess(loadResult: LoadResult) {
                         if (loadResult === LoadResult.SUCCESS_GBA_FAILED)
@@ -139,14 +195,6 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                         finish()
                     }
                 })
-    }
-
-    override fun onResume() {
-        super.onResume()
-        surfaceMain.onResume()
-
-        if (emulatorReady)
-            MelonEmulator.resumeEmulation()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

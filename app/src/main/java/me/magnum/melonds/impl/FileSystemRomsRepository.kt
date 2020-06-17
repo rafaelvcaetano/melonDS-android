@@ -4,9 +4,8 @@ import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.reactivex.*
 import io.reactivex.Observable
-import io.reactivex.ObservableEmitter
-import io.reactivex.ObservableOnSubscribe
 import io.reactivex.Observer
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -82,6 +81,13 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
 
     override fun getRomScanningStatus(): Observable<RomScanningStatus> {
         return scanningStatusSubject
+    }
+
+    override fun getRomAtPath(path: String): Maybe<Rom> {
+        return getRoms().firstElement()
+                .flatMap {
+                    it.find { rom -> rom.path == path }?.let { rom -> Maybe.just(rom) } ?: Maybe.empty()
+                }
     }
 
     override fun updateRomConfig(rom: Rom, romConfig: RomConfig) {
