@@ -114,7 +114,7 @@ class InputSetupActivity : AppCompatActivity() {
                 } else {
                     if (config.inputConfig.hasKeyAssigned()) {
                         val keyCodeString = KeyEvent.keyCodeToString(config.inputConfig.key)
-                        val keyName = keyCodeString.replace("KEYCODE", "").replace("_", " ")
+                        val keyName = keyCodeString.replace("KEYCODE", "").replace("_", " ").trim()
                         itemView.textAssignedInputName.text = keyName
                     } else {
                         itemView.textAssignedInputName.setText(R.string.not_set)
