@@ -12,6 +12,7 @@ import me.magnum.melonds.impl.FileSystemRomsRepository
 import me.magnum.melonds.impl.SharedPreferencesSettingsRepository
 import me.magnum.melonds.repositories.RomsRepository
 import me.magnum.melonds.repositories.SettingsRepository
+import me.magnum.melonds.ui.emulator.EmulatorViewModel
 import me.magnum.melonds.ui.inputsetup.InputSetupViewModel
 import me.magnum.melonds.ui.romlist.RomListViewModel
 
@@ -36,6 +37,8 @@ class MelonDSApplication : Application() {
                     return RomListViewModel(ServiceLocator[RomsRepository::class], ServiceLocator[SettingsRepository::class]) as T
                 if (modelClass == InputSetupViewModel::class.java)
                     return InputSetupViewModel(ServiceLocator[SettingsRepository::class]) as T
+                if (modelClass == EmulatorViewModel::class.java)
+                    return EmulatorViewModel(ServiceLocator[SettingsRepository::class]) as T
 
                 throw RuntimeException("ViewModel of type " + modelClass.name + " is not supported")
             }

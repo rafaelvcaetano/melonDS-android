@@ -8,9 +8,12 @@ import android.view.View
 import android.view.Window
 import android.widget.RelativeLayout
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.os.ConfigurationCompat
+import androidx.lifecycle.ViewModelProvider
 import io.reactivex.Single
 import io.reactivex.SingleObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -21,10 +24,7 @@ import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.MelonEmulator.LoadResult
 import me.magnum.melonds.R
 import me.magnum.melonds.ServiceLocator
-import me.magnum.melonds.model.Input
-import me.magnum.melonds.model.RendererConfiguration
-import me.magnum.melonds.model.Rom
-import me.magnum.melonds.model.RomConfig
+import me.magnum.melonds.model.*
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.repositories.RomsRepository
 import me.magnum.melonds.repositories.SettingsRepository
@@ -33,6 +33,7 @@ import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
 import me.magnum.melonds.ui.input.*
 import java.io.File
 import java.nio.ByteBuffer
+import java.text.SimpleDateFormat
 
 class EmulatorActivity : AppCompatActivity(), RendererListener {
     companion object {
@@ -49,9 +50,13 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
     private enum class PauseMenuOptions(val textResource: Int) {
         SETTINGS(R.string.settings),
+        SAVE_STATE(R.string.save_state),
+        LOAD_STATE(R.string.load_state),
         EXIT(R.string.exit);
     }
 
+    private val viewModel: EmulatorViewModel by viewModels { ServiceLocator[ViewModelProvider.Factory::class] }
+    private lateinit var loadedRom: Rom
     private lateinit var dsRenderer: DSRenderer
     private lateinit var romsRepository: RomsRepository
     private lateinit var settingsRepository: SettingsRepository
@@ -160,6 +165,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
 
         romLoader.flatMap {
+            loadedRom = it
             Single.create<LoadResult> { emitter ->
                 MelonEmulator.setupEmulator(getConfigDirPath(), assets)
 
@@ -256,6 +262,22 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                             val settingsIntent = Intent(this@EmulatorActivity, SettingsActivity::class.java)
                             startActivityForResult(settingsIntent, REQUEST_SETTINGS)
                         }
+                        PauseMenuOptions.SAVE_STATE -> pickSaveStateSlot {
+                            if (!MelonEmulator.saveState(it.path))
+                                Toast.makeText(this@EmulatorActivity, getString(R.string.failed_save_state), Toast.LENGTH_SHORT).show()
+
+                            MelonEmulator.resumeEmulation()
+                        }
+                        PauseMenuOptions.LOAD_STATE -> pickSaveStateSlot {
+                            if (!it.exists) {
+                                Toast.makeText(this@EmulatorActivity, getString(R.string.cant_load_empty_slot), Toast.LENGTH_SHORT).show()
+                            } else {
+                                if (!MelonEmulator.loadState(it.path))
+                                    Toast.makeText(this@EmulatorActivity, getString(R.string.failed_load_state), Toast.LENGTH_SHORT).show()
+                            }
+
+                            MelonEmulator.resumeEmulation()
+                        }
                         PauseMenuOptions.EXIT -> finish()
                     }
                 }
@@ -326,6 +348,23 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         MelonEmulator.copyFrameBuffer(dst)
         val fps = MelonEmulator.getFPS()
         runOnUiThread { textFps.text = getString(R.string.info_fps, fps) }
+    }
+
+    private fun pickSaveStateSlot(onSlotPicked: (SaveStateSlot) -> Unit) {
+        val dateFormatter = SimpleDateFormat("EEE, dd MMMM yyyy kk:mm:ss", ConfigurationCompat.getLocales(resources.configuration)[0])
+        val slots = viewModel.getRomSaveStateSlots(loadedRom)
+        val options = slots.map { "${it.slot}. ${if (it.exists) dateFormatter.format(it.lastUsedDate!!) else getString(R.string.empty_slot)}" }.toTypedArray()
+
+        AlertDialog.Builder(this)
+                .setTitle(getString(R.string.save_slot))
+                .setItems(options) { _, which ->
+                    onSlotPicked(slots[which])
+                }
+                .setNegativeButton(R.string.cancel) { dialog, _ ->
+                    dialog.cancel()
+                }
+                .setOnCancelListener { MelonEmulator.resumeEmulation() }
+                .show()
     }
 
     override fun onPause() {

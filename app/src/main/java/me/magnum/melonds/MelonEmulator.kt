@@ -44,6 +44,12 @@ object MelonEmulator {
 	external fun stopEmulation()
 
     @JvmStatic
+    external fun saveState(path: String): Boolean
+
+    @JvmStatic
+    external fun loadState(path: String): Boolean
+
+    @JvmStatic
 	external fun onScreenTouch(x: Int, y: Int)
 
     @JvmStatic

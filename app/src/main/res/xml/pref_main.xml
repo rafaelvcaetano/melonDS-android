@@ -71,6 +71,14 @@
             app:root_dir="/sdcard"
             app:selection_mode="single_mode"
             app:selection_type="dir_select" />
+
+        <ListPreference
+            android:key="save_state_location"
+            android:title="@string/save_state_location"
+            android:summary="%s"
+            android:entries="@array/save_state_locations"
+            android:entryValues="@array/save_state_location_values"
+            android:defaultValue="save_dir" />
     </PreferenceCategory>
 
     <PreferenceCategory

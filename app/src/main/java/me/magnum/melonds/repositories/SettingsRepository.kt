@@ -1,10 +1,7 @@
 package me.magnum.melonds.repositories
 
 import io.reactivex.Observable
-import me.magnum.melonds.model.ControllerConfiguration
-import me.magnum.melonds.model.SortingMode
-import me.magnum.melonds.model.SortingOrder
-import me.magnum.melonds.model.VideoFiltering
+import me.magnum.melonds.model.*
 import me.magnum.melonds.ui.Theme
 
 interface SettingsRepository {
@@ -21,6 +18,7 @@ interface SettingsRepository {
     fun getRomSortingOrder(): SortingOrder
     fun saveNextToRomFile(): Boolean
     fun getSaveFileDirectory(): String?
+    fun getSaveStateDirectory(rom: Rom): String
 
     fun getControllerConfiguration(): ControllerConfiguration
     fun showSoftInput(): Boolean

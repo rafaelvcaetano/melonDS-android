@@ -3,6 +3,7 @@
 
     <string name="ok">OK</string>
     <string name="no">No</string>
+    <string name="cancel">Cancel</string>
     <string name="not_set">Not set</string>
 
     <string name="error_load_rom">Could not load ROM</string>
@@ -15,6 +16,9 @@
     <string name="hint_search_roms">Search ROMs…</string>
     <string name="info_fps">FPS: %1$d</string>
     <string name="info_loading">LOADING…</string>
+    <string name="failed_save_state">Failed to save state</string>
+    <string name="failed_load_state">Failed to load state</string>
+    <string name="cant_load_empty_slot">Can\'t load an empty save state slot</string>
 
     <string name="action_sort_alphabetically">Alphabetically</string>
     <string name="action_sort_recently_played">Recently played</string>
@@ -34,6 +38,10 @@
     <string name="exit">Exit</string>
 
     <string name="settings">Settings</string>
+    <string name="save_state">Save state</string>
+    <string name="load_state">Load state</string>
+    <string name="save_slot">Save slot</string>
+    <string name="empty_slot">&lt;Empty&gt;</string>
     <string name="title_activity_settings">Settings</string>
     <string name="category_general">General</string>
     <string name="category_system">System</string>
@@ -46,6 +54,7 @@
     <string name="category_save_files">Save Files</string>
     <string name="save_next_rom">Save next to ROM file</string>
     <string name="save_file_directory">Save file directory</string>
+    <string name="save_state_location">Save state location</string>
     <string name="input">Input</string>
     <string name="key_mapping">Key mapping</string>
     <string name="show_soft_input">Show soft input</string>
@@ -83,5 +92,11 @@
     <string-array name="video_filtering_options">
         <item>None</item>
         <item>Linear</item>
+    </string-array>
+
+    <string-array name="save_state_locations">
+        <item>Save file directory</item>
+        <item>ROM directory</item>
+        <item>Internal directory</item>
     </string-array>
 </resources>

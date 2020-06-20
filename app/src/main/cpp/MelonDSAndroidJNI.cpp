@@ -91,6 +91,20 @@ Java_me_magnum_melonds_MelonEmulator_resumeEmulation( JNIEnv* env, jclass type)
     MelonDSAndroid::resume();
 }
 
+JNIEXPORT jboolean JNICALL
+Java_me_magnum_melonds_MelonEmulator_saveState( JNIEnv* env, jclass type, jstring path)
+{
+    const char* saveStatePath = path == nullptr ? nullptr : env->GetStringUTFChars(path, JNI_FALSE);
+    return MelonDSAndroid::saveState(saveStatePath);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_me_magnum_melonds_MelonEmulator_loadState( JNIEnv* env, jclass type, jstring path)
+{
+    const char* saveStatePath = path == nullptr ? nullptr : env->GetStringUTFChars(path, JNI_FALSE);
+    return MelonDSAndroid::loadState(saveStatePath);
+}
+
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_stopEmulation( JNIEnv* env, jclass type)
 {

@@ -10,4 +10,10 @@
         <item>dark</item>
         <item>system</item>
     </string-array>
+
+    <string-array name="save_state_location_values">
+        <item>save_dir</item>
+        <item>rom_dir</item>
+        <item>internal_dir</item>
+    </string-array>
 </resources>

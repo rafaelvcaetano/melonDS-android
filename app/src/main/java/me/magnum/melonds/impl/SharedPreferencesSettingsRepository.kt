@@ -9,10 +9,7 @@ import androidx.core.content.edit
 import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
-import me.magnum.melonds.model.ControllerConfiguration
-import me.magnum.melonds.model.SortingMode
-import me.magnum.melonds.model.SortingOrder
-import me.magnum.melonds.model.VideoFiltering
+import me.magnum.melonds.model.*
 import me.magnum.melonds.repositories.SettingsRepository
 import me.magnum.melonds.ui.Theme
 import me.magnum.melonds.utils.PreferenceDirectoryUtils
@@ -88,6 +85,22 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
     override fun getSaveFileDirectory(): String? {
         val dirPreference = preferences.getString("sram_dir", null)
         return PreferenceDirectoryUtils.getSingleDirectoryFromPreference(dirPreference)
+    }
+
+    override fun getSaveStateDirectory(rom: Rom): String {
+        val locationPreference = preferences.getString("save_state_location", "save_dir")!!
+        val saveStateLocation = SaveStateLocation.valueOf(locationPreference.toUpperCase(Locale.ROOT))
+
+        return when (saveStateLocation) {
+            SaveStateLocation.SAVE_DIR -> {
+                if (saveNextToRomFile())
+                    File(rom.path).parentFile!!.absolutePath
+                else
+                    getSaveFileDirectory() ?: File(rom.path).parentFile!!.absolutePath
+            }
+            SaveStateLocation.ROM_DIR -> File(rom.path).parentFile!!.absolutePath
+            SaveStateLocation.INTERNAL_DIR -> File(context.getExternalFilesDir(null), "savestates").absolutePath
+        }
     }
 
     override fun getControllerConfiguration(): ControllerConfiguration {
