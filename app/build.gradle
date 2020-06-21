@@ -8,8 +8,8 @@ android {
         applicationId "me.magnum.melonds"
         minSdkVersion 16
         targetSdkVersion 29
-        versionCode 4
-        versionName "Alpha 1.2.1"
+        versionCode 5
+        versionName "Alpha 1.3.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {

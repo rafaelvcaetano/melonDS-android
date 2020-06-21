@@ -6,6 +6,7 @@ This is a WIP Android frontend for the melonDS Android port. For the Android por
 *  Games can boot and run
 *  Input
 *  Game saves
+*  Save states
 *  GBA ROM support
 *  Settings (WIP)
 *  Controller support
@@ -14,7 +15,6 @@ This is a WIP Android frontend for the melonDS Android port. For the Android por
 *  Sound (works properly at full speed only)
 
 # What is missing
-*  Save states
 *  Wi-Fi
 *  More settings
 *  Mic input
