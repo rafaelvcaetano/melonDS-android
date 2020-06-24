@@ -35,8 +35,7 @@ import me.magnum.melonds.ui.romlist.RomConfigDialog.OnRomConfigSavedListener
 import me.magnum.melonds.ui.romlist.RomListFragment.RomListAdapter.RomViewHolder
 import me.magnum.melonds.utils.ConfigurationUtils.ConfigurationDirStatus
 import me.magnum.melonds.utils.ConfigurationUtils.checkConfigurationDirectory
-import me.magnum.melonds.utils.RomProcessor
-import java.io.File
+import me.magnum.melonds.utils.RomIconProvider
 import java.util.*
 
 class RomListFragment : Fragment() {
@@ -50,6 +49,7 @@ class RomListFragment : Fragment() {
 
     private var romSelectedListener: ((Rom) -> Unit)? = null
     private val romListViewModel: RomListViewModel by viewModels { ServiceLocator[ViewModelProvider.Factory::class] }
+    private val romIconProvider: RomIconProvider by lazy { ServiceLocator[RomIconProvider::class] }
     private lateinit var settingsRepository: SettingsRepository
     private lateinit var romListAdapter: RomListAdapter
 
@@ -281,9 +281,8 @@ class RomListFragment : Fragment() {
             fun setRom(rom: Rom) {
                 this.rom = rom
 
-                val romFile = File(rom.path)
                 try {
-                    val icon = RomProcessor.getRomIcon(romFile)
+                    val icon = romIconProvider.getRomIcon(rom)
                     itemView.imageRomIcon.setImageBitmap(icon)
                 } catch (e: Exception) {
                     e.printStackTrace()

@@ -1,0 +1,59 @@
+package me.magnum.melonds.utils
+
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import me.magnum.melonds.model.Rom
+import java.io.File
+import java.io.FileOutputStream
+import java.lang.Exception
+
+/**
+ * Provider for ROM icons that supports caching. Both memory and disk caches are supported. If upon
+ * request an icon is not found, it is generated and, if generated successfully, it's stored on both
+ * caches.
+ * The name of the file for the disk cache is the hash of the ROM's path.
+ */
+class RomIconProvider(private val context: Context) {
+    private val memoryIconCache = mutableMapOf<String, Bitmap>()
+
+    fun getRomIcon(rom: Rom): Bitmap? {
+        val romHash = rom.path.hashCode().toString()
+        return loadIconFromMemory(romHash, rom)
+    }
+
+    private fun loadIconFromMemory(hash: String, rom: Rom): Bitmap? {
+        var bitmap = memoryIconCache[hash]
+        if (bitmap != null)
+            return bitmap
+
+        bitmap = loadIconFromDisk(hash, rom)
+        if (bitmap != null)
+            memoryIconCache[hash] = bitmap
+
+        return bitmap
+    }
+
+    private fun loadIconFromDisk(hash: String, rom: Rom): Bitmap? {
+        val iconCacheDir = context.externalCacheDir
+        if (iconCacheDir != null) {
+            val iconFile = File(iconCacheDir, hash)
+            if (iconFile.isFile) {
+                return BitmapFactory.decodeFile(iconFile.absolutePath)
+            }
+        }
+
+        val bitmap = RomProcessor.getRomIcon(File(rom.path))
+        if (bitmap != null && iconCacheDir != null) {
+            val iconFile = File(iconCacheDir, hash)
+            try {
+                FileOutputStream(iconFile).use {
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+                }
+            } catch (_: Exception) {
+                // Ignore errors
+            }
+        }
+        return bitmap
+    }
+}

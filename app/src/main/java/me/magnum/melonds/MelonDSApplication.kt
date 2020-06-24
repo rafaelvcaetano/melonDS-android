@@ -15,6 +15,7 @@ import me.magnum.melonds.repositories.SettingsRepository
 import me.magnum.melonds.ui.emulator.EmulatorViewModel
 import me.magnum.melonds.ui.inputsetup.InputSetupViewModel
 import me.magnum.melonds.ui.romlist.RomListViewModel
+import me.magnum.melonds.utils.RomIconProvider
 
 class MelonDSApplication : Application() {
     private var themeObserverDisposable: Disposable? = null
@@ -30,6 +31,7 @@ class MelonDSApplication : Application() {
         ServiceLocator.bindSingleton(Context::class, applicationContext)
         ServiceLocator.bindSingleton(SettingsRepository::class, SharedPreferencesSettingsRepository(this, PreferenceManager.getDefaultSharedPreferences(this), ServiceLocator[Gson::class]))
         ServiceLocator.bindSingleton(RomsRepository::class, FileSystemRomsRepository(ServiceLocator[Context::class], ServiceLocator[Gson::class], ServiceLocator[SettingsRepository::class]))
+        ServiceLocator.bindSingleton(RomIconProvider(this))
 
         ServiceLocator.bindSingleton(ViewModelProvider.Factory::class, object : ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T {
