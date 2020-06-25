@@ -55,7 +55,9 @@ class InputSetupActivity : AppCompatActivity() {
         setContentView(R.layout.activity_input_setup)
         val inputListAdapter = InputListAdapter(object : OnInputConfigClickedListener {
             override fun onInputConfigClicked(inputConfig: InputConfig) {
-                if (inputUnderConfiguration != null) viewModel.stopUpdatingInputConfig(inputUnderConfiguration!!.input)
+                if (inputUnderConfiguration != null)
+                    viewModel.stopUpdatingInputConfig(inputUnderConfiguration!!.input)
+
                 viewModel.startUpdatingInputConfig(inputConfig.input)
                 waitingForInput = true
                 inputUnderConfiguration = inputConfig
@@ -63,7 +65,9 @@ class InputSetupActivity : AppCompatActivity() {
 
             override fun onInputConfigCleared(inputConfig: InputConfig) {
                 if (inputUnderConfiguration != null) {
-                    if (inputConfig.input === inputUnderConfiguration!!.input) viewModel.stopUpdatingInputConfig(inputConfig.input)
+                    if (inputConfig.input === inputUnderConfiguration!!.input)
+                        viewModel.stopUpdatingInputConfig(inputConfig.input)
+
                     inputUnderConfiguration = null
                     waitingForInput = false
                 }
