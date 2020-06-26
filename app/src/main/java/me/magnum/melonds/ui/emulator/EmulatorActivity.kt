@@ -76,6 +76,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     private var emulatorReady = false
+    private var emulatorPaused = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -126,6 +127,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
         if (emulatorReady) {
             MelonEmulator.pauseEmulation()
+            emulatorPaused = true
             emulatorReady = false
 
             AlertDialog.Builder(this)
@@ -133,12 +135,16 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                     .setMessage(getString(R.string.message_stop_emulation))
                     .setPositiveButton(R.string.ok) { _, _ ->
                         MelonEmulator.stopEmulation()
+                        emulatorPaused = false
                         setIntent(intent)
                         launchEmulator()
                     }
-                    .setNegativeButton(R.string.no) { _, _ ->
+                    .setNegativeButton(R.string.no) { dialog, _ ->
+                        dialog.cancel()
+                    }
+                    .setOnCancelListener {
                         emulatorReady = true
-                        MelonEmulator.resumeEmulation()
+                        resumeEmulation()
                     }
                     .show()
         }
@@ -148,7 +154,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         super.onResume()
         surfaceMain.onResume()
 
-        if (emulatorReady)
+        if (emulatorReady && !emulatorPaused)
             MelonEmulator.resumeEmulation()
     }
 
@@ -249,6 +255,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     private fun pauseEmulation() {
+        emulatorPaused = true
         val values = PauseMenuOptions.values()
         val options = Array(values.size) { i -> getString(values[i].textResource) }
 
@@ -266,7 +273,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                             if (!MelonEmulator.saveState(it.path))
                                 Toast.makeText(this@EmulatorActivity, getString(R.string.failed_save_state), Toast.LENGTH_SHORT).show()
 
-                            MelonEmulator.resumeEmulation()
+                            resumeEmulation()
                         }
                         PauseMenuOptions.LOAD_STATE -> pickSaveStateSlot {
                             if (!it.exists) {
@@ -276,13 +283,18 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                                     Toast.makeText(this@EmulatorActivity, getString(R.string.failed_load_state), Toast.LENGTH_SHORT).show()
                             }
 
-                            MelonEmulator.resumeEmulation()
+                            resumeEmulation()
                         }
                         PauseMenuOptions.EXIT -> finish()
                     }
                 }
-                .setOnCancelListener { MelonEmulator.resumeEmulation() }
+                .setOnCancelListener { resumeEmulation()}
                 .show()
+    }
+
+    private fun resumeEmulation() {
+        emulatorPaused = false
+        MelonEmulator.resumeEmulation()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -363,7 +375,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                 .setNegativeButton(R.string.cancel) { dialog, _ ->
                     dialog.cancel()
                 }
-                .setOnCancelListener { MelonEmulator.resumeEmulation() }
+                .setOnCancelListener { resumeEmulation() }
                 .show()
     }
 
@@ -371,7 +383,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         super.onPause()
         surfaceMain.onPause()
 
-        if (emulatorReady)
+        if (emulatorReady && !emulatorPaused)
             MelonEmulator.pauseEmulation()
     }
 
