@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.Window
+import android.view.WindowManager
 import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -126,6 +127,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         super.onNewIntent(intent)
 
         if (emulatorReady) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             MelonEmulator.pauseEmulation()
             emulatorPaused = true
             emulatorReady = false
@@ -170,6 +172,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             romsRepository.getRomAtPath(romPath).defaultIfEmpty(Rom(romPath, romPath, RomConfig())).toSingle()
         }
 
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         romLoader.flatMap {
             loadedRom = it
             Single.create<LoadResult> { emitter ->
@@ -260,6 +263,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         val options = Array(values.size) { i -> getString(values[i].textResource) }
 
         MelonEmulator.pauseEmulation()
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         AlertDialog.Builder(this)
                 .setTitle(R.string.pause)
@@ -294,6 +298,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
     private fun resumeEmulation() {
         emulatorPaused = false
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         MelonEmulator.resumeEmulation()
     }
 
