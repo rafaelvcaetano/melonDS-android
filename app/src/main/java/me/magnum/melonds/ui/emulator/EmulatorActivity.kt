@@ -270,6 +270,8 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                 .setItems(options) { _, which ->
                     when (values[which]) {
                         PauseMenuOptions.SETTINGS -> {
+                            // Allow emulator to resume once the user returns from Settings
+                            emulatorPaused = false
                             val settingsIntent = Intent(this@EmulatorActivity, SettingsActivity::class.java)
                             startActivityForResult(settingsIntent, REQUEST_SETTINGS)
                         }
