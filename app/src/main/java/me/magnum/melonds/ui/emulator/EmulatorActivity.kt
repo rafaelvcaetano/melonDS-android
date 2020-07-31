@@ -32,6 +32,7 @@ import me.magnum.melonds.repositories.SettingsRepository
 import me.magnum.melonds.ui.SettingsActivity
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
 import me.magnum.melonds.ui.input.*
+import me.magnum.melonds.utils.FileUtils
 import java.io.File
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
@@ -316,26 +317,28 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     private fun getConfigDirPath(): String {
-        val path = settingsRepository.getBiosDirectory() ?: throw IllegalStateException("BIOS directory not set")
-        return "$path/"
+        val biosDirUri = settingsRepository.getBiosDirectory() ?: throw IllegalStateException("BIOS directory not set")
+        val biosDirPath = FileUtils.getAbsolutePathFromSAFUri(this, biosDirUri)
+
+        return "$biosDirPath/"
     }
 
     private fun getSRAMPath(romPath: String): String {
         val romFile = File(romPath)
-        val filename = romFile.name
 
-        var sramDir: String?
-        if (settingsRepository.saveNextToRomFile()) {
-            sramDir = romFile.parent
+        val sramDir = if (settingsRepository.saveNextToRomFile()) {
+            romFile.parent
         } else {
-            sramDir = settingsRepository.getSaveFileDirectory()
-
-            // If no directory is set, revert to using the ROM's directory
-            if (sramDir == null)
-                sramDir = romFile.parent
+            val sramDirUri = settingsRepository.getSaveFileDirectory()
+            if (sramDirUri != null)
+                FileUtils.getAbsolutePathFromSAFUri(this, sramDirUri) ?: romFile.parent
+            else {
+                // If no directory is set, revert to using the ROM's directory
+                romFile.parent
+            }
         }
 
-        val nameWithoutExtension = filename.substring(0, filename.length - 4)
+        val nameWithoutExtension = romFile.nameWithoutExtension
         val sramFileName = "$nameWithoutExtension.sav"
         return File(sramDir, sramFileName).absolutePath
     }

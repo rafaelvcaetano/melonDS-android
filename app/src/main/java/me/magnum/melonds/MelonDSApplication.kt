@@ -7,6 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
+import com.llamalab.safs.FileSystems
+import com.llamalab.safs.android.AndroidFileSystem
+import com.llamalab.safs.android.AndroidFileSystemProvider
 import io.reactivex.disposables.Disposable
 import me.magnum.melonds.impl.FileSystemRomsRepository
 import me.magnum.melonds.impl.SharedPreferencesSettingsRepository
@@ -18,9 +21,16 @@ import me.magnum.melonds.ui.romlist.RomListViewModel
 import me.magnum.melonds.utils.RomIconProvider
 
 class MelonDSApplication : Application() {
+    private companion object {
+        init {
+            System.setProperty("com.llamalab.safs.spi.DefaultFileSystemProvider", AndroidFileSystemProvider::class.java.name)
+        }
+    }
+
     private var themeObserverDisposable: Disposable? = null
 
     override fun onCreate() {
+        (FileSystems.getDefault() as AndroidFileSystem).context = this
         super.onCreate()
         initializeServiceLocator()
         applyTheme()

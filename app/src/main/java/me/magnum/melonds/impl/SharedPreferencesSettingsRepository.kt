@@ -3,6 +3,7 @@ package me.magnum.melonds.impl
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.content.edit
@@ -12,7 +13,7 @@ import io.reactivex.subjects.PublishSubject
 import me.magnum.melonds.model.*
 import me.magnum.melonds.repositories.SettingsRepository
 import me.magnum.melonds.ui.Theme
-import me.magnum.melonds.utils.PreferenceDirectoryUtils
+import me.magnum.melonds.utils.FileUtils
 import java.io.*
 import java.util.*
 
@@ -41,19 +42,14 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return Theme.valueOf(themePreference.toUpperCase(Locale.ROOT))
     }
 
-    override fun getRomSearchDirectories(): Array<String> {
-        val dirPreference = preferences.getString("rom_search_dirs", null)
-        var dirs: Array<String> = PreferenceDirectoryUtils.getMultipleDirectoryFromPreference(dirPreference)
-
-        if (dirs.isEmpty())
-            dirs = arrayOf("/sdcard")
-
-        return dirs
+    override fun getRomSearchDirectories(): Array<Uri> {
+        val dirPreference = preferences.getStringSet("rom_search_dirs", emptySet())
+        return dirPreference?.map { Uri.parse(it) }?.toTypedArray() ?: emptyArray()
     }
 
-    override fun getBiosDirectory(): String? {
-        val dirPreference = preferences.getString("bios_dir", null)
-        return PreferenceDirectoryUtils.getSingleDirectoryFromPreference(dirPreference)
+    override fun getBiosDirectory(): Uri? {
+        val dirPreference = preferences.getStringSet("bios_dir", null)?.firstOrNull()
+        return dirPreference?.let { Uri.parse(it) }
     }
 
     override fun showBootScreen(): Boolean {
@@ -82,9 +78,9 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return preferences.getBoolean("use_rom_dir", true)
     }
 
-    override fun getSaveFileDirectory(): String? {
-        val dirPreference = preferences.getString("sram_dir", null)
-        return PreferenceDirectoryUtils.getSingleDirectoryFromPreference(dirPreference)
+    override fun getSaveFileDirectory(): Uri? {
+        val dirPreference = preferences.getStringSet("sram_dir", null)?.firstOrNull()
+        return dirPreference?.let { Uri.parse(it) }
     }
 
     override fun getSaveStateDirectory(rom: Rom): String {
@@ -93,10 +89,17 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
 
         return when (saveStateLocation) {
             SaveStateLocation.SAVE_DIR -> {
+                val romParentDir = File(rom.path).parentFile!!.absolutePath
+
                 if (saveNextToRomFile())
-                    File(rom.path).parentFile!!.absolutePath
-                else
-                    getSaveFileDirectory() ?: File(rom.path).parentFile!!.absolutePath
+                    romParentDir
+                else {
+                    val sramDirUri = getSaveFileDirectory()
+                    if (sramDirUri == null)
+                        romParentDir
+                    else
+                        FileUtils.getAbsolutePathFromSAFUri(context, sramDirUri) ?: romParentDir
+                }
             }
             SaveStateLocation.ROM_DIR -> File(rom.path).parentFile!!.absolutePath
             SaveStateLocation.INTERNAL_DIR -> File(context.getExternalFilesDir(null), "savestates").absolutePath
@@ -128,9 +131,15 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return preferences.getInt("input_opacity", 50)
     }
 
-    override fun observeRomSearchDirectories(): Observable<Array<String>> {
+    override fun observeRomSearchDirectories(): Observable<Array<Uri>> {
         return getOrCreatePreferenceObservable("rom_search_dirs") {
             getRomSearchDirectories()
+        }
+    }
+
+    override fun setBiosDirectory(directoryUri: Uri) {
+        preferences.edit {
+            putStringSet("bios_dir", setOf(directoryUri.toString()))
         }
     }
 

@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.SearchManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.Menu
@@ -24,6 +25,7 @@ import me.magnum.melonds.repositories.SettingsRepository
 import me.magnum.melonds.ui.SettingsActivity
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.utils.ConfigurationUtils
+import me.magnum.melonds.utils.DirectoryPickerContract
 
 class RomListActivity : AppCompatActivity() {
     companion object {
@@ -34,6 +36,11 @@ class RomListActivity : AppCompatActivity() {
 
     private val viewModel: RomListViewModel by viewModels { ServiceLocator[ViewModelProvider.Factory::class] }
     private val settingsRepository by lazy { ServiceLocator[SettingsRepository::class] }
+    private val biosPickerLauncher by lazy { registerForActivityResult(DirectoryPickerContract()) {
+        if (checkConfigDirectorySetup(it)) {
+            settingsRepository.setBiosDirectory(it!!)
+        }
+    } }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -125,25 +132,21 @@ class RomListActivity : AppCompatActivity() {
             Toast.makeText(this, getString(R.string.info_no_storage_permission), Toast.LENGTH_LONG).show()
     }
 
-    private fun checkConfigDirectorySetup(): Boolean {
-        val configDir = settingsRepository.getBiosDirectory()
-        when (ConfigurationUtils.checkConfigurationDirectory(configDir)) {
+    private fun checkConfigDirectorySetup(checkDirectory: Uri? = null): Boolean {
+        val configDir = checkDirectory ?: settingsRepository.getBiosDirectory()
+        when (ConfigurationUtils.checkConfigurationDirectory(this, configDir)) {
             ConfigurationUtils.ConfigurationDirStatus.VALID -> return true
             ConfigurationUtils.ConfigurationDirStatus.UNSET -> AlertDialog.Builder(this)
                     .setTitle(R.string.bios_dir_not_set)
                     .setMessage(R.string.bios_dir_not_set_info)
-                    .setPositiveButton(R.string.ok) { _, _ ->
-                        val intent = Intent(this, SettingsActivity::class.java)
-                        startActivity(intent)
-                    }
+                    .setPositiveButton(R.string.ok) { _, _ -> biosPickerLauncher.launch(null) }
+                    .setCancelable(false)
                     .show()
             ConfigurationUtils.ConfigurationDirStatus.INVALID -> AlertDialog.Builder(this)
                     .setTitle(R.string.incorrect_bios_dir)
                     .setMessage(R.string.incorrect_bios_dir_info)
-                    .setPositiveButton(R.string.ok) { _, _ ->
-                        val intent = Intent(this, SettingsActivity::class.java)
-                        startActivity(intent)
-                    }
+                    .setPositiveButton(R.string.ok) { _, _ -> biosPickerLauncher.launch(null) }
+                    .setCancelable(false)
                     .show()
         }
         return false

@@ -1,6 +1,7 @@
 package me.magnum.melonds.impl
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -15,6 +16,7 @@ import me.magnum.melonds.model.RomConfig
 import me.magnum.melonds.model.RomScanningStatus
 import me.magnum.melonds.repositories.RomsRepository
 import me.magnum.melonds.repositories.SettingsRepository
+import me.magnum.melonds.utils.FileUtils
 import me.magnum.melonds.utils.RomProcessor
 import java.io.File
 import java.io.FileOutputStream
@@ -44,7 +46,7 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
                 .subscribe { directories -> onRomSearchDirectoriesChanged(directories) }
     }
 
-    private fun onRomSearchDirectoriesChanged(searchDirectories: Array<String>) {
+    private fun onRomSearchDirectoriesChanged(searchDirectories: Array<Uri>) {
         val romsToRemove = ArrayList<Rom>()
         for (rom in roms) {
             val romFile = File(rom.path)
@@ -54,14 +56,16 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
             }
             var isInDirectories = false
             for (directory in searchDirectories) {
-                val dir = File(directory)
+                val directoryPath = FileUtils.getAbsolutePathFromSAFUri(context, directory) ?: continue
+                val dir = File(directoryPath)
                 if (!dir.isDirectory) continue
                 if (romFile.absolutePath.startsWith(dir.absolutePath)) {
                     isInDirectories = true
                     break
                 }
             }
-            if (!isInDirectories) romsToRemove.add(rom)
+            if (!isInDirectories)
+                romsToRemove.add(rom)
         }
 
         for (rom in romsToRemove) {
@@ -194,8 +198,11 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
             }
 
             override fun subscribe(emitter: ObservableEmitter<Rom>) {
-                for (directory in settingsRepository.getRomSearchDirectories())
-                    findFiles(File(directory), emitter)
+                for (directory in settingsRepository.getRomSearchDirectories()) {
+                    val directoryPath = FileUtils.getAbsolutePathFromSAFUri(context, directory)
+                    if (directoryPath != null)
+                        findFiles(File(directoryPath), emitter)
+                }
 
                 emitter.onComplete()
             }

@@ -1,5 +1,8 @@
 package me.magnum.melonds.utils
 
+import android.content.Context
+import android.net.Uri
+import me.magnum.melonds.utils.FileUtils.getAbsolutePathFromSAFUri
 import java.io.File
 
 object ConfigurationUtils {
@@ -8,11 +11,12 @@ object ConfigurationUtils {
     }
 
     @JvmStatic
-	fun checkConfigurationDirectory(configurationDir: String?): ConfigurationDirStatus {
+	fun checkConfigurationDirectory(context: Context, configurationDir: Uri?): ConfigurationDirStatus {
         if (configurationDir == null)
             return ConfigurationDirStatus.UNSET
 
-        val dir = File(configurationDir)
+        val dirPath = getAbsolutePathFromSAFUri(context, configurationDir)
+        val dir = File(dirPath)
         if (!dir.isDirectory)
             return ConfigurationDirStatus.INVALID
 

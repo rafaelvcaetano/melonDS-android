@@ -18,23 +18,18 @@
     <PreferenceCategory
         android:title="ROMs">
 
-        <com.github.angads25.filepicker.view.FilePickerPreference
+        <me.magnum.melonds.preferences.DirectoryPickerPreference
                 android:key="rom_search_dirs"
                 android:title="@string/rom_search_directories"
-                app:root_dir="/sdcard"
-                app:selection_mode="multi_mode"
-                app:selection_type="dir_select" />
+                app:selection="multi" />
     </PreferenceCategory>
 
     <PreferenceCategory
         android:title="@string/category_system">
 
-        <com.github.angads25.filepicker.view.FilePickerPreference
+        <me.magnum.melonds.preferences.DirectoryPickerPreference
             android:key="bios_dir"
-            android:title="@string/bios_directory"
-            app:root_dir="/sdcard"
-            app:selection_mode="single_mode"
-            app:selection_type="dir_select" />
+            android:title="@string/bios_directory" />
 
         <SwitchPreference
             android:key="show_bios"
@@ -63,7 +58,7 @@
             android:defaultValue="true"
             android:disableDependentsState="true" />
 
-        <com.github.angads25.filepicker.view.FilePickerPreference
+        <me.magnum.melonds.preferences.DirectoryPickerPreference
             android:key="sram_dir"
             android:title="@string/save_file_directory"
             android:dependency="use_rom_dir"

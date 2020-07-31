@@ -1,5 +1,6 @@
 package me.magnum.melonds.repositories
 
+import android.net.Uri
 import io.reactivex.Observable
 import me.magnum.melonds.model.*
 import me.magnum.melonds.ui.Theme
@@ -7,9 +8,9 @@ import me.magnum.melonds.ui.Theme
 interface SettingsRepository {
     fun getTheme(): Theme
 
-    fun getRomSearchDirectories(): Array<String>
+    fun getRomSearchDirectories(): Array<Uri>
 
-    fun getBiosDirectory(): String?
+    fun getBiosDirectory(): Uri?
     fun showBootScreen(): Boolean
 
     fun getVideoFiltering(): VideoFiltering
@@ -17,7 +18,7 @@ interface SettingsRepository {
     fun getRomSortingMode(): SortingMode
     fun getRomSortingOrder(): SortingOrder
     fun saveNextToRomFile(): Boolean
-    fun getSaveFileDirectory(): String?
+    fun getSaveFileDirectory(): Uri?
     fun getSaveStateDirectory(rom: Rom): String
 
     fun getControllerConfiguration(): ControllerConfiguration
@@ -25,8 +26,9 @@ interface SettingsRepository {
     fun getSoftInputOpacity(): Int
 
     fun observeTheme(): Observable<Theme>
-    fun observeRomSearchDirectories(): Observable<Array<String>>
+    fun observeRomSearchDirectories(): Observable<Array<Uri>>
 
+    fun setBiosDirectory(directoryUri: Uri)
     fun setControllerConfiguration(controllerConfiguration: ControllerConfiguration)
     fun setRomSortingMode(sortingMode: SortingMode)
     fun setRomSortingOrder(sortingOrder: SortingOrder)

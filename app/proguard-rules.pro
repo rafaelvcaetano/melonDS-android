@@ -21,3 +21,7 @@
 #-renamesourcefileattribute SourceFile
 
 -keepclassmembers enum * { *; }
+
+-keep class com.llamalab.safs.spi.FileSystemProvider { *; }
+-keep class * extends com.llamalab.safs.spi.FileSystemProvider { *; }
+-keep class * extends com.llamalab.safs.spi.FileTypeDetector { *; }
