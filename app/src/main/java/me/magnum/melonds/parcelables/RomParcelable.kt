@@ -1,5 +1,6 @@
 package me.magnum.melonds.parcelables
 
+import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import me.magnum.melonds.model.Rom
@@ -18,8 +19,8 @@ class RomParcelable : Parcelable {
         val romConfig = RomConfig()
         rom = Rom(parcel.readString()!!, parcel.readString()!!, romConfig, parcel.readLong().let { if (it == (-1).toLong()) null else Date(it) })
         romConfig.setLoadGbaCart(parcel.readInt() == 1)
-        romConfig.gbaCartPath = parcel.readString()
-        romConfig.gbaSavePath = parcel.readString()
+        romConfig.gbaCartPath = parcel.readString()?.let { Uri.parse(it) }
+        romConfig.gbaSavePath = parcel.readString()?.let { Uri.parse(it) }
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
@@ -27,8 +28,8 @@ class RomParcelable : Parcelable {
         dest.writeString(rom.path)
         dest.writeLong(rom.lastPlayed?.time ?: -1)
         dest.writeInt(if (rom.config.loadGbaCart()) 1 else 0)
-        dest.writeString(rom.config.gbaCartPath)
-        dest.writeString(rom.config.gbaSavePath)
+        dest.writeString(rom.config.gbaCartPath?.toString())
+        dest.writeString(rom.config.gbaSavePath?.toString())
     }
 
     override fun describeContents(): Int {

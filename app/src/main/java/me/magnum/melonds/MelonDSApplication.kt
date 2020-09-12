@@ -2,11 +2,14 @@ package me.magnum.melonds
 
 import android.app.Application
 import android.content.Context
+import android.net.Uri
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
-import com.google.gson.Gson
+import com.google.gson.*
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 import com.llamalab.safs.FileSystems
 import com.llamalab.safs.android.AndroidFileSystem
 import com.llamalab.safs.android.AndroidFileSystemProvider
@@ -19,6 +22,7 @@ import me.magnum.melonds.ui.emulator.EmulatorViewModel
 import me.magnum.melonds.ui.inputsetup.InputSetupViewModel
 import me.magnum.melonds.ui.romlist.RomListViewModel
 import me.magnum.melonds.utils.RomIconProvider
+import java.lang.reflect.Type
 
 class MelonDSApplication : Application() {
     private companion object {
@@ -37,7 +41,19 @@ class MelonDSApplication : Application() {
     }
 
     private fun initializeServiceLocator() {
-        ServiceLocator.bindSingleton(Gson())
+        val gson = GsonBuilder()
+                .registerTypeAdapter(Uri::class.java, object : JsonSerializer<Uri?> {
+                    override fun serialize(src: Uri?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
+                        return JsonPrimitive(src?.toString())
+                    }
+                })
+                .registerTypeAdapter(Uri::class.java, object : JsonDeserializer<Uri?> {
+                    override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): Uri? {
+                        return json?.let { Uri.parse(it.asString) }
+                    }
+                })
+                .create()
+        ServiceLocator.bindSingleton(gson)
         ServiceLocator.bindSingleton(Context::class, applicationContext)
         ServiceLocator.bindSingleton(SettingsRepository::class, SharedPreferencesSettingsRepository(this, PreferenceManager.getDefaultSharedPreferences(this), ServiceLocator[Gson::class]))
         ServiceLocator.bindSingleton(RomsRepository::class, FileSystemRomsRepository(ServiceLocator[Context::class], ServiceLocator[Gson::class], ServiceLocator[SettingsRepository::class]))

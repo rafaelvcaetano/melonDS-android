@@ -217,13 +217,17 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
                 return@ObservableOnSubscribe
             }
 
-            val roms = gson.fromJson<List<Rom>>(FileReader(cacheFile), romListType)
-            if (roms != null) {
-                for (rom in roms) {
-                    emitter.onNext(rom)
+            try {
+                val roms = gson.fromJson<List<Rom>>(FileReader(cacheFile), romListType)
+                if (roms != null) {
+                    for (rom in roms) {
+                        emitter.onNext(rom)
+                    }
                 }
+                emitter.onComplete()
+            } catch (_: Exception) {
+                emitter.onComplete()
             }
-            emitter.onComplete()
         })
     }
 

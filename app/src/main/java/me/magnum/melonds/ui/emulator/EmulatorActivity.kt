@@ -182,7 +182,9 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                 val showBios = settingsRepository.showBootScreen()
                 val sramPath = getSRAMPath(it.path)
 
-                val loadResult = MelonEmulator.loadRom(it.path, sramPath, !showBios, it.config.loadGbaCart(), it.config.gbaCartPath, it.config.gbaSavePath)
+                val gbaCartPath = FileUtils.getAbsolutePathFromSAFUri(this, it.config.gbaCartPath)
+                val gbaSavePath = FileUtils.getAbsolutePathFromSAFUri(this, it.config.gbaSavePath)
+                val loadResult = MelonEmulator.loadRom(it.path, sramPath, !showBios, it.config.loadGbaCart(), gbaCartPath, gbaSavePath)
                 if (loadResult === LoadResult.NDS_FAILED)
                     throw RomLoadFailedException()
 

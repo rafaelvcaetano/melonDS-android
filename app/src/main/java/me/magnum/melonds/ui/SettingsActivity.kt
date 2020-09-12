@@ -8,24 +8,15 @@ import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
-import com.github.angads25.filepicker.view.FilePickerPreference
 import me.magnum.melonds.R
 import me.magnum.melonds.preferences.DirectoryPickerPreference
 import me.magnum.melonds.utils.DirectoryPickerContract
 import me.magnum.melonds.utils.FileUtils
-import me.magnum.melonds.utils.PreferenceDirectoryUtils.getMultipleDirectoryFromPreference
 
 class SettingsActivity : AppCompatActivity() {
     companion object {
         private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->
             when (preference) {
-                is FilePickerPreference -> {
-                    var directory = getMultipleDirectoryFromPreference(value.toString())
-                    if (directory.isEmpty())
-                        directory = arrayOf(preference.getContext().getString(R.string.not_set))
-
-                    preference.setSummary(directory.joinToString("\n"))
-                }
                 is ListPreference -> {
                     // For list preferences, look up the correct display value in
                     // the preference's 'entries' list.

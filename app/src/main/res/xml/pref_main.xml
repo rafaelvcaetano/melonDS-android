@@ -62,10 +62,7 @@
             android:key="sram_dir"
             android:title="@string/save_file_directory"
             android:dependency="use_rom_dir"
-            android:defaultValue="/sdcard"
-            app:root_dir="/sdcard"
-            app:selection_mode="single_mode"
-            app:selection_type="dir_select" />
+            android:defaultValue="/sdcard" />
 
         <ListPreference
             android:key="save_state_location"

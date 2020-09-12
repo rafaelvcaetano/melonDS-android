@@ -11,8 +11,6 @@ import android.provider.DocumentsContract
 import android.util.Log
 import java.io.File
 import java.lang.reflect.Array
-import java.util.*
-import kotlin.collections.ArrayList
 
 
 object FileUtils {
@@ -26,8 +24,22 @@ object FileUtils {
 
     @TargetApi(21)
     fun getAbsolutePathFromSAFUri(context: Context, safResultUri: Uri?): String? {
-        val treeUri = DocumentsContract.buildDocumentUriUsingTree(safResultUri, DocumentsContract.getTreeDocumentId(safResultUri))
-        return getAbsolutePathFromTreeUri(context, treeUri)
+        if (safResultUri == null)
+            return null
+
+        if (DocumentsContract.isDocumentUri(context, safResultUri)) {
+            val docId = DocumentsContract.getDocumentId(safResultUri)
+            val split = docId.split(":".toRegex()).toTypedArray()
+            val type = split[0]
+
+            return if ("primary".equals(type, ignoreCase = true))
+                Environment.getExternalStorageDirectory().toString() + "/" + split[1]
+            else
+                null
+        }
+
+        val documentUri = DocumentsContract.buildDocumentUriUsingTree(safResultUri, DocumentsContract.getTreeDocumentId(safResultUri))
+        return getAbsolutePathFromTreeUri(context, documentUri)
     }
 
     private fun getAbsolutePathFromTreeUri(context: Context, treeUri: Uri?): String? {

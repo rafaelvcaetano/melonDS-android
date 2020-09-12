@@ -2,6 +2,7 @@ package me.magnum.melonds.ui.romlist
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -25,6 +26,7 @@ import me.magnum.melonds.model.RomConfig
 import me.magnum.melonds.model.RomScanningStatus
 import me.magnum.melonds.ui.romlist.RomConfigDialog.OnRomConfigSavedListener
 import me.magnum.melonds.ui.romlist.RomListFragment.RomListAdapter.RomViewHolder
+import me.magnum.melonds.utils.FilePickerContract
 import me.magnum.melonds.utils.RomIconProvider
 import java.util.*
 
@@ -44,8 +46,8 @@ class RomListFragment : Fragment() {
         return inflater.inflate(R.layout.rom_list_fragment, container, false)
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         swipeRefreshRoms.setOnRefreshListener { romListViewModel.refreshRoms() }
 
@@ -56,13 +58,28 @@ class RomListFragment : Fragment() {
             }
 
             override fun onRomConfigClicked(rom: Rom) {
-                RomConfigDialog(requireContext(), rom.name, rom.config.copy())
-                        .setOnRomConfigSaveListener(object : OnRomConfigSavedListener {
-                            override fun onRomConfigSaved(romConfig: RomConfig) {
-                                romListViewModel.updateRomConfig(rom, romConfig)
+                var onFilePickedListener: ((Uri) -> Unit)? = null
+                val romConfigFilePicker = registerForActivityResult(FilePickerContract()) {
+                    if (it != null)
+                        onFilePickedListener?.invoke(it)
+                }
+
+                RomConfigDialog(requireContext(), rom.name, rom.config.copy(), object : RomConfigDialog.FilePicker {
+                            override fun pickFile(startUri: Uri?, onFilePicked: (Uri) -> Unit) {
+                                onFilePickedListener = onFilePicked
+                                romConfigFilePicker.launch(startUri)
                             }
-                        })
-                        .show()
+                        }).apply {
+                    setOnRomConfigSaveListener(object : OnRomConfigSavedListener {
+                        override fun onRomConfigSaved(romConfig: RomConfig) {
+                            romListViewModel.updateRomConfig(rom, romConfig)
+                        }
+                    })
+                    setOnDismissListener {
+                        romConfigFilePicker.unregister()
+                    }
+                    show()
+                }
             }
         })
 

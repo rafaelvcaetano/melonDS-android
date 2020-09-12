@@ -1,6 +1,8 @@
 package me.magnum.melonds.model
 
-data class RomConfig(private var loadGbaCart: Boolean = false, var gbaCartPath: String? = null, var gbaSavePath: String? = null) {
+import android.net.Uri
+
+data class RomConfig(private var loadGbaCart: Boolean = false, var gbaCartPath: Uri? = null, var gbaSavePath: Uri? = null) {
     fun loadGbaCart(): Boolean {
         return loadGbaCart
     }

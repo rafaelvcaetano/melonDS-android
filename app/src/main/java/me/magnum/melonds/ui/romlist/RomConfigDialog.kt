@@ -1,22 +1,23 @@
 package me.magnum.melonds.ui.romlist
 
 import android.content.Context
+import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.view.View
 import androidx.appcompat.app.AlertDialog
-import com.github.angads25.filepicker.model.DialogConfigs
-import com.github.angads25.filepicker.model.DialogProperties
-import com.github.angads25.filepicker.view.FilePickerDialog
 import kotlinx.android.synthetic.main.dialog_rom_config.*
 import me.magnum.melonds.R
 import me.magnum.melonds.extensions.setViewEnabledRecursive
 import me.magnum.melonds.model.RomConfig
-import java.io.File
+import me.magnum.melonds.utils.FileUtils
 
-class RomConfigDialog(context: Context, private val title: String, private val romConfig: RomConfig) : AlertDialog(context) {
+class RomConfigDialog(context: Context, private val title: String, private val romConfig: RomConfig, private val filePicker: FilePicker) : AlertDialog(context) {
     interface OnRomConfigSavedListener {
         fun onRomConfigSaved(romConfig: RomConfig)
+    }
+
+    interface FilePicker {
+        fun pickFile(startUri: Uri?, onFilePicked: (Uri) -> Unit)
     }
 
     private var saveListener: OnRomConfigSavedListener? = null
@@ -28,37 +29,17 @@ class RomConfigDialog(context: Context, private val title: String, private val r
 
         layoutPrefLoadGbaRom.setOnClickListener { switchLoadGbaRom.toggle() }
         layoutPrefGbaRomPath.setOnClickListener {
-            val properties = DialogProperties()
-            properties.selection_mode = DialogConfigs.SINGLE_MODE
-            properties.selection_type = DialogConfigs.FILE_SELECT
-            properties.root = Environment.getExternalStorageDirectory()
-            val pickerDialog = FilePickerDialog(context, properties)
-            pickerDialog.setDialogSelectionListener { files ->
-                if (files.isNotEmpty()) {
-                    if (File(files[0]).isFile) onGbaRomPathSelected(files[0])
-                }
-            }
-            pickerDialog.show()
+            filePicker.pickFile(romConfig.gbaCartPath, this::onGbaRomPathSelected)
         }
         layoutPrefGbaSavePath.setOnClickListener {
-            val properties = DialogProperties()
-            properties.selection_mode = DialogConfigs.SINGLE_MODE
-            properties.selection_type = DialogConfigs.FILE_SELECT
-            properties.root = Environment.getExternalStorageDirectory()
-            val pickerDialog = FilePickerDialog(context, properties)
-            pickerDialog.setDialogSelectionListener { files ->
-                if (files.isNotEmpty()) {
-                    if (File(files[0]).isFile) onGbaSavePathSelected(files[0])
-                }
-            }
-            pickerDialog.show()
+            filePicker.pickFile(romConfig.gbaSavePath, this::onGbaSavePathSelected)
         }
         switchLoadGbaRom.setOnCheckedChangeListener { _, isChecked -> setLoadGbaRom(isChecked) }
         textRomConfigTitle.text = title
 
         switchLoadGbaRom.isChecked = romConfig.loadGbaCart()
-        textPrefGbaRomPath.text = getPathOrDefault(romConfig.gbaCartPath)
-        textPrefGbaSavePath.text = getPathOrDefault(romConfig.gbaSavePath)
+        textPrefGbaRomPath.text = getUriPathOrDefault(romConfig.gbaCartPath)
+        textPrefGbaSavePath.text = getUriPathOrDefault(romConfig.gbaSavePath)
 
         layoutPrefGbaRomPath.setViewEnabledRecursive(romConfig.loadGbaCart())
         layoutPrefGbaSavePath.setViewEnabledRecursive(romConfig.loadGbaCart())
@@ -81,17 +62,17 @@ class RomConfigDialog(context: Context, private val title: String, private val r
         layoutPrefGbaSavePath.setViewEnabledRecursive(loadGbaRom)
     }
 
-    private fun onGbaRomPathSelected(romPath: String) {
-        romConfig.gbaCartPath = romPath
-        textPrefGbaRomPath.text = getPathOrDefault(romPath)
+    private fun onGbaRomPathSelected(romFileUri: Uri) {
+        romConfig.gbaCartPath = romFileUri
+        textPrefGbaRomPath.text = getUriPathOrDefault(romFileUri)
     }
 
-    private fun onGbaSavePathSelected(savePath: String) {
-        romConfig.gbaSavePath = savePath
-        textPrefGbaSavePath.text = getPathOrDefault(savePath)
+    private fun onGbaSavePathSelected(saveFileUri: Uri) {
+        romConfig.gbaSavePath = saveFileUri
+        textPrefGbaSavePath.text = getUriPathOrDefault(saveFileUri)
     }
 
-    private fun getPathOrDefault(path: String?): String {
-        return path ?: context.getString(R.string.not_set)
+    private fun getUriPathOrDefault(uri: Uri?): String {
+        return FileUtils.getAbsolutePathFromSAFUri(context, uri) ?: context.getString(R.string.not_set)
     }
 }
