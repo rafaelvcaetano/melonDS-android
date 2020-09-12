@@ -1,5 +1,6 @@
 package me.magnum.melonds.ui.romlist
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
@@ -16,11 +17,26 @@ class RomListViewModel(private val romsRepository: RomsRepository, private val s
     private val disposables: CompositeDisposable = CompositeDisposable()
 
     private val romsLiveData = MutableLiveData<List<Rom>>()
+    private var searchDirectoriesLiveData: MutableLiveData<Array<Uri>>? = null
     private var romsFilteredLiveData: MediatorLiveData<List<Rom>>? = null
 
     private var romSearchQuery = ""
     private var sortingMode = settingsRepository.getRomSortingMode()
     private var sortingOrder = settingsRepository.getRomSortingOrder()
+
+    fun getRomScanningDirectories(): LiveData<Array<Uri>> {
+        if (searchDirectoriesLiveData != null)
+            return searchDirectoriesLiveData!!
+
+        searchDirectoriesLiveData = MutableLiveData()
+        settingsRepository.observeRomSearchDirectories()
+                .startWith(settingsRepository.getRomSearchDirectories())
+                .distinctUntilChanged()
+                .subscribe { directories -> searchDirectoriesLiveData?.postValue(directories) }
+                .addTo(disposables)
+
+        return searchDirectoriesLiveData!!
+    }
 
     fun getRoms(): LiveData<List<Rom>> {
         if (romsFilteredLiveData != null)
@@ -95,6 +111,10 @@ class RomListViewModel(private val romsRepository: RomsRepository, private val s
         }
 
         romsLiveData.value = romsLiveData.value
+    }
+
+    fun addRomSearchDirectory(directoryUri: Uri) {
+        settingsRepository.addRomSearchDirectory(directoryUri)
     }
 
     private fun buildAlphabeticalRomComparator(): Comparator<Rom> {

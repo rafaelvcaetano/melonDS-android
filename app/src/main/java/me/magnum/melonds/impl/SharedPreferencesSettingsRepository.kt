@@ -32,7 +32,9 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
     }
 
     private fun setDefaultThemeIfRequired() {
-        if (preferences.getString("theme", null) != null) return
+        if (preferences.getString("theme", null) != null)
+            return
+
         val defaultTheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) "system" else "light"
         preferences.edit().putString("theme", defaultTheme).apply()
     }
@@ -140,6 +142,12 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
     override fun setBiosDirectory(directoryUri: Uri) {
         preferences.edit {
             putStringSet("bios_dir", setOf(directoryUri.toString()))
+        }
+    }
+
+    override fun addRomSearchDirectory(directoryUri: Uri) {
+        preferences.edit {
+            putStringSet("rom_search_dirs", setOf(directoryUri.toString()))
         }
     }
 

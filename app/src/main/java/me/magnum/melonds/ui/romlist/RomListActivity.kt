@@ -15,6 +15,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import me.magnum.melonds.R
 import me.magnum.melonds.ServiceLocator
@@ -32,6 +33,7 @@ class RomListActivity : AppCompatActivity() {
         private const val REQUEST_STORAGE_PERMISSION = 1
 
         private const val FRAGMENT_ROM_LIST = "ROM_LIST"
+        private const val FRAGMENT_NO_ROM_DIRECTORIES = "NO_ROM_DIRECTORY"
     }
 
     private val viewModel: RomListViewModel by viewModels { ServiceLocator[ViewModelProvider.Factory::class] }
@@ -45,7 +47,12 @@ class RomListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_rom_list)
-        addRomListFragment()
+        viewModel.getRomScanningDirectories().observe(this, Observer {
+            if (it.isEmpty())
+                addNoSearchDirectoriesFragment()
+            else
+                addRomListFragment()
+        })
     }
 
     override fun onStart() {
@@ -172,12 +179,22 @@ class RomListActivity : AppCompatActivity() {
         }
     }
 
+    private fun addNoSearchDirectoriesFragment() {
+        var noRomDirectoriesFragment = supportFragmentManager.findFragmentByTag(FRAGMENT_NO_ROM_DIRECTORIES) as NoRomSearchDirectoriesFragment?
+        if (noRomDirectoriesFragment == null) {
+            noRomDirectoriesFragment = NoRomSearchDirectoriesFragment.newInstance()
+            supportFragmentManager.beginTransaction()
+                    .replace(R.id.layout_main, noRomDirectoriesFragment, FRAGMENT_NO_ROM_DIRECTORIES)
+                    .commit()
+        }
+    }
+
     private fun addRomListFragment() {
         var romListFragment = supportFragmentManager.findFragmentByTag(FRAGMENT_ROM_LIST) as RomListFragment?
         if (romListFragment == null) {
             romListFragment = RomListFragment.newInstance()
             supportFragmentManager.beginTransaction()
-                    .add(R.id.layout_main, romListFragment, FRAGMENT_ROM_LIST)
+                    .replace(R.id.layout_main, romListFragment, FRAGMENT_ROM_LIST)
                     .commit()
         }
         romListFragment.setRomSelectedListener { rom -> loadRom(rom) }

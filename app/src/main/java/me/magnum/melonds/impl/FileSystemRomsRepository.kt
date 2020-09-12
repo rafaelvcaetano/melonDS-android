@@ -47,6 +47,11 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
     }
 
     private fun onRomSearchDirectoriesChanged(searchDirectories: Array<Uri>) {
+        // If ROMs have not been loaded yet, there's no point in searching or discarding ROMs now.
+        // They will be scanned once needed
+        if (!areRomsLoaded)
+            return
+
         val romsToRemove = ArrayList<Rom>()
         for (rom in roms) {
             val romFile = File(rom.path)
@@ -134,7 +139,9 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
     }
 
     private fun addRom(rom: Rom) {
-        if (roms.contains(rom)) return
+        if (roms.contains(rom))
+            return
+
         roms.add(rom)
         onRomsChanged()
     }

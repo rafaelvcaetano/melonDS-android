@@ -29,6 +29,7 @@ interface SettingsRepository {
     fun observeRomSearchDirectories(): Observable<Array<Uri>>
 
     fun setBiosDirectory(directoryUri: Uri)
+    fun addRomSearchDirectory(directoryUri: Uri)
     fun setControllerConfiguration(controllerConfiguration: ControllerConfiguration)
     fun setRomSortingMode(sortingMode: SortingMode)
     fun setRomSortingOrder(sortingOrder: SortingOrder)
