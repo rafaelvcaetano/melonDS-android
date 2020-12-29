@@ -51,6 +51,10 @@
     <string name="rom_search_directories">Search directories</string>
     <string name="bios_directory">BIOS directory</string>
     <string name="show_boot_screen">Show boot screen</string>
+    <string name="enable_jit">Enable JIT</string>
+    <string name="jit_not_supported">JIT is only supported in 64 bit devices</string>
+    <string name="threaded_rendering">Threaded rendering</string>
+    <string name="threaded_rendering_summary">Improves performance when enabled</string>
     <string name="category_video">Video</string>
     <string name="filtering">Filtering</string>
     <string name="category_save_files">Save Files</string>

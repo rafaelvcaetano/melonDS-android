@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.emulator
 
 import androidx.lifecycle.ViewModel
+import me.magnum.melonds.model.EmulatorConfiguration
 import me.magnum.melonds.model.Rom
 import me.magnum.melonds.model.SaveStateSlot
 import me.magnum.melonds.repositories.SettingsRepository
@@ -29,5 +30,9 @@ class EmulatorViewModel(private val settingsRepository: SettingsRepository) : Vi
         }
 
         return saveStateSlots
+    }
+
+    fun getEmulatorConfiguration(): EmulatorConfiguration {
+        return settingsRepository.getEmulatorConfiguration()
     }
 }

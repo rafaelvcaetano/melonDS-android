@@ -6,6 +6,7 @@
 #include <InputAndroid.h>
 #include <android/asset_manager_jni.h>
 
+GPU::RenderSettings buildRenderSettings(JNIEnv* env, jobject renderSettings);
 void* emulate(void*);
 
 pthread_t emuThread;
@@ -21,14 +22,22 @@ bool limitFps = true;
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jclass type, jstring configDir, jobject javaAssetManager)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jclass type, jobject emulatorConfiguration, jobject javaAssetManager)
 {
+    jclass emulatorConfigurationClass = env->GetObjectClass(emulatorConfiguration);
+    jstring configDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "configDirectory", "Ljava/lang/String;"));
+    jboolean useJit = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "useJit", "Z"));
     const char* dir = env->GetStringUTFChars(configDir, JNI_FALSE);
+    jobject rendererConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "rendererConfiguration", "Lme/magnum/melonds/model/RendererConfiguration;"));
 
     jobject globalAssetManager = env->NewGlobalRef(javaAssetManager);
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
 
-    MelonDSAndroid::setup(const_cast<char *>(dir), assetManager);
+    MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration;
+    finalEmulatorConfiguration.configDir = const_cast<char*>(dir);
+    finalEmulatorConfiguration.useJit = useJit;
+    finalEmulatorConfiguration.renderSettings = buildRenderSettings(env, rendererConfigurationObject);
+    MelonDSAndroid::setup(finalEmulatorConfiguration, assetManager);
 }
 
 JNIEXPORT jint JNICALL
@@ -148,6 +157,16 @@ Java_me_magnum_melonds_MelonEmulator_setFastForwardEnabled( JNIEnv* env, jclass 
 {
     limitFps = !enabled;
 }
+}
+
+GPU::RenderSettings buildRenderSettings(JNIEnv* env, jobject renderSettings) {
+    jclass renderSettingsClass = env->GetObjectClass(renderSettings);
+    jboolean threadedRendering = env->GetBooleanField(renderSettings, env->GetFieldID(renderSettingsClass, "threadedRendering", "Z"));
+    return {
+        threadedRendering == JNI_TRUE,
+        1,
+        false
+    };
 }
 
 double getCurrentMillis() {

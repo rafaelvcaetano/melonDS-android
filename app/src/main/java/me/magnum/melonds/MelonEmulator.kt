@@ -1,6 +1,7 @@
 package me.magnum.melonds
 
 import android.content.res.AssetManager
+import me.magnum.melonds.model.EmulatorConfiguration
 import me.magnum.melonds.model.Input
 import java.nio.ByteBuffer
 
@@ -10,7 +11,7 @@ object MelonEmulator {
     }
 
     @JvmStatic
-	external fun setupEmulator(configDir: String?, assetManager: AssetManager?)
+	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?)
 
     @JvmStatic
 	fun loadRom(romPath: String, sramPath: String, loadDirect: Boolean, loadGbaRom: Boolean, gbaRomPath: String?, gbaSramPath: String?): LoadResult {

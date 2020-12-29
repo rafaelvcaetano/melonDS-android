@@ -39,6 +39,22 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         preferences.edit().putString("theme", defaultTheme).apply()
     }
 
+    override fun getEmulatorConfiguration(): EmulatorConfiguration {
+        val biosDirUri = getBiosDirectory() ?: throw IllegalStateException("BIOS directory not set")
+        val biosDirPath = FileUtils.getAbsolutePathFromSAFUri(context, biosDirUri)
+
+        val configDirectoryPath = "$biosDirPath/"
+
+        return EmulatorConfiguration(
+            configDirectoryPath,
+            isJitEnabled(),
+            RendererConfiguration(
+                getVideoFiltering(),
+                isThreadedRenderingEnabled()
+            )
+        )
+    }
+
     override fun getTheme(): Theme {
         val themePreference = preferences.getString("theme", "light")!!
         return Theme.valueOf(themePreference.toUpperCase(Locale.ROOT))
@@ -58,9 +74,18 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return preferences.getBoolean("show_bios", false)
     }
 
+    override fun isJitEnabled(): Boolean {
+        val defaultJitEnabled = Build.SUPPORTED_64_BIT_ABIS.isNotEmpty()
+        return preferences.getBoolean("enable_jit", defaultJitEnabled)
+    }
+
     override fun getVideoFiltering(): VideoFiltering {
         val filteringPreference = preferences.getString("video_filtering", "linear")!!
         return VideoFiltering.valueOf(filteringPreference.toUpperCase(Locale.ROOT))
+    }
+
+    override fun isThreadedRenderingEnabled(): Boolean {
+        return preferences.getBoolean("enable_threaded_rendering", true)
     }
 
     override fun getRomSortingMode(): SortingMode {

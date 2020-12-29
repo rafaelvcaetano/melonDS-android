@@ -35,6 +35,11 @@
             android:key="show_bios"
             android:title="@string/show_boot_screen"
             android:defaultValue="false" />
+
+        <SwitchPreference
+            android:key="enable_jit"
+            android:title="@string/enable_jit"
+            android:defaultValue="true" />
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -47,6 +52,12 @@
             android:entries="@array/video_filtering_options"
             android:entryValues="@array/video_filtering_values"
             android:defaultValue="linear"/>
+
+        <SwitchPreference
+            android:key="enable_threaded_rendering"
+            android:title="@string/threaded_rendering"
+            android:summary="@string/threaded_rendering_summary"
+            android:defaultValue="true" />
     </PreferenceCategory>
 
     <PreferenceCategory

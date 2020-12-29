@@ -6,14 +6,18 @@ import me.magnum.melonds.model.*
 import me.magnum.melonds.ui.Theme
 
 interface SettingsRepository {
+    fun getEmulatorConfiguration(): EmulatorConfiguration
+
     fun getTheme(): Theme
 
     fun getRomSearchDirectories(): Array<Uri>
 
     fun getBiosDirectory(): Uri?
     fun showBootScreen(): Boolean
+    fun isJitEnabled(): Boolean
 
     fun getVideoFiltering(): VideoFiltering
+    fun isThreadedRenderingEnabled(): Boolean
 
     fun getRomSortingMode(): SortingMode
     fun getRomSortingOrder(): SortingOrder

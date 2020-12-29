@@ -177,7 +177,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         romLoader.flatMap {
             loadedRom = it
             Single.create<LoadResult> { emitter ->
-                MelonEmulator.setupEmulator(getConfigDirPath(), assets)
+                MelonEmulator.setupEmulator(viewModel.getEmulatorConfiguration(), assets)
 
                 val showBios = settingsRepository.showBootScreen()
                 val sramPath = getSRAMPath(it.path)
@@ -221,7 +221,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     private fun buildRendererConfiguration(): RendererConfiguration {
-        return RendererConfiguration(settingsRepository.getVideoFiltering())
+        return RendererConfiguration(settingsRepository.getVideoFiltering(), settingsRepository.isThreadedRenderingEnabled())
     }
 
     private fun setupFullscreen() {
@@ -316,13 +316,6 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                 setupInputHandling()
             }
         }
-    }
-
-    private fun getConfigDirPath(): String {
-        val biosDirUri = settingsRepository.getBiosDirectory() ?: throw IllegalStateException("BIOS directory not set")
-        val biosDirPath = FileUtils.getAbsolutePathFromSAFUri(this, biosDirUri)
-
-        return "$biosDirPath/"
     }
 
     private fun getSRAMPath(romPath: String): String {

@@ -1,13 +1,11 @@
 package me.magnum.melonds.ui
 
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
-import androidx.preference.ListPreference
-import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.PreferenceManager
+import androidx.preference.*
 import me.magnum.melonds.R
 import me.magnum.melonds.preferences.DirectoryPickerPreference
 import me.magnum.melonds.utils.DirectoryPickerContract
@@ -101,6 +99,7 @@ class SettingsActivity : AppCompatActivity() {
             val romDirsPreference = findPreference<DirectoryPickerPreference>("rom_search_dirs")!!
             val biosDirPreference = findPreference<DirectoryPickerPreference>("bios_dir")!!
             val sramDirPreference = findPreference<DirectoryPickerPreference>("sram_dir")!!
+            val jitPreference = findPreference<SwitchPreference>("enable_jit")!!
             bindPreferenceSummaryToValue(romDirsPreference)
             bindPreferenceSummaryToValue(biosDirPreference)
             bindPreferenceSummaryToValue(sramDirPreference)
@@ -108,6 +107,12 @@ class SettingsActivity : AppCompatActivity() {
             val romPickerLauncher = registerForActivityResult(DirectoryPickerContract(), romDirsPreference::onDirectoryPicked)
             val biosPickerLauncher = registerForActivityResult(DirectoryPickerContract(), biosDirPreference::onDirectoryPicked)
             val sramPickerLauncher = registerForActivityResult(DirectoryPickerContract(), sramDirPreference::onDirectoryPicked)
+
+            if (Build.SUPPORTED_64_BIT_ABIS.isEmpty()) {
+                jitPreference.isEnabled = false
+                jitPreference.isChecked = false
+                jitPreference.setSummary(R.string.jit_not_supported)
+            }
 
             romDirsPreference.setOnPreferenceClickListener {
                 romPickerLauncher.launch(null)
