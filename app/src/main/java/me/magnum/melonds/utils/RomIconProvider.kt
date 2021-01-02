@@ -18,7 +18,7 @@ class RomIconProvider(private val context: Context) {
     private val memoryIconCache = mutableMapOf<String, Bitmap>()
 
     fun getRomIcon(rom: Rom): Bitmap? {
-        val romHash = rom.path.hashCode().toString()
+        val romHash = rom.uri.hashCode().toString()
         return loadIconFromMemory(romHash, rom)
     }
 
@@ -43,7 +43,7 @@ class RomIconProvider(private val context: Context) {
             }
         }
 
-        val bitmap = RomProcessor.getRomIcon(File(rom.path))
+        val bitmap = RomProcessor.getRomIcon(context.contentResolver, rom.uri)
         if (bitmap != null && iconCacheDir != null) {
             val iconFile = File(iconCacheDir, hash)
             try {

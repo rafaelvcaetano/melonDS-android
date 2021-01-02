@@ -1,6 +1,8 @@
 package me.magnum.melonds.ui.romlist
 
+import android.content.Context
 import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
@@ -13,7 +15,7 @@ import me.magnum.melonds.repositories.SettingsRepository
 import java.text.Normalizer
 import java.util.*
 
-class RomListViewModel(private val romsRepository: RomsRepository, private val settingsRepository: SettingsRepository) : ViewModel() {
+class RomListViewModel(private val context: Context, private val romsRepository: RomsRepository, private val settingsRepository: SettingsRepository) : ViewModel() {
     private val disposables: CompositeDisposable = CompositeDisposable()
 
     private val romsLiveData = MutableLiveData<List<Rom>>()
@@ -49,7 +51,7 @@ class RomListViewModel(private val romsRepository: RomsRepository, private val s
                 } else {
                     it.filter { rom ->
                         val normalizedName = Normalizer.normalize(rom.name, Normalizer.Form.NFD).replace("[^\\p{ASCII}]", "")
-                        val normalizedPath = Normalizer.normalize(rom.path, Normalizer.Form.NFD).replace("[^\\p{ASCII}]", "")
+                        val normalizedPath = Normalizer.normalize(DocumentFile.fromSingleUri(context, rom.uri)?.name, Normalizer.Form.NFD).replace("[^\\p{ASCII}]", "")
 
                         normalizedName.contains(romSearchQuery, true) || normalizedPath.contains(romSearchQuery, true)
                     }

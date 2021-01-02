@@ -8,11 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.google.gson.*
-import com.google.gson.stream.JsonReader
-import com.google.gson.stream.JsonWriter
-import com.llamalab.safs.FileSystems
-import com.llamalab.safs.android.AndroidFileSystem
-import com.llamalab.safs.android.AndroidFileSystemProvider
 import io.reactivex.disposables.Disposable
 import me.magnum.melonds.impl.FileSystemRomsRepository
 import me.magnum.melonds.impl.SharedPreferencesSettingsRepository
@@ -25,16 +20,9 @@ import me.magnum.melonds.utils.RomIconProvider
 import java.lang.reflect.Type
 
 class MelonDSApplication : Application() {
-    private companion object {
-        init {
-            System.setProperty("com.llamalab.safs.spi.DefaultFileSystemProvider", AndroidFileSystemProvider::class.java.name)
-        }
-    }
-
     private var themeObserverDisposable: Disposable? = null
 
     override fun onCreate() {
-        (FileSystems.getDefault() as AndroidFileSystem).context = this
         super.onCreate()
         initializeServiceLocator()
         applyTheme()
@@ -62,11 +50,11 @@ class MelonDSApplication : Application() {
         ServiceLocator.bindSingleton(ViewModelProvider.Factory::class, object : ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T {
                 if (modelClass == RomListViewModel::class.java)
-                    return RomListViewModel(ServiceLocator[RomsRepository::class], ServiceLocator[SettingsRepository::class]) as T
+                    return RomListViewModel(ServiceLocator[Context::class], ServiceLocator[RomsRepository::class], ServiceLocator[SettingsRepository::class]) as T
                 if (modelClass == InputSetupViewModel::class.java)
                     return InputSetupViewModel(ServiceLocator[SettingsRepository::class]) as T
                 if (modelClass == EmulatorViewModel::class.java)
-                    return EmulatorViewModel(ServiceLocator[SettingsRepository::class]) as T
+                    return EmulatorViewModel(ServiceLocator[Context::class], ServiceLocator[SettingsRepository::class], ServiceLocator[RomsRepository::class]) as T
 
                 throw RuntimeException("ViewModel of type " + modelClass.name + " is not supported")
             }

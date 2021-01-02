@@ -61,6 +61,7 @@ Java_me_magnum_melonds_MelonEmulator_startEmulation( JNIEnv* env, jclass type)
     pthread_mutex_init(&emuThreadMutex, NULL);
     pthread_cond_init(&emuThreadCond, NULL);
     pthread_create(&emuThread, NULL, emulate, NULL);
+    pthread_setname_np(emuThread, "EmulatorThread");
 }
 
 JNIEXPORT void JNICALL
@@ -156,6 +157,13 @@ JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_setFastForwardEnabled( JNIEnv* env, jclass type, jboolean enabled)
 {
     limitFps = !enabled;
+}
+
+JNIEXPORT void JNICALL
+Java_me_magnum_melonds_MelonEmulator_updateRendererConfiguration(JNIEnv* env, jclass type, jobject renderSettings)
+{
+    GPU::RenderSettings newRenderSettings = buildRenderSettings(env, renderSettings);
+    MelonDSAndroid::updateRendererConfiguration(newRenderSettings);
 }
 }
 

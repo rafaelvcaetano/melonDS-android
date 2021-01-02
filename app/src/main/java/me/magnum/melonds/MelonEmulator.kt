@@ -3,6 +3,7 @@ package me.magnum.melonds
 import android.content.res.AssetManager
 import me.magnum.melonds.model.EmulatorConfiguration
 import me.magnum.melonds.model.Input
+import me.magnum.melonds.model.RendererConfiguration
 import java.nio.ByteBuffer
 
 object MelonEmulator {
@@ -72,4 +73,7 @@ object MelonEmulator {
 
     @JvmStatic
     external fun setFastForwardEnabled(enabled: Boolean)
+
+    @JvmStatic
+    external fun updateRendererConfiguration(rendererConfiguration: RendererConfiguration)
 }

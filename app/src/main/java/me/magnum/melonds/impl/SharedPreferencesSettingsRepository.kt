@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.content.edit
+import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
@@ -110,13 +111,14 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return dirPreference?.let { Uri.parse(it) }
     }
 
-    override fun getSaveStateDirectory(rom: Rom): String {
+    override fun getSaveStateDirectory(rom: Rom): String? {
         val locationPreference = preferences.getString("save_state_location", "save_dir")!!
         val saveStateLocation = SaveStateLocation.valueOf(locationPreference.toUpperCase(Locale.ROOT))
 
         return when (saveStateLocation) {
             SaveStateLocation.SAVE_DIR -> {
-                val romParentDir = File(rom.path).parentFile!!.absolutePath
+                val romDocument = DocumentFile.fromSingleUri(context, rom.uri)
+                val romParentDir = File(FileUtils.getAbsolutePathFromSAFUri(context, romDocument?.uri)).parentFile?.absolutePath
 
                 if (saveNextToRomFile())
                     romParentDir
@@ -128,7 +130,10 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
                         FileUtils.getAbsolutePathFromSAFUri(context, sramDirUri) ?: romParentDir
                 }
             }
-            SaveStateLocation.ROM_DIR -> File(rom.path).parentFile!!.absolutePath
+            SaveStateLocation.ROM_DIR -> {
+                val romPath = FileUtils.getAbsolutePathFromSAFUri(context, rom.uri)
+                romPath?.let { File(it).parentFile?.absolutePath }
+            }
             SaveStateLocation.INTERNAL_DIR -> File(context.getExternalFilesDir(null), "savestates").absolutePath
         }
     }

@@ -1,7 +1,7 @@
 package me.magnum.melonds.ui.emulator
 
 import android.content.Intent
-import android.os.Build
+import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -9,6 +9,7 @@ import android.view.Window
 import android.view.WindowManager
 import android.widget.RelativeLayout
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -25,9 +26,11 @@ import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.MelonEmulator.LoadResult
 import me.magnum.melonds.R
 import me.magnum.melonds.ServiceLocator
-import me.magnum.melonds.model.*
+import me.magnum.melonds.model.Input
+import me.magnum.melonds.model.RendererConfiguration
+import me.magnum.melonds.model.Rom
+import me.magnum.melonds.model.SaveStateSlot
 import me.magnum.melonds.parcelables.RomParcelable
-import me.magnum.melonds.repositories.RomsRepository
 import me.magnum.melonds.repositories.SettingsRepository
 import me.magnum.melonds.ui.SettingsActivity
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
@@ -39,7 +42,6 @@ import java.text.SimpleDateFormat
 
 class EmulatorActivity : AppCompatActivity(), RendererListener {
     companion object {
-        private const val REQUEST_SETTINGS = 1
         const val KEY_ROM = "rom"
         const val KEY_PATH = "PATH"
 
@@ -60,7 +62,6 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     private val viewModel: EmulatorViewModel by viewModels { ServiceLocator[ViewModelProvider.Factory::class] }
     private lateinit var loadedRom: Rom
     private lateinit var dsRenderer: DSRenderer
-    private lateinit var romsRepository: RomsRepository
     private lateinit var settingsRepository: SettingsRepository
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
@@ -76,6 +77,13 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             MelonEmulator.setFastForwardEnabled(fastForwardEnabled)
         }
     }
+    private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        val newRendererConfiguration = buildRendererConfiguration()
+        MelonEmulator.updateRendererConfiguration(newRendererConfiguration)
+        dsRenderer.updateRendererConfiguration(newRendererConfiguration)
+        setupSoftInput()
+        setupInputHandling()
+    }
 
     private var emulatorReady = false
     private var emulatorPaused = false
@@ -86,7 +94,6 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         setupFullscreen()
         setContentView(R.layout.activity_emulator)
 
-        romsRepository = ServiceLocator[RomsRepository::class]
         settingsRepository = ServiceLocator[SettingsRepository::class]
 
         melonTouchHandler = MelonTouchHandler()
@@ -170,7 +177,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             Single.just(romParcelable.rom)
         else {
             val romPath = bundle.getString(KEY_PATH) ?: throw NullPointerException("No ROM was specified")
-            romsRepository.getRomAtPath(romPath).defaultIfEmpty(Rom(romPath, romPath, RomConfig())).toSingle()
+            viewModel.getRomAtPath(romPath)
         }
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -179,12 +186,13 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             Single.create<LoadResult> { emitter ->
                 MelonEmulator.setupEmulator(viewModel.getEmulatorConfiguration(), assets)
 
+                val romPath = FileUtils.getAbsolutePathFromSAFUri(this, it.uri) ?: throw RomLoadFailedException()
                 val showBios = settingsRepository.showBootScreen()
-                val sramPath = getSRAMPath(it.path)
+                val sramPath = getSRAMPath(it.uri)
 
                 val gbaCartPath = FileUtils.getAbsolutePathFromSAFUri(this, it.config.gbaCartPath)
                 val gbaSavePath = FileUtils.getAbsolutePathFromSAFUri(this, it.config.gbaSavePath)
-                val loadResult = MelonEmulator.loadRom(it.path, sramPath, !showBios, it.config.loadGbaCart(), gbaCartPath, gbaSavePath)
+                val loadResult = MelonEmulator.loadRom(romPath, sramPath, !showBios, it.config.loadGbaCart(), gbaCartPath, gbaSavePath)
                 if (loadResult === LoadResult.NDS_FAILED)
                     throw RomLoadFailedException()
 
@@ -225,16 +233,13 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     private fun setupFullscreen() {
-        var uiFlags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                View.SYSTEM_UI_FLAG_FULLSCREEN
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-            uiFlags = uiFlags or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-
-        this.window.decorView.systemUiVisibility = uiFlags
+        this.window.decorView.systemUiVisibility =
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+            View.SYSTEM_UI_FLAG_FULLSCREEN or
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
     }
 
     private fun setupSoftInput() {
@@ -276,7 +281,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                             // Allow emulator to resume once the user returns from Settings
                             emulatorPaused = false
                             val settingsIntent = Intent(this@EmulatorActivity, SettingsActivity::class.java)
-                            startActivityForResult(settingsIntent, REQUEST_SETTINGS)
+                            settingsLauncher.launch(Intent(settingsIntent))
                         }
                         PauseMenuOptions.SAVE_STATE -> pickSaveStateSlot {
                             if (!MelonEmulator.saveState(it.path))
@@ -307,18 +312,8 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         MelonEmulator.resumeEmulation()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            REQUEST_SETTINGS -> {
-                dsRenderer.updateRendererConfiguration(buildRendererConfiguration())
-                setupSoftInput()
-                setupInputHandling()
-            }
-        }
-    }
-
-    private fun getSRAMPath(romPath: String): String {
+    private fun getSRAMPath(romUri: Uri): String {
+        val romPath = FileUtils.getAbsolutePathFromSAFUri(this, romUri);
         val romFile = File(romPath)
 
         val sramDir = if (settingsRepository.saveNextToRomFile()) {

@@ -1,16 +1,22 @@
 package me.magnum.melonds.ui.emulator
 
+import android.content.Context
+import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
+import io.reactivex.Single
 import me.magnum.melonds.model.EmulatorConfiguration
 import me.magnum.melonds.model.Rom
+import me.magnum.melonds.model.RomConfig
 import me.magnum.melonds.model.SaveStateSlot
+import me.magnum.melonds.repositories.RomsRepository
 import me.magnum.melonds.repositories.SettingsRepository
+import me.magnum.melonds.utils.FileUtils
 import java.io.File
 import java.util.*
 
-class EmulatorViewModel(private val settingsRepository: SettingsRepository) : ViewModel() {
+class EmulatorViewModel(private val context: Context, private val settingsRepository: SettingsRepository, private val romsRepository: RomsRepository) : ViewModel() {
     fun getRomSaveStateSlots(rom: Rom): List<SaveStateSlot> {
-        val saveStatePath = settingsRepository.getSaveStateDirectory(rom)
+        val saveStatePath = settingsRepository.getSaveStateDirectory(rom) ?: return emptyList()
         val saveStateDirectory = File(saveStatePath)
         if (!saveStateDirectory.isDirectory) {
             // If the directory cannot be created, there's no point in returning slots
@@ -18,7 +24,8 @@ class EmulatorViewModel(private val settingsRepository: SettingsRepository) : Vi
                 return emptyList()
         }
 
-        val romFileName = File(rom.path).nameWithoutExtension
+        val romDocument = DocumentFile.fromSingleUri(context, rom.uri)!!
+        val romFileName = FileUtils.getFileNameWithoutExtensions(romDocument.name!!)
 
         val saveStateSlots = mutableListOf<SaveStateSlot>()
         for (i in 1..8) {
@@ -30,6 +37,11 @@ class EmulatorViewModel(private val settingsRepository: SettingsRepository) : Vi
         }
 
         return saveStateSlots
+    }
+
+    fun getRomAtPath(path: String): Single<Rom> {
+        val romDocument = DocumentFile.fromFile(File(path))
+        return romsRepository.getRomAtPath(path).defaultIfEmpty(Rom(path, romDocument.uri, RomConfig())).toSingle()
     }
 
     fun getEmulatorConfiguration(): EmulatorConfiguration {

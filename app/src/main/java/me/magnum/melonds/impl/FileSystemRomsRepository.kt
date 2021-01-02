@@ -3,6 +3,7 @@ package me.magnum.melonds.impl
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.reactivex.*
@@ -54,17 +55,22 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
 
         val romsToRemove = ArrayList<Rom>()
         for (rom in roms) {
-            val romFile = File(rom.path)
-            if (!romFile.isFile) {
+            val romFile = DocumentFile.fromSingleUri(context, rom.uri)
+
+            if (romFile?.isFile != true) {
                 romsToRemove.add(rom)
                 continue
             }
+
+            val romPath = FileUtils.getAbsolutePathFromSAFUri(context, rom.uri)
             var isInDirectories = false
             for (directory in searchDirectories) {
                 val directoryPath = FileUtils.getAbsolutePathFromSAFUri(context, directory) ?: continue
                 val dir = File(directoryPath)
-                if (!dir.isDirectory) continue
-                if (romFile.absolutePath.startsWith(dir.absolutePath)) {
+                if (!dir.isDirectory)
+                    continue
+
+                if (romPath?.startsWith(dir.absolutePath) == true) {
                     isInDirectories = true
                     break
                 }
@@ -93,9 +99,10 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
     }
 
     override fun getRomAtPath(path: String): Maybe<Rom> {
+        val documentFile = DocumentFile.fromFile(File(path))
         return getRoms().firstElement()
                 .flatMap {
-                    it.find { rom -> rom.path == path }?.let { rom -> Maybe.just(rom) } ?: Maybe.empty()
+                    it.find { rom -> rom.uri == documentFile.uri }?.let { rom -> Maybe.just(rom) } ?: Maybe.empty()
                 }
     }
 
@@ -156,7 +163,7 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
 
     private fun loadCachedRoms() {
         getCachedRoms()
-                .filter { rom -> File(rom.path).isFile }
+                .filter { rom -> DocumentFile.isDocumentUri(context, rom.uri) }
                 .toList()
                 .doOnSuccess { cachedRoms ->
                     roms.addAll(cachedRoms!!)
@@ -182,33 +189,36 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
 
     private fun scanForNewRoms(): Observable<Rom> {
         return Observable.create(object : ObservableOnSubscribe<Rom> {
-            private fun findFiles(directory: File, emitter: ObservableEmitter<Rom>) {
-                val files = directory.listFiles() ?: return
+            private fun findFiles(directory: DocumentFile, emitter: ObservableEmitter<Rom>) {
+                val files = directory.listFiles()
                 for (file in files) {
-                    if (file.isDirectory) findFiles(file, emitter)
-                    val fileName = file.name
+                    if (file.isDirectory) {
+                        findFiles(file, emitter)
+                        continue
+                    }
+
+                    val fileName = file.name ?: continue
 
                     // TODO: support zip files
                     if (!fileName.endsWith(".nds"))
                         continue
 
-                    val filePath = file.absolutePath
                     try {
-                        val romName = RomProcessor.getRomName(File(filePath))
-                        emitter.onNext(Rom(romName, filePath, RomConfig()))
+                        val romName = RomProcessor.getRomName(context.contentResolver, file.uri)
+                        emitter.onNext(Rom(romName, file.uri, RomConfig()))
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        val name = File(filePath).name
-                        emitter.onNext(Rom(name.substring(0, name.length - 4), filePath, RomConfig()))
+                        emitter.onNext(Rom(fileName.substring(0, fileName.length - 4), file.uri, RomConfig()))
                     }
                 }
             }
 
             override fun subscribe(emitter: ObservableEmitter<Rom>) {
                 for (directory in settingsRepository.getRomSearchDirectories()) {
-                    val directoryPath = FileUtils.getAbsolutePathFromSAFUri(context, directory)
-                    if (directoryPath != null)
-                        findFiles(File(directoryPath), emitter)
+                    val documentFile = DocumentFile.fromTreeUri(context, directory)
+                    if (documentFile != null) {
+                        findFiles(documentFile, emitter)
+                    }
                 }
 
                 emitter.onComplete()

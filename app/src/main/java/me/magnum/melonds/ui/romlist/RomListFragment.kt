@@ -27,6 +27,7 @@ import me.magnum.melonds.model.RomScanningStatus
 import me.magnum.melonds.ui.romlist.RomConfigDialog.OnRomConfigSavedListener
 import me.magnum.melonds.ui.romlist.RomListFragment.RomListAdapter.RomViewHolder
 import me.magnum.melonds.utils.FilePickerContract
+import me.magnum.melonds.utils.FileUtils
 import me.magnum.melonds.utils.RomIconProvider
 import java.util.*
 
@@ -156,7 +157,7 @@ class RomListFragment : Fragment() {
                     imageRomIcon.setImageBitmap(null)
                 }
                 itemView.textRomName.text = rom.name
-                itemView.textRomPath.text = rom.path
+                itemView.textRomPath.text = FileUtils.getAbsolutePathFromSAFUri(view!!.context, rom.uri)
 
                 val configButtonTint = if (rom.config.loadGbaCart())
                     ContextCompat.getColor(context, R.color.romConfigButtonEnabled)

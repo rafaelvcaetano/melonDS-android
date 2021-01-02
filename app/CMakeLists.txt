@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.4.1)
 
-add_definitions(-DENABLE_JIT -DJIT_ENABLED)
-
 include(CheckSymbolExists)
 function(detect_architecture symbol arch)
     if (NOT DEFINED ARCHITECTURE)

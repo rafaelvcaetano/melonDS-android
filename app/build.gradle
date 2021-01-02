@@ -4,6 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 29
+    ndkVersion '21.3.6528147'
     defaultConfig {
         applicationId "me.magnum.melonds"
         minSdkVersion 21
@@ -61,11 +62,10 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.0.0'
     implementation 'androidx.vectordrawable:vectordrawable:1.1.0'
+    implementation 'androidx.documentfile:documentfile:1.0.1'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
     implementation 'com.google.code.gson:gson:2.8.6'
-    implementation 'com.llamalab.safs:safs-android:0.2.0'
-    implementation project(':filepicker')
 
     testImplementation 'junit:junit:4.12'
 

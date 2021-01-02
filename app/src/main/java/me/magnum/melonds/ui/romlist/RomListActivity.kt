@@ -44,6 +44,8 @@ class RomListActivity : AppCompatActivity() {
         }
     } }
 
+    private var selectedRom: Rom? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_rom_list)
@@ -57,11 +59,7 @@ class RomListActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        if (!checkConfigDirectorySetup())
-            return
-
-        if (!isStoragePermissionGranted())
-            requestStoragePermission(false)
+        checkConfigDirectorySetup()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -133,9 +131,11 @@ class RomListActivity : AppCompatActivity() {
         if (requestCode != REQUEST_STORAGE_PERMISSION)
             return
 
-        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-            viewModel.refreshRoms()
-        else
+        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            selectedRom?.let {
+                loadRom(it)
+            }
+        } else
             Toast.makeText(this, getString(R.string.info_no_storage_permission), Toast.LENGTH_LONG).show()
     }
 
@@ -174,8 +174,7 @@ class RomListActivity : AppCompatActivity() {
                     .setPositiveButton(R.string.ok) { _, _ -> requestStoragePermission(true) }
                     .show()
         } else {
-            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    REQUEST_STORAGE_PERMISSION)
+            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_STORAGE_PERMISSION)
         }
     }
 
@@ -201,8 +200,13 @@ class RomListActivity : AppCompatActivity() {
     }
 
     private fun loadRom(rom: Rom) {
-        val intent = Intent(this, EmulatorActivity::class.java)
-        intent.putExtra(EmulatorActivity.KEY_ROM, RomParcelable(rom))
-        startActivity(intent)
+        if (isStoragePermissionGranted()) {
+            val intent = Intent(this, EmulatorActivity::class.java)
+            intent.putExtra(EmulatorActivity.KEY_ROM, RomParcelable(rom))
+            startActivity(intent)
+        } else {
+            selectedRom = rom
+            requestStoragePermission(false)
+        }
     }
 }

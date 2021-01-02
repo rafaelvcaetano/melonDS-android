@@ -16,13 +16,11 @@ import java.lang.reflect.Array
 object FileUtils {
     private const val TAG = "FileUtils"
 
-    // TargetApi(21)
     private val isCompatible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
     private const val DOWNLOADS_VOLUME_NAME = "downloads"
     private const val PRIMARY_VOLUME_NAME = "primary"
     private const val HOME_VOLUME_NAME = "home"
 
-    @TargetApi(21)
     fun getAbsolutePathFromSAFUri(context: Context, safResultUri: Uri?): String? {
         if (safResultUri == null)
             return null
@@ -76,7 +74,6 @@ object FileUtils {
     }
 
     @SuppressLint("ObsoleteSdkInt")
-    @TargetApi(21)
     private fun getVolumePath(volumeId: String, context: Context): String? {
         if (!isCompatible) {
             Log.e(TAG, "getVolumePath called on unsupported API level")
@@ -97,7 +94,11 @@ object FileUtils {
             val storageVolumeClazz = Class.forName("android.os.storage.StorageVolume")
             val getVolumeList = mStorageManager.javaClass.getMethod("getVolumeList")
             val getUuid = storageVolumeClazz.getMethod("getUuid")
-            val getPath = storageVolumeClazz.getMethod("getPath")
+            val getPath = /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                storageVolumeClazz.getMethod("getDirectory")
+            } else {*/
+                storageVolumeClazz.getMethod("getPath")
+            //}
             val isPrimary = storageVolumeClazz.getMethod("isPrimary")
             val result: Any = getVolumeList.invoke(mStorageManager)
             val length = Array.getLength(result)
@@ -116,54 +117,17 @@ object FileUtils {
                 if (isPrimaryVolume || isExternalVolume) {
                     Log.v(TAG, "getVolumePath: isPrimaryVolume || isExternalVolume")
                     // Return path if the correct volume corresponding to volumeId was found.
-                    return getPath.invoke(storageVolumeElement) as String?
+                    /*return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        (getPath.invoke(storageVolumeElement) as File?)?.absolutePath
+                    } else {*/
+                        return getPath.invoke(storageVolumeElement) as String?
+                    //}
                 }
             }
         } catch (e: Exception) {
             Log.w(TAG, "getVolumePath exception", e)
         }
         Log.e(TAG, "getVolumePath failed for volumeId='$volumeId'")
-        return null
-    }
-
-    /**
-     * FileProvider does not support converting the absolute path from
-     * getExternalFilesDir() to a "content://" Uri. As "file://" Uri
-     * has been blocked since Android 7+, we need to build the Uri
-     * manually after discovering the first external storage.
-     * This is crucial to assist the user finding a writeable folder
-     * to use syncthing's two way sync feature.
-     */
-    @TargetApi(19)
-    fun getExternalFilesDirUri(context: Context): Uri? {
-        try {
-            /**
-             * Determine the app's private data folder on external storage if present.
-             * e.g. "/storage/abcd-efgh/Android/com.nutomic.syncthinandroid/files"
-             */
-            val externalFilesDir = ArrayList<File>()
-            externalFilesDir.addAll(context.getExternalFilesDirs(null))
-            externalFilesDir.remove(context.getExternalFilesDir(null))
-            if (externalFilesDir.isEmpty()) {
-                Log.w(TAG, "Could not determine app's private files directory on external storage.")
-                return null
-            }
-            val absPath = externalFilesDir[0].absolutePath
-            val segments = absPath.split("/").toTypedArray()
-            if (segments.size < 2) {
-                Log.w(TAG, "Could not extract volumeId from app's private files path '$absPath'")
-                return null
-            }
-            // Extract the volumeId, e.g. "abcd-efgh"
-            val volumeId = segments[2]
-            // Build the content Uri for our private "files" folder.
-            return Uri.parse(
-                    "content://com.android.externalstorage.documents/document/" +
-                            volumeId + "%3AAndroid%2Fdata%2F" +
-                            context.packageName + "%2Ffiles")
-        } catch (e: Exception) {
-            Log.w(TAG, "getExternalFilesDirUri exception", e)
-        }
         return null
     }
 
@@ -189,5 +153,10 @@ object FileUtils {
         return if (path.endsWith(File.separator)) {
             path.substring(0, path.length - 1)
         } else path
+    }
+
+    fun getFileNameWithoutExtensions(fileName: String): String {
+        val lastDotIndex = fileName.lastIndexOf('.')
+        return fileName.substring(0, lastDotIndex)
     }
 }

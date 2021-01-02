@@ -23,7 +23,7 @@ interface SettingsRepository {
     fun getRomSortingOrder(): SortingOrder
     fun saveNextToRomFile(): Boolean
     fun getSaveFileDirectory(): Uri?
-    fun getSaveStateDirectory(rom: Rom): String
+    fun getSaveStateDirectory(rom: Rom): String?
 
     fun getControllerConfiguration(): ControllerConfiguration
     fun showSoftInput(): Boolean

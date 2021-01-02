@@ -1,8 +1,9 @@
 package me.magnum.melonds.model
 
+import android.net.Uri
 import java.util.*
 
-data class Rom(val name: String, val path: String, var config: RomConfig, var lastPlayed: Date? = null) {
+data class Rom(val name: String, val uri: Uri, var config: RomConfig, var lastPlayed: Date? = null) {
     override fun equals(other: Any?): Boolean {
         if (this === other)
             return true
@@ -11,10 +12,10 @@ data class Rom(val name: String, val path: String, var config: RomConfig, var la
             return false
 
         val rom = other as Rom
-        return path == rom.path
+        return uri == rom.uri
     }
 
     override fun hashCode(): Int {
-        return path.hashCode()
+        return uri.hashCode()
     }
 }

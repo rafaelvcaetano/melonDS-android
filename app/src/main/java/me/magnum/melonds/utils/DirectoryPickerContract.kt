@@ -7,8 +7,6 @@ import android.net.Uri
 import android.os.Build
 import android.provider.DocumentsContract
 import androidx.activity.result.contract.ActivityResultContract
-import com.llamalab.safs.FileSystems
-import com.llamalab.safs.android.AndroidFileSystem
 
 /**
  * A contract that launches the document picker to select a directory. Once selected, the URI
@@ -17,9 +15,17 @@ import com.llamalab.safs.android.AndroidFileSystem
  * Optionally, an URI for initial path may be provided
  */
 class DirectoryPickerContract : ActivityResultContract<Uri?, Uri?>() {
+    private lateinit var context: Context
+
     override fun createIntent(context: Context, input: Uri?): Intent {
+        this.context = context
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
+        intent.addFlags(
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or
+            Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+            Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or
+            Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
+        )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && input != null)
             intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, input)
@@ -35,7 +41,12 @@ class DirectoryPickerContract : ActivityResultContract<Uri?, Uri?>() {
         return if (intent == null || resultCode != Activity.RESULT_OK)
             null
         else {
-            (FileSystems.getDefault() as AndroidFileSystem).takePersistableUriPermission(intent)
+            intent.data?.let {
+                val flags =
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                context.contentResolver.takePersistableUriPermission(it, flags)
+            }
             intent.data
         }
     }

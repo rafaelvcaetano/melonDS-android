@@ -28,10 +28,10 @@
     <string name="incorrect_bios_dir">Incorrect BIOS directory</string>
     <string name="incorrect_bios_dir_info">The BIOS directory that you specified is not correct. Make sure that the selected directory contains bios7.bin, bios9.bin and firmware.bin</string>
     <string name="storage_permission_required">Storage permission required</string>
-    <string name="storage_permission_required_info">Storage permission is required to search ROMs on your device. Please grant access to storage on the next dialog.</string>
+    <string name="storage_permission_required_info">Storage permission is required to load ROMs on your device. Please grant access to storage on the next dialog.</string>
     <string name="no_rom_search_directory_specified">No ROM search directory specified</string>
     <string name="set_rom_directory">Set ROM directory</string>
-    <string name="info_no_storage_permission">Cannot find ROMS without storage permission</string>
+    <string name="info_no_storage_permission">Cannot load ROM without storage permission</string>
     <string name="no_roms_found">No ROMs found</string>
 
     <string name="press_any_button">Press any button…</string>

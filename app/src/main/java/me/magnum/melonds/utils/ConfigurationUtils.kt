@@ -2,6 +2,7 @@ package me.magnum.melonds.utils
 
 import android.content.Context
 import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
 import me.magnum.melonds.utils.FileUtils.getAbsolutePathFromSAFUri
 import java.io.File
 
@@ -20,9 +21,9 @@ object ConfigurationUtils {
         if (!dir.isDirectory)
             return ConfigurationDirStatus.INVALID
 
-        val bios7File = File(dir, "bios7.bin")
-        val bios9File = File(dir, "bios9.bin")
-        val firmwareFile = File(dir, "firmware.bin")
+        val bios7File = DocumentFile.fromFile(File(dir, "bios7.bin"))
+        val bios9File = DocumentFile.fromFile(File(dir, "bios9.bin"))
+        val firmwareFile = DocumentFile.fromFile(File(dir, "firmware.bin"))
 
         return if (!bios7File.isFile || !bios9File.isFile || !firmwareFile.isFile)
             ConfigurationDirStatus.INVALID

@@ -22,6 +22,5 @@
 
 -keepclassmembers enum * { *; }
 
--keep class com.llamalab.safs.spi.FileSystemProvider { *; }
--keep class * extends com.llamalab.safs.spi.FileSystemProvider { *; }
--keep class * extends com.llamalab.safs.spi.FileTypeDetector { *; }
+-keep class me.magnum.melonds.model.RendererConfiguration { *; }
+-keep class me.magnum.melonds.model.EmulatorConfiguration { *; }

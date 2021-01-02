@@ -17,7 +17,7 @@ class RomParcelable : Parcelable {
 
     private constructor(parcel: Parcel) {
         val romConfig = RomConfig()
-        rom = Rom(parcel.readString()!!, parcel.readString()!!, romConfig, parcel.readLong().let { if (it == (-1).toLong()) null else Date(it) })
+        rom = Rom(parcel.readString()!!, Uri.parse(parcel.readString()), romConfig, parcel.readLong().let { if (it == (-1).toLong()) null else Date(it) })
         romConfig.setLoadGbaCart(parcel.readInt() == 1)
         romConfig.gbaCartPath = parcel.readString()?.let { Uri.parse(it) }
         romConfig.gbaSavePath = parcel.readString()?.let { Uri.parse(it) }
@@ -25,7 +25,7 @@ class RomParcelable : Parcelable {
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
         dest.writeString(rom.name)
-        dest.writeString(rom.path)
+        dest.writeString(rom.uri.toString())
         dest.writeLong(rom.lastPlayed?.time ?: -1)
         dest.writeInt(if (rom.config.loadGbaCart()) 1 else 0)
         dest.writeString(rom.config.gbaCartPath?.toString())
