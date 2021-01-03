@@ -8,19 +8,20 @@ import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_input_setup.*
 import kotlinx.android.synthetic.main.item_input.view.*
 import me.magnum.melonds.R
-import me.magnum.melonds.ServiceLocator
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.InputConfig
 import me.magnum.melonds.ui.inputsetup.InputSetupActivity.InputListAdapter.InputViewHolder
 import java.util.*
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class InputSetupActivity : AppCompatActivity() {
     companion object {
         private fun getInputName(input: Input): Int {
@@ -45,7 +46,7 @@ class InputSetupActivity : AppCompatActivity() {
         }
     }
 
-    private val viewModel: InputSetupViewModel by viewModels { ServiceLocator[ViewModelProvider.Factory::class] }
+    private val viewModel: InputSetupViewModel by viewModels()
 
     private var waitingForInput = false
     private var inputUnderConfiguration: InputConfig? = null

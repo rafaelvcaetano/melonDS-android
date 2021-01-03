@@ -6,11 +6,13 @@ import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.*
+import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.preferences.DirectoryPickerPreference
 import me.magnum.melonds.utils.DirectoryPickerContract
 import me.magnum.melonds.utils.FileUtils
 
+@AndroidEntryPoint
 class SettingsActivity : AppCompatActivity() {
     companion object {
         private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->

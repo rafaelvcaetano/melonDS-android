@@ -12,15 +12,14 @@ import androidx.core.widget.ImageViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.item_rom.*
 import kotlinx.android.synthetic.main.item_rom.view.*
 import kotlinx.android.synthetic.main.rom_list_fragment.*
 import me.magnum.melonds.R
-import me.magnum.melonds.ServiceLocator
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomScanningStatus
@@ -30,7 +29,9 @@ import me.magnum.melonds.utils.FilePickerContract
 import me.magnum.melonds.utils.FileUtils
 import me.magnum.melonds.utils.RomIconProvider
 import java.util.*
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class RomListFragment : Fragment() {
     companion object {
         fun newInstance(): RomListFragment {
@@ -38,9 +39,10 @@ class RomListFragment : Fragment() {
         }
     }
 
+    private val romListViewModel: RomListViewModel by activityViewModels()
+    @Inject lateinit var romIconProvider: RomIconProvider
+
     private var romSelectedListener: ((Rom) -> Unit)? = null
-    private val romListViewModel: RomListViewModel by activityViewModels { ServiceLocator[ViewModelProvider.Factory::class] }
-    private val romIconProvider: RomIconProvider by lazy { ServiceLocator[RomIconProvider::class] }
     private lateinit var romListAdapter: RomListAdapter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

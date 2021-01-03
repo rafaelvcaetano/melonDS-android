@@ -2,6 +2,7 @@ package me.magnum.melonds.ui.emulator
 
 import android.content.Context
 import androidx.documentfile.provider.DocumentFile
+import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.ViewModel
 import io.reactivex.Single
 import me.magnum.melonds.domain.model.EmulatorConfiguration
@@ -14,7 +15,7 @@ import me.magnum.melonds.utils.FileUtils
 import java.io.File
 import java.util.*
 
-class EmulatorViewModel(private val context: Context, private val settingsRepository: SettingsRepository, private val romsRepository: RomsRepository) : ViewModel() {
+class EmulatorViewModel @ViewModelInject constructor(private val context: Context, private val settingsRepository: SettingsRepository, private val romsRepository: RomsRepository) : ViewModel() {
     fun getRomSaveStateSlots(rom: Rom): List<SaveStateSlot> {
         val saveStatePath = settingsRepository.getSaveStateDirectory(rom) ?: return emptyList()
         val saveStateDirectory = File(saveStatePath)

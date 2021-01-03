@@ -3,19 +3,20 @@ package me.magnum.melonds.ui.romlist
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
+import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import io.reactivex.disposables.CompositeDisposable
-import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.extensions.addTo
 import java.text.Normalizer
 import java.util.*
 
-class RomListViewModel(private val context: Context, private val romsRepository: RomsRepository, private val settingsRepository: SettingsRepository) : ViewModel() {
+class RomListViewModel @ViewModelInject constructor(private val context: Context, private val romsRepository: RomsRepository, private val settingsRepository: SettingsRepository) : ViewModel() {
     private val disposables: CompositeDisposable = CompositeDisposable()
 
     private val romsLiveData = MutableLiveData<List<Rom>>()

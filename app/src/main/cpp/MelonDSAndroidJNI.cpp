@@ -28,7 +28,7 @@ Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jclass type, job
     jstring configDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "configDirectory", "Ljava/lang/String;"));
     jboolean useJit = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "useJit", "Z"));
     const char* dir = env->GetStringUTFChars(configDir, JNI_FALSE);
-    jobject rendererConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "rendererConfiguration", "Lme/magnum/melonds/model/RendererConfiguration;"));
+    jobject rendererConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "rendererConfiguration", "Lme/magnum/melonds/domain/model/RendererConfiguration;"));
 
     jobject globalAssetManager = env->NewGlobalRef(javaAssetManager);
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);

@@ -1,5 +1,6 @@
 package me.magnum.melonds.ui.inputsetup
 
+import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -11,7 +12,7 @@ import me.magnum.melonds.domain.model.InputConfig
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import java.util.*
 
-class InputSetupViewModel(private val settingsRepository: SettingsRepository) : ViewModel() {
+class InputSetupViewModel @ViewModelInject constructor(private val settingsRepository: SettingsRepository) : ViewModel() {
     private val inputConfigs: ArrayList<StatefulInputConfig>
     private val inputConfigsBehaviour: BehaviorSubject<List<StatefulInputConfig>>
     private val disposables: CompositeDisposable

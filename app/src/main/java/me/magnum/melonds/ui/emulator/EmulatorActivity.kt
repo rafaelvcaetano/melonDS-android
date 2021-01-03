@@ -15,7 +15,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.os.ConfigurationCompat
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.Single
 import io.reactivex.SingleObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -25,13 +25,12 @@ import kotlinx.android.synthetic.main.activity_emulator.*
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.MelonEmulator.LoadResult
 import me.magnum.melonds.R
-import me.magnum.melonds.ServiceLocator
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.RendererConfiguration
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.SaveStateSlot
-import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.SettingsActivity
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
 import me.magnum.melonds.ui.input.*
@@ -39,7 +38,9 @@ import me.magnum.melonds.utils.FileUtils
 import java.io.File
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class EmulatorActivity : AppCompatActivity(), RendererListener {
     companion object {
         const val KEY_ROM = "rom"
@@ -59,10 +60,11 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         EXIT(R.string.exit);
     }
 
-    private val viewModel: EmulatorViewModel by viewModels { ServiceLocator[ViewModelProvider.Factory::class] }
+    private val viewModel: EmulatorViewModel by viewModels()
+    @Inject lateinit var settingsRepository: SettingsRepository
+
     private lateinit var loadedRom: Rom
     private lateinit var dsRenderer: DSRenderer
-    private lateinit var settingsRepository: SettingsRepository
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
     private val frontendInputHandler = object : FrontendInputHandler() {
@@ -93,8 +95,6 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         setupFullscreen()
         setContentView(R.layout.activity_emulator)
-
-        settingsRepository = ServiceLocator[SettingsRepository::class]
 
         melonTouchHandler = MelonTouchHandler()
         dsRenderer = DSRenderer(buildRendererConfiguration())
@@ -180,6 +180,8 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             viewModel.getRomAtPath(romPath)
         }
 
+        // Force view model resolution
+        viewModel.let {  }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         romLoader.flatMap {
             loadedRom = it
@@ -313,7 +315,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     private fun getSRAMPath(romUri: Uri): String {
-        val romPath = FileUtils.getAbsolutePathFromSAFUri(this, romUri);
+        val romPath = FileUtils.getAbsolutePathFromSAFUri(this, romUri)
         val romFile = File(romPath)
 
         val sramDir = if (settingsRepository.saveNextToRomFile()) {

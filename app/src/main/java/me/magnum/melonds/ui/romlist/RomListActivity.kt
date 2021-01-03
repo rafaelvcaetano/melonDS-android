@@ -16,18 +16,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
-import me.magnum.melonds.ServiceLocator
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.SortingMode
-import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.SettingsActivity
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.utils.ConfigurationUtils
 import me.magnum.melonds.utils.DirectoryPickerContract
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class RomListActivity : AppCompatActivity() {
     companion object {
         private const val REQUEST_STORAGE_PERMISSION = 1
@@ -36,8 +37,9 @@ class RomListActivity : AppCompatActivity() {
         private const val FRAGMENT_NO_ROM_DIRECTORIES = "NO_ROM_DIRECTORY"
     }
 
-    private val viewModel: RomListViewModel by viewModels { ServiceLocator[ViewModelProvider.Factory::class] }
-    private val settingsRepository by lazy { ServiceLocator[SettingsRepository::class] }
+    private val viewModel: RomListViewModel by viewModels()
+    @Inject lateinit var settingsRepository: SettingsRepository
+
     private val biosPickerLauncher by lazy { registerForActivityResult(DirectoryPickerContract()) {
         if (checkConfigDirectorySetup(it)) {
             settingsRepository.setBiosDirectory(it!!)
