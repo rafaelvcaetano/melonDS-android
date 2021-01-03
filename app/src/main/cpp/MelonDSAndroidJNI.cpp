@@ -188,7 +188,7 @@ void* emulate(void*)
     double startTick = getCurrentMillis();
     double lastTick = startTick;
     double lastMeasureFpsTick = startTick;
-    int fpsLimitCount = 0;
+    double frameLimitError = 0.0;
 
     MelonDSAndroid::start();
 
@@ -207,25 +207,28 @@ void* emulate(void*)
 
         u32 nLines = MelonDSAndroid::loop();
 
-        float frameRate = (1000.0f * nLines) / (60.0f * 263.0f);
+        float frameRate = (1000.0 * nLines) / (60.0f * 263.0f);
 
         double currentTick = getCurrentMillis();
         double delay = currentTick - lastTick;
 
         if (limitFps)
         {
-            double wantedTickF = startTick + (frameRate * (fpsLimitCount + 1));
-            u64 wantedTick = (u64) ceil(wantedTickF);
-            if (currentTick < wantedTick)
-                usleep((wantedTick - currentTick) * 1000);
+            frameLimitError += frameRate - delay;
+            if (frameLimitError < -frameRate)
+                frameLimitError = -frameRate;
+            if (frameLimitError > frameRate)
+                frameLimitError =frameRate;
 
-            lastTick = getCurrentMillis();
-            fpsLimitCount++;
-            if ((abs(wantedTickF - (float) wantedTick) < 0.001312) || fpsLimitCount > 60)
+            if (round(frameLimitError) > 0.0)
             {
-                fpsLimitCount = 0;
-                startTick = lastTick;
+                usleep(frameLimitError * 1000);
+                double timeBeforeSleep = currentTick;
+                currentTick = getCurrentMillis();
+                frameLimitError -= currentTick -timeBeforeSleep;
             }
+
+            lastTick = currentTick;
         } else {
             if (delay < 1)
                 usleep(1000);
