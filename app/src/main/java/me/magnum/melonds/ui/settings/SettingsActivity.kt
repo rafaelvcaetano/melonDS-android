@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui
+package me.magnum.melonds.ui.settings
 
 import android.net.Uri
 import android.os.Build

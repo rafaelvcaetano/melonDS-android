@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui.input
+package me.magnum.melonds.ui.emulator.input
 
 import android.view.KeyEvent
 import me.magnum.melonds.domain.model.ControllerConfiguration

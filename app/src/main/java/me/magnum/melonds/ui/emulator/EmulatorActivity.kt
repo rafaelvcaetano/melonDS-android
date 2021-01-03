@@ -31,9 +31,9 @@ import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.parcelables.RomParcelable
-import me.magnum.melonds.ui.SettingsActivity
+import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
-import me.magnum.melonds.ui.input.*
+import me.magnum.melonds.ui.emulator.input.*
 import me.magnum.melonds.utils.FileUtils
 import java.io.File
 import java.nio.ByteBuffer

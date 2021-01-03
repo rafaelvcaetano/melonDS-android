@@ -31,7 +31,7 @@
             android:exported="true">
         </activity>
         <activity
-            android:name=".ui.SettingsActivity"
+            android:name=".ui.settings.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:parentActivityName=".ui.romlist.RomListActivity"
             android:launchMode="singleTop">
@@ -42,7 +42,7 @@
         <activity
             android:name=".ui.inputsetup.InputSetupActivity"
             android:label="@string/key_mapping"
-            android:parentActivityName=".ui.SettingsActivity"
+            android:parentActivityName=".ui.settings.SettingsActivity"
             android:exported="false" >
             <intent-filter>
                 <action android:name="me.magnum.melonds.SETUP_INPUT" />

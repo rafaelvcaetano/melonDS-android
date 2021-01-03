@@ -22,7 +22,7 @@ import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.SortingMode
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.parcelables.RomParcelable
-import me.magnum.melonds.ui.SettingsActivity
+import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.utils.ConfigurationUtils
 import me.magnum.melonds.utils.DirectoryPickerContract
