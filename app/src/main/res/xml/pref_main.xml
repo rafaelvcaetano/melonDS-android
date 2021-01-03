@@ -39,7 +39,8 @@
         <SwitchPreference
             android:key="enable_jit"
             android:title="@string/enable_jit"
-            android:defaultValue="true" />
+            android:summary="@string/enable_jit_summary"
+            android:defaultValue="false" />
     </PreferenceCategory>
 
     <PreferenceCategory

@@ -52,6 +52,7 @@
     <string name="bios_directory">BIOS directory</string>
     <string name="show_boot_screen">Show boot screen</string>
     <string name="enable_jit">Enable JIT</string>
+    <string name="enable_jit_summary">Improves performance but may cause freezes or crashes</string>
     <string name="jit_not_supported">JIT is only supported in 64 bit devices</string>
     <string name="threaded_rendering">Threaded rendering</string>
     <string name="threaded_rendering_summary">Improves performance when enabled</string>
