@@ -1,7 +1,7 @@
 package me.magnum.melonds.ui.input
 
 import android.view.KeyEvent
-import me.magnum.melonds.model.ControllerConfiguration
+import me.magnum.melonds.domain.model.ControllerConfiguration
 
 class InputProcessor(private val controllerConfiguration: ControllerConfiguration, private val systemInputListener: IInputListener, private val frontendInputListener: IInputListener) : INativeInputListener {
     override fun onKeyEvent(keyEvent: KeyEvent): Boolean {

@@ -3,8 +3,8 @@ package me.magnum.melonds.parcelables
 import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
-import me.magnum.melonds.model.Rom
-import me.magnum.melonds.model.RomConfig
+import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.RomConfig
 import java.util.*
 
 class RomParcelable : Parcelable {

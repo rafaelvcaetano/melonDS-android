@@ -8,7 +8,7 @@ import androidx.appcompat.app.AlertDialog
 import kotlinx.android.synthetic.main.dialog_rom_config.*
 import me.magnum.melonds.R
 import me.magnum.melonds.extensions.setViewEnabledRecursive
-import me.magnum.melonds.model.RomConfig
+import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.utils.FileUtils
 
 class RomConfigDialog(context: Context, private val title: String, private val romConfig: RomConfig, private val filePicker: FilePicker) : AlertDialog(context) {

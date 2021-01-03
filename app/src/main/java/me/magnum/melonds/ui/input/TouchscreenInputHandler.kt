@@ -3,8 +3,8 @@ package me.magnum.melonds.ui.input
 import android.view.MotionEvent
 import android.view.View
 import me.magnum.melonds.MelonEmulator.onScreenRelease
-import me.magnum.melonds.model.Input
-import me.magnum.melonds.model.Point
+import me.magnum.melonds.domain.model.Input
+import me.magnum.melonds.domain.model.Point
 
 class TouchscreenInputHandler(inputListener: IInputListener) : BaseInputHandler(inputListener) {
     private val touchPoint: Point = Point()

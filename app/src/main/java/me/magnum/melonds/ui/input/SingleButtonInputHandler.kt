@@ -2,7 +2,7 @@ package me.magnum.melonds.ui.input
 
 import android.view.MotionEvent
 import android.view.View
-import me.magnum.melonds.model.Input
+import me.magnum.melonds.domain.model.Input
 
 class SingleButtonInputHandler(inputListener: IInputListener, private val input: Input, private val isToggle: Boolean = false) : BaseInputHandler(inputListener) {
     private var pressed = false

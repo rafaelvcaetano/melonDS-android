@@ -3,7 +3,7 @@ package me.magnum.melonds.utils
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import me.magnum.melonds.model.Rom
+import me.magnum.melonds.domain.model.Rom
 import java.io.File
 import java.io.FileOutputStream
 import java.lang.Exception

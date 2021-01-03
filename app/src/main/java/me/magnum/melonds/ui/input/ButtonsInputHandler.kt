@@ -2,7 +2,7 @@ package me.magnum.melonds.ui.input
 
 import android.view.MotionEvent
 import android.view.View
-import me.magnum.melonds.model.Input
+import me.magnum.melonds.domain.model.Input
 
 class ButtonsInputHandler(inputListener: IInputListener) : BaseInputHandler(inputListener) {
     override fun onTouch(v: View, event: MotionEvent): Boolean {

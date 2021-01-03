@@ -1,4 +1,4 @@
-package me.magnum.melonds.model
+package me.magnum.melonds.domain.model
 
 data class InputConfig(val input: Input, var key: Int = KEY_NOT_SET) {
     companion object {

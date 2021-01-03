@@ -1,4 +1,4 @@
-package me.magnum.melonds.model
+package me.magnum.melonds.domain.model
 
 /**
  * Input representation that is assigned to the given key code. If the input does not represent a

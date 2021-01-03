@@ -1,4 +1,4 @@
-package me.magnum.melonds.model
+package me.magnum.melonds.domain.model
 
 import java.util.*
 

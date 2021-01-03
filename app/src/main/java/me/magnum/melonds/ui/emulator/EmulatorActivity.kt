@@ -26,12 +26,12 @@ import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.MelonEmulator.LoadResult
 import me.magnum.melonds.R
 import me.magnum.melonds.ServiceLocator
-import me.magnum.melonds.model.Input
-import me.magnum.melonds.model.RendererConfiguration
-import me.magnum.melonds.model.Rom
-import me.magnum.melonds.model.SaveStateSlot
+import me.magnum.melonds.domain.model.Input
+import me.magnum.melonds.domain.model.RendererConfiguration
+import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.parcelables.RomParcelable
-import me.magnum.melonds.repositories.SettingsRepository
+import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.ui.SettingsActivity
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
 import me.magnum.melonds.ui.input.*

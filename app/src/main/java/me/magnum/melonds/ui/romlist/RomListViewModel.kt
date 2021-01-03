@@ -9,9 +9,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import io.reactivex.disposables.CompositeDisposable
 import me.magnum.melonds.extensions.addTo
-import me.magnum.melonds.model.*
-import me.magnum.melonds.repositories.RomsRepository
-import me.magnum.melonds.repositories.SettingsRepository
+import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.repositories.RomsRepository
+import me.magnum.melonds.domain.repositories.SettingsRepository
 import java.text.Normalizer
 import java.util.*
 

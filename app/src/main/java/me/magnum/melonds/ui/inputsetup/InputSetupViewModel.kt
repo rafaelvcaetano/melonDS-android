@@ -5,10 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.BehaviorSubject
-import me.magnum.melonds.model.ControllerConfiguration
-import me.magnum.melonds.model.Input
-import me.magnum.melonds.model.InputConfig
-import me.magnum.melonds.repositories.SettingsRepository
+import me.magnum.melonds.domain.model.ControllerConfiguration
+import me.magnum.melonds.domain.model.Input
+import me.magnum.melonds.domain.model.InputConfig
+import me.magnum.melonds.domain.repositories.SettingsRepository
 import java.util.*
 
 class InputSetupViewModel(private val settingsRepository: SettingsRepository) : ViewModel() {

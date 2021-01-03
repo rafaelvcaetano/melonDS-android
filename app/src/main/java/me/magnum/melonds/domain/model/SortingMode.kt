@@ -1,4 +1,4 @@
-package me.magnum.melonds.model
+package me.magnum.melonds.domain.model
 
 enum class SortingMode(val defaultOrder: SortingOrder) {
     ALPHABETICALLY(SortingOrder.ASCENDING),

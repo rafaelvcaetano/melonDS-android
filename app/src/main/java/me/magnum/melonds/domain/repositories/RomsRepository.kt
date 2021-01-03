@@ -1,10 +1,10 @@
-package me.magnum.melonds.repositories
+package me.magnum.melonds.domain.repositories
 
 import io.reactivex.Maybe
 import io.reactivex.Observable
-import me.magnum.melonds.model.Rom
-import me.magnum.melonds.model.RomConfig
-import me.magnum.melonds.model.RomScanningStatus
+import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.RomConfig
+import me.magnum.melonds.domain.model.RomScanningStatus
 import java.util.*
 
 interface RomsRepository {

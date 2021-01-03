@@ -19,10 +19,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import me.magnum.melonds.R
 import me.magnum.melonds.ServiceLocator
-import me.magnum.melonds.model.Rom
-import me.magnum.melonds.model.SortingMode
+import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.SortingMode
 import me.magnum.melonds.parcelables.RomParcelable
-import me.magnum.melonds.repositories.SettingsRepository
+import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.ui.SettingsActivity
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.utils.ConfigurationUtils

@@ -1,8 +1,8 @@
-package me.magnum.melonds.repositories
+package me.magnum.melonds.domain.repositories
 
 import android.net.Uri
 import io.reactivex.Observable
-import me.magnum.melonds.model.*
+import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.ui.Theme
 
 interface SettingsRepository {

@@ -4,8 +4,8 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
 import android.util.Log
-import me.magnum.melonds.model.RendererConfiguration
-import me.magnum.melonds.model.VideoFiltering
+import me.magnum.melonds.domain.model.RendererConfiguration
+import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.utils.ShaderUtils.createDefaultShaderProgram
 import java.nio.ByteBuffer
 import java.nio.ByteOrder

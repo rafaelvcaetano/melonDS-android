@@ -22,5 +22,5 @@
 
 -keepclassmembers enum * { *; }
 
--keep class me.magnum.melonds.model.RendererConfiguration { *; }
--keep class me.magnum.melonds.model.EmulatorConfiguration { *; }
+-keep class me.magnum.melonds.domain.model.RendererConfiguration { *; }
+-keep class me.magnum.melonds.domain.model.EmulatorConfiguration { *; }

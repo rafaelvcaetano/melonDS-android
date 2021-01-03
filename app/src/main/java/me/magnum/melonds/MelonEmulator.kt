@@ -1,9 +1,9 @@
 package me.magnum.melonds
 
 import android.content.res.AssetManager
-import me.magnum.melonds.model.EmulatorConfiguration
-import me.magnum.melonds.model.Input
-import me.magnum.melonds.model.RendererConfiguration
+import me.magnum.melonds.domain.model.EmulatorConfiguration
+import me.magnum.melonds.domain.model.Input
+import me.magnum.melonds.domain.model.RendererConfiguration
 import java.nio.ByteBuffer
 
 object MelonEmulator {

@@ -11,8 +11,8 @@ import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
-import me.magnum.melonds.model.*
-import me.magnum.melonds.repositories.SettingsRepository
+import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.ui.Theme
 import me.magnum.melonds.utils.FileUtils
 import java.io.*

@@ -11,8 +11,8 @@ import com.google.gson.*
 import io.reactivex.disposables.Disposable
 import me.magnum.melonds.impl.FileSystemRomsRepository
 import me.magnum.melonds.impl.SharedPreferencesSettingsRepository
-import me.magnum.melonds.repositories.RomsRepository
-import me.magnum.melonds.repositories.SettingsRepository
+import me.magnum.melonds.domain.repositories.RomsRepository
+import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.ui.emulator.EmulatorViewModel
 import me.magnum.melonds.ui.inputsetup.InputSetupViewModel
 import me.magnum.melonds.ui.romlist.RomListViewModel

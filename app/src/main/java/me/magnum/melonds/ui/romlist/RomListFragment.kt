@@ -21,9 +21,9 @@ import kotlinx.android.synthetic.main.item_rom.view.*
 import kotlinx.android.synthetic.main.rom_list_fragment.*
 import me.magnum.melonds.R
 import me.magnum.melonds.ServiceLocator
-import me.magnum.melonds.model.Rom
-import me.magnum.melonds.model.RomConfig
-import me.magnum.melonds.model.RomScanningStatus
+import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.RomConfig
+import me.magnum.melonds.domain.model.RomScanningStatus
 import me.magnum.melonds.ui.romlist.RomConfigDialog.OnRomConfigSavedListener
 import me.magnum.melonds.ui.romlist.RomListFragment.RomListAdapter.RomViewHolder
 import me.magnum.melonds.utils.FilePickerContract

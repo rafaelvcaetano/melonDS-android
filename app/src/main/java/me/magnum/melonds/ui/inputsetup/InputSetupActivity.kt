@@ -16,8 +16,8 @@ import kotlinx.android.synthetic.main.activity_input_setup.*
 import kotlinx.android.synthetic.main.item_input.view.*
 import me.magnum.melonds.R
 import me.magnum.melonds.ServiceLocator
-import me.magnum.melonds.model.Input
-import me.magnum.melonds.model.InputConfig
+import me.magnum.melonds.domain.model.Input
+import me.magnum.melonds.domain.model.InputConfig
 import me.magnum.melonds.ui.inputsetup.InputSetupActivity.InputListAdapter.InputViewHolder
 import java.util.*
 
