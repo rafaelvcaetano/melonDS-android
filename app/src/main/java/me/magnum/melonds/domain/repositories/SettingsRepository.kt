@@ -12,7 +12,9 @@ interface SettingsRepository {
 
     fun getRomSearchDirectories(): Array<Uri>
 
-    fun getBiosDirectory(): Uri?
+    fun getDefaultConsoleType(): ConsoleType
+    fun getDsBiosDirectory(): Uri?
+    fun getDsiBiosDirectory(): Uri?
     fun showBootScreen(): Boolean
     fun isJitEnabled(): Boolean
 
@@ -32,7 +34,8 @@ interface SettingsRepository {
     fun observeTheme(): Observable<Theme>
     fun observeRomSearchDirectories(): Observable<Array<Uri>>
 
-    fun setBiosDirectory(directoryUri: Uri)
+    fun setDsBiosDirectory(directoryUri: Uri)
+    fun setDsiBiosDirectory(directoryUri: Uri)
     fun addRomSearchDirectory(directoryUri: Uri)
     fun setControllerConfiguration(controllerConfiguration: ControllerConfiguration)
     fun setRomSortingMode(sortingMode: SortingMode)

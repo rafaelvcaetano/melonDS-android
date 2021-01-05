@@ -3,6 +3,7 @@ package me.magnum.melonds.utils
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
+import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.utils.FileUtils.getAbsolutePathFromSAFUri
 import java.io.File
 
@@ -12,7 +13,7 @@ object ConfigurationUtils {
     }
 
     @JvmStatic
-	fun checkConfigurationDirectory(context: Context, configurationDir: Uri?): ConfigurationDirStatus {
+	fun checkConfigurationDirectory(context: Context, configurationDir: Uri?, consoleType: ConsoleType): ConfigurationDirStatus {
         if (configurationDir == null)
             return ConfigurationDirStatus.UNSET
 
@@ -21,13 +22,23 @@ object ConfigurationUtils {
         if (!dir.isDirectory)
             return ConfigurationDirStatus.INVALID
 
-        val bios7File = DocumentFile.fromFile(File(dir, "bios7.bin"))
-        val bios9File = DocumentFile.fromFile(File(dir, "bios9.bin"))
-        val firmwareFile = DocumentFile.fromFile(File(dir, "firmware.bin"))
+        val requiredFiles = when(consoleType) {
+            ConsoleType.DS -> listOf(
+                    DocumentFile.fromFile(File(dir, "bios7.bin")),
+                    DocumentFile.fromFile(File(dir, "bios9.bin")),
+                    DocumentFile.fromFile(File(dir, "firmware.bin"))
+            )
+            ConsoleType.DSi -> listOf(
+                    DocumentFile.fromFile(File(dir, "bios7.bin")),
+                    DocumentFile.fromFile(File(dir, "bios9.bin")),
+                    DocumentFile.fromFile(File(dir, "firmware.bin")),
+                    DocumentFile.fromFile(File(dir, "nand.bin"))
+            )
+        }
 
-        return if (!bios7File.isFile || !bios9File.isFile || !firmwareFile.isFile)
-            ConfigurationDirStatus.INVALID
-        else
+        return if (requiredFiles.all { it.isFile })
             ConfigurationDirStatus.VALID
+        else
+            ConfigurationDirStatus.INVALID
     }
 }

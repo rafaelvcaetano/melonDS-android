@@ -13,6 +13,7 @@ import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.addTo
+import me.magnum.melonds.utils.ConfigurationUtils
 import java.text.Normalizer
 import java.util.*
 
@@ -116,8 +117,33 @@ class RomListViewModel @ViewModelInject constructor(private val context: Context
         romsLiveData.value = romsLiveData.value
     }
 
+    fun getRomTargetConsoleType(rom: Rom): ConsoleType {
+        return rom.config.runtimeConsoleType.targetConsoleType ?: settingsRepository.getDefaultConsoleType()
+    }
+
+    fun getDsConfigurationDirStatus(): ConfigurationUtils.ConfigurationDirStatus {
+        return ConfigurationUtils.checkConfigurationDirectory(context, settingsRepository.getDsBiosDirectory(), ConsoleType.DS)
+    }
+
+    fun getRomConfigurationDirStatus(rom: Rom): ConfigurationUtils.ConfigurationDirStatus {
+        val romTargetConsoleType = getRomTargetConsoleType(rom)
+        val romTargetConfigurationDir = when(romTargetConsoleType) {
+            ConsoleType.DS -> settingsRepository.getDsBiosDirectory()
+            ConsoleType.DSi -> settingsRepository.getDsiBiosDirectory()
+        }
+        return ConfigurationUtils.checkConfigurationDirectory(context, romTargetConfigurationDir, romTargetConsoleType)
+    }
+
     fun addRomSearchDirectory(directoryUri: Uri) {
         settingsRepository.addRomSearchDirectory(directoryUri)
+    }
+
+    fun setDsBiosDirectory(uri: Uri) {
+        settingsRepository.setDsBiosDirectory(uri)
+    }
+
+    fun setDsiBiosDirectory(uri: Uri) {
+        settingsRepository.setDsiBiosDirectory(uri)
     }
 
     private fun buildAlphabeticalRomComparator(): Comparator<Rom> {

@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string-array name="console_type_values">
+        <item>ds</item>
+        <item>dsi</item>
+    </string-array>
+
     <string-array name="video_filtering_values">
         <item>none</item>
         <item>linear</item>

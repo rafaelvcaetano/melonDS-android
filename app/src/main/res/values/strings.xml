@@ -23,12 +23,15 @@
     <string name="action_sort_alphabetically">Alphabetically</string>
     <string name="action_sort_recently_played">Recently played</string>
 
-    <string name="bios_dir_not_set">BIOS directory not set</string>
-    <string name="bios_dir_not_set_info">BIOS directory is not set. Go to the Settings and select the directory that contains bios7.bin, bios9.bin and firmware.bin</string>
+    <string name="ds_bios_dir_not_set">DS BIOS directory not set</string>
+    <string name="ds_bios_dir_not_set_info">DS BIOS directory is not set. Select the directory that contains bios7.bin, bios9.bin and firmware.bin</string>
+    <string name="dsi_bios_dir_not_set">DSi BIOS directory not set</string>
+    <string name="dsi_bios_dir_not_set_info">DSi BIOS directory is not set. Select the directory that contains bios7.bin, bios9.bin, firmware.bin and nand.bin</string>
     <string name="incorrect_bios_dir">Incorrect BIOS directory</string>
-    <string name="incorrect_bios_dir_info">The BIOS directory that you specified is not correct. Make sure that the selected directory contains bios7.bin, bios9.bin and firmware.bin</string>
+    <string name="ds_incorrect_bios_dir_info">The BIOS directory for the DS system is not correct. Make sure that the selected directory contains bios7.bin, bios9.bin and firmware.bin</string>
+    <string name="dsi_incorrect_bios_dir_info">The BIOS directory for the DSi system is not correct. Make sure that you select a directory that contains bios7.bin, bios9.bin, firmware.bin and nand.bin</string>
     <string name="storage_permission_required">Storage permission required</string>
-    <string name="storage_permission_required_info">Storage permission is required to load ROMs on your device. Please grant access to storage on the next dialog.</string>
+    <string name="storage_permission_required_info">Storage permission is required to load ROMs from your device. Please grant access to storage on the next dialog.</string>
     <string name="no_rom_search_directory_specified">No ROM search directory specified</string>
     <string name="set_rom_directory">Set ROM directory</string>
     <string name="info_no_storage_permission">Cannot load ROM without storage permission</string>
@@ -49,7 +52,9 @@
     <string name="category_system">System</string>
     <string name="theme">Theme</string>
     <string name="rom_search_directories">Search directories</string>
-    <string name="bios_directory">BIOS directory</string>
+    <string name="console_type">Default system</string>
+    <string name="bios_directory">DS BIOS directory</string>
+    <string name="dsi_bios_directory">DSi BIOS directory</string>
     <string name="show_boot_screen">Show boot screen</string>
     <string name="enable_jit">Enable JIT</string>
     <string name="enable_jit_summary">Improves performance but may cause freezes or crashes</string>
@@ -94,6 +99,11 @@
     <string-array name="theme_options" tools:ignore="InconsistentArrays">
         <item>@string/theme_option_light</item>
         <item>@string/theme_option_dark</item>
+    </string-array>
+
+    <string-array name="console_type_options">
+        <item>DS</item>
+        <item>DSi (Experimental)</item>
     </string-array>
 
     <string-array name="video_filtering_options">

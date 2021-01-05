@@ -25,17 +25,24 @@ JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jclass type, jobject emulatorConfiguration, jobject javaAssetManager)
 {
     jclass emulatorConfigurationClass = env->GetObjectClass(emulatorConfiguration);
-    jstring configDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "configDirectory", "Ljava/lang/String;"));
+    jclass consoleTypeEnumClass = env->FindClass("me/magnum/melonds/domain/model/ConsoleType");
+    jstring dsConfigDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsConfigDirectory", "Ljava/lang/String;"));
+    jstring dsiConfigDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsiConfigDirectory", "Ljava/lang/String;"));
     jboolean useJit = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "useJit", "Z"));
-    const char* dir = env->GetStringUTFChars(configDir, JNI_FALSE);
+    jobject consoleTypeEnum = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "consoleType", "Lme/magnum/melonds/domain/model/ConsoleType;"));
+    jint consoleType = env->GetIntField(consoleTypeEnum, env->GetFieldID(consoleTypeEnumClass, "consoleType", "I"));
+    const char* dsDir = env->GetStringUTFChars(dsConfigDir, JNI_FALSE);
+    const char* dsiDir = env->GetStringUTFChars(dsiConfigDir, JNI_FALSE);
     jobject rendererConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "rendererConfiguration", "Lme/magnum/melonds/domain/model/RendererConfiguration;"));
 
     jobject globalAssetManager = env->NewGlobalRef(javaAssetManager);
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
 
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration;
-    finalEmulatorConfiguration.configDir = const_cast<char*>(dir);
+    finalEmulatorConfiguration.dsConfigDir = const_cast<char*>(dsDir);
+    finalEmulatorConfiguration.dsiConfigDir = const_cast<char*>(dsiDir);
     finalEmulatorConfiguration.useJit = useJit;
+    finalEmulatorConfiguration.consoleType = consoleType;
     finalEmulatorConfiguration.renderSettings = buildRenderSettings(env, rendererConfigurationObject);
     MelonDSAndroid::setup(finalEmulatorConfiguration, assetManager);
 }
@@ -218,7 +225,7 @@ void* emulate(void*)
             if (frameLimitError < -frameRate)
                 frameLimitError = -frameRate;
             if (frameLimitError > frameRate)
-                frameLimitError =frameRate;
+                frameLimitError = frameRate;
 
             if (round(frameLimitError) > 0.0)
             {

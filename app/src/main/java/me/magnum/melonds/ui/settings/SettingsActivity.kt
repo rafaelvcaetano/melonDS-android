@@ -4,11 +4,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.*
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
+import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.preferences.DirectoryPickerPreference
+import me.magnum.melonds.utils.ConfigurationUtils
 import me.magnum.melonds.utils.DirectoryPickerContract
 import me.magnum.melonds.utils.FileUtils
 
@@ -99,15 +102,19 @@ class SettingsActivity : AppCompatActivity() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.pref_main, rootKey)
             val romDirsPreference = findPreference<DirectoryPickerPreference>("rom_search_dirs")!!
-            val biosDirPreference = findPreference<DirectoryPickerPreference>("bios_dir")!!
+            val consoleTypePreference = findPreference<ListPreference>("console_type")!!
+            val dsBiosDirPreference = findPreference<DirectoryPickerPreference>("bios_dir")!!
+            val dsiBiosDirPreference = findPreference<DirectoryPickerPreference>("dsi_bios_dir")!!
             val sramDirPreference = findPreference<DirectoryPickerPreference>("sram_dir")!!
             val jitPreference = findPreference<SwitchPreference>("enable_jit")!!
             bindPreferenceSummaryToValue(romDirsPreference)
-            bindPreferenceSummaryToValue(biosDirPreference)
+            bindPreferenceSummaryToValue(dsBiosDirPreference)
+            bindPreferenceSummaryToValue(dsiBiosDirPreference)
             bindPreferenceSummaryToValue(sramDirPreference)
 
             val romPickerLauncher = registerForActivityResult(DirectoryPickerContract(), romDirsPreference::onDirectoryPicked)
-            val biosPickerLauncher = registerForActivityResult(DirectoryPickerContract(), biosDirPreference::onDirectoryPicked)
+            val dsBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract(), dsBiosDirPreference::onDirectoryPicked)
+            val dsiBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract(), dsiBiosDirPreference::onDirectoryPicked)
             val sramPickerLauncher = registerForActivityResult(DirectoryPickerContract(), sramDirPreference::onDirectoryPicked)
 
             if (Build.SUPPORTED_64_BIT_ABIS.isEmpty()) {
@@ -116,16 +123,42 @@ class SettingsActivity : AppCompatActivity() {
                 jitPreference.setSummary(R.string.jit_not_supported)
             }
 
-            romDirsPreference.setOnPreferenceClickListener {
-                romPickerLauncher.launch(null)
+            consoleTypePreference.setOnPreferenceChangeListener { _, newValue ->
+                val consoleTypePreferenceValue = newValue as String
+                val newConsoleType = ConsoleType.valueOfIgnoreCase(consoleTypePreferenceValue)
+                val newTypeBiosDir = when(newConsoleType) {
+                    ConsoleType.DS -> dsBiosDirPreference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) }
+                    ConsoleType.DSi -> dsiBiosDirPreference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) }
+                }
+
+                if (ConfigurationUtils.checkConfigurationDirectory(requireContext(), newTypeBiosDir, newConsoleType) != ConfigurationUtils.ConfigurationDirStatus.VALID) {
+                    val textRes = when(newConsoleType) {
+                        ConsoleType.DS -> R.string.ds_incorrect_bios_dir_info
+                        ConsoleType.DSi -> R.string.dsi_incorrect_bios_dir_info
+                    }
+
+                    AlertDialog.Builder(requireContext())
+                            .setMessage(textRes)
+                            .setPositiveButton(R.string.ok, null)
+                            .show()
+                }
+
                 true
             }
-            biosDirPreference.setOnPreferenceClickListener {
-                biosPickerLauncher.launch(null)
+            romDirsPreference.setOnPreferenceClickListener { preference ->
+                romPickerLauncher.launch(preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) })
                 true
             }
-            sramDirPreference.setOnPreferenceClickListener {
-                sramPickerLauncher.launch(null)
+            dsBiosDirPreference.setOnPreferenceClickListener { preference ->
+                dsBiosPickerLauncher.launch(preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) })
+                true
+            }
+            dsiBiosDirPreference.setOnPreferenceClickListener { preference ->
+                dsiBiosPickerLauncher.launch(preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) })
+                true
+            }
+            sramDirPreference.setOnPreferenceClickListener { preference ->
+                sramPickerLauncher.launch(preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) })
                 true
             }
         }

@@ -41,14 +41,24 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
     }
 
     override fun getEmulatorConfiguration(): EmulatorConfiguration {
-        val biosDirUri = getBiosDirectory() ?: throw IllegalStateException("BIOS directory not set")
-        val biosDirPath = FileUtils.getAbsolutePathFromSAFUri(context, biosDirUri)
+        val consoleType = getDefaultConsoleType()
+        val dsBiosDirUri = getDsBiosDirectory()
+        val dsiBiosDirUri = getDsiBiosDirectory()
 
-        val configDirectoryPath = "$biosDirPath/"
+        // Ensure all BIOS dirs are set. DSi requires both dirs to be set
+        if (dsBiosDirUri == null || (consoleType == ConsoleType.DSi && dsiBiosDirUri == null))
+            throw IllegalStateException("BIOS directory not set")
+
+        val dsBiosDirPath = FileUtils.getAbsolutePathFromSAFUri(context, dsBiosDirUri)
+        val dsiBiosDirPath = FileUtils.getAbsolutePathFromSAFUri(context, dsiBiosDirUri)
+        val dsConfigDirectoryPath = "$dsBiosDirPath/"
+        val dsiConfigDirectoryPath = "$dsiBiosDirPath/"
 
         return EmulatorConfiguration(
-            configDirectoryPath,
+            dsConfigDirectoryPath,
+            dsiConfigDirectoryPath,
             isJitEnabled(),
+            consoleType,
             RendererConfiguration(
                 getVideoFiltering(),
                 isThreadedRenderingEnabled()
@@ -66,8 +76,18 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return dirPreference?.map { Uri.parse(it) }?.toTypedArray() ?: emptyArray()
     }
 
-    override fun getBiosDirectory(): Uri? {
+    override fun getDefaultConsoleType(): ConsoleType {
+        val consoleTypePreference = preferences.getString("console_type", "ds")!!
+        return ConsoleType.valueOfIgnoreCase(consoleTypePreference)
+    }
+
+    override fun getDsBiosDirectory(): Uri? {
         val dirPreference = preferences.getStringSet("bios_dir", null)?.firstOrNull()
+        return dirPreference?.let { Uri.parse(it) }
+    }
+
+    override fun getDsiBiosDirectory(): Uri? {
+        val dirPreference = preferences.getStringSet("dsi_bios_dir", null)?.firstOrNull()
         return dirPreference?.let { Uri.parse(it) }
     }
 
@@ -169,9 +189,15 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         }
     }
 
-    override fun setBiosDirectory(directoryUri: Uri) {
+    override fun setDsBiosDirectory(directoryUri: Uri) {
         preferences.edit {
             putStringSet("bios_dir", setOf(directoryUri.toString()))
+        }
+    }
+
+    override fun setDsiBiosDirectory(directoryUri: Uri) {
+        preferences.edit {
+            putStringSet("dsi_bios_dir", setOf(directoryUri.toString()))
         }
     }
 

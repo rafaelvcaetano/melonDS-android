@@ -27,9 +27,21 @@
     <PreferenceCategory
         android:title="@string/category_system">
 
+        <ListPreference
+            android:key="console_type"
+            android:title="@string/console_type"
+            android:summary="%s"
+            android:entries="@array/console_type_options"
+            android:entryValues="@array/console_type_values"
+            android:defaultValue="ds" />
+
         <me.magnum.melonds.preferences.DirectoryPickerPreference
             android:key="bios_dir"
             android:title="@string/bios_directory" />
+
+        <me.magnum.melonds.preferences.DirectoryPickerPreference
+            android:key="dsi_bios_dir"
+            android:title="@string/dsi_bios_directory" />
 
         <SwitchPreference
             android:key="show_bios"
