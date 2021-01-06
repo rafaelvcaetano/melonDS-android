@@ -8,37 +8,62 @@ import me.magnum.melonds.utils.FileUtils.getAbsolutePathFromSAFUri
 import java.io.File
 
 object ConfigurationUtils {
+    data class ConfigurationDirResult(
+            val status: ConfigurationDirStatus,
+            val requiredFiles: Array<String>,
+            val fileResults: Array<Pair<String, ConfigurationFileStatus>>
+    )
+
     enum class ConfigurationDirStatus {
         UNSET, INVALID, VALID
     }
 
+    enum class ConfigurationFileStatus {
+        PRESENT, MISSING
+    }
+
     @JvmStatic
-	fun checkConfigurationDirectory(context: Context, configurationDir: Uri?, consoleType: ConsoleType): ConfigurationDirStatus {
-        if (configurationDir == null)
-            return ConfigurationDirStatus.UNSET
+	fun checkConfigurationDirectory(context: Context, configurationDir: Uri?, consoleType: ConsoleType): ConfigurationDirResult {
+        if (configurationDir == null) {
+            val requiredFiles = getRequiredFiles(consoleType)
+            val fileResults = requiredFiles.map { it to ConfigurationFileStatus.MISSING }
+            return ConfigurationDirResult(ConfigurationDirStatus.UNSET, requiredFiles, fileResults.toTypedArray())
+        }
 
         val dirPath = getAbsolutePathFromSAFUri(context, configurationDir)
         val dir = File(dirPath)
-        if (!dir.isDirectory)
-            return ConfigurationDirStatus.INVALID
-
-        val requiredFiles = when(consoleType) {
-            ConsoleType.DS -> listOf(
-                    DocumentFile.fromFile(File(dir, "bios7.bin")),
-                    DocumentFile.fromFile(File(dir, "bios9.bin")),
-                    DocumentFile.fromFile(File(dir, "firmware.bin"))
-            )
-            ConsoleType.DSi -> listOf(
-                    DocumentFile.fromFile(File(dir, "bios7.bin")),
-                    DocumentFile.fromFile(File(dir, "bios9.bin")),
-                    DocumentFile.fromFile(File(dir, "firmware.bin")),
-                    DocumentFile.fromFile(File(dir, "nand.bin"))
-            )
+        if (!dir.isDirectory) {
+            val requiredFiles = getRequiredFiles(consoleType)
+            val fileResults = requiredFiles.map { it to ConfigurationFileStatus.MISSING }
+            return ConfigurationDirResult(ConfigurationDirStatus.INVALID, requiredFiles, fileResults.toTypedArray())
         }
 
-        return if (requiredFiles.all { it.isFile })
-            ConfigurationDirStatus.VALID
-        else
-            ConfigurationDirStatus.INVALID
+        var result = ConfigurationDirStatus.VALID
+        val requiredFiles = getRequiredFiles(consoleType)
+        val fileResults = requiredFiles.map {
+            it to if (DocumentFile.fromFile(File(dir, it)).isFile)
+                ConfigurationFileStatus.PRESENT
+            else {
+                result = ConfigurationDirStatus.INVALID
+                ConfigurationFileStatus.MISSING
+            }
+        }
+        return ConfigurationDirResult(result, requiredFiles, fileResults.toTypedArray())
+    }
+
+    private fun getRequiredFiles(consoleType: ConsoleType): Array<String> {
+        return when(consoleType) {
+            ConsoleType.DS -> arrayOf(
+                    "bios7.bin",
+                    "bios9.bin",
+                    "firmware.bin"
+            )
+            ConsoleType.DSi -> arrayOf(
+                    "bios7.bin",
+                    "bios9.bin",
+                    "firmware.bin",
+                    "nand.bin"
+            )
+        }
     }
 }

@@ -1,4 +1,4 @@
-package me.magnum.melonds.preferences
+package me.magnum.melonds.ui.settings.preferences
 
 import android.content.Context
 import android.net.Uri
@@ -6,7 +6,7 @@ import android.util.AttributeSet
 import androidx.preference.Preference
 import me.magnum.melonds.R
 
-class DirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : Preference(context, attrs) {
+open class DirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : Preference(context, attrs) {
     init {
         initAttributes(attrs)
     }
@@ -14,9 +14,9 @@ class DirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : Prefe
     var multiSelection = false
         private set
 
-    fun onDirectoryPicked(uri: Uri?) {
+    open fun onDirectoryPicked(uri: Uri?) {
         // TODO: properly add support for multi directory selection
-        val dirs = if (uri == null) null else setOf(uri.toString())
+        val dirs = if (uri == null) return else setOf(uri.toString())
 
         if (isPersistent) {
             persistStringSet(dirs)
@@ -25,7 +25,7 @@ class DirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : Prefe
         onPreferenceChangeListener?.onPreferenceChange(this, dirs)
     }
 
-    private fun initAttributes(attrs: AttributeSet?) {
+    protected open fun initAttributes(attrs: AttributeSet?) {
         if (attrs == null)
             return
 

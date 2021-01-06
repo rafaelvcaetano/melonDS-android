@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:padding="6dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+    <ImageView
+            android:id="@+id/imageViewFileStatus"
+            android:layout_width="32dp"
+            android:layout_height="match_parent"
+            tools:src="@drawable/ic_status_ok"
+            tools:tint="@color/statusOk" />
+
+    <TextView
+            android:id="@+id/textFileName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:textColor="?android:attr/textColorPrimary"
+            tools:text="bios7.bin" />
+</LinearLayout>

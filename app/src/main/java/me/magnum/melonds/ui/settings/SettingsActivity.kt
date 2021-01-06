@@ -10,7 +10,7 @@ import androidx.preference.*
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.ConsoleType
-import me.magnum.melonds.preferences.DirectoryPickerPreference
+import me.magnum.melonds.ui.settings.preferences.DirectoryPickerPreference
 import me.magnum.melonds.utils.ConfigurationUtils
 import me.magnum.melonds.utils.DirectoryPickerContract
 import me.magnum.melonds.utils.FileUtils
@@ -131,7 +131,7 @@ class SettingsActivity : AppCompatActivity() {
                     ConsoleType.DSi -> dsiBiosDirPreference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) }
                 }
 
-                if (ConfigurationUtils.checkConfigurationDirectory(requireContext(), newTypeBiosDir, newConsoleType) != ConfigurationUtils.ConfigurationDirStatus.VALID) {
+                if (ConfigurationUtils.checkConfigurationDirectory(requireContext(), newTypeBiosDir, newConsoleType).status != ConfigurationUtils.ConfigurationDirStatus.VALID) {
                     val textRes = when(newConsoleType) {
                         ConsoleType.DS -> R.string.ds_incorrect_bios_dir_info
                         ConsoleType.DSi -> R.string.dsi_incorrect_bios_dir_info

@@ -6,4 +6,11 @@
             <enum name="multi" value="1"/>
         </attr>
     </declare-styleable>
+
+    <declare-styleable name="BiosDirectoryPickerPreference">
+        <attr name="consoleType" format="enum">
+            <enum name="ds" value="0"/>
+            <enum name="dsi" value="1"/>
+        </attr>
+    </declare-styleable>
 </resources>

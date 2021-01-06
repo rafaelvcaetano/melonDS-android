@@ -11,4 +11,8 @@
     <color name="romConfigPrefSeparator">#DDD</color>
 
     <color name="buttonContrasted">#D000</color>
+
+    <color name="statusOk">#4A4</color>
+    <color name="statusWarn">#FF9800</color>
+    <color name="statusError">#D51F12</color>
 </resources>

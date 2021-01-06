@@ -18,7 +18,7 @@
     <PreferenceCategory
         android:title="ROMs">
 
-        <me.magnum.melonds.preferences.DirectoryPickerPreference
+        <me.magnum.melonds.ui.settings.preferences.DirectoryPickerPreference
                 android:key="rom_search_dirs"
                 android:title="@string/rom_search_directories"
                 app:selection="multi" />
@@ -35,13 +35,15 @@
             android:entryValues="@array/console_type_values"
             android:defaultValue="ds" />
 
-        <me.magnum.melonds.preferences.DirectoryPickerPreference
+        <me.magnum.melonds.ui.settings.preferences.BiosDirectoryPickerPreference
             android:key="bios_dir"
-            android:title="@string/bios_directory" />
+            android:title="@string/bios_directory"
+            app:consoleType="ds" />
 
-        <me.magnum.melonds.preferences.DirectoryPickerPreference
+        <me.magnum.melonds.ui.settings.preferences.BiosDirectoryPickerPreference
             android:key="dsi_bios_dir"
-            android:title="@string/dsi_bios_directory" />
+            android:title="@string/dsi_bios_directory"
+            app:consoleType="dsi" />
 
         <SwitchPreference
             android:key="show_bios"
@@ -82,7 +84,7 @@
             android:defaultValue="true"
             android:disableDependentsState="true" />
 
-        <me.magnum.melonds.preferences.DirectoryPickerPreference
+        <me.magnum.melonds.ui.settings.preferences.DirectoryPickerPreference
             android:key="sram_dir"
             android:title="@string/save_file_directory"
             android:dependency="use_rom_dir"
