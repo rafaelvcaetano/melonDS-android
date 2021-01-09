@@ -75,5 +75,5 @@ object MelonEmulator {
     external fun setFastForwardEnabled(enabled: Boolean)
 
     @JvmStatic
-    external fun updateRendererConfiguration(rendererConfiguration: RendererConfiguration)
+    external fun updateEmulatorConfiguration(emulatorConfiguration: EmulatorConfiguration)
 }

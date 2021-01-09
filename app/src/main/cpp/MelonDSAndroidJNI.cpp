@@ -6,6 +6,7 @@
 #include <InputAndroid.h>
 #include <android/asset_manager_jni.h>
 
+MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jobject emulatorConfiguration);
 GPU::RenderSettings buildRenderSettings(JNIEnv* env, jobject renderSettings);
 void* emulate(void*);
 
@@ -24,26 +25,10 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jclass type, jobject emulatorConfiguration, jobject javaAssetManager)
 {
-    jclass emulatorConfigurationClass = env->GetObjectClass(emulatorConfiguration);
-    jclass consoleTypeEnumClass = env->FindClass("me/magnum/melonds/domain/model/ConsoleType");
-    jstring dsConfigDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsConfigDirectory", "Ljava/lang/String;"));
-    jstring dsiConfigDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsiConfigDirectory", "Ljava/lang/String;"));
-    jboolean useJit = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "useJit", "Z"));
-    jobject consoleTypeEnum = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "consoleType", "Lme/magnum/melonds/domain/model/ConsoleType;"));
-    jint consoleType = env->GetIntField(consoleTypeEnum, env->GetFieldID(consoleTypeEnumClass, "consoleType", "I"));
-    const char* dsDir = env->GetStringUTFChars(dsConfigDir, JNI_FALSE);
-    const char* dsiDir = env->GetStringUTFChars(dsiConfigDir, JNI_FALSE);
-    jobject rendererConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "rendererConfiguration", "Lme/magnum/melonds/domain/model/RendererConfiguration;"));
-
+    MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = buildEmulatorConfiguration(env, emulatorConfiguration);
     jobject globalAssetManager = env->NewGlobalRef(javaAssetManager);
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
 
-    MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration;
-    finalEmulatorConfiguration.dsConfigDir = const_cast<char*>(dsDir);
-    finalEmulatorConfiguration.dsiConfigDir = const_cast<char*>(dsiDir);
-    finalEmulatorConfiguration.useJit = useJit;
-    finalEmulatorConfiguration.consoleType = consoleType;
-    finalEmulatorConfiguration.renderSettings = buildRenderSettings(env, rendererConfigurationObject);
     MelonDSAndroid::setup(finalEmulatorConfiguration, assetManager);
 }
 
@@ -167,20 +152,46 @@ Java_me_magnum_melonds_MelonEmulator_setFastForwardEnabled( JNIEnv* env, jclass 
 }
 
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_updateRendererConfiguration(JNIEnv* env, jclass type, jobject renderSettings)
+Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jclass type, jobject emulatorConfiguration)
 {
-    GPU::RenderSettings newRenderSettings = buildRenderSettings(env, renderSettings);
-    MelonDSAndroid::updateRendererConfiguration(newRenderSettings);
+    MelonDSAndroid::EmulatorConfiguration newConfiguration = buildEmulatorConfiguration(env, emulatorConfiguration);
+    MelonDSAndroid::updateEmulatorConfiguration(newConfiguration);
 }
+}
+
+MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jobject emulatorConfiguration) {
+    jclass emulatorConfigurationClass = env->GetObjectClass(emulatorConfiguration);
+    jclass consoleTypeEnumClass = env->FindClass("me/magnum/melonds/domain/model/ConsoleType");
+    jclass micSourceEnumClass = env->FindClass("me/magnum/melonds/domain/model/MicSource");
+
+    jstring dsConfigDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsConfigDirectory", "Ljava/lang/String;"));
+    jstring dsiConfigDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsiConfigDirectory", "Ljava/lang/String;"));
+    jboolean useJit = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "useJit", "Z"));
+    jobject consoleTypeEnum = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "consoleType", "Lme/magnum/melonds/domain/model/ConsoleType;"));
+    jint consoleType = env->GetIntField(consoleTypeEnum, env->GetFieldID(consoleTypeEnumClass, "consoleType", "I"));
+    jobject micSourceEnum = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "micSource", "Lme/magnum/melonds/domain/model/MicSource;"));
+    jint micSource = env->GetIntField(micSourceEnum, env->GetFieldID(micSourceEnumClass, "sourceValue", "I"));
+    const char* dsDir = env->GetStringUTFChars(dsConfigDir, JNI_FALSE);
+    const char* dsiDir = env->GetStringUTFChars(dsiConfigDir, JNI_FALSE);
+    jobject rendererConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "rendererConfiguration", "Lme/magnum/melonds/domain/model/RendererConfiguration;"));
+
+    MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration;
+    finalEmulatorConfiguration.dsConfigDir = const_cast<char*>(dsDir);
+    finalEmulatorConfiguration.dsiConfigDir = const_cast<char*>(dsiDir);
+    finalEmulatorConfiguration.useJit = useJit;
+    finalEmulatorConfiguration.consoleType = consoleType;
+    finalEmulatorConfiguration.micSource = micSource;
+    finalEmulatorConfiguration.renderSettings = buildRenderSettings(env, rendererConfigurationObject);
+    return finalEmulatorConfiguration;
 }
 
 GPU::RenderSettings buildRenderSettings(JNIEnv* env, jobject renderSettings) {
     jclass renderSettingsClass = env->GetObjectClass(renderSettings);
     jboolean threadedRendering = env->GetBooleanField(renderSettings, env->GetFieldID(renderSettingsClass, "threadedRendering", "Z"));
     return {
-        threadedRendering == JNI_TRUE,
-        1,
-        false
+            threadedRendering == JNI_TRUE,
+            1,
+            false
     };
 }
 
@@ -212,6 +223,7 @@ void* emulate(void*)
 
         pthread_mutex_unlock(&emuThreadMutex);
 
+        MelonDSAndroid::updateMic();
         u32 nLines = MelonDSAndroid::loop();
 
         float frameRate = (1000.0 * nLines) / (60.0f * 263.0f);

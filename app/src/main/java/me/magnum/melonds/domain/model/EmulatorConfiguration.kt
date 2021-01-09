@@ -5,5 +5,6 @@ data class EmulatorConfiguration(
         val dsiConfigDirectory: String,
         val useJit: Boolean,
         val consoleType: ConsoleType,
+        val micSource: MicSource,
         val rendererConfiguration: RendererConfiguration
 )

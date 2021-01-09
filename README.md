@@ -4,24 +4,23 @@ This is a WIP Android frontend for the melonDS Android port. For the Android por
 # What is working
 *  Device scanning for ROMS
 *  Games can boot and run
+*  Sound
 *  Input
+*  Mic input
 *  Game saves
 *  Save states
 *  GBA ROM support
-*  Settings (WIP)
+*  DSi support
 *  Controller support
-
-# What is kinda working
-*  Sound (works properly at full speed only)
+*  Settings
 
 # What is missing
 *  Wi-Fi
-*  More settings
-*  Mic input
 *  OpenGL renderer
 
 # Performance
-Performance is far from OK, but acceptable on high end devices. Right now, this is more of a proof of concept that anything else. But at least we now know that it (kinda) works.
+Performance is solid on 64 bit devices with thread rendering and JIT enabled, and should run at full speed on flagship devices. Performance on older devices, specially
+32 bit devices, is very poor due to the lack of JIT support.
 
 # Integration with third party frontends
 It's possible to launch melonDS from third part frontends. For that, you simply need to call the emulation activity with the absolute path to the ROM file. The parameters are the following:

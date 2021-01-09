@@ -1,11 +1,14 @@
 package me.magnum.melonds.impl
 
+import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
@@ -15,6 +18,7 @@ import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.ui.Theme
 import me.magnum.melonds.utils.FileUtils
+import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import java.io.*
 import java.util.*
 
@@ -59,6 +63,7 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
             dsiConfigDirectoryPath,
             isJitEnabled(),
             consoleType,
+            getMicSource(),
             RendererConfiguration(
                 getVideoFiltering(),
                 isThreadedRenderingEnabled()
@@ -107,6 +112,17 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
 
     override fun isThreadedRenderingEnabled(): Boolean {
         return preferences.getBoolean("enable_threaded_rendering", true)
+    }
+
+    override fun getMicSource(): MicSource {
+        val micSourcePreference = preferences.getString("mic_source", "blow")!!
+        var micSource = enumValueOfIgnoreCase<MicSource>(micSourcePreference)
+
+        if (micSource == MicSource.DEVICE && ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            micSource = MicSource.BLOW
+        }
+
+        return micSource
     }
 
     override fun getRomSortingMode(): SortingMode {

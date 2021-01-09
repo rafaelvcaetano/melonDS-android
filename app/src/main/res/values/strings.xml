@@ -32,6 +32,8 @@
     <string name="dsi_incorrect_bios_dir_info">The BIOS directory for the DSi system is not correct. Make sure that you select a directory that contains bios7.bin, bios9.bin, firmware.bin and nand.bin</string>
     <string name="storage_permission_required">Storage permission required</string>
     <string name="storage_permission_required_info">Storage permission is required to load ROMs from your device. Please grant access to storage on the next dialog.</string>
+    <string name="microphone_permission_required">Audio recording permission required</string>
+    <string name="microphone_permission_required_info">Audio recording permission is required to send microphone data to the emulator. Please grant access to storage on the next dialog.</string>
     <string name="no_rom_search_directory_specified">No ROM search directory specified</string>
     <string name="set_rom_directory">Set ROM directory</string>
     <string name="info_no_storage_permission">Cannot load ROM without storage permission</string>
@@ -63,6 +65,8 @@
     <string name="threaded_rendering_summary">Improves performance when enabled</string>
     <string name="category_video">Video</string>
     <string name="filtering">Filtering</string>
+    <string name="category_audio">Audio</string>
+    <string name="microphone_source">Microphone source</string>
     <string name="category_save_files">Save Files</string>
     <string name="save_next_rom">Save next to ROM file</string>
     <string name="save_file_directory">Save file directory</string>
@@ -109,6 +113,12 @@
     <string-array name="video_filtering_options">
         <item>None</item>
         <item>Linear</item>
+    </string-array>
+
+    <string-array name="mic_source_options">
+        <item>None</item>
+        <item>Blow</item>
+        <item>Device microphone</item>
     </string-array>
 
     <string-array name="save_state_locations">

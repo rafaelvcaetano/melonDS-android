@@ -80,9 +80,9 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
     }
     private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        val newRendererConfiguration = buildRendererConfiguration()
-        MelonEmulator.updateRendererConfiguration(newRendererConfiguration)
-        dsRenderer.updateRendererConfiguration(newRendererConfiguration)
+        val newEmulatorConfiguration = viewModel.getEmulatorConfiguration()
+        MelonEmulator.updateEmulatorConfiguration(newEmulatorConfiguration)
+        dsRenderer.updateRendererConfiguration(newEmulatorConfiguration.rendererConfiguration)
         setupSoftInput()
         setupInputHandling()
     }

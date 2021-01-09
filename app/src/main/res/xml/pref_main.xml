@@ -76,6 +76,18 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:title="@string/category_audio">
+
+        <ListPreference
+            android:key="mic_source"
+            android:title="@string/microphone_source"
+            android:summary="%s"
+            android:entries="@array/mic_source_options"
+            android:entryValues="@array/mic_source_values"
+            android:defaultValue="blow" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:title="@string/category_save_files">
 
         <SwitchPreference

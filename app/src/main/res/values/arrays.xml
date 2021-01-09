@@ -10,6 +10,12 @@
         <item>linear</item>
     </string-array>
 
+    <string-array name="mic_source_values">
+        <item>none</item>
+        <item>blow</item>
+        <item>device</item>
+    </string-array>
+
     <string-array name="theme_values">
         <item>light</item>
         <item>dark</item>
