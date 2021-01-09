@@ -110,6 +110,11 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
             jitPreference.setSummary(R.string.jit_not_supported)
         }
 
+        val currentMicSource = enumValueOfIgnoreCase<MicSource>(micSourcePreference.value as String)
+        if (currentMicSource == MicSource.DEVICE && !isMicrophonePermissionGranted()) {
+            micSourcePreference.value = MicSource.BLOW.name.toLowerCase(Locale.ROOT)
+        }
+
         consoleTypePreference.setOnPreferenceChangeListener { _, newValue ->
             val consoleTypePreferenceValue = newValue as String
             val newConsoleType = ConsoleType.valueOfIgnoreCase(consoleTypePreferenceValue)
