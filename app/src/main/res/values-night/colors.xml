@@ -6,6 +6,8 @@
 
     <color name="romConfigButtonDefault">#AAA</color>
 
+    <color name="navigationBarBackground">#333</color>
+
     <color name="buttonContrasted">#DFFF</color>
 
     <color name="splashBackground">@color/colorPrimary</color>
