@@ -99,10 +99,12 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
     }
 
     override fun getRomAtPath(path: String): Maybe<Rom> {
-        val documentFile = DocumentFile.fromFile(File(path))
         return getRoms().firstElement()
                 .flatMap {
-                    it.find { rom -> rom.uri == documentFile.uri }?.let { rom -> Maybe.just(rom) } ?: Maybe.empty()
+                    it.find { rom ->
+                        val romPath = FileUtils.getAbsolutePathFromSAFUri(context, rom.uri)
+                        romPath == path
+                    }?.let { rom -> Maybe.just(rom) } ?: Maybe.empty()
                 }
     }
 

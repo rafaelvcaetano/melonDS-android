@@ -83,7 +83,7 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
 
     override fun getDefaultConsoleType(): ConsoleType {
         val consoleTypePreference = preferences.getString("console_type", "ds")!!
-        return ConsoleType.valueOfIgnoreCase(consoleTypePreference)
+        return enumValueOfIgnoreCase(consoleTypePreference)
     }
 
     override fun getDsBiosDirectory(): Uri? {

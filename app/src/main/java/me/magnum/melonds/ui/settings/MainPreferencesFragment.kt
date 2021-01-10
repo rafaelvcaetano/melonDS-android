@@ -117,7 +117,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
 
         consoleTypePreference.setOnPreferenceChangeListener { _, newValue ->
             val consoleTypePreferenceValue = newValue as String
-            val newConsoleType = ConsoleType.valueOfIgnoreCase(consoleTypePreferenceValue)
+            val newConsoleType = enumValueOfIgnoreCase<ConsoleType>(consoleTypePreferenceValue)
             val newTypeBiosDir = when(newConsoleType) {
                 ConsoleType.DS -> dsBiosDirPreference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) }
                 ConsoleType.DSi -> dsiBiosDirPreference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) }

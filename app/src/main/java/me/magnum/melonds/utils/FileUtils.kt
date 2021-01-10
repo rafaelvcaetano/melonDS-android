@@ -25,8 +25,33 @@ object FileUtils {
         if (safResultUri == null)
             return null
 
-        if (DocumentsContract.isDocumentUri(context, safResultUri)) {
-            val docId = DocumentsContract.getDocumentId(safResultUri)
+        val uriSchema = getUriSchema(safResultUri)
+
+        return when (uriSchema) {
+            "content" -> getFilePathFromSafUri(context, safResultUri)
+            "file" -> getFilePathFromFileUri(safResultUri)
+            else -> null
+        }
+    }
+
+    private fun getUriSchema(uri: Uri): String? {
+        val uriString = uri.toString()
+        val indexOfSeparator = uriString.indexOf("://")
+        if (indexOfSeparator == -1)
+            return null
+
+        return uriString.substring(0 until indexOfSeparator)
+    }
+
+    private fun getFilePathFromFileUri(fileUri: Uri): String {
+        val uriString = fileUri.toString()
+        val indexOfSeparator = uriString.indexOf("://")
+        return uriString.substring(indexOfSeparator + 3)
+    }
+
+    private fun getFilePathFromSafUri(context: Context, safUri: Uri): String? {
+        if (DocumentsContract.isDocumentUri(context, safUri)) {
+            val docId = DocumentsContract.getDocumentId(safUri)
             val split = docId.split(":".toRegex()).toTypedArray()
             val type = split[0]
 
@@ -36,7 +61,7 @@ object FileUtils {
                 null
         }
 
-        val documentUri = DocumentsContract.buildDocumentUriUsingTree(safResultUri, DocumentsContract.getTreeDocumentId(safResultUri))
+        val documentUri = DocumentsContract.buildDocumentUriUsingTree(safUri, DocumentsContract.getTreeDocumentId(safUri))
         return getAbsolutePathFromTreeUri(context, documentUri)
     }
 
