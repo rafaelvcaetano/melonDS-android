@@ -58,7 +58,7 @@ object FileUtils {
             return if ("primary".equals(type, ignoreCase = true))
                 Environment.getExternalStorageDirectory().toString() + "/" + split[1]
             else
-                null
+                "/storage/${split[0]}/${split[1]}"
         }
 
         val documentUri = DocumentsContract.buildDocumentUriUsingTree(safUri, DocumentsContract.getTreeDocumentId(safUri))
