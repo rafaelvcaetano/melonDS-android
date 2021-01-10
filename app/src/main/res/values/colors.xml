@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">#f44336</color>
     <color name="colorPrimaryDark">#d32f2f</color>
-    <color name="colorAccent">#5C913B</color>
+    <color name="colorAccent">@color/melonMain</color>
 
     <color name="itemSelected">#AAA</color>
 
@@ -11,6 +11,12 @@
     <color name="romConfigPrefSeparator">#DDD</color>
 
     <color name="buttonContrasted">#D000</color>
+
+    <color name="melonMain">#5C913B</color>
+    <color name="melonDark">#49732F</color>
+
+    <color name="splashBackground">@color/colorPrimary</color>
+    <color name="splashToolbar">@color/colorPrimaryDark</color>
 
     <color name="statusOk">#4A4</color>
     <color name="statusWarn">#FF9800</color>

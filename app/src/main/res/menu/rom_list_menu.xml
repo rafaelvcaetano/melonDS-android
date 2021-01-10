@@ -28,7 +28,7 @@
                 android:id="@+id/action_sort_recent"
                 android:title="@string/action_sort_recently_played"
                 android:icon="@drawable/ic_clock"
-                    app:iconTint="@color/buttonContrasted"
+                app:iconTint="@color/buttonContrasted"
                 android:orderInCategory="1" />
         </menu>
     </item>

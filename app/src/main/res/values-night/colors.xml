@@ -7,4 +7,7 @@
     <color name="romConfigButtonDefault">#AAA</color>
 
     <color name="buttonContrasted">#DFFF</color>
+
+    <color name="splashBackground">@color/colorPrimary</color>
+    <color name="splashToolbar">@color/colorPrimaryDark</color>
 </resources>

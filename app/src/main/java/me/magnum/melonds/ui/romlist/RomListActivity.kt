@@ -57,6 +57,7 @@ class RomListActivity : AppCompatActivity() {
     private var selectedRom: Rom? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_rom_list)
         viewModel.getRomScanningDirectories().observe(this, Observer {
