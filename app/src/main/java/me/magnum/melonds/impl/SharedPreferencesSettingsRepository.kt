@@ -101,7 +101,7 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
     }
 
     override fun isJitEnabled(): Boolean {
-        val defaultJitEnabled = false
+        val defaultJitEnabled = Build.SUPPORTED_64_BIT_ABIS.isNotEmpty()
         return preferences.getBoolean("enable_jit", defaultJitEnabled)
     }
 

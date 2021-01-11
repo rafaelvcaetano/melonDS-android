@@ -54,7 +54,7 @@
             android:key="enable_jit"
             android:title="@string/enable_jit"
             android:summary="@string/enable_jit_summary"
-            android:defaultValue="false" />
+            android:defaultValue="true" />
     </PreferenceCategory>
 
     <PreferenceCategory
