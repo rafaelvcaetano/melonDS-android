@@ -114,7 +114,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         imageButtonSelect.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.SELECT))
         imageButtonStart.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.START))
         imageButtonLid.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.HINGE, true))
-        imageButtonFastForward.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.FAST_FORWARD, true))
+        imageButtonFastForward.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.FAST_FORWARD, false))
         setupSoftInput()
         setupInputHandling()
 
