@@ -12,31 +12,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class RomProcessor {
-	public static String getRomName(File romFile) throws Exception {
-		if (romFile == null)
-			throw new NullPointerException("ROM file cannot be null");
-
-		if (!romFile.isFile())
-			throw new IllegalArgumentException("Argument must represent a file");
-
-		FileInputStream fis = new FileInputStream(romFile);
-		// Banner offset is at header offset 0x68
-		fis.skip(0x68);
-		// Obtain the banner offset
-		byte[] offsetData = new byte[4];
-		fis.read(offsetData);
-
-		int bannerOffset = byteArrayToInt(offsetData);
-		fis.skip(bannerOffset + 576 - (0x68 + 4));
-		byte[] titleData = new byte[128];
-		fis.read(titleData);
-		fis.close();
-		return new String(titleData, Charset.forName("UTF-16LE"))
-				.trim()
-				.replace("\nNintendo", "")
-				.replace("\n", " ");
-	}
-
 	public static String getRomName(ContentResolver contentResolver, Uri romUri) throws Exception {
 		try (InputStream inputStream = contentResolver.openInputStream(romUri)) {
 			// Banner offset is at header offset 0x68
@@ -51,7 +26,7 @@ public class RomProcessor {
 			inputStream.read(titleData);
 			return new String(titleData, StandardCharsets.UTF_16LE)
 					.trim()
-					.replace("\nNintendo", "")
+					.replaceFirst("\n.*?$", "")
 					.replace("\n", " ");
 		}
 	}
