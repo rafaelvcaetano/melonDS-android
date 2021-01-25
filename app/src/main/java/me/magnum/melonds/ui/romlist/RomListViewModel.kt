@@ -14,10 +14,17 @@ import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.utils.ConfigurationUtils
+import me.magnum.melonds.utils.RomIconProvider
 import java.text.Normalizer
 import java.util.*
 
-class RomListViewModel @ViewModelInject constructor(private val context: Context, private val romsRepository: RomsRepository, private val settingsRepository: SettingsRepository) : ViewModel() {
+class RomListViewModel @ViewModelInject constructor(
+        private val context: Context,
+        private val romsRepository: RomsRepository,
+        private val settingsRepository: SettingsRepository,
+        private val romIconProvider: RomIconProvider
+) : ViewModel() {
+
     private val disposables: CompositeDisposable = CompositeDisposable()
 
     private val romsLiveData = MutableLiveData<List<Rom>>()
@@ -27,6 +34,12 @@ class RomListViewModel @ViewModelInject constructor(private val context: Context
     private var romSearchQuery = ""
     private var sortingMode = settingsRepository.getRomSortingMode()
     private var sortingOrder = settingsRepository.getRomSortingOrder()
+
+    init {
+        settingsRepository.observeRomIconFiltering()
+                .subscribe { romsLiveData.postValue(romsLiveData.value) }
+                .addTo(disposables)
+    }
 
     fun getRomScanningDirectories(): LiveData<Array<Uri>> {
         if (searchDirectoriesLiveData != null)
@@ -144,6 +157,12 @@ class RomListViewModel @ViewModelInject constructor(private val context: Context
 
     fun setDsiBiosDirectory(uri: Uri) {
         settingsRepository.setDsiBiosDirectory(uri)
+    }
+
+    fun getRomIcon(rom: Rom): RomIcon {
+        val iconBitmap = romIconProvider.getRomIcon(rom)
+        val iconFiltering = settingsRepository.getRomIconFiltering()
+        return RomIcon(iconBitmap, iconFiltering)
     }
 
     private fun buildAlphabeticalRomComparator(): Comparator<Rom> {

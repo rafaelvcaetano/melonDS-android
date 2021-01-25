@@ -12,7 +12,7 @@
                 android:summary="%s"
                 android:entries="@array/theme_options"
                 android:entryValues="@array/theme_values"
-                android:defaultValue="light"/>
+                android:defaultValue="light" />
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -22,6 +22,14 @@
                 android:key="rom_search_dirs"
                 android:title="@string/rom_search_directories"
                 app:selection="multi" />
+
+        <ListPreference
+            android:key="rom_icon_filtering"
+            android:title="@string/rom_icon_filtering"
+            android:summary="%s"
+            android:entries="@array/rom_icon_filtering_options"
+            android:entryValues="@array/rom_icon_filtering_values"
+            android:defaultValue="linear" />
     </PreferenceCategory>
 
     <PreferenceCategory

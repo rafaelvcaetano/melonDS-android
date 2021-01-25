@@ -76,6 +76,11 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return Theme.valueOf(themePreference.toUpperCase(Locale.ROOT))
     }
 
+    override fun getRomIconFiltering(): RomIconFiltering {
+        val romIconFilteringPreference = preferences.getString("rom_icon_filtering", "linear")!!
+        return enumValueOfIgnoreCase(romIconFilteringPreference)
+    }
+
     override fun getRomSearchDirectories(): Array<Uri> {
         val dirPreference = preferences.getStringSet("rom_search_dirs", emptySet())
         return dirPreference?.map { Uri.parse(it) }?.toTypedArray() ?: emptyArray()
@@ -252,6 +257,12 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
     override fun observeTheme(): Observable<Theme> {
         return getOrCreatePreferenceObservable("theme") {
             getTheme()
+        }
+    }
+
+    override fun observeRomIconFiltering(): Observable<RomIconFiltering> {
+        return getOrCreatePreferenceObservable("rom_icon_filtering") {
+            getRomIconFiltering()
         }
     }
 

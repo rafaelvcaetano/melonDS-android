@@ -9,6 +9,7 @@ interface SettingsRepository {
     fun getEmulatorConfiguration(): EmulatorConfiguration
 
     fun getTheme(): Theme
+    fun getRomIconFiltering(): RomIconFiltering
 
     fun getRomSearchDirectories(): Array<Uri>
 
@@ -34,6 +35,7 @@ interface SettingsRepository {
     fun getSoftInputOpacity(): Int
 
     fun observeTheme(): Observable<Theme>
+    fun observeRomIconFiltering(): Observable<RomIconFiltering>
     fun observeRomSearchDirectories(): Observable<Array<Uri>>
 
     fun setDsBiosDirectory(directoryUri: Uri)

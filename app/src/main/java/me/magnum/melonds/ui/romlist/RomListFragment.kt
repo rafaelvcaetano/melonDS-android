@@ -2,6 +2,7 @@ package me.magnum.melonds.ui.romlist
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -22,14 +23,13 @@ import kotlinx.android.synthetic.main.rom_list_fragment.*
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
+import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.domain.model.RomScanningStatus
 import me.magnum.melonds.ui.romlist.RomConfigDialog.OnRomConfigSavedListener
 import me.magnum.melonds.ui.romlist.RomListFragment.RomListAdapter.RomViewHolder
 import me.magnum.melonds.utils.FilePickerContract
 import me.magnum.melonds.utils.FileUtils
-import me.magnum.melonds.utils.RomIconProvider
 import java.util.*
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class RomListFragment : Fragment() {
@@ -40,7 +40,6 @@ class RomListFragment : Fragment() {
     }
 
     private val romListViewModel: RomListViewModel by activityViewModels()
-    @Inject lateinit var romIconProvider: RomIconProvider
 
     private var romSelectedListener: ((Rom) -> Unit)? = null
     private lateinit var romListAdapter: RomListAdapter
@@ -152,8 +151,10 @@ class RomListFragment : Fragment() {
                 this.rom = rom
 
                 try {
-                    val icon = romIconProvider.getRomIcon(rom)
-                    itemView.imageRomIcon.setImageBitmap(icon)
+                    val romIcon = romListViewModel.getRomIcon(rom)
+                    val iconDrawable = BitmapDrawable(itemView.resources, romIcon.bitmap)
+                    iconDrawable.paint.isFilterBitmap = romIcon.filtering == RomIconFiltering.LINEAR
+                    itemView.imageRomIcon.setImageDrawable(iconDrawable)
                 } catch (e: Exception) {
                     e.printStackTrace()
                     imageRomIcon.setImageBitmap(null)
