@@ -76,6 +76,7 @@
     <string name="key_mapping">Key mapping</string>
     <string name="show_soft_input">Show soft input</string>
     <string name="soft_input_opacity">Soft input opacity</string>
+    <string name="rom_shortcut">ROM shortcut</string>
 
     <string name="label_rom_config_load_gba_rom">Load GBA ROM</string>
     <string name="label_rom_config_gba_rom_path">GBA ROM path</string>

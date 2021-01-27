@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/layoutRomItem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="8dp"
+        android:nextFocusRight="@+id/buttonRomConfig">
+
+    <RelativeLayout
+            android:id="@+id/layout_rom_base_content"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_toStartOf="@+id/buttonRomConfig">
+
+        <include layout="@layout/item_rom_base"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toStartOf="@+id/buttonRomConfig" />
+    </RelativeLayout>
+
+    <ImageView
+            android:id="@+id/buttonRomConfig"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="8dp"
+            android:padding="4dp"
+            style="@style/Button.RomConfig"
+            android:scaleType="centerInside"
+            app:tint="@color/romConfigButtonDefault"
+            app:srcCompat="@drawable/ic_gba_cart"
+            android:nextFocusLeft="@+id/layoutRomItem" />
+</RelativeLayout>

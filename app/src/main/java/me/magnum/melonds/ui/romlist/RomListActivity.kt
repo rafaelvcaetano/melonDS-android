@@ -201,7 +201,7 @@ class RomListActivity : AppCompatActivity() {
     private fun addRomListFragment() {
         var romListFragment = supportFragmentManager.findFragmentByTag(FRAGMENT_ROM_LIST) as RomListFragment?
         if (romListFragment == null) {
-            romListFragment = RomListFragment.newInstance()
+            romListFragment = RomListFragment.newInstance(true)
             supportFragmentManager.beginTransaction()
                     .replace(R.id.layout_main, romListFragment, FRAGMENT_ROM_LIST)
                     .commit()

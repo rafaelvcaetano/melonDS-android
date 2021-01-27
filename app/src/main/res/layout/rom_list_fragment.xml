@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.romlist.RomListFragment"
-    tools:menu="rom_list_menu">
+    tools:menu="@menu/rom_list_menu">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshRoms"
@@ -16,15 +16,15 @@
             android:id="@+id/listRoms"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:listitem="@layout/item_rom" />
+            tools:listitem="@layout/item_rom_configurable" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <TextView
-            android:id="@+id/textRomListEmpty"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            style="?android:attr/textAppearanceMedium"
-            android:text="@string/no_roms_found" />
+        android:id="@+id/textRomListEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        style="?android:attr/textAppearanceMedium"
+        android:text="@string/no_roms_found" />
 </FrameLayout>

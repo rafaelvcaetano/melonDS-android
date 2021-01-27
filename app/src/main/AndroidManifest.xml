@@ -30,6 +30,10 @@
             android:screenOrientation="portrait"
             android:launchMode="singleTask"
             android:exported="true">
+            <intent-filter>
+                <action android:name="${applicationId}.LAUNCH_ROM" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".ui.settings.SettingsActivity"
@@ -47,6 +51,15 @@
             android:exported="false" >
             <intent-filter>
                 <action android:name="me.magnum.melonds.SETUP_INPUT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.shortcutsetup.ShortcutSetupActivity"
+            android:label="@string/rom_shortcut"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.CREATE_SHORTCUT" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
