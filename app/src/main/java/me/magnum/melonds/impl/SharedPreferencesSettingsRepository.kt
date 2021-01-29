@@ -1,14 +1,11 @@
 package me.magnum.melonds.impl
 
-import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.util.Log
-import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
@@ -121,13 +118,7 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
 
     override fun getMicSource(): MicSource {
         val micSourcePreference = preferences.getString("mic_source", "blow")!!
-        var micSource = enumValueOfIgnoreCase<MicSource>(micSourcePreference)
-
-        if (micSource == MicSource.DEVICE && ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            micSource = MicSource.BLOW
-        }
-
-        return micSource
+        return enumValueOfIgnoreCase(micSourcePreference)
     }
 
     override fun getRomSortingMode(): SortingMode {

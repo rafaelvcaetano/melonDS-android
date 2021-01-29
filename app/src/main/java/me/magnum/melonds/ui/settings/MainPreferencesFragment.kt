@@ -1,23 +1,18 @@
 package me.magnum.melonds.ui.settings
 
 import android.Manifest
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat
 import androidx.preference.*
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.MicSource
 import me.magnum.melonds.ui.settings.preferences.DirectoryPickerPreference
-import me.magnum.melonds.utils.ConfigurationUtils
-import me.magnum.melonds.utils.DirectoryPickerContract
-import me.magnum.melonds.utils.FileUtils
-import me.magnum.melonds.utils.enumValueOfIgnoreCase
+import me.magnum.melonds.utils.*
 import java.util.*
 
 @AndroidEntryPoint
@@ -87,22 +82,17 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.pref_main, rootKey)
-        val romDirsPreference = findPreference<DirectoryPickerPreference>("rom_search_dirs")!!
         val consoleTypePreference = findPreference<ListPreference>("console_type")!!
         val dsBiosDirPreference = findPreference<DirectoryPickerPreference>("bios_dir")!!
         val dsiBiosDirPreference = findPreference<DirectoryPickerPreference>("dsi_bios_dir")!!
-        val sramDirPreference = findPreference<DirectoryPickerPreference>("sram_dir")!!
         val jitPreference = findPreference<SwitchPreference>("enable_jit")!!
         micSourcePreference = findPreference("mic_source")!!
-        bindPreferenceSummaryToValue(romDirsPreference)
-        bindPreferenceSummaryToValue(dsBiosDirPreference)
-        bindPreferenceSummaryToValue(dsiBiosDirPreference)
-        bindPreferenceSummaryToValue(sramDirPreference)
 
-        val romPickerLauncher = registerForActivityResult(DirectoryPickerContract(), romDirsPreference::onDirectoryPicked)
-        val dsBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract(), dsBiosDirPreference::onDirectoryPicked)
-        val dsiBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract(), dsiBiosDirPreference::onDirectoryPicked)
-        val sramPickerLauncher = registerForActivityResult(DirectoryPickerContract(), sramDirPreference::onDirectoryPicked)
+        setupDirectoryPickerPreference(dsBiosDirPreference)
+        setupDirectoryPickerPreference(dsiBiosDirPreference)
+        setupDirectoryPickerPreference(findPreference("rom_search_dirs")!!)
+        setupDirectoryPickerPreference(findPreference("sram_dir")!!)
+        setupDirectoryPickerPreference(findPreference("cheats_file")!!)
 
         if (Build.SUPPORTED_64_BIT_ABIS.isEmpty()) {
             jitPreference.isEnabled = false
@@ -111,7 +101,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
         }
 
         val currentMicSource = enumValueOfIgnoreCase<MicSource>(micSourcePreference.value as String)
-        if (currentMicSource == MicSource.DEVICE && !isMicrophonePermissionGranted()) {
+        if (currentMicSource == MicSource.DEVICE && !isMicrophonePermissionGranted(requireContext())) {
             micSourcePreference.value = MicSource.BLOW.name.toLowerCase(Locale.ROOT)
         }
 
@@ -137,25 +127,9 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
 
             true
         }
-        romDirsPreference.setOnPreferenceClickListener { preference ->
-            romPickerLauncher.launch(preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) })
-            true
-        }
-        dsBiosDirPreference.setOnPreferenceClickListener { preference ->
-            dsBiosPickerLauncher.launch(preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) })
-            true
-        }
-        dsiBiosDirPreference.setOnPreferenceClickListener { preference ->
-            dsiBiosPickerLauncher.launch(preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) })
-            true
-        }
-        sramDirPreference.setOnPreferenceClickListener { preference ->
-            sramPickerLauncher.launch(preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) })
-            true
-        }
         micSourcePreference.setOnPreferenceChangeListener { _, newValue ->
             val newMicSource = enumValueOfIgnoreCase<MicSource>(newValue as String)
-            if (newMicSource == MicSource.DEVICE && !isMicrophonePermissionGranted()) {
+            if (newMicSource == MicSource.DEVICE && !isMicrophonePermissionGranted(requireContext())) {
                 requestMicrophonePermission(false)
                 false
             } else {
@@ -164,8 +138,13 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
         }
     }
 
-    private fun isMicrophonePermissionGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+    private fun setupDirectoryPickerPreference(directoryPreference: DirectoryPickerPreference) {
+        bindPreferenceSummaryToValue(directoryPreference)
+        val filePickerLauncher = registerForActivityResult(DirectoryPickerContract(), directoryPreference::onDirectoryPicked)
+        directoryPreference.setOnPreferenceClickListener { preference ->
+            filePickerLauncher.launch(preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) })
+            true
+        }
     }
 
     private fun requestMicrophonePermission(overrideRationaleRequest: Boolean) {

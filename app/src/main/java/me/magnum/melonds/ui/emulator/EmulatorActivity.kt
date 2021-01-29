@@ -25,16 +25,14 @@ import kotlinx.android.synthetic.main.activity_emulator.*
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.MelonEmulator.LoadResult
 import me.magnum.melonds.R
-import me.magnum.melonds.domain.model.Input
-import me.magnum.melonds.domain.model.RendererConfiguration
-import me.magnum.melonds.domain.model.Rom
-import me.magnum.melonds.domain.model.SaveStateSlot
+import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
 import me.magnum.melonds.ui.emulator.input.*
 import me.magnum.melonds.utils.FileUtils
+import me.magnum.melonds.utils.isMicrophonePermissionGranted
 import java.io.File
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
@@ -80,7 +78,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
     }
     private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        val newEmulatorConfiguration = viewModel.getEmulatorConfiguration()
+        val newEmulatorConfiguration = getEmulatorConfigurationForRom(loadedRom)
         MelonEmulator.updateEmulatorConfiguration(newEmulatorConfiguration)
         dsRenderer.updateRendererConfiguration(newEmulatorConfiguration.rendererConfiguration)
         setupSoftInput()
@@ -186,7 +184,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         romLoader.flatMap {
             loadedRom = it
             Single.create<LoadResult> { emitter ->
-                MelonEmulator.setupEmulator(viewModel.getEmulatorConfiguration(), assets)
+                MelonEmulator.setupEmulator(getEmulatorConfigurationForRom(it), assets)
 
                 val romPath = FileUtils.getAbsolutePathFromSAFUri(this, it.uri) ?: throw RomLoadFailedException()
                 val showBios = settingsRepository.showBootScreen()
@@ -228,6 +226,17 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         setupFullscreen()
+    }
+
+    private fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {
+        val emulatorConfiguration = viewModel.getEmulatorConfigurationForRom(rom)
+
+        // Use BLOW mic source if mic permission is not granted
+        return if (emulatorConfiguration.micSource == MicSource.DEVICE && !isMicrophonePermissionGranted(this)) {
+            emulatorConfiguration.copy(micSource = MicSource.BLOW)
+        } else {
+            emulatorConfiguration
+        }
     }
 
     private fun buildRendererConfiguration(): RendererConfiguration {

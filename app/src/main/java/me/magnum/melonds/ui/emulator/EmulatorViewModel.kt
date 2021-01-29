@@ -42,7 +42,22 @@ class EmulatorViewModel @ViewModelInject constructor(private val context: Contex
         return romsRepository.getRomAtPath(path).defaultIfEmpty(Rom(path, romDocument.uri, RomConfig())).toSingle()
     }
 
-    fun getEmulatorConfiguration(): EmulatorConfiguration {
-        return settingsRepository.getEmulatorConfiguration()
+    fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {
+        val baseConfiguration = settingsRepository.getEmulatorConfiguration()
+        return EmulatorConfiguration(
+                baseConfiguration.dsConfigDirectory,
+                baseConfiguration.dsiConfigDirectory,
+                baseConfiguration.useJit,
+                getRomOptionOrDefault(rom.config.runtimeConsoleType, baseConfiguration.consoleType),
+                getRomOptionOrDefault(rom.config.runtimeMicSource, baseConfiguration.micSource),
+                baseConfiguration.rendererConfiguration
+        )
+    }
+
+    private fun <T, U> getRomOptionOrDefault(romOption: T, default: U): U where T : RuntimeEnum<T, U> {
+        return if (romOption.getDefault() == romOption)
+            default
+        else
+            romOption.getValue()
     }
 }

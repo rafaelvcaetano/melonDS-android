@@ -78,6 +78,7 @@
     <string name="soft_input_opacity">Soft input opacity</string>
     <string name="rom_shortcut">ROM shortcut</string>
 
+    <string name="label_rom_config_console">Boot system</string>
     <string name="label_rom_config_load_gba_rom">Load GBA ROM</string>
     <string name="label_rom_config_gba_rom_path">GBA ROM path</string>
     <string name="label_rom_config_gba_save_path">GBA save path</string>
@@ -110,6 +111,19 @@
     <string-array name="rom_icon_filtering_options">
         <item>None (Pixelated)</item>
         <item>Linear (Smooth)</item>
+    </string-array>
+
+    <string-array name="game_runtime_console_type_options">
+        <item>Default</item>
+        <item>DS</item>
+        <item>DSi</item>
+    </string-array>
+
+    <string-array name="game_runtime_mic_source_options">
+        <item>Default</item>
+        <item>None</item>
+        <item>Blow</item>
+        <item>Device microphone</item>
     </string-array>
 
     <string-array name="console_type_options">

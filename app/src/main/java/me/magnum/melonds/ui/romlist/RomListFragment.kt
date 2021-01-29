@@ -1,5 +1,6 @@
 package me.magnum.melonds.ui.romlist
 
+import android.Manifest
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.drawable.BitmapDrawable
@@ -8,6 +9,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.fragment.app.Fragment
@@ -21,10 +23,7 @@ import kotlinx.android.synthetic.main.item_rom_base.view.*
 import kotlinx.android.synthetic.main.item_rom_configurable.view.*
 import kotlinx.android.synthetic.main.rom_list_fragment.*
 import me.magnum.melonds.R
-import me.magnum.melonds.domain.model.Rom
-import me.magnum.melonds.domain.model.RomConfig
-import me.magnum.melonds.domain.model.RomIconFiltering
-import me.magnum.melonds.domain.model.RomScanningStatus
+import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.ui.romlist.RomConfigDialog.OnRomConfigSavedListener
 import me.magnum.melonds.ui.romlist.RomListFragment.RomListAdapter.RomViewHolder
 import me.magnum.melonds.utils.FilePickerContract
@@ -46,9 +45,15 @@ class RomListFragment : Fragment() {
     }
 
     private val romListViewModel: RomListViewModel by activityViewModels()
+    private lateinit var romListAdapter: RomListAdapter
+    private val microphonePermissionLauncher by lazy {
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            microphonePermissionListener?.invoke(granted)
+        }
+    }
 
     private var romSelectedListener: ((Rom) -> Unit)? = null
-    private lateinit var romListAdapter: RomListAdapter
+    private var microphonePermissionListener: ((Boolean) -> Unit)? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.rom_list_fragment, container, false)
@@ -73,12 +78,17 @@ class RomListFragment : Fragment() {
                         onFilePickedListener?.invoke(it)
                 }
 
-                RomConfigDialog(requireContext(), rom.name, rom.config.copy(), object : RomConfigDialog.FilePicker {
+                RomConfigDialog(requireContext(), rom.name, rom.config.copy(), object : RomConfigDialog.RomConfigDelegate {
                             override fun pickFile(startUri: Uri?, onFilePicked: (Uri) -> Unit) {
                                 onFilePickedListener = onFilePicked
                                 romConfigFilePicker.launch(startUri)
                             }
-                        }).apply {
+
+                            override fun requestMicrophonePermission(onPermissionResult: (Boolean) -> Unit) {
+                                microphonePermissionListener = onPermissionResult
+                                microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            }
+                }).apply {
                     setOnRomConfigSaveListener(object : OnRomConfigSavedListener {
                         override fun onRomConfigSaved(romConfig: RomConfig) {
                             romListViewModel.updateRomConfig(rom, romConfig)
