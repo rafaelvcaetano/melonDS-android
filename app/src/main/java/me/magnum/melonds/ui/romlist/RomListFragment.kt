@@ -46,14 +46,8 @@ class RomListFragment : Fragment() {
 
     private val romListViewModel: RomListViewModel by activityViewModels()
     private lateinit var romListAdapter: RomListAdapter
-    private val microphonePermissionLauncher by lazy {
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            microphonePermissionListener?.invoke(granted)
-        }
-    }
 
     private var romSelectedListener: ((Rom) -> Unit)? = null
-    private var microphonePermissionListener: ((Boolean) -> Unit)? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.rom_list_fragment, container, false)
@@ -73,9 +67,16 @@ class RomListFragment : Fragment() {
 
             override fun onRomConfigClicked(rom: Rom) {
                 var onFilePickedListener: ((Uri) -> Unit)? = null
+                var microphonePermissionListener: ((Boolean) -> Unit)? = null
+
                 val romConfigFilePicker = registerForActivityResult(FilePickerContract()) {
                     if (it != null)
                         onFilePickedListener?.invoke(it)
+                }
+                val microphonePermissionLauncher by lazy {
+                    registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+                        microphonePermissionListener?.invoke(granted)
+                    }
                 }
 
                 RomConfigDialog(requireContext(), rom.name, rom.config.copy(), object : RomConfigDialog.RomConfigDelegate {
@@ -96,6 +97,7 @@ class RomListFragment : Fragment() {
                     })
                     setOnDismissListener {
                         romConfigFilePicker.unregister()
+                        microphonePermissionLauncher.unregister()
                     }
                     show()
                 }
