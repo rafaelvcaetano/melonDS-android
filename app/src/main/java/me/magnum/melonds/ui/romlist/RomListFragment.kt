@@ -2,7 +2,6 @@ package me.magnum.melonds.ui.romlist
 
 import android.Manifest
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
@@ -10,8 +9,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
-import androidx.core.widget.ImageViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -23,7 +20,10 @@ import kotlinx.android.synthetic.main.item_rom_base.view.*
 import kotlinx.android.synthetic.main.item_rom_configurable.view.*
 import kotlinx.android.synthetic.main.rom_list_fragment.*
 import me.magnum.melonds.R
-import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.RomConfig
+import me.magnum.melonds.domain.model.RomIconFiltering
+import me.magnum.melonds.domain.model.RomScanningStatus
 import me.magnum.melonds.ui.romlist.RomConfigDialog.OnRomConfigSavedListener
 import me.magnum.melonds.ui.romlist.RomListFragment.RomListAdapter.RomViewHolder
 import me.magnum.melonds.utils.FilePickerContract
@@ -190,16 +190,6 @@ class RomListFragment : Fragment() {
                 itemView.buttonRomConfig.setOnClickListener {
                     onRomConfigClick(getRom())
                 }
-            }
-
-            override fun setRom(rom: Rom) {
-                super.setRom(rom)
-                val configButtonTint = if (rom.config.loadGbaCart())
-                    ContextCompat.getColor(context, R.color.romConfigButtonEnabled)
-                else
-                    ContextCompat.getColor(context, R.color.romConfigButtonDefault)
-
-                ImageViewCompat.setImageTintList(itemView.buttonRomConfig, ColorStateList.valueOf(configButtonTint))
             }
         }
     }

@@ -27,7 +27,8 @@
     </style>
 
     <style name="Button.RomConfig" parent="android:Widget.ImageButton">
-        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:background">@drawable/drawable_ripple_small</item>
+        <item name="android:scaleType">fitCenter</item>
     </style>
 
     <style name="Menu.OverflowUnder" parent="Widget.AppCompat.PopupMenu.Overflow">
