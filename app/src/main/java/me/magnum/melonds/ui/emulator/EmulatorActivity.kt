@@ -14,7 +14,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import io.reactivex.Completable
+import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.CompletableObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -31,41 +31,43 @@ import me.magnum.melonds.ui.settings.SettingsActivity
 import java.nio.ByteBuffer
 import javax.inject.Inject
 
-abstract class EmulatorActivity : AppCompatActivity(), RendererListener {
+@AndroidEntryPoint
+class EmulatorActivity : AppCompatActivity(), RendererListener {
     companion object {
+        const val KEY_ROM = "rom"
+        const val KEY_PATH = "PATH"
+        const val KEY_BOOT_FIRMWARE_CONSOLE = "boot_firmware_console"
+        private const val KEY_BOOT_FIRMWARE_ONLY = "boot_firmware_only"
+
         init {
             System.loadLibrary("melonDS-android-frontend")
         }
 
         fun getRomEmulatorActivityIntent(context: Context, rom: Rom): Intent {
-            return Intent(context, RomEmulatorActivity::class.java).apply {
-                putExtra(RomEmulatorActivity.KEY_ROM, RomParcelable(rom))
-            }
-        }
-
-        fun getRomEmulatorActivityIntent(context: Context, path: String?): Intent {
-            return Intent(context, RomEmulatorActivity::class.java).apply {
-                putExtra(RomEmulatorActivity.KEY_PATH, path)
+            return Intent(context, EmulatorActivity::class.java).apply {
+                putExtra(KEY_ROM, RomParcelable(rom))
             }
         }
 
         fun getFirmwareEmulatorActivityIntent(context: Context, consoleType: ConsoleType): Intent {
-            return Intent(context, FirmwareEmulatorActivity::class.java).apply {
-                putExtra(FirmwareEmulatorActivity.KEY_BOOT_FIRMWARE_CONSOLE, consoleType.ordinal)
+            return Intent(context, EmulatorActivity::class.java).apply {
+                putExtra(KEY_BOOT_FIRMWARE_ONLY, true)
+                putExtra(KEY_BOOT_FIRMWARE_CONSOLE, consoleType.ordinal)
             }
         }
     }
 
-    protected class RomLoadFailedException : Exception("Failed to load ROM")
-    protected class FirmwareLoadFailedException(result: MelonEmulator.FirmwareLoadResult) : Exception("Failed to load firmware: $result")
+    class RomLoadFailedException : Exception("Failed to load ROM")
+    class FirmwareLoadFailedException(result: MelonEmulator.FirmwareLoadResult) : Exception("Failed to load firmware: $result")
 
     interface PauseMenuOption {
         val textResource: Int
     }
 
     private lateinit var binding: ActivityEmulatorBinding
-    protected val viewModel: EmulatorViewModel by viewModels()
+    val viewModel: EmulatorViewModel by viewModels()
     @Inject lateinit var settingsRepository: SettingsRepository
+    private lateinit var delegate: EmulatorDelegate
 
     private lateinit var dsRenderer: DSRenderer
     private lateinit var melonTouchHandler: MelonTouchHandler
@@ -83,7 +85,7 @@ abstract class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
     }
     private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        val newEmulatorConfiguration = getEmulatorConfiguration()
+        val newEmulatorConfiguration = delegate.getEmulatorConfiguration()
         MelonEmulator.updateEmulatorConfiguration(newEmulatorConfiguration)
         dsRenderer.updateRendererConfiguration(newEmulatorConfiguration.rendererConfiguration)
         setupSoftInput()
@@ -99,6 +101,7 @@ abstract class EmulatorActivity : AppCompatActivity(), RendererListener {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         setupFullscreen()
         setContentView(binding.root)
+        initializeDelegate()
 
         melonTouchHandler = MelonTouchHandler()
         dsRenderer = DSRenderer(buildRendererConfiguration())
@@ -135,6 +138,11 @@ abstract class EmulatorActivity : AppCompatActivity(), RendererListener {
         launchEmulator()
     }
 
+    private fun initializeDelegate() {
+        val bootFirmwareOnly = intent.extras?.getBoolean(KEY_BOOT_FIRMWARE_ONLY) ?: false
+        delegate = if (bootFirmwareOnly) FirmwareEmulatorDelegate(this) else RomEmulatorDelegate(this)
+    }
+
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
 
@@ -151,6 +159,7 @@ abstract class EmulatorActivity : AppCompatActivity(), RendererListener {
                         MelonEmulator.stopEmulation()
                         emulatorPaused = false
                         setIntent(intent)
+                        initializeDelegate()
                         launchEmulator()
                     }
                     .setNegativeButton(R.string.no) { dialog, _ ->
@@ -175,7 +184,7 @@ abstract class EmulatorActivity : AppCompatActivity(), RendererListener {
     private fun launchEmulator() {
         // Force view model resolution
         viewModel.let { }
-        val setupObservable = getEmulatorSetupObservable()
+        val setupObservable = delegate.getEmulatorSetupObservable(intent.extras)
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setupObservable.subscribeOn(Schedulers.io())
@@ -200,10 +209,6 @@ abstract class EmulatorActivity : AppCompatActivity(), RendererListener {
                     }
                 })
     }
-
-    abstract fun getEmulatorSetupObservable(): Completable
-
-    abstract fun getEmulatorConfiguration(): EmulatorConfiguration
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
@@ -247,9 +252,9 @@ abstract class EmulatorActivity : AppCompatActivity(), RendererListener {
         this.pauseEmulation()
     }
 
-    protected fun pauseEmulation() {
+    fun pauseEmulation() {
         emulatorPaused = true
-        val values = getPauseMenuOptions()
+        val values = delegate.getPauseMenuOptions()
         val options = Array(values.size) { i -> getString(values[i].textResource) }
 
         MelonEmulator.pauseEmulation()
@@ -257,20 +262,16 @@ abstract class EmulatorActivity : AppCompatActivity(), RendererListener {
 
         AlertDialog.Builder(this)
                 .setTitle(R.string.pause)
-                .setItems(options) { _, which -> onPauseMenuOptionSelected(values[which]) }
+                .setItems(options) { _, which -> delegate.onPauseMenuOptionSelected(values[which]) }
                 .setOnCancelListener { resumeEmulation()}
                 .show()
     }
 
-    protected fun resumeEmulation() {
+    fun resumeEmulation() {
         emulatorPaused = false
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         MelonEmulator.resumeEmulation()
     }
-
-    abstract fun getPauseMenuOptions(): List<PauseMenuOption>
-
-    abstract fun onPauseMenuOptionSelected(option: PauseMenuOption)
 
     override fun onRendererSizeChanged(width: Int, height: Int) {
         runOnUiThread {
@@ -301,7 +302,7 @@ abstract class EmulatorActivity : AppCompatActivity(), RendererListener {
         runOnUiThread { binding.textFps.text = getString(R.string.info_fps, fps) }
     }
 
-    protected fun openSettings() {
+    fun openSettings() {
         // Allow emulator to resume once the user returns from Settings
         emulatorPaused = false
         val settingsIntent = Intent(this, SettingsActivity::class.java)
