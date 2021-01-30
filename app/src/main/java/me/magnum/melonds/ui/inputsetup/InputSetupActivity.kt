@@ -12,14 +12,13 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.activity_input_setup.*
-import kotlinx.android.synthetic.main.item_input.view.*
 import me.magnum.melonds.R
+import me.magnum.melonds.databinding.ActivityInputSetupBinding
+import me.magnum.melonds.databinding.ItemInputBinding
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.InputConfig
 import me.magnum.melonds.ui.inputsetup.InputSetupActivity.InputListAdapter.InputViewHolder
 import java.util.*
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class InputSetupActivity : AppCompatActivity() {
@@ -46,6 +45,7 @@ class InputSetupActivity : AppCompatActivity() {
         }
     }
 
+    private lateinit var binding: ActivityInputSetupBinding
     private val viewModel: InputSetupViewModel by viewModels()
 
     private var waitingForInput = false
@@ -53,7 +53,8 @@ class InputSetupActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_input_setup)
+        binding = ActivityInputSetupBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         val inputListAdapter = InputListAdapter(object : OnInputConfigClickedListener {
             override fun onInputConfigClicked(inputConfig: InputConfig) {
                 if (inputUnderConfiguration != null)
@@ -77,7 +78,7 @@ class InputSetupActivity : AppCompatActivity() {
         })
         inputListAdapter.setHasStableIds(true)
 
-        listInput.apply {
+        binding.listInput.apply {
             val listLayoutManager = LinearLayoutManager(context)
             layoutManager = listLayoutManager
             addItemDecoration(DividerItemDecoration(context, listLayoutManager.orientation))
@@ -101,34 +102,34 @@ class InputSetupActivity : AppCompatActivity() {
     }
 
     private inner class InputListAdapter(private val inputConfigClickedListener: OnInputConfigClickedListener) : RecyclerView.Adapter<InputViewHolder>() {
-        inner class InputViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        inner class InputViewHolder(private val viewBinding: ItemInputBinding) : RecyclerView.ViewHolder(viewBinding.root) {
             private lateinit var inputConfig: StatefulInputConfig
 
             fun setInputConfig(config: StatefulInputConfig) {
                 inputConfig = config
                 val inputNameResource = getInputName(config.inputConfig.input)
                 if (inputNameResource == -1)
-                    itemView.textInputName.text = config.inputConfig.input.toString()
+                    viewBinding.textInputName.text = config.inputConfig.input.toString()
                 else
-                    itemView.textInputName.setText(inputNameResource)
+                    viewBinding.textInputName.setText(inputNameResource)
 
-                itemView.imageInputClear.visibility = if (config.inputConfig.hasKeyAssigned()) View.VISIBLE else View.GONE
+                viewBinding.imageInputClear.visibility = if (config.inputConfig.hasKeyAssigned()) View.VISIBLE else View.GONE
 
                 if (config.isBeingConfigured) {
-                    itemView.textAssignedInputName.setText(R.string.press_any_button)
+                    viewBinding.textAssignedInputName.setText(R.string.press_any_button)
                 } else {
                     if (config.inputConfig.hasKeyAssigned()) {
                         val keyCodeString = KeyEvent.keyCodeToString(config.inputConfig.key)
                         val keyName = keyCodeString.replace("KEYCODE", "").replace("_", " ").trim()
-                        itemView.textAssignedInputName.text = keyName
+                        viewBinding.textAssignedInputName.text = keyName
                     } else {
-                        itemView.textAssignedInputName.setText(R.string.not_set)
+                        viewBinding.textAssignedInputName.setText(R.string.not_set)
                     }
                 }
             }
 
             fun setOnClearInputClickListener(listener: View.OnClickListener) {
-                itemView.imageInputClear.setOnClickListener(listener)
+                viewBinding.imageInputClear.setOnClickListener(listener)
             }
 
             fun getInputConfig(): InputConfig {
@@ -145,10 +146,10 @@ class InputSetupActivity : AppCompatActivity() {
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): InputViewHolder {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_input, parent, false)
-            val viewHolder = InputViewHolder(view)
+            val viewBinding = ItemInputBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            val viewHolder = InputViewHolder(viewBinding)
 
-            view.setOnClickListener { inputConfigClickedListener.onInputConfigClicked(viewHolder.getInputConfig()) }
+            viewBinding.root.setOnClickListener { inputConfigClickedListener.onInputConfigClicked(viewHolder.getInputConfig()) }
             viewHolder.setOnClearInputClickListener(View.OnClickListener {
                 inputConfigClickedListener.onInputConfigCleared(viewHolder.getInputConfig())
             })

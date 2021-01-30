@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
+import me.magnum.melonds.databinding.ActivityRomListBinding
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.SortingMode
@@ -59,7 +60,8 @@ class RomListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_rom_list)
+        val binding = ActivityRomListBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         viewModel.getRomScanningDirectories().observe(this, Observer {
             if (it.isEmpty())
                 addNoSearchDirectoriesFragment()

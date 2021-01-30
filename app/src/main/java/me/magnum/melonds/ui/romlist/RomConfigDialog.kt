@@ -3,10 +3,11 @@ package me.magnum.melonds.ui.romlist
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import androidx.appcompat.app.AlertDialog
-import kotlinx.android.synthetic.main.dialog_rom_config.*
 import me.magnum.melonds.R
+import me.magnum.melonds.databinding.DialogRomConfigBinding
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RuntimeConsoleType
 import me.magnum.melonds.domain.model.RuntimeMicSource
@@ -24,14 +25,16 @@ class RomConfigDialog(context: Context, private val title: String, private val r
         fun requestMicrophonePermission(onPermissionResult: (Boolean) -> Unit)
     }
 
+    private lateinit var binding: DialogRomConfigBinding
     private var saveListener: OnRomConfigSavedListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.dialog_rom_config)
+        binding = DialogRomConfigBinding.inflate(LayoutInflater.from(context))
+        setContentView(binding.root)
         setCancelable(true)
 
-        layoutPrefSystem.setOnClickListener {
+        binding.layoutPrefSystem.setOnClickListener {
             AlertDialog.Builder(context)
                     .setTitle(R.string.label_rom_config_console)
                     .setSingleChoiceItems(R.array.game_runtime_console_type_options, romConfig.runtimeConsoleType.ordinal) { dialog, which ->
@@ -44,7 +47,7 @@ class RomConfigDialog(context: Context, private val title: String, private val r
                     }
                     .show()
         }
-        layoutPrefRuntimeMicSource.setOnClickListener {
+        binding.layoutPrefRuntimeMicSource.setOnClickListener {
             AlertDialog.Builder(context)
                     .setTitle(R.string.microphone_source)
                     .setSingleChoiceItems(R.array.game_runtime_mic_source_options, romConfig.runtimeMicSource.ordinal) { dialog, which ->
@@ -67,15 +70,15 @@ class RomConfigDialog(context: Context, private val title: String, private val r
                     }
                     .show()
         }
-        layoutPrefLoadGbaRom.setOnClickListener { switchLoadGbaRom.toggle() }
-        layoutPrefGbaRomPath.setOnClickListener {
+        binding.layoutPrefLoadGbaRom.setOnClickListener { binding.switchLoadGbaRom.toggle() }
+        binding.layoutPrefGbaRomPath.setOnClickListener {
             romConfigDelegate.pickFile(romConfig.gbaCartPath, this::onGbaRomPathSelected)
         }
-        layoutPrefGbaSavePath.setOnClickListener {
+        binding.layoutPrefGbaSavePath.setOnClickListener {
             romConfigDelegate.pickFile(romConfig.gbaSavePath, this::onGbaSavePathSelected)
         }
-        switchLoadGbaRom.setOnCheckedChangeListener { _, isChecked -> setLoadGbaRom(isChecked) }
-        textRomConfigTitle.text = title
+        binding.switchLoadGbaRom.setOnCheckedChangeListener { _, isChecked -> setLoadGbaRom(isChecked) }
+        binding.textRomConfigTitle.text = title
 
         onRuntimeConsoleTypeSelected(romConfig.runtimeConsoleType)
         if (romConfig.runtimeMicSource == RuntimeMicSource.DEVICE && !isMicrophonePermissionGranted(context)) {
@@ -84,12 +87,12 @@ class RomConfigDialog(context: Context, private val title: String, private val r
         } else {
             onRuntimeMicSourceSelected(romConfig.runtimeMicSource)
         }
-        switchLoadGbaRom.isChecked = romConfig.loadGbaCart()
-        textPrefGbaRomPath.text = getUriPathOrDefault(romConfig.gbaCartPath)
-        textPrefGbaSavePath.text = getUriPathOrDefault(romConfig.gbaSavePath)
+        binding.switchLoadGbaRom.isChecked = romConfig.loadGbaCart()
+        binding.textPrefGbaRomPath.text = getUriPathOrDefault(romConfig.gbaCartPath)
+        binding.textPrefGbaSavePath.text = getUriPathOrDefault(romConfig.gbaSavePath)
 
-        layoutPrefGbaRomPath.setViewEnabledRecursive(romConfig.loadGbaCart())
-        layoutPrefGbaSavePath.setViewEnabledRecursive(romConfig.loadGbaCart())
+        binding.layoutPrefGbaRomPath.setViewEnabledRecursive(romConfig.loadGbaCart())
+        binding.layoutPrefGbaSavePath.setViewEnabledRecursive(romConfig.loadGbaCart())
 
         findViewById<View>(R.id.button_rom_config_ok)?.setOnClickListener {
             saveListener?.onRomConfigSaved(romConfig)
@@ -105,30 +108,30 @@ class RomConfigDialog(context: Context, private val title: String, private val r
 
     private fun setLoadGbaRom(loadGbaRom: Boolean) {
         romConfig.setLoadGbaCart(loadGbaRom)
-        layoutPrefGbaRomPath.setViewEnabledRecursive(loadGbaRom)
-        layoutPrefGbaSavePath.setViewEnabledRecursive(loadGbaRom)
+        binding.layoutPrefGbaRomPath.setViewEnabledRecursive(loadGbaRom)
+        binding.layoutPrefGbaSavePath.setViewEnabledRecursive(loadGbaRom)
     }
 
     private fun onRuntimeConsoleTypeSelected(consoleType: RuntimeConsoleType) {
         val options = context.resources.getStringArray(R.array.game_runtime_console_type_options)
         romConfig.runtimeConsoleType = consoleType
-        textPrefRuntimeConsoleType.text = options[consoleType.ordinal]
+        binding.textPrefRuntimeConsoleType.text = options[consoleType.ordinal]
     }
 
     private fun onRuntimeMicSourceSelected(micSource: RuntimeMicSource) {
         val options = context.resources.getStringArray(R.array.game_runtime_mic_source_options)
         romConfig.runtimeMicSource = micSource
-        textPrefRuntimeMicSource.text = options[micSource.ordinal]
+        binding.textPrefRuntimeMicSource.text = options[micSource.ordinal]
     }
 
     private fun onGbaRomPathSelected(romFileUri: Uri) {
         romConfig.gbaCartPath = romFileUri
-        textPrefGbaRomPath.text = getUriPathOrDefault(romFileUri)
+        binding.textPrefGbaRomPath.text = getUriPathOrDefault(romFileUri)
     }
 
     private fun onGbaSavePathSelected(saveFileUri: Uri) {
         romConfig.gbaSavePath = saveFileUri
-        textPrefGbaSavePath.text = getUriPathOrDefault(saveFileUri)
+        binding.textPrefGbaSavePath.text = getUriPathOrDefault(saveFileUri)
     }
 
     private fun getUriPathOrDefault(uri: Uri?): String {

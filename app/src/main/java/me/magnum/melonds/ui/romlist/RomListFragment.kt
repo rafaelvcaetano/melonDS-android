@@ -8,6 +8,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -16,10 +18,10 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.item_rom_base.view.*
-import kotlinx.android.synthetic.main.item_rom_configurable.view.*
-import kotlinx.android.synthetic.main.rom_list_fragment.*
 import me.magnum.melonds.R
+import me.magnum.melonds.databinding.ItemRomConfigurableBinding
+import me.magnum.melonds.databinding.ItemRomSimpleBinding
+import me.magnum.melonds.databinding.RomListFragmentBinding
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomIconFiltering
@@ -44,19 +46,21 @@ class RomListFragment : Fragment() {
         }
     }
 
+    private lateinit var binding: RomListFragmentBinding
     private val romListViewModel: RomListViewModel by activityViewModels()
     private lateinit var romListAdapter: RomListAdapter
 
     private var romSelectedListener: ((Rom) -> Unit)? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.rom_list_fragment, container, false)
+        binding = RomListFragmentBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        swipeRefreshRoms.setOnRefreshListener { romListViewModel.refreshRoms() }
+        binding.swipeRefreshRoms.setOnRefreshListener { romListViewModel.refreshRoms() }
 
         val allowRomConfiguration = arguments?.getBoolean(KEY_ALLOW_ROM_CONFIGURATION) ?: true
         romListAdapter = RomListAdapter(allowRomConfiguration, requireContext(), object : RomClickListener {
@@ -104,7 +108,7 @@ class RomListFragment : Fragment() {
             }
         })
 
-        listRoms.apply {
+        binding.listRoms.apply {
             val listLayoutManager = LinearLayoutManager(context)
             layoutManager = listLayoutManager
             addItemDecoration(DividerItemDecoration(context, listLayoutManager.orientation))
@@ -112,7 +116,7 @@ class RomListFragment : Fragment() {
         }
 
         romListViewModel.getRomScanningStatus().observe(viewLifecycleOwner, Observer { status ->
-            swipeRefreshRoms.isRefreshing = status == RomScanningStatus.SCANNING
+            binding.swipeRefreshRoms.isRefreshing = status == RomScanningStatus.SCANNING
             displayEmptyListViewIfRequired()
         })
         romListViewModel.getRoms().observe(viewLifecycleOwner, Observer { roms ->
@@ -122,9 +126,9 @@ class RomListFragment : Fragment() {
     }
 
     private fun displayEmptyListViewIfRequired() {
-        val isScanning = swipeRefreshRoms.isRefreshing
+        val isScanning = binding.swipeRefreshRoms.isRefreshing
         val emptyViewVisible = !isScanning && romListAdapter.itemCount == 0
-        textRomListEmpty.visibility = if (emptyViewVisible) View.VISIBLE else View.GONE
+        binding.textRomListEmpty.visibility = if (emptyViewVisible) View.VISIBLE else View.GONE
     }
 
     fun setRomSelectedListener(listener: (Rom) -> Unit) {
@@ -142,11 +146,11 @@ class RomListFragment : Fragment() {
 
         override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RomViewHolder {
             return if (allowRomConfiguration) {
-                val view = LayoutInflater.from(context).inflate(R.layout.item_rom_configurable, viewGroup, false)
-                ConfigurableRomViewHolder(view, listener::onRomClicked, listener::onRomConfigClicked)
+                val binding = ItemRomConfigurableBinding.inflate(LayoutInflater.from(context), viewGroup, false)
+                ConfigurableRomViewHolder(binding.root, listener::onRomClicked, listener::onRomConfigClicked)
             } else {
-                val view = LayoutInflater.from(context).inflate(R.layout.item_rom_simple, viewGroup, false)
-                RomViewHolder(view, listener::onRomClicked)
+                val binding = ItemRomSimpleBinding.inflate(LayoutInflater.from(context), viewGroup, false)
+                RomViewHolder(binding.root, listener::onRomClicked)
             }
         }
 
@@ -160,6 +164,10 @@ class RomListFragment : Fragment() {
         }
 
         open inner class RomViewHolder(itemView: View, onRomClick: (Rom) -> Unit) : RecyclerView.ViewHolder(itemView) {
+            private val imageViewRomIcon = itemView.findViewById<ImageView>(R.id.imageRomIcon)
+            private val textViewRomName = itemView.findViewById<TextView>(R.id.textRomName)
+            private val textViewRomPath = itemView.findViewById<TextView>(R.id.textRomPath)
+
             private lateinit var rom: Rom
 
             init {
@@ -175,21 +183,23 @@ class RomListFragment : Fragment() {
                     val romIcon = romListViewModel.getRomIcon(rom)
                     val iconDrawable = BitmapDrawable(itemView.resources, romIcon.bitmap)
                     iconDrawable.paint.isFilterBitmap = romIcon.filtering == RomIconFiltering.LINEAR
-                    itemView.imageRomIcon.setImageDrawable(iconDrawable)
+                    imageViewRomIcon.setImageDrawable(iconDrawable)
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    itemView.imageRomIcon.setImageBitmap(null)
+                    imageViewRomIcon.setImageBitmap(null)
                 }
-                itemView.textRomName.text = rom.name
-                itemView.textRomPath.text = FileUtils.getAbsolutePathFromSAFUri(view!!.context, rom.uri)
+                textViewRomName.text = rom.name
+                textViewRomPath.text = FileUtils.getAbsolutePathFromSAFUri(view!!.context, rom.uri)
             }
 
             protected fun getRom() = rom
         }
 
         inner class ConfigurableRomViewHolder(itemView: View, onRomClick: (Rom) -> Unit, onRomConfigClick: (Rom) -> Unit) : RomViewHolder(itemView, onRomClick) {
+            private val imageViewButtonRomConfig = itemView.findViewById<ImageView>(R.id.buttonRomConfig)
+
             init {
-                itemView.buttonRomConfig.setOnClickListener {
+                imageViewButtonRomConfig.setOnClickListener {
                     onRomConfigClick(getRom())
                 }
             }

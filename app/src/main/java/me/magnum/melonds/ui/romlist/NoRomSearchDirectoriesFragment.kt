@@ -7,8 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_no_directories.*
-import me.magnum.melonds.R
+import me.magnum.melonds.databinding.FragmentNoDirectoriesBinding
 import me.magnum.melonds.utils.DirectoryPickerContract
 
 @AndroidEntryPoint
@@ -19,10 +18,12 @@ class NoRomSearchDirectoriesFragment : Fragment() {
         }
     }
 
+    private lateinit var binding: FragmentNoDirectoriesBinding
     private val romListViewModel: RomListViewModel by activityViewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_no_directories, container, false)
+        binding = FragmentNoDirectoriesBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -32,7 +33,7 @@ class NoRomSearchDirectoriesFragment : Fragment() {
                 romListViewModel.addRomSearchDirectory(it)
         }
 
-        buttonSetRomDirectory.setOnClickListener {
+        binding.buttonSetRomDirectory.setOnClickListener {
             romPickerLauncher.launch(null)
         }
     }
