@@ -34,6 +34,26 @@
     </item>
 
     <item
+        android:id="@+id/action_boot_firmware"
+        android:title="@string/action_boot_firmware"
+        android:icon="@drawable/ic_firmware"
+        android:orderInCategory="3"
+        app:showAsAction="ifRoom">
+
+        <menu>
+            <item
+                android:id="@+id/action_boot_firmware_ds"
+                android:title="@string/console_ds"
+                android:orderInCategory="1" />
+
+            <item
+                android:id="@+id/action_boot_firmware_dsi"
+                android:title="@string/console_dsi"
+                android:orderInCategory="1" />
+        </menu>
+    </item>
+
+    <item
         android:id="@+id/action_rom_list_refresh"
         android:title="@string/action_refresh_rom_list"
         android:icon="@drawable/ic_refresh"

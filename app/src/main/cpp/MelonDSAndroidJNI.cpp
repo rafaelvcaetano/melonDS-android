@@ -43,6 +43,11 @@ Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jclass type, j
     return MelonDSAndroid::loadRom(const_cast<char*>(rom), const_cast<char*>(sram), loadDirect, loadGbaRom, const_cast<char*>(gbaRom), const_cast<char*>(gbaSram));
 }
 
+JNIEXPORT jint JNICALL
+Java_me_magnum_melonds_MelonEmulator_bootFirmwareInternal(JNIEnv *env, jclass clazz) {
+    return MelonDSAndroid::bootFirmware();
+}
+
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_startEmulation( JNIEnv* env, jclass type)
 {

@@ -54,6 +54,12 @@ class EmulatorViewModel @ViewModelInject constructor(private val context: Contex
         )
     }
 
+    fun getEmulatorConfigurationForFirmware(consoleType: ConsoleType): EmulatorConfiguration {
+        return settingsRepository.getEmulatorConfiguration().copy(
+                consoleType = consoleType
+        )
+    }
+
     private fun <T, U> getRomOptionOrDefault(romOption: T, default: U): U where T : RuntimeEnum<T, U> {
         return if (romOption.getDefault() == romOption)
             default

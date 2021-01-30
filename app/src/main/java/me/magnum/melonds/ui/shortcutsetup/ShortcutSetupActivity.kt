@@ -15,7 +15,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomIconFiltering
-import me.magnum.melonds.ui.emulator.EmulatorActivity
+import me.magnum.melonds.ui.emulator.RomEmulatorActivity
 import me.magnum.melonds.ui.romlist.RomIcon
 import me.magnum.melonds.ui.romlist.RomListFragment
 import me.magnum.melonds.ui.romlist.RomListViewModel
@@ -52,7 +52,7 @@ class ShortcutSetupActivity : AppCompatActivity() {
 
     private fun onRomSelected(rom: Rom) {
         val intent = Intent("${packageName}.LAUNCH_ROM").apply {
-            putExtra(EmulatorActivity.KEY_PATH, FileUtils.getAbsolutePathFromSAFUri(this@ShortcutSetupActivity, rom.uri))
+            putExtra(RomEmulatorActivity.KEY_PATH, FileUtils.getAbsolutePathFromSAFUri(this@ShortcutSetupActivity, rom.uri))
         }
         val romIcon = viewModel.getRomIcon(rom)
         val shortcutInfo = ShortcutInfo.Builder(this, rom.uri.toString())

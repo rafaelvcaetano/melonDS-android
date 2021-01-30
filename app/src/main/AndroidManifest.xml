@@ -24,7 +24,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.emulator.EmulatorActivity"
+            android:name=".ui.emulator.RomEmulatorActivity"
             android:theme="@style/EmulatorTheme"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="portrait"
@@ -34,6 +34,14 @@
                 <action android:name="${applicationId}.LAUNCH_ROM" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+        </activity>
+        <activity
+                android:name=".ui.emulator.FirmwareEmulatorActivity"
+                android:theme="@style/EmulatorTheme"
+                android:configChanges="keyboardHidden|orientation|screenSize"
+                android:screenOrientation="portrait"
+                android:launchMode="singleTask"
+                android:exported="false">
         </activity>
         <activity
             android:name=".ui.settings.SettingsActivity"

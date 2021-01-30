@@ -138,13 +138,17 @@ class RomListViewModel @ViewModelInject constructor(
         return ConfigurationUtils.checkConfigurationDirectory(context, settingsRepository.getDsBiosDirectory(), ConsoleType.DS).status
     }
 
-    fun getRomConfigurationDirStatus(rom: Rom): ConfigurationUtils.ConfigurationDirStatus {
-        val romTargetConsoleType = getRomTargetConsoleType(rom)
-        val romTargetConfigurationDir = when(romTargetConsoleType) {
+    fun getConsoleConfigurationDirStatus(consoleType: ConsoleType): ConfigurationUtils.ConfigurationDirStatus {
+        val romTargetConfigurationDir = when(consoleType) {
             ConsoleType.DS -> settingsRepository.getDsBiosDirectory()
             ConsoleType.DSi -> settingsRepository.getDsiBiosDirectory()
         }
-        return ConfigurationUtils.checkConfigurationDirectory(context, romTargetConfigurationDir, romTargetConsoleType).status
+        return ConfigurationUtils.checkConfigurationDirectory(context, romTargetConfigurationDir, consoleType).status
+    }
+
+    fun getRomConfigurationDirStatus(rom: Rom): ConfigurationUtils.ConfigurationDirStatus {
+        val romTargetConsoleType = getRomTargetConsoleType(rom)
+        return getConsoleConfigurationDirStatus(romTargetConsoleType)
     }
 
     fun addRomSearchDirectory(directoryUri: Uri) {

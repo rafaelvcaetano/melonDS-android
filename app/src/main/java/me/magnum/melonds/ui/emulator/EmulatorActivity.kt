@@ -1,7 +1,7 @@
 package me.magnum.melonds.ui.emulator
 
+import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -14,55 +14,59 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.os.ConfigurationCompat
-import dagger.hilt.android.AndroidEntryPoint
-import io.reactivex.Single
-import io.reactivex.SingleObserver
+import io.reactivex.Completable
+import io.reactivex.CompletableObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import me.magnum.melonds.MelonEmulator
-import me.magnum.melonds.MelonEmulator.LoadResult
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.parcelables.RomParcelable
-import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
 import me.magnum.melonds.ui.emulator.input.*
-import me.magnum.melonds.utils.FileUtils
-import me.magnum.melonds.utils.isMicrophonePermissionGranted
-import java.io.File
+import me.magnum.melonds.ui.settings.SettingsActivity
 import java.nio.ByteBuffer
-import java.text.SimpleDateFormat
 import javax.inject.Inject
 
-@AndroidEntryPoint
-class EmulatorActivity : AppCompatActivity(), RendererListener {
+abstract class EmulatorActivity : AppCompatActivity(), RendererListener {
     companion object {
-        const val KEY_ROM = "rom"
-        const val KEY_PATH = "PATH"
-
         init {
             System.loadLibrary("melonDS-android-frontend")
         }
+
+        fun getRomEmulatorActivityIntent(context: Context, rom: Rom): Intent {
+            return Intent(context, RomEmulatorActivity::class.java).apply {
+                putExtra(RomEmulatorActivity.KEY_ROM, RomParcelable(rom))
+            }
+        }
+
+        fun getRomEmulatorActivityIntent(context: Context, path: String?): Intent {
+            return Intent(context, RomEmulatorActivity::class.java).apply {
+                putExtra(RomEmulatorActivity.KEY_PATH, path)
+            }
+        }
+
+        fun getFirmwareEmulatorActivityIntent(context: Context, consoleType: ConsoleType): Intent {
+            return Intent(context, FirmwareEmulatorActivity::class.java).apply {
+                putExtra(FirmwareEmulatorActivity.KEY_BOOT_FIRMWARE_CONSOLE, consoleType.ordinal)
+            }
+        }
     }
 
-    private class RomLoadFailedException : Exception("Failed to load ROM")
+    protected class RomLoadFailedException : Exception("Failed to load ROM")
+    protected class FirmwareLoadFailedException(result: MelonEmulator.FirmwareLoadResult) : Exception("Failed to load firmware: $result")
 
-    private enum class PauseMenuOptions(val textResource: Int) {
-        SETTINGS(R.string.settings),
-        SAVE_STATE(R.string.save_state),
-        LOAD_STATE(R.string.load_state),
-        EXIT(R.string.exit);
+    interface PauseMenuOption {
+        val textResource: Int
     }
 
     private lateinit var binding: ActivityEmulatorBinding
-    private val viewModel: EmulatorViewModel by viewModels()
+    protected val viewModel: EmulatorViewModel by viewModels()
     @Inject lateinit var settingsRepository: SettingsRepository
 
-    private lateinit var loadedRom: Rom
     private lateinit var dsRenderer: DSRenderer
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
@@ -79,7 +83,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
     }
     private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        val newEmulatorConfiguration = getEmulatorConfigurationForRom(loadedRom)
+        val newEmulatorConfiguration = getEmulatorConfiguration()
         MelonEmulator.updateEmulatorConfiguration(newEmulatorConfiguration)
         dsRenderer.updateRendererConfiguration(newEmulatorConfiguration.rendererConfiguration)
         setupSoftInput()
@@ -169,76 +173,41 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     private fun launchEmulator() {
-        val bundle = intent.extras ?: throw NullPointerException("No ROM was specified")
-
-        val romParcelable = bundle.getParcelable(KEY_ROM) as RomParcelable?
-
-        val romLoader = if (romParcelable?.rom != null)
-            Single.just(romParcelable.rom)
-        else {
-            val romPath = bundle.getString(KEY_PATH) ?: throw NullPointerException("No ROM was specified")
-            viewModel.getRomAtPath(romPath)
-        }
-
         // Force view model resolution
-        viewModel.let {  }
+        viewModel.let { }
+        val setupObservable = getEmulatorSetupObservable()
+
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        romLoader.flatMap {
-            loadedRom = it
-            Single.create<LoadResult> { emitter ->
-                MelonEmulator.setupEmulator(getEmulatorConfigurationForRom(it), assets)
-
-                val romPath = FileUtils.getAbsolutePathFromSAFUri(this, it.uri) ?: throw RomLoadFailedException()
-                val showBios = settingsRepository.showBootScreen()
-                val sramPath = getSRAMPath(it.uri)
-
-                val gbaCartPath = FileUtils.getAbsolutePathFromSAFUri(this, it.config.gbaCartPath)
-                val gbaSavePath = FileUtils.getAbsolutePathFromSAFUri(this, it.config.gbaSavePath)
-                val loadResult = MelonEmulator.loadRom(romPath, sramPath, !showBios, it.config.loadGbaCart(), gbaCartPath, gbaSavePath)
-                if (loadResult === LoadResult.NDS_FAILED)
-                    throw RomLoadFailedException()
-
-                MelonEmulator.startEmulation()
-                emitter.onSuccess(loadResult)
-            }
-        }.subscribeOn(Schedulers.io())
+        setupObservable.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(object : SingleObserver<LoadResult> {
+                .subscribe(object : CompletableObserver {
                     override fun onSubscribe(disposable: Disposable) {
                         binding.textFps.visibility = View.GONE
                         binding.textLoading.visibility = View.VISIBLE
                     }
 
-                    override fun onSuccess(loadResult: LoadResult) {
-                        if (loadResult === LoadResult.SUCCESS_GBA_FAILED)
-                            Toast.makeText(this@EmulatorActivity, R.string.error_load_gba_rom, Toast.LENGTH_SHORT).show()
-
+                    override fun onComplete() {
+                        MelonEmulator.startEmulation()
                         binding.textFps.visibility = View.VISIBLE
                         binding.textLoading.visibility = View.GONE
                         emulatorReady = true
                     }
 
                     override fun onError(e: Throwable) {
+                        e.printStackTrace()
                         Toast.makeText(this@EmulatorActivity, R.string.error_load_rom, Toast.LENGTH_SHORT).show()
                         finish()
                     }
                 })
     }
 
+    abstract fun getEmulatorSetupObservable(): Completable
+
+    abstract fun getEmulatorConfiguration(): EmulatorConfiguration
+
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         setupFullscreen()
-    }
-
-    private fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {
-        val emulatorConfiguration = viewModel.getEmulatorConfigurationForRom(rom)
-
-        // Use BLOW mic source if mic permission is not granted
-        return if (emulatorConfiguration.micSource == MicSource.DEVICE && !isMicrophonePermissionGranted(this)) {
-            emulatorConfiguration.copy(micSource = MicSource.BLOW)
-        } else {
-            emulatorConfiguration
-        }
     }
 
     private fun buildRendererConfiguration(): RendererConfiguration {
@@ -278,9 +247,9 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         this.pauseEmulation()
     }
 
-    private fun pauseEmulation() {
+    protected fun pauseEmulation() {
         emulatorPaused = true
-        val values = PauseMenuOptions.values()
+        val values = getPauseMenuOptions()
         val options = Array(values.size) { i -> getString(values[i].textResource) }
 
         MelonEmulator.pauseEmulation()
@@ -288,63 +257,20 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
         AlertDialog.Builder(this)
                 .setTitle(R.string.pause)
-                .setItems(options) { _, which ->
-                    when (values[which]) {
-                        PauseMenuOptions.SETTINGS -> {
-                            // Allow emulator to resume once the user returns from Settings
-                            emulatorPaused = false
-                            val settingsIntent = Intent(this@EmulatorActivity, SettingsActivity::class.java)
-                            settingsLauncher.launch(Intent(settingsIntent))
-                        }
-                        PauseMenuOptions.SAVE_STATE -> pickSaveStateSlot {
-                            if (!MelonEmulator.saveState(it.path))
-                                Toast.makeText(this@EmulatorActivity, getString(R.string.failed_save_state), Toast.LENGTH_SHORT).show()
-
-                            resumeEmulation()
-                        }
-                        PauseMenuOptions.LOAD_STATE -> pickSaveStateSlot {
-                            if (!it.exists) {
-                                Toast.makeText(this@EmulatorActivity, getString(R.string.cant_load_empty_slot), Toast.LENGTH_SHORT).show()
-                            } else {
-                                if (!MelonEmulator.loadState(it.path))
-                                    Toast.makeText(this@EmulatorActivity, getString(R.string.failed_load_state), Toast.LENGTH_SHORT).show()
-                            }
-
-                            resumeEmulation()
-                        }
-                        PauseMenuOptions.EXIT -> finish()
-                    }
-                }
+                .setItems(options) { _, which -> onPauseMenuOptionSelected(values[which]) }
                 .setOnCancelListener { resumeEmulation()}
                 .show()
     }
 
-    private fun resumeEmulation() {
+    protected fun resumeEmulation() {
         emulatorPaused = false
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         MelonEmulator.resumeEmulation()
     }
 
-    private fun getSRAMPath(romUri: Uri): String {
-        val romPath = FileUtils.getAbsolutePathFromSAFUri(this, romUri)
-        val romFile = File(romPath)
+    abstract fun getPauseMenuOptions(): List<PauseMenuOption>
 
-        val sramDir = if (settingsRepository.saveNextToRomFile()) {
-            romFile.parent
-        } else {
-            val sramDirUri = settingsRepository.getSaveFileDirectory()
-            if (sramDirUri != null)
-                FileUtils.getAbsolutePathFromSAFUri(this, sramDirUri) ?: romFile.parent
-            else {
-                // If no directory is set, revert to using the ROM's directory
-                romFile.parent
-            }
-        }
-
-        val nameWithoutExtension = romFile.nameWithoutExtension
-        val sramFileName = "$nameWithoutExtension.sav"
-        return File(sramDir, sramFileName).absolutePath
-    }
+    abstract fun onPauseMenuOptionSelected(option: PauseMenuOption)
 
     override fun onRendererSizeChanged(width: Int, height: Int) {
         runOnUiThread {
@@ -375,21 +301,11 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         runOnUiThread { binding.textFps.text = getString(R.string.info_fps, fps) }
     }
 
-    private fun pickSaveStateSlot(onSlotPicked: (SaveStateSlot) -> Unit) {
-        val dateFormatter = SimpleDateFormat("EEE, dd MMMM yyyy kk:mm:ss", ConfigurationCompat.getLocales(resources.configuration)[0])
-        val slots = viewModel.getRomSaveStateSlots(loadedRom)
-        val options = slots.map { "${it.slot}. ${if (it.exists) dateFormatter.format(it.lastUsedDate!!) else getString(R.string.empty_slot)}" }.toTypedArray()
-
-        AlertDialog.Builder(this)
-                .setTitle(getString(R.string.save_slot))
-                .setItems(options) { _, which ->
-                    onSlotPicked(slots[which])
-                }
-                .setNegativeButton(R.string.cancel) { dialog, _ ->
-                    dialog.cancel()
-                }
-                .setOnCancelListener { resumeEmulation() }
-                .show()
+    protected fun openSettings() {
+        // Allow emulator to resume once the user returns from Settings
+        emulatorPaused = false
+        val settingsIntent = Intent(this, SettingsActivity::class.java)
+        settingsLauncher.launch(Intent(settingsIntent))
     }
 
     override fun onPause() {
