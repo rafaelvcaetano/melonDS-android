@@ -22,6 +22,19 @@ class RomIconProvider(private val context: Context) {
         return loadIconFromMemory(romHash, rom)
     }
 
+    /**
+     * Clears all cached icons, either in memory or in disk.
+     */
+    fun clearCachedIcons() {
+        memoryIconCache.clear()
+        val iconCacheDir = context.externalCacheDir
+        if (iconCacheDir != null) {
+            iconCacheDir.listFiles()?.forEach {
+                it.delete()
+            }
+        }
+    }
+
     private fun loadIconFromMemory(hash: String, rom: Rom): Bitmap? {
         var bitmap = memoryIconCache[hash]
         if (bitmap != null)

@@ -2,13 +2,11 @@ package me.magnum.melonds.utils;
 
 import android.content.ContentResolver;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class RomProcessor {
@@ -29,46 +27,6 @@ public class RomProcessor {
 					.replaceFirst("\n.*?$", "")
 					.replace("\n", " ");
 		}
-	}
-
-	public static Bitmap getRomIcon(File romFile) throws Exception {
-		if (romFile == null)
-			throw new NullPointerException("ROM file cannot be null");
-
-		if (!romFile.isFile())
-			throw new IllegalArgumentException("Argument must represent a file");
-
-		FileInputStream fis = new FileInputStream(romFile);
-		// Banner offset is at header offset 0x68
-		fis.skip(0x68);
-		// Obtain the banner offset
-		byte[] offsetData = new byte[4];
-		fis.read(offsetData);
-
-		int bannerOffset = byteArrayToInt(offsetData);
-		fis.skip(bannerOffset + 32 - (0x68 + 4));
-		byte[] tileData = new byte[512];
-		fis.read(tileData);
-
-		byte[] paletteData = new byte[16 * 2];
-		fis.read(paletteData);
-		fis.close();
-		short[] palette = new short[16];
-		for (int i = 0; i < 16; i++) {
-			// Each palette color is 16 bits. Join pairs of bytes to create the correct color
-			short lower = (short) (paletteData[i * 2] & 0xFF);
-			short upper = (short) (paletteData[(i * 2) + 1] & 0xFF);
-
-			short value = (short) ((lower | (upper << 8)) & 0xFFFF);
-			palette[i] = value;
-		}
-
-		short[] icon = processTiles(tileData, palette);
-		byte[] bitmapData = iconToBitmapArray(icon);
-
-		Bitmap bitmap = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888);
-		bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(bitmapData));
-		return bitmap;
 	}
 
 	public static Bitmap getRomIcon(ContentResolver contentResolver, Uri romFile) throws Exception {
@@ -100,7 +58,8 @@ public class RomProcessor {
 				palette[i] = value;
 			}
 
-			short[] icon = processTiles(tileData, palette);
+			int[] argbPalette = paletteToArgb(palette);
+			int[] icon = processTiles(tileData, argbPalette);
 			byte[] bitmapData = iconToBitmapArray(icon);
 
 			Bitmap bitmap = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888);
@@ -115,8 +74,24 @@ public class RomProcessor {
 		return (intData[0] & 0xFF) | ((intData[1] & 0xFF) << 8) | ((intData[2] & 0xFF) << 16) | ((intData[3] & 0xFF) << 24);
 	}
 
-	private static short[] processTiles(byte[] tileData, short[] palette) {
-		short[] image = new short[32 * 32];
+	private static int[] paletteToArgb(short[] palette) {
+		int[] argbPalette = new int[16];
+		for (int i = 0; i < 16; i++) {
+			short color = palette[i];
+
+			int red =   (int) (getColor(color, 0) & 0xFF);
+			int green = (int) (getColor(color, 5) & 0xFF);
+			int blue =  (int) (getColor(color, 10) & 0xFF);
+
+			int argbColor = Color.argb(i == 0 ? 0 : 255, red, green, blue);
+			argbPalette[i] = argbColor;
+		}
+
+		return argbPalette;
+	}
+
+	private static int[] processTiles(byte[] tileData, int[] palette) {
+		int[] image = new int[32 * 32];
 
 		for (int ty = 0; ty < 4; ty++) {
 			for (int tx = 0; tx < 4; tx++) {
@@ -145,20 +120,16 @@ public class RomProcessor {
 		return image;
 	}
 
-	private static byte[] iconToBitmapArray(short[] icon) {
+	private static byte[] iconToBitmapArray(int[] icon) {
 		byte[] bitmapArray = new byte[32 * 32 * 4];
 
 		for (int i = 0; i < icon.length; i++) {
-			short color = icon[i];
+			int argbColor = icon[i];
 
-			byte red =   getColor(color, 0);
-			byte green = getColor(color, 5);
-			byte blue =  getColor(color, 10);
-
-			bitmapArray[i * 4] = red;
-			bitmapArray[i * 4 + 1] = green;
-			bitmapArray[i * 4 + 2] = blue;
-			bitmapArray[i * 4 + 3] = color == 0 ? 0 : (byte) 255;
+			bitmapArray[i * 4] = (byte) ((argbColor >> 16) & 0xFF);
+			bitmapArray[i * 4 + 1] = (byte) ((argbColor >> 8) & 0xFF);
+			bitmapArray[i * 4 + 2] = (byte) (argbColor & 0xFF);
+			bitmapArray[i * 4 + 3] = (byte) ((argbColor >> 24) & 0xFF);
 		}
 		return bitmapArray;
 	}
