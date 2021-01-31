@@ -92,7 +92,6 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
         setupDirectoryPickerPreference(dsiBiosDirPreference)
         setupDirectoryPickerPreference(findPreference("rom_search_dirs")!!)
         setupDirectoryPickerPreference(findPreference("sram_dir")!!)
-        setupDirectoryPickerPreference(findPreference("cheats_file")!!)
 
         if (Build.SUPPORTED_64_BIT_ABIS.isEmpty()) {
             jitPreference.isEnabled = false
