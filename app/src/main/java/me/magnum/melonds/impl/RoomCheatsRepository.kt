@@ -105,6 +105,10 @@ class RoomCheatsRepository(private val context: Context, private val database: M
         database.cheatDao().insertCheats(cheatEntities)
     }
 
+    override fun deleteAllCheats() {
+        database.gameDao().deleteAll()
+    }
+
     override fun importCheats(uri: Uri) {
         val workRequest = OneTimeWorkRequestBuilder<CheatImportWorker>()
                 .setInputData(workDataOf(CheatImportWorker.KEY_URI to uri.toString()))

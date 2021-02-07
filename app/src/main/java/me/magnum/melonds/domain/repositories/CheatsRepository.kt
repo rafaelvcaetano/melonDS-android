@@ -13,5 +13,6 @@ interface CheatsRepository {
     fun getRomEnabledCheats(romInfo: RomInfo): Single<List<Cheat>>
     fun updateCheatsStatus(cheats: List<Cheat>): Completable
     fun addGameCheats(game: Game)
+    fun deleteAllCheats()
     fun importCheats(uri: Uri)
 }

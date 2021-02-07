@@ -50,6 +50,9 @@ class CheatImportWorker @WorkerInject constructor(
                         length
                 }
 
+                // Delete all cheats before importing
+                cheatsRepository.deleteAllCheats()
+
                 applicationContext.contentResolver.openInputStream(uri)?.use {
                     val progressTrackerStream = ProgressTrackerInputStream(it)
 

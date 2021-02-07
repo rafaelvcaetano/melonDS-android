@@ -1,9 +1,6 @@
 package me.magnum.melonds.database.daos
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Transaction
+import androidx.room.*
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
@@ -18,4 +15,7 @@ interface GameDao {
 
     @Insert
     fun insertGame(game: GameEntity): Long
+
+    @Query("DELETE FROM game")
+    fun deleteAll()
 }
