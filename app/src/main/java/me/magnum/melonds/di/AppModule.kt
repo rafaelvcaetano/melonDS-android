@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import androidx.preference.PreferenceManager
+import androidx.room.Room
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -11,6 +12,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.utils.UriTypeHierarchyAdapter
 import javax.inject.Singleton
 
@@ -31,5 +33,11 @@ object AppModule {
         return GsonBuilder()
                 .registerTypeHierarchyAdapter(Uri::class.java, UriTypeHierarchyAdapter())
                 .create()
+    }
+
+    @Provides
+    @Singleton
+    fun provideDatabase(@ApplicationContext context: Context): MelonDatabase {
+        return Room.databaseBuilder(context, MelonDatabase::class.java, "melon-database").build()
     }
 }
