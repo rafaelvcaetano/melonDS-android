@@ -6,13 +6,27 @@ import android.util.AttributeSet
 import androidx.preference.Preference
 import me.magnum.melonds.R
 
-open class DirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : Preference(context, attrs) {
-    init {
-        initAttributes(attrs)
+open class StoragePickerPreference(context: Context?, attrs: AttributeSet?) : Preference(context, attrs) {
+    enum class SelectionType {
+        FILE,
+        DIRECTORY
     }
 
-    var multiSelection = false
-        private set
+    var multiSelection: Boolean
+        protected set
+
+    var selectionType: SelectionType
+        protected set
+
+    var mimeType: String?
+        protected set
+
+    init {
+        multiSelection = false
+        selectionType = SelectionType.FILE
+        mimeType = null
+        initAttributes(attrs)
+    }
 
     open fun onDirectoryPicked(uri: Uri?) {
         // TODO: properly add support for multi directory selection
@@ -35,6 +49,8 @@ open class DirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : 
             val attr = attrArray.getIndex(i)
             when (attr) {
                 R.styleable.DirectoryPickerPreference_selection -> multiSelection = attrArray.getInt(R.styleable.DirectoryPickerPreference_selection, 0) == 1
+                R.styleable.DirectoryPickerPreference_type -> selectionType = SelectionType.values()[attrArray.getInt(R.styleable.DirectoryPickerPreference_type, 0)]
+                R.styleable.DirectoryPickerPreference_mimeType -> mimeType = attrArray.getString(R.styleable.DirectoryPickerPreference_mimeType)
             }
         }
         attrArray.recycle()

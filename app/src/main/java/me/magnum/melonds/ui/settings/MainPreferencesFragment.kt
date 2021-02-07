@@ -11,7 +11,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.MicSource
-import me.magnum.melonds.ui.settings.preferences.DirectoryPickerPreference
+import me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
 import me.magnum.melonds.utils.*
 import java.util.*
 
@@ -32,7 +32,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
                         preference.getContext().getString(R.string.not_set)
                     preference.setSummary(summary)
                 }
-                is DirectoryPickerPreference -> {
+                is StoragePickerPreference -> {
                     if (value == null || value !is Set<*> || value.isEmpty())
                         preference.summary = preference.getContext().getString(R.string.not_set)
                     else {
@@ -59,7 +59,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
             // Trigger the listener immediately with the preference's
             // current value. Special handling for directory pickers since sets can't be converted
             // to string
-            if (preference is DirectoryPickerPreference) {
+            if (preference is StoragePickerPreference) {
                 sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
                         PreferenceManager.getDefaultSharedPreferences(preference.context)
                                 .getStringSet(preference.key, null))
@@ -83,15 +83,15 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.pref_main, rootKey)
         val consoleTypePreference = findPreference<ListPreference>("console_type")!!
-        val dsBiosDirPreference = findPreference<DirectoryPickerPreference>("bios_dir")!!
-        val dsiBiosDirPreference = findPreference<DirectoryPickerPreference>("dsi_bios_dir")!!
+        val dsBiosDirPreference = findPreference<StoragePickerPreference>("bios_dir")!!
+        val dsiBiosDirPreference = findPreference<StoragePickerPreference>("dsi_bios_dir")!!
         val jitPreference = findPreference<SwitchPreference>("enable_jit")!!
         micSourcePreference = findPreference("mic_source")!!
 
-        setupDirectoryPickerPreference(dsBiosDirPreference)
-        setupDirectoryPickerPreference(dsiBiosDirPreference)
-        setupDirectoryPickerPreference(findPreference("rom_search_dirs")!!)
-        setupDirectoryPickerPreference(findPreference("sram_dir")!!)
+        setupStoragePickerPreference(dsBiosDirPreference)
+        setupStoragePickerPreference(dsiBiosDirPreference)
+        setupStoragePickerPreference(findPreference("rom_search_dirs")!!)
+        setupStoragePickerPreference(findPreference("sram_dir")!!)
 
         if (Build.SUPPORTED_64_BIT_ABIS.isEmpty()) {
             jitPreference.isEnabled = false
@@ -137,11 +137,30 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
         }
     }
 
-    private fun setupDirectoryPickerPreference(directoryPreference: DirectoryPickerPreference) {
-        bindPreferenceSummaryToValue(directoryPreference)
-        val filePickerLauncher = registerForActivityResult(DirectoryPickerContract(), directoryPreference::onDirectoryPicked)
-        directoryPreference.setOnPreferenceClickListener { preference ->
-            filePickerLauncher.launch(preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) })
+    private fun setupStoragePickerPreference(storagePreference: StoragePickerPreference) {
+        if (storagePreference.selectionType == StoragePickerPreference.SelectionType.FILE) {
+            setupFilePickerPreference(storagePreference)
+        } else {
+            setupDirectoryPickerPreference(storagePreference)
+        }
+    }
+
+    private fun setupDirectoryPickerPreference(storagePreference: StoragePickerPreference) {
+        bindPreferenceSummaryToValue(storagePreference)
+        val filePickerLauncher = registerForActivityResult(DirectoryPickerContract(), storagePreference::onDirectoryPicked)
+        storagePreference.setOnPreferenceClickListener { preference ->
+            val initialUri = preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) }
+            filePickerLauncher.launch(initialUri)
+            true
+        }
+    }
+
+    private fun setupFilePickerPreference(storagePreference: StoragePickerPreference) {
+        bindPreferenceSummaryToValue(storagePreference)
+        val filePickerLauncher = registerForActivityResult(FilePickerContract(), storagePreference::onDirectoryPicked)
+        storagePreference.setOnPreferenceClickListener { preference ->
+            val initialUri = preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) }
+            filePickerLauncher.launch(Pair(initialUri, storagePreference.mimeType))
             true
         }
     }

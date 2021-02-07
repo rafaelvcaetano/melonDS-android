@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="DirectoryPickerPreference">
+        <attr name="type" format="enum">
+            <enum name="file" value="0" />
+            <enum name="directory" value="1" />
+        </attr>
+
         <attr name="selection" format="enum">
             <enum name="single" value="0"/>
             <enum name="multi" value="1"/>
         </attr>
+
+        <attr name="mimeType" format="string" />
     </declare-styleable>
 
     <declare-styleable name="BiosDirectoryPickerPreference">

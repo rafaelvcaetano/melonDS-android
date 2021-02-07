@@ -15,9 +15,10 @@ import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.ui.settings.FileStatusPopup
 import me.magnum.melonds.utils.ConfigurationUtils
 
-class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : DirectoryPickerPreference(context, attrs) {
+class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : StoragePickerPreference(context, attrs) {
     init {
         widgetLayoutResource = R.layout.preference_directory_picker_status
+        selectionType = SelectionType.DIRECTORY
     }
 
     lateinit var consoleType: ConsoleType
