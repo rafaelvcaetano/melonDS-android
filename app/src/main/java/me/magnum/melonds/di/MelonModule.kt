@@ -8,9 +8,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import me.magnum.melonds.database.MelonDatabase
+import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.impl.FileSystemRomsRepository
+import me.magnum.melonds.impl.RoomCheatsRepository
 import me.magnum.melonds.impl.SharedPreferencesSettingsRepository
 import me.magnum.melonds.utils.RomIconProvider
 import javax.inject.Singleton
@@ -28,6 +31,12 @@ object MelonModule {
     @Singleton
     fun provideRomsRepository(@ApplicationContext context: Context, gson: Gson, settingsRepository: SettingsRepository): RomsRepository {
         return FileSystemRomsRepository(context, gson, settingsRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCheatsRepository(@ApplicationContext context: Context, database: MelonDatabase): CheatsRepository {
+        return RoomCheatsRepository(context, database)
     }
 
     @Provides

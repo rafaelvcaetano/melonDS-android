@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.activityViewModels
 import androidx.preference.*
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
@@ -71,6 +72,8 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
         }
     }
 
+    private val viewModel: SettingsViewModel by activityViewModels()
+
     private lateinit var micSourcePreference: ListPreference
     private val microphonePermissionLauncher by lazy {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -86,6 +89,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
         val dsBiosDirPreference = findPreference<StoragePickerPreference>("bios_dir")!!
         val dsiBiosDirPreference = findPreference<StoragePickerPreference>("dsi_bios_dir")!!
         val jitPreference = findPreference<SwitchPreference>("enable_jit")!!
+        val importCheatsPreference = findPreference<Preference>("cheats_import")!!
         micSourcePreference = findPreference("mic_source")!!
 
         setupStoragePickerPreference(dsBiosDirPreference)
@@ -134,6 +138,15 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
             } else {
                 true
             }
+        }
+        importCheatsPreference.setOnPreferenceClickListener {
+            val filePickerLauncher = registerForActivityResult(FilePickerContract(false)) {
+                if (it != null) {
+                    viewModel.importCheatsDatabase(it)
+                }
+            }
+            filePickerLauncher.launch(Pair(null, "text/xml"))
+            true
         }
     }
 

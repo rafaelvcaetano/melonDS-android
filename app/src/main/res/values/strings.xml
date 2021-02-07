@@ -80,7 +80,16 @@
     <string name="key_mapping">Key mapping</string>
     <string name="show_soft_input">Show soft input</string>
     <string name="soft_input_opacity">Soft input opacity</string>
+    <string name="cheats">Cheats</string>
+    <string name="enable_cheats">Enable cheats</string>
+    <string name="cheats_database">Cheats database (XML format)</string>
+    <string name="import_cheats">Import cheats</string>
+    <string name="import_cheats_summary">Import cheats from database files to make them available. Only XML databases are supported for now.</string>
     <string name="rom_shortcut">ROM shortcut</string>
+
+    <string name="importing_cheats">Importing cheats…</string>
+    <string name="failed_save_cheat_changes">Could not save cheat changes</string>
+    <string name="no_cheats_found">Could not find cheats for the current ROM. Try importing a different cheat database.</string>
 
     <string name="rom_settings">Rom settings</string> <!-- Accessibility string. Should not use acronyms -->
     <string name="label_rom_config_console">Boot system</string>
@@ -91,6 +100,8 @@
     <string name="theme_option_light">Light</string>
     <string name="theme_option_dark">Dark</string>
     <string name="theme_option_system_default">System default</string>
+
+    <string name="notification_channel_cheat_importing">Cheat importing</string>
 
     <string name="input_a">A</string>
     <string name="input_b">B</string>

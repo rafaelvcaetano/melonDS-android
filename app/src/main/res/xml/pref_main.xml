@@ -140,4 +140,18 @@
             android:defaultValue="50"
             android:max="100" />
     </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/cheats">
+
+        <SwitchPreference
+            android:key="cheats_enabled"
+            android:title="@string/enable_cheats"
+            android:defaultValue="false" />
+
+        <Preference
+            android:key="cheats_import"
+            android:title="@string/import_cheats"
+            android:summary="@string/import_cheats_summary" />
+    </PreferenceCategory>
 </PreferenceScreen>

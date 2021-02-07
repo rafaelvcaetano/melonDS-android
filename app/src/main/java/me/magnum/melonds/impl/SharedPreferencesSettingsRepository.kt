@@ -195,6 +195,10 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return preferences.getInt("input_opacity", 50)
     }
 
+    override fun areCheatsEnabled(): Boolean {
+        return preferences.getBoolean("cheats_enabled", false)
+    }
+
     override fun observeRomSearchDirectories(): Observable<Array<Uri>> {
         return getOrCreatePreferenceObservable("rom_search_dirs") {
             getRomSearchDirectories()

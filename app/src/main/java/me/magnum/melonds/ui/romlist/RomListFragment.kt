@@ -86,7 +86,7 @@ class RomListFragment : Fragment() {
                 RomConfigDialog(requireContext(), rom.name, rom.config.copy(), object : RomConfigDialog.RomConfigDelegate {
                             override fun pickFile(startUri: Uri?, onFilePicked: (Uri) -> Unit) {
                                 onFilePickedListener = onFilePicked
-                                romConfigFilePicker.launch(startUri)
+                                romConfigFilePicker.launch(Pair(startUri, null))
                             }
 
                             override fun requestMicrophonePermission(onPermissionResult: (Boolean) -> Unit) {

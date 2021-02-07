@@ -34,6 +34,8 @@ interface SettingsRepository {
     fun showSoftInput(): Boolean
     fun getSoftInputOpacity(): Int
 
+    fun areCheatsEnabled(): Boolean
+
     fun observeTheme(): Observable<Theme>
     fun observeRomIconFiltering(): Observable<RomIconFiltering>
     fun observeRomSearchDirectories(): Observable<Array<Uri>>
