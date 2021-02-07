@@ -26,3 +26,4 @@
 -keep class me.magnum.melonds.domain.model.EmulatorConfiguration { *; }
 -keep class me.magnum.melonds.domain.model.ConsoleType { *; }
 -keep class me.magnum.melonds.domain.model.MicSource { *; }
+-keep class me.magnum.melonds.domain.model.Cheat { *; }

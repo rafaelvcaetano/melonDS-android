@@ -4,7 +4,10 @@ import android.content.ContentResolver;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
+import me.magnum.melonds.domain.model.Rom;
+import me.magnum.melonds.domain.model.RomInfo;
 
+import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -65,6 +68,24 @@ public class RomProcessor {
 			Bitmap bitmap = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888);
 			bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(bitmapData));
 			return bitmap;
+		}
+	}
+
+	@Nullable
+	public static RomInfo getRomInfo(ContentResolver contentResolver, Rom rom) throws Exception {
+		if (rom == null)
+			throw new NullPointerException("ROM file cannot be null");
+
+		try (InputStream inputStream = contentResolver.openInputStream(rom.getUri())) {
+			byte[] title = new byte[12];
+			if (inputStream.read(title) < 12)
+				return null;
+
+			byte[] gameCode = new byte[4];
+			if (inputStream.read(gameCode) < 4)
+				return null;
+
+			return new RomInfo(new String(gameCode), new String(title));
 		}
 	}
 

@@ -1,4 +1,7 @@
 #include <jni.h>
+#include <string>
+#include <sstream>
+#include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <cstdlib>
@@ -30,6 +33,81 @@ Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jclass type, job
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
 
     MelonDSAndroid::setup(finalEmulatorConfiguration, assetManager);
+}
+
+JNIEXPORT void JNICALL
+Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jclass type, jobjectArray cheats)
+{
+    jsize cheatCount = env->GetArrayLength(cheats);
+    if (cheatCount < 1) {
+        return;
+    }
+
+    jclass cheatClass = env->GetObjectClass(env->GetObjectArrayElement(cheats, 0));
+    jfieldID codeField = env->GetFieldID(cheatClass, "code", "Ljava/lang/String;");
+
+    std::list<MelonDSAndroid::Cheat> internalCheats;
+
+    for (int i = 0; i < cheatCount; ++i) {
+        jobject cheat = env->GetObjectArrayElement(cheats, i);
+        jstring code = (jstring) env->GetObjectField(cheat, codeField);
+        std::string codeString = env->GetStringUTFChars(code, JNI_FALSE);
+
+        bool isBad = false;
+        int sectionCounter = 0;
+        std::size_t start = 0;
+        std::size_t end = 0;
+
+        MelonDSAndroid::Cheat internalCheat;
+
+        // Split code string into sections separated by a space
+        while ((end = codeString.find(' ', start)) != std::string::npos) {
+            if (end != start) {
+                char* endPointer;
+                std::string sectionString = codeString.substr(start, end - start);
+                // Each code section must be 4 bytes (8 hex characters)
+                if (sectionString.size() != 8) {
+                    isBad = true;
+                    break;
+                }
+
+                unsigned long section = strtoul(sectionString.c_str(), &endPointer, 16);
+                if (*endPointer == 0) {
+                    internalCheat.code[sectionCounter] = (u32) section;
+                    sectionCounter++;
+                } else {
+                    isBad = true;
+                    break;
+                }
+            }
+            start = end + 1;
+        }
+
+        if (!isBad && end != start) {
+            char* endPointer;
+            std::string sectionString = codeString.substr(start, end - start);
+            if (sectionString.size() != 8) {
+                isBad = true;
+            } else {
+                unsigned long section = strtoul(sectionString.c_str(), &endPointer, 16);
+                if (*endPointer == 0) {
+                    internalCheat.code[sectionCounter] = (u32) section;
+                    sectionCounter++;
+                } else {
+                    isBad = true;
+                }
+            }
+        }
+
+        if (isBad) {
+            continue;
+        }
+
+        internalCheat.codeLength = sectionCounter;
+        internalCheats.push_back(internalCheat);
+    }
+
+    MelonDSAndroid::setCodeList(internalCheats);
 }
 
 JNIEXPORT jint JNICALL

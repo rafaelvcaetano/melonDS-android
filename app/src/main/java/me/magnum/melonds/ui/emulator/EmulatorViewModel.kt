@@ -3,16 +3,28 @@ package me.magnum.melonds.ui.emulator
 import android.content.Context
 import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.lifecycle.ViewModelInject
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import io.reactivex.Single
+import io.reactivex.disposables.CompositeDisposable
 import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.utils.FileUtils
 import java.io.File
 import java.util.*
 
-class EmulatorViewModel @ViewModelInject constructor(private val context: Context, private val settingsRepository: SettingsRepository, private val romsRepository: RomsRepository) : ViewModel() {
+class EmulatorViewModel @ViewModelInject constructor(
+        private val context: Context,
+        private val settingsRepository: SettingsRepository,
+        private val romsRepository: RomsRepository,
+        private val cheatsRepository: CheatsRepository
+) : ViewModel() {
+    private val disposables = CompositeDisposable()
+
     fun getRomSaveStateSlots(rom: Rom): List<SaveStateSlot> {
         val saveStatePath = settingsRepository.getSaveStateDirectory(rom) ?: return emptyList()
         val saveStateDirectory = File(saveStatePath)
@@ -65,5 +77,24 @@ class EmulatorViewModel @ViewModelInject constructor(private val context: Contex
             default
         else
             romOption.getValue()
+    }
+
+    fun getRomEnabledCheats(romInfo: RomInfo): LiveData<List<Cheat>> {
+        val liveData = MutableLiveData<List<Cheat>>()
+
+        if (!settingsRepository.areCheatsEnabled()) {
+            liveData.value = emptyList()
+        } else {
+            cheatsRepository.getRomEnabledCheats(romInfo).subscribe { cheats ->
+                liveData.postValue(cheats)
+            }.addTo(disposables)
+        }
+
+        return liveData
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        disposables.clear()
     }
 }

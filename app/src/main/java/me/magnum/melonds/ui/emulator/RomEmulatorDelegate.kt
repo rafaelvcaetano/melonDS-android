@@ -1,20 +1,26 @@
 package me.magnum.melonds.ui.emulator
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.ConfigurationCompat
+import androidx.lifecycle.Observer
 import io.reactivex.Completable
+import io.reactivex.Maybe
 import io.reactivex.Single
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
-import me.magnum.melonds.domain.model.EmulatorConfiguration
-import me.magnum.melonds.domain.model.MicSource
-import me.magnum.melonds.domain.model.Rom
-import me.magnum.melonds.domain.model.SaveStateSlot
+import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
+import me.magnum.melonds.ui.cheats.CheatsActivity
 import me.magnum.melonds.utils.FileUtils
+import me.magnum.melonds.utils.RomProcessor
 import me.magnum.melonds.utils.isMicrophonePermissionGranted
 import java.io.File
 import java.text.SimpleDateFormat
@@ -24,10 +30,19 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
         SETTINGS(R.string.settings),
         SAVE_STATE(R.string.save_state),
         LOAD_STATE(R.string.load_state),
+        CHEATS(R.string.cheats),
         EXIT(R.string.exit)
     }
 
     private lateinit var loadedRom: Rom
+
+    private val cheatsLauncher = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        loadRomCheats(loadedRom).observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+                    MelonEmulator.setupCheats(it.toTypedArray())
+                    activity.resumeEmulation()
+                }
+    }
 
     override fun getEmulatorSetupObservable(extras: Bundle?): Completable {
         val romParcelable = extras?.getParcelable(EmulatorActivity.KEY_ROM) as RomParcelable?
@@ -41,20 +56,23 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
 
         return romLoader.flatMap { rom ->
             loadedRom = rom
-            return@flatMap Single.create<MelonEmulator.LoadResult> { emitter ->
-                MelonEmulator.setupEmulator(getEmulatorConfigurationForRom(rom), activity.assets)
+            return@flatMap loadRomCheats(rom).defaultIfEmpty(emptyList()).flatMapSingle { cheats ->
+                Single.create<MelonEmulator.LoadResult> { emitter ->
+                    MelonEmulator.setupEmulator(getEmulatorConfigurationForRom(rom), activity.assets)
 
-                val romPath = FileUtils.getAbsolutePathFromSAFUri(activity, rom.uri) ?: throw EmulatorActivity.RomLoadFailedException()
-                val showBios = activity.settingsRepository.showBootScreen()
-                val sramPath = getSRAMPath(rom.uri)
+                    val romPath = FileUtils.getAbsolutePathFromSAFUri(activity, rom.uri) ?: throw EmulatorActivity.RomLoadFailedException()
+                    val showBios = activity.settingsRepository.showBootScreen()
+                    val sramPath = getSRAMPath(rom.uri)
 
-                val gbaCartPath = FileUtils.getAbsolutePathFromSAFUri(activity, rom.config.gbaCartPath)
-                val gbaSavePath = FileUtils.getAbsolutePathFromSAFUri(activity, rom.config.gbaSavePath)
-                val loadResult = MelonEmulator.loadRom(romPath, sramPath, !showBios, rom.config.loadGbaCart(), gbaCartPath, gbaSavePath)
-                if (loadResult === MelonEmulator.LoadResult.NDS_FAILED)
-                    throw EmulatorActivity.RomLoadFailedException()
+                    val gbaCartPath = FileUtils.getAbsolutePathFromSAFUri(activity, rom.config.gbaCartPath)
+                    val gbaSavePath = FileUtils.getAbsolutePathFromSAFUri(activity, rom.config.gbaSavePath)
+                    val loadResult = MelonEmulator.loadRom(romPath, sramPath, !showBios, rom.config.loadGbaCart(), gbaCartPath, gbaSavePath)
+                    if (loadResult === MelonEmulator.LoadResult.NDS_FAILED)
+                        throw EmulatorActivity.RomLoadFailedException()
 
-                emitter.onSuccess(loadResult)
+                    MelonEmulator.setupCheats(cheats.toTypedArray())
+                    emitter.onSuccess(loadResult)
+                }
             }
         }.doAfterSuccess {
             if (it == MelonEmulator.LoadResult.SUCCESS_GBA_FAILED) {
@@ -90,6 +108,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
 
                 activity.resumeEmulation()
             }
+            RomPauseMenuOptions.CHEATS -> openCheatsActivity()
             RomPauseMenuOptions.EXIT -> activity.finish()
         }
     }
@@ -126,6 +145,28 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
         return File(sramDir, sramFileName).absolutePath
     }
 
+    private fun loadRomCheats(rom: Rom): Maybe<List<Cheat>> {
+        return Maybe.create<List<Cheat>> { emitter ->
+            val romInfo = RomProcessor.getRomInfo(activity.contentResolver, rom)
+            if (romInfo == null) {
+                emitter.onComplete()
+                return@create
+            }
+
+            val liveData = activity.viewModel.getRomEnabledCheats(romInfo)
+            var observer: Observer<List<Cheat>>? = null
+            observer = Observer {
+                if (it == null) {
+                    emitter.onComplete()
+                } else {
+                    emitter.onSuccess(it)
+                }
+                liveData.removeObserver(observer!!)
+            }
+            liveData.observeForever(observer)
+        }.subscribeOn(AndroidSchedulers.mainThread()).observeOn(Schedulers.io())
+    }
+
     private fun pickSaveStateSlot(onSlotPicked: (SaveStateSlot) -> Unit) {
         val dateFormatter = SimpleDateFormat("EEE, dd MMMM yyyy kk:mm:ss", ConfigurationCompat.getLocales(activity.resources.configuration)[0])
         val slots = activity.viewModel.getRomSaveStateSlots(loadedRom)
@@ -141,5 +182,13 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
                 }
                 .setOnCancelListener { activity.resumeEmulation() }
                 .show()
+    }
+
+    private fun openCheatsActivity() {
+        val romInfo = RomProcessor.getRomInfo(activity.contentResolver, loadedRom) ?: return
+
+        val intent = Intent(activity, CheatsActivity::class.java)
+        intent.putExtra(CheatsActivity.KEY_ROM_INFO, RomInfoParcelable.fromRomInfo(romInfo))
+        cheatsLauncher.launch(intent)
     }
 }

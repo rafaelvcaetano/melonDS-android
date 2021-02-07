@@ -1,7 +1,14 @@
 package me.magnum.melonds
 
 import android.app.Application
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
 import io.reactivex.disposables.Disposable
 import me.magnum.melonds.domain.repositories.SettingsRepository
@@ -9,7 +16,12 @@ import me.magnum.melonds.migrations.Migrator
 import javax.inject.Inject
 
 @HiltAndroidApp
-class MelonDSApplication : Application() {
+class MelonDSApplication : Application(), Configuration.Provider {
+    companion object {
+        const val NOTIFICATION_ID_CHEAT_IMPORTING = "channel_cheat_importing"
+    }
+
+    @Inject lateinit var workerFactory: HiltWorkerFactory
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var migrator: Migrator
 
@@ -17,8 +29,20 @@ class MelonDSApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        createNotificationChannels()
         applyTheme()
         performMigrations()
+    }
+
+    private fun createNotificationChannels() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return
+        }
+
+        val defaultChannel = NotificationChannel(NOTIFICATION_ID_CHEAT_IMPORTING, getString(R.string.notification_channel_cheat_importing), NotificationManager.IMPORTANCE_LOW)
+        defaultChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(defaultChannel)
     }
 
     private fun applyTheme() {
@@ -30,6 +54,12 @@ class MelonDSApplication : Application() {
 
     private fun performMigrations() {
         migrator.performMigrations()
+    }
+
+    override fun getWorkManagerConfiguration(): Configuration {
+        return Configuration.Builder()
+                .setWorkerFactory(workerFactory)
+                .build()
     }
 
     override fun onTerminate() {

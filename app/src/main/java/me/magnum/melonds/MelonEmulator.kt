@@ -1,6 +1,8 @@
 package me.magnum.melonds
 
 import android.content.res.AssetManager
+import me.magnum.melonds.domain.model.Cheat
+import me.magnum.melonds.domain.model.CheatFolder
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.Input
 import java.nio.ByteBuffer
@@ -29,6 +31,9 @@ object MelonEmulator {
 
     @JvmStatic
 	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?)
+
+    @JvmStatic
+    external fun setupCheats(cheats: Array<Cheat>)
 
 	fun loadRom(romPath: String, sramPath: String, loadDirect: Boolean, loadGbaRom: Boolean, gbaRomPath: String?, gbaSramPath: String?): LoadResult {
         val loadResult = loadRomInternal(romPath, sramPath, loadDirect, loadGbaRom, gbaRomPath, gbaSramPath)
