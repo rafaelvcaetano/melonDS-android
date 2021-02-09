@@ -140,12 +140,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
             }
         }
         importCheatsPreference.setOnPreferenceClickListener {
-            val filePickerLauncher = registerForActivityResult(FilePickerContract(false)) {
-                if (it != null) {
-                    viewModel.importCheatsDatabase(it)
-                }
-            }
-            filePickerLauncher.launch(Pair(null, "text/xml"))
+            handleCheatsImport()
             true
         }
     }
@@ -190,6 +185,20 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
                     .show()
         } else {
             microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    private fun handleCheatsImport() {
+        if (viewModel.areCheatsBeingImported()) {
+            CheatsImportProgressDialog().show(childFragmentManager, null)
+        } else {
+            val filePickerLauncher = registerForActivityResult(FilePickerContract(false)) {
+                if (it != null) {
+                    viewModel.importCheatsDatabase(it)
+                    CheatsImportProgressDialog().show(childFragmentManager, null)
+                }
+            }
+            filePickerLauncher.launch(Pair(null, "text/xml"))
         }
     }
 }

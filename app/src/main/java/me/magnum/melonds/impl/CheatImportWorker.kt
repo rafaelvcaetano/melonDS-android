@@ -10,6 +10,7 @@ import androidx.hilt.work.WorkerInject
 import androidx.work.ForegroundInfo
 import androidx.work.RxWorker
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import io.reactivex.Single
 import me.magnum.melonds.MelonDSApplication
 import me.magnum.melonds.R
@@ -27,6 +28,8 @@ class CheatImportWorker @WorkerInject constructor(
 
     companion object {
         const val KEY_URI = "uri"
+        const val KEY_PROGRESS_RELATIVE = "progress_relative"
+        const val KEY_PROGRESS_ITEM = "progress_item"
 
         private const val NOTIFICATION_ID_CHEATS_IMPORT = 100
     }
@@ -66,6 +69,10 @@ class CheatImportWorker @WorkerInject constructor(
                                 0
 
                             setForegroundAsync(createForegroundInfo(gameName, readProgress, totalFileSize == null))
+                            setProgressAsync(workDataOf(
+                                    KEY_PROGRESS_RELATIVE to readProgress / 100f,
+                                    KEY_PROGRESS_ITEM to gameName
+                            ))
                         }
 
                         override fun onGameParsed(game: Game) {

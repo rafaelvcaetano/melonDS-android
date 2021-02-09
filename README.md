@@ -9,6 +9,7 @@ This is a WIP Android frontend for the melonDS Android port. For the Android por
 *  Mic input
 *  Game saves
 *  Save states
+*  AR cheats
 *  GBA ROM support
 *  DSi support
 *  Controller support
@@ -17,6 +18,7 @@ This is a WIP Android frontend for the melonDS Android port. For the Android por
 # What is missing
 *  Wi-Fi
 *  OpenGL renderer
+*  Customizable layouts
 
 # Performance
 Performance is solid on 64 bit devices with thread rendering and JIT enabled, and should run at full speed on flagship devices. Performance on older devices, specially

@@ -88,6 +88,7 @@
     <string name="rom_shortcut">ROM shortcut</string>
 
     <string name="importing_cheats">Importing cheats…</string>
+    <string name="starting">Starting…</string>
     <string name="failed_save_cheat_changes">Could not save cheat changes</string>
     <string name="no_cheats_found">Could not find cheats for the current ROM. Try importing a different cheat database.</string>
 

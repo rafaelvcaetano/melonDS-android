@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="16dp"
+        android:paddingStart="?attr/dialogPreferredPadding"
+        android:paddingEnd="?attr/dialogPreferredPadding"
+        android:orientation="vertical">
+
+    <TextView
+            android:id="@+id/text_cheat_import_item_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:ellipsize="end"
+            style="?android:textAppearanceSmall"
+            tools:text="Super Mario 64 DS" />
+
+    <ProgressBar
+            android:id="@+id/progress_bar_cheat_import"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:indeterminate="true"
+            style="?android:attr/progressBarStyleHorizontal" />
+</LinearLayout>
