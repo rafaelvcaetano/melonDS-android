@@ -15,16 +15,12 @@ class TouchscreenInputHandler(inputListener: IInputListener) : BaseInputHandler(
                 inputListener.onKeyPress(Input.TOUCHSCREEN)
                 val x = event.x
                 val y = event.y
-                touchPoint.x = (x / v.width * 256).toInt()
-                touchPoint.y = (y / v.height * 192).toInt()
-                inputListener.onTouch(touchPoint)
+                inputListener.onTouch(normalizeTouchCoordinates(x, y, v.width, v.height))
             }
             MotionEvent.ACTION_MOVE -> {
                 val x = event.x
                 val y = event.y
-                touchPoint.x = (x / v.width * 256).toInt()
-                touchPoint.y = (y / v.height * 192).toInt()
-                inputListener.onTouch(touchPoint)
+                inputListener.onTouch(normalizeTouchCoordinates(x, y, v.width, v.height))
             }
             MotionEvent.ACTION_UP -> {
                 inputListener.onKeyReleased(Input.TOUCHSCREEN)
@@ -32,5 +28,11 @@ class TouchscreenInputHandler(inputListener: IInputListener) : BaseInputHandler(
             }
         }
         return true
+    }
+
+    private fun normalizeTouchCoordinates(x: Float, y: Float, viewWidth: Int, viewHeight: Int): Point {
+        touchPoint.x = (x / viewWidth * 256).toInt().coerceIn(0, 255)
+        touchPoint.y = (y / viewHeight * 192).toInt().coerceIn(0, 191)
+        return touchPoint
     }
 }
