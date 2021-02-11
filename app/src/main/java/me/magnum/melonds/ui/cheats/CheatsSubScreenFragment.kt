@@ -6,6 +6,7 @@ import androidx.core.view.isGone
 import androidx.recyclerview.widget.RecyclerView
 import me.magnum.melonds.databinding.ItemCheatsCheatBinding
 import me.magnum.melonds.domain.model.Cheat
+import me.magnum.melonds.extensions.setViewEnabledRecursive
 
 class CheatsSubScreenFragment : SubScreenFragment() {
     override fun getSubScreenAdapter(): RecyclerView.Adapter<*> {
@@ -27,10 +28,12 @@ class CheatsSubScreenFragment : SubScreenFragment() {
             fun setCheat(cheat: Cheat) {
                 this.cheat = cheat
 
+                val isCheatValid = cheat.isValid()
+                binding.root.setViewEnabledRecursive(isCheatValid)
                 binding.textCheatName.text = cheat.name
                 binding.textCheatDescription.isGone = cheat.description.isNullOrEmpty()
                 binding.textCheatDescription.text = cheat.description
-                binding.checkboxCheatEnabled.isChecked = cheat.enabled
+                binding.checkboxCheatEnabled.isChecked = isCheatValid && cheat.enabled
             }
 
             fun toggle() {

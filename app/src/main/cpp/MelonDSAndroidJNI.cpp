@@ -9,6 +9,8 @@
 #include <InputAndroid.h>
 #include <android/asset_manager_jni.h>
 
+#define MAX_CHEAT_SIZE (2*64)
+
 MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jobject emulatorConfiguration);
 GPU::RenderSettings buildRenderSettings(JNIEnv* env, jobject renderSettings);
 void* emulate(void*);
@@ -73,6 +75,11 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jclass type, jobje
 
                 unsigned long section = strtoul(sectionString.c_str(), &endPointer, 16);
                 if (*endPointer == 0) {
+                    if (sectionCounter >= MAX_CHEAT_SIZE) {
+                        isBad = true;
+                        break;
+                    }
+
                     internalCheat.code[sectionCounter] = (u32) section;
                     sectionCounter++;
                 } else {
@@ -90,7 +97,7 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jclass type, jobje
                 isBad = true;
             } else {
                 unsigned long section = strtoul(sectionString.c_str(), &endPointer, 16);
-                if (*endPointer == 0) {
+                if (*endPointer == 0 && sectionCounter < MAX_CHEAT_SIZE) {
                     internalCheat.code[sectionCounter] = (u32) section;
                     sectionCounter++;
                 } else {
