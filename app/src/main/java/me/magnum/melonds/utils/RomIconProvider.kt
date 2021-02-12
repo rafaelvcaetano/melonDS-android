@@ -15,24 +15,15 @@ import java.lang.Exception
  * The name of the file for the disk cache is the hash of the ROM's path.
  */
 class RomIconProvider(private val context: Context) {
+    companion object {
+        private const val ICON_CACHE_DIR = "rom_icons"
+    }
+
     private val memoryIconCache = mutableMapOf<String, Bitmap>()
 
     fun getRomIcon(rom: Rom): Bitmap? {
         val romHash = rom.uri.hashCode().toString()
         return loadIconFromMemory(romHash, rom)
-    }
-
-    /**
-     * Clears all cached icons, either in memory or in disk.
-     */
-    fun clearCachedIcons() {
-        memoryIconCache.clear()
-        val iconCacheDir = context.externalCacheDir
-        if (iconCacheDir != null) {
-            iconCacheDir.listFiles()?.forEach {
-                it.delete()
-            }
-        }
     }
 
     private fun loadIconFromMemory(hash: String, rom: Rom): Bitmap? {
@@ -48,8 +39,8 @@ class RomIconProvider(private val context: Context) {
     }
 
     private fun loadIconFromDisk(hash: String, rom: Rom): Bitmap? {
-        val iconCacheDir = context.externalCacheDir
-        if (iconCacheDir != null) {
+        val iconCacheDir = context.externalCacheDir?.let { File(it, ICON_CACHE_DIR) }
+        if (iconCacheDir != null && iconCacheDir.isDirectory) {
             val iconFile = File(iconCacheDir, hash)
             if (iconFile.isFile) {
                 return BitmapFactory.decodeFile(iconFile.absolutePath)
@@ -58,13 +49,15 @@ class RomIconProvider(private val context: Context) {
 
         val bitmap = RomProcessor.getRomIcon(context.contentResolver, rom.uri)
         if (bitmap != null && iconCacheDir != null) {
-            val iconFile = File(iconCacheDir, hash)
-            try {
-                FileOutputStream(iconFile).use {
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+            if (iconCacheDir.isDirectory || iconCacheDir.mkdirs()) {
+                val iconFile = File(iconCacheDir, hash)
+                try {
+                    FileOutputStream(iconFile).use {
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+                    }
+                } catch (_: Exception) {
+                    // Ignore errors
                 }
-            } catch (_: Exception) {
-                // Ignore errors
             }
         }
         return bitmap
