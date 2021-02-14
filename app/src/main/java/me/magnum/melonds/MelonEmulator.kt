@@ -2,7 +2,6 @@ package me.magnum.melonds
 
 import android.content.res.AssetManager
 import me.magnum.melonds.domain.model.Cheat
-import me.magnum.melonds.domain.model.CheatFolder
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.Input
 import java.nio.ByteBuffer

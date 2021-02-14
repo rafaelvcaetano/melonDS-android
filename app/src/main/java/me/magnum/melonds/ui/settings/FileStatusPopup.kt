@@ -32,6 +32,10 @@ class FileStatusPopup(context: Context, fileStatuses: Array<Pair<String, Configu
                     itemBinding.imageViewFileStatus.setImageResource(R.drawable.ic_status_ok)
                     ImageViewCompat.setImageTintList(itemBinding.imageViewFileStatus, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusOk)))
                 }
+                ConfigurationUtils.ConfigurationFileStatus.INVALID -> {
+                    itemBinding.imageViewFileStatus.setImageResource(R.drawable.ic_status_warn)
+                    ImageViewCompat.setImageTintList(itemBinding.imageViewFileStatus, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusWarn)))
+                }
                 ConfigurationUtils.ConfigurationFileStatus.MISSING -> {
                     itemBinding.imageViewFileStatus.setImageResource(R.drawable.ic_status_error)
                     ImageViewCompat.setImageTintList(itemBinding.imageViewFileStatus, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusError)))
