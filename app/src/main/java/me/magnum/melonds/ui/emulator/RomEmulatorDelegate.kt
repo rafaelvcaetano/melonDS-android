@@ -60,7 +60,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
                 Single.create<MelonEmulator.LoadResult> { emitter ->
                     MelonEmulator.setupEmulator(getEmulatorConfigurationForRom(rom), activity.assets)
 
-                    val romPath = FileUtils.getAbsolutePathFromSAFUri(activity, rom.uri) ?: throw EmulatorActivity.RomLoadFailedException()
+                    val romPath = FileUtils.getAbsolutePathFromSAFUri(activity, rom.uri) ?: throw EmulatorActivity.RomLoadFailedException("Cannot determine ROM path")
                     val showBios = activity.settingsRepository.showBootScreen()
                     val sramPath = getSRAMPath(rom.uri)
 
@@ -68,7 +68,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
                     val gbaSavePath = FileUtils.getAbsolutePathFromSAFUri(activity, rom.config.gbaSavePath)
                     val loadResult = MelonEmulator.loadRom(romPath, sramPath, !showBios, rom.config.loadGbaCart(), gbaCartPath, gbaSavePath)
                     if (loadResult === MelonEmulator.LoadResult.NDS_FAILED)
-                        throw EmulatorActivity.RomLoadFailedException()
+                        throw EmulatorActivity.RomLoadFailedException(loadResult)
 
                     MelonEmulator.setupCheats(cheats.toTypedArray())
                     emitter.onSuccess(loadResult)

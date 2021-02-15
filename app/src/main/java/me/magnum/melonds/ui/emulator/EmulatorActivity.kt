@@ -2,13 +2,14 @@ package me.magnum.melonds.ui.emulator
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import android.widget.RelativeLayout
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -22,12 +23,16 @@ import io.reactivex.schedulers.Schedulers
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
-import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.ConsoleType
+import me.magnum.melonds.domain.model.Input
+import me.magnum.melonds.domain.model.RendererConfiguration
+import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
 import me.magnum.melonds.ui.emulator.input.*
 import me.magnum.melonds.ui.settings.SettingsActivity
+import java.net.URLEncoder
 import java.nio.ByteBuffer
 import javax.inject.Inject
 
@@ -57,7 +62,9 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
     }
 
-    class RomLoadFailedException : Exception("Failed to load ROM")
+    class RomLoadFailedException(reason: String) : Exception("Failed to load ROM: $reason") {
+        constructor(result: MelonEmulator.LoadResult) : this(result.toString())
+    }
     class FirmwareLoadFailedException(result: MelonEmulator.FirmwareLoadResult) : Exception("Failed to load firmware: $result")
 
     interface PauseMenuOption {
@@ -196,16 +203,19 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                     }
 
                     override fun onComplete() {
-                        MelonEmulator.startEmulation()
-                        binding.textFps.visibility = View.VISIBLE
-                        binding.textLoading.visibility = View.GONE
-                        emulatorReady = true
+                        try {
+                            MelonEmulator.startEmulation()
+                            binding.textFps.visibility = View.VISIBLE
+                            binding.textLoading.visibility = View.GONE
+                            emulatorReady = true
+                        } catch (e: Exception) {
+                            showLaunchFailDialog(e)
+                        }
                     }
 
                     override fun onError(e: Throwable) {
                         e.printStackTrace()
-                        Toast.makeText(this@EmulatorActivity, R.string.error_load_rom, Toast.LENGTH_SHORT).show()
-                        finish()
+                        showLaunchFailDialog(e)
                     }
                 })
     }
@@ -307,6 +317,44 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         emulatorPaused = false
         val settingsIntent = Intent(this, SettingsActivity::class.java)
         settingsLauncher.launch(Intent(settingsIntent))
+    }
+
+    private fun showLaunchFailDialog(e: Throwable) {
+        AlertDialog.Builder(this)
+                .setTitle(R.string.error_load_rom)
+                .setMessage(R.string.error_load_rom_report_issue)
+                .setPositiveButton(R.string.ok) { dialog, _ ->
+                    val intent = getGitHubReportIntent(e)
+                    startActivity(intent)
+                    dialog.dismiss()
+                }
+                .setNegativeButton(R.string.cancel) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setCancelable(true)
+                .setOnDismissListener {
+                    finish()
+                }
+                .show()
+    }
+
+    private fun getGitHubReportIntent(e: Throwable): Intent {
+        val errorBody = "" +
+                "* **Device model:** ${Build.MODEL}\n" +
+                "* **Android version:** Android API ${Build.VERSION.SDK_INT}\n\n" +
+                "**Problem:**  \n" +
+                "Insert a small description of the problem.\n\n" +
+                "**Stack trace:**  \n" +
+                "```\n" +
+                e.stackTraceToString() +
+                "\n```"
+
+        val urlEncodedBody = URLEncoder.encode(errorBody, "utf-8")
+        val url = "https://github.com/rafaelvcaetano/melonDS-android/issues/new?labels=app%20report&body=$urlEncodedBody"
+
+        return Intent(Intent.ACTION_VIEW).apply {
+            data = Uri.parse(url)
+        }
     }
 
     override fun onPause() {
