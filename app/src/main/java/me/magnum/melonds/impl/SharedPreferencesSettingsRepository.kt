@@ -58,6 +58,7 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return EmulatorConfiguration(
             dsConfigDirectoryPath,
             dsiConfigDirectoryPath,
+            getFastForwardSpeedMultiplier(),
             isJitEnabled(),
             consoleType,
             getMicSource(),
@@ -73,14 +74,19 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return Theme.valueOf(themePreference.toUpperCase(Locale.ROOT))
     }
 
-    override fun getRomIconFiltering(): RomIconFiltering {
-        val romIconFilteringPreference = preferences.getString("rom_icon_filtering", "linear")!!
-        return enumValueOfIgnoreCase(romIconFilteringPreference)
+    override fun getFastForwardSpeedMultiplier(): Float {
+        val speedMultiplierPreference = preferences.getString("fast_forward_speed_multiplier", "-1")!!
+        return speedMultiplierPreference.toFloat()
     }
 
     override fun getRomSearchDirectories(): Array<Uri> {
         val dirPreference = preferences.getStringSet("rom_search_dirs", emptySet())
         return dirPreference?.map { Uri.parse(it) }?.toTypedArray() ?: emptyArray()
+    }
+
+    override fun getRomIconFiltering(): RomIconFiltering {
+        val romIconFilteringPreference = preferences.getString("rom_icon_filtering", "linear")!!
+        return enumValueOfIgnoreCase(romIconFilteringPreference)
     }
 
     override fun getDefaultConsoleType(): ConsoleType {

@@ -58,6 +58,7 @@
     <string name="category_general">General</string>
     <string name="category_system">System</string>
     <string name="theme">Theme</string>
+    <string name="fast_forward_max_speed">Fast-forward max speed</string>
     <string name="rom_icon_filtering">Icon filtering</string>
     <string name="rom_search_directories">Search directories</string>
     <string name="console_type">Default system</string>
@@ -124,6 +125,15 @@
     <string-array name="theme_options" tools:ignore="InconsistentArrays">
         <item>@string/theme_option_light</item>
         <item>@string/theme_option_dark</item>
+    </string-array>
+
+    <string-array name="fast_forward_speed_multiplier_options" tools:ignore="InconsistentArrays">
+        <item>Unlimited</item>
+        <item>1.5x</item>
+        <item>2x</item>
+        <item>3x</item>
+        <item>4x</item>
+        <item>8x</item>
     </string-array>
 
     <string-array name="rom_icon_filtering_options">

@@ -9,9 +9,10 @@ interface SettingsRepository {
     fun getEmulatorConfiguration(): EmulatorConfiguration
 
     fun getTheme(): Theme
-    fun getRomIconFiltering(): RomIconFiltering
+    fun getFastForwardSpeedMultiplier(): Float
 
     fun getRomSearchDirectories(): Array<Uri>
+    fun getRomIconFiltering(): RomIconFiltering
 
     fun getDefaultConsoleType(): ConsoleType
     fun getDsBiosDirectory(): Uri?

@@ -13,6 +13,14 @@
                 android:entries="@array/theme_options"
                 android:entryValues="@array/theme_values"
                 android:defaultValue="light" />
+
+        <ListPreference
+            android:key="fast_forward_speed_multiplier"
+            android:title="@string/fast_forward_max_speed"
+            android:summary="%s"
+            android:entries="@array/fast_forward_speed_multiplier_options"
+            android:entryValues="@array/fast_forward_speed_multiplier_values"
+            android:defaultValue="-1" />
     </PreferenceCategory>
 
     <PreferenceCategory

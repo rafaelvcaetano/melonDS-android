@@ -23,7 +23,10 @@ bool stop;
 bool paused;
 int observedFrames = 0;
 int fps = 0;
+int targetFps;
+float fastForwardSpeedMultiplier;
 bool limitFps = true;
+bool isFastForwardEnabled = false;
 
 extern "C"
 {
@@ -31,6 +34,7 @@ JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jclass type, jobject emulatorConfiguration, jobject javaAssetManager)
 {
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = buildEmulatorConfiguration(env, emulatorConfiguration);
+    fastForwardSpeedMultiplier = finalEmulatorConfiguration.fastForwardSpeedMultiplier;
     jobject globalAssetManager = env->NewGlobalRef(javaAssetManager);
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
 
@@ -139,6 +143,8 @@ Java_me_magnum_melonds_MelonEmulator_startEmulation( JNIEnv* env, jclass type)
     stop = false;
     paused = false;
     limitFps = true;
+    targetFps = 60;
+    isFastForwardEnabled = false;
 
     pthread_mutex_init(&emuThreadMutex, NULL);
     pthread_cond_init(&emuThreadCond, NULL);
@@ -238,7 +244,14 @@ Java_me_magnum_melonds_MelonEmulator_onKeyRelease( JNIEnv* env, jclass type, jin
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_setFastForwardEnabled( JNIEnv* env, jclass type, jboolean enabled)
 {
-    limitFps = !enabled;
+    isFastForwardEnabled = enabled;
+    if (enabled) {
+        limitFps = fastForwardSpeedMultiplier > 0;
+        targetFps = 60 * fastForwardSpeedMultiplier;
+    } else {
+        limitFps = true;
+        targetFps = 60;
+    }
 }
 
 JNIEXPORT void JNICALL
@@ -246,6 +259,12 @@ Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jc
 {
     MelonDSAndroid::EmulatorConfiguration newConfiguration = buildEmulatorConfiguration(env, emulatorConfiguration);
     MelonDSAndroid::updateEmulatorConfiguration(newConfiguration);
+    fastForwardSpeedMultiplier = newConfiguration.fastForwardSpeedMultiplier;
+
+    if (isFastForwardEnabled) {
+        limitFps = fastForwardSpeedMultiplier > 0;
+        targetFps = 60 * fastForwardSpeedMultiplier;
+    }
 }
 }
 
@@ -256,6 +275,7 @@ MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jo
 
     jstring dsConfigDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsConfigDirectory", "Ljava/lang/String;"));
     jstring dsiConfigDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsiConfigDirectory", "Ljava/lang/String;"));
+    jfloat fastForwardMaxSpeed = env->GetFloatField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "fastForwardSpeedMultiplier", "F"));
     jboolean useJit = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "useJit", "Z"));
     jobject consoleTypeEnum = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "consoleType", "Lme/magnum/melonds/domain/model/ConsoleType;"));
     jint consoleType = env->GetIntField(consoleTypeEnum, env->GetFieldID(consoleTypeEnumClass, "consoleType", "I"));
@@ -268,6 +288,7 @@ MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jo
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration;
     finalEmulatorConfiguration.dsConfigDir = const_cast<char*>(dsDir);
     finalEmulatorConfiguration.dsiConfigDir = const_cast<char*>(dsiDir);
+    finalEmulatorConfiguration.fastForwardSpeedMultiplier = fastForwardMaxSpeed;
     finalEmulatorConfiguration.useJit = useJit;
     finalEmulatorConfiguration.consoleType = consoleType;
     finalEmulatorConfiguration.micSource = micSource;
@@ -316,13 +337,13 @@ void* emulate(void*)
         MelonDSAndroid::updateMic();
         u32 nLines = MelonDSAndroid::loop();
 
-        float frameRate = (1000.0 * nLines) / (60.0f * 263.0f);
-
         double currentTick = getCurrentMillis();
         double delay = currentTick - lastTick;
 
         if (limitFps)
         {
+            float frameRate = (1000.0 * nLines) / ((float) targetFps * 263.0f);
+
             frameLimitError += frameRate - delay;
             if (frameLimitError < -frameRate)
                 frameLimitError = -frameRate;

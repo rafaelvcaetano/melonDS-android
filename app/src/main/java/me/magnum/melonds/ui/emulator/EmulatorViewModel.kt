@@ -59,6 +59,7 @@ class EmulatorViewModel @ViewModelInject constructor(
         return EmulatorConfiguration(
                 baseConfiguration.dsConfigDirectory,
                 baseConfiguration.dsiConfigDirectory,
+                baseConfiguration.fastForwardSpeedMultiplier,
                 baseConfiguration.useJit,
                 getRomOptionOrDefault(rom.config.runtimeConsoleType, baseConfiguration.consoleType),
                 getRomOptionOrDefault(rom.config.runtimeMicSource, baseConfiguration.micSource),
