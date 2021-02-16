@@ -39,6 +39,8 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
     private var height = 0f
     var bottom = 0f
         private set
+    var margin = 0f
+        private set
 
     fun setRendererListener(listener: RendererListener?) {
         rendererListener = listener
@@ -120,15 +122,31 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
         GLES20.glViewport(0, 0, width, height)
 
         val dsAspectRatio = 192 * 2 / 256f
-        val surfaceTargetHeight = width * dsAspectRatio
+        var surfaceTargetHeight = width * dsAspectRatio
+        var surfaceTargetWidth = width.toFloat()
+
+        // If the screen is too tall, constraint vertically
+        if (surfaceTargetHeight > height) {
+            surfaceTargetHeight = height.toFloat()
+            surfaceTargetWidth = surfaceTargetHeight / dsAspectRatio
+        }
+
+        val relativeTargetWidth = surfaceTargetWidth / width
         val relativeTargetHeight = surfaceTargetHeight / height
         val dsBottom = 1 - relativeTargetHeight * 2
+        val dsHorizontalMargin = (1 - relativeTargetWidth)
 
         posBuffer = ByteBuffer.allocateDirect(2 * 4 * 4)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer()
-                .put(floatArrayOf(-1f, dsBottom, 1f, dsBottom, -1f, 1f, 1f, 1f))
+                .put(floatArrayOf(
+                        -1f + dsHorizontalMargin, dsBottom,
+                        1f - dsHorizontalMargin, dsBottom,
+                        -1f + dsHorizontalMargin, 1f,
+                        1f - dsHorizontalMargin, 1f
+                ))
         bottom = height - surfaceTargetHeight
+        margin = (width - surfaceTargetWidth) / 2f
 
         if (rendererListener != null)
             rendererListener!!.onRendererSizeChanged(width, height)

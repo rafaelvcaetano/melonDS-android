@@ -286,11 +286,14 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     override fun onRendererSizeChanged(width: Int, height: Int) {
         runOnUiThread {
             val dsAspectRatio = 192 / 256f
-            val screenHeight = (width * dsAspectRatio).toInt()
+            val screenWidth = (width - dsRenderer.margin * 2).toInt()
+            val screenHeight = (screenWidth * dsAspectRatio).toInt()
 
-            val params = RelativeLayout.LayoutParams(width, screenHeight)
+            val params = RelativeLayout.LayoutParams(screenWidth, screenHeight)
             params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
             params.bottomMargin = dsRenderer.bottom.toInt()
+            params.leftMargin = dsRenderer.margin.toInt()
+            params.rightMargin = dsRenderer.margin.toInt()
 
             binding.viewInputArea.layoutParams = params
         }
