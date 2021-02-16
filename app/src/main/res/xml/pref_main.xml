@@ -95,6 +95,11 @@
     <PreferenceCategory
         android:title="@string/category_audio">
 
+        <SwitchPreference
+            android:key="sound_enabled"
+            android:title="@string/enable_sound"
+            android:defaultValue="true" />
+
         <ListPreference
             android:key="mic_source"
             android:title="@string/microphone_source"

@@ -61,6 +61,7 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
             getFastForwardSpeedMultiplier(),
             isJitEnabled(),
             consoleType,
+            isSoundEnabled(),
             getMicSource(),
             RendererConfiguration(
                 getVideoFiltering(),
@@ -120,6 +121,10 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
 
     override fun isThreadedRenderingEnabled(): Boolean {
         return preferences.getBoolean("enable_threaded_rendering", true)
+    }
+
+    override fun isSoundEnabled(): Boolean {
+        return preferences.getBoolean("sound_enabled", true)
     }
 
     override fun getMicSource(): MicSource {

@@ -6,6 +6,7 @@ data class EmulatorConfiguration(
         val fastForwardSpeedMultiplier: Float,
         val useJit: Boolean,
         val consoleType: ConsoleType,
+        val soundEnabled: Boolean,
         val micSource: MicSource,
         val rendererConfiguration: RendererConfiguration
 )

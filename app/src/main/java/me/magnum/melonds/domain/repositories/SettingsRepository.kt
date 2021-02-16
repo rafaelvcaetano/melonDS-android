@@ -23,6 +23,7 @@ interface SettingsRepository {
     fun getVideoFiltering(): VideoFiltering
     fun isThreadedRenderingEnabled(): Boolean
 
+    fun isSoundEnabled(): Boolean
     fun getMicSource(): MicSource
 
     fun getRomSortingMode(): SortingMode

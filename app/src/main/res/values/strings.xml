@@ -73,6 +73,7 @@
     <string name="category_video">Video</string>
     <string name="filtering">Filtering</string>
     <string name="category_audio">Audio</string>
+    <string name="enable_sound">Enable sound</string>
     <string name="microphone_source">Microphone source</string>
     <string name="category_save_files">Save Files</string>
     <string name="save_next_rom">Save next to ROM file</string>
