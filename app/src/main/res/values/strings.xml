@@ -24,6 +24,7 @@
     <string name="failed_save_state">Failed to save state</string>
     <string name="failed_load_state">Failed to load state</string>
     <string name="cant_load_empty_slot">Can\'t load an empty save state slot</string>
+    <string name="failed_reset_emulation">Failed to reset emulation</string>
 
     <string name="action_sort_alphabetically">Alphabetically</string>
     <string name="action_sort_recently_played">Recently played</string>
@@ -47,6 +48,7 @@
     <string name="press_any_button">Press any button…</string>
 
     <string name="pause">Pause</string>
+    <string name="reset">Reset</string>
     <string name="exit">Exit</string>
 
     <string name="settings">Settings</string>

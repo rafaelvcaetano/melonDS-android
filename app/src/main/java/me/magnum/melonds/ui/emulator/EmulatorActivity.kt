@@ -10,6 +10,7 @@ import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import android.widget.RelativeLayout
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -281,6 +282,13 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         emulatorPaused = false
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         MelonEmulator.resumeEmulation()
+    }
+
+    fun resetEmulation() {
+        val result = MelonEmulator.resetEmulation()
+        if (!result) {
+            Toast.makeText(this, R.string.failed_reset_emulation, Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onRendererSizeChanged(width: Int, height: Int) {

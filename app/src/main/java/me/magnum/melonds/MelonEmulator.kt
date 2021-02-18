@@ -28,10 +28,8 @@ object MelonEmulator {
         DSI_NAND_BAD
     }
 
-    @JvmStatic
 	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?)
 
-    @JvmStatic
     external fun setupCheats(cheats: Array<Cheat>)
 
 	fun loadRom(romPath: String, sramPath: String, loadDirect: Boolean, loadGbaRom: Boolean, gbaRomPath: String?, gbaSramPath: String?): LoadResult {
@@ -53,42 +51,32 @@ object MelonEmulator {
 
     private external fun bootFirmwareInternal(): Int
 
-    @JvmStatic
 	external fun startEmulation()
 
-    @JvmStatic
 	external fun copyFrameBuffer(frameBufferDst: ByteBuffer)
 
-    @JvmStatic
 	external fun getFPS(): Int
 
-    @JvmStatic
 	external fun pauseEmulation()
 
-    @JvmStatic
 	external fun resumeEmulation()
 
-    @JvmStatic
+    external fun resetEmulation(): Boolean
+
 	external fun stopEmulation()
 
-    @JvmStatic
     external fun saveState(path: String): Boolean
 
-    @JvmStatic
     external fun loadState(path: String): Boolean
 
-    @JvmStatic
 	external fun onScreenTouch(x: Int, y: Int)
 
-    @JvmStatic
 	external fun onScreenRelease()
 
-    @JvmStatic
 	fun onInputDown(input: Input) {
         onKeyPress(input.keyCode)
     }
 
-    @JvmStatic
 	fun onInputUp(input: Input) {
         onKeyRelease(input.keyCode)
     }
@@ -97,9 +85,7 @@ object MelonEmulator {
 
     private external fun onKeyRelease(key: Int)
 
-    @JvmStatic
     external fun setFastForwardEnabled(enabled: Boolean)
 
-    @JvmStatic
     external fun updateEmulatorConfiguration(emulatorConfiguration: EmulatorConfiguration)
 }

@@ -31,6 +31,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
         SAVE_STATE(R.string.save_state),
         LOAD_STATE(R.string.load_state),
         CHEATS(R.string.cheats),
+        RESET(R.string.reset),
         EXIT(R.string.exit)
     }
 
@@ -109,6 +110,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
                 activity.resumeEmulation()
             }
             RomPauseMenuOptions.CHEATS -> openCheatsActivity()
+            RomPauseMenuOptions.RESET -> activity.resetEmulation()
             RomPauseMenuOptions.EXIT -> activity.finish()
         }
     }

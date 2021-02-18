@@ -10,6 +10,7 @@ import me.magnum.melonds.domain.model.EmulatorConfiguration
 class FirmwareEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activity) {
     private enum class FirmwarePauseMenuOptions(override val textResource: Int) : EmulatorActivity.PauseMenuOption {
         SETTINGS(R.string.settings),
+        RESET(R.string.reset),
         EXIT(R.string.exit)
     }
 
@@ -45,6 +46,7 @@ class FirmwareEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(ac
     override fun onPauseMenuOptionSelected(option: EmulatorActivity.PauseMenuOption) {
         when (option) {
             FirmwarePauseMenuOptions.SETTINGS -> activity.openSettings()
+            FirmwarePauseMenuOptions.RESET -> activity.resetEmulation()
             FirmwarePauseMenuOptions.EXIT -> activity.finish()
         }
     }
