@@ -91,6 +91,12 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             fastForwardEnabled = !fastForwardEnabled
             MelonEmulator.setFastForwardEnabled(fastForwardEnabled)
         }
+
+        override fun onResetPressed() {
+            if (emulatorReady) {
+                resetEmulation()
+            }
+        }
     }
     private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         val newEmulatorConfiguration = delegate.getEmulatorConfiguration()

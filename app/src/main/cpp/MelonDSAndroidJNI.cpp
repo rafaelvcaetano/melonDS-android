@@ -21,6 +21,7 @@ pthread_cond_t emuThreadCond;
 
 bool stop;
 bool paused;
+std::atomic_bool isThreadReallyPaused = false;
 int observedFrames = 0;
 int fps = 0;
 int targetFps;
@@ -152,6 +153,7 @@ Java_me_magnum_melonds_MelonEmulator_startEmulation(JNIEnv* env, jobject thiz)
 {
     stop = false;
     paused = false;
+    isThreadReallyPaused = false;
     limitFps = true;
     targetFps = 60;
     isFastForwardEnabled = false;
@@ -207,14 +209,14 @@ Java_me_magnum_melonds_MelonEmulator_resetEmulation(JNIEnv* env, jobject thiz) {
     if (!stop) {
         if (paused) {
             pthread_mutex_unlock(&emuThreadMutex);
-            result = MelonDSAndroid::reset();
         } else {
             pthread_mutex_unlock(&emuThreadMutex);
             Java_me_magnum_melonds_MelonEmulator_pauseEmulation(env, thiz);
-            // TODO: wait for thread to pause
-            result = MelonDSAndroid::reset();
         }
 
+        // Make sure that the thread is really paused to avoid data corruption
+        while (!isThreadReallyPaused);
+        result = MelonDSAndroid::reset();
         Java_me_magnum_melonds_MelonEmulator_resumeEmulation(env, thiz);
     } else {
         // If the emulation is stopping, just ignore it
@@ -361,8 +363,13 @@ void* emulate(void*)
     for (;;)
     {
         pthread_mutex_lock(&emuThreadMutex);
-        while (paused && !stop)
-            pthread_cond_wait(&emuThreadCond, &emuThreadMutex);
+        if (paused) {
+            isThreadReallyPaused = true;
+            while (paused && !stop)
+                pthread_cond_wait(&emuThreadCond, &emuThreadMutex);
+
+            isThreadReallyPaused = false;
+        }
 
         if (stop) {
             pthread_mutex_unlock(&emuThreadMutex);

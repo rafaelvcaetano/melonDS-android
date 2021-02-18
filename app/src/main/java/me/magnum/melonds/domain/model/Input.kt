@@ -25,7 +25,8 @@ enum class Input(val keyCode: Int) {
     TOUCHSCREEN(16 + 6),
     HINGE(16 + 7),
     PAUSE(-1),
-    FAST_FORWARD(-1);
+    FAST_FORWARD(-1),
+    RESET(-1);
 
     val isSystemInput: Boolean
         get() = keyCode != -1

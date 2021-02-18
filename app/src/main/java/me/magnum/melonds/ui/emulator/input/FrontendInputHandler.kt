@@ -8,6 +8,7 @@ abstract class FrontendInputHandler : IInputListener {
         when (key) {
             Input.PAUSE -> onPausePressed()
             Input.FAST_FORWARD -> onFastForwardPressed()
+            Input.RESET -> onResetPressed()
         }
     }
 
@@ -19,4 +20,5 @@ abstract class FrontendInputHandler : IInputListener {
 
     abstract fun onPausePressed()
     abstract fun onFastForwardPressed()
+    abstract fun onResetPressed()
 }

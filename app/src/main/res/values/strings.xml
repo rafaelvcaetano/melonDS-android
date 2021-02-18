@@ -124,6 +124,7 @@
     <string name="input_lid">Toggle Lid</string>
     <string name="input_pause">Pause</string>
     <string name="input_fast_forward">Fast Forward</string>
+    <string name="input_reset">@string/reset</string>
 
     <string-array name="theme_options" tools:ignore="InconsistentArrays">
         <item>@string/theme_option_light</item>

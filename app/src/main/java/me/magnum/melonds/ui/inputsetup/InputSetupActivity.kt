@@ -40,6 +40,7 @@ class InputSetupActivity : AppCompatActivity() {
                 Input.HINGE -> R.string.input_lid
                 Input.PAUSE -> R.string.input_pause
                 Input.FAST_FORWARD -> R.string.input_fast_forward
+                Input.RESET -> R.string.input_reset
                 else -> -1
             }
         }

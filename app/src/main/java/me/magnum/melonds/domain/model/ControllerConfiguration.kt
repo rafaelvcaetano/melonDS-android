@@ -19,7 +19,8 @@ class ControllerConfiguration(configList: List<InputConfig>) {
                 Input.SELECT,
                 Input.HINGE,
                 Input.PAUSE,
-                Input.FAST_FORWARD
+                Input.FAST_FORWARD,
+                Input.RESET
         )
 
         fun empty(): ControllerConfiguration {
