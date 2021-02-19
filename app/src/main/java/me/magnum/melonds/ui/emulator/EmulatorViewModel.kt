@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.emulator
 
 import android.content.Context
+import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
@@ -13,17 +14,30 @@ import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.addTo
+import me.magnum.melonds.impl.FileRomProcessorFactory
 import me.magnum.melonds.utils.FileUtils
 import java.io.File
+import java.lang.Exception
 import java.util.*
 
 class EmulatorViewModel @ViewModelInject constructor(
         private val context: Context,
         private val settingsRepository: SettingsRepository,
         private val romsRepository: RomsRepository,
-        private val cheatsRepository: CheatsRepository
+        private val cheatsRepository: CheatsRepository,
+        private val fileRomProcessorFactory: FileRomProcessorFactory
 ) : ViewModel() {
     private val disposables = CompositeDisposable()
+
+    fun getRomLoader(rom: Rom): Single<Pair<Rom, Uri>> {
+        val fileRomProcessor = fileRomProcessorFactory.getFileRomProcessorForDocument(rom.uri)
+        return fileRomProcessor?.getRealRomUri(rom)?.map { rom to it } ?: Single.error(Exception("Unsupported extension"))
+    }
+
+    fun getRomInfo(rom: Rom): RomInfo? {
+        val fileRomProcessor = fileRomProcessorFactory.getFileRomProcessorForDocument(rom.uri)
+        return fileRomProcessor?.getRomInfo(rom)
+    }
 
     fun getRomSaveStateSlots(rom: Rom): List<SaveStateSlot> {
         val saveStatePath = settingsRepository.getSaveStateDirectory(rom) ?: return emptyList()

@@ -29,7 +29,7 @@ It's possible to launch melonDS from third part frontends. For that, you simply 
 *  Package name: `me.magnum.melonds`
 *  Activity name: `me.magnum.melonds.ui.emulator.EmulatorActivity`
 *  Parameters:
-    * `PATH` - a string with the absolute path to the NDS ROM (ZIP files are not yet supported)
+    * `PATH` - a string with the absolute path to the NDS ROM (ZIP files are supported)
 
 # Building
 To build the project you will need Android NDK and CMake.

@@ -18,7 +18,6 @@ import me.magnum.melonds.domain.model.RomScanningStatus
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.utils.FileUtils
-import me.magnum.melonds.utils.RomProcessor
 import java.io.File
 import java.io.FileOutputStream
 import java.io.FileReader
@@ -33,6 +32,7 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
         private const val ROM_DATA_FILE = "rom_data.json"
     }
 
+    private val fileRomProcessorFactory = FileRomProcessorFactoryImpl(context)
     private val romListType: Type = object : TypeToken<List<Rom>>(){}.type
     private val romsSubject: BehaviorSubject<List<Rom>> = BehaviorSubject.create()
     private val scanningStatusSubject: BehaviorSubject<RomScanningStatus> = BehaviorSubject.createDefault(RomScanningStatus.NOT_SCANNING)
@@ -199,18 +199,8 @@ class FileSystemRomsRepository(private val context: Context, private val gson: G
                         continue
                     }
 
-                    val fileName = file.name ?: continue
-
-                    // TODO: support zip files
-                    if (!fileName.endsWith(".nds"))
-                        continue
-
-                    try {
-                        val romName = RomProcessor.getRomName(context.contentResolver, file.uri)
-                        emitter.onNext(Rom(romName, file.uri, RomConfig()))
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        emitter.onNext(Rom(fileName.substring(0, fileName.length - 4), file.uri, RomConfig()))
+                    fileRomProcessorFactory.getFileRomProcessorForDocument(file)?.let { fileRomProcessor ->
+                        fileRomProcessor.getRomFromUri(file.uri)?.let { emitter.onNext(it) }
                     }
                 }
             }

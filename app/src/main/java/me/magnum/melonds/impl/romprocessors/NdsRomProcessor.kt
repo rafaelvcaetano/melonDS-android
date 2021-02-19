@@ -1,0 +1,56 @@
+package me.magnum.melonds.impl.romprocessors
+
+import android.content.Context
+import android.graphics.Bitmap
+import android.net.Uri
+import io.reactivex.Single
+import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.RomConfig
+import me.magnum.melonds.domain.model.RomInfo
+import me.magnum.melonds.impl.FileRomProcessor
+import me.magnum.melonds.utils.RomProcessor
+
+class NdsRomProcessor(private val context: Context) : FileRomProcessor {
+    override fun getRomFromUri(uri: Uri): Rom? {
+        return try {
+            getRomName(uri)?.let {
+                Rom(it, uri, RomConfig())
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    override fun getRomIcon(rom: Rom): Bitmap? {
+        return try {
+            context.contentResolver.openInputStream(rom.uri)?.use { inputStream ->
+                RomProcessor.getRomIcon(inputStream)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    override fun getRomInfo(rom: Rom): RomInfo? {
+        return try {
+            context.contentResolver.openInputStream(rom.uri)?.use { inputStream ->
+                RomProcessor.getRomInfo(inputStream)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    override fun getRealRomUri(rom: Rom): Single<Uri> {
+        return Single.just(rom.uri)
+    }
+
+    private fun getRomName(uri: Uri): String? {
+        return context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            RomProcessor.getRomName(inputStream)
+        }
+    }
+}

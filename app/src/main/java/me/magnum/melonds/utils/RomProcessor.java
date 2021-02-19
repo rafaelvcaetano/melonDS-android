@@ -1,92 +1,78 @@
 package me.magnum.melonds.utils;
 
-import android.content.ContentResolver;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.net.Uri;
-import me.magnum.melonds.domain.model.Rom;
 import me.magnum.melonds.domain.model.RomInfo;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class RomProcessor {
-	public static String getRomName(ContentResolver contentResolver, Uri romUri) throws Exception {
-		try (InputStream inputStream = contentResolver.openInputStream(romUri)) {
-			// Banner offset is at header offset 0x68
-			inputStream.skip(0x68);
-			// Obtain the banner offset
-			byte[] offsetData = new byte[4];
-			inputStream.read(offsetData);
+	public static String getRomName(InputStream inputStream) throws Exception {
+		// Banner offset is at header offset 0x68
+		inputStream.skip(0x68);
+		// Obtain the banner offset
+		byte[] offsetData = new byte[4];
+		inputStream.read(offsetData);
 
-			int bannerOffset = byteArrayToInt(offsetData);
-			inputStream.skip(bannerOffset + 576 - (0x68 + 4));
-			byte[] titleData = new byte[128];
-			inputStream.read(titleData);
-			return new String(titleData, StandardCharsets.UTF_16LE)
-					.trim()
-					.replaceFirst("\n.*?$", "")
-					.replace("\n", " ");
-		}
+		int bannerOffset = byteArrayToInt(offsetData);
+		inputStream.skip(bannerOffset + 576 - (0x68 + 4));
+		byte[] titleData = new byte[128];
+		inputStream.read(titleData);
+		return new String(titleData, StandardCharsets.UTF_16LE)
+				.trim()
+				.replaceFirst("\n.*?$", "")
+				.replace("\n", " ");
 	}
 
-	public static Bitmap getRomIcon(ContentResolver contentResolver, Uri romFile) throws Exception {
-		if (romFile == null)
-			throw new NullPointerException("ROM file cannot be null");
+	public static Bitmap getRomIcon(InputStream inputStream) throws Exception {
+		// Banner offset is at header offset 0x68
+		inputStream.skip(0x68);
+		// Obtain the banner offset
+		byte[] offsetData = new byte[4];
+		inputStream.read(offsetData);
 
-		try (InputStream inputStream = contentResolver.openInputStream(romFile)) {
-			// Banner offset is at header offset 0x68
-			inputStream.skip(0x68);
-			// Obtain the banner offset
-			byte[] offsetData = new byte[4];
-			inputStream.read(offsetData);
+		int bannerOffset = byteArrayToInt(offsetData);
+		inputStream.skip(bannerOffset + 32 - (0x68 + 4));
+		byte[] tileData = new byte[512];
+		inputStream.read(tileData);
 
-			int bannerOffset = byteArrayToInt(offsetData);
-			inputStream.skip(bannerOffset + 32 - (0x68 + 4));
-			byte[] tileData = new byte[512];
-			inputStream.read(tileData);
+		byte[] paletteData = new byte[16 * 2];
+		inputStream.read(paletteData);
 
-			byte[] paletteData = new byte[16 * 2];
-			inputStream.read(paletteData);
+		short[] palette = new short[16];
+		for (int i = 0; i < 16; i++) {
+			// Each palette color is 16 bits. Join pairs of bytes to create the correct color
+			short lower = (short) (paletteData[i * 2] & 0xFF);
+			short upper = (short) (paletteData[(i * 2) + 1] & 0xFF);
 
-			short[] palette = new short[16];
-			for (int i = 0; i < 16; i++) {
-				// Each palette color is 16 bits. Join pairs of bytes to create the correct color
-				short lower = (short) (paletteData[i * 2] & 0xFF);
-				short upper = (short) (paletteData[(i * 2) + 1] & 0xFF);
-
-				short value = (short) ((lower | (upper << 8)) & 0xFFFF);
-				palette[i] = value;
-			}
-
-			int[] argbPalette = paletteToArgb(palette);
-			int[] icon = processTiles(tileData, argbPalette);
-			byte[] bitmapData = iconToBitmapArray(icon);
-
-			Bitmap bitmap = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888);
-			bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(bitmapData));
-			return bitmap;
+			short value = (short) ((lower | (upper << 8)) & 0xFFFF);
+			palette[i] = value;
 		}
+
+		int[] argbPalette = paletteToArgb(palette);
+		int[] icon = processTiles(tileData, argbPalette);
+		byte[] bitmapData = iconToBitmapArray(icon);
+
+		Bitmap bitmap = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888);
+		bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(bitmapData));
+		return bitmap;
 	}
 
 	@Nullable
-	public static RomInfo getRomInfo(ContentResolver contentResolver, Rom rom) throws Exception {
-		if (rom == null)
-			throw new NullPointerException("ROM file cannot be null");
+	public static RomInfo getRomInfo(@Nonnull InputStream inputStream) throws Exception {
+		byte[] title = new byte[12];
+		if (inputStream.read(title) < 12)
+			return null;
 
-		try (InputStream inputStream = contentResolver.openInputStream(rom.getUri())) {
-			byte[] title = new byte[12];
-			if (inputStream.read(title) < 12)
-				return null;
+		byte[] gameCode = new byte[4];
+		if (inputStream.read(gameCode) < 4)
+			return null;
 
-			byte[] gameCode = new byte[4];
-			if (inputStream.read(gameCode) < 4)
-				return null;
-
-			return new RomInfo(new String(gameCode), new String(title));
-		}
+		return new RomInfo(new String(gameCode), new String(title));
 	}
 
 	private static int byteArrayToInt(byte[] intData) {

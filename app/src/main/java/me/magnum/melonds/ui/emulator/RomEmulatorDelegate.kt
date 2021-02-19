@@ -20,7 +20,6 @@ import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
 import me.magnum.melonds.utils.FileUtils
-import me.magnum.melonds.utils.RomProcessor
 import me.magnum.melonds.utils.isMicrophonePermissionGranted
 import java.io.File
 import java.text.SimpleDateFormat
@@ -55,13 +54,14 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
             activity.viewModel.getRomAtPath(romPath)
         }
 
-        return romLoader.flatMap { rom ->
-            loadedRom = rom
-            return@flatMap loadRomCheats(rom).defaultIfEmpty(emptyList()).flatMapSingle { cheats ->
+        return romLoader.flatMap { rom -> activity.viewModel.getRomLoader(rom) }.flatMap { romPair ->
+            loadedRom = romPair.first
+            return@flatMap loadRomCheats(loadedRom).defaultIfEmpty(emptyList()).flatMapSingle { cheats ->
                 Single.create<MelonEmulator.LoadResult> { emitter ->
-                    MelonEmulator.setupEmulator(getEmulatorConfigurationForRom(rom), activity.assets)
+                    MelonEmulator.setupEmulator(getEmulatorConfigurationForRom(loadedRom), activity.assets)
 
-                    val romPath = FileUtils.getAbsolutePathFromSAFUri(activity, rom.uri) ?: throw EmulatorActivity.RomLoadFailedException("Cannot determine ROM path")
+                    val rom = romPair.first
+                    val romPath = FileUtils.getAbsolutePathFromSAFUri(activity, romPair.second) ?: throw EmulatorActivity.RomLoadFailedException("Cannot determine ROM path")
                     val showBios = activity.settingsRepository.showBootScreen()
                     val sramPath = getSRAMPath(rom.uri)
 
@@ -149,7 +149,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
 
     private fun loadRomCheats(rom: Rom): Maybe<List<Cheat>> {
         return Maybe.create<List<Cheat>> { emitter ->
-            val romInfo = RomProcessor.getRomInfo(activity.contentResolver, rom)
+            val romInfo = activity.viewModel.getRomInfo(rom)
             if (romInfo == null) {
                 emitter.onComplete()
                 return@create
@@ -187,7 +187,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
     }
 
     private fun openCheatsActivity() {
-        val romInfo = RomProcessor.getRomInfo(activity.contentResolver, loadedRom) ?: return
+        val romInfo = activity.viewModel.getRomInfo(loadedRom) ?: return
 
         val intent = Intent(activity, CheatsActivity::class.java)
         intent.putExtra(CheatsActivity.KEY_ROM_INFO, RomInfoParcelable.fromRomInfo(romInfo))

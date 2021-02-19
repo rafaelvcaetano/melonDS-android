@@ -12,9 +12,7 @@ import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
-import me.magnum.melonds.impl.FileSystemRomsRepository
-import me.magnum.melonds.impl.RoomCheatsRepository
-import me.magnum.melonds.impl.SharedPreferencesSettingsRepository
+import me.magnum.melonds.impl.*
 import me.magnum.melonds.utils.RomIconProvider
 import javax.inject.Singleton
 
@@ -41,7 +39,13 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideRomIconProvider(@ApplicationContext context: Context): RomIconProvider {
-        return RomIconProvider(context)
+    fun provideFileRomProcessorFactory(@ApplicationContext context: Context): FileRomProcessorFactory {
+        return FileRomProcessorFactoryImpl(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRomIconProvider(@ApplicationContext context: Context, fileRomProcessorFactory: FileRomProcessorFactory): RomIconProvider {
+        return RomIconProvider(context, fileRomProcessorFactory)
     }
 }
