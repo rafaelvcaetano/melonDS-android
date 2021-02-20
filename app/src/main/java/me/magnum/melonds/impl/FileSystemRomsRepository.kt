@@ -26,13 +26,18 @@ import java.lang.reflect.Type
 import java.util.*
 import kotlin.collections.ArrayList
 
-class FileSystemRomsRepository(private val context: Context, private val gson: Gson, private val settingsRepository: SettingsRepository) : RomsRepository {
+class FileSystemRomsRepository(
+        private val context: Context,
+        private val gson: Gson,
+        private val settingsRepository: SettingsRepository,
+        private val fileRomProcessorFactory: FileRomProcessorFactory
+) : RomsRepository {
+
     companion object {
         private const val TAG = "FSRomsRepository"
         private const val ROM_DATA_FILE = "rom_data.json"
     }
 
-    private val fileRomProcessorFactory = FileRomProcessorFactoryImpl(context)
     private val romListType: Type = object : TypeToken<List<Rom>>(){}.type
     private val romsSubject: BehaviorSubject<List<Rom>> = BehaviorSubject.create()
     private val scanningStatusSubject: BehaviorSubject<RomScanningStatus> = BehaviorSubject.createDefault(RomScanningStatus.NOT_SCANNING)

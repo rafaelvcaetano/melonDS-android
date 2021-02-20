@@ -4,9 +4,12 @@ import android.Manifest
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import androidx.preference.*
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
@@ -14,6 +17,8 @@ import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.MicSource
 import me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
 import me.magnum.melonds.utils.*
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.*
 
 @AndroidEntryPoint
@@ -74,6 +79,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
 
     private val viewModel: SettingsViewModel by activityViewModels()
 
+    private lateinit var clearRomCachePreference: Preference
     private lateinit var micSourcePreference: ListPreference
     private val microphonePermissionLauncher by lazy {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -85,6 +91,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.pref_main, rootKey)
+        clearRomCachePreference = findPreference<Preference>("rom_cache_clear")!!
         val consoleTypePreference = findPreference<ListPreference>("console_type")!!
         val dsBiosDirPreference = findPreference<StoragePickerPreference>("bios_dir")!!
         val dsiBiosDirPreference = findPreference<StoragePickerPreference>("dsi_bios_dir")!!
@@ -108,6 +115,12 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
             micSourcePreference.value = MicSource.BLOW.name.toLowerCase(Locale.ROOT)
         }
 
+        clearRomCachePreference.setOnPreferenceClickListener {
+            if (!viewModel.clearRomCache()) {
+                Toast.makeText(requireContext(), R.string.error_clear_rom_cache, Toast.LENGTH_LONG).show()
+            }
+            true
+        }
         consoleTypePreference.setOnPreferenceChangeListener { _, newValue ->
             val consoleTypePreferenceValue = newValue as String
             val newConsoleType = enumValueOfIgnoreCase<ConsoleType>(consoleTypePreferenceValue)
@@ -143,6 +156,22 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
             handleCheatsImport()
             true
         }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel.getRomCacheSize().observe(viewLifecycleOwner, Observer {
+            val cacheSizeRepresentation = getBestCacheSizeRepresentation(it)
+            val sizeDecimal = BigDecimal(cacheSizeRepresentation.first).setScale(1, RoundingMode.HALF_EVEN)
+            clearRomCachePreference.summary = getString(R.string.cache_size, "${sizeDecimal}${cacheSizeRepresentation.second}")
+        })
+    }
+
+    private fun getBestCacheSizeRepresentation(cacheSize: Long): Pair<Double, String> {
+        if (cacheSize < 1024) return cacheSize.toDouble() to "B"
+        if (cacheSize / 1024.0 < 1024.0) return cacheSize / 1024.0 to "KB"
+        if (cacheSize / 1024.0 / 1024.0 < 1024.0) return cacheSize / 1024.0 / 1024.0 to "MB"
+        return cacheSize / 1024.0 / 1024.0 / 1024.0 to "GB"
     }
 
     private fun setupStoragePickerPreference(storagePreference: StoragePickerPreference) {

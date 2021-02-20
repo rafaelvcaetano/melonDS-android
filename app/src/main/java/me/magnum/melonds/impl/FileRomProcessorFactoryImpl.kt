@@ -6,10 +6,10 @@ import androidx.documentfile.provider.DocumentFile
 import me.magnum.melonds.impl.romprocessors.NdsRomProcessor
 import me.magnum.melonds.impl.romprocessors.ZipRomProcessor
 
-class FileRomProcessorFactoryImpl(private val context: Context) : FileRomProcessorFactory {
+class FileRomProcessorFactoryImpl(private val context: Context, ndsRomCache: NdsRomCache) : FileRomProcessorFactory {
     private val prefixProcessorMap = mapOf(
             "nds" to NdsRomProcessor(context),
-            "zip" to ZipRomProcessor(context)
+            "zip" to ZipRomProcessor(context, ndsRomCache)
     )
 
     override fun getFileRomProcessorForDocument(romDocument: DocumentFile): FileRomProcessor? {

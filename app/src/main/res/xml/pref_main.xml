@@ -39,6 +39,11 @@
             android:entries="@array/rom_icon_filtering_options"
             android:entryValues="@array/rom_icon_filtering_values"
             android:defaultValue="linear" />
+
+        <Preference
+            android:key="rom_cache_clear"
+            android:title="@string/clear_extracted_rom_cache"
+            android:summary="@string/cache_size_calculating" />
     </PreferenceCategory>
 
     <PreferenceCategory

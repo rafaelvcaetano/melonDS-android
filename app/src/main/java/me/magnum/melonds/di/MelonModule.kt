@@ -27,8 +27,8 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideRomsRepository(@ApplicationContext context: Context, gson: Gson, settingsRepository: SettingsRepository): RomsRepository {
-        return FileSystemRomsRepository(context, gson, settingsRepository)
+    fun provideRomsRepository(@ApplicationContext context: Context, gson: Gson, settingsRepository: SettingsRepository, fileRomProcessorFactory: FileRomProcessorFactory): RomsRepository {
+        return FileSystemRomsRepository(context, gson, settingsRepository, fileRomProcessorFactory)
     }
 
     @Provides
@@ -39,8 +39,14 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideFileRomProcessorFactory(@ApplicationContext context: Context): FileRomProcessorFactory {
-        return FileRomProcessorFactoryImpl(context)
+    fun provideNdsRomCache(@ApplicationContext context: Context): NdsRomCache {
+        return NdsRomCache(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFileRomProcessorFactory(@ApplicationContext context: Context, ndsRomCache: NdsRomCache): FileRomProcessorFactory {
+        return FileRomProcessorFactoryImpl(context, ndsRomCache)
     }
 
     @Provides

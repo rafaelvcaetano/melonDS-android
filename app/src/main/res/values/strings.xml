@@ -62,6 +62,9 @@
     <string name="theme">Theme</string>
     <string name="fast_forward_max_speed">Fast-forward max speed</string>
     <string name="rom_icon_filtering">Icon filtering</string>
+    <string name="clear_extracted_rom_cache">Clear extracted ROM cache</string>
+    <string name="cache_size">Cache size: %s</string>
+    <string name="cache_size_calculating">Cache size: calculating…</string>
     <string name="rom_search_directories">Search directories</string>
     <string name="console_type">Default system</string>
     <string name="bios_directory">DS BIOS directory</string>
@@ -92,6 +95,7 @@
     <string name="import_cheats_summary">Import cheats from database files to make them available. Only XML databases are supported for now. Any previously imported cheat will be deleted.</string>
     <string name="rom_shortcut">ROM shortcut</string>
 
+    <string name="error_clear_rom_cache">Failed to clear ROM cache</string>
     <string name="importing_cheats">Importing cheats…</string>
     <string name="starting">Starting…</string>
     <string name="failed_save_cheat_changes">Could not save cheat changes</string>

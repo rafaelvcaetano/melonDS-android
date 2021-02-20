@@ -9,12 +9,13 @@ import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.impl.FileRomProcessor
+import me.magnum.melonds.impl.NdsRomCache
 import me.magnum.melonds.utils.RomProcessor
 import java.io.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
-class ZipRomProcessor(private val context: Context) : FileRomProcessor {
+class ZipRomProcessor(private val context: Context, private val ndsRomCache: NdsRomCache) : FileRomProcessor {
     companion object {
         private const val EXTRACTED_ROMS_CACHE_DIR = "extracted_roms"
     }
@@ -62,7 +63,7 @@ class ZipRomProcessor(private val context: Context) : FileRomProcessor {
     }
 
     override fun getRealRomUri(rom: Rom): Single<Uri> {
-        val cachedRomUri = getCachedRomFile(rom)
+        val cachedRomUri = ndsRomCache.getCachedRomFile(rom)
         return if (cachedRomUri != null) {
             Single.just(cachedRomUri)
         } else {
@@ -75,7 +76,7 @@ class ZipRomProcessor(private val context: Context) : FileRomProcessor {
      * use the zip's input stream.
      */
     private fun getBestRomInputStream(rom: Rom): InputStream? {
-        val cachedRomUri = getCachedRomFile(rom)
+        val cachedRomUri = ndsRomCache.getCachedRomFile(rom)
         return if (cachedRomUri != null) {
             context.contentResolver.openInputStream(cachedRomUri)
         } else {
@@ -104,21 +105,6 @@ class ZipRomProcessor(private val context: Context) : FileRomProcessor {
         return RomProcessor.getRomName(inputStream)
     }
 
-    private fun getCachedRomFile(rom: Rom): Uri? {
-        val romHash = rom.uri.hashCode().toString()
-        val romCacheDir = context.externalCacheDir?.let { File(it, EXTRACTED_ROMS_CACHE_DIR) }
-        if (romCacheDir == null || !romCacheDir.isDirectory) {
-            return null
-        }
-
-        val romFile = File(romCacheDir, romHash)
-        return if (romFile.isFile) {
-            return DocumentFile.fromFile(romFile).uri
-        } else {
-            null
-        }
-    }
-
     private fun extractRomFile(rom: Rom): Single<Uri> {
         return Single.create { emitter ->
             val romCacheDir = context.externalCacheDir?.let { File(it, EXTRACTED_ROMS_CACHE_DIR) }
@@ -131,27 +117,21 @@ class ZipRomProcessor(private val context: Context) : FileRomProcessor {
                 context.contentResolver.openInputStream(rom.uri)?.use {
                     val zipStream = ZipInputStream(it)
                     getNdsEntryInStream(zipStream)?.let {
-                        val fileOutputStream = FileOutputStream(cachedFile)
-                        val bufferedInputStream = BufferedInputStream(zipStream)
-                        BufferedOutputStream(fileOutputStream).use { bufferedOutputStream ->
+                        ndsRomCache.cacheRom(rom) { fileOutputStream ->
+                            val bufferedInputStream = BufferedInputStream(zipStream)
+                            val bufferedOutputStream = BufferedOutputStream(fileOutputStream)
                             val buffer = ByteArray(1024)
 
-                            try {
-                                do {
-                                    val read = bufferedInputStream.read(buffer, 0, 1024)
-                                    if (read <= 0) {
-                                        break
-                                    }
+                            do {
+                                val read = bufferedInputStream.read(buffer, 0, 1024)
+                                if (read <= 0) {
+                                    break
+                                }
 
-                                    bufferedOutputStream.write(buffer, 0, read)
-                                } while (true)
+                                bufferedOutputStream.write(buffer, 0, read)
+                            } while (true)
 
-                                emitter.onSuccess(DocumentFile.fromFile(cachedFile).uri)
-                            } catch (e: Exception) {
-                                // Delete cached file if something goes wrong
-                                cachedFile.delete()
-                                throw e
-                            }
+                            emitter.onSuccess(DocumentFile.fromFile(cachedFile).uri)
                         }
                     } ?: emitter.onError(CouldNotFindNdsRomException())
                 } ?: emitter.onError(CouldNotOpenZipFileException())
