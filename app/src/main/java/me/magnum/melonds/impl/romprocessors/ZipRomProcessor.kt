@@ -80,11 +80,17 @@ class ZipRomProcessor(private val context: Context, private val ndsRomCache: Nds
         return if (cachedRomUri != null) {
             context.contentResolver.openInputStream(cachedRomUri)
         } else {
-            context.contentResolver.openInputStream(rom.uri)?.use {
+            context.contentResolver.openInputStream(rom.uri)?.let {
                 val zipStream = ZipInputStream(it)
-                if (getNdsEntryInStream(zipStream) != null) {
-                    zipStream
-                } else {
+                try {
+                    if (getNdsEntryInStream(zipStream) != null) {
+                        zipStream
+                    } else {
+                        zipStream.close()
+                        null
+                    }
+                } catch (e: Exception) {
+                    zipStream.close()
                     null
                 }
             }

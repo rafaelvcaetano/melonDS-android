@@ -20,12 +20,8 @@ class NdsRomCache(private val context: Context) {
         return cacheModifiedSubject.startWith(Unit).flatMap {
             Observable.create<Long> { emitter ->
                 val romCacheDir = context.externalCacheDir?.let { File(it, ROMS_CACHE_DIR) }
-                if (romCacheDir == null) {
-                    emitter.onNext(0)
-                } else {
-                    val cacheSize = romCacheDir.listFiles()?.sumOf { file: File -> file.length() } ?: 0L
-                    emitter.onNext(cacheSize)
-                }
+                val cacheSize = romCacheDir?.listFiles()?.sumOf { file: File -> file.length() } ?: 0L
+                emitter.onNext(cacheSize)
             }
         }
     }
