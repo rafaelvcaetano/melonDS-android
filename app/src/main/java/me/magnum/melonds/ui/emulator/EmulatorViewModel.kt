@@ -71,6 +71,7 @@ class EmulatorViewModel @ViewModelInject constructor(
     fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {
         val baseConfiguration = settingsRepository.getEmulatorConfiguration()
         return EmulatorConfiguration(
+                baseConfiguration.useCustomBios,
                 baseConfiguration.dsConfigDirectory,
                 baseConfiguration.dsiConfigDirectory,
                 baseConfiguration.fastForwardSpeedMultiplier,
@@ -78,6 +79,7 @@ class EmulatorViewModel @ViewModelInject constructor(
                 getRomOptionOrDefault(rom.config.runtimeConsoleType, baseConfiguration.consoleType),
                 baseConfiguration.soundEnabled,
                 getRomOptionOrDefault(rom.config.runtimeMicSource, baseConfiguration.micSource),
+                baseConfiguration.firmwareConfiguration,
                 baseConfiguration.rendererConfiguration
         )
     }

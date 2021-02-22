@@ -57,20 +57,34 @@
             android:entryValues="@array/console_type_values"
             android:defaultValue="ds" />
 
+        <Preference
+            android:key="firmware_user_settings"
+            android:title="@string/firmware_user_settings"
+            android:summary="@string/firmware_user_settings_summary"
+            android:fragment="me.magnum.melonds.ui.settings.FirmwarePreferencesFragment" />
+
+        <SwitchPreference
+            android:key="use_custom_bios"
+            android:title="@string/use_custom_bios_firmware"
+            android:summary="@string/use_custom_bios_firmware_summary"
+            android:defaultValue="false" />
+
+        <SwitchPreference
+            android:key="show_bios"
+            android:title="@string/show_boot_screen"
+            android:dependency="use_custom_bios"
+            android:defaultValue="false" />
+
         <me.magnum.melonds.ui.settings.preferences.BiosDirectoryPickerPreference
             android:key="bios_dir"
             android:title="@string/bios_directory"
+            android:dependency="use_custom_bios"
             app:consoleType="ds" />
 
         <me.magnum.melonds.ui.settings.preferences.BiosDirectoryPickerPreference
             android:key="dsi_bios_dir"
             android:title="@string/dsi_bios_directory"
             app:consoleType="dsi" />
-
-        <SwitchPreference
-            android:key="show_bios"
-            android:title="@string/show_boot_screen"
-            android:defaultValue="false" />
 
         <SwitchPreference
             android:key="enable_jit"

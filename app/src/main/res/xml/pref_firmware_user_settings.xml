@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <EditTextPreference
+        android:key="firmware_settings_nickname"
+        android:title="@string/firmware_nickname"
+        android:summary="%s"
+        app:useSimpleSummaryProvider="true"
+        android:defaultValue="Player" />
+
+    <EditTextPreference
+        android:key="firmware_settings_message"
+        android:title="@string/firmware_message"
+        android:summary="%s"
+        app:useSimpleSummaryProvider="true"
+        android:defaultValue="Hello!" />
+
+    <ListPreference
+        android:key="firmware_settings_language"
+        android:title="@string/firmware_language"
+        android:summary="%s"
+        android:entries="@array/firmware_settings_language_options"
+        android:entryValues="@array/firmware_settings_language_values"
+        android:defaultValue="1" />
+
+    <me.magnum.melonds.ui.settings.preferences.FirmwareColourPickerPreference
+        android:key="firmware_settings_colour"
+        android:title="@string/firmware_favourite_colour" />
+
+    <me.magnum.melonds.ui.settings.preferences.FirmwareBirthdayPreference
+        android:key="firmware_settings_birthday"
+        android:title="@string/firmware_birthday"
+        android:defaultValue="01/01" />
+</PreferenceScreen>

@@ -67,6 +67,10 @@
     <string name="cache_size_calculating">Cache size: calculating…</string>
     <string name="rom_search_directories">Search directories</string>
     <string name="console_type">Default system</string>
+    <string name="firmware_user_settings">Firmware user settings</string>
+    <string name="firmware_user_settings_summary">Adjust the user settings of the internal firmware</string>
+    <string name="use_custom_bios_firmware">Use custom BIOS and firmware</string>
+    <string name="use_custom_bios_firmware_summary">Using a custom BIOS and firmware allows you to enter the DS\'s boot screen, just like in a real system.</string>
     <string name="bios_directory">DS BIOS directory</string>
     <string name="dsi_bios_directory">DSi BIOS directory</string>
     <string name="show_boot_screen">Show boot screen</string>
@@ -95,11 +99,21 @@
     <string name="import_cheats_summary">Import cheats from database files to make them available. Only XML databases are supported for now. Any previously imported cheat will be deleted.</string>
     <string name="rom_shortcut">ROM shortcut</string>
 
+    <string name="firmware_nickname">Nickname</string>
+    <string name="firmware_message">Message</string>
+    <string name="firmware_language">Language</string>
+    <string name="firmware_favourite_colour">Favourite colour</string>
+    <string name="firmware_birthday">Birthday</string>
+
     <string name="error_clear_rom_cache">Failed to clear ROM cache</string>
     <string name="importing_cheats">Importing cheats…</string>
     <string name="starting">Starting…</string>
     <string name="failed_save_cheat_changes">Could not save cheat changes</string>
     <string name="no_cheats_found">Could not find cheats for the current ROM. Try importing a different cheat database.</string>
+    <string name="day">Day</string>
+    <string name="month">Month</string>
+    <string name="symbol_increase">+</string>
+    <string name="symbol_decrease">-</string>
 
     <string name="rom_settings">Rom settings</string> <!-- Accessibility string. Should not use acronyms -->
     <string name="label_rom_config_console">Boot system</string>
@@ -153,6 +167,15 @@
         <item>Default</item>
         <item>@string/console_ds</item>
         <item>@string/console_dsi</item>
+    </string-array>
+
+    <string-array name="firmware_settings_language_options">
+        <item>English</item>
+        <item>French</item>
+        <item>German</item>
+        <item>Italian</item>
+        <item>Spanish</item>
+        <item>Japanese</item>
     </string-array>
 
     <string-array name="game_runtime_mic_source_options">

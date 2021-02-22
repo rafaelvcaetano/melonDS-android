@@ -12,6 +12,7 @@
 #define MAX_CHEAT_SIZE (2*64)
 
 MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jobject emulatorConfiguration);
+MelonDSAndroid::FirmwareConfiguration buildFirmwareConfiguration(JNIEnv* env, jobject firmwareConfiguration);
 GPU::RenderSettings buildRenderSettings(JNIEnv* env, jobject renderSettings);
 void* emulate(void*);
 
@@ -310,6 +311,7 @@ MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jo
     jclass consoleTypeEnumClass = env->FindClass("me/magnum/melonds/domain/model/ConsoleType");
     jclass micSourceEnumClass = env->FindClass("me/magnum/melonds/domain/model/MicSource");
 
+    jboolean useCustomBios = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "useCustomBios", "Z"));
     jstring dsConfigDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsConfigDirectory", "Ljava/lang/String;"));
     jstring dsiConfigDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsiConfigDirectory", "Ljava/lang/String;"));
     jfloat fastForwardMaxSpeed = env->GetFloatField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "fastForwardSpeedMultiplier", "F"));
@@ -321,9 +323,11 @@ MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jo
     jint micSource = env->GetIntField(micSourceEnum, env->GetFieldID(micSourceEnumClass, "sourceValue", "I"));
     const char* dsDir = env->GetStringUTFChars(dsConfigDir, JNI_FALSE);
     const char* dsiDir = env->GetStringUTFChars(dsiConfigDir, JNI_FALSE);
+    jobject firmwareConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "firmwareConfiguration", "Lme/magnum/melonds/domain/model/FirmwareConfiguration;"));
     jobject rendererConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "rendererConfiguration", "Lme/magnum/melonds/domain/model/RendererConfiguration;"));
 
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration;
+    finalEmulatorConfiguration.userInternalFirmwareAndBios = !useCustomBios;
     finalEmulatorConfiguration.dsConfigDir = const_cast<char*>(dsDir);
     finalEmulatorConfiguration.dsiConfigDir = const_cast<char*>(dsiDir);
     finalEmulatorConfiguration.fastForwardSpeedMultiplier = fastForwardMaxSpeed;
@@ -331,8 +335,38 @@ MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jo
     finalEmulatorConfiguration.consoleType = consoleType;
     finalEmulatorConfiguration.soundEnabled = soundEnabled;
     finalEmulatorConfiguration.micSource = micSource;
+    finalEmulatorConfiguration.firmwareConfiguration = buildFirmwareConfiguration(env, firmwareConfigurationObject);
     finalEmulatorConfiguration.renderSettings = buildRenderSettings(env, rendererConfigurationObject);
     return finalEmulatorConfiguration;
+}
+
+MelonDSAndroid::FirmwareConfiguration buildFirmwareConfiguration(JNIEnv* env, jobject firmwareConfiguration) {
+    jclass firmwareConfigurationClass = env->GetObjectClass(firmwareConfiguration);
+    jstring nicknameString = (jstring) env->GetObjectField(firmwareConfiguration, env->GetFieldID(firmwareConfigurationClass, "nickname", "Ljava/lang/String;"));
+    jstring messageString = (jstring) env->GetObjectField(firmwareConfiguration, env->GetFieldID(firmwareConfigurationClass, "message", "Ljava/lang/String;"));
+    int language = env->GetIntField(firmwareConfiguration, env->GetFieldID(firmwareConfigurationClass, "language", "I"));
+    int colour = env->GetIntField(firmwareConfiguration, env->GetFieldID(firmwareConfigurationClass, "favouriteColour", "I"));
+    int birthdayDay = env->GetIntField(firmwareConfiguration, env->GetFieldID(firmwareConfigurationClass, "birthdayDay", "I"));
+    int birthdayMonth = env->GetIntField(firmwareConfiguration, env->GetFieldID(firmwareConfigurationClass, "birthdayMonth", "I"));
+
+    jboolean isCopy = JNI_FALSE;
+    const char* nickname = env->GetStringUTFChars(nicknameString, &isCopy);
+    const char* message = env->GetStringUTFChars(messageString, &isCopy);
+
+    MelonDSAndroid::FirmwareConfiguration finalFirmwareConfiguration;
+    strcpy(finalFirmwareConfiguration.username, nickname);
+    strcpy(finalFirmwareConfiguration.message, message);
+    finalFirmwareConfiguration.language = language;
+    finalFirmwareConfiguration.favouriteColour = colour;
+    finalFirmwareConfiguration.birthdayDay = birthdayDay;
+    finalFirmwareConfiguration.birthdayMonth = birthdayMonth;
+
+    if (isCopy) {
+        env->ReleaseStringUTFChars(nicknameString, nickname);
+        env->ReleaseStringUTFChars(messageString, message);
+    }
+
+    return finalFirmwareConfiguration;
 }
 
 GPU::RenderSettings buildRenderSettings(JNIEnv* env, jobject renderSettings) {

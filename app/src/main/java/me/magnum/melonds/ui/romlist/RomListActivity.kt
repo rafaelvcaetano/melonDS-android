@@ -74,11 +74,6 @@ class RomListActivity : AppCompatActivity() {
         })
     }
 
-    override fun onStart() {
-        super.onStart()
-        checkConfigDirectorySetup()
-    }
-
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         if (menu == null)
             return super.onCreateOptionsMenu(menu)

@@ -1,6 +1,7 @@
 package me.magnum.melonds.domain.model
 
 data class EmulatorConfiguration(
+        val useCustomBios: Boolean,
         val dsConfigDirectory: String,
         val dsiConfigDirectory: String,
         val fastForwardSpeedMultiplier: Float,
@@ -8,5 +9,6 @@ data class EmulatorConfiguration(
         val consoleType: ConsoleType,
         val soundEnabled: Boolean,
         val micSource: MicSource,
+        val firmwareConfiguration: FirmwareConfiguration,
         val rendererConfiguration: RendererConfiguration
 )

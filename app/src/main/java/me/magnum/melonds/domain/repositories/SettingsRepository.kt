@@ -15,6 +15,8 @@ interface SettingsRepository {
     fun getRomIconFiltering(): RomIconFiltering
 
     fun getDefaultConsoleType(): ConsoleType
+    fun getFirmwareConfiguration(): FirmwareConfiguration
+    fun useCustomBios(): Boolean
     fun getDsBiosDirectory(): Uri?
     fun getDsiBiosDirectory(): Uri?
     fun showBootScreen(): Boolean

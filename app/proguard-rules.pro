@@ -23,6 +23,7 @@
 -keepclassmembers enum * { *; }
 
 -keep class me.magnum.melonds.domain.model.RendererConfiguration { *; }
+-keep class me.magnum.melonds.domain.model.FirmwareConfiguration { *; }
 -keep class me.magnum.melonds.domain.model.EmulatorConfiguration { *; }
 -keep class me.magnum.melonds.domain.model.ConsoleType { *; }
 -keep class me.magnum.melonds.domain.model.MicSource { *; }

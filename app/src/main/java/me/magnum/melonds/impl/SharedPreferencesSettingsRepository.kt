@@ -43,11 +43,12 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
 
     override fun getEmulatorConfiguration(): EmulatorConfiguration {
         val consoleType = getDefaultConsoleType()
+        val useCustomBios = useCustomBios()
         val dsBiosDirUri = getDsBiosDirectory()
         val dsiBiosDirUri = getDsiBiosDirectory()
 
         // Ensure all BIOS dirs are set. DSi requires both dirs to be set
-        if (dsBiosDirUri == null || (consoleType == ConsoleType.DSi && dsiBiosDirUri == null))
+        if ((consoleType == ConsoleType.DS && useCustomBios && dsBiosDirUri == null) || (consoleType == ConsoleType.DSi && (dsBiosDirUri == null || dsiBiosDirUri == null)))
             throw IllegalStateException("BIOS directory not set")
 
         val dsBiosDirPath = FileUtils.getAbsolutePathFromSAFUri(context, dsBiosDirUri)
@@ -56,6 +57,7 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         val dsiConfigDirectoryPath = "$dsiBiosDirPath/"
 
         return EmulatorConfiguration(
+            useCustomBios(),
             dsConfigDirectoryPath,
             dsiConfigDirectoryPath,
             getFastForwardSpeedMultiplier(),
@@ -63,6 +65,7 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
             consoleType,
             isSoundEnabled(),
             getMicSource(),
+            getFirmwareConfiguration(),
             RendererConfiguration(
                 getVideoFiltering(),
                 isThreadedRenderingEnabled()
@@ -93,6 +96,31 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
     override fun getDefaultConsoleType(): ConsoleType {
         val consoleTypePreference = preferences.getString("console_type", "ds")!!
         return enumValueOfIgnoreCase(consoleTypePreference)
+    }
+
+    override fun getFirmwareConfiguration(): FirmwareConfiguration {
+        val birthdayPreference = preferences.getString("firmware_settings_birthday", "01/01")!!
+        val parts = birthdayPreference.split("/")
+        val birthday = if (parts.size != 2) {
+            Pair(1, 1)
+        } else {
+            val day = parts[0].toIntOrNull() ?: 1
+            val month = parts[1].toIntOrNull() ?: 1
+            Pair(day, month)
+        }
+
+        return FirmwareConfiguration(
+                preferences.getString("firmware_settings_nickname", "Player")!!,
+                preferences.getString("firmware_settings_message", "Hello!")!!,
+                preferences.getString("firmware_settings_language", "1")!!.toInt(),
+                preferences.getInt("firmware_settings_colour", 0),
+                birthday.first,
+                birthday.second,
+        )
+    }
+
+    override fun useCustomBios(): Boolean {
+        return preferences.getBoolean("use_custom_bios", false)
     }
 
     override fun getDsBiosDirectory(): Uri? {

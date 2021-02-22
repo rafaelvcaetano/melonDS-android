@@ -10,6 +10,14 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupActionBar()
+
+        supportFragmentManager.addOnBackStackChangedListener {
+            val fragment = supportFragmentManager.fragments.lastOrNull()
+            if (fragment is BasePreferencesFragment) {
+                supportActionBar?.title = fragment.getTitle()
+            }
+        }
+
         supportFragmentManager
                 .beginTransaction()
                 .replace(android.R.id.content, MainPreferencesFragment())
@@ -24,11 +32,19 @@ class SettingsActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         if (id == android.R.id.home) {
-            if (!super.onOptionsItemSelected(item)) {
+            if (!popBackStackIfNeeded()) {
                 finish()
             }
             return true
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun popBackStackIfNeeded(): Boolean {
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStack()
+            return true
+        }
+        return false
     }
 }

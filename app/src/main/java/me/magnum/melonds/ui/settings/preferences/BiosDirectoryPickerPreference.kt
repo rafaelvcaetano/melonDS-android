@@ -8,7 +8,9 @@ import android.view.View
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.getIntOrThrow
+import androidx.core.view.isGone
 import androidx.core.widget.ImageViewCompat
+import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.ConsoleType
@@ -21,8 +23,8 @@ class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : S
         selectionType = SelectionType.DIRECTORY
     }
 
-    lateinit var consoleType: ConsoleType
-    lateinit var imageViewStatus: ImageView
+    private var consoleType: ConsoleType? = null
+    private var imageViewStatus: ImageView? = null
 
     override fun onDirectoryPicked(uri: Uri?) {
         super.onDirectoryPicked(uri)
@@ -33,25 +35,37 @@ class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : S
         updateStatusIndicator(uri)
     }
 
+    override fun onDependencyChanged(dependency: Preference?, disableDependent: Boolean) {
+        super.onDependencyChanged(dependency, disableDependent)
+        imageViewStatus?.isGone = disableDependent
+    }
+
     private fun updateStatusIndicator(uri: Uri?) {
-        val dirResult = ConfigurationUtils.checkConfigurationDirectory(context, uri, consoleType)
+        if (!isEnabled) {
+            imageViewStatus?.isGone = true
+            return
+        }
+
+        imageViewStatus?.isGone = false
+
+        val dirResult = ConfigurationUtils.checkConfigurationDirectory(context, uri, consoleType!!)
         when (dirResult.status) {
             ConfigurationUtils.ConfigurationDirStatus.VALID -> {
-                (imageViewStatus.parent as View).visibility = View.GONE
+                (imageViewStatus!!.parent as View).visibility = View.GONE
             }
             ConfigurationUtils.ConfigurationDirStatus.INVALID -> {
-                (imageViewStatus.parent as View).visibility = View.VISIBLE
-                imageViewStatus.setImageResource(R.drawable.ic_status_warn)
-                ImageViewCompat.setImageTintList(imageViewStatus, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusWarn)))
+                (imageViewStatus!!.parent as View).visibility = View.VISIBLE
+                imageViewStatus!!.setImageResource(R.drawable.ic_status_warn)
+                ImageViewCompat.setImageTintList(imageViewStatus!!, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusWarn)))
             }
             ConfigurationUtils.ConfigurationDirStatus.UNSET ->{
-                (imageViewStatus.parent as View).visibility = View.VISIBLE
-                imageViewStatus.setImageResource(R.drawable.ic_status_error)
-                ImageViewCompat.setImageTintList(imageViewStatus, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusError)))
+                (imageViewStatus!!.parent as View).visibility = View.VISIBLE
+                imageViewStatus!!.setImageResource(R.drawable.ic_status_error)
+                ImageViewCompat.setImageTintList(imageViewStatus!!, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusError)))
             }
         }
-        imageViewStatus.setOnClickListener {
-            FileStatusPopup(context, dirResult.fileResults).showAt(imageViewStatus)
+        imageViewStatus!!.setOnClickListener {
+            FileStatusPopup(context, dirResult.fileResults).showAt(imageViewStatus!!)
         }
     }
 
@@ -60,13 +74,8 @@ class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : S
             return
 
         val attrArray = context.theme.obtainStyledAttributes(attrs, R.styleable.BiosDirectoryPickerPreference, 0, 0)
-        val count = attrArray.indexCount
-        for (i in 0..count) {
-            val attr = attrArray.getIndex(i)
-            when (attr) {
-                R.styleable.BiosDirectoryPickerPreference_consoleType -> consoleType = ConsoleType.values()[attrArray.getIntOrThrow(attr)]
-            }
-        }
+        consoleType = ConsoleType.values()[attrArray.getIntOrThrow(R.styleable.BiosDirectoryPickerPreference_consoleType)]
+
         attrArray.recycle()
     }
 

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="?attr/dialogPreferredPadding"
+        android:paddingEnd="?attr/dialogPreferredPadding"
+        android:orientation="vertical">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layoutGridColours"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+                android:id="@+id/layoutColourRow0"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toTopOf="@+id/layoutColourRow1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+            <View
+                    android:id="@+id/viewColour00"
+                    style="@style/ColourTile"
+                    android:background="#61829A"
+                    android:tag="0" />
+
+            <View
+                    android:id="@+id/viewColour01"
+                    style="@style/ColourTile"
+                    android:background="#BA4900"
+                    android:tag="1" />
+
+            <View
+                    android:id="@+id/viewColour02"
+                    style="@style/ColourTile"
+                    android:background="#FB0018"
+                    android:tag="2" />
+
+            <View
+                    android:id="@+id/viewColour03"
+                    style="@style/ColourTile"
+                    android:background="#FB8AFB"
+                    android:tag="3" />
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/layoutColourRow1"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toTopOf="@+id/layoutColourRow2"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/layoutColourRow0">
+
+            <View
+                    android:id="@+id/viewColour10"
+                    style="@style/ColourTile"
+                    android:background="#FB9200"
+                    android:tag="4" />
+
+            <View
+                    android:id="@+id/viewColour11"
+                    style="@style/ColourTile"
+                    android:background="#F3E300"
+                    android:tag="5" />
+
+            <View
+                    android:id="@+id/viewColour12"
+                    style="@style/ColourTile"
+                    android:background="#AAFB00"
+                    android:tag="6" />
+
+            <View
+                    android:id="@+id/viewColour13"
+                    style="@style/ColourTile"
+                    android:background="#00FB00"
+                    android:tag="7" />
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/layoutColourRow2"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toTopOf="@+id/layoutColourRow3"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/layoutColourRow1">
+
+            <View
+                    android:id="@+id/viewColour20"
+                    style="@style/ColourTile"
+                    android:background="#00A238"
+                    android:tag="8"
+                    app:layout_constraintBottom_toTopOf="@+id/viewColour30"
+                    app:layout_constraintEnd_toStartOf="@+id/viewColour21" />
+
+            <View
+                    android:id="@+id/viewColour21"
+                    style="@style/ColourTile"
+                    android:background="#49DB8A"
+                    android:tag="9" />
+
+            <View
+                    android:id="@+id/viewColour22"
+                    style="@style/ColourTile"
+                    android:background="#30BAF3"
+                    android:tag="10" />
+
+            <View
+                    android:id="@+id/viewColour23"
+                    style="@style/ColourTile"
+                    android:background="#0059F3"
+                    android:tag="11" />
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/layoutColourRow3"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/layoutColourRow2">
+
+            <View
+                    android:id="@+id/viewColour30"
+                    style="@style/ColourTile"
+                    android:background="#000092"
+                    android:tag="12" />
+
+            <View
+                    android:id="@+id/viewColour31"
+                    style="@style/ColourTile"
+                    android:background="#8A00D3"
+                    android:tag="13" />
+
+            <View
+                    android:id="@+id/viewColour32"
+                    style="@style/ColourTile"
+                    android:background="#D300EB"
+                    android:tag="14" />
+
+            <View
+                    android:id="@+id/viewColour33"
+                    style="@style/ColourTile"
+                    android:background="#FB0092"
+                    android:tag="15" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

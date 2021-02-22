@@ -148,6 +148,10 @@ class RomListViewModel @ViewModelInject constructor(
 
     fun getRomConfigurationDirStatus(rom: Rom): ConfigurationUtils.ConfigurationDirStatus {
         val romTargetConsoleType = getRomTargetConsoleType(rom)
+        if (romTargetConsoleType == ConsoleType.DS && !settingsRepository.useCustomBios()) {
+            return ConfigurationUtils.ConfigurationDirStatus.VALID
+        }
+
         return getConsoleConfigurationDirStatus(romTargetConsoleType)
     }
 
