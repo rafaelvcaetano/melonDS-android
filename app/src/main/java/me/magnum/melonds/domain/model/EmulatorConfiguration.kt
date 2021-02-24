@@ -4,6 +4,7 @@ data class EmulatorConfiguration(
         val useCustomBios: Boolean,
         val dsConfigDirectory: String,
         val dsiConfigDirectory: String,
+        val internalDirectory: String,
         val fastForwardSpeedMultiplier: Float,
         val useJit: Boolean,
         val consoleType: ConsoleType,

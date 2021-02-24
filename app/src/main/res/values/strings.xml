@@ -2,7 +2,10 @@
     <string name="app_name">melonDS</string>
 
     <string name="ok">OK</string>
+    <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
     <string name="cancel">Cancel</string>
     <string name="not_set">Not set</string>
 
@@ -69,8 +72,8 @@
     <string name="console_type">Default system</string>
     <string name="firmware_user_settings">Firmware user settings</string>
     <string name="firmware_user_settings_summary">Adjust the user settings of the internal firmware</string>
-    <string name="use_custom_bios_firmware">Use custom BIOS and firmware</string>
-    <string name="use_custom_bios_firmware_summary">Using a custom BIOS and firmware allows you to enter the DS\'s boot screen, just like in a real system.</string>
+    <string name="custom_bios_firmware">Custom BIOS and firmware</string>
+    <string name="custom_bios_firmware_description">Using a custom BIOS and firmware allows you to launch and navigate in the DS\'s firmware without loading a ROM, just like in a real system.\n\nYou will need to dump the BIOS and firmware files from a real system.\n\nUsing a custom BIOS and firmware is required for DSi support.</string>
     <string name="bios_directory">DS BIOS directory</string>
     <string name="dsi_bios_directory">DSi BIOS directory</string>
     <string name="show_boot_screen">Show boot screen</string>

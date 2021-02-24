@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ListPreference
+            android:key="console_type"
+            android:title="@string/console_type"
+            android:summary="%s"
+            android:entries="@array/console_type_options"
+            android:entryValues="@array/console_type_values"
+            android:defaultValue="ds" />
+
+    <SwitchPreference
+            android:key="show_bios"
+            android:title="@string/show_boot_screen"
+            android:defaultValue="false" />
+
+    <me.magnum.melonds.ui.settings.preferences.BiosDirectoryPickerPreference
+            android:key="bios_dir"
+            android:title="@string/bios_directory"
+            app:consoleType="ds" />
+
+    <me.magnum.melonds.ui.settings.preferences.BiosDirectoryPickerPreference
+            android:key="dsi_bios_dir"
+            android:title="@string/dsi_bios_directory"
+            app:consoleType="dsi" />
+</PreferenceScreen>

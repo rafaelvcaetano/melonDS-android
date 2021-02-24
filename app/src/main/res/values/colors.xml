@@ -13,6 +13,8 @@
     <color name="buttonContrasted">#D000</color>
 
     <color name="navigationBarBackground">#EEE</color>
+    <color name="prefSwitchRailColor">#805C913B</color>
+    <color name="prefSwitchBackground">#FCCC</color>
 
     <color name="melonMain">#5C913B</color>
     <color name="melonDark">#49732F</color>

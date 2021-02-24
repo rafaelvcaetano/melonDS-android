@@ -13,7 +13,7 @@ class SettingsActivity : AppCompatActivity() {
 
         supportFragmentManager.addOnBackStackChangedListener {
             val fragment = supportFragmentManager.fragments.lastOrNull()
-            if (fragment is BasePreferencesFragment) {
+            if (fragment is PreferenceFragmentTitleProvider) {
                 supportActionBar?.title = fragment.getTitle()
             }
         }

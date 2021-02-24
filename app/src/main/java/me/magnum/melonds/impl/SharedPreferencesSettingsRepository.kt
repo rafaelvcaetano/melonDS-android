@@ -60,6 +60,7 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
             useCustomBios(),
             dsConfigDirectoryPath,
             dsiConfigDirectoryPath,
+            context.filesDir.absolutePath,
             getFastForwardSpeedMultiplier(),
             isJitEnabled(),
             consoleType,

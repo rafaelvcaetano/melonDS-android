@@ -314,6 +314,7 @@ MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jo
     jboolean useCustomBios = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "useCustomBios", "Z"));
     jstring dsConfigDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsConfigDirectory", "Ljava/lang/String;"));
     jstring dsiConfigDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsiConfigDirectory", "Ljava/lang/String;"));
+    jstring internalFilesDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "internalDirectory", "Ljava/lang/String;"));
     jfloat fastForwardMaxSpeed = env->GetFloatField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "fastForwardSpeedMultiplier", "F"));
     jboolean useJit = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "useJit", "Z"));
     jobject consoleTypeEnum = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "consoleType", "Lme/magnum/melonds/domain/model/ConsoleType;"));
@@ -323,6 +324,7 @@ MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jo
     jint micSource = env->GetIntField(micSourceEnum, env->GetFieldID(micSourceEnumClass, "sourceValue", "I"));
     const char* dsDir = env->GetStringUTFChars(dsConfigDir, JNI_FALSE);
     const char* dsiDir = env->GetStringUTFChars(dsiConfigDir, JNI_FALSE);
+    const char* internalDir = env->GetStringUTFChars(internalFilesDir, JNI_FALSE);
     jobject firmwareConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "firmwareConfiguration", "Lme/magnum/melonds/domain/model/FirmwareConfiguration;"));
     jobject rendererConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "rendererConfiguration", "Lme/magnum/melonds/domain/model/RendererConfiguration;"));
 
@@ -330,6 +332,7 @@ MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jo
     finalEmulatorConfiguration.userInternalFirmwareAndBios = !useCustomBios;
     finalEmulatorConfiguration.dsConfigDir = const_cast<char*>(dsDir);
     finalEmulatorConfiguration.dsiConfigDir = const_cast<char*>(dsiDir);
+    finalEmulatorConfiguration.internalFilesDir = const_cast<char*>(internalDir);
     finalEmulatorConfiguration.fastForwardSpeedMultiplier = fastForwardMaxSpeed;
     finalEmulatorConfiguration.useJit = useJit;
     finalEmulatorConfiguration.consoleType = consoleType;

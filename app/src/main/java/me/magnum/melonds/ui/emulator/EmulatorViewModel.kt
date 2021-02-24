@@ -74,6 +74,7 @@ class EmulatorViewModel @ViewModelInject constructor(
                 baseConfiguration.useCustomBios,
                 baseConfiguration.dsConfigDirectory,
                 baseConfiguration.dsiConfigDirectory,
+                baseConfiguration.internalDirectory,
                 baseConfiguration.fastForwardSpeedMultiplier,
                 baseConfiguration.useJit,
                 getRomOptionOrDefault(rom.config.runtimeConsoleType, baseConfiguration.consoleType),

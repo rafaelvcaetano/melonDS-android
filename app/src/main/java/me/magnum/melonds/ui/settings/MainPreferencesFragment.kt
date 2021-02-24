@@ -1,7 +1,6 @@
 package me.magnum.melonds.ui.settings
 
 import android.Manifest
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -10,22 +9,27 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import androidx.preference.*
+import androidx.preference.ListPreference
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
-import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.MicSource
-import me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
-import me.magnum.melonds.utils.*
+import me.magnum.melonds.utils.FilePickerContract
+import me.magnum.melonds.utils.enumValueOfIgnoreCase
+import me.magnum.melonds.utils.isMicrophonePermissionGranted
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
 
 @AndroidEntryPoint
-class MainPreferencesFragment : BasePreferencesFragment() {
+class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
     private val viewModel: SettingsViewModel by activityViewModels()
+    private val helper = PreferenceFragmentHelper(this)
 
     private lateinit var clearRomCachePreference: Preference
+    private lateinit var customBiosPreference: Preference
     private lateinit var micSourcePreference: ListPreference
     private val microphonePermissionLauncher by lazy {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -35,24 +39,19 @@ class MainPreferencesFragment : BasePreferencesFragment() {
         }
     }
 
-    override fun getTitle(): String {
-        return getString(R.string.settings)
-    }
+    override fun getTitle() = getString(R.string.settings)
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.pref_main, rootKey)
         clearRomCachePreference = findPreference("rom_cache_clear")!!
-        val consoleTypePreference = findPreference<ListPreference>("console_type")!!
-        val dsBiosDirPreference = findPreference<StoragePickerPreference>("bios_dir")!!
-        val dsiBiosDirPreference = findPreference<StoragePickerPreference>("dsi_bios_dir")!!
+        customBiosPreference = findPreference("use_custom_bios")!!
         val jitPreference = findPreference<SwitchPreference>("enable_jit")!!
         val importCheatsPreference = findPreference<Preference>("cheats_import")!!
         micSourcePreference = findPreference("mic_source")!!
 
-        setupStoragePickerPreference(dsBiosDirPreference)
-        setupStoragePickerPreference(dsiBiosDirPreference)
-        setupStoragePickerPreference(findPreference("rom_search_dirs")!!)
-        setupStoragePickerPreference(findPreference("sram_dir")!!)
+        helper.setupStoragePickerPreference(findPreference("rom_search_dirs")!!)
+        helper.setupStoragePickerPreference(findPreference("sram_dir")!!)
+        helper.bindPreferenceSummaryToValue(customBiosPreference)
 
         if (Build.SUPPORTED_64_BIT_ABIS.isEmpty()) {
             jitPreference.isEnabled = false
@@ -69,28 +68,6 @@ class MainPreferencesFragment : BasePreferencesFragment() {
             if (!viewModel.clearRomCache()) {
                 Toast.makeText(requireContext(), R.string.error_clear_rom_cache, Toast.LENGTH_LONG).show()
             }
-            true
-        }
-        consoleTypePreference.setOnPreferenceChangeListener { _, newValue ->
-            val consoleTypePreferenceValue = newValue as String
-            val newConsoleType = enumValueOfIgnoreCase<ConsoleType>(consoleTypePreferenceValue)
-            val newTypeBiosDir = when(newConsoleType) {
-                ConsoleType.DS -> dsBiosDirPreference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) }
-                ConsoleType.DSi -> dsiBiosDirPreference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) }
-            }
-
-            if (ConfigurationUtils.checkConfigurationDirectory(requireContext(), newTypeBiosDir, newConsoleType).status != ConfigurationUtils.ConfigurationDirStatus.VALID) {
-                val textRes = when(newConsoleType) {
-                    ConsoleType.DS -> R.string.ds_incorrect_bios_dir_info
-                    ConsoleType.DSi -> R.string.dsi_incorrect_bios_dir_info
-                }
-
-                AlertDialog.Builder(requireContext())
-                        .setMessage(textRes)
-                        .setPositiveButton(R.string.ok, null)
-                        .show()
-            }
-
             true
         }
         micSourcePreference.setOnPreferenceChangeListener { _, newValue ->
@@ -117,39 +94,17 @@ class MainPreferencesFragment : BasePreferencesFragment() {
         })
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Set proper value for Custom BIOS option when returning from the fragment. Let's just pretend this is not here
+        customBiosPreference.onPreferenceChangeListener.onPreferenceChange(customBiosPreference, customBiosPreference.sharedPreferences.getBoolean(customBiosPreference.key, false))
+    }
+
     private fun getBestCacheSizeRepresentation(cacheSize: Long): Pair<Double, String> {
         if (cacheSize < 1024) return cacheSize.toDouble() to "B"
         if (cacheSize / 1024.0 < 1024.0) return cacheSize / 1024.0 to "KB"
         if (cacheSize / 1024.0 / 1024.0 < 1024.0) return cacheSize / 1024.0 / 1024.0 to "MB"
         return cacheSize / 1024.0 / 1024.0 / 1024.0 to "GB"
-    }
-
-    private fun setupStoragePickerPreference(storagePreference: StoragePickerPreference) {
-        if (storagePreference.selectionType == StoragePickerPreference.SelectionType.FILE) {
-            setupFilePickerPreference(storagePreference)
-        } else {
-            setupDirectoryPickerPreference(storagePreference)
-        }
-    }
-
-    private fun setupDirectoryPickerPreference(storagePreference: StoragePickerPreference) {
-        bindPreferenceSummaryToValue(storagePreference)
-        val filePickerLauncher = registerForActivityResult(DirectoryPickerContract(), storagePreference::onDirectoryPicked)
-        storagePreference.setOnPreferenceClickListener { preference ->
-            val initialUri = preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) }
-            filePickerLauncher.launch(initialUri)
-            true
-        }
-    }
-
-    private fun setupFilePickerPreference(storagePreference: StoragePickerPreference) {
-        bindPreferenceSummaryToValue(storagePreference)
-        val filePickerLauncher = registerForActivityResult(FilePickerContract(), storagePreference::onDirectoryPicked)
-        storagePreference.setOnPreferenceClickListener { preference ->
-            val initialUri = preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) }
-            filePickerLauncher.launch(Pair(initialUri, storagePreference.mimeType))
-            true
-        }
     }
 
     private fun requestMicrophonePermission(overrideRationaleRequest: Boolean) {
