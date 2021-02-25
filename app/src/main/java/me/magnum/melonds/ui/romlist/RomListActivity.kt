@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -37,6 +38,17 @@ class RomListActivity : AppCompatActivity() {
 
     private val viewModel: RomListViewModel by viewModels()
 
+    private val storagePermissionLauncher by lazy {
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                selectedRom?.let {
+                    loadRom(it)
+                } ?: selectedFirmwareConsole?.let {
+                    bootFirmware(it)
+                }
+            }
+        }
+    }
     private val dsBiosPickerLauncher by lazy { registerForActivityResult(DirectoryPickerContract()) { uri ->
         if (uri != null) {
             viewModel.setDsBiosDirectory(uri)
@@ -193,7 +205,7 @@ class RomListActivity : AppCompatActivity() {
                     .setPositiveButton(R.string.ok) { _, _ -> requestStoragePermission(true) }
                     .show()
         } else {
-            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_STORAGE_PERMISSION)
+            storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
     }
 
