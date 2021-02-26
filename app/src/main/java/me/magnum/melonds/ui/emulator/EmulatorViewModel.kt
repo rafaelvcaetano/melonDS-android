@@ -82,6 +82,7 @@ class EmulatorViewModel @ViewModelInject constructor(
 
     fun getEmulatorConfigurationForFirmware(consoleType: ConsoleType): EmulatorConfiguration {
         return settingsRepository.getEmulatorConfiguration().copy(
+                useCustomBios = true, // Running a firmware requires a custom BIOS
                 consoleType = consoleType
         )
     }
