@@ -170,7 +170,7 @@ class FileSystemRomsRepository(
 
     private fun loadCachedRoms() {
         getCachedRoms()
-                .filter { rom -> DocumentFile.isDocumentUri(context, rom.uri) }
+                .filter { rom -> DocumentFile.fromSingleUri(context, rom.uri)?.exists() == true }
                 .toList()
                 .doOnSuccess { cachedRoms ->
                     roms.addAll(cachedRoms!!)
