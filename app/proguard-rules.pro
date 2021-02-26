@@ -29,3 +29,4 @@
 -keep class me.magnum.melonds.domain.model.MicSource { *; }
 -keep class me.magnum.melonds.domain.model.Cheat { *; }
 -keep class me.magnum.melonds.ui.settings.CustomFirmwarePreferencesFragment { *; }
+-keep class me.magnum.melonds.ui.settings.FirmwarePreferencesFragment { *; }
