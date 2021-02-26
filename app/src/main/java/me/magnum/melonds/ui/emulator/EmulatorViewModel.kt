@@ -68,6 +68,10 @@ class EmulatorViewModel @ViewModelInject constructor(
         return romsRepository.getRomAtPath(path).defaultIfEmpty(Rom(path, romDocument.uri, RomConfig())).toSingle()
     }
 
+    fun getBaseEmulatorConfiguration(): EmulatorConfiguration {
+        return settingsRepository.getEmulatorConfiguration()
+    }
+
     fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {
         val baseConfiguration = settingsRepository.getEmulatorConfiguration()
         return baseConfiguration.copy(

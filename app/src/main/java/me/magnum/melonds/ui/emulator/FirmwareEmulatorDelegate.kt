@@ -50,4 +50,10 @@ class FirmwareEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(ac
             FirmwarePauseMenuOptions.EXIT -> activity.finish()
         }
     }
+
+    override fun getCrashContext(): Any {
+        return FirmwareCrashContext(getEmulatorConfiguration())
+    }
+
+    private data class FirmwareCrashContext(val emulatorConfiguration: EmulatorConfiguration)
 }

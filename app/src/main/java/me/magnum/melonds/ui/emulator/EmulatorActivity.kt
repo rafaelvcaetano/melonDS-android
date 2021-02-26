@@ -356,15 +356,22 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     private fun getGitHubReportIntent(e: Throwable): Intent {
+        val packageInfo = packageManager.getPackageInfo(packageName, 0)
+
         val errorBody = "" +
                 "* **Device model:** ${Build.MODEL}\n" +
-                "* **Android version:** Android API ${Build.VERSION.SDK_INT}\n\n" +
+                "* **Android version:** Android API ${Build.VERSION.SDK_INT}\n" +
+                "* **melonDS version:** ${packageInfo.versionName}\n\n" +
                 "**Problem:**  \n" +
                 "Insert a small description of the problem.\n\n" +
                 "**Stack trace:**  \n" +
                 "```\n" +
                 e.stackTraceToString() +
-                "\n```"
+                "\n```\n\n" +
+                "**Configuration:**  \n" +
+                "```\n" +
+                delegate.getCrashContext() +
+                "\n```\n"
 
         val urlEncodedBody = URLEncoder.encode(errorBody, "utf-8")
         val url = "https://github.com/rafaelvcaetano/melonDS-android/issues/new?labels=app%20report&body=$urlEncodedBody"
