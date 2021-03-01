@@ -10,6 +10,7 @@ import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.domain.repositories.CheatsRepository
+import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.impl.*
@@ -45,6 +46,12 @@ object MelonModule {
 
     @Provides
     @Singleton
+    fun provideLayoutsRepository(@ApplicationContext context: Context, gson: Gson): LayoutsRepository {
+        return InternalLayoutsRepository(context, gson)
+    }
+
+    @Provides
+    @Singleton
     fun provideFileRomProcessorFactory(@ApplicationContext context: Context, ndsRomCache: NdsRomCache): FileRomProcessorFactory {
         return FileRomProcessorFactoryImpl(context, ndsRomCache)
     }
@@ -53,5 +60,11 @@ object MelonModule {
     @Singleton
     fun provideRomIconProvider(@ApplicationContext context: Context, fileRomProcessorFactory: FileRomProcessorFactory): RomIconProvider {
         return RomIconProvider(context, fileRomProcessorFactory)
+    }
+
+    @Provides
+    @Singleton
+    fun provideScreenUnitsConverter(@ApplicationContext context: Context): ScreenUnitsConverter {
+        return ScreenUnitsConverter(context)
     }
 }

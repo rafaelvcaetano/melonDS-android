@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black" >
+
+    <FrameLayout
+            android:id="@+id/view_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            android:focusable="false" />
+
+    <LinearLayout
+            android:id="@+id/layout_scaling"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:orientation="horizontal"
+            android:background="#AFFF"
+            android:clickable="true"
+            android:focusable="false"
+            android:gravity="center">
+
+        <Button
+                android:id="@+id/button_delete_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/delete"
+                style="?android:attr/borderlessButtonStyle" />
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="Resize" />
+
+        <SeekBar
+                android:id="@+id/seek_bar_scaling"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp"
+                android:layout_gravity="center_vertical" />
+    </LinearLayout>
+
+    <LinearLayout
+            android:id="@+id/layout_controls"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:orientation="horizontal"
+            android:background="#AFFF"
+            android:clickable="true"
+            android:focusable="false" >
+
+        <Button
+                android:id="@+id/button_add_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/add_component"
+                style="?android:attr/borderlessButtonStyle" />
+
+        <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+        <Button
+                android:id="@+id/button_menu"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/menu"
+                style="?android:attr/borderlessButtonStyle" />
+    </LinearLayout>
+</RelativeLayout>

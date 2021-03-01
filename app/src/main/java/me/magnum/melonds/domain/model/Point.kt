@@ -1,6 +1,5 @@
 package me.magnum.melonds.domain.model
 
-class Point {
-    var x = 0
-    var y = 0
+class Point(var x: Int, var y: Int) {
+    constructor() : this(0, 0)
 }

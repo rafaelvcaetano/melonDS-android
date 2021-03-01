@@ -8,6 +8,7 @@
     <string name="off">Off</string>
     <string name="cancel">Cancel</string>
     <string name="not_set">Not set</string>
+    <string name="delete">Delete</string>
 
     <string name="console_ds">DS</string>
     <string name="console_dsi">DSi (Experimental)</string>
@@ -49,6 +50,8 @@
     <string name="no_roms_found">No ROMs found</string>
 
     <string name="press_any_button">Press any button…</string>
+
+    <string name="choose_component">Choose component</string>
 
     <string name="pause">Pause</string>
     <string name="reset">Reset</string>
@@ -130,6 +133,8 @@
 
     <string name="notification_channel_cheat_importing">Cheat importing</string>
 
+    <string name="top_screen">Top Screen</string>
+    <string name="bottom_screen">Bottom Screen</string>
     <string name="input_a">A</string>
     <string name="input_b">B</string>
     <string name="input_x">X</string>
@@ -144,8 +149,21 @@
     <string name="input_select">Select</string>
     <string name="input_lid">Toggle Lid</string>
     <string name="input_pause">Pause</string>
-    <string name="input_fast_forward">Fast Forward</string>
+    <string name="input_fast_forward">Fast Forward (Toggle)</string>
+    <string name="input_toggle_soft_input">Toggle Soft Input</string>
     <string name="input_reset">@string/reset</string>
+    <string name="input_dpad">DPAD</string>
+    <string name="input_abxy_buttons">ABXY Buttons</string>
+
+    <string name="layout_editor">Layout editor</string>
+    <string name="add_component">Add component</string>
+    <string name="no_more_components">No more components to add</string>
+    <string name="menu">Menu</string>
+    <string name="revert_changes">Revert changes</string>
+    <string name="reset_default">Reset to default</string>
+    <string name="exit_without_saving">Exit without saving</string>
+    <string name="save_and_exit">Save and exit</string>
+    <string name="layout_name">Layout name</string>
 
     <string-array name="theme_options" tools:ignore="InconsistentArrays">
         <item>@string/theme_option_light</item>

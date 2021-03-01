@@ -18,6 +18,7 @@ import me.magnum.melonds.databinding.ItemInputBinding
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.InputConfig
 import me.magnum.melonds.ui.inputsetup.InputSetupActivity.InputListAdapter.InputViewHolder
+import me.magnum.melonds.utils.getInputName
 import java.util.*
 
 @AndroidEntryPoint

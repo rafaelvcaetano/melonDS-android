@@ -28,8 +28,7 @@
         <activity
             android:name=".ui.emulator.EmulatorActivity"
             android:theme="@style/EmulatorTheme"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation|screenSize|screenLayout"
             android:launchMode="singleTask"
             android:exported="true">
             <intent-filter>
@@ -69,6 +68,10 @@
             android:name=".ui.cheats.CheatsActivity"
             android:label="@string/cheats"
             android:exported="false" >
+        </activity>
+        <activity
+            android:name=".ui.layouteditor.LayoutEditorActivity"
+            android:label="@string/layout_editor">
         </activity>
 
         <provider
