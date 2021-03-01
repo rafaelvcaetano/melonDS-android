@@ -83,6 +83,16 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     private val frontendInputHandler = object : FrontendInputHandler() {
         private var fastForwardEnabled = false
 
+        override fun onSoftInputTogglePressed() {
+            if (binding.layoutInputButtons.visibility == View.VISIBLE) {
+                binding.layoutInputButtons.visibility = View.INVISIBLE
+                binding.imageTouchToggle.setImageDrawable(ContextCompat.getDrawable(this@EmulatorActivity, R.drawable.ic_touch_disabled))
+            } else {
+                binding.layoutInputButtons.visibility = View.VISIBLE
+                binding.imageTouchToggle.setImageDrawable(ContextCompat.getDrawable(this@EmulatorActivity, R.drawable.ic_touch_enabled))
+            }
+        }
+
         override fun onPausePressed() {
             pauseEmulation()
         }
@@ -136,18 +146,9 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         binding.imageButtonStart.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.START))
         binding.imageButtonLid.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.HINGE, true))
         binding.imageButtonFastForward.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.FAST_FORWARD, false))
+        binding.imageTouchToggle.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.TOGGLE_SOFT_INPUT, false))
         setupSoftInput()
         setupInputHandling()
-
-        binding.imageTouchToggle.setOnClickListener {
-            if (binding.layoutInputButtons.visibility == View.VISIBLE) {
-                binding.layoutInputButtons.visibility = View.INVISIBLE
-                binding.imageTouchToggle.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_touch_disabled))
-            } else {
-                binding.layoutInputButtons.visibility = View.VISIBLE
-                binding.imageTouchToggle.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_touch_enabled))
-            }
-        }
 
         launchEmulator()
     }

@@ -8,6 +8,7 @@ abstract class FrontendInputHandler : IInputListener {
         when (key) {
             Input.PAUSE -> onPausePressed()
             Input.FAST_FORWARD -> onFastForwardPressed()
+            Input.TOGGLE_SOFT_INPUT -> onSoftInputTogglePressed()
             Input.RESET -> onResetPressed()
         }
     }
@@ -20,5 +21,6 @@ abstract class FrontendInputHandler : IInputListener {
 
     abstract fun onPausePressed()
     abstract fun onFastForwardPressed()
+    abstract fun onSoftInputTogglePressed()
     abstract fun onResetPressed()
 }
