@@ -1,10 +1,10 @@
-package me.magnum.melonds.ui.layouteditor.componentbuilders
+package me.magnum.melonds.ui.common.componentbuilders
 
 import android.content.Context
 import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
-import me.magnum.melonds.ui.layouteditor.LayoutComponentViewBuilder
+import me.magnum.melonds.ui.common.LayoutComponentViewBuilder
 
 abstract class ScreenLayoutComponentViewBuilder : LayoutComponentViewBuilder() {
     override fun build(context: Context): View {

@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui.layouteditor.componentbuilders
+package me.magnum.melonds.ui.common.componentbuilders
 
 import me.magnum.melonds.R
 

@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui.layouteditor
+package me.magnum.melonds.ui.common
 
 import android.content.Context
 import android.view.View

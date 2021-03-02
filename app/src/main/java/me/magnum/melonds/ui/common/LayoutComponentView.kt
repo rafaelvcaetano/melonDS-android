@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui.layouteditor
+package me.magnum.melonds.ui.common
 
 import android.view.View
 import android.widget.FrameLayout

@@ -5,8 +5,8 @@
         android:layout_height="match_parent"
         android:background="@android:color/black" >
 
-    <FrameLayout
-            android:id="@+id/view_layout"
+    <me.magnum.melonds.ui.common.LayoutEditorView
+            android:id="@+id/view_layout_editor"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clickable="true"
@@ -41,6 +41,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="8dp"
+                android:max="10000"
                 android:layout_gravity="center_vertical" />
     </LinearLayout>
 

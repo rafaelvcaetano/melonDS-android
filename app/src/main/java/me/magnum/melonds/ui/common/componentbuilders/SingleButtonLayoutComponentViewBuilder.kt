@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui.layouteditor.componentbuilders
+package me.magnum.melonds.ui.common.componentbuilders
 
 import android.content.Context
 import android.view.View
@@ -6,7 +6,7 @@ import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.LayoutComponent
-import me.magnum.melonds.ui.layouteditor.LayoutComponentViewBuilder
+import me.magnum.melonds.ui.common.LayoutComponentViewBuilder
 
 class SingleButtonLayoutComponentViewBuilder(private val layoutComponent: LayoutComponent) : LayoutComponentViewBuilder() {
     override fun build(context: Context): View {

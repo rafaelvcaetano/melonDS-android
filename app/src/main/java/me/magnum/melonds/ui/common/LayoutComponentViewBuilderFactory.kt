@@ -1,7 +1,7 @@
-package me.magnum.melonds.ui.layouteditor
+package me.magnum.melonds.ui.common
 
 import me.magnum.melonds.domain.model.LayoutComponent
-import me.magnum.melonds.ui.layouteditor.componentbuilders.*
+import me.magnum.melonds.ui.common.componentbuilders.*
 
 class LayoutComponentViewBuilderFactory {
     private val layoutComponentViewBuilderCache = mutableMapOf<LayoutComponent, LayoutComponentViewBuilder>()

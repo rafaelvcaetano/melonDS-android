@@ -2,10 +2,8 @@ package me.magnum.melonds.ui.layouteditor
 
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewTreeObserver
-import android.widget.FrameLayout
 import android.widget.SeekBar
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
@@ -15,28 +13,17 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
-import me.magnum.melonds.databinding.ActivityLayoutConfigBinding
+import me.magnum.melonds.databinding.ActivityLayoutEditorBinding
 import me.magnum.melonds.databinding.DialogLayoutNameInputBinding
-import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.LayoutComponent
 import me.magnum.melonds.impl.ScreenUnitsConverter
 import me.magnum.melonds.utils.getLayoutComponentName
 import javax.inject.Inject
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 @AndroidEntryPoint
 class LayoutEditorActivity : AppCompatActivity() {
     companion object {
         const val KEY_LAYOUT_ID = "layout_id"
-    }
-
-    enum class Anchor {
-        TOP_LEFT,
-        TOP_RIGHT,
-        BOTTOM_LEFT,
-        BOTTOM_RIGHT
     }
 
     enum class MenuOption(@StringRes val stringRes: Int) {
@@ -49,20 +36,13 @@ class LayoutEditorActivity : AppCompatActivity() {
     @Inject
     lateinit var screenUnitsConverter: ScreenUnitsConverter
     private val viewModel: LayoutEditorViewModel by viewModels()
-    private val layoutComponentViewBuilderFactory = LayoutComponentViewBuilderFactory()
-    private lateinit var binding: ActivityLayoutConfigBinding
+    private lateinit var binding: ActivityLayoutEditorBinding
     private var areBottomControlsShown = true
     private var areScalingControlsShown = true
-    private val defaultComponentWidth by lazy { screenUnitsConverter.dpToPixels(100f).toInt() }
-    private val minComponentSize by lazy { screenUnitsConverter.dpToPixels(30f).toInt() }
-
-    private val views = mutableMapOf<LayoutComponent, LayoutComponentView>()
-    private var selectedView: LayoutComponentView? = null
-    private var selectedViewAnchor = Anchor.TOP_LEFT
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLayoutConfigBinding.inflate(layoutInflater)
+        binding = ActivityLayoutEditorBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         binding.buttonAddButton.setOnClickListener {
@@ -72,19 +52,25 @@ class LayoutEditorActivity : AppCompatActivity() {
             openMenu()
         }
         binding.buttonDeleteButton.setOnClickListener {
-            deleteSelectedView()
+            binding.viewLayoutEditor.deleteSelectedView()
         }
 
-        binding.viewLayout.setOnClickListener {
-            deselectCurrentView()
+        binding.viewLayoutEditor.setOnClickListener {
             if (areBottomControlsShown)
                 hideBottomControls()
             else
                 showBottomControls()
         }
+        binding.viewLayoutEditor.setOnViewSelectedListener { _, scale ->
+            hideBottomControls()
+            showScalingControls(scale)
+        }
+        binding.viewLayoutEditor.setOnViewDeselectedListener {
+            hideScalingControls()
+        }
         binding.seekBarScaling.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                scaleSelectedView(progress + minComponentSize)
+                binding.viewLayoutEditor.scaleSelectedView(progress / 10000f)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -116,11 +102,7 @@ class LayoutEditorActivity : AppCompatActivity() {
 
     private fun storeLayoutChanges() {
         val orientation = if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) LayoutEditorViewModel.LayoutOrientation.PORTRAIT else LayoutEditorViewModel.LayoutOrientation.LANDSCAPE
-        viewModel.saveLayoutToCurrentConfiguration(buildCurrentLayout(), orientation)
-    }
-
-    private fun buildCurrentLayout(): UILayout {
-        return UILayout(views.values.map { PositionedLayoutComponent(it.getRect(), it.component) })
+        viewModel.saveLayoutToCurrentConfiguration(binding.viewLayoutEditor.buildCurrentLayout(), orientation)
     }
 
     private fun setupFullscreen() {
@@ -143,7 +125,7 @@ class LayoutEditorActivity : AppCompatActivity() {
                 if (currentLayoutConfiguration == null)
                     instantiateDefaultConfiguration()
                 else
-                    instantiateLayout(currentLayoutConfiguration)
+                    binding.viewLayoutEditor.instantiateLayout(currentLayoutConfiguration)
             }
         })
     }
@@ -157,198 +139,7 @@ class LayoutEditorActivity : AppCompatActivity() {
         }
 
         viewModel.setCurrentLayoutConfiguration(defaultLayout)
-        instantiateLayout(defaultLayout)
-    }
-
-    private fun instantiateLayout(layoutConfiguration: LayoutConfiguration) {
-        views.clear()
-        binding.viewLayout.removeAllViews()
-
-        if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            loadLayout(layoutConfiguration.portraitLayout)
-        } else {
-            loadLayout(layoutConfiguration.landscapeLayout)
-        }
-    }
-
-    private fun loadLayout(layout: UILayout) {
-        layout.components.forEach {
-            views[it.component] = addPositionedLayoutComponent(it)
-        }
-    }
-
-    private fun addPositionedLayoutComponent(layoutComponent: PositionedLayoutComponent): LayoutComponentView {
-        val viewBuilder = layoutComponentViewBuilderFactory.getLayoutComponentViewBuilder(layoutComponent.component)
-        val view = viewBuilder.build(this).apply {
-            alpha = 0.5f
-        }
-
-        val viewParams = FrameLayout.LayoutParams(layoutComponent.rect.width, layoutComponent.rect.height).apply {
-            leftMargin = layoutComponent.rect.x
-            topMargin = layoutComponent.rect.y
-        }
-
-        val viewLayoutComponent = LayoutComponentView(view, viewBuilder.getAspectRatio(), layoutComponent.component)
-        setupDragHandler(viewLayoutComponent)
-        if (layoutComponent.isScreen()) {
-            // Screens should be below other views
-            binding.viewLayout.addView(view, 0, viewParams)
-        } else {
-            binding.viewLayout.addView(view, viewParams)
-        }
-
-        return viewLayoutComponent
-    }
-
-    private fun setupDragHandler(layoutComponentView: LayoutComponentView) {
-        layoutComponentView.view.setOnTouchListener(object : View.OnTouchListener {
-            private var dragging = false
-
-            private var downOffsetX = -1f
-            private var downOffsetY = -1f
-
-            override fun onTouch(view: View?, motionEvent: MotionEvent?): Boolean {
-                if (view == null)
-                    return false
-
-                if (selectedView != null) {
-                    deselectCurrentView()
-                }
-
-                hideBottomControls()
-                return when (motionEvent?.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        downOffsetX = motionEvent.x
-                        downOffsetY = motionEvent.y
-                        view.alpha = 1f
-                        true
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        if (!dragging) {
-                            val distance = sqrt((motionEvent.x - downOffsetX).pow(2f) + (motionEvent.y - downOffsetY).pow(2f))
-                            if (distance >= 25) {
-                                dragging = true
-                            }
-                        } else {
-                            dragView(view, motionEvent.x - downOffsetX, motionEvent.y - downOffsetY)
-                        }
-                        true
-                    }
-                    MotionEvent.ACTION_UP -> {
-                        if (!dragging) {
-                            handleViewSelected(layoutComponentView)
-                        } else {
-                            view.alpha = 0.5f
-                            dragging = false
-                        }
-                        true
-                    }
-                    else -> false
-                }
-            }
-        })
-    }
-
-    private fun deselectCurrentView() {
-        selectedView?.let {
-            it.view.alpha = 0.5f
-        }
-        hideScalingControls()
-        selectedView = null
-    }
-
-    private fun dragView(view: View, offsetX: Float, offsetY: Float) {
-        val rootView = window.decorView.rootView.findViewById<FrameLayout>(R.id.view_layout)
-        val finalX = min(max(view.x + offsetX, 0f), rootView.width - view.width.toFloat())
-        val finalY = min(max(view.y + offsetY, 0f), rootView.height - view.height.toFloat())
-        val newParams = FrameLayout.LayoutParams(view.width, view.height).apply {
-            leftMargin = finalX.toInt()
-            topMargin = finalY.toInt()
-        }
-        view.layoutParams = newParams
-    }
-
-    private fun scaleSelectedView(newDimension: Int) {
-        val currentlySelectedView = selectedView ?: return
-
-        val rootView = window.decorView.rootView.findViewById<FrameLayout>(R.id.view_layout)
-        val screenAspectRatio = rootView.width / rootView.height.toFloat()
-        val selectedViewAspectRatio = currentlySelectedView.aspectRatio
-        val newViewWidth: Int
-        val newViewHeight: Int
-
-        if (screenAspectRatio > selectedViewAspectRatio) {
-            newViewWidth = (newDimension * selectedViewAspectRatio).toInt()
-            newViewHeight = newDimension
-        } else {
-            newViewWidth = newDimension
-            newViewHeight = (newDimension / selectedViewAspectRatio).toInt()
-        }
-
-        val viewPosition = currentlySelectedView.getPosition()
-        var viewX: Int
-        var viewY: Int
-
-        if (selectedViewAnchor == Anchor.TOP_LEFT) {
-            viewX = viewPosition.x
-            viewY = viewPosition.y
-            if (viewX + newViewWidth > rootView.width) {
-                viewX = rootView.width - newViewWidth
-            }
-            if (viewY + newViewHeight > rootView.height) {
-                viewY = rootView.height - newViewHeight
-            }
-        } else if (selectedViewAnchor == Anchor.TOP_RIGHT) {
-            viewX = viewPosition.x + currentlySelectedView.getWidth() - newViewWidth
-            viewY = viewPosition.y
-            if (viewX < 0) {
-                viewX = 0
-            }
-            if (viewY + newViewHeight > rootView.height) {
-                viewY = rootView.height - newViewHeight
-            }
-        } else if (selectedViewAnchor == Anchor.BOTTOM_LEFT) {
-            viewX = viewPosition.x
-            viewY = viewPosition.y + currentlySelectedView.getHeight() - newViewHeight
-            if (viewX + newViewWidth > rootView.width) {
-                viewX = rootView.width - newViewWidth
-            }
-            if (viewY < 0) {
-                viewY = 0
-            }
-        } else {
-            viewX = viewPosition.x + currentlySelectedView.getWidth() - newViewWidth
-            viewY = viewPosition.y + currentlySelectedView.getHeight() - newViewHeight
-            if (viewX < 0) {
-                viewX = 0
-            }
-            if (viewY < 0) {
-                viewY = 0
-            }
-        }
-        currentlySelectedView.setPositionAndSize(Point(viewX, viewY), newViewWidth, newViewHeight)
-    }
-
-    private fun handleViewSelected(view: LayoutComponentView) {
-        val rootView = window.decorView.rootView.findViewById<FrameLayout>(R.id.view_layout)
-        val anchorDistances = mutableMapOf<Anchor, Double>()
-        anchorDistances[Anchor.TOP_LEFT] = view.getPosition().x.toDouble().pow(2) + view.getPosition().y.toDouble().pow(2)
-        anchorDistances[Anchor.TOP_RIGHT] = (rootView.width - (view.getPosition().x + view.getWidth())).toDouble().pow(2) + view.getPosition().y.toDouble().pow(2)
-        anchorDistances[Anchor.BOTTOM_LEFT] = view.getPosition().x.toDouble().pow(2) + (rootView.height - (view.getPosition().y + view.getHeight())).toDouble().pow(2)
-        anchorDistances[Anchor.BOTTOM_RIGHT] = (rootView.width - (view.getPosition().x + view.getWidth())).toDouble().pow(2) + (rootView.height - (view.getPosition().y + view.getHeight())).toDouble().pow(2)
-
-        var anchor = Anchor.TOP_LEFT
-        var minDistance = Double.MAX_VALUE
-        anchorDistances.keys.forEach {
-            if (anchorDistances[it]!! < minDistance) {
-                minDistance = anchorDistances[it]!!
-                anchor = it
-            }
-        }
-
-        selectedViewAnchor = anchor
-        selectedView = view
-        showScalingControls()
+        binding.viewLayoutEditor.instantiateLayout(defaultLayout)
     }
 
     private fun showBottomControls(animate: Boolean = true) {
@@ -387,27 +178,11 @@ class LayoutEditorActivity : AppCompatActivity() {
         areBottomControlsShown = false
     }
 
-    private fun showScalingControls(animate: Boolean = true) {
-        val currentlySelectedView = selectedView
-        if (areScalingControlsShown || currentlySelectedView == null)
+    private fun showScalingControls(currentScale: Float, animate: Boolean = true) {
+        binding.seekBarScaling.progress = (currentScale * 10000).toInt()
+
+        if (areScalingControlsShown)
             return
-
-        val rootView = window.decorView.rootView.findViewById<FrameLayout>(R.id.view_layout)
-        val screenAspectRatio = rootView.width / rootView.height.toFloat()
-        val selectedViewAspectRatio = currentlySelectedView.aspectRatio
-        val currentConstrainedDimension: Int
-        val maxDimension: Int
-
-        if (screenAspectRatio > selectedViewAspectRatio) {
-            maxDimension = rootView.height
-            currentConstrainedDimension = currentlySelectedView.getHeight()
-        } else {
-            maxDimension = rootView.width
-            currentConstrainedDimension = currentlySelectedView.getWidth()
-        }
-
-        binding.seekBarScaling.max = maxDimension - minComponentSize
-        binding.seekBarScaling.progress = currentConstrainedDimension - minComponentSize
 
         /*binding.layoutScaling.isClickable = true
         if (animate) {
@@ -443,7 +218,8 @@ class LayoutEditorActivity : AppCompatActivity() {
 
     private fun openButtonsMenu() {
         hideBottomControls()
-        val inputsToShow = LayoutComponent.values().filterNot { views.containsKey(it) }
+        val instantiatedComponents = binding.viewLayoutEditor.getInstantiatedComponents()
+        val componentsToShow = LayoutComponent.values().filterNot { instantiatedComponents.contains(it) }
 
         val dialogBuilder = AlertDialog.Builder(this)
                 .setTitle(R.string.choose_component)
@@ -451,14 +227,10 @@ class LayoutEditorActivity : AppCompatActivity() {
                     dialog.cancel()
                 }
 
-        if (inputsToShow.isNotEmpty()) {
-            dialogBuilder.setItems(inputsToShow.map { getString(getLayoutComponentName(it)) }.toTypedArray()) { _, which ->
-                val input = inputsToShow[which]
-                val componentBuilder = layoutComponentViewBuilderFactory.getLayoutComponentViewBuilder(input)
-                val componentHeight = defaultComponentWidth / componentBuilder.getAspectRatio()
-
-                val newView = addPositionedLayoutComponent(PositionedLayoutComponent(Rect(0, 0, defaultComponentWidth, componentHeight.toInt()), input))
-                views[input] = newView
+        if (componentsToShow.isNotEmpty()) {
+            dialogBuilder.setItems(componentsToShow.map { getString(getLayoutComponentName(it)) }.toTypedArray()) { _, which ->
+                val component = componentsToShow[which]
+                binding.viewLayoutEditor.addLayoutComponent(component)
             }
         } else {
             dialogBuilder.setMessage(R.string.no_more_components)
@@ -518,17 +290,10 @@ class LayoutEditorActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun deleteSelectedView() {
-        val currentlySelectedView = selectedView ?: return
-        deselectCurrentView()
-        binding.viewLayout.removeView(currentlySelectedView.view)
-        views.remove(currentlySelectedView.component)
-    }
-
     private fun revertLayoutConfiguration() {
         viewModel.getInitialLayoutConfiguration()?.let {
             viewModel.setCurrentLayoutConfiguration(it)
-            instantiateLayout(it)
+            binding.viewLayoutEditor.instantiateLayout(it)
         }
     }
 }
