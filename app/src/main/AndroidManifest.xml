@@ -70,6 +70,16 @@
             android:exported="false" >
         </activity>
         <activity
+            android:name=".ui.layouts.LayoutsActivity"
+            android:label="@string/layouts"
+            android:parentActivityName=".ui.settings.SettingsActivity"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="me.magnum.melonds.SETUP_LAYOUTS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".ui.layouteditor.LayoutEditorActivity"
             android:label="@string/layout_editor">
         </activity>

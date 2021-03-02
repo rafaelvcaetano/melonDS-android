@@ -33,7 +33,7 @@
             android:layout_centerVertical="true"
             android:padding="8dp"
             android:contentDescription="@string/rom_settings"
-            style="@style/Button.RomConfig"
+            style="@style/Button.Ripple"
             app:tint="@color/romConfigButtonDefault"
             app:srcCompat="@drawable/ic_settings"
             android:nextFocusLeft="@+id/layoutRomItem" />

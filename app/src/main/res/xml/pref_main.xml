@@ -143,6 +143,11 @@
             <intent android:action="me.magnum.melonds.SETUP_INPUT" />
         </Preference>
 
+        <Preference
+                android:title="@string/layouts">
+            <intent android:action="me.magnum.melonds.SETUP_LAYOUTS" />
+        </Preference>
+
         <SwitchPreference
             android:key="input_show_soft"
             android:title="@string/show_soft_input"

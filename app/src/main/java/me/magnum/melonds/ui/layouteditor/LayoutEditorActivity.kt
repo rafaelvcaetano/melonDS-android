@@ -28,6 +28,10 @@ import kotlin.math.sqrt
 
 @AndroidEntryPoint
 class LayoutEditorActivity : AppCompatActivity() {
+    companion object {
+        const val KEY_LAYOUT_ID = "layout_id"
+    }
+
     enum class Anchor {
         TOP_LEFT,
         TOP_RIGHT,
@@ -107,6 +111,10 @@ class LayoutEditorActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        storeLayoutChanges()
+    }
+
+    private fun storeLayoutChanges() {
         val orientation = if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) LayoutEditorViewModel.LayoutOrientation.PORTRAIT else LayoutEditorViewModel.LayoutOrientation.LANDSCAPE
         viewModel.saveLayoutToCurrentConfiguration(buildCurrentLayout(), orientation)
     }
@@ -498,9 +506,14 @@ class LayoutEditorActivity : AppCompatActivity() {
                 }
                 .setNegativeButton(R.string.cancel, null)
                 .show()
+
+        binding.editTextLayoutName.requestFocus()
+        /*val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)*/
     }
 
     private fun saveLayoutAndExit() {
+        storeLayoutChanges()
         viewModel.saveCurrentLayout()
         finish()
     }

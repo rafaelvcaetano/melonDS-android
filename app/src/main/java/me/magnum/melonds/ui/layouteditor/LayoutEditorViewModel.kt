@@ -1,23 +1,41 @@
 package me.magnum.melonds.ui.layouteditor
 
+import androidx.hilt.Assisted
 import androidx.hilt.lifecycle.ViewModelInject
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.impl.ScreenUnitsConverter
+import java.util.*
 
-class LayoutEditorViewModel @ViewModelInject constructor(private val layoutsRepository: LayoutsRepository, private val screenUnitsConverter: ScreenUnitsConverter) : ViewModel() {
-    enum class LayoutOrientation {
-        PORTRAIT,
-        LANDSCAPE
-    }
+class LayoutEditorViewModel @ViewModelInject constructor(
+        private val layoutsRepository: LayoutsRepository,
+        private val screenUnitsConverter: ScreenUnitsConverter,
+        @Assisted private val savedStateHandle: SavedStateHandle
+) : ViewModel() {
 
     companion object {
         private const val DS_ASPECT_RATIO = 256f / 192f
     }
 
+    enum class LayoutOrientation {
+        PORTRAIT,
+        LANDSCAPE
+    }
+
     private var currentLayoutConfiguration: LayoutConfiguration? = null
     private var initialLayoutConfiguration: LayoutConfiguration? = null
+
+    init {
+        val layoutId = savedStateHandle.get<String?>(LayoutEditorActivity.KEY_LAYOUT_ID)?.let { UUID.fromString(it) }
+        if (layoutId != null) {
+            // Good? No. Does it work? Hell yeah!
+            val layout = layoutsRepository.getLayout(layoutId).blockingGet()
+            initialLayoutConfiguration = layout
+            currentLayoutConfiguration = layout
+        }
+    }
 
     fun getCurrentLayoutConfiguration(): LayoutConfiguration? {
         return currentLayoutConfiguration
@@ -54,7 +72,7 @@ class LayoutEditorViewModel @ViewModelInject constructor(private val layoutsRepo
     }
 
     fun getDefaultLayoutConfiguration(portraitWidth: Int, portraitHeight: Int): LayoutConfiguration {
-        return LayoutConfiguration.new(
+        return LayoutConfiguration.newCustom(
                 buildDefaultPortraitLayout(portraitWidth, portraitHeight),
                 buildDefaultLandscapeLayout(portraitHeight, portraitWidth)
         )

@@ -227,6 +227,11 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return controllerConfiguration!!
     }
 
+    override fun getSelectedLayoutId(): UUID {
+        val id = preferences.getString("input_layout_id", null)
+        return id?.let { UUID.fromString(it) } ?: LayoutConfiguration.DEFAULT_ID
+    }
+
     override fun showSoftInput(): Boolean {
         return preferences.getBoolean("input_show_soft", true)
     }
@@ -286,6 +291,12 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
     override fun setRomSortingOrder(sortingOrder: SortingOrder) {
         preferences.edit {
             putString("rom_sorting_order", sortingOrder.toString().toLowerCase(Locale.ROOT))
+        }
+    }
+
+    override fun setSelectedLayoutId(layoutId: UUID) {
+        preferences.edit {
+            putString("input_layout_id", layoutId.toString())
         }
     }
 

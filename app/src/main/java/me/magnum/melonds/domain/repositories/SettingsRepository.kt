@@ -4,6 +4,7 @@ import android.net.Uri
 import io.reactivex.Observable
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.ui.Theme
+import java.util.*
 
 interface SettingsRepository {
     fun getEmulatorConfiguration(): EmulatorConfiguration
@@ -35,6 +36,7 @@ interface SettingsRepository {
     fun getSaveStateDirectory(rom: Rom): String?
 
     fun getControllerConfiguration(): ControllerConfiguration
+    fun getSelectedLayoutId(): UUID
     fun showSoftInput(): Boolean
     fun getSoftInputOpacity(): Int
 
@@ -50,4 +52,5 @@ interface SettingsRepository {
     fun setControllerConfiguration(controllerConfiguration: ControllerConfiguration)
     fun setRomSortingMode(sortingMode: SortingMode)
     fun setRomSortingOrder(sortingOrder: SortingOrder)
+    fun setSelectedLayoutId(layoutId: UUID)
 }
