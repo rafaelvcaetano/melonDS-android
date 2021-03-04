@@ -46,8 +46,8 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideLayoutsRepository(@ApplicationContext context: Context, gson: Gson): LayoutsRepository {
-        return InternalLayoutsRepository(context, gson)
+    fun provideLayoutsRepository(@ApplicationContext context: Context, gson: Gson, defaultLayoutBuilder: DefaultLayoutBuilder): LayoutsRepository {
+        return InternalLayoutsRepository(context, gson, defaultLayoutBuilder)
     }
 
     @Provides
@@ -66,5 +66,11 @@ object MelonModule {
     @Singleton
     fun provideScreenUnitsConverter(@ApplicationContext context: Context): ScreenUnitsConverter {
         return ScreenUnitsConverter(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDefaultLayoutBuilder(@ApplicationContext context: Context, screenUnitsConverter: ScreenUnitsConverter): DefaultLayoutBuilder {
+        return DefaultLayoutBuilder(context, screenUnitsConverter)
     }
 }

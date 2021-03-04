@@ -7,6 +7,7 @@ import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.subjects.PublishSubject
+import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.LayoutConfiguration
 import me.magnum.melonds.domain.repositories.LayoutsRepository
 import java.io.File
@@ -16,7 +17,7 @@ import java.io.OutputStreamWriter
 import java.lang.reflect.Type
 import java.util.*
 
-class InternalLayoutsRepository(private val context: Context, private val gson: Gson) : LayoutsRepository {
+class InternalLayoutsRepository(private val context: Context, private val gson: Gson, private val defaultLayoutBuilder: DefaultLayoutBuilder) : LayoutsRepository {
     companion object {
         private const val DATA_FILE = "layouts.json"
         private val layoutListType: Type = object : TypeToken<List<LayoutConfiguration>>(){}.type
@@ -78,7 +79,7 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
         } else {
             loadLayouts().map {
                 layouts.clear()
-                layouts.add(LayoutConfiguration.newDefault())
+                layouts.add(buildDefaultLayout())
                 layouts.addAll(it)
                 areLayoutsLoaded = true
                 layouts
@@ -117,5 +118,13 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun buildDefaultLayout(): LayoutConfiguration {
+        return defaultLayoutBuilder.getDefaultLayout().copy(
+                id = LayoutConfiguration.DEFAULT_ID,
+                name = context.getString(R.string.default_layout_name),
+                type = LayoutConfiguration.LayoutType.DEFAULT
+        )
     }
 }

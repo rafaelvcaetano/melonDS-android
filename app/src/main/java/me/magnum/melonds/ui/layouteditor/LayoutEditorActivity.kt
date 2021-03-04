@@ -3,7 +3,6 @@ package me.magnum.melonds.ui.layouteditor
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
-import android.view.ViewTreeObserver
 import android.widget.SeekBar
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
@@ -82,7 +81,7 @@ class LayoutEditorActivity : AppCompatActivity() {
         })
 
         setupFullscreen()
-        prepareForLayoutInstantiation()
+        instantiateLayout()
         hideScalingControls(false)
     }
 
@@ -116,29 +115,16 @@ class LayoutEditorActivity : AppCompatActivity() {
                 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
     }
 
-    private fun prepareForLayoutInstantiation() {
-        val root = findViewById<View>(android.R.id.content)
-        root.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                root.viewTreeObserver.removeOnGlobalLayoutListener(this)
-
-                val currentLayoutConfiguration = viewModel.getCurrentLayoutConfiguration()
-                if (currentLayoutConfiguration == null)
-                    instantiateDefaultConfiguration()
-                else
-                    binding.viewLayoutEditor.instantiateLayout(currentLayoutConfiguration)
-            }
-        })
+    private fun instantiateLayout() {
+        val currentLayoutConfiguration = viewModel.getCurrentLayoutConfiguration()
+        if (currentLayoutConfiguration == null)
+            instantiateDefaultConfiguration()
+        else
+            binding.viewLayoutEditor.instantiateLayout(currentLayoutConfiguration)
     }
 
     private fun instantiateDefaultConfiguration() {
-        val decorView = window.decorView
-        val defaultLayout = if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            viewModel.getDefaultLayoutConfiguration(decorView.width, decorView.height)
-        } else {
-            viewModel.getDefaultLayoutConfiguration(decorView.height, decorView.width)
-        }
-
+        val defaultLayout = viewModel.getDefaultLayoutConfiguration()
         viewModel.setCurrentLayoutConfiguration(defaultLayout)
         binding.viewLayoutEditor.instantiateLayout(defaultLayout)
     }

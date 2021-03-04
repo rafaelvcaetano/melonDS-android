@@ -19,7 +19,6 @@ import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.impl.FileRomProcessorFactory
 import me.magnum.melonds.utils.FileUtils
 import java.io.File
-import java.lang.Exception
 import java.util.*
 
 class EmulatorViewModel @ViewModelInject constructor(

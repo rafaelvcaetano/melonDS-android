@@ -158,6 +158,7 @@
 
     <string name="layouts">Layouts</string>
     <string name="action_layouts_new">New layout</string>
+    <string name="default_layout_name">Default</string>
 
     <string name="layout_editor">Layout editor</string>
     <string name="add_component">Add component</string>
