@@ -250,6 +250,12 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         }
     }
 
+    override fun observeSelectedLayoutId(): Observable<UUID> {
+        return getOrCreatePreferenceObservable("input_layout_id") {
+            getSelectedLayoutId()
+        }
+    }
+
     override fun setDsBiosDirectory(directoryUri: Uri) {
         preferences.edit {
             putStringSet("bios_dir", setOf(directoryUri.toString()))

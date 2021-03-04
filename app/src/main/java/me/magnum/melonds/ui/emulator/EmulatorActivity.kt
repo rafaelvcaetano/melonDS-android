@@ -9,13 +9,12 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
-import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.CompletableObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -24,10 +23,7 @@ import io.reactivex.schedulers.Schedulers
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
-import me.magnum.melonds.domain.model.ConsoleType
-import me.magnum.melonds.domain.model.Input
-import me.magnum.melonds.domain.model.RendererConfiguration
-import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
@@ -82,15 +78,11 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     private lateinit var nativeInputListener: INativeInputListener
     private val frontendInputHandler = object : FrontendInputHandler() {
         private var fastForwardEnabled = false
+        private var softInputVisible = true
 
         override fun onSoftInputTogglePressed() {
-            if (binding.layoutInputButtons.visibility == View.VISIBLE) {
-                binding.layoutInputButtons.visibility = View.INVISIBLE
-                binding.imageTouchToggle.setImageDrawable(ContextCompat.getDrawable(this@EmulatorActivity, R.drawable.ic_touch_disabled))
-            } else {
-                binding.layoutInputButtons.visibility = View.VISIBLE
-                binding.imageTouchToggle.setImageDrawable(ContextCompat.getDrawable(this@EmulatorActivity, R.drawable.ic_touch_enabled))
-            }
+            softInputVisible = !softInputVisible
+            setSoftInputVisibility(softInputVisible)
         }
 
         override fun onPausePressed() {
@@ -112,7 +104,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         val newEmulatorConfiguration = delegate.getEmulatorConfiguration()
         MelonEmulator.updateEmulatorConfiguration(newEmulatorConfiguration)
         dsRenderer.updateRendererConfiguration(newEmulatorConfiguration.rendererConfiguration)
-        setupSoftInput()
+        updateSoftInput()
         setupInputHandling()
     }
 
@@ -136,20 +128,13 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
 
         binding.textFps.visibility = View.INVISIBLE
+        binding.viewLayoutControls.setLayoutComponentViewBuilderFactory(RuntimeLayoutComponentViewBuilderFactory())
 
-        binding.viewInputArea.setOnTouchListener(TouchscreenInputHandler(melonTouchHandler))
-        binding.imageDpad.setOnTouchListener(DpadInputHandler(melonTouchHandler))
-        binding.imageButtons.setOnTouchListener(ButtonsInputHandler(melonTouchHandler))
-        binding.imageButtonL.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.L))
-        binding.imageButtonR.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.R))
-        binding.imageButtonSelect.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.SELECT))
-        binding.imageButtonStart.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.START))
-        binding.imageButtonLid.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.HINGE, true))
-        binding.imageButtonFastForward.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.FAST_FORWARD, false))
-        binding.imageTouchToggle.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.TOGGLE_SOFT_INPUT, false))
-        setupSoftInput()
+        viewModel.getLayout().observe(this, Observer {
+            setupSoftInput(it)
+        })
+
         setupInputHandling()
-
         launchEmulator()
     }
 
@@ -247,19 +232,58 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
     }
 
-    private fun setupSoftInput() {
+    private fun setupSoftInput(layoutConfiguration: LayoutConfiguration) {
+        val layoutChangeListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            dsRenderer.updateScreenAreas(
+                    binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.TOP_SCREEN)?.getRect(),
+                    binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BOTTOM_SCREEN)?.getRect()
+            )
+            updateSoftInput()
+        }
+        binding.viewLayoutControls.addOnLayoutChangeListener(layoutChangeListener)
+        binding.viewLayoutControls.instantiateLayout(layoutConfiguration)
+    }
+
+    private fun updateSoftInput() {
         if (settingsRepository.showSoftInput()) {
             val opacity = settingsRepository.getSoftInputOpacity()
-            val alpha = opacity / 100f
+            val inputAlpha = opacity / 100f
 
-            binding.layoutInputButtons.visibility = View.VISIBLE
-            binding.layoutInputButtons.alpha = alpha
-            binding.imageTouchToggle.visibility = View.VISIBLE
-            binding.imageTouchToggle.alpha = alpha
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.DPAD)?.view?.setOnTouchListener(DpadInputHandler(melonTouchHandler))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTONS)?.view?.setOnTouchListener(ButtonsInputHandler(melonTouchHandler))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_L)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.L))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_R)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.R))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_SELECT)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.SELECT))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_START)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.START))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_HINGE)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.HINGE, true))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_RESET)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.RESET, true))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_PAUSE)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.PAUSE, true))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.FAST_FORWARD, false))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.TOGGLE_SOFT_INPUT, false))
+
+            binding.viewLayoutControls.getLayoutComponentViews().forEach {
+                if (it.component != LayoutComponent.BOTTOM_SCREEN) {
+                    it.view.apply {
+                        visibility = View.VISIBLE
+                        alpha = inputAlpha
+                    }
+                }
+            }
         } else {
-            binding.layoutInputButtons.visibility = View.GONE
-            binding.imageTouchToggle.visibility = View.GONE
+            binding.viewLayoutControls.getLayoutComponentViews().forEach {
+                if (it.component != LayoutComponent.BOTTOM_SCREEN) {
+                    it.view.apply {
+                        visibility = View.GONE
+                    }
+                }
+            }
         }
+
+        binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BOTTOM_SCREEN)?.view?.setOnTouchListener(TouchscreenInputHandler(melonTouchHandler))
+    }
+
+    fun setSoftInputVisibility(visible: Boolean) {
+        binding.viewLayoutControls.setSoftInputVisibility(visible)
     }
 
     private fun setupInputHandling() {
@@ -295,22 +319,6 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         val result = MelonEmulator.resetEmulation()
         if (!result) {
             Toast.makeText(this, R.string.failed_reset_emulation, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun onRendererSizeChanged(width: Int, height: Int) {
-        runOnUiThread {
-            val dsAspectRatio = 192 / 256f
-            val screenWidth = (width - dsRenderer.margin * 2).toInt()
-            val screenHeight = (screenWidth * dsAspectRatio).toInt()
-
-            val params = RelativeLayout.LayoutParams(screenWidth, screenHeight)
-            params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
-            params.bottomMargin = dsRenderer.bottom.toInt()
-            params.leftMargin = dsRenderer.margin.toInt()
-            params.rightMargin = dsRenderer.margin.toInt()
-
-            binding.viewInputArea.layoutParams = params
         }
     }
 

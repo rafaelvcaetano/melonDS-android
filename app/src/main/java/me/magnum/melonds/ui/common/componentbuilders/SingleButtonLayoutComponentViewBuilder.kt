@@ -12,7 +12,6 @@ class SingleButtonLayoutComponentViewBuilder(private val layoutComponent: Layout
     override fun build(context: Context): View {
         return ImageView(context).apply {
             setImageResource(getInputDrawable())
-            background = ContextCompat.getDrawable(context, R.drawable.background_uiview)
         }
     }
 

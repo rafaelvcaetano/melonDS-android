@@ -11,7 +11,6 @@ class DpadLayoutComponentViewBuilder : LayoutComponentViewBuilder() {
     override fun build(context: Context): View {
         return ImageView(context).apply {
             setImageResource(R.drawable.keypad)
-            background = ContextCompat.getDrawable(context, R.drawable.background_uiview)
         }
     }
 

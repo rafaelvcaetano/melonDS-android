@@ -55,6 +55,7 @@ class LayoutEditorActivity : AppCompatActivity() {
             binding.viewLayoutEditor.deleteSelectedView()
         }
 
+        binding.viewLayoutEditor.setLayoutComponentViewBuilderFactory(EditorLayoutComponentViewBuilderFactory())
         binding.viewLayoutEditor.setOnClickListener {
             if (areBottomControlsShown)
                 hideBottomControls()

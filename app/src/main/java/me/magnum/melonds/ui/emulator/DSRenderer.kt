@@ -4,6 +4,7 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
 import android.util.Log
+import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RendererConfiguration
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.utils.ShaderUtils.createDefaultShaderProgram
@@ -35,6 +36,9 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
     private lateinit var uvBuffer: FloatBuffer
     private lateinit var texBuffer: ByteBuffer
 
+    private var topScreenRect: Rect? = null
+    private var bottomScreenRect: Rect? = null
+
     private var width = 0f
     private var height = 0f
     var bottom = 0f
@@ -48,6 +52,12 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
 
     fun updateRendererConfiguration(newRendererConfiguration: RendererConfiguration) {
         rendererConfiguration = newRendererConfiguration
+        mustUpdateConfiguration = true
+    }
+
+    fun updateScreenAreas(topScreenRect: Rect?, bottomScreenRect: Rect?) {
+        this.topScreenRect = topScreenRect
+        this.bottomScreenRect = bottomScreenRect
         mustUpdateConfiguration = true
     }
 
@@ -88,12 +98,6 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
         Matrix.setLookAtM(viewMatrix, 0, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f)
         Matrix.multiplyMM(mvpMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
 
-        // Invert UVs on the Y axis since the texture data should start at the bottom left corner
-        uvBuffer = ByteBuffer.allocateDirect(2 * 4 * 4)
-                .order(ByteOrder.nativeOrder())
-                .asFloatBuffer()
-                .put(floatArrayOf(0f, 1f, 1f, 1f, 0f, 0f, 1f, 0f))
-
         texBuffer = ByteBuffer.allocateDirect(SCREEN_WIDTH * SCREEN_HEIGHT * 4)
                 .order(ByteOrder.nativeOrder())
 
@@ -101,7 +105,116 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
     }
 
     private fun applyRendererConfiguration() {
+        updateScreenCoordinates()
         updateTextureParameters()
+    }
+
+    private fun updateScreenCoordinates() {
+        val uvs = mutableListOf<Float>()
+        val coords = mutableListOf<Float>()
+
+        val screenXToCoordX = { x: Int ->
+            (x / this.width) * 2f - 1f
+        }
+        val screenYToCoordY = { y: Int ->
+            ((this.height - y) / this.height) * 2f - 1f
+        }
+
+        // Indices:
+        // 1                         2
+        //   +-----------------------+ 4
+        //   |                       |
+        //   |                       |
+        //   |                       |
+        //   |                       |
+        // 0 +-----------------------+
+        //   3                         5
+        // Texture is vertically flipped
+
+        topScreenRect?.let {
+            uvs.add(0f)
+            uvs.add(0.5f)
+
+            uvs.add(0f)
+            uvs.add(0f)
+
+            uvs.add(1f)
+            uvs.add(0f)
+
+            uvs.add(0f)
+            uvs.add(0.5f)
+
+            uvs.add(1f)
+            uvs.add(0f)
+
+            uvs.add(1f)
+            uvs.add(0.5f)
+
+            coords.add(screenXToCoordX(it.x))
+            coords.add(screenYToCoordY(it.y + it.height))
+
+            coords.add(screenXToCoordX(it.x))
+            coords.add(screenYToCoordY(it.y))
+
+            coords.add(screenXToCoordX(it.x + it.width))
+            coords.add(screenYToCoordY(it.y))
+
+            coords.add(screenXToCoordX(it.x))
+            coords.add(screenYToCoordY(it.y + it.height))
+
+            coords.add(screenXToCoordX(it.x + it.width))
+            coords.add(screenYToCoordY(it.y))
+
+            coords.add(screenXToCoordX(it.x + it.width))
+            coords.add(screenYToCoordY(it.y + it.height))
+        }
+        bottomScreenRect?.let {
+            uvs.add(0f)
+            uvs.add(1f)
+
+            uvs.add(0f)
+            uvs.add(0.5f)
+
+            uvs.add(1f)
+            uvs.add(0.5f)
+
+            uvs.add(0f)
+            uvs.add(1f)
+
+            uvs.add(1f)
+            uvs.add(0.5f)
+
+            uvs.add(1f)
+            uvs.add(1f)
+
+            coords.add(screenXToCoordX(it.x))
+            coords.add(screenYToCoordY(it.y + it.height))
+
+            coords.add(screenXToCoordX(it.x))
+            coords.add(screenYToCoordY(it.y))
+
+            coords.add(screenXToCoordX(it.x + it.width))
+            coords.add(screenYToCoordY(it.y))
+
+            coords.add(screenXToCoordX(it.x))
+            coords.add(screenYToCoordY(it.y + it.height))
+
+            coords.add(screenXToCoordX(it.x + it.width))
+            coords.add(screenYToCoordY(it.y))
+
+            coords.add(screenXToCoordX(it.x + it.width))
+            coords.add(screenYToCoordY(it.y + it.height))
+        }
+
+        uvBuffer = ByteBuffer.allocateDirect(4 * uvs.size)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer()
+                .put(uvs.toFloatArray())
+
+        posBuffer = ByteBuffer.allocateDirect(4 * coords.size)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer()
+                .put(coords.toFloatArray())
     }
 
     private fun updateTextureParameters() {
@@ -120,36 +233,7 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
         this.width = width.toFloat()
         this.height = height.toFloat()
         GLES20.glViewport(0, 0, width, height)
-
-        val dsAspectRatio = 192 * 2 / 256f
-        var surfaceTargetHeight = width * dsAspectRatio
-        var surfaceTargetWidth = width.toFloat()
-
-        // If the screen is too tall, constraint vertically
-        if (surfaceTargetHeight > height) {
-            surfaceTargetHeight = height.toFloat()
-            surfaceTargetWidth = surfaceTargetHeight / dsAspectRatio
-        }
-
-        val relativeTargetWidth = surfaceTargetWidth / width
-        val relativeTargetHeight = surfaceTargetHeight / height
-        val dsBottom = 1 - relativeTargetHeight * 2
-        val dsHorizontalMargin = (1 - relativeTargetWidth)
-
-        posBuffer = ByteBuffer.allocateDirect(2 * 4 * 4)
-                .order(ByteOrder.nativeOrder())
-                .asFloatBuffer()
-                .put(floatArrayOf(
-                        -1f + dsHorizontalMargin, dsBottom,
-                        1f - dsHorizontalMargin, dsBottom,
-                        -1f + dsHorizontalMargin, 1f,
-                        1f - dsHorizontalMargin, 1f
-                ))
-        bottom = height - surfaceTargetHeight
-        margin = (width - surfaceTargetWidth) / 2f
-
-        if (rendererListener != null)
-            rendererListener!!.onRendererSizeChanged(width, height)
+        mustUpdateConfiguration = true
     }
 
     override fun onDrawFrame(gl: GL10) {
@@ -163,19 +247,19 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
         uvBuffer.position(0)
         texBuffer.position(0)
 
+        val indices = posBuffer.capacity() / 2
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mainTexture)
         GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, texBuffer)
         GLES20.glUniformMatrix4fv(l_MVP, 1, false, mvpMatrix, 0)
-        GLES20.glVertexAttribPointer(l_pos, 4, GLES20.GL_FLOAT, false, 2 * 4, posBuffer)
-        GLES20.glVertexAttribPointer(l_uv, 4, GLES20.GL_FLOAT, false, 2 * 4, uvBuffer)
+        GLES20.glVertexAttribPointer(l_pos, 2, GLES20.GL_FLOAT, false, 2 * 4, posBuffer)
+        GLES20.glVertexAttribPointer(l_uv, 2, GLES20.GL_FLOAT, false, 2 * 4, uvBuffer)
         GLES20.glUniform1i(l_tex, 0)
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, indices)
     }
 
     interface RendererListener {
-        fun onRendererSizeChanged(width: Int, height: Int)
         fun updateFrameBuffer(dst: ByteBuffer)
     }
 }

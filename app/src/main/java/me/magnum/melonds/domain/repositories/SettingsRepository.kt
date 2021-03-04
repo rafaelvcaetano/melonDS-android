@@ -45,6 +45,7 @@ interface SettingsRepository {
     fun observeTheme(): Observable<Theme>
     fun observeRomIconFiltering(): Observable<RomIconFiltering>
     fun observeRomSearchDirectories(): Observable<Array<Uri>>
+    fun observeSelectedLayoutId(): Observable<UUID>
 
     fun setDsBiosDirectory(directoryUri: Uri)
     fun setDsiBiosDirectory(directoryUri: Uri)

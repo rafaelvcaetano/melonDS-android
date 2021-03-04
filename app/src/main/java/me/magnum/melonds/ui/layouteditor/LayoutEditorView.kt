@@ -1,10 +1,12 @@
-package me.magnum.melonds.ui.common
+package me.magnum.melonds.ui.layouteditor
 
 import android.content.Context
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.ui.common.LayoutComponentView
+import me.magnum.melonds.ui.common.LayoutView
 import kotlin.math.*
 
 class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(context, attrs) {
@@ -39,7 +41,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
     }
 
     fun addLayoutComponent(component: LayoutComponent) {
-        val componentBuilder = layoutComponentViewBuilderFactory.getLayoutComponentViewBuilder(component)
+        val componentBuilder = viewBuilderFactory.getLayoutComponentViewBuilder(component)
         val componentHeight = defaultComponentWidth / componentBuilder.getAspectRatio()
         val componentView = addPositionedLayoutComponent(PositionedLayoutComponent(Rect(0, 0, defaultComponentWidth, componentHeight.toInt()), component))
         views[component] = componentView
@@ -56,6 +58,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
     override fun onLayoutComponentViewAdded(layoutComponentView: LayoutComponentView) {
         super.onLayoutComponentViewAdded(layoutComponentView)
         setupDragHandler(layoutComponentView)
+        layoutComponentView.view.alpha = 0.5f
     }
 
     private fun setupDragHandler(layoutComponentView: LayoutComponentView) {

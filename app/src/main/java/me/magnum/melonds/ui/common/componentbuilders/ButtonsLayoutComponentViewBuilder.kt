@@ -11,7 +11,6 @@ class ButtonsLayoutComponentViewBuilder : LayoutComponentViewBuilder() {
     override fun build(context: Context): View {
         return ImageView(context).apply {
             setImageResource(R.drawable.buttons)
-            background = ContextCompat.getDrawable(context, R.drawable.background_uiview)
         }
     }
 

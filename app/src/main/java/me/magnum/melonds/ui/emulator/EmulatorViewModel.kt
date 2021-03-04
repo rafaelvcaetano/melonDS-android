@@ -9,8 +9,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.CheatsRepository
+import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.addTo
@@ -25,9 +27,31 @@ class EmulatorViewModel @ViewModelInject constructor(
         private val settingsRepository: SettingsRepository,
         private val romsRepository: RomsRepository,
         private val cheatsRepository: CheatsRepository,
-        private val fileRomProcessorFactory: FileRomProcessorFactory
+        private val fileRomProcessorFactory: FileRomProcessorFactory,
+        private val layoutsRepository: LayoutsRepository
 ) : ViewModel() {
+
     private val disposables = CompositeDisposable()
+    private val layoutLiveData = MutableLiveData<LayoutConfiguration>()
+
+    init {
+        settingsRepository.observeSelectedLayoutId()
+                .startWith(settingsRepository.getSelectedLayoutId())
+                .switchMap { layoutId ->
+                    layoutsRepository.getLayout(layoutId)
+                            .flatMapObservable {
+                                layoutsRepository.observeLayout(layoutId).startWith(it)
+                            }
+                }
+                .subscribeOn(Schedulers.io())
+                .subscribe {
+                    layoutLiveData.postValue(it)
+                }.addTo(disposables)
+    }
+
+    fun getLayout(): LiveData<LayoutConfiguration> {
+        return layoutLiveData
+    }
 
     fun getRomLoader(rom: Rom): Single<Pair<Rom, Uri>> {
         val fileRomProcessor = fileRomProcessorFactory.getFileRomProcessorForDocument(rom.uri)

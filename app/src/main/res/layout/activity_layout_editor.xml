@@ -5,7 +5,7 @@
         android:layout_height="match_parent"
         android:background="@android:color/black" >
 
-    <me.magnum.melonds.ui.common.LayoutEditorView
+    <me.magnum.melonds.ui.layouteditor.LayoutEditorView
             android:id="@+id/view_layout_editor"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

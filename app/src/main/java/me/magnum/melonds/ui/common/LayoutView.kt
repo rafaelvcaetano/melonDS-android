@@ -17,10 +17,23 @@ open class LayoutView(context: Context, attrs: AttributeSet?) : FrameLayout(cont
     @Inject
     lateinit var screenUnitsConverter: ScreenUnitsConverter
 
-    protected val layoutComponentViewBuilderFactory = LayoutComponentViewBuilderFactory()
+    protected lateinit var viewBuilderFactory: LayoutComponentViewBuilderFactory
+    private var currentLayoutConfiguration: LayoutConfiguration? = null
     protected val views = mutableMapOf<LayoutComponent, LayoutComponentView>()
 
+    fun setLayoutComponentViewBuilderFactory(factory: LayoutComponentViewBuilderFactory) {
+        viewBuilderFactory = factory
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        currentLayoutConfiguration?.let {
+            instantiateLayout(it)
+        }
+    }
+
     fun instantiateLayout(layoutConfiguration: LayoutConfiguration) {
+        currentLayoutConfiguration = layoutConfiguration
         views.clear()
         removeAllViews()
 
@@ -35,6 +48,14 @@ open class LayoutView(context: Context, attrs: AttributeSet?) : FrameLayout(cont
         return views.keys.toList()
     }
 
+    fun getLayoutComponentViews(): List<LayoutComponentView> {
+        return views.values.toList()
+    }
+
+    fun getLayoutComponentView(layoutComponent: LayoutComponent): LayoutComponentView? {
+        return views[layoutComponent]
+    }
+
     private fun loadLayout(layout: UILayout) {
         layout.components.forEach {
             views[it.component] = addPositionedLayoutComponent(it)
@@ -42,10 +63,8 @@ open class LayoutView(context: Context, attrs: AttributeSet?) : FrameLayout(cont
     }
 
     protected fun addPositionedLayoutComponent(layoutComponent: PositionedLayoutComponent): LayoutComponentView {
-        val viewBuilder = layoutComponentViewBuilderFactory.getLayoutComponentViewBuilder(layoutComponent.component)
-        val view = viewBuilder.build(context).apply {
-            alpha = 0.5f
-        }
+        val viewBuilder = viewBuilderFactory.getLayoutComponentViewBuilder(layoutComponent.component)
+        val view = viewBuilder.build(context)
 
         val viewParams = LayoutParams(layoutComponent.rect.width, layoutComponent.rect.height).apply {
             leftMargin = layoutComponent.rect.x

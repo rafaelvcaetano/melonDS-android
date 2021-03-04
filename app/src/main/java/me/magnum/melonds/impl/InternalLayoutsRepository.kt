@@ -44,6 +44,16 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
         }
     }
 
+    override fun observeLayout(id: UUID): Observable<LayoutConfiguration> {
+        return getCachedLayoutsOrLoad()
+                .toObservable()
+                .map { it.find { it.id == id } != null }
+                .concatWith(layoutsChangedSubject.map { layouts.find { it.id == id } != null })
+                .map {
+                    layouts.first { it.id == id }
+                }
+    }
+
     override fun saveLayout(layout: LayoutConfiguration) {
         if (layout.id == null) {
             val newLayout = layout.copy(
