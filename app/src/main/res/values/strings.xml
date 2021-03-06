@@ -163,6 +163,7 @@
     <string name="layout_editor">Layout editor</string>
     <string name="add_component">Add component</string>
     <string name="no_more_components">No more components to add</string>
+    <string name="label_size">Size:</string>
     <string name="menu">Menu</string>
     <string name="revert_changes">Revert changes</string>
     <string name="reset_default">Reset to default</string>

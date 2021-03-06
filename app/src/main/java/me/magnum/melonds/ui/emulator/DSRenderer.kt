@@ -41,10 +41,6 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
 
     private var width = 0f
     private var height = 0f
-    var bottom = 0f
-        private set
-    var margin = 0f
-        private set
 
     fun setRendererListener(listener: RendererListener?) {
         rendererListener = listener
@@ -59,6 +55,14 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
         this.topScreenRect = topScreenRect
         this.bottomScreenRect = bottomScreenRect
         mustUpdateConfiguration = true
+    }
+
+    private fun screenXToViewportX(x: Int): Float {
+        return (x / this.width) * 2f - 1f
+    }
+
+    private fun screenYToViewportY(y: Int): Float {
+        return ((this.height - y) / this.height) * 2f - 1f
     }
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
@@ -113,13 +117,6 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
         val uvs = mutableListOf<Float>()
         val coords = mutableListOf<Float>()
 
-        val screenXToCoordX = { x: Int ->
-            (x / this.width) * 2f - 1f
-        }
-        val screenYToCoordY = { y: Int ->
-            ((this.height - y) / this.height) * 2f - 1f
-        }
-
         // Indices:
         // 1                         2
         //   +-----------------------+ 4
@@ -150,23 +147,23 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
             uvs.add(1f)
             uvs.add(0.5f)
 
-            coords.add(screenXToCoordX(it.x))
-            coords.add(screenYToCoordY(it.y + it.height))
+            coords.add(screenXToViewportX(it.x))
+            coords.add(screenYToViewportY(it.y + it.height))
 
-            coords.add(screenXToCoordX(it.x))
-            coords.add(screenYToCoordY(it.y))
+            coords.add(screenXToViewportX(it.x))
+            coords.add(screenYToViewportY(it.y))
 
-            coords.add(screenXToCoordX(it.x + it.width))
-            coords.add(screenYToCoordY(it.y))
+            coords.add(screenXToViewportX(it.x + it.width))
+            coords.add(screenYToViewportY(it.y))
 
-            coords.add(screenXToCoordX(it.x))
-            coords.add(screenYToCoordY(it.y + it.height))
+            coords.add(screenXToViewportX(it.x))
+            coords.add(screenYToViewportY(it.y + it.height))
 
-            coords.add(screenXToCoordX(it.x + it.width))
-            coords.add(screenYToCoordY(it.y))
+            coords.add(screenXToViewportX(it.x + it.width))
+            coords.add(screenYToViewportY(it.y))
 
-            coords.add(screenXToCoordX(it.x + it.width))
-            coords.add(screenYToCoordY(it.y + it.height))
+            coords.add(screenXToViewportX(it.x + it.width))
+            coords.add(screenYToViewportY(it.y + it.height))
         }
         bottomScreenRect?.let {
             uvs.add(0f)
@@ -187,23 +184,23 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
             uvs.add(1f)
             uvs.add(1f)
 
-            coords.add(screenXToCoordX(it.x))
-            coords.add(screenYToCoordY(it.y + it.height))
+            coords.add(screenXToViewportX(it.x))
+            coords.add(screenYToViewportY(it.y + it.height))
 
-            coords.add(screenXToCoordX(it.x))
-            coords.add(screenYToCoordY(it.y))
+            coords.add(screenXToViewportX(it.x))
+            coords.add(screenYToViewportY(it.y))
 
-            coords.add(screenXToCoordX(it.x + it.width))
-            coords.add(screenYToCoordY(it.y))
+            coords.add(screenXToViewportX(it.x + it.width))
+            coords.add(screenYToViewportY(it.y))
 
-            coords.add(screenXToCoordX(it.x))
-            coords.add(screenYToCoordY(it.y + it.height))
+            coords.add(screenXToViewportX(it.x))
+            coords.add(screenYToViewportY(it.y + it.height))
 
-            coords.add(screenXToCoordX(it.x + it.width))
-            coords.add(screenYToCoordY(it.y))
+            coords.add(screenXToViewportX(it.x + it.width))
+            coords.add(screenYToViewportY(it.y))
 
-            coords.add(screenXToCoordX(it.x + it.width))
-            coords.add(screenYToCoordY(it.y + it.height))
+            coords.add(screenXToViewportX(it.x + it.width))
+            coords.add(screenYToViewportY(it.y + it.height))
         }
 
         uvBuffer = ByteBuffer.allocateDirect(4 * uvs.size)

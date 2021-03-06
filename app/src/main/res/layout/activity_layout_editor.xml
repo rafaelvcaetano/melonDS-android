@@ -9,37 +9,36 @@
             android:id="@+id/view_layout_editor"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clickable="true"
             android:focusable="false" />
 
     <LinearLayout
             android:id="@+id/layout_scaling"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:orientation="horizontal"
             android:background="#AFFF"
             android:clickable="true"
             android:focusable="false"
-            android:gravity="center">
+            android:gravity="center_vertical">
 
         <Button
                 android:id="@+id/button_delete_button"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:text="@string/delete"
-                style="?android:attr/borderlessButtonStyle" />
+                style="@style/Button.Editor" />
 
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:text="Resize" />
+                android:textColor="@color/textLayoutEditor"
+                android:text="@string/label_size" />
 
         <SeekBar
                 android:id="@+id/seek_bar_scaling"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:padding="8dp"
                 android:max="10000"
                 android:layout_gravity="center_vertical" />
@@ -48,19 +47,20 @@
     <LinearLayout
             android:id="@+id/layout_controls"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:orientation="horizontal"
             android:background="#AFFF"
             android:clickable="true"
-            android:focusable="false" >
+            android:focusable="false"
+            android:gravity="center_vertical" >
 
         <Button
                 android:id="@+id/button_add_button"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:text="@string/add_component"
-                style="?android:attr/borderlessButtonStyle" />
+                style="@style/Button.Editor" />
 
         <Space
                 android:layout_width="0dp"
@@ -70,8 +70,8 @@
         <Button
                 android:id="@+id/button_menu"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:text="@string/menu"
-                style="?android:attr/borderlessButtonStyle" />
+                style="@style/Button.Editor" />
     </LinearLayout>
 </RelativeLayout>

@@ -12,6 +12,8 @@
 
     <color name="buttonContrasted">#D000</color>
 
+    <color name="textLayoutEditor">@android:color/black</color>
+
     <color name="navigationBarBackground">#EEE</color>
     <color name="prefSwitchRailColor">#805C913B</color>
     <color name="prefSwitchBackground">#FCCC</color>

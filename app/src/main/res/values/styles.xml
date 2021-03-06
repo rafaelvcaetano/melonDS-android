@@ -31,6 +31,10 @@
         <item name="android:scaleType">fitCenter</item>
     </style>
 
+    <style name="Button.Editor" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:textColor">@color/textLayoutEditor</item>
+    </style>
+
     <style name="Menu.OverflowUnder" parent="Widget.AppCompat.PopupMenu.Overflow">
         <item name="overlapAnchor">false</item>
         <item name="android:overlapAnchor">false</item>

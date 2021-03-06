@@ -27,8 +27,11 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
 
     init {
         super.setOnClickListener {
-            deselectCurrentView()
-            otherClickListener?.onClick(it)
+            if (selectedView != null) {
+                deselectCurrentView()
+            } else {
+                otherClickListener?.onClick(it)
+            }
         }
     }
 
