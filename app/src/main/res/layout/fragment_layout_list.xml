@@ -4,8 +4,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-    <FrameLayout
-            android:id="@+id/frame_layout_list"
+    <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/list_layouts"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
