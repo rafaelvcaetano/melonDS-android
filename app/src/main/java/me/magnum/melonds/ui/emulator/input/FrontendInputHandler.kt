@@ -10,6 +10,7 @@ abstract class FrontendInputHandler : IInputListener {
             Input.FAST_FORWARD -> onFastForwardPressed()
             Input.TOGGLE_SOFT_INPUT -> onSoftInputTogglePressed()
             Input.RESET -> onResetPressed()
+            Input.SWAP_SCREENS -> onSwapScreens()
         }
     }
 
@@ -23,4 +24,5 @@ abstract class FrontendInputHandler : IInputListener {
     abstract fun onFastForwardPressed()
     abstract fun onSoftInputTogglePressed()
     abstract fun onResetPressed()
+    abstract fun onSwapScreens()
 }

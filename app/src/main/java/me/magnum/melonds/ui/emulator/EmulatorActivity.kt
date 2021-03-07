@@ -99,6 +99,10 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                 resetEmulation()
             }
         }
+
+        override fun onSwapScreens() {
+            swapScreen()
+        }
     }
     private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         val newEmulatorConfiguration = delegate.getEmulatorConfiguration()
@@ -110,6 +114,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
     private var emulatorReady = false
     private var emulatorPaused = false
+    private var screensSwapped = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -260,9 +265,10 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_PAUSE)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.PAUSE, true))
             binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.FAST_FORWARD, false))
             binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.TOGGLE_SOFT_INPUT, false))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_SWAP_SCREENS)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.SWAP_SCREENS, false))
 
             binding.viewLayoutControls.getLayoutComponentViews().forEach {
-                if (it.component != LayoutComponent.BOTTOM_SCREEN) {
+                if (!it.component.isScreen()) {
                     it.view.apply {
                         visibility = View.VISIBLE
                         alpha = inputAlpha
@@ -271,7 +277,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             }
         } else {
             binding.viewLayoutControls.getLayoutComponentViews().forEach {
-                if (it.component != LayoutComponent.BOTTOM_SCREEN) {
+                if (!it.component.isScreen()) {
                     it.view.apply {
                         visibility = View.GONE
                     }
@@ -279,11 +285,37 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             }
         }
 
-        binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BOTTOM_SCREEN)?.view?.setOnTouchListener(TouchscreenInputHandler(melonTouchHandler))
+        val touchScreenComponent = if (screensSwapped) {
+            LayoutComponent.TOP_SCREEN
+        } else {
+            LayoutComponent.BOTTOM_SCREEN
+        }
+        binding.viewLayoutControls.getLayoutComponentView(touchScreenComponent)?.view?.setOnTouchListener(TouchscreenInputHandler(melonTouchHandler))
     }
 
-    fun setSoftInputVisibility(visible: Boolean) {
+    private fun setSoftInputVisibility(visible: Boolean) {
         binding.viewLayoutControls.setSoftInputVisibility(visible)
+    }
+
+    private fun swapScreen() {
+        screensSwapped = !screensSwapped
+
+        val topScreenRect: Rect?
+        val bottomScreenRect: Rect?
+
+        if (screensSwapped) {
+            topScreenRect = binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BOTTOM_SCREEN)?.getRect()
+            bottomScreenRect = binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.TOP_SCREEN)?.getRect()
+        } else {
+            topScreenRect = binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.TOP_SCREEN)?.getRect()
+            bottomScreenRect = binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BOTTOM_SCREEN)?.getRect()
+        }
+
+        dsRenderer.updateScreenAreas(
+                topScreenRect,
+                bottomScreenRect
+        )
+        updateSoftInput()
     }
 
     private fun setupInputHandling() {

@@ -88,6 +88,6 @@ class InputSetupViewModel @ViewModelInject constructor(private val settingsRepos
 
     override fun onCleared() {
         super.onCleared()
-        disposables.dispose()
+        disposables.clear()
     }
 }

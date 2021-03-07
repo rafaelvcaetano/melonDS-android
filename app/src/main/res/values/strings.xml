@@ -155,6 +155,7 @@
     <string name="input_reset">@string/reset</string>
     <string name="input_dpad">DPAD</string>
     <string name="input_abxy_buttons">ABXY Buttons</string>
+    <string name="input_swap_screens">Swap Screens</string>
 
     <string name="layouts">Layouts</string>
     <string name="action_layouts_new">New layout</string>

@@ -18,7 +18,6 @@ import me.magnum.melonds.databinding.ItemInputBinding
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.InputConfig
 import me.magnum.melonds.ui.inputsetup.InputSetupActivity.InputListAdapter.InputViewHolder
-import me.magnum.melonds.utils.getInputName
 import java.util.*
 
 @AndroidEntryPoint
@@ -42,6 +41,7 @@ class InputSetupActivity : AppCompatActivity() {
                 Input.PAUSE -> R.string.input_pause
                 Input.FAST_FORWARD -> R.string.input_fast_forward
                 Input.RESET -> R.string.input_reset
+                Input.SWAP_SCREENS -> R.string.input_swap_screens
                 else -> -1
             }
         }

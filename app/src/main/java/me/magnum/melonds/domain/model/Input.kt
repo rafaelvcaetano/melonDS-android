@@ -27,7 +27,8 @@ enum class Input(val keyCode: Int) {
     PAUSE(-1),
     FAST_FORWARD(-1),
     RESET(-1),
-    TOGGLE_SOFT_INPUT(-1);
+    TOGGLE_SOFT_INPUT(-1),
+    SWAP_SCREENS(-1);
 
     val isSystemInput: Boolean
         get() = keyCode != -1

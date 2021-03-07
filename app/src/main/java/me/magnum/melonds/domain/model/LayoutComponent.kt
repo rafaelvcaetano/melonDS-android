@@ -13,5 +13,10 @@ enum class LayoutComponent {
     BUTTON_FAST_FORWARD_TOGGLE,
     BUTTON_TOGGLE_SOFT_INPUT,
     BUTTON_RESET,
-    BUTTON_PAUSE
+    BUTTON_PAUSE,
+    BUTTON_SWAP_SCREENS;
+
+    fun isScreen(): Boolean {
+        return this == TOP_SCREEN || this == BOTTOM_SCREEN
+    }
 }

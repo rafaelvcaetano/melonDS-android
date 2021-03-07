@@ -20,7 +20,8 @@ class ControllerConfiguration(configList: List<InputConfig>) {
                 Input.HINGE,
                 Input.PAUSE,
                 Input.FAST_FORWARD,
-                Input.RESET
+                Input.RESET,
+                Input.SWAP_SCREENS
         )
 
         fun empty(): ControllerConfiguration {
