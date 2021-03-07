@@ -9,6 +9,10 @@ import kotlin.math.pow
 abstract class MultiButtonInputHandler(inputListener: IInputListener) : BaseInputHandler(inputListener) {
     private var areDimensionsInitialized = false
     private val buttonCircles = mutableListOf<ButtonCircle>()
+    private val pressedInputs = mutableListOf<Input>()
+    private val newPressedInputs = mutableListOf<Input>()
+    // Reusable input list to avoid memory allocations
+    private val tempInputList = mutableListOf<Input>()
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {
         if (!areDimensionsInitialized) {
@@ -16,20 +20,35 @@ abstract class MultiButtonInputHandler(inputListener: IInputListener) : BaseInpu
             areDimensionsInitialized = true
         }
 
-        inputListener.onKeyReleased(getTopInput())
-        inputListener.onKeyReleased(getRightInput())
-        inputListener.onKeyReleased(getBottomInput())
-        inputListener.onKeyReleased(getLeftInput())
+        newPressedInputs.clear()
 
         when (event.action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                 buttonCircles.forEach {
                     if (it.containsPoint(event.x, event.y)) {
-                        inputListener.onKeyPress(it.input)
+                        newPressedInputs.add(it.input)
                     }
                 }
             }
         }
+
+        tempInputList.clear()
+        pressedInputs.filterNotTo(tempInputList) {
+            it in newPressedInputs
+        }.forEach {
+            inputListener.onKeyReleased(it)
+        }
+
+        tempInputList.clear()
+        newPressedInputs.filterNotTo(tempInputList) {
+            it in pressedInputs
+        }.forEach {
+            inputListener.onKeyPress(it)
+        }
+
+        pressedInputs.clear()
+        pressedInputs.addAll(newPressedInputs)
+
         return true
     }
 
