@@ -115,8 +115,8 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
                 preferences.getString("firmware_settings_message", "Hello!")!!,
                 preferences.getString("firmware_settings_language", "1")!!.toInt(),
                 preferences.getInt("firmware_settings_colour", 0),
-                birthday.first,
                 birthday.second,
+                birthday.first
         )
     }
 
