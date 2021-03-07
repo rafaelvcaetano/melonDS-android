@@ -236,6 +236,10 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return preferences.getBoolean("input_show_soft", true)
     }
 
+    override fun isTouchHapticFeedbackEnabled(): Boolean {
+        return preferences.getBoolean("input_touch_haptic_feedback_enabled", true)
+    }
+
     override fun getSoftInputOpacity(): Int {
         return preferences.getInt("input_opacity", 50)
     }

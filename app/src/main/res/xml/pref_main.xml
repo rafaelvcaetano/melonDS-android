@@ -153,6 +153,12 @@
             android:title="@string/show_soft_input"
             android:defaultValue="true" />
 
+        <SwitchPreference
+            android:key="input_touch_haptic_feedback_enabled"
+            android:title="@string/vibrate_on_touch"
+            android:dependency="input_show_soft"
+            android:defaultValue="true" />
+
         <SeekBarPreference
             android:key="input_opacity"
             android:title="@string/soft_input_opacity"

@@ -6,7 +6,7 @@ import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.Point
 import kotlin.math.pow
 
-abstract class MultiButtonInputHandler(inputListener: IInputListener) : BaseInputHandler(inputListener) {
+abstract class MultiButtonInputHandler(inputListener: IInputListener, private val enableHapticFeedback: Boolean) : BaseInputHandler(inputListener) {
     private var areDimensionsInitialized = false
     private val buttonCircles = mutableListOf<ButtonCircle>()
     private val pressedInputs = mutableListOf<Input>()
@@ -44,6 +44,10 @@ abstract class MultiButtonInputHandler(inputListener: IInputListener) : BaseInpu
             it in pressedInputs
         }.forEach {
             inputListener.onKeyPress(it)
+        }
+
+        if (enableHapticFeedback && tempInputList.isNotEmpty()) {
+            performHapticFeedback(v)
         }
 
         pressedInputs.clear()

@@ -52,6 +52,10 @@ class EmulatorViewModel @ViewModelInject constructor(
         return layoutLiveData
     }
 
+    fun isTouchHapticFeedbackEnabled(): Boolean {
+        return settingsRepository.isTouchHapticFeedbackEnabled()
+    }
+
     fun getRomLoader(rom: Rom): Single<Pair<Rom, Uri>> {
         val fileRomProcessor = fileRomProcessorFactory.getFileRomProcessorForDocument(rom.uri)
         return fileRomProcessor?.getRealRomUri(rom)?.map { rom to it } ?: Single.error(Exception("Unsupported extension"))
