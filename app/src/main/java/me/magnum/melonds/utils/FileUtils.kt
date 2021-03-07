@@ -1,7 +1,6 @@
 package me.magnum.melonds.utils
 
 import android.annotation.SuppressLint
-import android.annotation.TargetApi
 import android.content.Context
 import android.net.Uri
 import android.os.Build
@@ -55,10 +54,11 @@ object FileUtils {
             val split = docId.split(":".toRegex()).toTypedArray()
             val type = split[0]
 
-            return if ("primary".equals(type, ignoreCase = true))
-                Environment.getExternalStorageDirectory().toString() + "/" + split[1]
-            else
-                "/storage/${split[0]}/${split[1]}"
+            return when {
+                "primary".equals(type, ignoreCase = true) -> Environment.getExternalStorageDirectory().toString() + "/" + split[1]
+                "raw".equals(type, ignoreCase = true) -> split[1]
+                else -> "/storage/${split[0]}/${split[1]}"
+            }
         }
 
         val documentUri = DocumentsContract.buildDocumentUriUsingTree(safUri, DocumentsContract.getTreeDocumentId(safUri))
@@ -156,7 +156,6 @@ object FileUtils {
         return null
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private fun getVolumeIdFromTreeUri(treeUri: Uri): String? {
         val docId = DocumentsContract.getTreeDocumentId(treeUri)
         val split = docId.split(":").toTypedArray()
@@ -167,7 +166,6 @@ object FileUtils {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private fun getDocumentPathFromTreeUri(treeUri: Uri): String? {
         val docId = DocumentsContract.getTreeDocumentId(treeUri)
         val split: kotlin.Array<String?> = docId.split(":").toTypedArray()
