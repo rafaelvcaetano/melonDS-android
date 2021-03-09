@@ -54,7 +54,10 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
             activity.viewModel.getRomAtPath(romPath)
         }
 
-        return romLoader.flatMap { rom -> activity.viewModel.getRomLoader(rom) }.flatMap { romPair ->
+        return romLoader.flatMap { rom ->
+            activity.viewModel.loadLayoutForRom(rom)
+            activity.viewModel.getRomLoader(rom)
+        }.flatMap { romPair ->
             loadedRom = romPair.first
             return@flatMap loadRomCheats(loadedRom).defaultIfEmpty(emptyList()).flatMapSingle { cheats ->
                 Single.create<MelonEmulator.LoadResult> { emitter ->

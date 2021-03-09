@@ -91,6 +91,7 @@
     <string name="category_audio">Audio</string>
     <string name="enable_sound">Enable sound</string>
     <string name="microphone_source">Microphone source</string>
+    <string name="controller_layout">Controller layout</string>
     <string name="category_save_files">Save Files</string>
     <string name="save_next_rom">Save next to ROM file</string>
     <string name="save_file_directory">Save file directory</string>
@@ -161,6 +162,7 @@
     <string name="layouts">Layouts</string>
     <string name="action_layouts_new">New layout</string>
     <string name="default_layout_name">Default</string>
+    <string name="use_global_layout">Use global layout</string>
 
     <string name="layout_editor">Layout editor</string>
     <string name="add_component">Add component</string>

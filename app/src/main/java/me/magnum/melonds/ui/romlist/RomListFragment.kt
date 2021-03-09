@@ -1,7 +1,9 @@
 package me.magnum.melonds.ui.romlist
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
@@ -18,14 +20,13 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
+import io.reactivex.Single
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ItemRomConfigurableBinding
 import me.magnum.melonds.databinding.ItemRomSimpleBinding
 import me.magnum.melonds.databinding.RomListFragmentBinding
-import me.magnum.melonds.domain.model.Rom
-import me.magnum.melonds.domain.model.RomConfig
-import me.magnum.melonds.domain.model.RomIconFiltering
-import me.magnum.melonds.domain.model.RomScanningStatus
+import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.ui.layouts.LayoutSelectorActivity
 import me.magnum.melonds.ui.romlist.RomConfigDialog.OnRomConfigSavedListener
 import me.magnum.melonds.ui.romlist.RomListFragment.RomListAdapter.RomViewHolder
 import me.magnum.melonds.utils.FilePickerContract
@@ -70,9 +71,16 @@ class RomListFragment : Fragment() {
             }
 
             override fun onRomConfigClicked(rom: Rom) {
+                var onLayoutPickedListener: ((UUID?) -> Unit)? = null
                 var onFilePickedListener: ((Uri) -> Unit)? = null
                 var microphonePermissionListener: ((Boolean) -> Unit)? = null
 
+                val layoutPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                    if (it.resultCode == Activity.RESULT_OK) {
+                        val layoutId = it.data?.getStringExtra(LayoutSelectorActivity.KEY_SELECTED_LAYOUT_ID)?.let { UUID.fromString(it) }
+                        onLayoutPickedListener?.invoke(layoutId)
+                    }
+                }
                 val romConfigFilePicker = registerForActivityResult(FilePickerContract()) {
                     if (it != null)
                         onFilePickedListener?.invoke(it)
@@ -84,15 +92,27 @@ class RomListFragment : Fragment() {
                 }
 
                 RomConfigDialog(requireContext(), rom.name, rom.config.copy(), object : RomConfigDialog.RomConfigDelegate {
-                            override fun pickFile(startUri: Uri?, onFilePicked: (Uri) -> Unit) {
-                                onFilePickedListener = onFilePicked
-                                romConfigFilePicker.launch(Pair(startUri, null))
-                            }
+                    override fun pickLayout(currentLayoutId: UUID?, onLayoutSelected: (UUID?) -> Unit) {
+                        onLayoutPickedListener = onLayoutSelected
+                        val intent = Intent(requireContext(), LayoutSelectorActivity::class.java).apply {
+                            putExtra(LayoutSelectorActivity.KEY_SELECTED_LAYOUT_ID, currentLayoutId?.toString())
+                        }
+                        layoutPickerLauncher.launch(intent)
+                    }
 
-                            override fun requestMicrophonePermission(onPermissionResult: (Boolean) -> Unit) {
-                                microphonePermissionListener = onPermissionResult
-                                microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                            }
+                    override fun getLayout(layoutId: UUID?): Single<LayoutConfiguration> {
+                        return romListViewModel.getLayout(layoutId)
+                    }
+
+                    override fun pickFile(startUri: Uri?, onFilePicked: (Uri) -> Unit) {
+                        onFilePickedListener = onFilePicked
+                        romConfigFilePicker.launch(Pair(startUri, null))
+                    }
+
+                    override fun requestMicrophonePermission(onPermissionResult: (Boolean) -> Unit) {
+                        microphonePermissionListener = onPermissionResult
+                        microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    }
                 }).apply {
                     setOnRomConfigSaveListener(object : OnRomConfigSavedListener {
                         override fun onRomConfigSaved(romConfig: RomConfig) {

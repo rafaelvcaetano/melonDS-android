@@ -89,6 +89,29 @@
             </LinearLayout>
 
             <LinearLayout
+                    android:id="@+id/layoutPrefLayout"
+                    style="@style/Layout.RomSetting">
+
+                <LinearLayout
+                        style="@style/Layout.RomSettingContent">
+
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Title"
+                            android:text="@string/controller_layout" />
+
+                    <TextView
+                            android:id="@+id/textPrefLayout"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Summary"
+                            android:singleLine="true"
+                            tools:text="Default" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
                     android:id="@+id/layoutPrefLoadGbaRom"
                     style="@style/Layout.RomSetting"
                     android:minHeight="48dp">

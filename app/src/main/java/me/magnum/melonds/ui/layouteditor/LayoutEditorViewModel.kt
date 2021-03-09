@@ -7,12 +7,12 @@ import androidx.lifecycle.ViewModel
 import me.magnum.melonds.domain.model.LayoutConfiguration
 import me.magnum.melonds.domain.model.UILayout
 import me.magnum.melonds.domain.repositories.LayoutsRepository
-import me.magnum.melonds.impl.DefaultLayoutBuilder
+import me.magnum.melonds.impl.DefaultLayoutProvider
 import java.util.*
 
 class LayoutEditorViewModel @ViewModelInject constructor(
         private val layoutsRepository: LayoutsRepository,
-        private val defaultLayoutBuilder: DefaultLayoutBuilder,
+        private val defaultLayoutProvider: DefaultLayoutProvider,
         @Assisted private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -69,7 +69,7 @@ class LayoutEditorViewModel @ViewModelInject constructor(
     }
 
     fun getDefaultLayoutConfiguration(): LayoutConfiguration {
-        return defaultLayoutBuilder.getDefaultLayout()
+        return defaultLayoutProvider.defaultLayout
     }
 
     fun isCurrentLayoutNew(): Boolean {

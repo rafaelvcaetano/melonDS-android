@@ -6,14 +6,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import androidx.appcompat.app.AlertDialog
+import io.reactivex.Single
+import io.reactivex.disposables.Disposable
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.DialogRomConfigBinding
+import me.magnum.melonds.domain.model.LayoutConfiguration
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RuntimeConsoleType
 import me.magnum.melonds.domain.model.RuntimeMicSource
 import me.magnum.melonds.extensions.setViewEnabledRecursive
 import me.magnum.melonds.utils.FileUtils
 import me.magnum.melonds.utils.isMicrophonePermissionGranted
+import java.util.*
 
 class RomConfigDialog(context: Context, private val title: String, private val romConfig: RomConfig, private val romConfigDelegate: RomConfigDelegate) : AlertDialog(context) {
     interface OnRomConfigSavedListener {
@@ -21,12 +25,15 @@ class RomConfigDialog(context: Context, private val title: String, private val r
     }
 
     interface RomConfigDelegate {
+        fun pickLayout(currentLayoutId: UUID?, onLayoutSelected: (UUID?) -> Unit)
+        fun getLayout(layoutId: UUID?): Single<LayoutConfiguration>
         fun pickFile(startUri: Uri?, onFilePicked: (Uri) -> Unit)
         fun requestMicrophonePermission(onPermissionResult: (Boolean) -> Unit)
     }
 
     private lateinit var binding: DialogRomConfigBinding
     private var saveListener: OnRomConfigSavedListener? = null
+    private var layoutNameDisposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,9 +77,15 @@ class RomConfigDialog(context: Context, private val title: String, private val r
                     }
                     .show()
         }
+        binding.layoutPrefLayout.setOnClickListener {
+            romConfigDelegate.pickLayout(romConfig.layoutId, this::onLayoutIdSelected)
+        }
         binding.layoutPrefLoadGbaRom.setOnClickListener { binding.switchLoadGbaRom.toggle() }
         binding.layoutPrefGbaRomPath.setOnClickListener {
             romConfigDelegate.pickFile(romConfig.gbaCartPath, this::onGbaRomPathSelected)
+        }
+        layoutNameDisposable = romConfigDelegate.getLayout(romConfig.layoutId).subscribe { layout ->
+            binding.textPrefLayout.text = layout.name
         }
         binding.layoutPrefGbaSavePath.setOnClickListener {
             romConfigDelegate.pickFile(romConfig.gbaSavePath, this::onGbaSavePathSelected)
@@ -124,6 +137,14 @@ class RomConfigDialog(context: Context, private val title: String, private val r
         binding.textPrefRuntimeMicSource.text = options[micSource.ordinal]
     }
 
+    private fun onLayoutIdSelected(layoutId: UUID?) {
+        romConfig.layoutId = layoutId
+        layoutNameDisposable?.dispose()
+        layoutNameDisposable = romConfigDelegate.getLayout(layoutId).subscribe { layout ->
+            binding.textPrefLayout.text = layout.name
+        }
+    }
+
     private fun onGbaRomPathSelected(romFileUri: Uri) {
         romConfig.gbaCartPath = romFileUri
         binding.textPrefGbaRomPath.text = getUriPathOrDefault(romFileUri)
@@ -136,5 +157,10 @@ class RomConfigDialog(context: Context, private val title: String, private val r
 
     private fun getUriPathOrDefault(uri: Uri?): String {
         return FileUtils.getAbsolutePathFromSAFUri(context, uri) ?: context.getString(R.string.not_set)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        layoutNameDisposable?.dispose()
     }
 }

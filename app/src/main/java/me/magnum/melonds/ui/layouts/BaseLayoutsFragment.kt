@@ -18,13 +18,14 @@ import me.magnum.melonds.domain.model.LayoutConfiguration
 import me.magnum.melonds.ui.layouteditor.LayoutEditorActivity
 import java.util.*
 
-@AndroidEntryPoint
-class LayoutListFragment(private val initiallySelectedLayoutId: UUID) : Fragment() {
-    private val viewModel: LayoutsViewModel by activityViewModels()
+abstract class BaseLayoutsFragment : Fragment() {
+    private val viewModel by lazy { getFragmentViewModel() }
     private lateinit var binding: FragmentLayoutListBinding
     private lateinit var layoutsAdapter: LayoutsAdapter
 
     private var layoutSelectedListener: ((LayoutConfiguration) -> Unit)? = null
+
+    abstract fun getFragmentViewModel(): BaseLayoutsViewModel
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentLayoutListBinding.inflate(inflater, container, false)
@@ -48,7 +49,7 @@ class LayoutListFragment(private val initiallySelectedLayoutId: UUID) : Fragment
             adapter = layoutsAdapter
         }
 
-        layoutsAdapter.setSelectedLayoutId(initiallySelectedLayoutId)
+        layoutsAdapter.setSelectedLayoutId(viewModel.getSelectedLayoutId())
         viewModel.getLayouts().observe(viewLifecycleOwner, Observer {
             layoutsAdapter.setLayouts(it)
         })
@@ -115,7 +116,7 @@ class LayoutListFragment(private val initiallySelectedLayoutId: UUID) : Fragment
             notifyDataSetChanged()
         }
 
-        fun setSelectedLayoutId(layoutId: UUID) {
+        fun setSelectedLayoutId(layoutId: UUID?) {
             if (layoutId == selectedLayoutId) {
                 return
             }
@@ -138,10 +139,12 @@ class LayoutListFragment(private val initiallySelectedLayoutId: UUID) : Fragment
             return ViewHolder(binding).also { holder ->
                 binding.radioLayoutSelected.setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked) {
-                        holder.layoutConfiguration.id?.let {
-                            setSelectedLayoutId(it)
+                        val previousSelectedLayoutId = selectedLayoutId
+                        setSelectedLayoutId(holder.layoutConfiguration.id)
+
+                        if (holder.layoutConfiguration.id != previousSelectedLayoutId) {
+                            onLayoutSelected(holder.layoutConfiguration)
                         }
-                        onLayoutSelected(holder.layoutConfiguration)
                     }
                 }
                 binding.buttonLayoutEdit.setOnClickListener {

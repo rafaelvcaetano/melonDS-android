@@ -6,9 +6,10 @@ import androidx.appcompat.app.AppCompatActivity
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityLayoutsBinding
+import me.magnum.melonds.ui.layouts.fragments.LayoutListFragment
 
 @AndroidEntryPoint
-class LayoutsActivity : AppCompatActivity() {
+class LayoutListActivity : AppCompatActivity() {
     private val viewModel: LayoutsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,7 +17,7 @@ class LayoutsActivity : AppCompatActivity() {
         val binding = ActivityLayoutsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val fragment = LayoutListFragment(viewModel.getSelectedLayoutId()).apply {
+        val fragment = LayoutListFragment().apply {
             setOnLayoutSelectedListener {
                 viewModel.setSelectedLayout(it)
             }

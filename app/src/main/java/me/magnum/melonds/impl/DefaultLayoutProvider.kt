@@ -8,15 +8,13 @@ import me.magnum.melonds.domain.model.*
 import kotlin.math.roundToInt
 
 
-class DefaultLayoutBuilder(private val context: Context, private val screenUnitsConverter: ScreenUnitsConverter) {
+class DefaultLayoutProvider(private val context: Context, private val screenUnitsConverter: ScreenUnitsConverter) {
     companion object {
         private const val DS_ASPECT_RATIO = 256f / 192f
     }
 
-    private var defaultLayout: LayoutConfiguration? = null
-
-    fun getDefaultLayout(): LayoutConfiguration {
-        return defaultLayout ?: buildDefaultLayout()
+    val defaultLayout by lazy {
+        buildDefaultLayout()
     }
 
     private fun buildDefaultLayout(): LayoutConfiguration {

@@ -22,6 +22,7 @@ class RomParcelable : Parcelable {
         rom = Rom(parcel.readString()!!, Uri.parse(parcel.readString()), romConfig, parcel.readLong().let { if (it == (-1).toLong()) null else Date(it) })
         romConfig.runtimeConsoleType = RuntimeConsoleType.values()[parcel.readInt()]
         romConfig.runtimeMicSource = RuntimeMicSource.values()[parcel.readInt()]
+        romConfig.layoutId = parcel.readString()?.let { UUID.fromString(it) }
         romConfig.setLoadGbaCart(parcel.readInt() == 1)
         romConfig.gbaCartPath = parcel.readString()?.let { Uri.parse(it) }
         romConfig.gbaSavePath = parcel.readString()?.let { Uri.parse(it) }
@@ -33,6 +34,7 @@ class RomParcelable : Parcelable {
         dest.writeLong(rom.lastPlayed?.time ?: -1)
         dest.writeInt(rom.config.runtimeConsoleType.ordinal)
         dest.writeInt(rom.config.runtimeMicSource.ordinal)
+        dest.writeString(rom.config.layoutId?.toString())
         dest.writeInt(if (rom.config.loadGbaCart()) 1 else 0)
         dest.writeString(rom.config.gbaCartPath?.toString())
         dest.writeString(rom.config.gbaSavePath?.toString())

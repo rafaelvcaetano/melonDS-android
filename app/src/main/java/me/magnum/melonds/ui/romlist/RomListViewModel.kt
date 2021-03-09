@@ -8,8 +8,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.addTo
@@ -22,6 +24,7 @@ class RomListViewModel @ViewModelInject constructor(
         private val context: Context,
         private val romsRepository: RomsRepository,
         private val settingsRepository: SettingsRepository,
+        private val layoutsRepository: LayoutsRepository,
         private val romIconProvider: RomIconProvider
 ) : ViewModel() {
 
@@ -100,6 +103,14 @@ class RomListViewModel @ViewModelInject constructor(
 
     fun updateRomConfig(rom: Rom, newConfig: RomConfig) {
         romsRepository.updateRomConfig(rom, newConfig)
+    }
+
+    fun getLayout(layoutId: UUID?): Single<LayoutConfiguration> {
+        return if (layoutId == null) {
+            Single.just(layoutsRepository.getGlobalLayoutPlaceholder())
+        } else {
+            layoutsRepository.getLayout(layoutId).toSingle(layoutsRepository.getGlobalLayoutPlaceholder())
+        }
     }
 
     fun setRomLastPlayedNow(rom: Rom) {

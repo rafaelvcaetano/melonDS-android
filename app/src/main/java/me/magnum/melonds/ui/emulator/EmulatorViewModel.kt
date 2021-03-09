@@ -7,8 +7,10 @@ import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.CheatsRepository
@@ -31,10 +33,44 @@ class EmulatorViewModel @ViewModelInject constructor(
 ) : ViewModel() {
 
     private val disposables = CompositeDisposable()
+    private var layoutLoadDisposable: Disposable? = null
     private val layoutLiveData = MutableLiveData<LayoutConfiguration>()
 
-    init {
-        settingsRepository.observeSelectedLayoutId()
+    fun getLayout(): LiveData<LayoutConfiguration> {
+        return layoutLiveData
+    }
+
+    fun loadLayoutForRom(rom: Rom) {
+        val romLayoutId = rom.config.layoutId
+        val layoutObservable = if (romLayoutId == null) {
+            getGlobalLayoutObservable()
+        } else {
+            // Load ROM layout but switch to global layout if not found
+            layoutsRepository.getLayout(romLayoutId)
+                    .toObservable()
+                    .switchIfEmpty {
+                        getGlobalLayoutObservable()
+                    }
+        }
+
+        layoutLoadDisposable?.dispose()
+        layoutLoadDisposable = layoutObservable.subscribeOn(Schedulers.io())
+                .subscribe {
+                    layoutLiveData.postValue(it)
+                }
+    }
+
+    fun loadLayoutForFirmware() {
+        layoutLoadDisposable?.dispose()
+        layoutLoadDisposable = getGlobalLayoutObservable()
+                .subscribeOn(Schedulers.io())
+                .subscribe {
+                    layoutLiveData.postValue(it)
+                }
+    }
+
+    private fun getGlobalLayoutObservable(): Observable<LayoutConfiguration> {
+        return settingsRepository.observeSelectedLayoutId()
                 .startWith(settingsRepository.getSelectedLayoutId())
                 .switchMap { layoutId ->
                     layoutsRepository.getLayout(layoutId)
@@ -42,14 +78,6 @@ class EmulatorViewModel @ViewModelInject constructor(
                                 layoutsRepository.observeLayout(layoutId).startWith(it)
                             }
                 }
-                .subscribeOn(Schedulers.io())
-                .subscribe {
-                    layoutLiveData.postValue(it)
-                }.addTo(disposables)
-    }
-
-    fun getLayout(): LiveData<LayoutConfiguration> {
-        return layoutLiveData
     }
 
     fun isTouchHapticFeedbackEnabled(): Boolean {
@@ -134,5 +162,6 @@ class EmulatorViewModel @ViewModelInject constructor(
     override fun onCleared() {
         super.onCleared()
         disposables.clear()
+        layoutLoadDisposable?.dispose()
     }
 }

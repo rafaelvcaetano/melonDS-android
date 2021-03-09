@@ -24,6 +24,7 @@ class FirmwareEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(ac
 
         firmwareConsoleType = ConsoleType.values()[consoleTypeParameter]
         return Completable.create { emitter ->
+            activity.viewModel.loadLayoutForFirmware()
             val emulatorConfiguration = activity.viewModel.getEmulatorConfigurationForFirmware(firmwareConsoleType)
             MelonEmulator.setupEmulator(emulatorConfiguration, activity.assets)
 

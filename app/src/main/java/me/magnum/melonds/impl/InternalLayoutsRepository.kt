@@ -9,6 +9,7 @@ import io.reactivex.Single
 import io.reactivex.subjects.PublishSubject
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.LayoutConfiguration
+import me.magnum.melonds.domain.model.UILayout
 import me.magnum.melonds.domain.repositories.LayoutsRepository
 import java.io.File
 import java.io.FileOutputStream
@@ -17,7 +18,7 @@ import java.io.OutputStreamWriter
 import java.lang.reflect.Type
 import java.util.*
 
-class InternalLayoutsRepository(private val context: Context, private val gson: Gson, private val defaultLayoutBuilder: DefaultLayoutBuilder) : LayoutsRepository {
+class InternalLayoutsRepository(private val context: Context, private val gson: Gson, private val defaultLayoutProvider: DefaultLayoutProvider) : LayoutsRepository {
     companion object {
         private const val DATA_FILE = "layouts.json"
         private val layoutListType: Type = object : TypeToken<List<LayoutConfiguration>>(){}.type
@@ -27,6 +28,15 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
     private val layouts = mutableListOf<LayoutConfiguration>()
 
     private val layoutsChangedSubject = PublishSubject.create<Unit>()
+    private val mGlobalLayoutPlaceholder by lazy {
+        LayoutConfiguration(
+                null,
+                context.getString(R.string.use_global_layout),
+                LayoutConfiguration.LayoutType.DEFAULT,
+                UILayout(emptyList()),
+                UILayout(emptyList())
+        )
+    }
 
     override fun getLayouts(): Observable<List<LayoutConfiguration>> {
         return getCachedLayoutsOrLoad()
@@ -43,6 +53,10 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
                 Maybe.empty()
             }
         }
+    }
+
+    override fun getGlobalLayoutPlaceholder(): LayoutConfiguration {
+        return mGlobalLayoutPlaceholder
     }
 
     override fun observeLayout(id: UUID): Observable<LayoutConfiguration> {
@@ -121,7 +135,7 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
     }
 
     private fun buildDefaultLayout(): LayoutConfiguration {
-        return defaultLayoutBuilder.getDefaultLayout().copy(
+        return defaultLayoutProvider.defaultLayout.copy(
                 id = LayoutConfiguration.DEFAULT_ID,
                 name = context.getString(R.string.default_layout_name),
                 type = LayoutConfiguration.LayoutType.DEFAULT
