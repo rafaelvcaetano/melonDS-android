@@ -16,11 +16,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_alignParentStart="true"
-            android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
             android:layout_toStartOf="@id/imageInputClear"
-            android:layout_toLeftOf="@id/imageInputClear"
-            android:layout_marginRight="8dp"
             android:layout_marginEnd="8dp" >
 
         <TextView
@@ -42,10 +39,9 @@
             android:id="@+id/imageInputClear"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            style="@style/Button.Ripple"
             android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:background="?attr/selectableItemBackground"
-            android:tint="@color/romConfigButtonDefault"
+            app:tint="?android:colorControlNormal"
             app:srcCompat="@drawable/ic_clear"
             android:layout_centerVertical="true"
             android:nextFocusLeft="@+id/layoutItemInput" />
