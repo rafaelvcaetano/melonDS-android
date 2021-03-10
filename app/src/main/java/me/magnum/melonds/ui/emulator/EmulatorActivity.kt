@@ -78,11 +78,9 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     private lateinit var nativeInputListener: INativeInputListener
     private val frontendInputHandler = object : FrontendInputHandler() {
         private var fastForwardEnabled = false
-        private var softInputVisible = true
 
         override fun onSoftInputTogglePressed() {
-            softInputVisible = !softInputVisible
-            setSoftInputVisibility(softInputVisible)
+            toggleSoftInputVisibility()
         }
 
         override fun onPausePressed() {
@@ -114,6 +112,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
     private var emulatorReady = false
     private var emulatorPaused = false
+    private var softInputVisible = true
     private var screensSwapped = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -136,6 +135,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         binding.viewLayoutControls.setLayoutComponentViewBuilderFactory(RuntimeLayoutComponentViewBuilderFactory())
 
         viewModel.getLayout().observe(this, Observer {
+            softInputVisible = true
             setupSoftInput(it)
         })
 
@@ -276,6 +276,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                     }
                 }
             }
+            binding.viewLayoutControls.setSoftInputVisibility(softInputVisible)
         } else {
             binding.viewLayoutControls.getLayoutComponentViews().forEach {
                 if (!it.component.isScreen()) {
@@ -294,8 +295,9 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         binding.viewLayoutControls.getLayoutComponentView(touchScreenComponent)?.view?.setOnTouchListener(TouchscreenInputHandler(melonTouchHandler))
     }
 
-    private fun setSoftInputVisibility(visible: Boolean) {
-        binding.viewLayoutControls.setSoftInputVisibility(visible)
+    private fun toggleSoftInputVisibility() {
+        softInputVisible = !softInputVisible
+        binding.viewLayoutControls.setSoftInputVisibility(softInputVisible)
     }
 
     private fun swapScreen() {

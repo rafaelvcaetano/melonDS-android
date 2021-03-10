@@ -45,12 +45,10 @@ class EmulatorViewModel @ViewModelInject constructor(
         val layoutObservable = if (romLayoutId == null) {
             getGlobalLayoutObservable()
         } else {
-            // Load ROM layout but switch to global layout if not found
+            // Load and observe ROM layout but switch to global layout if not found
             layoutsRepository.getLayout(romLayoutId)
-                    .toObservable()
-                    .switchIfEmpty {
-                        getGlobalLayoutObservable()
-                    }
+                    .flatMapObservable { layoutsRepository.observeLayout(romLayoutId) }
+                    .switchIfEmpty { getGlobalLayoutObservable() }
         }
 
         layoutLoadDisposable?.dispose()
