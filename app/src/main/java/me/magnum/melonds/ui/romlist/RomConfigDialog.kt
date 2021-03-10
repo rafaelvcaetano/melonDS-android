@@ -1,48 +1,108 @@
 package me.magnum.melonds.ui.romlist
 
-import android.content.Context
+import android.Manifest
+import android.app.Activity
+import android.app.Dialog
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import io.reactivex.Single
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import io.reactivex.disposables.Disposable
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.DialogRomConfigBinding
-import me.magnum.melonds.domain.model.LayoutConfiguration
+import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RuntimeConsoleType
 import me.magnum.melonds.domain.model.RuntimeMicSource
 import me.magnum.melonds.extensions.setViewEnabledRecursive
+import me.magnum.melonds.parcelables.RomConfigParcelable
+import me.magnum.melonds.parcelables.RomParcelable
+import me.magnum.melonds.ui.layouts.LayoutSelectorActivity
+import me.magnum.melonds.utils.FilePickerContract
 import me.magnum.melonds.utils.FileUtils
 import me.magnum.melonds.utils.isMicrophonePermissionGranted
 import java.util.*
 
-class RomConfigDialog(context: Context, private val title: String, private val romConfig: RomConfig, private val romConfigDelegate: RomConfigDelegate) : AlertDialog(context) {
-    interface OnRomConfigSavedListener {
-        fun onRomConfigSaved(romConfig: RomConfig)
+class RomConfigDialog : DialogFragment() {
+    companion object {
+        private const val KEY_TITLE = "title"
+        private const val KEY_ROM = "rom"
+        private const val KEY_ROM_CONFIG = "rom_config"
+
+        fun newInstance(title: String, rom: Rom): RomConfigDialog {
+            return RomConfigDialog().apply {
+                arguments = Bundle().apply {
+                    putString(KEY_TITLE, title)
+                    putParcelable(KEY_ROM, RomParcelable(rom))
+                }
+            }
+        }
     }
 
-    interface RomConfigDelegate {
-        fun pickLayout(currentLayoutId: UUID?, onLayoutSelected: (UUID?) -> Unit)
-        fun getLayout(layoutId: UUID?): Single<LayoutConfiguration>
-        fun pickFile(startUri: Uri?, onFilePicked: (Uri) -> Unit)
-        fun requestMicrophonePermission(onPermissionResult: (Boolean) -> Unit)
-    }
-
+    private val romListViewModel: RomListViewModel by activityViewModels()
     private lateinit var binding: DialogRomConfigBinding
-    private var saveListener: OnRomConfigSavedListener? = null
     private var layoutNameDisposable: Disposable? = null
+
+    private lateinit var rom: Rom
+    private lateinit var romConfig: RomConfig
+
+    private val layoutPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val layoutId = result.data?.getStringExtra(LayoutSelectorActivity.KEY_SELECTED_LAYOUT_ID)?.let { UUID.fromString(it) }
+            onLayoutIdSelected(layoutId)
+        }
+    }
+    private val gbaRomFilePicker = registerForActivityResult(FilePickerContract()) {
+        if (it != null) {
+            onGbaRomPathSelected(it)
+        }
+    }
+    private val gbaSramFilePicker = registerForActivityResult(FilePickerContract()) {
+        if (it != null) {
+            onGbaSavePathSelected(it)
+        }
+    }
+    private val microphonePermissionLauncher by lazy {
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                onRuntimeMicSourceSelected(RuntimeMicSource.DEVICE)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DialogRomConfigBinding.inflate(LayoutInflater.from(context))
-        setContentView(binding.root)
-        setCancelable(true)
+
+        // ROM is immutable so we can use the arguments' one. Only the ROM config needs to be saved if the fragment is rebuilt
+        rom = arguments?.getParcelable<RomParcelable>(KEY_ROM)?.rom ?: return
+        romConfig = if (savedInstanceState != null) {
+            savedInstanceState.getParcelable<RomConfigParcelable>(KEY_ROM_CONFIG)?.romConfig ?: return
+        } else {
+            rom.config
+        }
+    }
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        binding = DialogRomConfigBinding.inflate(LayoutInflater.from(requireContext()))
+
+        return AlertDialog.Builder(requireContext())
+                .setView(binding.root)
+                .setCancelable(true)
+                .create()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        isCancelable = true
+
+        val title = arguments?.getString(KEY_TITLE)
 
         binding.layoutPrefSystem.setOnClickListener {
-            AlertDialog.Builder(context)
+            AlertDialog.Builder(requireContext())
                     .setTitle(R.string.label_rom_config_console)
                     .setSingleChoiceItems(R.array.game_runtime_console_type_options, romConfig.runtimeConsoleType.ordinal) { dialog, which ->
                         val newConsoleType = RuntimeConsoleType.values()[which]
@@ -55,17 +115,13 @@ class RomConfigDialog(context: Context, private val title: String, private val r
                     .show()
         }
         binding.layoutPrefRuntimeMicSource.setOnClickListener {
-            AlertDialog.Builder(context)
+            AlertDialog.Builder(requireContext())
                     .setTitle(R.string.microphone_source)
                     .setSingleChoiceItems(R.array.game_runtime_mic_source_options, romConfig.runtimeMicSource.ordinal) { dialog, which ->
                         val newMicSource = RuntimeMicSource.values()[which]
                         // Request mic permission if required
-                        if (newMicSource == RuntimeMicSource.DEVICE && !isMicrophonePermissionGranted(context)) {
-                            romConfigDelegate.requestMicrophonePermission { granted ->
-                                if (granted) {
-                                    onRuntimeMicSourceSelected(newMicSource)
-                                }
-                            }
+                        if (newMicSource == RuntimeMicSource.DEVICE && !isMicrophonePermissionGranted(requireContext())) {
+                            microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                         } else {
                             onRuntimeMicSourceSelected(newMicSource)
                         }
@@ -78,23 +134,26 @@ class RomConfigDialog(context: Context, private val title: String, private val r
                     .show()
         }
         binding.layoutPrefLayout.setOnClickListener {
-            romConfigDelegate.pickLayout(romConfig.layoutId, this::onLayoutIdSelected)
+            val intent = Intent(requireContext(), LayoutSelectorActivity::class.java).apply {
+                putExtra(LayoutSelectorActivity.KEY_SELECTED_LAYOUT_ID, romConfig.layoutId?.toString())
+            }
+            layoutPickerLauncher.launch(intent)
         }
         binding.layoutPrefLoadGbaRom.setOnClickListener { binding.switchLoadGbaRom.toggle() }
         binding.layoutPrefGbaRomPath.setOnClickListener {
-            romConfigDelegate.pickFile(romConfig.gbaCartPath, this::onGbaRomPathSelected)
+            gbaRomFilePicker.launch(Pair(romConfig.gbaCartPath, null))
         }
-        layoutNameDisposable = romConfigDelegate.getLayout(romConfig.layoutId).subscribe { layout ->
+        layoutNameDisposable = romListViewModel.getLayout(romConfig.layoutId).subscribe { layout ->
             binding.textPrefLayout.text = layout.name
         }
         binding.layoutPrefGbaSavePath.setOnClickListener {
-            romConfigDelegate.pickFile(romConfig.gbaSavePath, this::onGbaSavePathSelected)
+            gbaSramFilePicker.launch(Pair(romConfig.gbaSavePath, null))
         }
         binding.switchLoadGbaRom.setOnCheckedChangeListener { _, isChecked -> setLoadGbaRom(isChecked) }
         binding.textRomConfigTitle.text = title
 
         onRuntimeConsoleTypeSelected(romConfig.runtimeConsoleType)
-        if (romConfig.runtimeMicSource == RuntimeMicSource.DEVICE && !isMicrophonePermissionGranted(context)) {
+        if (romConfig.runtimeMicSource == RuntimeMicSource.DEVICE && !isMicrophonePermissionGranted(requireContext())) {
             // Set mic source to BLOW if mic permission is not granted
             onRuntimeMicSourceSelected(RuntimeMicSource.BLOW)
         } else {
@@ -107,16 +166,16 @@ class RomConfigDialog(context: Context, private val title: String, private val r
         binding.layoutPrefGbaRomPath.setViewEnabledRecursive(romConfig.loadGbaCart())
         binding.layoutPrefGbaSavePath.setViewEnabledRecursive(romConfig.loadGbaCart())
 
-        findViewById<View>(R.id.button_rom_config_ok)?.setOnClickListener {
-            saveListener?.onRomConfigSaved(romConfig)
+        binding.buttonRomConfigOk.setOnClickListener {
+            romListViewModel.updateRomConfig(rom, romConfig)
             dismiss()
         }
-        findViewById<View>(R.id.button_rom_config_cancel)?.setOnClickListener { dismiss() }
+        binding.buttonRomConfigCancel.setOnClickListener { dismiss() }
     }
 
-    fun setOnRomConfigSaveListener(listener: OnRomConfigSavedListener?): RomConfigDialog {
-        saveListener = listener
-        return this
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putParcelable(KEY_ROM_CONFIG, RomConfigParcelable(romConfig))
     }
 
     private fun setLoadGbaRom(loadGbaRom: Boolean) {
@@ -126,13 +185,13 @@ class RomConfigDialog(context: Context, private val title: String, private val r
     }
 
     private fun onRuntimeConsoleTypeSelected(consoleType: RuntimeConsoleType) {
-        val options = context.resources.getStringArray(R.array.game_runtime_console_type_options)
+        val options = resources.getStringArray(R.array.game_runtime_console_type_options)
         romConfig.runtimeConsoleType = consoleType
         binding.textPrefRuntimeConsoleType.text = options[consoleType.ordinal]
     }
 
     private fun onRuntimeMicSourceSelected(micSource: RuntimeMicSource) {
-        val options = context.resources.getStringArray(R.array.game_runtime_mic_source_options)
+        val options = resources.getStringArray(R.array.game_runtime_mic_source_options)
         romConfig.runtimeMicSource = micSource
         binding.textPrefRuntimeMicSource.text = options[micSource.ordinal]
     }
@@ -140,7 +199,7 @@ class RomConfigDialog(context: Context, private val title: String, private val r
     private fun onLayoutIdSelected(layoutId: UUID?) {
         romConfig.layoutId = layoutId
         layoutNameDisposable?.dispose()
-        layoutNameDisposable = romConfigDelegate.getLayout(layoutId).subscribe { layout ->
+        layoutNameDisposable = romListViewModel.getLayout(layoutId).subscribe { layout ->
             binding.textPrefLayout.text = layout.name
         }
     }
@@ -156,7 +215,7 @@ class RomConfigDialog(context: Context, private val title: String, private val r
     }
 
     private fun getUriPathOrDefault(uri: Uri?): String {
-        return FileUtils.getAbsolutePathFromSAFUri(context, uri) ?: context.getString(R.string.not_set)
+        return FileUtils.getAbsolutePathFromSAFUri(requireContext(), uri) ?: getString(R.string.not_set)
     }
 
     override fun onStop() {

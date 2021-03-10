@@ -118,8 +118,7 @@ class FileSystemRomsRepository(
         if (romIndex < 0)
             return
 
-        rom.config = romConfig
-        roms[romIndex] = rom
+        roms[romIndex].config = romConfig
         onRomsChanged()
     }
 
