@@ -122,7 +122,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
         val romPath = FileUtils.getAbsolutePathFromSAFUri(activity, loadedRom.uri) ?: "NULL"
         val sramPath = getSRAMPath(loadedRom.uri)
 
-        return RomCrashContext(getEmulatorConfiguration(), romPath, sramPath)
+        return RomCrashContext(getEmulatorConfiguration(), loadedRom.uri, romPath, sramPath)
     }
 
     private fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {
@@ -204,5 +204,5 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
         cheatsLauncher.launch(intent)
     }
 
-    private data class RomCrashContext(val emulatorConfiguration: EmulatorConfiguration, val romPath: String, val sramPath: String)
+    private data class RomCrashContext(val emulatorConfiguration: EmulatorConfiguration, val romUri: Uri, val romPath: String, val sramPath: String)
 }
