@@ -72,9 +72,8 @@ class EmulatorViewModel @ViewModelInject constructor(
                 .startWith(settingsRepository.getSelectedLayoutId())
                 .switchMap { layoutId ->
                     layoutsRepository.getLayout(layoutId)
-                            .flatMapObservable {
-                                layoutsRepository.observeLayout(layoutId).startWith(it)
-                            }
+                            .flatMapObservable { layoutsRepository.observeLayout(layoutId).startWith(it) }
+                            .switchIfEmpty { layoutsRepository.observeLayout(LayoutConfiguration.DEFAULT_ID) }
                 }
     }
 
