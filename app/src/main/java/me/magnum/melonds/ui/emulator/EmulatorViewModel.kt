@@ -67,6 +67,18 @@ class EmulatorViewModel @ViewModelInject constructor(
                 }
     }
 
+    fun getRomSearchDirectory(): Uri? {
+        return settingsRepository.getRomSearchDirectories().firstOrNull()
+    }
+
+    fun getDsBiosDirectory(): Uri? {
+        return settingsRepository.getDsBiosDirectory()
+    }
+
+    fun getDsiBiosDirectory(): Uri? {
+        return settingsRepository.getDsiBiosDirectory()
+    }
+
     private fun getGlobalLayoutObservable(): Observable<LayoutConfiguration> {
         return settingsRepository.observeSelectedLayoutId()
                 .startWith(settingsRepository.getSelectedLayoutId())

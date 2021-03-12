@@ -53,8 +53,8 @@ class FirmwareEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(ac
     }
 
     override fun getCrashContext(): Any {
-        return FirmwareCrashContext(getEmulatorConfiguration())
+        return FirmwareCrashContext(getEmulatorConfiguration(), activity.viewModel.getDsBiosDirectory()?.toString(), activity.viewModel.getDsiBiosDirectory()?.toString())
     }
 
-    private data class FirmwareCrashContext(val emulatorConfiguration: EmulatorConfiguration)
+    private data class FirmwareCrashContext(val emulatorConfiguration: EmulatorConfiguration, val dsiBiosDirUri: String?, val dsBiosDirUri: String?)
 }
