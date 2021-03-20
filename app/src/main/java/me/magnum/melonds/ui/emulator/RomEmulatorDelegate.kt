@@ -19,9 +19,8 @@ import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
-import me.magnum.melonds.utils.FileUtils
+import me.magnum.melonds.common.UriFileHandler
 import me.magnum.melonds.utils.isMicrophonePermissionGranted
-import java.io.File
 import java.text.SimpleDateFormat
 
 class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activity) {
@@ -61,15 +60,15 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
             loadedRom = romPair.first
             return@flatMap loadRomCheats(loadedRom).defaultIfEmpty(emptyList()).flatMapSingle { cheats ->
                 Single.create<MelonEmulator.LoadResult> { emitter ->
-                    MelonEmulator.setupEmulator(getEmulatorConfigurationForRom(loadedRom), activity.assets)
+                    MelonEmulator.setupEmulator(getEmulatorConfigurationForRom(loadedRom), activity.assets, UriFileHandler(activity))
 
                     val rom = romPair.first
-                    val romPath = FileUtils.getAbsolutePathFromSAFUri(activity, romPair.second) ?: throw EmulatorActivity.RomLoadFailedException("Cannot determine ROM path")
+                    val romPath = romPair.second
+                    val sramPath = activity.viewModel.getRomSramFile(rom)
                     val showBios = activity.settingsRepository.showBootScreen()
-                    val sramPath = getSRAMPath(rom.uri)
 
-                    val gbaCartPath = FileUtils.getAbsolutePathFromSAFUri(activity, rom.config.gbaCartPath)
-                    val gbaSavePath = FileUtils.getAbsolutePathFromSAFUri(activity, rom.config.gbaSavePath)
+                    val gbaCartPath = rom.config.gbaCartPath
+                    val gbaSavePath = rom.config.gbaSavePath
                     val loadResult = MelonEmulator.loadRom(romPath, sramPath, !showBios, rom.config.loadGbaCart(), gbaCartPath, gbaSavePath)
                     if (loadResult === MelonEmulator.LoadResult.NDS_FAILED)
                         throw EmulatorActivity.RomLoadFailedException(loadResult)
@@ -97,7 +96,8 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
         when (option) {
             RomPauseMenuOptions.SETTINGS -> activity.openSettings()
             RomPauseMenuOptions.SAVE_STATE -> pickSaveStateSlot {
-                if (!MelonEmulator.saveState(it.path))
+                val saveStateUri = activity.viewModel.getRomSaveStateSlotUri(loadedRom, it.slot)
+                if (!MelonEmulator.saveState(saveStateUri))
                     Toast.makeText(activity, activity.getString(R.string.failed_save_state), Toast.LENGTH_SHORT).show()
 
                 activity.resumeEmulation()
@@ -106,7 +106,8 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
                 if (!it.exists) {
                     Toast.makeText(activity, activity.getString(R.string.cant_load_empty_slot), Toast.LENGTH_SHORT).show()
                 } else {
-                    if (!MelonEmulator.loadState(it.path))
+                    val saveStateUri = activity.viewModel.getRomSaveStateSlotUri(loadedRom, it.slot)
+                    if (!MelonEmulator.loadState(saveStateUri))
                         Toast.makeText(activity, activity.getString(R.string.failed_load_state), Toast.LENGTH_SHORT).show()
                 }
 
@@ -119,10 +120,8 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
     }
 
     override fun getCrashContext(): Any {
-        val romPath = FileUtils.getAbsolutePathFromSAFUri(activity, loadedRom.uri) ?: "NULL"
-        val sramPath = getSRAMPath(loadedRom.uri)
-
-        return RomCrashContext(getEmulatorConfiguration(), activity.viewModel.getRomSearchDirectory()?.toString(), loadedRom.uri, romPath, sramPath)
+        val sramUri = activity.viewModel.getRomSramFile(loadedRom)
+        return RomCrashContext(getEmulatorConfiguration(), activity.viewModel.getRomSearchDirectory()?.toString(), loadedRom.uri, sramUri)
     }
 
     private fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {
@@ -134,27 +133,6 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
         } else {
             emulatorConfiguration
         }
-    }
-
-    private fun getSRAMPath(romUri: Uri): String {
-        val romPath = FileUtils.getAbsolutePathFromSAFUri(activity, romUri)
-        val romFile = File(romPath!!)
-
-        val sramDir = if (activity.settingsRepository.saveNextToRomFile()) {
-            romFile.parent
-        } else {
-            val sramDirUri = activity.settingsRepository.getSaveFileDirectory()
-            if (sramDirUri != null)
-                FileUtils.getAbsolutePathFromSAFUri(activity, sramDirUri) ?: romFile.parent
-            else {
-                // If no directory is set, revert to using the ROM's directory
-                romFile.parent
-            }
-        }
-
-        val nameWithoutExtension = romFile.nameWithoutExtension
-        val sramFileName = "$nameWithoutExtension.sav"
-        return File(sramDir, sramFileName).absolutePath
     }
 
     private fun loadRomCheats(rom: Rom): Maybe<List<Cheat>> {
@@ -204,5 +182,5 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
         cheatsLauncher.launch(intent)
     }
 
-    private data class RomCrashContext(val emulatorConfiguration: EmulatorConfiguration, val romSearchDirUri: String?, val romUri: Uri, val romPath: String, val sramPath: String)
+    private data class RomCrashContext(val emulatorConfiguration: EmulatorConfiguration, val romSearchDirUri: String?, val romUri: Uri, val sramUri: Uri)
 }

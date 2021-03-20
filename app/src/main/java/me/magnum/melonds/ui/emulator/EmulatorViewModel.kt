@@ -1,6 +1,5 @@
 package me.magnum.melonds.ui.emulator
 
-import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.lifecycle.ViewModelInject
@@ -12,6 +11,7 @@ import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import me.magnum.melonds.common.UriFileHandler
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.domain.repositories.LayoutsRepository
@@ -19,17 +19,17 @@ import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.impl.FileRomProcessorFactory
-import me.magnum.melonds.utils.FileUtils
+import me.magnum.melonds.ui.emulator.exceptions.SramLoadException
 import java.io.File
 import java.util.*
 
 class EmulatorViewModel @ViewModelInject constructor(
-        private val context: Context,
         private val settingsRepository: SettingsRepository,
         private val romsRepository: RomsRepository,
         private val cheatsRepository: CheatsRepository,
         private val fileRomProcessorFactory: FileRomProcessorFactory,
-        private val layoutsRepository: LayoutsRepository
+        private val layoutsRepository: LayoutsRepository,
+        private val uriFileHandler: UriFileHandler
 ) : ViewModel() {
 
     private val disposables = CompositeDisposable()
@@ -103,28 +103,61 @@ class EmulatorViewModel @ViewModelInject constructor(
         return fileRomProcessor?.getRomInfo(rom)
     }
 
-    fun getRomSaveStateSlots(rom: Rom): List<SaveStateSlot> {
-        val saveStatePath = settingsRepository.getSaveStateDirectory(rom) ?: return emptyList()
-        val saveStateDirectory = File(saveStatePath)
-        if (!saveStateDirectory.isDirectory) {
-            // If the directory cannot be created, there's no point in returning slots
-            if (!saveStateDirectory.mkdirs())
-                return emptyList()
-        }
+    fun getRomSramFile(rom: Rom): Uri {
+        val rootDirUri = settingsRepository.getSaveFileDirectory(rom)
 
-        val romDocument = DocumentFile.fromSingleUri(context, rom.uri)!!
-        val romFileName = FileUtils.getFileNameWithoutExtensions(romDocument.name!!)
+        val rootDocument = uriFileHandler.getUriTreeDocument(rootDirUri)
+        val romDocument = uriFileHandler.getUriDocument(rom.uri)
+        val romFileName = romDocument?.name ?: throw SramLoadException("Cannot determine SRAM file name")
+        val sramFileName = romFileName.replaceAfterLast('.', "sav", "$romFileName.sav")
+        val sramDocument = rootDocument?.findFile(sramFileName)
+        return sramDocument?.uri ?: rootDocument?.createFile("*/*", sramFileName)?.let {
+            // Create the file and delete it immediately. By simply creating a file with a size of 0, melonDS would assume that to be the SRAM size of the ROM, which would
+            // prevent save files from working properly. Instead, we create a file to obtain its URI and delete it so that melonDS assumes that there is no save. When saving
+            // for the first time, the proper file will be created.
+            it.delete()
+            it.uri
+        } ?: throw SramLoadException("Cannot create temporary SRAM file")
+    }
+
+    fun getRomSaveStateSlots(rom: Rom): List<SaveStateSlot> {
+        val saveStateDirectoryUri = settingsRepository.getSaveStateDirectory(rom) ?: return emptyList()
+        val saveStateDirectoryDocument = uriFileHandler.getUriTreeDocument(saveStateDirectoryUri) ?: return emptyList()
+        val romDocument = uriFileHandler.getUriDocument(rom.uri)!!
+        val romFileName = romDocument.name?.substringBeforeLast('.') ?: return emptyList()
 
         val saveStateSlots = mutableListOf<SaveStateSlot>()
+        val directoryFiles = saveStateDirectoryDocument.listFiles()
         for (i in 1..8) {
-            val saveStateFile = File(saveStateDirectory, "$romFileName.ml$i")
-            if (saveStateFile.isFile)
-                saveStateSlots.add(SaveStateSlot(i, true, saveStateFile.absolutePath, Date(saveStateFile.lastModified())))
-            else
-                saveStateSlots.add(SaveStateSlot(i, false, saveStateFile.absolutePath, null))
+            val saveStateName = "$romFileName.ml$i"
+            val saveStateDocument = directoryFiles.find {
+                it.name == saveStateName
+            }
+
+            if (saveStateDocument?.isFile == true) {
+                saveStateSlots.add(SaveStateSlot(i, true, Date(saveStateDocument.lastModified())))
+            } else {
+                saveStateSlots.add(SaveStateSlot(i, false, null))
+            }
         }
 
         return saveStateSlots
+    }
+
+    fun getRomSaveStateSlotUri(rom: Rom, slot: Int): Uri {
+        val saveStateDirectoryUri = settingsRepository.getSaveStateDirectory(rom) ?: throw SramLoadException("Could not determine save slot parent directory")
+        val saveStateDirectoryDocument = uriFileHandler.getUriTreeDocument(saveStateDirectoryUri) ?: throw SramLoadException("Could not create save slot parent directory")
+
+        val romDocument = uriFileHandler.getUriDocument(rom.uri)!!
+        val romFileName = romDocument.name?.substringBeforeLast('.') ?: throw SramLoadException("Could not determine ROM file name")
+        val saveStateName = "$romFileName.ml$slot"
+        val saveStateFile = saveStateDirectoryDocument.findFile(saveStateName)
+
+        return if (saveStateFile != null) {
+            saveStateFile.uri
+        } else {
+            saveStateDirectoryDocument.createFile("*/*", saveStateName)?.uri ?: throw SramLoadException("Could not create save state file")
+        }
     }
 
     fun getRomAtPath(path: String): Single<Rom> {

@@ -39,6 +39,9 @@ add_library(
 
         SHARED
 
-        src/main/cpp/MelonDSAndroidJNI.cpp)
+        src/main/cpp/MelonDSAndroidJNI.cpp
+        src/main/cpp/UriFileHandler.cpp
+        src/main/cpp/JniEnvHandler.cpp
+)
 
 target_link_libraries(melonDS-android-frontend melonDS-lib)

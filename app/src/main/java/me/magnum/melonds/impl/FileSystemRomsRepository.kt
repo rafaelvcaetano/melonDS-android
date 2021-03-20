@@ -9,6 +9,7 @@ import com.google.gson.reflect.TypeToken
 import io.reactivex.*
 import io.reactivex.Observable
 import io.reactivex.Observer
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
@@ -17,6 +18,7 @@ import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomScanningStatus
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.utils.FileUtils
 import java.io.File
 import java.io.FileOutputStream
@@ -38,6 +40,7 @@ class FileSystemRomsRepository(
         private const val ROM_DATA_FILE = "rom_data.json"
     }
 
+    private val disposables = CompositeDisposable()
     private val romListType: Type = object : TypeToken<List<Rom>>(){}.type
     private val romsSubject: BehaviorSubject<List<Rom>> = BehaviorSubject.create()
     private val scanningStatusSubject: BehaviorSubject<RomScanningStatus> = BehaviorSubject.createDefault(RomScanningStatus.NOT_SCANNING)
@@ -45,11 +48,12 @@ class FileSystemRomsRepository(
     private var areRomsLoaded = false
 
     init {
-        romsSubject
-                .subscribeOn(Schedulers.io())
+        romsSubject.subscribeOn(Schedulers.io())
                 .subscribe { roms -> saveRomData(roms) }
+                .addTo(disposables)
         settingsRepository.observeRomSearchDirectories()
                 .subscribe { directories -> onRomSearchDirectoriesChanged(directories) }
+                .addTo(disposables)
     }
 
     private fun onRomSearchDirectoriesChanged(searchDirectories: Array<Uri>) {
@@ -58,36 +62,8 @@ class FileSystemRomsRepository(
         if (!areRomsLoaded)
             return
 
-        val romsToRemove = ArrayList<Rom>()
-        for (rom in roms) {
-            val romFile = DocumentFile.fromSingleUri(context, rom.uri)
-
-            if (romFile?.isFile != true) {
-                romsToRemove.add(rom)
-                continue
-            }
-
-            val romPath = FileUtils.getAbsolutePathFromSAFUri(context, rom.uri)
-            var isInDirectories = false
-            for (directory in searchDirectories) {
-                val directoryPath = FileUtils.getAbsolutePathFromSAFUri(context, directory) ?: continue
-                val dir = File(directoryPath)
-                if (!dir.isDirectory)
-                    continue
-
-                if (romPath?.startsWith(dir.absolutePath) == true) {
-                    isInDirectories = true
-                    break
-                }
-            }
-            if (!isInDirectories)
-                romsToRemove.add(rom)
-        }
-
-        for (rom in romsToRemove) {
-            removeRom(rom)
-        }
-
+        // TODO: Check if existing ROMs are still found in the new directory(s). How can we do that reliably using URIs?
+        removeAllRoms()
         rescanRoms()
     }
 
@@ -159,8 +135,15 @@ class FileSystemRomsRepository(
         onRomsChanged()
     }
 
-    private fun removeRom(rom: Rom) {
-        if (roms.remove(rom)) onRomsChanged()
+    private fun removeRom(rom: Rom, notifyChanged: Boolean = true) {
+        if (roms.remove(rom) && notifyChanged) {
+            onRomsChanged()
+        }
+    }
+
+    private fun removeAllRoms() {
+        roms.clear()
+        onRomsChanged()
     }
 
     private fun onRomsChanged() {
@@ -187,6 +170,7 @@ class FileSystemRomsRepository(
                     }
 
                     override fun onError(e: Throwable) {}
+
                     override fun onComplete() {
                         scanningStatusSubject.onNext(RomScanningStatus.NOT_SCANNING)
                     }

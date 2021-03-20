@@ -12,6 +12,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import me.magnum.melonds.common.UriFileHandler
 import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.utils.UriTypeHierarchyAdapter
 import javax.inject.Singleton
@@ -39,5 +40,11 @@ object AppModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): MelonDatabase {
         return Room.databaseBuilder(context, MelonDatabase::class.java, "melon-database").build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideUriHandler(@ApplicationContext context: Context): UriFileHandler {
+        return UriFileHandler(context)
     }
 }

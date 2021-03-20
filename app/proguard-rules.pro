@@ -30,3 +30,6 @@
 -keep class me.magnum.melonds.domain.model.Cheat { *; }
 -keep class me.magnum.melonds.ui.settings.CustomFirmwarePreferencesFragment { *; }
 -keep class me.magnum.melonds.ui.settings.FirmwarePreferencesFragment { *; }
+-keep class me.magnum.melonds.common.UriFileHandler {
+    public int open(java.lang.String, java.lang.String);
+}

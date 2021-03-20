@@ -14,7 +14,6 @@ import io.reactivex.subjects.PublishSubject
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.ui.Theme
-import me.magnum.melonds.utils.FileUtils
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import java.io.*
 import java.util.*
@@ -51,15 +50,22 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         if ((consoleType == ConsoleType.DS && useCustomBios && dsBiosDirUri == null) || (consoleType == ConsoleType.DSi && (dsBiosDirUri == null || dsiBiosDirUri == null)))
             throw IllegalStateException("BIOS directory not set")
 
-        val dsBiosDirPath = FileUtils.getAbsolutePathFromSAFUri(context, dsBiosDirUri)
-        val dsiBiosDirPath = FileUtils.getAbsolutePathFromSAFUri(context, dsiBiosDirUri)
-        val dsConfigDirectoryPath = "$dsBiosDirPath/"
-        val dsiConfigDirectoryPath = "$dsiBiosDirPath/"
+        val dsDirDocument = dsBiosDirUri?.let {
+            DocumentFile.fromTreeUri(context, it)
+        }
+        val dsiDirDocument = dsiBiosDirUri?.let {
+            DocumentFile.fromTreeUri(context, it)
+        }
 
         return EmulatorConfiguration(
             useCustomBios(),
-            dsConfigDirectoryPath,
-            dsiConfigDirectoryPath,
+            dsDirDocument?.findFile("bios7.bin")?.uri,
+            dsDirDocument?.findFile("bios9.bin")?.uri,
+            dsDirDocument?.findFile("firmware.bin")?.uri,
+            dsiDirDocument?.findFile("bios7.bin")?.uri,
+            dsiDirDocument?.findFile("bios9.bin")?.uri,
+            dsiDirDocument?.findFile("firmware.bin")?.uri,
+            dsiDirDocument?.findFile("nand.bin")?.uri,
             context.filesDir.absolutePath,
             getFastForwardSpeedMultiplier(),
             isJitEnabled(),
@@ -183,31 +189,45 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return dirPreference?.let { Uri.parse(it) }
     }
 
-    override fun getSaveStateDirectory(rom: Rom): String? {
+    override fun getSaveFileDirectory(rom: Rom): Uri {
+        return if (!saveNextToRomFile() && getSaveFileDirectory() != null) {
+            getSaveFileDirectory()!!
+        } else {
+            getRomParentDocument(rom)
+        }
+    }
+
+    override fun getSaveStateLocation(rom: Rom): SaveStateLocation {
         val locationPreference = preferences.getString("save_state_location", "save_dir")!!
-        val saveStateLocation = SaveStateLocation.valueOf(locationPreference.toUpperCase(Locale.ROOT))
+        return SaveStateLocation.valueOf(locationPreference.toUpperCase(Locale.ROOT))
+    }
+
+    override fun getSaveStateDirectory(rom: Rom): Uri? {
+        val saveStateLocation = getSaveStateLocation(rom)
 
         return when (saveStateLocation) {
-            SaveStateLocation.SAVE_DIR -> {
-                val romDocument = DocumentFile.fromSingleUri(context, rom.uri)
-                val romParentDir = File(FileUtils.getAbsolutePathFromSAFUri(context, romDocument?.uri)).parentFile?.absolutePath
-
-                if (saveNextToRomFile())
-                    romParentDir
-                else {
-                    val sramDirUri = getSaveFileDirectory()
-                    if (sramDirUri == null)
-                        romParentDir
-                    else
-                        FileUtils.getAbsolutePathFromSAFUri(context, sramDirUri) ?: romParentDir
+            SaveStateLocation.SAVE_DIR -> getSaveFileDirectory(rom)
+            SaveStateLocation.ROM_DIR -> getRomParentDocument(rom)
+            SaveStateLocation.INTERNAL_DIR -> {
+                val saveStateDir = File(context.getExternalFilesDir(null), "savestates")
+                if (!saveStateDir.isDirectory) {
+                    saveStateDir.mkdirs()
                 }
+                DocumentFile.fromFile(saveStateDir).uri
             }
-            SaveStateLocation.ROM_DIR -> {
-                val romPath = FileUtils.getAbsolutePathFromSAFUri(context, rom.uri)
-                romPath?.let { File(it).parentFile?.absolutePath }
-            }
-            SaveStateLocation.INTERNAL_DIR -> File(context.getExternalFilesDir(null), "savestates").absolutePath
         }
+    }
+
+    private fun getRomParentDocument(rom: Rom): Uri {
+        val uriString = rom.uri.toString()
+        val parentUriString = when (rom.uri.scheme) {
+            "content" -> uriString.substringBeforeLast("%2F")
+            "file" -> uriString.substringBeforeLast("/")
+            else -> throw Exception("Could not determine ROMs parent document")
+        }
+        val parentUri = Uri.parse(parentUriString)
+        val parentDocument = DocumentFile.fromTreeUri(context, parentUri)
+        return parentDocument?.uri ?: throw Exception("Could not determine ROMs parent document")
     }
 
     override fun getControllerConfiguration(): ControllerConfiguration {

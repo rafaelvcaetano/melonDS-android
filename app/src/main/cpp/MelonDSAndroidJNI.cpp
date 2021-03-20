@@ -8,6 +8,8 @@
 #include <MelonDS.h>
 #include <InputAndroid.h>
 #include <android/asset_manager_jni.h>
+#include "UriFileHandler.h"
+#include "JniEnvHandler.h"
 
 #define MAX_CHEAT_SIZE (2*64)
 
@@ -29,18 +31,29 @@ int targetFps;
 float fastForwardSpeedMultiplier;
 bool limitFps = true;
 bool isFastForwardEnabled = false;
+jobject globalAssetManager;
+jobject androidUriFileHandler;
+UriFileHandler* fileHandler;
+JniEnvHandler* jniEnvHandler;
+JavaVM* vm;
 
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject uriFileHandler)
 {
+    env->GetJavaVM(&vm);
+    jniEnvHandler = new JniEnvHandler(vm);
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = buildEmulatorConfiguration(env, emulatorConfiguration);
     fastForwardSpeedMultiplier = finalEmulatorConfiguration.fastForwardSpeedMultiplier;
-    jobject globalAssetManager = env->NewGlobalRef(javaAssetManager);
-    AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
 
-    MelonDSAndroid::setup(finalEmulatorConfiguration, assetManager);
+    globalAssetManager = env->NewGlobalRef(javaAssetManager);
+    androidUriFileHandler = env->NewGlobalRef(uriFileHandler);
+
+    AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
+    fileHandler = new UriFileHandler(jniEnvHandler, androidUriFileHandler);
+
+    MelonDSAndroid::setup(finalEmulatorConfiguration, assetManager, fileHandler);
 }
 
 JNIEXPORT void JNICALL
@@ -228,14 +241,14 @@ Java_me_magnum_melonds_MelonEmulator_resetEmulation(JNIEnv* env, jobject thiz) {
 }
 
 JNIEXPORT jboolean JNICALL
-Java_me_magnum_melonds_MelonEmulator_saveState(JNIEnv* env, jobject thiz, jstring path)
+Java_me_magnum_melonds_MelonEmulator_saveStateInternal(JNIEnv* env, jobject thiz, jstring path)
 {
     const char* saveStatePath = path == nullptr ? nullptr : env->GetStringUTFChars(path, JNI_FALSE);
     return MelonDSAndroid::saveState(saveStatePath);
 }
 
 JNIEXPORT jboolean JNICALL
-Java_me_magnum_melonds_MelonEmulator_loadState(JNIEnv* env, jobject thiz, jstring path)
+Java_me_magnum_melonds_MelonEmulator_loadStateInternal(JNIEnv* env, jobject thiz, jstring path)
 {
     const char* saveStatePath = path == nullptr ? nullptr : env->GetStringUTFChars(path, JNI_FALSE);
     return MelonDSAndroid::loadState(saveStatePath);
@@ -253,6 +266,13 @@ Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
     pthread_join(emuThread, NULL);
     pthread_mutex_destroy(&emuThreadMutex);
     pthread_cond_destroy(&emuThreadCond);
+
+    env->DeleteGlobalRef(globalAssetManager);
+    globalAssetManager = nullptr;
+    env->DeleteGlobalRef(androidUriFileHandler);
+    androidUriFileHandler = nullptr;
+    delete fileHandler;
+    delete jniEnvHandler;
 }
 
 JNIEXPORT void JNICALL
@@ -308,12 +328,20 @@ Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jo
 
 MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jobject emulatorConfiguration) {
     jclass emulatorConfigurationClass = env->GetObjectClass(emulatorConfiguration);
+    jclass uriClass = env->FindClass("android/net/Uri");
     jclass consoleTypeEnumClass = env->FindClass("me/magnum/melonds/domain/model/ConsoleType");
     jclass micSourceEnumClass = env->FindClass("me/magnum/melonds/domain/model/MicSource");
 
+    jmethodID uriToStringMethod = env->GetMethodID(uriClass, "toString", "()Ljava/lang/String;");
+
     jboolean useCustomBios = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "useCustomBios", "Z"));
-    jstring dsConfigDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsConfigDirectory", "Ljava/lang/String;"));
-    jstring dsiConfigDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsiConfigDirectory", "Ljava/lang/String;"));
+    jobject dsBios7Uri = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsBios7Uri", "Landroid/net/Uri;"));
+    jobject dsBios9Uri = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsBios9Uri", "Landroid/net/Uri;"));
+    jobject dsFirmwareUri = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsFirmwareUri", "Landroid/net/Uri;"));
+    jobject dsiBios7Uri = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsiBios7Uri", "Landroid/net/Uri;"));
+    jobject dsiBios9Uri = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsiBios9Uri", "Landroid/net/Uri;"));
+    jobject dsiFirmwareUri = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsiFirmwareUri", "Landroid/net/Uri;"));
+    jobject dsiNandUri = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsiNandUri", "Landroid/net/Uri;"));
     jstring internalFilesDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "internalDirectory", "Ljava/lang/String;"));
     jfloat fastForwardMaxSpeed = env->GetFloatField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "fastForwardSpeedMultiplier", "F"));
     jboolean useJit = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "useJit", "Z"));
@@ -322,16 +350,34 @@ MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jo
     jboolean soundEnabled = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "soundEnabled", "Z"));
     jobject micSourceEnum = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "micSource", "Lme/magnum/melonds/domain/model/MicSource;"));
     jint micSource = env->GetIntField(micSourceEnum, env->GetFieldID(micSourceEnumClass, "sourceValue", "I"));
-    const char* dsDir = env->GetStringUTFChars(dsConfigDir, JNI_FALSE);
-    const char* dsiDir = env->GetStringUTFChars(dsiConfigDir, JNI_FALSE);
+    jboolean isCopy = JNI_FALSE;
+    jstring dsBios7String = (jstring) env->CallObjectMethod(dsBios7Uri, uriToStringMethod);
+    jstring dsBios9String = (jstring) env->CallObjectMethod(dsBios9Uri, uriToStringMethod);
+    jstring dsFirmwareString = (jstring) env->CallObjectMethod(dsFirmwareUri, uriToStringMethod);
+    jstring dsiBios7String = (jstring) env->CallObjectMethod(dsiBios7Uri, uriToStringMethod);
+    jstring dsiBios9String = (jstring) env->CallObjectMethod(dsiBios9Uri, uriToStringMethod);
+    jstring dsiFirmwareString = (jstring) env->CallObjectMethod(dsiFirmwareUri, uriToStringMethod);
+    jstring dsiNandString = (jstring) env->CallObjectMethod(dsiNandUri, uriToStringMethod);
+    const char* dsBios7Path = dsBios7Uri ? env->GetStringUTFChars(dsBios7String, &isCopy) : nullptr;
+    const char* dsBios9Path = dsBios9Uri ? env->GetStringUTFChars(dsBios9String, &isCopy) : nullptr;
+    const char* dsFirmwarePath = dsFirmwareUri ? env->GetStringUTFChars(dsFirmwareString, &isCopy) : nullptr;
+    const char* dsiBios7Path = dsiBios7Uri ? env->GetStringUTFChars(dsiBios7String, &isCopy) : nullptr;
+    const char* dsiBios9Path = dsiBios9Uri ? env->GetStringUTFChars(dsiBios9String, &isCopy) : nullptr;
+    const char* dsiFirmwarePath = dsiFirmwareUri ? env->GetStringUTFChars(dsiFirmwareString, &isCopy) : nullptr;
+    const char* dsiNandPath = dsiNandUri ? env->GetStringUTFChars(dsiNandString, &isCopy) : nullptr;
     const char* internalDir = env->GetStringUTFChars(internalFilesDir, JNI_FALSE);
     jobject firmwareConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "firmwareConfiguration", "Lme/magnum/melonds/domain/model/FirmwareConfiguration;"));
     jobject rendererConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "rendererConfiguration", "Lme/magnum/melonds/domain/model/RendererConfiguration;"));
 
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration;
     finalEmulatorConfiguration.userInternalFirmwareAndBios = !useCustomBios;
-    finalEmulatorConfiguration.dsConfigDir = const_cast<char*>(dsDir);
-    finalEmulatorConfiguration.dsiConfigDir = const_cast<char*>(dsiDir);
+    finalEmulatorConfiguration.dsBios7Path = const_cast<char*>(dsBios7Path);
+    finalEmulatorConfiguration.dsBios9Path = const_cast<char*>(dsBios9Path);
+    finalEmulatorConfiguration.dsFirmwarePath = const_cast<char*>(dsFirmwarePath);
+    finalEmulatorConfiguration.dsiBios7Path = const_cast<char*>(dsiBios7Path);
+    finalEmulatorConfiguration.dsiBios9Path = const_cast<char*>(dsiBios9Path);
+    finalEmulatorConfiguration.dsiFirmwarePath = const_cast<char*>(dsiFirmwarePath);
+    finalEmulatorConfiguration.dsiNandPath = const_cast<char*>(dsiNandPath);
     finalEmulatorConfiguration.internalFilesDir = const_cast<char*>(internalDir);
     finalEmulatorConfiguration.fastForwardSpeedMultiplier = fastForwardMaxSpeed;
     finalEmulatorConfiguration.useJit = useJit;
@@ -357,8 +403,10 @@ MelonDSAndroid::FirmwareConfiguration buildFirmwareConfiguration(JNIEnv* env, jo
     const char* message = env->GetStringUTFChars(messageString, &isCopy);
 
     MelonDSAndroid::FirmwareConfiguration finalFirmwareConfiguration;
-    strcpy(finalFirmwareConfiguration.username, nickname);
-    strcpy(finalFirmwareConfiguration.message, message);
+    strncpy(finalFirmwareConfiguration.username, nickname, sizeof(finalFirmwareConfiguration.username) - 1);
+    strncpy(finalFirmwareConfiguration.message, message, sizeof(finalFirmwareConfiguration.message) - 1);
+    finalFirmwareConfiguration.username[sizeof(finalFirmwareConfiguration.username) - 1] = '\0';
+    finalFirmwareConfiguration.message[sizeof(finalFirmwareConfiguration.message) - 1] = '\0';
     finalFirmwareConfiguration.language = language;
     finalFirmwareConfiguration.favouriteColour = colour;
     finalFirmwareConfiguration.birthdayDay = birthdayDay;

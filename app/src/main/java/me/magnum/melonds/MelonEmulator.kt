@@ -1,9 +1,11 @@
 package me.magnum.melonds
 
 import android.content.res.AssetManager
+import android.net.Uri
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.Input
+import me.magnum.melonds.common.UriFileHandler
 import java.nio.ByteBuffer
 
 object MelonEmulator {
@@ -28,12 +30,12 @@ object MelonEmulator {
         DSI_NAND_BAD
     }
 
-	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?)
+	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?, uriFileHandler: UriFileHandler)
 
     external fun setupCheats(cheats: Array<Cheat>)
 
-	fun loadRom(romPath: String, sramPath: String, loadDirect: Boolean, loadGbaRom: Boolean, gbaRomPath: String?, gbaSramPath: String?): LoadResult {
-        val loadResult = loadRomInternal(romPath, sramPath, loadDirect, loadGbaRom, gbaRomPath, gbaSramPath)
+	fun loadRom(romUri: Uri, sramUri: Uri, loadDirect: Boolean, loadGbaRom: Boolean, gbaRomUri: Uri?, gbaSramUri: Uri?): LoadResult {
+        val loadResult = loadRomInternal(romUri.toString(), sramUri.toString(), loadDirect, loadGbaRom, gbaRomUri?.toString(), gbaSramUri?.toString())
         return when (loadResult) {
             0 -> LoadResult.SUCCESS
             1 -> LoadResult.SUCCESS_GBA_FAILED
@@ -65,9 +67,17 @@ object MelonEmulator {
 
 	external fun stopEmulation()
 
-    external fun saveState(path: String): Boolean
+    fun saveState(path: Uri): Boolean {
+        return saveStateInternal(path.toString())
+    }
 
-    external fun loadState(path: String): Boolean
+    private external fun saveStateInternal(path: String): Boolean
+
+    fun loadState(path: Uri): Boolean {
+        return loadStateInternal(path.toString())
+    }
+
+    private external fun loadStateInternal(path: String): Boolean
 
 	external fun onScreenTouch(x: Int, y: Int)
 

@@ -149,6 +149,9 @@ object FileUtils {
                     //}
                 }
             }
+
+            // Fallback to simple storage path
+            return "/storage/${volumeId}"
         } catch (e: Exception) {
             Log.w(TAG, "getVolumePath exception", e)
         }

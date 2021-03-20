@@ -6,6 +6,7 @@ import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.EmulatorConfiguration
+import me.magnum.melonds.common.UriFileHandler
 
 class FirmwareEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activity) {
     private enum class FirmwarePauseMenuOptions(override val textResource: Int) : EmulatorActivity.PauseMenuOption {
@@ -26,7 +27,7 @@ class FirmwareEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(ac
         return Completable.create { emitter ->
             activity.viewModel.loadLayoutForFirmware()
             val emulatorConfiguration = activity.viewModel.getEmulatorConfigurationForFirmware(firmwareConsoleType)
-            MelonEmulator.setupEmulator(emulatorConfiguration, activity.assets)
+            MelonEmulator.setupEmulator(emulatorConfiguration, activity.assets, UriFileHandler(activity))
 
             val loadResult = MelonEmulator.bootFirmware()
             if (loadResult != MelonEmulator.FirmwareLoadResult.SUCCESS)
