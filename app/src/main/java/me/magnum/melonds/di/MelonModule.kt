@@ -8,6 +8,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.domain.repositories.LayoutsRepository
@@ -28,8 +29,8 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideRomsRepository(@ApplicationContext context: Context, gson: Gson, settingsRepository: SettingsRepository, fileRomProcessorFactory: FileRomProcessorFactory): RomsRepository {
-        return FileSystemRomsRepository(context, gson, settingsRepository, fileRomProcessorFactory)
+    fun provideRomsRepository(@ApplicationContext context: Context, gson: Gson, settingsRepository: SettingsRepository, romFileProcessorFactory: RomFileProcessorFactory): RomsRepository {
+        return FileSystemRomsRepository(context, gson, settingsRepository, romFileProcessorFactory)
     }
 
     @Provides
@@ -52,14 +53,14 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideFileRomProcessorFactory(@ApplicationContext context: Context, ndsRomCache: NdsRomCache): FileRomProcessorFactory {
-        return FileRomProcessorFactoryImpl(context, ndsRomCache)
+    fun provideFileRomProcessorFactory(@ApplicationContext context: Context, ndsRomCache: NdsRomCache): RomFileProcessorFactory {
+        return RomFileProcessorFactoryImpl(context, ndsRomCache)
     }
 
     @Provides
     @Singleton
-    fun provideRomIconProvider(@ApplicationContext context: Context, fileRomProcessorFactory: FileRomProcessorFactory): RomIconProvider {
-        return RomIconProvider(context, fileRomProcessorFactory)
+    fun provideRomIconProvider(@ApplicationContext context: Context, romFileProcessorFactory: RomFileProcessorFactory): RomIconProvider {
+        return RomIconProvider(context, romFileProcessorFactory)
     }
 
     @Provides

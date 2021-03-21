@@ -1,4 +1,4 @@
-package me.magnum.melonds.impl.romprocessors
+package me.magnum.melonds.common.romprocessors
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -8,14 +8,13 @@ import io.reactivex.Single
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomInfo
-import me.magnum.melonds.impl.FileRomProcessor
 import me.magnum.melonds.impl.NdsRomCache
 import me.magnum.melonds.utils.RomProcessor
 import java.io.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
-class ZipRomProcessor(private val context: Context, private val ndsRomCache: NdsRomCache) : FileRomProcessor {
+class ZipRomFileProcessor(private val context: Context, private val ndsRomCache: NdsRomCache) : RomFileProcessor {
     companion object {
         private const val EXTRACTED_ROMS_CACHE_DIR = "extracted_roms"
     }

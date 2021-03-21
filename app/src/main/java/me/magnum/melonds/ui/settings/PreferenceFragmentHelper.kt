@@ -9,8 +9,8 @@ import com.smp.masterswitchpreference.MasterSwitchPreference
 import me.magnum.melonds.R
 import me.magnum.melonds.ui.settings.preferences.FirmwareBirthdayPreference
 import me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
-import me.magnum.melonds.utils.DirectoryPickerContract
-import me.magnum.melonds.utils.FilePickerContract
+import me.magnum.melonds.common.contracts.DirectoryPickerContract
+import me.magnum.melonds.common.contracts.FilePickerContract
 import me.magnum.melonds.utils.FileUtils
 
 class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat) {

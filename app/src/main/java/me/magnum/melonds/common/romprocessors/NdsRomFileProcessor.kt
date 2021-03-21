@@ -1,4 +1,4 @@
-package me.magnum.melonds.impl.romprocessors
+package me.magnum.melonds.common.romprocessors
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -7,10 +7,9 @@ import io.reactivex.Single
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomInfo
-import me.magnum.melonds.impl.FileRomProcessor
 import me.magnum.melonds.utils.RomProcessor
 
-class NdsRomProcessor(private val context: Context) : FileRomProcessor {
+class NdsRomFileProcessor(private val context: Context) : RomFileProcessor {
     override fun getRomFromUri(uri: Uri): Rom? {
         return try {
             getRomName(uri)?.let {

@@ -1,4 +1,4 @@
-package me.magnum.melonds.utils
+package me.magnum.melonds.common.contracts
 
 import android.app.Activity
 import android.content.Context

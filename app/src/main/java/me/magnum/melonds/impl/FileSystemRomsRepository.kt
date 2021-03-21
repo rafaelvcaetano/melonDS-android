@@ -13,6 +13,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
+import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomScanningStatus
@@ -32,7 +33,7 @@ class FileSystemRomsRepository(
         private val context: Context,
         private val gson: Gson,
         private val settingsRepository: SettingsRepository,
-        private val fileRomProcessorFactory: FileRomProcessorFactory
+        private val romFileProcessorFactory: RomFileProcessorFactory
 ) : RomsRepository {
 
     companion object {
@@ -196,7 +197,7 @@ class FileSystemRomsRepository(
                         continue
                     }
 
-                    fileRomProcessorFactory.getFileRomProcessorForDocument(file)?.let { fileRomProcessor ->
+                    romFileProcessorFactory.getFileRomProcessorForDocument(file)?.let { fileRomProcessor ->
                         fileRomProcessor.getRomFromUri(file.uri)?.let { emitter.onNext(it) }
                     }
                 }

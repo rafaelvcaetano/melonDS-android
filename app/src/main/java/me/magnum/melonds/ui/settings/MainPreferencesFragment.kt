@@ -16,7 +16,7 @@ import androidx.preference.SwitchPreference
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.MicSource
-import me.magnum.melonds.utils.FilePickerContract
+import me.magnum.melonds.common.contracts.FilePickerContract
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import me.magnum.melonds.utils.isMicrophonePermissionGranted
 import java.math.BigDecimal

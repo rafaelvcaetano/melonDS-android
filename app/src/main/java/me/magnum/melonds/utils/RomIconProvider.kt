@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.documentfile.provider.DocumentFile
 import me.magnum.melonds.domain.model.Rom
-import me.magnum.melonds.impl.FileRomProcessorFactory
+import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import java.io.File
 import java.io.FileOutputStream
 import java.lang.Exception
@@ -16,7 +16,7 @@ import java.lang.Exception
  * caches.
  * The name of the file for the disk cache is the hash of the ROM's path.
  */
-class RomIconProvider(private val context: Context, private val fileRomProcessorFactory: FileRomProcessorFactory) {
+class RomIconProvider(private val context: Context, private val romFileProcessorFactory: RomFileProcessorFactory) {
     companion object {
         private const val ICON_CACHE_DIR = "rom_icons"
     }
@@ -50,7 +50,7 @@ class RomIconProvider(private val context: Context, private val fileRomProcessor
         }
 
         val romDocument = DocumentFile.fromSingleUri(context, rom.uri) ?: return null
-        val romProcessor = fileRomProcessorFactory.getFileRomProcessorForDocument(romDocument) ?: return null
+        val romProcessor = romFileProcessorFactory.getFileRomProcessorForDocument(romDocument) ?: return null
         val bitmap = romProcessor.getRomIcon(rom)
         if (bitmap != null && iconCacheDir != null) {
             saveRomIcon(hash, bitmap)

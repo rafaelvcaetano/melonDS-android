@@ -1,4 +1,4 @@
-package me.magnum.melonds.impl
+package me.magnum.melonds.common.workers
 
 import android.content.Context
 import android.content.res.AssetFileDescriptor
@@ -16,6 +16,7 @@ import me.magnum.melonds.MelonDSApplication
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.Game
 import me.magnum.melonds.domain.repositories.CheatsRepository
+import me.magnum.melonds.impl.XmlCheatDatabaseSAXHandler
 import java.io.FilterInputStream
 import java.io.InputStream
 import javax.xml.parsers.SAXParserFactory

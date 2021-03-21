@@ -25,7 +25,7 @@ import me.magnum.melonds.domain.model.SortingMode
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.utils.ConfigurationUtils
-import me.magnum.melonds.utils.DirectoryPickerContract
+import me.magnum.melonds.common.contracts.DirectoryPickerContract
 
 @AndroidEntryPoint
 class RomListActivity : AppCompatActivity() {

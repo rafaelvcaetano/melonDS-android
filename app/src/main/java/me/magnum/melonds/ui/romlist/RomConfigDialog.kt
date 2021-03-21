@@ -22,7 +22,7 @@ import me.magnum.melonds.extensions.setViewEnabledRecursive
 import me.magnum.melonds.parcelables.RomConfigParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.layouts.LayoutSelectorActivity
-import me.magnum.melonds.utils.FilePickerContract
+import me.magnum.melonds.common.contracts.FilePickerContract
 import me.magnum.melonds.utils.FileUtils
 import me.magnum.melonds.utils.isMicrophonePermissionGranted
 import java.util.*
