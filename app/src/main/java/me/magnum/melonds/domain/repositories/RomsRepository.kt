@@ -1,5 +1,6 @@
 package me.magnum.melonds.domain.repositories
 
+import android.net.Uri
 import io.reactivex.Maybe
 import io.reactivex.Observable
 import me.magnum.melonds.domain.model.Rom
@@ -11,6 +12,7 @@ interface RomsRepository {
     fun getRoms(): Observable<List<Rom>>
     fun getRomScanningStatus(): Observable<RomScanningStatus>
     fun getRomAtPath(path: String): Maybe<Rom>
+    fun getRomAtUri(uri: Uri): Maybe<Rom>
 
     fun updateRomConfig(rom: Rom, romConfig: RomConfig)
     fun setRomLastPlayed(rom: Rom, lastPlayed: Date)

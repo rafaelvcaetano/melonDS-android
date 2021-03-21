@@ -46,11 +46,18 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
     override fun getEmulatorSetupObservable(extras: Bundle?): Completable {
         val romParcelable = extras?.getParcelable(EmulatorActivity.KEY_ROM) as RomParcelable?
 
-        val romLoader = if (romParcelable?.rom != null)
+        val romLoader = if (romParcelable?.rom != null) {
             Single.just(romParcelable.rom)
-        else {
-            val romPath = extras?.getString(EmulatorActivity.KEY_PATH) ?: throw NullPointerException("No ROM was specified")
-            activity.viewModel.getRomAtPath(romPath)
+        } else {
+            if (extras?.containsKey(EmulatorActivity.KEY_PATH) == true) {
+                val romPath = extras.getString(EmulatorActivity.KEY_PATH) ?: throw NullPointerException("${EmulatorActivity.KEY_PATH} was null")
+                activity.viewModel.getRomAtPath(romPath)
+            } else if (extras?.containsKey(EmulatorActivity.KEY_URI) == true) {
+                val romUri = extras.getString(EmulatorActivity.KEY_URI) ?: throw NullPointerException("${EmulatorActivity.KEY_URI} was null")
+                activity.viewModel.getRomAtUri(Uri.parse(romUri))
+            } else {
+                throw NullPointerException("No ROM was specified")
+            }
         }
 
         return romLoader.flatMap { rom ->

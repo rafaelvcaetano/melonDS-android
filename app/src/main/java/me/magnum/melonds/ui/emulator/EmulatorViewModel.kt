@@ -19,6 +19,7 @@ import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.impl.FileRomProcessorFactory
+import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
 import me.magnum.melonds.ui.emulator.exceptions.SramLoadException
 import java.io.File
 import java.util.*
@@ -95,7 +96,7 @@ class EmulatorViewModel @ViewModelInject constructor(
 
     fun getRomLoader(rom: Rom): Single<Pair<Rom, Uri>> {
         val fileRomProcessor = fileRomProcessorFactory.getFileRomProcessorForDocument(rom.uri)
-        return fileRomProcessor?.getRealRomUri(rom)?.map { rom to it } ?: Single.error(Exception("Unsupported extension"))
+        return fileRomProcessor?.getRealRomUri(rom)?.map { rom to it } ?: Single.error(RomLoadException("Unsupported ROM file extension"))
     }
 
     fun getRomInfo(rom: Rom): RomInfo? {
@@ -163,6 +164,11 @@ class EmulatorViewModel @ViewModelInject constructor(
     fun getRomAtPath(path: String): Single<Rom> {
         val romDocument = DocumentFile.fromFile(File(path))
         return romsRepository.getRomAtPath(path).defaultIfEmpty(Rom(path, romDocument.uri, RomConfig())).toSingle()
+    }
+
+    fun getRomAtUri(uri: Uri): Single<Rom> {
+        val romDocument = uriFileHandler.getUriDocument(uri) ?: return Single.error(RomLoadException("Could not create ROM document"))
+        return romsRepository.getRomAtUri(uri).defaultIfEmpty(Rom(uri.toString(), romDocument.uri, RomConfig())).toSingle()
     }
 
     fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {

@@ -89,6 +89,15 @@ class FileSystemRomsRepository(
                 }
     }
 
+    override fun getRomAtUri(uri: Uri): Maybe<Rom> {
+        return getRoms().firstElement()
+                .flatMap {
+                    it.find { rom ->
+                        rom.uri == uri
+                    }?.let { rom -> Maybe.just(rom) } ?: Maybe.empty()
+                }
+    }
+
     override fun updateRomConfig(rom: Rom, romConfig: RomConfig) {
         val romIndex = roms.indexOf(rom)
         if (romIndex < 0)

@@ -38,6 +38,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     companion object {
         const val KEY_ROM = "rom"
         const val KEY_PATH = "PATH"
+        const val KEY_URI = "uri"
         const val KEY_BOOT_FIRMWARE_CONSOLE = "boot_firmware_console"
         private const val KEY_BOOT_FIRMWARE_ONLY = "boot_firmware_only"
 
