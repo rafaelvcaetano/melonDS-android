@@ -107,18 +107,20 @@ class EmulatorViewModel @ViewModelInject constructor(
     fun getRomSramFile(rom: Rom): Uri {
         val rootDirUri = settingsRepository.getSaveFileDirectory(rom)
 
-        val rootDocument = uriFileHandler.getUriTreeDocument(rootDirUri)
+        val rootDocument = uriFileHandler.getUriTreeDocument(rootDirUri) ?: throw SramLoadException("Cannot create root document: $rootDirUri")
         val romDocument = uriFileHandler.getUriDocument(rom.uri)
-        val romFileName = romDocument?.name ?: throw SramLoadException("Cannot determine SRAM file name")
+
+        val romFileName = romDocument?.name ?: throw SramLoadException("Cannot determine SRAM file name: ${romDocument?.uri}")
         val sramFileName = romFileName.replaceAfterLast('.', "sav", "$romFileName.sav")
-        val sramDocument = rootDocument?.findFile(sramFileName)
-        return sramDocument?.uri ?: rootDocument?.createFile("*/*", sramFileName)?.let {
+
+        val sramDocument = rootDocument.findFile(sramFileName)
+        return sramDocument?.uri ?: rootDocument.createFile("*/*", sramFileName)?.let {
             // Create the file and delete it immediately. By simply creating a file with a size of 0, melonDS would assume that to be the SRAM size of the ROM, which would
             // prevent save files from working properly. Instead, we create a file to obtain its URI and delete it so that melonDS assumes that there is no save. When saving
             // for the first time, the proper file will be created.
             it.delete()
             it.uri
-        } ?: throw SramLoadException("Cannot create temporary SRAM file")
+        } ?: throw SramLoadException("Could not create temporary SRAM file at ${rootDocument.uri}")
     }
 
     fun getRomSaveStateSlots(rom: Rom): List<SaveStateSlot> {

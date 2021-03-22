@@ -27,4 +27,12 @@ class StandardFileUriHandler : UriHandler {
     override fun getUriTreeDocument(uri: Uri): DocumentFile? {
         return getUriDocument(uri)
     }
+
+    override fun getParentUri(uri: Uri): Uri? {
+        val file = uri.path?.let {
+            File(it)
+        } ?: return null
+
+        return file.parentFile?.let { DocumentFile.fromFile(it) }?.uri
+    }
 }

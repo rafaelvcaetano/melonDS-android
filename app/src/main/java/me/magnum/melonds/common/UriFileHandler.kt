@@ -61,4 +61,8 @@ class UriFileHandler(private val context: Context) {
     fun getUriTreeDocument(uri: Uri): DocumentFile? {
         return uriHandlers[uri.scheme]?.getUriTreeDocument(uri)
     }
+
+    fun getParentUri(uri: Uri): Uri? {
+        return uriHandlers[uri.scheme]?.getParentUri(uri)
+    }
 }

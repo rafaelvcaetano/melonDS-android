@@ -11,6 +11,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
+import me.magnum.melonds.common.UriFileHandler
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.ui.Theme
@@ -18,7 +19,13 @@ import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import java.io.*
 import java.util.*
 
-class SharedPreferencesSettingsRepository(private val context: Context, private val preferences: SharedPreferences, private val gson: Gson) : SettingsRepository, OnSharedPreferenceChangeListener {
+class SharedPreferencesSettingsRepository(
+        private val context: Context,
+        private val preferences: SharedPreferences,
+        private val gson: Gson,
+        private val uriFileHandler: UriFileHandler
+) : SettingsRepository, OnSharedPreferenceChangeListener {
+
     companion object {
         private const val TAG = "SPSettingsRepository"
         private const val CONTROLLER_CONFIG_FILE = "controller_config.json"
@@ -193,7 +200,7 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         return if (!saveNextToRomFile() && getSaveFileDirectory() != null) {
             getSaveFileDirectory()!!
         } else {
-            getRomParentDocument(rom)
+            getRomParentDirectory(rom)
         }
     }
 
@@ -207,7 +214,7 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
 
         return when (saveStateLocation) {
             SaveStateLocation.SAVE_DIR -> getSaveFileDirectory(rom)
-            SaveStateLocation.ROM_DIR -> getRomParentDocument(rom)
+            SaveStateLocation.ROM_DIR -> getRomParentDirectory(rom)
             SaveStateLocation.INTERNAL_DIR -> {
                 val saveStateDir = File(context.getExternalFilesDir(null), "savestates")
                 if (!saveStateDir.isDirectory) {
@@ -218,16 +225,8 @@ class SharedPreferencesSettingsRepository(private val context: Context, private 
         }
     }
 
-    private fun getRomParentDocument(rom: Rom): Uri {
-        val uriString = rom.uri.toString()
-        val parentUriString = when (rom.uri.scheme) {
-            "content" -> uriString.substringBeforeLast("%2F")
-            "file" -> uriString.substringBeforeLast("/")
-            else -> throw Exception("Could not determine ROMs parent document")
-        }
-        val parentUri = Uri.parse(parentUriString)
-        val parentDocument = DocumentFile.fromTreeUri(context, parentUri)
-        return parentDocument?.uri ?: throw Exception("Could not determine ROMs parent document")
+    private fun getRomParentDirectory(rom: Rom): Uri {
+        return uriFileHandler.getParentUri(rom.uri) ?: throw Exception("Could not determine ROMs parent document")
     }
 
     override fun getControllerConfiguration(): ControllerConfiguration {
