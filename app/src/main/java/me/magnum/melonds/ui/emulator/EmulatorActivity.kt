@@ -22,6 +22,8 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
+import me.magnum.melonds.common.UriFileHandler
+import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
@@ -71,7 +73,10 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
     private lateinit var binding: ActivityEmulatorBinding
     val viewModel: EmulatorViewModel by viewModels()
-    @Inject lateinit var settingsRepository: SettingsRepository
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
+    @Inject
+    lateinit var uriHandler: UriHandler
     private lateinit var delegate: EmulatorDelegate
 
     private lateinit var dsRenderer: DSRenderer
@@ -356,6 +361,10 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         if (!result) {
             Toast.makeText(this, R.string.failed_reset_emulation, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    fun buildUriFileHandler(): UriFileHandler {
+        return UriFileHandler(this, uriHandler)
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {

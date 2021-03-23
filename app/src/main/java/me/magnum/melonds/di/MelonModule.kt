@@ -8,8 +8,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
-import me.magnum.melonds.common.UriFileHandler
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
+import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.domain.repositories.LayoutsRepository
@@ -24,8 +24,8 @@ import javax.inject.Singleton
 object MelonModule {
     @Provides
     @Singleton
-    fun provideSettingsRepository(@ApplicationContext context: Context, sharedPreferences: SharedPreferences, gson: Gson, uriFileHandler: UriFileHandler): SettingsRepository {
-        return SharedPreferencesSettingsRepository(context, sharedPreferences, gson, uriFileHandler)
+    fun provideSettingsRepository(@ApplicationContext context: Context, sharedPreferences: SharedPreferences, gson: Gson, uriHandler: UriHandler): SettingsRepository {
+        return SharedPreferencesSettingsRepository(context, sharedPreferences, gson, uriHandler)
     }
 
     @Provides

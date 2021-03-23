@@ -2,11 +2,9 @@ package me.magnum.melonds.common
 
 import android.content.Context
 import android.net.Uri
-import androidx.documentfile.provider.DocumentFile
-import me.magnum.melonds.common.uridelegates.ContentUriHandler
-import me.magnum.melonds.common.uridelegates.StandardFileUriHandler
+import me.magnum.melonds.common.uridelegates.UriHandler
 
-class UriFileHandler(private val context: Context) {
+class UriFileHandler(private val context: Context, private val uriHandler: UriHandler) {
     companion object {
         private const val FILE_NOT_FOUND = -1
         private val readModeChars = listOf("r", "a+", "r+", "w+")
@@ -14,10 +12,6 @@ class UriFileHandler(private val context: Context) {
     }
 
     private val modeStringBuilder = StringBuilder()
-    private val uriHandlers = mapOf(
-            "content" to ContentUriHandler(context),
-            "file" to StandardFileUriHandler()
-    )
 
     fun open(uriString: String, mode: String): Int {
         val uri = Uri.parse(uriString)
@@ -36,33 +30,19 @@ class UriFileHandler(private val context: Context) {
         val internalMode = modeStringBuilder.toString()
 
         return if (isWriteMode) {
-            uriHandlers[uri.scheme]?.let {
-                if (it.fileExists(uri)) {
-                    context.contentResolver.openFileDescriptor(uri, internalMode)?.detachFd()
-                } else {
-                    it.createFileDocument(uri)?.let { document ->
-                        context.contentResolver.openFileDescriptor(document.uri, internalMode)?.detachFd()
-                    }
+            if (uriHandler.fileExists(uri)) {
+                context.contentResolver.openFileDescriptor(uri, internalMode)?.detachFd()
+            } else {
+                uriHandler.createFileDocument(uri)?.let { document ->
+                    context.contentResolver.openFileDescriptor(document.uri, internalMode)?.detachFd()
                 }
-            } ?: FILE_NOT_FOUND
+            }
         } else {
             try {
-                context.contentResolver.openFileDescriptor(uri, internalMode)?.detachFd() ?: FILE_NOT_FOUND
+                context.contentResolver.openFileDescriptor(uri, internalMode)?.detachFd()
             } catch (e: Exception) {
-                FILE_NOT_FOUND
+                null
             }
-        }
-    }
-
-    fun getUriDocument(uri: Uri): DocumentFile? {
-        return uriHandlers[uri.scheme]?.getUriDocument(uri)
-    }
-
-    fun getUriTreeDocument(uri: Uri): DocumentFile? {
-        return uriHandlers[uri.scheme]?.getUriTreeDocument(uri)
-    }
-
-    fun getParentUri(uri: Uri): Uri? {
-        return uriHandlers[uri.scheme]?.getParentUri(uri)
+        } ?: FILE_NOT_FOUND
     }
 }

@@ -67,7 +67,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
             loadedRom = romPair.first
             return@flatMap loadRomCheats(loadedRom).defaultIfEmpty(emptyList()).flatMapSingle { cheats ->
                 Single.create<MelonEmulator.LoadResult> { emitter ->
-                    MelonEmulator.setupEmulator(getEmulatorConfigurationForRom(loadedRom), activity.assets, UriFileHandler(activity))
+                    MelonEmulator.setupEmulator(getEmulatorConfigurationForRom(loadedRom), activity.assets, activity.buildUriFileHandler())
 
                     val rom = romPair.first
                     val romPath = romPair.second

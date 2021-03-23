@@ -12,7 +12,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
-import me.magnum.melonds.common.UriFileHandler
+import me.magnum.melonds.common.uridelegates.CompositeUriHandler
+import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.utils.UriTypeHierarchyAdapter
 import javax.inject.Singleton
@@ -44,7 +45,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideUriHandler(@ApplicationContext context: Context): UriFileHandler {
-        return UriFileHandler(context)
+    fun provideUriHandler(@ApplicationContext context: Context): UriHandler {
+        return CompositeUriHandler(context)
     }
 }

@@ -11,7 +11,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
-import me.magnum.melonds.common.UriFileHandler
+import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.ui.Theme
@@ -23,7 +23,7 @@ class SharedPreferencesSettingsRepository(
         private val context: Context,
         private val preferences: SharedPreferences,
         private val gson: Gson,
-        private val uriFileHandler: UriFileHandler
+        private val uriHandler: UriHandler
 ) : SettingsRepository, OnSharedPreferenceChangeListener {
 
     companion object {
@@ -226,7 +226,7 @@ class SharedPreferencesSettingsRepository(
     }
 
     private fun getRomParentDirectory(rom: Rom): Uri {
-        return uriFileHandler.getParentUri(rom.uri) ?: throw Exception("Could not determine ROMs parent document")
+        return uriHandler.getParentUri(rom.uri) ?: throw Exception("Could not determine ROMs parent document")
     }
 
     override fun getControllerConfiguration(): ControllerConfiguration {
