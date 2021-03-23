@@ -129,22 +129,19 @@ class EmulatorViewModel @ViewModelInject constructor(
         val romDocument = uriFileHandler.getUriDocument(rom.uri)!!
         val romFileName = romDocument.name?.substringBeforeLast('.') ?: return emptyList()
 
-        val saveStateSlots = mutableListOf<SaveStateSlot>()
-        val directoryFiles = saveStateDirectoryDocument.listFiles()
-        for (i in 1..8) {
-            val saveStateName = "$romFileName.ml$i"
-            val saveStateDocument = directoryFiles.find {
-                it.name == saveStateName
-            }
-
-            if (saveStateDocument?.isFile == true) {
-                saveStateSlots.add(SaveStateSlot(i, true, Date(saveStateDocument.lastModified())))
-            } else {
-                saveStateSlots.add(SaveStateSlot(i, false, null))
+        val saveStateSlots = Array(8) {
+            SaveStateSlot(it + 1, false, null)
+        }
+        val fileNameRegex = "${Regex.escape(romFileName)}\\.ml[1-8]".toRegex()
+        saveStateDirectoryDocument.listFiles().forEach {
+            val fileName = it.name
+            if (fileName?.matches(fileNameRegex) == true) {
+                val slot = fileName.last().minus('0')
+                saveStateSlots[slot - 1] = SaveStateSlot(slot, true, Date(it.lastModified()))
             }
         }
 
-        return saveStateSlots
+        return saveStateSlots.toList()
     }
 
     fun getRomSaveStateSlotUri(rom: Rom, slot: Int): Uri {
