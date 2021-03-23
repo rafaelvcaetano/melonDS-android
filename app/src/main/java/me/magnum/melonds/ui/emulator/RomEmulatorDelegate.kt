@@ -86,7 +86,9 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
             }
         }.doAfterSuccess {
             if (it == MelonEmulator.LoadResult.SUCCESS_GBA_FAILED) {
-                Toast.makeText(activity, R.string.error_load_gba_rom, Toast.LENGTH_SHORT).show()
+                activity.runOnUiThread {
+                    Toast.makeText(activity, R.string.error_load_gba_rom, Toast.LENGTH_SHORT).show()
+                }
             }
         }.ignoreElement()
     }
