@@ -8,7 +8,7 @@ import android.os.Build
 import android.provider.DocumentsContract
 import androidx.activity.result.contract.ActivityResultContract
 
-class FilePickerContract(private val persistUris: Boolean = false) : ActivityResultContract<Pair<Uri?, String?>, Uri?>() {
+class FilePickerContract(private val persistUris: Boolean = true) : ActivityResultContract<Pair<Uri?, String?>, Uri?>() {
     private lateinit var context: Context
 
     override fun createIntent(context: Context, input: Pair<Uri?, String?>): Intent {
