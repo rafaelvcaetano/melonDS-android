@@ -10,6 +10,7 @@ class FirmwarePreferencesFragment : PreferenceFragmentCompat(), PreferenceFragme
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.pref_firmware_user_settings, rootKey)
         helper.bindPreferenceSummaryToValue(findPreference("firmware_settings_birthday"))
+        helper.bindPreferenceSummaryToValue(findPreference("internal_mac_address"))
     }
 
     override fun getTitle() = getString(R.string.firmware_user_settings)

@@ -25,4 +25,10 @@
             android:key="dsi_bios_dir"
             android:title="@string/dsi_bios_directory"
             app:consoleType="dsi" />
+
+    <SwitchPreference
+            android:key="custom_randomize_mac_address"
+            android:title="@string/randomize_mac_address"
+            android:summary="@string/randomize_mac_address_summary"
+            android:defaultValue="false" />
 </PreferenceScreen>

@@ -123,13 +123,32 @@ class SharedPreferencesSettingsRepository(
             Pair(day, month)
         }
 
+        val useCustomBios = useCustomBios()
+        var macAddress: String? = null
+        val randomizeMacAddress = if (useCustomBios) {
+            preferences.getBoolean("custom_randomize_mac_address", false)
+        } else {
+            var randomize = preferences.getBoolean("internal_randomize_mac_address", false)
+
+            if (!randomize) {
+                macAddress = preferences.getString("internal_mac_address", null)
+                // If the MAC address is not defined, enable MAC address randomization
+                if (macAddress == null) {
+                    randomize = true
+                }
+            }
+            randomize
+        }
+
         return FirmwareConfiguration(
                 preferences.getString("firmware_settings_nickname", "Player")!!,
                 preferences.getString("firmware_settings_message", "Hello!")!!,
                 preferences.getString("firmware_settings_language", "1")!!.toInt(),
                 preferences.getInt("firmware_settings_colour", 0),
                 birthday.second,
-                birthday.first
+                birthday.first,
+                randomizeMacAddress,
+                macAddress
         )
     }
 

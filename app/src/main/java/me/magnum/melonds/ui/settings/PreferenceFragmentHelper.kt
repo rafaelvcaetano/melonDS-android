@@ -11,6 +11,7 @@ import me.magnum.melonds.ui.settings.preferences.FirmwareBirthdayPreference
 import me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
 import me.magnum.melonds.common.contracts.DirectoryPickerContract
 import me.magnum.melonds.common.contracts.FilePickerContract
+import me.magnum.melonds.ui.settings.preferences.MacAddressPreference
 import me.magnum.melonds.utils.FileUtils
 
 class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat) {
@@ -26,7 +27,7 @@ class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat) {
                     val summary = if (index >= 0)
                         preference.entries[index]
                     else
-                        preference.getContext().getString(R.string.not_set)
+                        preference.context.getString(R.string.not_set)
                     preference.setSummary(summary)
                 }
                 is StoragePickerPreference -> {
@@ -44,6 +45,10 @@ class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat) {
                 is MasterSwitchPreference -> {
                     val isOn = (value as Boolean)
                     preference.summary = if (isOn) preference.context.getString(R.string.on) else preference.context.getString(R.string.off)
+                }
+                is MacAddressPreference -> {
+                    val addressString = value as String?
+                    preference.summary = addressString ?: preference.context.getString(R.string.not_set)
                 }
                 else -> {
                     // For all other preferences, set the summary to the value's

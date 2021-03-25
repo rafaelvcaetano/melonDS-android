@@ -33,4 +33,16 @@
         android:key="firmware_settings_birthday"
         android:title="@string/firmware_birthday"
         android:defaultValue="01/01" />
+
+    <SwitchPreference
+        android:key="internal_randomize_mac_address"
+        android:title="@string/randomize_mac_address"
+        android:summary="@string/randomize_mac_address_summary"
+        android:defaultValue="false"
+        android:disableDependentsState="true" />
+
+    <me.magnum.melonds.ui.settings.preferences.MacAddressPreference
+        android:key="internal_mac_address"
+        android:title="@string/mac_address"
+        android:dependency="internal_randomize_mac_address" />
 </PreferenceScreen>
