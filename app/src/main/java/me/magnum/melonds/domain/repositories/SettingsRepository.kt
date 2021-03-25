@@ -11,6 +11,7 @@ interface SettingsRepository {
 
     fun getTheme(): Theme
     fun getFastForwardSpeedMultiplier(): Float
+    fun isSustainedPerformanceModeEnabled(): Boolean
 
     fun getRomSearchDirectories(): Array<Uri>
     fun getRomIconFiltering(): RomIconFiltering

@@ -68,6 +68,8 @@
     <string name="category_system">System</string>
     <string name="theme">Theme</string>
     <string name="fast_forward_max_speed">Fast-forward max speed</string>
+    <string name="sustained_performance_mode">Sustained performance mode</string>
+    <string name="sustained_performance_mode_summary">When enabled, peak performance will be lower but thermal throttling will be less pronounced.</string>
     <string name="rom_icon_filtering">Icon filtering</string>
     <string name="clear_extracted_rom_cache">Clear extracted ROM cache</string>
     <string name="cache_size">Cache size: %s</string>
@@ -75,7 +77,7 @@
     <string name="rom_search_directories">Search directories</string>
     <string name="console_type">Default system</string>
     <string name="internal_firmware_settings">Internal firmware settings</string>
-    <string name="internal_firmware_settings_summary">Adjust the settings of the internal firmware</string>
+    <string name="internal_firmware_settings_summary">Adjust the settings of the internal firmware.</string>
     <string name="custom_bios_firmware">Custom BIOS and firmware</string>
     <string name="custom_bios_firmware_description">Using a custom BIOS and firmware allows you to launch and navigate in the DS\'s firmware without loading a ROM, just like in a real system.\n\nYou will need to dump the BIOS and firmware files from a real system.\n\nUsing a custom BIOS and firmware is required for DSi support.</string>
     <string name="bios_directory">DS BIOS directory</string>
@@ -86,8 +88,8 @@
     <string name="randomize_mac_address_summary">When enabled, a random MAC address is used at every boot. This may cause some games to think its running on a different system and can break time based events.</string>
     <string name="generate_new_mac_address">Generate new</string>
     <string name="enable_jit">Enable JIT</string>
-    <string name="enable_jit_summary">Improves performance but may cause freezes or crashes</string>
-    <string name="jit_not_supported">JIT is only supported in 64 bit devices</string>
+    <string name="enable_jit_summary">Improves performance but may cause freezes or crashes.</string>
+    <string name="jit_not_supported">JIT is only supported in 64 bit devices.</string>
     <string name="threaded_rendering">Threaded rendering</string>
     <string name="threaded_rendering_summary">Improves performance on 3D games when enabled but may cause graphical glitches.</string>
     <string name="category_video">Video</string>

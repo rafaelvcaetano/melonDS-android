@@ -21,6 +21,12 @@
             android:entries="@array/fast_forward_speed_multiplier_options"
             android:entryValues="@array/fast_forward_speed_multiplier_values"
             android:defaultValue="-1" />
+
+        <SwitchPreference
+            android:key="enable_sustained_performance"
+            android:title="@string/sustained_performance_mode"
+            android:summary="@string/sustained_performance_mode_summary"
+            android:defaultValue="true" />
     </PreferenceCategory>
 
     <PreferenceCategory

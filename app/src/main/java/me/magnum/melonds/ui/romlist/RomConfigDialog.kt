@@ -120,7 +120,7 @@ class RomConfigDialog : DialogFragment() {
                     .setSingleChoiceItems(R.array.game_runtime_mic_source_options, romConfig.runtimeMicSource.ordinal) { dialog, which ->
                         val newMicSource = RuntimeMicSource.values()[which]
                         // Request mic permission if required
-                        if (newMicSource == RuntimeMicSource.DEVICE && !isMicrophonePermissionGranted(requireContext())) {
+                        if (newMicSource == RuntimeMicSource.DEVICE && !requireContext().isMicrophonePermissionGranted()) {
                             microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                         } else {
                             onRuntimeMicSourceSelected(newMicSource)
@@ -153,7 +153,7 @@ class RomConfigDialog : DialogFragment() {
         binding.textRomConfigTitle.text = title
 
         onRuntimeConsoleTypeSelected(romConfig.runtimeConsoleType)
-        if (romConfig.runtimeMicSource == RuntimeMicSource.DEVICE && !isMicrophonePermissionGranted(requireContext())) {
+        if (romConfig.runtimeMicSource == RuntimeMicSource.DEVICE && !requireContext().isMicrophonePermissionGranted()) {
             // Set mic source to BLOW if mic permission is not granted
             onRuntimeMicSourceSelected(RuntimeMicSource.BLOW)
         } else {

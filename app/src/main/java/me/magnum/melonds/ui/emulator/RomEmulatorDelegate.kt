@@ -19,7 +19,6 @@ import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
-import me.magnum.melonds.common.UriFileHandler
 import me.magnum.melonds.utils.isMicrophonePermissionGranted
 import java.text.SimpleDateFormat
 
@@ -137,7 +136,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
         val emulatorConfiguration = activity.viewModel.getEmulatorConfigurationForRom(rom)
 
         // Use BLOW mic source if mic permission is not granted
-        return if (emulatorConfiguration.micSource == MicSource.DEVICE && !isMicrophonePermissionGranted(activity)) {
+        return if (emulatorConfiguration.micSource == MicSource.DEVICE && !activity.isMicrophonePermissionGranted()) {
             emulatorConfiguration.copy(micSource = MicSource.BLOW)
         } else {
             emulatorConfiguration

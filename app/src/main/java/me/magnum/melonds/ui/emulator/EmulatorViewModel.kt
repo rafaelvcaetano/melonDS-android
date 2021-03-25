@@ -185,6 +185,10 @@ class EmulatorViewModel @ViewModelInject constructor(
         )
     }
 
+    fun isSustainedPerformanceModeEnabled(): Boolean {
+        return settingsRepository.isSustainedPerformanceModeEnabled()
+    }
+
     private fun <T, U> getRomOptionOrDefault(romOption: T, default: U): U where T : RuntimeEnum<T, U> {
         return if (romOption.getDefault() == romOption)
             default

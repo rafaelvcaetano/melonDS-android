@@ -16,6 +16,7 @@ import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.ui.Theme
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
+import me.magnum.melonds.utils.isSustainedPerformanceModeAvailable
 import java.io.*
 import java.util.*
 
@@ -107,6 +108,11 @@ class SharedPreferencesSettingsRepository(
     override fun getFastForwardSpeedMultiplier(): Float {
         val speedMultiplierPreference = preferences.getString("fast_forward_speed_multiplier", "-1")!!
         return speedMultiplierPreference.toFloat()
+    }
+
+    override fun isSustainedPerformanceModeEnabled(): Boolean {
+        val defaultValue = context.isSustainedPerformanceModeAvailable()
+        return preferences.getBoolean("enable_sustained_performance", defaultValue)
     }
 
     override fun getRomSearchDirectories(): Array<Uri> {

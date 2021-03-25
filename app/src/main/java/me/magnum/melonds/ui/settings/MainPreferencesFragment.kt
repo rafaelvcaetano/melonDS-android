@@ -15,10 +15,11 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
-import me.magnum.melonds.domain.model.MicSource
 import me.magnum.melonds.common.contracts.FilePickerContract
+import me.magnum.melonds.domain.model.MicSource
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import me.magnum.melonds.utils.isMicrophonePermissionGranted
+import me.magnum.melonds.utils.isSustainedPerformanceModeAvailable
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
@@ -43,6 +44,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.pref_main, rootKey)
+        val sustainedPerformancePreference = findPreference<SwitchPreference>("enable_sustained_performance")!!
         clearRomCachePreference = findPreference("rom_cache_clear")!!
         customBiosPreference = findPreference("use_custom_bios")!!
         val jitPreference = findPreference<SwitchPreference>("enable_jit")!!
@@ -53,6 +55,8 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
         helper.setupStoragePickerPreference(findPreference("sram_dir")!!)
         helper.bindPreferenceSummaryToValue(customBiosPreference)
 
+        sustainedPerformancePreference.isVisible = requireContext().isSustainedPerformanceModeAvailable()
+
         if (Build.SUPPORTED_64_BIT_ABIS.isEmpty()) {
             jitPreference.isEnabled = false
             jitPreference.isChecked = false
@@ -60,7 +64,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
         }
 
         val currentMicSource = enumValueOfIgnoreCase<MicSource>(micSourcePreference.value as String)
-        if (currentMicSource == MicSource.DEVICE && !isMicrophonePermissionGranted(requireContext())) {
+        if (currentMicSource == MicSource.DEVICE && !requireContext().isMicrophonePermissionGranted()) {
             micSourcePreference.value = MicSource.BLOW.name.toLowerCase(Locale.ROOT)
         }
 
@@ -72,7 +76,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
         }
         micSourcePreference.setOnPreferenceChangeListener { _, newValue ->
             val newMicSource = enumValueOfIgnoreCase<MicSource>(newValue as String)
-            if (newMicSource == MicSource.DEVICE && !isMicrophonePermissionGranted(requireContext())) {
+            if (newMicSource == MicSource.DEVICE && !requireContext().isMicrophonePermissionGranted()) {
                 requestMicrophonePermission(false)
                 false
             } else {
