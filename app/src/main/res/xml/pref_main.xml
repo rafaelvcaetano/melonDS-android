@@ -50,9 +50,9 @@
         android:title="@string/category_system">
 
         <Preference
-            android:key="firmware_user_settings"
-            android:title="@string/firmware_user_settings"
-            android:summary="@string/firmware_user_settings_summary"
+            android:key="internal_firmware_settings"
+            android:title="@string/internal_firmware_settings"
+            android:summary="@string/internal_firmware_settings_summary"
             android:fragment="me.magnum.melonds.ui.settings.FirmwarePreferencesFragment" />
 
         <com.smp.masterswitchpreference.MasterSwitchPreference
