@@ -87,6 +87,7 @@
     <string name="randomize_mac_address">Randomize MAC address</string>
     <string name="randomize_mac_address_summary">When enabled, a random MAC address is used at every boot. This may cause some games to think its running on a different system and can break time based events.</string>
     <string name="generate_new_mac_address">Generate new</string>
+    <string name="generate_new_mac_address_description">Generating a new MAC address will make games think they are running on a different system.</string>
     <string name="enable_jit">Enable JIT</string>
     <string name="enable_jit_summary">Improves performance but may cause freezes or crashes.</string>
     <string name="jit_not_supported">JIT is only supported in 64 bit devices.</string>
