@@ -37,6 +37,7 @@ class SharedPreferencesSettingsRepository(
     init {
         preferences.registerOnSharedPreferenceChangeListener(this)
         setDefaultThemeIfRequired()
+        setDefaultMacAddressIfRequired()
     }
 
     private fun setDefaultThemeIfRequired() {
@@ -45,6 +46,17 @@ class SharedPreferencesSettingsRepository(
 
         val defaultTheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) "system" else "light"
         preferences.edit().putString("theme", defaultTheme).apply()
+    }
+
+    private fun setDefaultMacAddressIfRequired() {
+        if (preferences.getString("internal_mac_address", null) != null) {
+            return
+        }
+
+        val macAddress = MacAddress.randomDsAddress()
+        preferences.edit {
+            putString("internal_mac_address", macAddress.toString())
+        }
     }
 
     override fun getEmulatorConfiguration(): EmulatorConfiguration {
