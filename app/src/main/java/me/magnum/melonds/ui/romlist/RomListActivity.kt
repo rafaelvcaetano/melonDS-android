@@ -1,15 +1,12 @@
 package me.magnum.melonds.ui.romlist
 
-import android.Manifest
 import android.app.SearchManager
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
+import me.magnum.melonds.common.contracts.DirectoryPickerContract
 import me.magnum.melonds.databinding.ActivityRomListBinding
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.Rom
@@ -25,7 +23,6 @@ import me.magnum.melonds.domain.model.SortingMode
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.utils.ConfigurationUtils
-import me.magnum.melonds.common.contracts.DirectoryPickerContract
 
 @AndroidEntryPoint
 class RomListActivity : AppCompatActivity() {
@@ -38,17 +35,6 @@ class RomListActivity : AppCompatActivity() {
 
     private val viewModel: RomListViewModel by viewModels()
 
-    private val storagePermissionLauncher by lazy {
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) {
-                selectedRom?.let {
-                    loadRom(it)
-                } ?: selectedFirmwareConsole?.let {
-                    bootFirmware(it)
-                }
-            }
-        }
-    }
     private val dsBiosPickerLauncher by lazy { registerForActivityResult(DirectoryPickerContract()) { uri ->
         if (uri != null) {
             viewModel.setDsBiosDirectory(uri)
@@ -190,25 +176,6 @@ class RomListActivity : AppCompatActivity() {
         return false
     }
 
-    private fun isStoragePermissionGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun requestStoragePermission(overrideRationaleRequest: Boolean) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
-            return
-
-        if (!overrideRationaleRequest && shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            AlertDialog.Builder(this)
-                    .setTitle(R.string.storage_permission_required)
-                    .setMessage(R.string.storage_permission_required_info)
-                    .setPositiveButton(R.string.ok) { _, _ -> requestStoragePermission(true) }
-                    .show()
-        } else {
-            storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        }
-    }
-
     private fun addNoSearchDirectoriesFragment() {
         var noRomDirectoriesFragment = supportFragmentManager.findFragmentByTag(FRAGMENT_NO_ROM_DIRECTORIES) as NoRomSearchDirectoriesFragment?
         if (noRomDirectoriesFragment == null) {
@@ -233,32 +200,26 @@ class RomListActivity : AppCompatActivity() {
     private fun loadRom(rom: Rom) {
         selectedRom = rom
         selectedFirmwareConsole = null
-        if (!isStoragePermissionGranted()) {
-            requestStoragePermission(false)
+
+        val configurationDirStatus = viewModel.getRomConfigurationDirStatus(rom)
+        if (configurationDirStatus == ConfigurationUtils.ConfigurationDirStatus.VALID) {
+            val intent = EmulatorActivity.getRomEmulatorActivityIntent(this, rom)
+            startActivity(intent)
         } else {
-            val configurationDirStatus = viewModel.getRomConfigurationDirStatus(rom)
-            if (configurationDirStatus == ConfigurationUtils.ConfigurationDirStatus.VALID) {
-                val intent = EmulatorActivity.getRomEmulatorActivityIntent(this, rom)
-                startActivity(intent)
-            } else {
-                showIncorrectConfigurationDirectoryDialog(configurationDirStatus, viewModel.getRomTargetConsoleType(rom))
-            }
+            showIncorrectConfigurationDirectoryDialog(configurationDirStatus, viewModel.getRomTargetConsoleType(rom))
         }
     }
 
     private fun bootFirmware(consoleType: ConsoleType) {
         selectedRom = null
         selectedFirmwareConsole = consoleType
-        if (!isStoragePermissionGranted()) {
-            requestStoragePermission(false)
+
+        val configurationDirStatus = viewModel.getConsoleConfigurationDirStatus(consoleType)
+        if (configurationDirStatus == ConfigurationUtils.ConfigurationDirStatus.VALID) {
+            val intent = EmulatorActivity.getFirmwareEmulatorActivityIntent(this, consoleType)
+            startActivity(intent)
         } else {
-            val configurationDirStatus = viewModel.getConsoleConfigurationDirStatus(consoleType)
-            if (configurationDirStatus == ConfigurationUtils.ConfigurationDirStatus.VALID) {
-                val intent = EmulatorActivity.getFirmwareEmulatorActivityIntent(this, consoleType)
-                startActivity(intent)
-            } else {
-                showIncorrectConfigurationDirectoryDialog(configurationDirStatus, consoleType)
-            }
+            showIncorrectConfigurationDirectoryDialog(configurationDirStatus, consoleType)
         }
     }
 
