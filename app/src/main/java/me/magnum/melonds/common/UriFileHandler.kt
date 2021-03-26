@@ -11,14 +11,12 @@ class UriFileHandler(private val context: Context, private val uriHandler: UriHa
         private val writeModeChars = listOf("w", "a", "+")
     }
 
-    private val modeStringBuilder = StringBuilder()
-
     fun open(uriString: String, mode: String): Int {
         val uri = Uri.parse(uriString)
 
         var isWriteMode = false
-        modeStringBuilder.clear()
 
+        val modeStringBuilder = StringBuilder()
         if (mode.findAnyOf(readModeChars) != null) {
             modeStringBuilder.append("r")
         }
