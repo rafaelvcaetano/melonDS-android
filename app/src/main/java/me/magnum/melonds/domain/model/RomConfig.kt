@@ -12,7 +12,7 @@ data class RomConfig(
         var gbaSavePath: Uri? = null
 ) {
     fun loadGbaCart(): Boolean {
-        return loadGbaCart
+        return loadGbaCart && gbaCartPath != null
     }
 
     fun setLoadGbaCart(loadGbaCart: Boolean) {
