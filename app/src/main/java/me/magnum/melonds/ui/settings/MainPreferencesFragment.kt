@@ -8,7 +8,6 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Observer
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -32,11 +31,15 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
     private lateinit var clearRomCachePreference: Preference
     private lateinit var customBiosPreference: Preference
     private lateinit var micSourcePreference: ListPreference
-    private val microphonePermissionLauncher by lazy {
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) {
-                micSourcePreference.value = MicSource.DEVICE.name.toLowerCase(Locale.ROOT)
-            }
+    private val microphonePermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            micSourcePreference.value = MicSource.DEVICE.name.toLowerCase(Locale.ROOT)
+        }
+    }
+    private val filePickerLauncher = registerForActivityResult(FilePickerContract(false)) {
+        if (it != null) {
+            viewModel.importCheatsDatabase(it)
+            CheatsImportProgressDialog().show(childFragmentManager, null)
         }
     }
 
@@ -91,7 +94,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.getRomCacheSize().observe(viewLifecycleOwner, Observer {
+        viewModel.getRomCacheSize().observe(viewLifecycleOwner, {
             val cacheSizeRepresentation = getBestCacheSizeRepresentation(it)
             val sizeDecimal = BigDecimal(cacheSizeRepresentation.first).setScale(1, RoundingMode.HALF_EVEN)
             clearRomCachePreference.summary = getString(R.string.cache_size, "${sizeDecimal}${cacheSizeRepresentation.second}")
@@ -130,12 +133,6 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
         if (viewModel.areCheatsBeingImported()) {
             CheatsImportProgressDialog().show(childFragmentManager, null)
         } else {
-            val filePickerLauncher = registerForActivityResult(FilePickerContract(false)) {
-                if (it != null) {
-                    viewModel.importCheatsDatabase(it)
-                    CheatsImportProgressDialog().show(childFragmentManager, null)
-                }
-            }
             filePickerLauncher.launch(Pair(null, "text/xml"))
         }
     }

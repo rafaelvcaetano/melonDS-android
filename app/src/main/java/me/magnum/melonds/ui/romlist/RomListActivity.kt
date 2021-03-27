@@ -35,7 +35,7 @@ class RomListActivity : AppCompatActivity() {
 
     private val viewModel: RomListViewModel by viewModels()
 
-    private val dsBiosPickerLauncher by lazy { registerForActivityResult(DirectoryPickerContract()) { uri ->
+    private val dsBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract()) { uri ->
         if (uri != null) {
             viewModel.setDsBiosDirectory(uri)
             selectedRom?.let {
@@ -44,8 +44,8 @@ class RomListActivity : AppCompatActivity() {
                 bootFirmware(it)
             } ?: checkConfigDirectorySetup()
         }
-    } }
-    private val dsiBiosPickerLauncher by lazy { registerForActivityResult(DirectoryPickerContract()) { uri ->
+    }
+    private val dsiBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract()) { uri ->
         if (uri != null) {
             viewModel.setDsiBiosDirectory(uri)
             selectedRom?.let {
@@ -54,7 +54,7 @@ class RomListActivity : AppCompatActivity() {
                 bootFirmware(it)
             }
         }
-    } }
+    }
 
     private var selectedRom: Rom? = null
     private var selectedFirmwareConsole: ConsoleType? = null

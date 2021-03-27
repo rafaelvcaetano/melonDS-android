@@ -119,11 +119,11 @@ object FileUtils {
             val storageVolumeClazz = Class.forName("android.os.storage.StorageVolume")
             val getVolumeList = mStorageManager.javaClass.getMethod("getVolumeList")
             val getUuid = storageVolumeClazz.getMethod("getUuid")
-            val getPath = /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val getPath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 storageVolumeClazz.getMethod("getDirectory")
-            } else {*/
+            } else {
                 storageVolumeClazz.getMethod("getPath")
-            //}
+            }
             val isPrimary = storageVolumeClazz.getMethod("isPrimary")
             val result: Any = getVolumeList.invoke(mStorageManager)
             val length = Array.getLength(result)
@@ -142,11 +142,11 @@ object FileUtils {
                 if (isPrimaryVolume || isExternalVolume) {
                     Log.v(TAG, "getVolumePath: isPrimaryVolume || isExternalVolume")
                     // Return path if the correct volume corresponding to volumeId was found.
-                    /*return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         (getPath.invoke(storageVolumeElement) as File?)?.absolutePath
-                    } else {*/
+                    } else {
                         return getPath.invoke(storageVolumeElement) as String?
-                    //}
+                    }
                 }
             }
 
@@ -173,16 +173,5 @@ object FileUtils {
         val docId = DocumentsContract.getTreeDocumentId(treeUri)
         val split: kotlin.Array<String?> = docId.split(":").toTypedArray()
         return if (split.size >= 2 && split[1] != null) split[1] else File.separator
-    }
-
-    fun cutTrailingSlash(path: String): String? {
-        return if (path.endsWith(File.separator)) {
-            path.substring(0, path.length - 1)
-        } else path
-    }
-
-    fun getFileNameWithoutExtensions(fileName: String): String {
-        val lastDotIndex = fileName.lastIndexOf('.')
-        return fileName.substring(0, lastDotIndex)
     }
 }

@@ -66,11 +66,10 @@ class RomConfigDialog : DialogFragment() {
             onGbaSavePathSelected(it)
         }
     }
-    private val microphonePermissionLauncher by lazy {
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) {
-                onRuntimeMicSourceSelected(RuntimeMicSource.DEVICE)
-            }
+    private val microphonePermissionLauncher =
+    registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            onRuntimeMicSourceSelected(RuntimeMicSource.DEVICE)
         }
     }
 
