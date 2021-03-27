@@ -118,7 +118,14 @@ class ZipRomFileProcessor(private val context: Context, private val ndsRomCache:
             } else {
                 val romHash = rom.uri.hashCode().toString()
                 val cachedFile = File(romCacheDir, romHash)
-
+                val iconCacheDir = context.externalCacheDir?.let { File(it, RomIconProvider.ICON_CACHE_DIR) }
+                if (iconCacheDir != null && iconCacheDir.isDirectory) {
+                    val iconFile = File(iconCacheDir, romHash)
+                    if (iconFile.isFile) {
+                        iconFile.delete()
+                    }
+                }
+                
                 context.contentResolver.openInputStream(rom.uri)?.use {
                     val zipStream = ZipInputStream(it)
                     getNdsEntryInStream(zipStream)?.let {
