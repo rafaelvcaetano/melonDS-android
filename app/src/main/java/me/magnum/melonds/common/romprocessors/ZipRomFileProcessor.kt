@@ -9,6 +9,7 @@ import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.impl.NdsRomCache
+import me.magnum.melonds.utils.RomIconProvider
 import me.magnum.melonds.utils.RomProcessor
 import java.io.*
 import java.util.zip.ZipEntry
@@ -118,7 +119,13 @@ class ZipRomFileProcessor(private val context: Context, private val ndsRomCache:
             } else {
                 val romHash = rom.uri.hashCode().toString()
                 val cachedFile = File(romCacheDir, romHash)
-
+                val iconCacheDir = context.externalCacheDir?.let { File(it, RomIconProvider.ICON_CACHE_DIR) }
+                if (iconCacheDir != null && iconCacheDir.isDirectory) {
+                    val iconFile = File(iconCacheDir, romHash)
+                    if (iconFile.isFile) {
+                        iconFile.delete()
+                    }
+                }
                 context.contentResolver.openInputStream(rom.uri)?.use {
                     val zipStream = ZipInputStream(it)
                     getNdsEntryInStream(zipStream)?.let {
