@@ -9,8 +9,11 @@ import me.magnum.melonds.common.UriFileHandler
 import java.nio.ByteBuffer
 
 object MelonEmulator {
-    enum class LoadResult {
-        SUCCESS, SUCCESS_GBA_FAILED, NDS_FAILED
+    enum class LoadResult(val isTerminal: Boolean) {
+        SUCCESS(false),
+        SUCCESS_GBA_FAILED(false),
+        NDS_FAILED(true),
+        BIOS_FAILED(true)
     }
 
     enum class FirmwareLoadResult {
@@ -40,6 +43,7 @@ object MelonEmulator {
             0 -> LoadResult.SUCCESS
             1 -> LoadResult.SUCCESS_GBA_FAILED
             2 -> LoadResult.NDS_FAILED
+            3 -> LoadResult.BIOS_FAILED
             else -> throw RuntimeException("Unknown load result")
         }
     }

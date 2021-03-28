@@ -158,7 +158,8 @@ class RomListViewModel @ViewModelInject constructor(
     }
 
     fun getRomConfigurationDirStatus(rom: Rom): ConfigurationUtils.ConfigurationDirStatus {
-        if (!settingsRepository.useCustomBios()) {
+        val willUseInternalFirmware = !settingsRepository.useCustomBios() && rom.config.runtimeConsoleType == RuntimeConsoleType.DEFAULT
+        if (willUseInternalFirmware) {
             return ConfigurationUtils.ConfigurationDirStatus.VALID
         }
 

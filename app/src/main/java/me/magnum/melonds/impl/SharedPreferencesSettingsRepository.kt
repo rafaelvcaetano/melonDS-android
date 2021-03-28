@@ -79,6 +79,7 @@ class SharedPreferencesSettingsRepository(
 
         return EmulatorConfiguration(
             useCustomBios(),
+            showBootScreen(),
             dsDirDocument?.findFile("bios7.bin")?.uri,
             dsDirDocument?.findFile("bios9.bin")?.uri,
             dsDirDocument?.findFile("firmware.bin")?.uri,

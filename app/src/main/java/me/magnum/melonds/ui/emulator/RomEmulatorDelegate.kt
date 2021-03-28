@@ -66,17 +66,18 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
             loadedRom = romPair.first
             return@flatMap loadRomCheats(loadedRom).defaultIfEmpty(emptyList()).flatMapSingle { cheats ->
                 Single.create<MelonEmulator.LoadResult> { emitter ->
-                    MelonEmulator.setupEmulator(getEmulatorConfigurationForRom(loadedRom), activity.assets, activity.buildUriFileHandler())
+                    val emulatorConfiguration = getEmulatorConfigurationForRom(loadedRom)
+                    MelonEmulator.setupEmulator(emulatorConfiguration, activity.assets, activity.buildUriFileHandler())
 
                     val rom = romPair.first
                     val romPath = romPair.second
                     val sramPath = activity.viewModel.getRomSramFile(rom)
-                    val showBios = activity.settingsRepository.showBootScreen()
+                    val showBios = emulatorConfiguration.showBootScreen
 
                     val gbaCartPath = rom.config.gbaCartPath
                     val gbaSavePath = rom.config.gbaSavePath
                     val loadResult = MelonEmulator.loadRom(romPath, sramPath, !showBios, rom.config.loadGbaCart(), gbaCartPath, gbaSavePath)
-                    if (loadResult === MelonEmulator.LoadResult.NDS_FAILED)
+                    if (loadResult.isTerminal)
                         throw EmulatorActivity.RomLoadFailedException(loadResult)
 
                     MelonEmulator.setupCheats(cheats.toTypedArray())

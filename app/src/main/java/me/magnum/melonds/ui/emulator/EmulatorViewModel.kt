@@ -172,7 +172,10 @@ class EmulatorViewModel @ViewModelInject constructor(
 
     fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {
         val baseConfiguration = settingsRepository.getEmulatorConfiguration()
+        val mustUseCustomBios = baseConfiguration.useCustomBios || rom.config.runtimeConsoleType != RuntimeConsoleType.DEFAULT
         return baseConfiguration.copy(
+                useCustomBios = mustUseCustomBios,
+                showBootScreen = baseConfiguration.showBootScreen && mustUseCustomBios,
                 consoleType = getRomOptionOrDefault(rom.config.runtimeConsoleType, baseConfiguration.consoleType),
                 micSource = getRomOptionOrDefault(rom.config.runtimeMicSource, baseConfiguration.micSource)
         )

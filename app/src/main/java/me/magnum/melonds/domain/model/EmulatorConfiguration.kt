@@ -4,6 +4,7 @@ import android.net.Uri
 
 data class EmulatorConfiguration(
         val useCustomBios: Boolean,
+        val showBootScreen: Boolean,
         val dsBios7Uri: Uri?,
         val dsBios9Uri: Uri?,
         val dsFirmwareUri: Uri?,
