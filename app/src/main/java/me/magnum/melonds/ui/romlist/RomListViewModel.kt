@@ -1,8 +1,6 @@
 package me.magnum.melonds.ui.romlist
 
-import android.content.Context
 import android.net.Uri
-import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
@@ -10,22 +8,24 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
+import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.extensions.addTo
-import me.magnum.melonds.utils.ConfigurationUtils
 import me.magnum.melonds.utils.RomIconProvider
 import java.text.Normalizer
 import java.util.*
 
 class RomListViewModel @ViewModelInject constructor(
-        private val context: Context,
         private val romsRepository: RomsRepository,
         private val settingsRepository: SettingsRepository,
         private val layoutsRepository: LayoutsRepository,
-        private val romIconProvider: RomIconProvider
+        private val romIconProvider: RomIconProvider,
+        private val configurationDirectoryVerifier: ConfigurationDirectoryVerifier,
+        private val uriHandler: UriHandler
 ) : ViewModel() {
 
     private val disposables: CompositeDisposable = CompositeDisposable()
@@ -69,7 +69,7 @@ class RomListViewModel @ViewModelInject constructor(
                 } else {
                     it.filter { rom ->
                         val normalizedName = Normalizer.normalize(rom.name, Normalizer.Form.NFD).replace("[^\\p{ASCII}]", "")
-                        val normalizedPath = Normalizer.normalize(DocumentFile.fromSingleUri(context, rom.uri)?.name, Normalizer.Form.NFD).replace("[^\\p{ASCII}]", "")
+                        val normalizedPath = Normalizer.normalize(uriHandler.getUriDocument(rom.uri)?.name, Normalizer.Form.NFD).replace("[^\\p{ASCII}]", "")
 
                         normalizedName.contains(romSearchQuery, true) || normalizedPath.contains(romSearchQuery, true)
                     }
@@ -145,22 +145,18 @@ class RomListViewModel @ViewModelInject constructor(
         return rom.config.runtimeConsoleType.targetConsoleType ?: settingsRepository.getDefaultConsoleType()
     }
 
-    fun getDsConfigurationDirStatus(): ConfigurationUtils.ConfigurationDirStatus {
-        return ConfigurationUtils.checkConfigurationDirectory(context, settingsRepository.getDsBiosDirectory(), ConsoleType.DS).status
+    fun getDsConfigurationDirStatus(): ConfigurationDirResult.Status {
+        return configurationDirectoryVerifier.checkDsConfigurationDirectory().status
     }
 
-    fun getConsoleConfigurationDirStatus(consoleType: ConsoleType): ConfigurationUtils.ConfigurationDirStatus {
-        val romTargetConfigurationDir = when(consoleType) {
-            ConsoleType.DS -> settingsRepository.getDsBiosDirectory()
-            ConsoleType.DSi -> settingsRepository.getDsiBiosDirectory()
-        }
-        return ConfigurationUtils.checkConfigurationDirectory(context, romTargetConfigurationDir, consoleType).status
+    fun getConsoleConfigurationDirStatus(consoleType: ConsoleType): ConfigurationDirResult.Status {
+        return configurationDirectoryVerifier.checkConsoleConfigurationDirectory(consoleType).status
     }
 
-    fun getRomConfigurationDirStatus(rom: Rom): ConfigurationUtils.ConfigurationDirStatus {
+    fun getRomConfigurationDirStatus(rom: Rom): ConfigurationDirResult.Status {
         val willUseInternalFirmware = !settingsRepository.useCustomBios() && rom.config.runtimeConsoleType == RuntimeConsoleType.DEFAULT
         if (willUseInternalFirmware) {
-            return ConfigurationUtils.ConfigurationDirStatus.VALID
+            return ConfigurationDirResult.Status.VALID
         }
 
         val romTargetConsoleType = getRomTargetConsoleType(rom)

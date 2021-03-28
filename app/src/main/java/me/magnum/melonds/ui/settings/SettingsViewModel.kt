@@ -7,11 +7,19 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import io.reactivex.disposables.CompositeDisposable
 import me.magnum.melonds.domain.model.CheatImportProgress
+import me.magnum.melonds.domain.model.ConfigurationDirResult
+import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.repositories.CheatsRepository
+import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.impl.NdsRomCache
 
-class SettingsViewModel @ViewModelInject constructor(private val cheatsRepository: CheatsRepository, private val romCache: NdsRomCache) : ViewModel() {
+class SettingsViewModel @ViewModelInject constructor(
+        private val cheatsRepository: CheatsRepository,
+        private val romCache: NdsRomCache,
+        private val configurationDirectoryVerifier: ConfigurationDirectoryVerifier
+) : ViewModel() {
+
     private val disposables = CompositeDisposable()
 
     fun importCheatsDatabase(databaseUri: Uri) {
@@ -33,6 +41,14 @@ class SettingsViewModel @ViewModelInject constructor(private val cheatsRepositor
 
     fun clearRomCache(): Boolean {
         return romCache.clearCache()
+    }
+
+    fun getConsoleConfigurationDirectoryStatus(consoleType: ConsoleType): ConfigurationDirResult {
+        return configurationDirectoryVerifier.checkConsoleConfigurationDirectory(consoleType)
+    }
+
+    fun getConsoleConfigurationDirectoryStatus(consoleType: ConsoleType, directory: Uri?): ConfigurationDirResult {
+        return configurationDirectoryVerifier.checkConsoleConfigurationDirectory(consoleType, directory)
     }
 
     fun observeCheatsImportProgress(): LiveData<CheatImportProgress> {

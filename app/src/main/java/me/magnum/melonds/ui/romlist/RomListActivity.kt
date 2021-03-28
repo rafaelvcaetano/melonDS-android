@@ -17,12 +17,12 @@ import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.common.contracts.DirectoryPickerContract
 import me.magnum.melonds.databinding.ActivityRomListBinding
+import me.magnum.melonds.domain.model.ConfigurationDirResult
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.SortingMode
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.ui.settings.SettingsActivity
-import me.magnum.melonds.utils.ConfigurationUtils
 
 @AndroidEntryPoint
 class RomListActivity : AppCompatActivity() {
@@ -159,14 +159,14 @@ class RomListActivity : AppCompatActivity() {
 
     private fun checkConfigDirectorySetup(): Boolean {
         when (viewModel.getDsConfigurationDirStatus()) {
-            ConfigurationUtils.ConfigurationDirStatus.VALID -> return true
-            ConfigurationUtils.ConfigurationDirStatus.UNSET -> AlertDialog.Builder(this)
+            ConfigurationDirResult.Status.VALID -> return true
+            ConfigurationDirResult.Status.UNSET -> AlertDialog.Builder(this)
                     .setTitle(R.string.ds_bios_dir_not_set)
                     .setMessage(R.string.ds_bios_dir_not_set_info)
                     .setPositiveButton(R.string.ok) { _, _ -> dsBiosPickerLauncher.launch(null) }
                     .setCancelable(false)
                     .show()
-            ConfigurationUtils.ConfigurationDirStatus.INVALID -> AlertDialog.Builder(this)
+            ConfigurationDirResult.Status.INVALID -> AlertDialog.Builder(this)
                     .setTitle(R.string.incorrect_bios_dir)
                     .setMessage(R.string.ds_incorrect_bios_dir_info)
                     .setPositiveButton(R.string.ok) { _, _ -> dsBiosPickerLauncher.launch(null) }
@@ -202,7 +202,7 @@ class RomListActivity : AppCompatActivity() {
         selectedFirmwareConsole = null
 
         val configurationDirStatus = viewModel.getRomConfigurationDirStatus(rom)
-        if (configurationDirStatus == ConfigurationUtils.ConfigurationDirStatus.VALID) {
+        if (configurationDirStatus == ConfigurationDirResult.Status.VALID) {
             val intent = EmulatorActivity.getRomEmulatorActivityIntent(this, rom)
             startActivity(intent)
         } else {
@@ -215,7 +215,7 @@ class RomListActivity : AppCompatActivity() {
         selectedFirmwareConsole = consoleType
 
         val configurationDirStatus = viewModel.getConsoleConfigurationDirStatus(consoleType)
-        if (configurationDirStatus == ConfigurationUtils.ConfigurationDirStatus.VALID) {
+        if (configurationDirStatus == ConfigurationDirResult.Status.VALID) {
             val intent = EmulatorActivity.getFirmwareEmulatorActivityIntent(this, consoleType)
             startActivity(intent)
         } else {
@@ -223,12 +223,12 @@ class RomListActivity : AppCompatActivity() {
         }
     }
 
-    private fun showIncorrectConfigurationDirectoryDialog(configurationDirStatus: ConfigurationUtils.ConfigurationDirStatus, consoleType: ConsoleType) {
+    private fun showIncorrectConfigurationDirectoryDialog(configurationDirStatus: ConfigurationDirResult.Status, consoleType: ConsoleType) {
         when (consoleType) {
             ConsoleType.DS -> {
                 val titleRes: Int
                 val messageRes: Int
-                if (configurationDirStatus == ConfigurationUtils.ConfigurationDirStatus.UNSET) {
+                if (configurationDirStatus == ConfigurationDirResult.Status.UNSET) {
                     titleRes = R.string.ds_bios_dir_not_set
                     messageRes = R.string.ds_bios_dir_not_set_info
                 } else {
@@ -247,7 +247,7 @@ class RomListActivity : AppCompatActivity() {
             ConsoleType.DSi -> {
                 val titleRes: Int
                 val messageRes: Int
-                if (configurationDirStatus == ConfigurationUtils.ConfigurationDirStatus.UNSET) {
+                if (configurationDirStatus == ConfigurationDirResult.Status.UNSET) {
                     titleRes = R.string.dsi_bios_dir_not_set
                     messageRes = R.string.dsi_bios_dir_not_set_info
                 } else {

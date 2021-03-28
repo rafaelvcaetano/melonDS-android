@@ -13,9 +13,9 @@ import androidx.recyclerview.widget.RecyclerView
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.DialogConfigFilesBinding
 import me.magnum.melonds.databinding.ItemFileStatusBinding
-import me.magnum.melonds.utils.ConfigurationUtils
+import me.magnum.melonds.domain.model.ConfigurationDirResult
 
-class FileStatusPopup(context: Context, fileStatuses: Array<Pair<String, ConfigurationUtils.ConfigurationFileStatus>>) {
+class FileStatusPopup(context: Context, fileStatuses: Array<Pair<String, ConfigurationDirResult.FileStatus>>) {
     private val popup: PopupWindow
 
     init {
@@ -28,15 +28,15 @@ class FileStatusPopup(context: Context, fileStatuses: Array<Pair<String, Configu
             val itemBinding = ItemFileStatusBinding.inflate(LayoutInflater.from(context))
 
             when (it.second) {
-                ConfigurationUtils.ConfigurationFileStatus.PRESENT -> {
+                ConfigurationDirResult.FileStatus.PRESENT -> {
                     itemBinding.imageViewFileStatus.setImageResource(R.drawable.ic_status_ok)
                     ImageViewCompat.setImageTintList(itemBinding.imageViewFileStatus, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusOk)))
                 }
-                ConfigurationUtils.ConfigurationFileStatus.INVALID -> {
+                ConfigurationDirResult.FileStatus.INVALID -> {
                     itemBinding.imageViewFileStatus.setImageResource(R.drawable.ic_status_warn)
                     ImageViewCompat.setImageTintList(itemBinding.imageViewFileStatus, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusWarn)))
                 }
-                ConfigurationUtils.ConfigurationFileStatus.MISSING -> {
+                ConfigurationDirResult.FileStatus.MISSING -> {
                     itemBinding.imageViewFileStatus.setImageResource(R.drawable.ic_status_error)
                     ImageViewCompat.setImageTintList(itemBinding.imageViewFileStatus, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusError)))
                 }

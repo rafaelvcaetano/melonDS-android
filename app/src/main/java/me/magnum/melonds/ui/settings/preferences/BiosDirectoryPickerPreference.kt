@@ -13,11 +13,15 @@ import androidx.core.widget.ImageViewCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
 import me.magnum.melonds.R
+import me.magnum.melonds.domain.model.ConfigurationDirResult
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.ui.settings.FileStatusPopup
-import me.magnum.melonds.utils.ConfigurationUtils
 
 class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : StoragePickerPreference(context, attrs) {
+    interface BiosDirectoryValidator {
+        fun getBiosDirectoryValidationResult(consoleType: ConsoleType, directory: Uri?): ConfigurationDirResult
+    }
+
     init {
         widgetLayoutResource = R.layout.preference_directory_picker_status
         selectionType = SelectionType.DIRECTORY
@@ -25,6 +29,7 @@ class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : S
 
     private var consoleType: ConsoleType? = null
     private var imageViewStatus: ImageView? = null
+    private var biosDirectoryValidator: BiosDirectoryValidator? = null
 
     override fun onDirectoryPicked(uri: Uri?) {
         super.onDirectoryPicked(uri)
@@ -40,6 +45,10 @@ class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : S
         imageViewStatus?.isGone = disableDependent
     }
 
+    fun setBiosDirectoryValidator(validator: BiosDirectoryValidator) {
+        biosDirectoryValidator = validator
+    }
+
     private fun updateStatusIndicator(uri: Uri?) {
         if (!isEnabled) {
             imageViewStatus?.isGone = true
@@ -48,24 +57,25 @@ class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : S
 
         imageViewStatus?.isGone = false
 
-        val dirResult = ConfigurationUtils.checkConfigurationDirectory(context, uri, consoleType!!)
-        when (dirResult.status) {
-            ConfigurationUtils.ConfigurationDirStatus.VALID -> {
-                (imageViewStatus!!.parent as View).visibility = View.GONE
+        biosDirectoryValidator?.getBiosDirectoryValidationResult(consoleType!!, uri)?.let { dirResult ->
+            when (dirResult.status) {
+                ConfigurationDirResult.Status.VALID -> {
+                    (imageViewStatus!!.parent as View).visibility = View.GONE
+                }
+                ConfigurationDirResult.Status.INVALID -> {
+                    (imageViewStatus!!.parent as View).visibility = View.VISIBLE
+                    imageViewStatus!!.setImageResource(R.drawable.ic_status_warn)
+                    ImageViewCompat.setImageTintList(imageViewStatus!!, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusWarn)))
+                }
+                ConfigurationDirResult.Status.UNSET ->{
+                    (imageViewStatus!!.parent as View).visibility = View.VISIBLE
+                    imageViewStatus!!.setImageResource(R.drawable.ic_status_error)
+                    ImageViewCompat.setImageTintList(imageViewStatus!!, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusError)))
+                }
             }
-            ConfigurationUtils.ConfigurationDirStatus.INVALID -> {
-                (imageViewStatus!!.parent as View).visibility = View.VISIBLE
-                imageViewStatus!!.setImageResource(R.drawable.ic_status_warn)
-                ImageViewCompat.setImageTintList(imageViewStatus!!, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusWarn)))
+            imageViewStatus!!.setOnClickListener {
+                FileStatusPopup(context, dirResult.fileResults).showAt(imageViewStatus!!)
             }
-            ConfigurationUtils.ConfigurationDirStatus.UNSET ->{
-                (imageViewStatus!!.parent as View).visibility = View.VISIBLE
-                imageViewStatus!!.setImageResource(R.drawable.ic_status_error)
-                ImageViewCompat.setImageTintList(imageViewStatus!!, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusError)))
-            }
-        }
-        imageViewStatus!!.setOnClickListener {
-            FileStatusPopup(context, dirResult.fileResults).showAt(imageViewStatus!!)
         }
     }
 

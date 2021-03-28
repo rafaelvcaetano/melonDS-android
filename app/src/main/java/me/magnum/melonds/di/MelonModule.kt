@@ -15,6 +15,7 @@ import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.impl.*
 import me.magnum.melonds.utils.RomIconProvider
 import javax.inject.Singleton
@@ -50,6 +51,12 @@ object MelonModule {
     @Singleton
     fun provideLayoutsRepository(@ApplicationContext context: Context, gson: Gson, defaultLayoutProvider: DefaultLayoutProvider): LayoutsRepository {
         return InternalLayoutsRepository(context, gson, defaultLayoutProvider)
+    }
+
+    @Provides
+    @Singleton
+    fun provideConfigurationDirectoryVerifier(@ApplicationContext context: Context, settingsRepository: SettingsRepository): ConfigurationDirectoryVerifier {
+        return FileSystemConfigurationDirectoryVerifier(context, settingsRepository)
     }
 
     @Provides
