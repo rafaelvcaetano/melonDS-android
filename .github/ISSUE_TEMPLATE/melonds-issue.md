@@ -24,4 +24,4 @@ Write a small description of the problem.
 2. Required for the problem
 3. To appear
 
-Add screenshots if the issue can be visualized. If you are dealing with a BIOS problem, please add a screenshot of your Settings screen in the System section.
+Add screenshots if the issue can be visualized.
