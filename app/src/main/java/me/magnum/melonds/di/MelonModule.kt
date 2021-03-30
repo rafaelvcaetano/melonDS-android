@@ -54,8 +54,8 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideFileRomProcessorFactory(@ApplicationContext context: Context, ndsRomCache: NdsRomCache): RomFileProcessorFactory {
-        return RomFileProcessorFactoryImpl(context, ndsRomCache)
+    fun provideFileRomProcessorFactory(@ApplicationContext context: Context, romIconProvider: dagger.Lazy<RomIconProvider>,ndsRomCache: NdsRomCache): RomFileProcessorFactory {
+        return RomFileProcessorFactoryImpl(context,romIconProvider , ndsRomCache)
     }
 
     @Provides

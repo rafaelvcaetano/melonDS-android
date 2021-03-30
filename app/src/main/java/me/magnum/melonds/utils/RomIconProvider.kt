@@ -58,6 +58,20 @@ class RomIconProvider(private val context: Context, private val romFileProcessor
         return bitmap
     }
 
+    fun reloadIcon(hash: String,rom: Rom) {
+        val iconCacheDir = context.externalCacheDir?.let { File(it, RomIconProvider.ICON_CACHE_DIR) }
+        if (iconCacheDir != null && iconCacheDir.isDirectory) {
+            val iconFile = File(iconCacheDir, hash)
+            if (iconFile.isFile) {
+                iconFile.delete()
+            }
+        }
+
+        var bitmap = loadIconFromDisk(hash, rom)
+        if (bitmap != null)
+            memoryIconCache[hash] = bitmap
+    }
+
     private fun saveRomIcon(romHash: String, icon: Bitmap) {
         val iconCacheDir = context.externalCacheDir?.let { File(it, ICON_CACHE_DIR) } ?: return
         if (iconCacheDir.isDirectory || iconCacheDir.mkdirs()) {

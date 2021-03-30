@@ -4,17 +4,24 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
+import dagger.Lazy
 import io.reactivex.Single
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.impl.NdsRomCache
 import me.magnum.melonds.utils.RomProcessor
+import me.magnum.melonds.utils.RomIconProvider
 import java.io.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
+import javax.inject.Inject
 
-class ZipRomFileProcessor(private val context: Context, private val ndsRomCache: NdsRomCache) : RomFileProcessor {
+class ZipRomFileProcessor(
+        private val context: Context,
+        @Inject val romIconProvider: Lazy<RomIconProvider>,
+        private val ndsRomCache: NdsRomCache
+) : RomFileProcessor {
     companion object {
         private const val EXTRACTED_ROMS_CACHE_DIR = "extracted_roms"
     }
@@ -118,14 +125,7 @@ class ZipRomFileProcessor(private val context: Context, private val ndsRomCache:
             } else {
                 val romHash = rom.uri.hashCode().toString()
                 val cachedFile = File(romCacheDir, romHash)
-                val iconCacheDir = context.externalCacheDir?.let { File(it, RomIconProvider.ICON_CACHE_DIR) }
-                if (iconCacheDir != null && iconCacheDir.isDirectory) {
-                    val iconFile = File(iconCacheDir, romHash)
-                    if (iconFile.isFile) {
-                        iconFile.delete()
-                    }
-                }
-                
+                romIconProvider.get().reloadIcon(romHash,rom)
                 context.contentResolver.openInputStream(rom.uri)?.use {
                     val zipStream = ZipInputStream(it)
                     getNdsEntryInStream(zipStream)?.let {
