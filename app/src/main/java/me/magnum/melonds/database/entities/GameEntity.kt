@@ -8,5 +8,6 @@ import androidx.room.PrimaryKey
 data class GameEntity(
     @PrimaryKey(autoGenerate = true) val id: Long?,
     @ColumnInfo(name = "name") val name: String,
-    @ColumnInfo(name = "game_code", index = true) val gameCode: String
+    @ColumnInfo(name = "game_code", index = true) val gameCode: String,
+    @ColumnInfo(name = "game_checksum", index = true) val gameChecksum: String?
 )

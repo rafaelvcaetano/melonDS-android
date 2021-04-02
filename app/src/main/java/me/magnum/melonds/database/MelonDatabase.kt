@@ -9,7 +9,7 @@ import me.magnum.melonds.database.entities.CheatEntity
 import me.magnum.melonds.database.entities.CheatFolderEntity
 import me.magnum.melonds.database.entities.GameEntity
 
-@Database(entities = [GameEntity::class, CheatFolderEntity::class, CheatEntity::class], version = 1)
+@Database(entities = [GameEntity::class, CheatFolderEntity::class, CheatEntity::class], version = 2)
 abstract class MelonDatabase : RoomDatabase() {
     abstract fun gameDao(): GameDao
     abstract fun cheatFolderDao(): CheatFolderDao

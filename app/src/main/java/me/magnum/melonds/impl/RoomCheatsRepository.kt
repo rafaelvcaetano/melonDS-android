@@ -24,12 +24,13 @@ class RoomCheatsRepository(private val context: Context, private val database: M
     }
 
     override fun getAllRomCheats(romInfo: RomInfo): Maybe<List<Game>> {
-        return database.gameDao().findGameWithCheats(romInfo.gameCode).map {
+        return database.gameDao().findGameWithCheats(romInfo.gameCode, romInfo.headerChecksumString()).map {
             it.map { game ->
                 Game(
                         game.game.id,
                         game.game.name,
                         game.game.gameCode,
+                        game.game.gameChecksum,
                         game.cheatFolders.map { category ->
                             CheatFolder(
                                     category.cheatFolder.id,
@@ -51,7 +52,7 @@ class RoomCheatsRepository(private val context: Context, private val database: M
     }
 
     override fun getRomEnabledCheats(romInfo: RomInfo): Single<List<Cheat>> {
-        return database.cheatDao().getEnabledRomCheats(romInfo.gameCode).map {
+        return database.cheatDao().getEnabledRomCheats(romInfo.gameCode, romInfo.headerChecksumString()).map {
             it.map { cheat ->
                 Cheat(
                         cheat.id,
@@ -79,7 +80,8 @@ class RoomCheatsRepository(private val context: Context, private val database: M
         val gameEntity = GameEntity(
                 null,
                 game.name,
-                game.gameCode
+                game.gameCode,
+                game.gameChecksum
         )
 
         val gameId = database.gameDao().insertGame(gameEntity)
@@ -128,7 +130,7 @@ class RoomCheatsRepository(private val context: Context, private val database: M
     }
 
     override fun getCheatImportProgress(): Observable<CheatImportProgress> {
-        return Observable.create<CheatImportProgress> { emitter ->
+        return Observable.create { emitter ->
             val workManager = WorkManager.getInstance(context)
             val statuses = workManager.getWorkInfosForUniqueWork(IMPORT_WORKER_NAME)
             val infos = statuses.get()

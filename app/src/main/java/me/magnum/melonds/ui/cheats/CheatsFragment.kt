@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Observer
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.FragmentCheatsBinding
@@ -21,7 +20,7 @@ class CheatsFragment : Fragment() {
 
     private var contentTitleChangeListener: ((String?) -> Unit)? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val binding = FragmentCheatsBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -33,12 +32,18 @@ class CheatsFragment : Fragment() {
             viewModel.setSelectedGame(viewModel.getGames().first())
             childFragmentManager.beginTransaction()
                     .replace(R.id.layout_cheats_root, FoldersSubScreenFragment())
+                    .addToBackStack(TAG_BACK_STACK_CHEATS)
                     .commit()
         } else {
             childFragmentManager.beginTransaction()
                     .replace(R.id.layout_cheats_root, GamesSubScreenFragment())
                     .addToBackStack(TAG_BACK_STACK_CHEATS)
                     .commit()
+
+            // We only need to observe game changes if there's more than 1
+            viewModel.getSelectedGame().observe(viewLifecycleOwner) {
+                openGameFoldersFragment()
+            }
         }
 
         childFragmentManager.addOnBackStackChangedListener {
@@ -57,12 +62,9 @@ class CheatsFragment : Fragment() {
             contentTitleChangeListener?.invoke(currentTitle)
         }
 
-        viewModel.getSelectedGame().observe(viewLifecycleOwner, Observer {
-            openGameFoldersFragment()
-        })
-        viewModel.getSelectedFolder().observe(viewLifecycleOwner, Observer {
+        viewModel.getSelectedFolder().observe(viewLifecycleOwner) {
             openCheatsFragment()
-        })
+        }
     }
 
     private fun openGameFoldersFragment() {

@@ -17,8 +17,8 @@ interface CheatDao {
     @Insert
     fun insertCheats(cheatEntities: List<CheatEntity>): List<Long>
 
-    @Query("SELECT * FROM cheat LEFT JOIN cheat_folder ON cheat_folder.id = cheat.cheat_folder_id LEFT JOIN game ON game.id = cheat_folder.game_id WHERE game.game_code = :gameCode AND cheat.enabled = 1")
-    fun getEnabledRomCheats(gameCode: String): Single<List<Cheat>>
+    @Query("SELECT * FROM game LEFT JOIN cheat_folder ON game.id = cheat_folder.game_id LEFT JOIN cheat ON cheat_folder.id = cheat.cheat_folder_id WHERE game.game_code = :gameCode AND (game.game_checksum IS NULL OR game.game_checksum = :gameChecksum) AND cheat.enabled = 1")
+    fun getEnabledRomCheats(gameCode: String, gameChecksum: String): Single<List<Cheat>>
 
     @Update(entity = CheatEntity::class)
     fun updateCheatsStatus(cheats: List<CheatStatusUpdate>)

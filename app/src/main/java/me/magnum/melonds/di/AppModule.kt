@@ -15,6 +15,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import me.magnum.melonds.common.uridelegates.CompositeUriHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.database.MelonDatabase
+import me.magnum.melonds.database.migrations.Migration1to2
 import me.magnum.melonds.utils.UriTypeHierarchyAdapter
 import javax.inject.Singleton
 
@@ -40,7 +41,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): MelonDatabase {
-        return Room.databaseBuilder(context, MelonDatabase::class.java, "melon-database").build()
+        return Room.databaseBuilder(context, MelonDatabase::class.java, "melon-database")
+                .addMigrations(Migration1to2())
+                .build()
     }
 
     @Provides
