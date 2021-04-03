@@ -228,6 +228,16 @@
         <item>@string/console_dsi</item>
     </string-array>
 
+    <string-array name="fps_counter_position_options">
+        <item>Hidden</item>
+        <item>Top left</item>
+        <item>Top center</item>
+        <item>Top right</item>
+        <item>Bottom left</item>
+        <item>Bottom center</item>
+        <item>Bottom right</item>
+    </string-array>
+
     <string-array name="video_filtering_options">
         <item>None</item>
         <item>Linear</item>

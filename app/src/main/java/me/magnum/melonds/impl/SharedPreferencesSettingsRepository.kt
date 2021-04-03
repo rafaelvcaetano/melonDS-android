@@ -203,6 +203,11 @@ class SharedPreferencesSettingsRepository(
         return preferences.getBoolean("enable_threaded_rendering", true)
     }
 
+    override fun getFpsCounterPosition(): FpsCounterPosition {
+        val fpsCounterPreference = preferences.getString("fps_counter_position", "hidden")!!
+        return FpsCounterPosition.valueOf(fpsCounterPreference.toUpperCase(Locale.ROOT))
+    }
+
     override fun isSoundEnabled(): Boolean {
         return preferences.getBoolean("sound_enabled", true)
     }

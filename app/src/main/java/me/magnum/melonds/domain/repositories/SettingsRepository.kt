@@ -26,6 +26,7 @@ interface SettingsRepository {
 
     fun getVideoFiltering(): VideoFiltering
     fun isThreadedRenderingEnabled(): Boolean
+    fun getFpsCounterPosition(): FpsCounterPosition
 
     fun isSoundEnabled(): Boolean
     fun getMicSource(): MicSource

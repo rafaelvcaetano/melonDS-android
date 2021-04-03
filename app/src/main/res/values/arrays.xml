@@ -19,6 +19,16 @@
         <item>0</item>
     </string-array>
 
+    <string-array name="fps_counter_position_values">
+        <item>hidden</item>
+        <item>top_left</item>
+        <item>top_center</item>
+        <item>top_right</item>
+        <item>bottom_left</item>
+        <item>bottom_center</item>
+        <item>bottom_right</item>
+    </string-array>
+
     <string-array name="video_filtering_values">
         <item>none</item>
         <item>linear</item>

@@ -98,6 +98,14 @@
             android:title="@string/threaded_rendering"
             android:summary="@string/threaded_rendering_summary"
             android:defaultValue="true" />
+
+        <ListPreference
+            android:key="fps_counter_position"
+            android:title="FPS counter position"
+            android:summary="%s"
+            android:entries="@array/fps_counter_position_options"
+            android:entryValues="@array/fps_counter_position_values"
+            android:defaultValue="hidden" />
     </PreferenceCategory>
 
     <PreferenceCategory

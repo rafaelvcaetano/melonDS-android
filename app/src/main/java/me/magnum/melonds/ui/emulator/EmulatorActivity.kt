@@ -6,11 +6,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.*
+import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.CompletableObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -111,6 +114,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         updateSoftInput()
         setupInputHandling()
         setupSustainedPerformanceMode()
+        setupFpsCounter()
     }
 
     private var emulatorReady = false
@@ -207,7 +211,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                         try {
                             setupSustainedPerformanceMode()
                             MelonEmulator.startEmulation()
-                            binding.textFps.visibility = View.VISIBLE
+                            setupFpsCounter()
                             binding.textLoading.visibility = View.GONE
                             emulatorReady = true
                         } catch (e: Exception) {
@@ -251,6 +255,43 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     private fun setupSustainedPerformanceMode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             window.setSustainedPerformanceMode(viewModel.isSustainedPerformanceModeEnabled())
+        }
+    }
+
+    private fun setupFpsCounter() {
+        val fpsCounterPosition = viewModel.getFpsCounterPosition()
+        if (fpsCounterPosition == FpsCounterPosition.HIDDEN) {
+            binding.textFps.isGone = true
+        } else {
+            binding.textFps.isVisible = true
+            val newParams = RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT)
+            when (fpsCounterPosition) {
+                FpsCounterPosition.TOP_LEFT -> {
+                    newParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT)
+                    newParams.addRule(RelativeLayout.ALIGN_PARENT_TOP)
+                }
+                FpsCounterPosition.TOP_CENTER -> {
+                    newParams.addRule(RelativeLayout.CENTER_HORIZONTAL)
+                    newParams.addRule(RelativeLayout.ALIGN_PARENT_TOP)
+                }
+                FpsCounterPosition.TOP_RIGHT -> {
+                    newParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT)
+                    newParams.addRule(RelativeLayout.ALIGN_PARENT_TOP)
+                }
+                FpsCounterPosition.BOTTOM_LEFT -> {
+                    newParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT)
+                    newParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+                }
+                FpsCounterPosition.BOTTOM_CENTER -> {
+                    newParams.addRule(RelativeLayout.CENTER_HORIZONTAL)
+                    newParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+                }
+                FpsCounterPosition.BOTTOM_RIGHT -> {
+                    newParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT)
+                    newParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+                }
+            }
+            binding.textFps.layoutParams = newParams
         }
     }
 

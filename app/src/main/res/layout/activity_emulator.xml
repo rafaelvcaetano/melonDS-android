@@ -22,10 +22,10 @@
         android:id="@+id/textFps"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="48dp"
+        android:padding="12dp"
         android:textColor="@android:color/white"
+        tools:layout_alignParentBottom="true"
+        tools:layout_centerHorizontal="true"
         tools:text="FPS: 60"/>
 
     <TextView
