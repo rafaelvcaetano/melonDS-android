@@ -5,6 +5,7 @@ import android.content.res.AssetFileDescriptor
 import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.Assisted
 import androidx.hilt.work.WorkerInject
 import androidx.work.ForegroundInfo
@@ -14,12 +15,11 @@ import androidx.work.workDataOf
 import io.reactivex.Single
 import me.magnum.melonds.MelonDSApplication
 import me.magnum.melonds.R
+import me.magnum.melonds.common.cheats.CheatDatabaseParserListener
+import me.magnum.melonds.common.cheats.ProgressTrackerInputStream
+import me.magnum.melonds.common.cheats.XmlCheatDatabaseParser
 import me.magnum.melonds.domain.model.Game
 import me.magnum.melonds.domain.repositories.CheatsRepository
-import me.magnum.melonds.impl.XmlCheatDatabaseSAXHandler
-import java.io.FilterInputStream
-import java.io.InputStream
-import javax.xml.parsers.SAXParserFactory
 
 class CheatImportWorker @WorkerInject constructor(
         @Assisted appContext: Context,
@@ -46,6 +46,12 @@ class CheatImportWorker @WorkerInject constructor(
             }
 
             try {
+                val databaseDocument = DocumentFile.fromSingleUri(applicationContext, uri)
+                if (databaseDocument?.isFile != true) {
+                    emitter.onSuccess(Result.failure())
+                    return@create
+                }
+
                 val totalFileSize = applicationContext.contentResolver.openAssetFileDescriptor(uri, "r")?.use {
                     val length = it.length
                     if (length == AssetFileDescriptor.UNKNOWN_LENGTH)
@@ -54,15 +60,21 @@ class CheatImportWorker @WorkerInject constructor(
                         length
                 }
 
+                val databaseExtension = databaseDocument.name?.substringAfterLast('.')
+                val parser = when (databaseExtension) {
+                    "xml" -> XmlCheatDatabaseParser()
+                    else -> {
+                        emitter.onSuccess(Result.failure())
+                        return@create
+                    }
+                }
+
                 // Delete all cheats before importing
                 cheatsRepository.deleteAllCheats()
 
                 applicationContext.contentResolver.openInputStream(uri)?.use {
                     val progressTrackerStream = ProgressTrackerInputStream(it)
-
-                    val saxFactory = SAXParserFactory.newInstance()
-                    val parser = saxFactory.newSAXParser()
-                    val handler = XmlCheatDatabaseSAXHandler(object : XmlCheatDatabaseSAXHandler.HandlerListener {
+                    parser.parseCheatDatabase(progressTrackerStream, object : CheatDatabaseParserListener {
                         override fun onGameParseStart(gameName: String) {
                             val readProgress = if (totalFileSize != null)
                                 (progressTrackerStream.totalReadBytes.toDouble() / totalFileSize * 100).toInt()
@@ -83,9 +95,7 @@ class CheatImportWorker @WorkerInject constructor(
                         override fun onParseComplete() {
                             emitter.onSuccess(Result.success())
                         }
-
                     })
-                    parser.parse(progressTrackerStream, handler)
                 }
             } catch (e: Exception) {
                 emitter.onError(e)
@@ -106,15 +116,4 @@ class CheatImportWorker @WorkerInject constructor(
         return ForegroundInfo(NOTIFICATION_ID_CHEATS_IMPORT, notification)
     }
 
-    private class ProgressTrackerInputStream(inputStream: InputStream?) : FilterInputStream(inputStream) {
-        var totalReadBytes = 0
-            private set
-
-        override fun read(b: ByteArray?, off: Int, len: Int): Int {
-            val readBytes = super.read(b, off, len)
-            totalReadBytes += readBytes
-
-            return readBytes
-        }
-    }
 }
