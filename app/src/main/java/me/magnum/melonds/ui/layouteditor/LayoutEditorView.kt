@@ -9,6 +9,8 @@ import me.magnum.melonds.ui.common.LayoutComponentView
 import me.magnum.melonds.ui.common.LayoutView
 import kotlin.math.*
 
+typealias ViewSelectedListener = ((LayoutComponentView, currentScale: Float, maxSize: Int, minSize: Int) -> Unit)
+
 class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(context, attrs) {
     enum class Anchor {
         TOP_LEFT,
@@ -17,7 +19,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         BOTTOM_RIGHT
     }
 
-    private var onViewSelectedListener: ((LayoutComponentView, Float) -> Unit)? = null
+    private var onViewSelectedListener: ViewSelectedListener? = null
     private var onViewDeselectedListener: ((LayoutComponentView) -> Unit)? = null
     private var otherClickListener: OnClickListener? = null
     private val defaultComponentWidth by lazy { screenUnitsConverter.dpToPixels(100f).toInt() }
@@ -35,7 +37,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         }
     }
 
-    fun setOnViewSelectedListener(listener: (LayoutComponentView, Float) -> Unit) {
+    fun setOnViewSelectedListener(listener: ViewSelectedListener) {
         onViewSelectedListener = listener
     }
 
@@ -145,7 +147,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         }
 
         val viewScale = (currentConstrainedDimension - minComponentSize) / (maxDimension - minComponentSize).toFloat()
-        onViewSelectedListener?.invoke(view, viewScale)
+        onViewSelectedListener?.invoke(view, viewScale, maxDimension, minComponentSize)
     }
 
     private fun deselectCurrentView() {

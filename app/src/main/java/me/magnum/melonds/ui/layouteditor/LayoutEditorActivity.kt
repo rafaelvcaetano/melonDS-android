@@ -41,6 +41,7 @@ class LayoutEditorActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLayoutEditorBinding
     private var areBottomControlsShown = true
     private var areScalingControlsShown = true
+    private var selectedViewMinSize = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,16 +65,18 @@ class LayoutEditorActivity : AppCompatActivity() {
             else
                 showBottomControls()
         }
-        binding.viewLayoutEditor.setOnViewSelectedListener { _, scale ->
+        binding.viewLayoutEditor.setOnViewSelectedListener { _, scale, maxSize, minSize ->
             hideBottomControls()
-            showScalingControls(scale)
+            showScalingControls(scale, maxSize, minSize)
         }
         binding.viewLayoutEditor.setOnViewDeselectedListener {
             hideScalingControls()
         }
         binding.seekBarScaling.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                binding.viewLayoutEditor.scaleSelectedView(progress / 10000f)
+                val scale = progress / binding.seekBarScaling.max.toFloat()
+                binding.textSize.text = ((binding.seekBarScaling.max - selectedViewMinSize) * scale + selectedViewMinSize).toInt().toString()
+                binding.viewLayoutEditor.scaleSelectedView(scale)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -174,8 +177,13 @@ class LayoutEditorActivity : AppCompatActivity() {
         areBottomControlsShown = false
     }
 
-    private fun showScalingControls(currentScale: Float, animate: Boolean = true) {
-        binding.seekBarScaling.progress = (currentScale * 10000).toInt()
+    private fun showScalingControls(currentScale: Float, maxSize: Int, minSize: Int, animate: Boolean = true) {
+        binding.seekBarScaling.apply {
+            max = maxSize
+            progress = (currentScale * maxSize).toInt()
+        }
+
+        selectedViewMinSize = minSize
 
         if (areScalingControlsShown)
             return

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/black" >
+        android:background="@android:color/black">
 
     <me.magnum.melonds.ui.layouteditor.LayoutEditorView
             android:id="@+id/view_layout_editor"
@@ -29,11 +29,27 @@
                 android:text="@string/delete"
                 style="@style/Button.Editor" />
 
-        <TextView
+        <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/textLayoutEditor"
-                android:text="@string/label_size" />
+                android:minWidth="34sp"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/textLayoutEditor"
+                    android:text="@string/label_size" />
+
+            <TextView
+                    android:id="@+id/text_size"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/textLayoutEditor"
+                    android:gravity="center_horizontal"
+                    tools:text="1080" />
+        </LinearLayout>
 
         <SeekBar
                 android:id="@+id/seek_bar_scaling"
@@ -53,7 +69,8 @@
             android:background="#AFFF"
             android:clickable="true"
             android:focusable="false"
-            android:gravity="center_vertical" >
+            android:gravity="center_vertical"
+            tools:visibility="invisible">
 
         <Button
                 android:id="@+id/button_add_button"
