@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:orientation="horizontal"
+            android:paddingLeft="?attr/dialogPreferredPadding"
+            android:paddingRight="?attr/dialogPreferredPadding"
+            android:paddingTop="18dp"
+            android:paddingBottom="8dp"
+            app:layout_constraintTop_toTopOf="parent" >
+
+        <androidx.appcompat.widget.DialogTitle
+                android:id="@+id/text_background_config_title"
+                style="?android:attr/windowTitleStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@string/backgrounds" />
+    </LinearLayout>
+
+    <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:fillViewport="true"
+            android:orientation="vertical"
+            android:scrollbars="vertical"
+            android:layout_weight="1">
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+            <LinearLayout
+                    android:id="@+id/layout_portrait_background"
+                    style="@style/Layout.RomSetting">
+
+                <LinearLayout
+                        style="@style/Layout.RomSettingContent">
+
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Title"
+                            android:text="@string/portrait_background"/>
+
+                    <TextView
+                            android:id="@+id/text_background_portrait"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Summary"
+                            android:singleLine="true"
+                            tools:text="None" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                    android:id="@+id/layout_portrait_background_mode"
+                    style="@style/Layout.RomSetting">
+
+                <LinearLayout
+                        style="@style/Layout.RomSettingContent">
+
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Title"
+                            android:text="@string/portrait_background_mode"/>
+
+                    <TextView
+                            android:id="@+id/text_background_portrait_mode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Summary"
+                            android:singleLine="true"
+                            tools:text="Fit center" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                    android:id="@+id/layout_landscape_background"
+                    style="@style/Layout.RomSetting">
+
+                <LinearLayout
+                        style="@style/Layout.RomSettingContent">
+
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Title"
+                            android:text="@string/landscape_background" />
+
+                    <TextView
+                            android:id="@+id/text_landscape_background"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Summary"
+                            android:singleLine="true"
+                            tools:text="None" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                    android:id="@+id/layout_landscape_background_mode"
+                    style="@style/Layout.RomSetting" >
+
+                <LinearLayout
+                        style="@style/Layout.RomSettingContent">
+
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Title"
+                            android:text="@string/landscape_background_mode"/>
+
+                    <TextView
+                            android:id="@+id/text_background_landscape_mode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Summary"
+                            android:singleLine="true"
+                            android:ellipsize="start"
+                            tools:text="Stretch" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="bottom"
+            android:layoutDirection="locale"
+            android:orientation="horizontal"
+            android:paddingBottom="4dp"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:paddingTop="4dp">
+
+        <Space
+                android:id="@+id/spacer"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:visibility="invisible"/>
+
+        <Button
+                android:id="@+id/button_background_config_cancel"
+                style="?attr/buttonBarNegativeButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cancel" />
+
+        <Button
+                android:id="@+id/button_background_config_ok"
+                style="?attr/buttonBarPositiveButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ok" />
+    </LinearLayout>
+</LinearLayout>

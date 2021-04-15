@@ -10,6 +10,9 @@
     <string name="not_set">Not set</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
+    <string name="none">None</string>
+    <string name="options">Options</string>
+    <string name="preview">Preview</string>
 
     <string name="console_ds">DS</string>
     <string name="console_dsi">DSi (Experimental)</string>
@@ -181,6 +184,11 @@
     <string name="exit_without_saving">Exit without saving</string>
     <string name="save_and_exit">Save and exit</string>
     <string name="layout_name">Layout name</string>
+
+    <string name="backgrounds">Backgrounds</string>
+    <string name="action_backgrounds_new">New background</string>
+    <string name="background_name">Background name</string>
+    <string name="background_add_wrong_filter">Background added but it\'s not visible with the current filter.</string>
 
     <string-array name="theme_options" tools:ignore="InconsistentArrays">
         <item>@string/theme_option_light</item>

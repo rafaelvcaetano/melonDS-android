@@ -1,0 +1,102 @@
+package me.magnum.melonds.ui.backgroundpreview
+
+import android.graphics.drawable.BitmapDrawable
+import android.os.Build
+import android.os.Bundle
+import android.view.MenuItem
+import android.view.View
+import android.view.WindowInsets
+import android.view.animation.Animation
+import android.view.animation.TranslateAnimation
+import androidx.appcompat.app.AppCompatActivity
+import com.squareup.picasso.Picasso
+import dagger.hilt.android.AndroidEntryPoint
+import me.magnum.melonds.databinding.ActivityBackgroundPreviewBinding
+import me.magnum.melonds.impl.BackgroundThumbnailProvider
+import me.magnum.melonds.parcelables.BackgroundParcelable
+import javax.inject.Inject
+
+@AndroidEntryPoint
+class BackgroundPreviewActivity : AppCompatActivity() {
+    companion object {
+        const val KEY_BACKGROUND = "background"
+
+        const val KEY_TRANSITION_IMAGE = "image"
+    }
+
+    @Inject
+    lateinit var picasso: Picasso
+    @Inject
+    lateinit var backgroundThumbnailProvider: BackgroundThumbnailProvider
+
+    private lateinit var binding: ActivityBackgroundPreviewBinding
+    private var isDecorVisible = true
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityBackgroundPreviewBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setDisplayShowTitleEnabled(false)
+        }
+
+        binding.image.setOnClickListener {
+            toggleNavigationVisibility()
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val background = intent.getParcelableExtra<BackgroundParcelable>(KEY_BACKGROUND)?.background ?: throw NullPointerException("No background provided")
+        val thumbnail = backgroundThumbnailProvider.getBackgroundThumbnail(background)
+        picasso.load(background.uri).placeholder(BitmapDrawable(resources, thumbnail)).noFade().into(binding.image)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> supportFinishAfterTransition()
+            else -> return super.onOptionsItemSelected(item)
+        }
+        return true
+    }
+
+    /**
+     * Toggles the visibility of window navigation components (toolbar and bottom navigation bar).
+     */
+    private fun toggleNavigationVisibility() {
+        if (isDecorVisible) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                window.insetsController?.apply {
+                    hide(WindowInsets.Type.navigationBars())
+                }
+            } else {
+                window.decorView.apply {
+                    systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                }
+            }
+            val toolbarAnimation = TranslateAnimation(Animation.RELATIVE_TO_SELF, 0f, Animation.RELATIVE_TO_SELF, 0f, Animation.RELATIVE_TO_SELF, 0f, Animation.RELATIVE_TO_SELF, -1f).apply {
+                fillAfter = true
+                duration = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+            }
+            binding.toolbar.startAnimation(toolbarAnimation)
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                window.insetsController?.apply {
+                    show(WindowInsets.Type.navigationBars())
+                }
+            } else {
+                window.decorView.apply {
+                    systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                }
+            }
+            val toolbarAnimation = TranslateAnimation(Animation.RELATIVE_TO_SELF, 0f, Animation.RELATIVE_TO_SELF, 0f, Animation.RELATIVE_TO_SELF, -1f, Animation.RELATIVE_TO_SELF, 0f).apply {
+                fillAfter = true
+                duration = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+            }
+            binding.toolbar.startAnimation(toolbarAnimation)
+        }
+        isDecorVisible = !isDecorVisible
+    }
+}

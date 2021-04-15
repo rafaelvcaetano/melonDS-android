@@ -26,6 +26,22 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="FullScreenTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowContentTransitions">true</item>
+
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:textColorSecondary">@android:color/white</item>
+        <item name="actionMenuTextColor">@android:color/white</item>
+    </style>
+
+    <style name="Toolbar.Transparent" parent="Widget.AppCompat.Light.ActionBar">
+        <item name="android:windowActionBarOverlay">true</item>
+    </style>
+
     <style name="Button.Ripple" parent="android:Widget.ImageButton">
         <item name="android:background">@drawable/drawable_ripple_small</item>
         <item name="android:scaleType">fitCenter</item>

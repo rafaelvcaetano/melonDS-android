@@ -100,7 +100,7 @@ class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat) {
         val filePickerLauncher = activity.registerForActivityResult(FilePickerContract(), storagePreference::onDirectoryPicked)
         storagePreference.setOnPreferenceClickListener { preference ->
             val initialUri = preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) }
-            filePickerLauncher.launch(Pair(initialUri, storagePreference.mimeType))
+            filePickerLauncher.launch(Pair(initialUri, storagePreference.mimeType?.let { arrayOf(it) }))
             true
         }
     }

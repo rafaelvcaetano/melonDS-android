@@ -133,7 +133,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
         if (viewModel.areCheatsBeingImported()) {
             CheatsImportProgressDialog().show(childFragmentManager, null)
         } else {
-            filePickerLauncher.launch(Pair(null, "text/xml"))
+            filePickerLauncher.launch(Pair(null, arrayOf("text/xml")))
         }
     }
 }

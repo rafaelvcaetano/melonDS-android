@@ -81,10 +81,12 @@ dependencies {
     implementation "androidx.work:work-runtime-ktx:$work_version"
     implementation "androidx.work:work-rxjava2:$work_version"
     implementation "com.google.dagger:hilt-android:$hilt_version"
+    implementation 'com.google.android:flexbox:2.0.1'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.10'
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.github.svenoaks:MasterSwitchPreference:0.9.1'
+    implementation 'com.squareup.picasso:picasso:2.71828'
 
     kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
     kapt 'androidx.hilt:hilt-compiler:1.0.0-alpha02'

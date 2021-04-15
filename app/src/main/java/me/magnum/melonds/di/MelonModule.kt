@@ -11,10 +11,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.database.MelonDatabase
-import me.magnum.melonds.domain.repositories.CheatsRepository
-import me.magnum.melonds.domain.repositories.LayoutsRepository
-import me.magnum.melonds.domain.repositories.RomsRepository
-import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.impl.*
 import me.magnum.melonds.utils.RomIconProvider
@@ -55,6 +52,12 @@ object MelonModule {
 
     @Provides
     @Singleton
+    fun provideBackgroundsRepository(@ApplicationContext context: Context, gson: Gson): BackgroundRepository {
+        return InternalBackgroundsRepository(context, gson)
+    }
+
+    @Provides
+    @Singleton
     fun provideConfigurationDirectoryVerifier(@ApplicationContext context: Context, settingsRepository: SettingsRepository): ConfigurationDirectoryVerifier {
         return FileSystemConfigurationDirectoryVerifier(context, settingsRepository)
     }
@@ -69,6 +72,12 @@ object MelonModule {
     @Singleton
     fun provideRomIconProvider(@ApplicationContext context: Context, romFileProcessorFactory: RomFileProcessorFactory): RomIconProvider {
         return RomIconProvider(context, romFileProcessorFactory)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBackgroundThumbnailProvider(@ApplicationContext context: Context): BackgroundThumbnailProvider {
+        return BackgroundThumbnailProvider(context)
     }
 
     @Provides

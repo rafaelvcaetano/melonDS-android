@@ -7,11 +7,14 @@ import androidx.preference.PreferenceManager
 import androidx.room.Room
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.squareup.picasso.Picasso
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.reactivex.android.schedulers.AndroidSchedulers
+import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.uridelegates.CompositeUriHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.database.MelonDatabase
@@ -50,5 +53,17 @@ object AppModule {
     @Singleton
     fun provideUriHandler(@ApplicationContext context: Context): UriHandler {
         return CompositeUriHandler(context)
+    }
+
+    @Provides
+    @Singleton
+    fun providePicasso(@ApplicationContext context: Context): Picasso {
+        return Picasso.Builder(context).build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSchedulers(): Schedulers {
+        return Schedulers(io.reactivex.schedulers.Schedulers.io(), AndroidSchedulers.mainThread())
     }
 }
