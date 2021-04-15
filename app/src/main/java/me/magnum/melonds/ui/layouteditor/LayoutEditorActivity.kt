@@ -13,13 +13,19 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import com.squareup.picasso.Callback
+import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityLayoutEditorBinding
-import me.magnum.melonds.databinding.DialogLayoutNameInputBinding
+import me.magnum.melonds.databinding.DialogTextInputBinding
 import me.magnum.melonds.domain.model.LayoutComponent
+import me.magnum.melonds.domain.model.Orientation
+import me.magnum.melonds.domain.model.RuntimeBackground
+import me.magnum.melonds.extensions.setBackgroundMode
 import me.magnum.melonds.impl.ScreenUnitsConverter
 import me.magnum.melonds.utils.getLayoutComponentName
+import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -29,6 +35,7 @@ class LayoutEditorActivity : AppCompatActivity() {
     }
 
     enum class MenuOption(@StringRes val stringRes: Int) {
+        BACKGROUNDS(R.string.backgrounds),
         REVERT(R.string.revert_changes),
         RESET(R.string.reset_default),
         SAVE_AND_EXIT(R.string.save_and_exit),
@@ -37,8 +44,12 @@ class LayoutEditorActivity : AppCompatActivity() {
 
     @Inject
     lateinit var screenUnitsConverter: ScreenUnitsConverter
+    @Inject
+    lateinit var picasso: Picasso
+
     private val viewModel: LayoutEditorViewModel by viewModels()
     private lateinit var binding: ActivityLayoutEditorBinding
+    private var currentlySelectedBackgroundId: UUID? = null
     private var areBottomControlsShown = true
     private var areScalingControlsShown = true
     private var selectedViewMinSize = 0
@@ -86,6 +97,16 @@ class LayoutEditorActivity : AppCompatActivity() {
             }
         })
 
+        val currentOrientation = if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            Orientation.PORTRAIT
+        } else {
+            Orientation.LANDSCAPE
+        }
+        viewModel.setCurrentLayoutOrientation(currentOrientation)
+        viewModel.getBackground().observe(this) {
+            updateBackground(it)
+        }
+
         setupFullscreen()
         instantiateLayout()
         hideScalingControls(false)
@@ -106,8 +127,10 @@ class LayoutEditorActivity : AppCompatActivity() {
     }
 
     private fun storeLayoutChanges() {
-        val orientation = if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) LayoutEditorViewModel.LayoutOrientation.PORTRAIT else LayoutEditorViewModel.LayoutOrientation.LANDSCAPE
-        viewModel.saveLayoutToCurrentConfiguration(binding.viewLayoutEditor.buildCurrentLayout(), orientation)
+        val layoutConfiguration = binding.viewLayoutEditor.buildCurrentLayout().copy(
+                backgroundId = currentlySelectedBackgroundId
+        )
+        viewModel.saveLayoutToCurrentConfiguration(layoutConfiguration)
     }
 
     private fun setupFullscreen() {
@@ -129,16 +152,30 @@ class LayoutEditorActivity : AppCompatActivity() {
 
     private fun instantiateLayout() {
         val currentLayoutConfiguration = viewModel.getCurrentLayoutConfiguration()
-        if (currentLayoutConfiguration == null)
+        if (currentLayoutConfiguration == null) {
             instantiateDefaultConfiguration()
-        else
+            currentlySelectedBackgroundId = null
+        } else {
             binding.viewLayoutEditor.instantiateLayout(currentLayoutConfiguration)
+        }
     }
 
     private fun instantiateDefaultConfiguration() {
         val defaultLayout = viewModel.getDefaultLayoutConfiguration()
         viewModel.setCurrentLayoutConfiguration(defaultLayout)
         binding.viewLayoutEditor.instantiateLayout(defaultLayout)
+    }
+
+    private fun updateBackground(background: RuntimeBackground) {
+        picasso.load(background.background?.uri).into(binding.imageBackground, object : Callback {
+            override fun onSuccess() {
+                binding.imageBackground.setBackgroundMode(background.mode)
+            }
+
+            override fun onError(e: java.lang.Exception?) {
+                e?.printStackTrace()
+            }
+        })
     }
 
     private fun showBottomControls(animate: Boolean = true) {
@@ -256,6 +293,7 @@ class LayoutEditorActivity : AppCompatActivity() {
 
     private fun onMenuOptionSelected(option: MenuOption) {
         when (option) {
+            MenuOption.BACKGROUNDS -> openBackgroundsConfigDialog()
             MenuOption.REVERT -> revertLayoutConfiguration()
             MenuOption.RESET -> instantiateDefaultConfiguration()
             MenuOption.SAVE_AND_EXIT -> {
@@ -269,23 +307,27 @@ class LayoutEditorActivity : AppCompatActivity() {
         }
     }
 
+    private fun openBackgroundsConfigDialog() {
+        storeLayoutChanges()
+        val layoutConfiguration = viewModel.getCurrentLayoutConfiguration() ?: return
+        LayoutBackgroundsDialog.newInstance(layoutConfiguration).show(supportFragmentManager, null)
+    }
+
     private fun showLayoutNameInputDialog() {
-        val binding = DialogLayoutNameInputBinding.inflate(layoutInflater)
+        val binding = DialogTextInputBinding.inflate(layoutInflater)
 
         AlertDialog.Builder(this)
                 .setTitle(R.string.layout_name)
                 .setView(binding.root)
                 .setPositiveButton(R.string.ok) { _, _ ->
-                    val layoutName = binding.editTextLayoutName.text.toString()
+                    val layoutName = binding.editText.text.toString()
                     viewModel.setCurrentLayoutName(layoutName)
                     saveLayoutAndExit()
                 }
                 .setNegativeButton(R.string.cancel, null)
                 .show()
 
-        binding.editTextLayoutName.requestFocus()
-        /*val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)*/
+        binding.editText.requestFocus()
     }
 
     private fun saveLayoutAndExit() {
