@@ -10,15 +10,12 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
+import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.domain.model.*
-import me.magnum.melonds.domain.repositories.CheatsRepository
-import me.magnum.melonds.domain.repositories.LayoutsRepository
-import me.magnum.melonds.domain.repositories.RomsRepository
-import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.uridelegates.UriHandler
+import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
 import me.magnum.melonds.ui.emulator.exceptions.SramLoadException
 import java.io.File
@@ -30,12 +27,25 @@ class EmulatorViewModel @ViewModelInject constructor(
         private val cheatsRepository: CheatsRepository,
         private val romFileProcessorFactory: RomFileProcessorFactory,
         private val layoutsRepository: LayoutsRepository,
-        private val uriHandler: UriHandler
+        private val backgroundsRepository: BackgroundRepository,
+        private val uriHandler: UriHandler,
+        private val schedulers: Schedulers
 ) : ViewModel() {
 
     private val disposables = CompositeDisposable()
     private var layoutLoadDisposable: Disposable? = null
+    private var backgroundLoadDisposable: Disposable? = null
     private val layoutLiveData = MutableLiveData<LayoutConfiguration>()
+    private val backgroundLiveData = MutableLiveData<RuntimeBackground>()
+
+    private var currentOrientation: Orientation? = null
+
+    fun setOrientation(orientation: Orientation) {
+        if (orientation != currentOrientation) {
+            currentOrientation = orientation
+            loadBackgroundForCurrentLayout()
+        }
+    }
 
     fun getLayout(): LiveData<LayoutConfiguration> {
         return layoutLiveData
@@ -53,19 +63,53 @@ class EmulatorViewModel @ViewModelInject constructor(
         }
 
         layoutLoadDisposable?.dispose()
-        layoutLoadDisposable = layoutObservable.subscribeOn(Schedulers.io())
+        layoutLoadDisposable = layoutObservable.subscribeOn(schedulers.backgroundThreadScheduler)
+                .observeOn(schedulers.uiThreadScheduler)
                 .subscribe {
-                    layoutLiveData.postValue(it)
+                    layoutLiveData.value = it
+                    loadBackgroundForCurrentLayout()
                 }
     }
 
     fun loadLayoutForFirmware() {
         layoutLoadDisposable?.dispose()
         layoutLoadDisposable = getGlobalLayoutObservable()
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(schedulers.backgroundThreadScheduler)
+                .observeOn(schedulers.uiThreadScheduler)
                 .subscribe {
-                    layoutLiveData.postValue(it)
+                    layoutLiveData.value = it
+                    loadBackgroundForCurrentLayout()
                 }
+    }
+
+    fun getBackground(): LiveData<RuntimeBackground> {
+        return backgroundLiveData
+    }
+
+    private fun loadBackgroundForCurrentLayout() {
+        layoutLiveData.value?.let { layout ->
+            currentOrientation?.let { orientation ->
+                if (orientation == Orientation.PORTRAIT) {
+                    loadBackground(layout.portraitLayout.backgroundId, layout.portraitLayout.backgroundMode)
+                } else {
+                    loadBackground(layout.landscapeLayout.backgroundId, layout.landscapeLayout.backgroundMode)
+                }
+            }
+        }
+    }
+
+    private fun loadBackground(backgroundId: UUID?, mode: BackgroundMode) {
+        backgroundLoadDisposable?.dispose()
+        if (backgroundId == null) {
+            backgroundLiveData.value = RuntimeBackground(null, mode)
+        } else {
+            backgroundLoadDisposable = backgroundsRepository.getBackground(backgroundId)
+                    .subscribeOn(schedulers.backgroundThreadScheduler)
+                    .materialize()
+                    .subscribe { message ->
+                        backgroundLiveData.postValue(RuntimeBackground(message.value, mode))
+                    }
+        }
     }
 
     fun getRomSearchDirectory(): Uri? {
@@ -221,5 +265,6 @@ class EmulatorViewModel @ViewModelInject constructor(
         super.onCleared()
         disposables.clear()
         layoutLoadDisposable?.dispose()
+        backgroundLoadDisposable?.dispose()
     }
 }

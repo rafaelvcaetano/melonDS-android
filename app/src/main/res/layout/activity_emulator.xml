@@ -5,8 +5,13 @@
     android:id="@+id/layout_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.emulator.EmulatorActivity"
-    tools:ignore="ObsoleteLayoutParam,RtlHardcoded" >
+    android:background="@android:color/black"
+    tools:context=".ui.emulator.EmulatorActivity">
+
+    <ImageView
+        android:id="@+id/image_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <android.opengl.GLSurfaceView
         android:id="@+id/surfaceMain"

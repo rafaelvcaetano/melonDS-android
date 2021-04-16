@@ -71,7 +71,7 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
             return
         }
 
-        GLES20.glClearColor(0f, 0f, 0f, 1f)
+        GLES20.glClearColor(0f, 0f, 0f, 0f)
         GLES20.glDisable(GLES20.GL_CULL_FACE)
 
         // Setup main texture

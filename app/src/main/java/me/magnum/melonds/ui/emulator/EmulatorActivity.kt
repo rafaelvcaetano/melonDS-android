@@ -2,6 +2,8 @@ package me.magnum.melonds.ui.emulator
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -13,19 +15,22 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import com.squareup.picasso.Callback
+import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.CompletableObserver
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
+import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.UriFileHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.extensions.setBackgroundMode
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
 import me.magnum.melonds.ui.emulator.input.*
@@ -76,6 +81,10 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     lateinit var settingsRepository: SettingsRepository
     @Inject
     lateinit var uriHandler: UriHandler
+    @Inject
+    lateinit var picasso: Picasso
+    @Inject
+    lateinit var schedulers: Schedulers
     private lateinit var delegate: EmulatorDelegate
 
     private lateinit var dsRenderer: DSRenderer
@@ -134,13 +143,19 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         dsRenderer = DSRenderer(buildRendererConfiguration())
         dsRenderer.setRendererListener(this)
         binding.surfaceMain.apply {
+            setZOrderOnTop(true)
             setEGLContextClientVersion(2)
+            setEGLConfigChooser(8, 8, 8, 8, 16, 0)
+            holder.setFormat(PixelFormat.RGBA_8888)
             setRenderer(dsRenderer)
         }
 
         binding.textFps.visibility = View.INVISIBLE
         binding.viewLayoutControls.setLayoutComponentViewBuilderFactory(RuntimeLayoutComponentViewBuilderFactory())
 
+        viewModel.getBackground().observe(this) {
+            updateBackground(it)
+        }
         viewModel.getLayout().observe(this) {
             softInputVisible = true
             setupSoftInput(it)
@@ -199,12 +214,16 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         val setupObservable = delegate.getEmulatorSetupObservable(intent.extras)
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        setupObservable.subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+        setupObservable.subscribeOn(schedulers.backgroundThreadScheduler)
+                .observeOn(schedulers.uiThreadScheduler)
                 .subscribe(object : CompletableObserver {
                     override fun onSubscribe(disposable: Disposable) {
-                        binding.textFps.visibility = View.GONE
-                        binding.textLoading.visibility = View.VISIBLE
+                        runOnUiThread {
+                            binding.imageBackground.isInvisible = true
+                            binding.viewLayoutControls.isGone = true
+                            binding.textFps.isGone = true
+                            binding.textLoading.isVisible = true
+                        }
                     }
 
                     override fun onComplete() {
@@ -213,6 +232,8 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                             MelonEmulator.startEmulation()
                             setupFpsCounter()
                             binding.textLoading.visibility = View.GONE
+                            binding.imageBackground.isVisible = true
+                            binding.viewLayoutControls.isVisible = true
                             emulatorReady = true
                         } catch (e: Exception) {
                             showLaunchFailDialog(e)
@@ -301,10 +322,28 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                     binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.TOP_SCREEN)?.getRect(),
                     binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BOTTOM_SCREEN)?.getRect()
             )
+
+            if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                viewModel.setOrientation(Orientation.PORTRAIT)
+            } else {
+                viewModel.setOrientation(Orientation.LANDSCAPE)
+            }
             updateSoftInput()
         }
         binding.viewLayoutControls.addOnLayoutChangeListener(layoutChangeListener)
         binding.viewLayoutControls.instantiateLayout(layoutConfiguration)
+    }
+
+    private fun updateBackground(background: RuntimeBackground) {
+        picasso.load(background.background?.uri).noFade().into(binding.imageBackground, object : Callback {
+            override fun onSuccess() {
+                binding.imageBackground.setBackgroundMode(background.mode)
+            }
+
+            override fun onError(e: java.lang.Exception?) {
+                e?.printStackTrace()
+            }
+        })
     }
 
     private fun updateSoftInput() {
