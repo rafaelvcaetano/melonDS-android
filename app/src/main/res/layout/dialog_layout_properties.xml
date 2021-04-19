@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:orientation="horizontal"
+            android:paddingLeft="?attr/dialogPreferredPadding"
+            android:paddingRight="?attr/dialogPreferredPadding"
+            android:paddingTop="18dp"
+            android:paddingBottom="8dp"
+            app:layout_constraintTop_toTopOf="parent" >
+
+        <androidx.appcompat.widget.DialogTitle
+                android:id="@+id/text_background_config_title"
+                style="?android:attr/windowTitleStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@string/properties" />
+    </LinearLayout>
+
+    <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:fillViewport="true"
+            android:orientation="vertical"
+            android:scrollbars="vertical"
+            android:layout_weight="1">
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+            <LinearLayout
+                    android:id="@+id/layout_name"
+                    style="@style/Layout.RomSetting">
+
+                <LinearLayout
+                        style="@style/Layout.RomSettingContent">
+
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Title"
+                            android:text="@string/layout_name"/>
+
+                    <TextView
+                            android:id="@+id/text_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Summary"
+                            android:singleLine="true"
+                            tools:text="Not set" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                    android:id="@+id/layout_use_default_opacity"
+                    style="@style/Layout.RomSetting"
+                    android:minHeight="48dp">
+
+                <RelativeLayout
+                        style="@style/Layout.RomSettingContent">
+
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Title"
+                            android:text="@string/layout_use_default_opacity"/>
+                </RelativeLayout>
+
+                <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switch_use_default_opacity"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:focusable="false"
+                            android:clickable="false"
+                            android:background="@null" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                    android:id="@+id/layout_opacity"
+                    style="@style/Layout.RomSetting.SeekBar">
+
+                <LinearLayout
+                        style="@style/Layout.RomSettingContent.SeekBar">
+
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Title"
+                            android:text="@string/layout_opacity" />
+
+                    <SeekBar
+                            android:id="@+id/seekbar_opacity"
+                            style="@style/SeekBar.RomSetting"
+                            android:max="100" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="bottom"
+            android:layoutDirection="locale"
+            android:orientation="horizontal"
+            android:paddingBottom="4dp"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:paddingTop="4dp">
+
+        <Space
+                android:id="@+id/spacer"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:visibility="invisible"/>
+
+        <Button
+                android:id="@+id/button_properties_cancel"
+                style="?attr/buttonBarNegativeButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cancel" />
+
+        <Button
+                android:id="@+id/button_properties_ok"
+                style="?attr/buttonBarPositiveButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ok" />
+    </LinearLayout>
+</LinearLayout>

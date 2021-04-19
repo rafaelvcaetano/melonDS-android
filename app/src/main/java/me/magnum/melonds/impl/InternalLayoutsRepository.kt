@@ -33,6 +33,8 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
                 null,
                 context.getString(R.string.use_global_layout),
                 LayoutConfiguration.LayoutType.DEFAULT,
+                false,
+                0,
                 UILayout(emptyList()),
                 UILayout(emptyList())
         )

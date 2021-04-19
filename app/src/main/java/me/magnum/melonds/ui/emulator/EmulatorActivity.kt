@@ -348,7 +348,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
     private fun updateSoftInput() {
         if (settingsRepository.showSoftInput()) {
-            val opacity = settingsRepository.getSoftInputOpacity()
+            val opacity = viewModel.getSoftInputOpacity()
             val inputAlpha = opacity / 100f
 
             val enableHapticFeedback = viewModel.isTouchHapticFeedbackEnabled()

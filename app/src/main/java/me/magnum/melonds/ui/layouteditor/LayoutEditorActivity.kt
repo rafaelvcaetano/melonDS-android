@@ -18,12 +18,12 @@ import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityLayoutEditorBinding
-import me.magnum.melonds.databinding.DialogTextInputBinding
 import me.magnum.melonds.domain.model.LayoutComponent
 import me.magnum.melonds.domain.model.Orientation
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.extensions.setBackgroundMode
 import me.magnum.melonds.impl.ScreenUnitsConverter
+import me.magnum.melonds.ui.common.TextInputDialog
 import me.magnum.melonds.utils.getLayoutComponentName
 import java.util.*
 import javax.inject.Inject
@@ -35,6 +35,7 @@ class LayoutEditorActivity : AppCompatActivity() {
     }
 
     enum class MenuOption(@StringRes val stringRes: Int) {
+        PROPERTIES(R.string.properties),
         BACKGROUNDS(R.string.backgrounds),
         REVERT(R.string.revert_changes),
         RESET(R.string.reset_default),
@@ -293,6 +294,7 @@ class LayoutEditorActivity : AppCompatActivity() {
 
     private fun onMenuOptionSelected(option: MenuOption) {
         when (option) {
+            MenuOption.PROPERTIES -> openPropertiesDialog()
             MenuOption.BACKGROUNDS -> openBackgroundsConfigDialog()
             MenuOption.REVERT -> revertLayoutConfiguration()
             MenuOption.RESET -> instantiateDefaultConfiguration()
@@ -307,6 +309,12 @@ class LayoutEditorActivity : AppCompatActivity() {
         }
     }
 
+    private fun openPropertiesDialog() {
+        storeLayoutChanges()
+        val layoutConfiguration = viewModel.getCurrentLayoutConfiguration() ?: return
+        LayoutPropertiesDialog.newInstance(layoutConfiguration).show(supportFragmentManager, null)
+    }
+
     private fun openBackgroundsConfigDialog() {
         storeLayoutChanges()
         val layoutConfiguration = viewModel.getCurrentLayoutConfiguration() ?: return
@@ -314,20 +322,13 @@ class LayoutEditorActivity : AppCompatActivity() {
     }
 
     private fun showLayoutNameInputDialog() {
-        val binding = DialogTextInputBinding.inflate(layoutInflater)
-
-        AlertDialog.Builder(this)
-                .setTitle(R.string.layout_name)
-                .setView(binding.root)
-                .setPositiveButton(R.string.ok) { _, _ ->
-                    val layoutName = binding.editText.text.toString()
-                    viewModel.setCurrentLayoutName(layoutName)
+        TextInputDialog.Builder()
+                .setOnConfirmListener {
+                    viewModel.setCurrentLayoutName(it)
                     saveLayoutAndExit()
                 }
-                .setNegativeButton(R.string.cancel, null)
-                .show()
-
-        binding.editText.requestFocus()
+                .build()
+                .show(supportFragmentManager, null)
     }
 
     private fun saveLayoutAndExit() {

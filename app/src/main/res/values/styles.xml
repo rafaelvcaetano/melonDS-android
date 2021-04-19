@@ -67,10 +67,15 @@
         <item name="android:background">?android:attr/selectableItemBackground</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
-        <item name="android:paddingLeft">@dimen/romConfigPrefPadding</item>
-        <item name="android:paddingRight">@dimen/romConfigPrefPadding</item>
+        <item name="android:paddingStart">?android:attr/listPreferredItemPaddingStart</item>
+        <item name="android:paddingEnd">?android:attr/listPreferredItemPaddingEnd</item>
         <item name="android:orientation">horizontal</item>
         <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <style name="Layout.RomSetting.SeekBar">
+        <item name="android:clipChildren">false</item>
+        <item name="android:clipToPadding">false</item>
     </style>
 
     <style name="Layout.RomSettingContent">
@@ -84,6 +89,12 @@
         <item name="android:layout_weight">1</item>
     </style>
 
+    <style name="Layout.RomSettingContent.SeekBar">
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:clipChildren">false</item>
+        <item name="android:clipToPadding">false</item>
+    </style>
+
     <style name="Text.RomSetting.Title" parent="Widget.AppCompat.TextView">
         <item name="android:singleLine">true</item>
         <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
@@ -95,6 +106,19 @@
     <style name="Text.RomSetting.Summary" parent="Widget.AppCompat.TextView">
         <item name="android:textAppearance">?android:attr/textAppearanceSmall</item>
         <item name="android:textColor">?android:attr/textColorSecondary</item>
+    </style>
+
+    <style name="SeekBar.RomSetting" parent="Widget.AppCompat.SeekBar">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:paddingStart">0dp</item>
+        <item name="android:paddingEnd">0dp</item>
+        <item name="android:paddingTop">15dp</item>
+        <item name="android:paddingBottom">15dp</item>
+        <item name="android:clickable">false</item>
+        <item name="android:focusable">false</item>
+        <item name="android:background">@null</item>
     </style>
 
     <style name="ColourTile">

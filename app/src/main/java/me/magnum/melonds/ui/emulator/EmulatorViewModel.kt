@@ -112,6 +112,16 @@ class EmulatorViewModel @ViewModelInject constructor(
         }
     }
 
+    fun getSoftInputOpacity(): Int {
+        return layoutLiveData.value?.let {
+            if (it.useCustomOpacity) {
+                it.opacity
+            } else {
+                settingsRepository.getSoftInputOpacity()
+            }
+        } ?: settingsRepository.getSoftInputOpacity()
+    }
+
     fun getRomSearchDirectory(): Uri? {
         return settingsRepository.getRomSearchDirectories().firstOrNull()
     }

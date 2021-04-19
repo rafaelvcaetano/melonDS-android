@@ -113,6 +113,16 @@ class LayoutEditorViewModel @ViewModelInject constructor(
         }
     }
 
+    fun savePropertiesToCurrentConfiguration(name: String?, useCustomOpacity: Boolean, layoutOpacity: Int) {
+        currentLayoutConfiguration?.let {
+            currentLayoutConfiguration = it.copy(
+                    name = name,
+                    useCustomOpacity = useCustomOpacity,
+                    opacity = layoutOpacity
+            )
+        }
+    }
+
     fun saveBackgroundsToCurrentConfiguration(portraitBackground: UUID?, portraitBackgroundMode: BackgroundMode, landscapeBackground: UUID?, landscapeBackgroundMode: BackgroundMode) {
         currentLayoutConfiguration?.let {
             currentLayoutConfiguration = it.copy(

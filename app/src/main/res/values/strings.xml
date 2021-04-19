@@ -179,6 +179,7 @@
     <string name="no_more_components">No more components to add</string>
     <string name="label_size">Size:</string>
     <string name="menu">Menu</string>
+    <string name="properties">Properties</string>
     <string name="revert_changes">Revert changes</string>
     <string name="reset_default">Reset to default</string>
     <string name="exit_without_saving">Exit without saving</string>
@@ -188,6 +189,8 @@
     <string name="landscape_background_mode">Landscape background mode</string>
     <string name="save_and_exit">Save and exit</string>
     <string name="layout_name">Layout name</string>
+    <string name="layout_use_default_opacity">Use default opacity</string>
+    <string name="layout_opacity">Layout opacity</string>
 
     <string name="backgrounds">Backgrounds</string>
     <string name="action_backgrounds_new">New background</string>
