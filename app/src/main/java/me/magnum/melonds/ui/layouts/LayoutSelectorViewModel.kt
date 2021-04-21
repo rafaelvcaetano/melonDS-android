@@ -4,13 +4,11 @@ import androidx.hilt.Assisted
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.SavedStateHandle
 import io.reactivex.schedulers.Schedulers
-import me.magnum.melonds.domain.model.LayoutConfiguration
-import me.magnum.melonds.domain.model.UILayout
 import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.extensions.addTo
 import java.util.*
 
-class LayoutSelectorViewModel @ViewModelInject constructor(layoutsRepository: LayoutsRepository, @Assisted savedStateHandle: SavedStateHandle) : BaseLayoutsViewModel() {
+class LayoutSelectorViewModel @ViewModelInject constructor(layoutsRepository: LayoutsRepository, @Assisted savedStateHandle: SavedStateHandle) : BaseLayoutsViewModel(layoutsRepository) {
     private var currentSelectedLayout: UUID?
 
     init {
@@ -29,7 +27,7 @@ class LayoutSelectorViewModel @ViewModelInject constructor(layoutsRepository: La
         return currentSelectedLayout
     }
 
-    override fun setSelectedLayout(layoutConfiguration: LayoutConfiguration) {
-        currentSelectedLayout = layoutConfiguration.id
+    override fun setSelectedLayoutId(id: UUID?) {
+        currentSelectedLayout = id
     }
 }

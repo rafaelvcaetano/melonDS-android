@@ -8,8 +8,8 @@ import androidx.appcompat.app.AppCompatActivity
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityLayoutsBinding
-import me.magnum.melonds.domain.model.LayoutConfiguration
 import me.magnum.melonds.ui.layouts.fragments.LayoutSelectorFragment
+import java.util.*
 
 @AndroidEntryPoint
 class LayoutSelectorActivity : AppCompatActivity() {
@@ -24,8 +24,8 @@ class LayoutSelectorActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val fragment = LayoutSelectorFragment().apply {
-            setOnLayoutSelectedListener {
-                onLayoutSelected(it)
+            setOnLayoutSelectedListener { id, reason ->
+                onLayoutSelected(id, reason)
             }
         }
 
@@ -37,7 +37,6 @@ class LayoutSelectorActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
-                setResult(Activity.RESULT_CANCELED)
                 finish()
             }
             else -> return super.onOptionsItemSelected(item)
@@ -45,11 +44,15 @@ class LayoutSelectorActivity : AppCompatActivity() {
         return true
     }
 
-    private fun onLayoutSelected(layout: LayoutConfiguration) {
+    private fun onLayoutSelected(layoutId: UUID?, reason: BaseLayoutsFragment.LayoutSelectionReason) {
         val intent = Intent().apply {
-            putExtra(KEY_SELECTED_LAYOUT_ID, layout.id?.toString())
+            putExtra(KEY_SELECTED_LAYOUT_ID, layoutId?.toString())
         }
         setResult(Activity.RESULT_OK, intent)
-        finish()
+
+        // If the layout was selected by the user, close the activity immediately
+        if (reason == BaseLayoutsFragment.LayoutSelectionReason.BY_USER) {
+            finish()
+        }
     }
 }

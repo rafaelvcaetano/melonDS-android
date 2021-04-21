@@ -18,8 +18,8 @@ class LayoutListActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val fragment = LayoutListFragment().apply {
-            setOnLayoutSelectedListener {
-                viewModel.setSelectedLayout(it)
+            setOnLayoutSelectedListener { id, _ ->
+                viewModel.setSelectedLayoutId(id)
             }
         }
 

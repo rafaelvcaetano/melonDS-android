@@ -11,11 +11,11 @@ import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import me.magnum.melonds.common.Schedulers
-import me.magnum.melonds.domain.model.*
-import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.uridelegates.UriHandler
+import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.*
+import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
 import me.magnum.melonds.ui.emulator.exceptions.SramLoadException
 import java.io.File
@@ -58,8 +58,12 @@ class EmulatorViewModel @ViewModelInject constructor(
         } else {
             // Load and observe ROM layout but switch to global layout if not found
             layoutsRepository.getLayout(romLayoutId)
-                    .flatMapObservable { layoutsRepository.observeLayout(romLayoutId) }
-                    .switchIfEmpty { getGlobalLayoutObservable() }
+                    .flatMapObservable {
+                        // Continue observing the ROM layout but if the observable completes, this means that it is no
+                        // longer available. From that point on, start observing the global layout
+                        layoutsRepository.observeLayout(romLayoutId).concatWith(getGlobalLayoutObservable())
+                    }
+                    .switchIfEmpty(getGlobalLayoutObservable())
         }
 
         layoutLoadDisposable?.dispose()
@@ -140,7 +144,7 @@ class EmulatorViewModel @ViewModelInject constructor(
                 .switchMap { layoutId ->
                     layoutsRepository.getLayout(layoutId)
                             .flatMapObservable { layoutsRepository.observeLayout(layoutId).startWith(it) }
-                            .switchIfEmpty { layoutsRepository.observeLayout(LayoutConfiguration.DEFAULT_ID) }
+                            .switchIfEmpty(layoutsRepository.observeLayout(LayoutConfiguration.DEFAULT_ID))
                 }
     }
 

@@ -13,6 +13,7 @@
     <string name="none">None</string>
     <string name="options">Options</string>
     <string name="preview">Preview</string>
+    <string name="undo">Undo</string>
 
     <string name="console_ds">DS</string>
     <string name="console_dsi">DSi (Experimental)</string>
@@ -173,6 +174,7 @@
     <string name="action_layouts_new">New layout</string>
     <string name="default_layout_name">Default</string>
     <string name="use_global_layout">Use global layout</string>
+    <string name="layout_deleted">Layout deleted</string>
 
     <string name="layout_editor">Layout editor</string>
     <string name="add_component">Add component</string>

@@ -12,7 +12,7 @@
         android:background="?attr/selectableItemBackground"
         android:clickable="true"
         android:focusable="true"
-        android:nextFocusRight="@+id/button_layout_edit">
+        android:nextFocusRight="@+id/button_layout_options">
 
     <RadioButton
             android:id="@+id/radio_layout_selected"
@@ -30,15 +30,12 @@
             android:ellipsize="end"
             tools:text="Default" />
 
-    <ImageView
-            android:id="@+id/button_layout_edit"
+    <ImageButton
+            android:id="@+id/button_layout_options"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:layout_marginStart="8dp"
-            android:contentDescription="@string/edit"
-            style="@style/Button.Ripple"
-            app:tint="?android:colorControlNormal"
-            app:srcCompat="@drawable/ic_edit"
+            android:layout_height="32dp"
+            android:paddingStart="10dp"
+            style="?android:attr/actionOverflowButtonStyle"
+            android:contentDescription="@string/options"
             android:nextFocusLeft="@+id/root_layout_item" />
 </LinearLayout>

@@ -3,11 +3,13 @@ package me.magnum.melonds.impl
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.subjects.PublishSubject
 import me.magnum.melonds.R
+import me.magnum.melonds.common.Deletable
 import me.magnum.melonds.domain.model.LayoutConfiguration
 import me.magnum.melonds.domain.model.UILayout
 import me.magnum.melonds.domain.repositories.LayoutsRepository
@@ -25,7 +27,7 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
     }
 
     private var areLayoutsLoaded = false
-    private val layouts = mutableListOf<LayoutConfiguration>()
+    private val layouts = mutableListOf<Deletable<LayoutConfiguration>>()
 
     private val layoutsChangedSubject = PublishSubject.create<Unit>()
     private val mGlobalLayoutPlaceholder by lazy {
@@ -44,17 +46,37 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
         return getCachedLayoutsOrLoad()
                 .toObservable()
                 .concatWith(layoutsChangedSubject.map { layouts })
+                .map {
+                    it.mapNotNull { deletableLayout ->
+                        if (deletableLayout.isDeleted) {
+                            null
+                        } else {
+                            deletableLayout.data
+                        }
+                    }
+                }
     }
 
     override fun getLayout(id: UUID): Maybe<LayoutConfiguration> {
         return getCachedLayoutsOrLoad().flatMapMaybe { layouts ->
-            val layout = layouts.firstOrNull { it.id == id }
-            if (layout != null) {
-                Maybe.just(layout)
+            val layoutDeletable = layouts.firstOrNull { !it.isDeleted && it.data.id == id }
+            if (layoutDeletable != null) {
+                Maybe.just(layoutDeletable.data)
             } else {
                 Maybe.empty()
             }
         }
+    }
+
+    override fun deleteLayout(layout: LayoutConfiguration): Completable {
+        return getCachedLayoutsOrLoad().doAfterSuccess {
+            layouts.find { !it.isDeleted && it.data.id == layout.id }?.let {
+                // Perform soft delete
+                it.isDeleted = true
+                layoutsChangedSubject.onNext(Unit)
+                saveLayouts()
+            }
+        }.ignoreElement()
     }
 
     override fun getGlobalLayoutPlaceholder(): LayoutConfiguration {
@@ -64,10 +86,13 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
     override fun observeLayout(id: UUID): Observable<LayoutConfiguration> {
         return getCachedLayoutsOrLoad()
                 .toObservable()
-                .map { it.find { layout -> layout.id == id } != null }
-                .concatWith(layoutsChangedSubject.map { layouts.find { it.id == id } != null })
-                .map {
-                    layouts.first { it.id == id }
+                .concatWith(layoutsChangedSubject.map { layouts })
+                .takeWhile { layouts ->
+                    // Take events while the observed layout is present
+                    layouts.any { !it.isDeleted && it.data.id == id }
+                }
+                .map { layouts ->
+                    layouts.first { !it.isDeleted && it.data.id == id }.data
                 }
     }
 
@@ -76,27 +101,27 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
             val newLayout = layout.copy(
                     id = UUID.randomUUID()
             )
-            layouts.add(newLayout)
+            layouts.add(Deletable(newLayout, false))
         } else {
-            val index = layouts.indexOfFirst { it.id == layout.id }
+            val index = layouts.indexOfFirst { it.data.id == layout.id }
             if (index >= 0) {
-                layouts[index] = layout
+                layouts[index] = Deletable(layout, false)
             } else {
-                layouts.add(layout)
+                layouts.add(Deletable(layout, false))
             }
         }
         layoutsChangedSubject.onNext(Unit)
         saveLayouts()
     }
 
-    private fun getCachedLayoutsOrLoad(): Single<List<LayoutConfiguration>> {
+    private fun getCachedLayoutsOrLoad(): Single<List<Deletable<LayoutConfiguration>>> {
         return if (areLayoutsLoaded) {
             Single.just(layouts)
         } else {
             loadLayouts().map {
                 layouts.clear()
-                layouts.add(buildDefaultLayout())
-                layouts.addAll(it)
+                layouts.add(Deletable(buildDefaultLayout(), false))
+                layouts.addAll(it.map { layout -> Deletable(layout, false) })
                 areLayoutsLoaded = true
                 layouts
             }
@@ -124,8 +149,14 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
         val dataFile = File(context.filesDir, DATA_FILE)
 
         try {
-            // Remove default layouts. They shouldn't be saved
-            val customLayouts = layouts.filter { it.type != LayoutConfiguration.LayoutType.DEFAULT }
+            val customLayouts = layouts.mapNotNull {
+                // Exclude deleted and default layouts. They shouldn't be saved
+                if (it.isDeleted || it.data.type == LayoutConfiguration.LayoutType.DEFAULT) {
+                    null
+                } else {
+                    it.data
+                }
+            }
             val layoutsJson = gson.toJson(customLayouts)
 
             OutputStreamWriter(FileOutputStream(dataFile)).use {

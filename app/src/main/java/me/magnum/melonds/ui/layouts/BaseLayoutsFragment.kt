@@ -3,14 +3,14 @@ package me.magnum.melonds.ui.layouts
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
+import android.widget.PopupMenu
 import androidx.core.view.isInvisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import dagger.hilt.android.AndroidEntryPoint
+import com.google.android.material.snackbar.Snackbar
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.FragmentLayoutListBinding
 import me.magnum.melonds.databinding.ItemLayoutBinding
@@ -19,11 +19,23 @@ import me.magnum.melonds.ui.layouteditor.LayoutEditorActivity
 import java.util.*
 
 abstract class BaseLayoutsFragment : Fragment() {
+    enum class LayoutSelectionReason {
+        /**
+         * The layout was selected by the user.
+         */
+        BY_USER,
+
+        /**
+         * The layout was selected as a fallback because the previous one became unavailable (most likely it was deleted).
+         */
+        BY_FALLBACK
+    }
+
     private val viewModel by lazy { getFragmentViewModel() }
     private lateinit var binding: FragmentLayoutListBinding
     private lateinit var layoutsAdapter: LayoutsAdapter
 
-    private var layoutSelectedListener: ((LayoutConfiguration) -> Unit)? = null
+    private var layoutSelectedListener: ((UUID?, LayoutSelectionReason) -> Unit)? = null
 
     abstract fun getFragmentViewModel(): BaseLayoutsViewModel
 
@@ -36,11 +48,19 @@ abstract class BaseLayoutsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        layoutsAdapter = LayoutsAdapter({
-            onLayoutSelected(it)
-        }) {
-            editLayout(it)
-        }
+        layoutsAdapter = LayoutsAdapter(object : LayoutInteractionListener {
+            override fun onLayoutSelected(layout: LayoutConfiguration) {
+                this@BaseLayoutsFragment.onLayoutSelected(layout)
+            }
+
+            override fun onEditLayout(layout: LayoutConfiguration) {
+                this@BaseLayoutsFragment.editLayout(layout)
+            }
+
+            override fun onDeleteLayout(layout: LayoutConfiguration) {
+                this@BaseLayoutsFragment.deleteLayout(layout)
+            }
+        })
 
         binding.listLayouts.apply {
             val listLayoutManager = LinearLayoutManager(context)
@@ -50,9 +70,14 @@ abstract class BaseLayoutsFragment : Fragment() {
         }
 
         layoutsAdapter.setSelectedLayoutId(viewModel.getSelectedLayoutId())
-        viewModel.getLayouts().observe(viewLifecycleOwner, Observer {
+        viewModel.getLayouts().observe(viewLifecycleOwner) {
+            // If the currently selected layout is not found in the layout list, select fallback layout
+            if (it.find { layout -> layout.id == viewModel.getSelectedLayoutId() } == null) {
+                selectFallbackLayout()
+            }
+
             layoutsAdapter.setLayouts(it)
-        })
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -67,12 +92,12 @@ abstract class BaseLayoutsFragment : Fragment() {
         return true
     }
 
-    fun setOnLayoutSelectedListener(listener: (LayoutConfiguration) -> Unit) {
+    fun setOnLayoutSelectedListener(listener: (UUID?, LayoutSelectionReason) -> Unit) {
         layoutSelectedListener = listener
     }
 
     private fun onLayoutSelected(layout: LayoutConfiguration) {
-        layoutSelectedListener?.invoke(layout)
+        layoutSelectedListener?.invoke(layout.id, LayoutSelectionReason.BY_USER)
     }
 
     private fun editLayout(layout: LayoutConfiguration) {
@@ -83,12 +108,39 @@ abstract class BaseLayoutsFragment : Fragment() {
         }
     }
 
+    private fun deleteLayout(layout: LayoutConfiguration) {
+        if (layout.id == viewModel.getSelectedLayoutId()) {
+            // Deleting the currently selected layout. Select fallback layout
+            selectFallbackLayout()
+        }
+
+        viewModel.deleteLayout(layout)
+        Snackbar.make(binding.root, R.string.layout_deleted, Snackbar.LENGTH_LONG).apply {
+            setAction(R.string.undo) {
+                viewModel.addLayout(layout)
+            }
+            show()
+        }
+    }
+
+    private fun selectFallbackLayout() {
+        val defaultLayoutId = getFallbackLayoutId()
+        viewModel.setSelectedLayoutId(defaultLayoutId)
+        layoutsAdapter.setSelectedLayoutId(defaultLayoutId)
+        layoutSelectedListener?.invoke(defaultLayoutId, LayoutSelectionReason.BY_FALLBACK)
+    }
+
     private fun createLayout() {
         val intent = Intent(requireContext(), LayoutEditorActivity::class.java)
         startActivity(intent)
     }
 
-    private class LayoutsAdapter(private val onLayoutSelected: (LayoutConfiguration) -> Unit, private val onEditLayout: (LayoutConfiguration) -> Unit) : RecyclerView.Adapter<LayoutsAdapter.ViewHolder>() {
+    /**
+     * Returns the ID of the fallback layout in case the user deletes the currently selected one.
+     */
+    abstract fun getFallbackLayoutId(): UUID?
+
+    private class LayoutsAdapter(private val layoutInteractionListener: LayoutInteractionListener) : RecyclerView.Adapter<LayoutsAdapter.ViewHolder>() {
         class ViewHolder(private val binding: ItemLayoutBinding) : RecyclerView.ViewHolder(binding.root) {
             lateinit var layoutConfiguration: LayoutConfiguration
                 private set
@@ -103,7 +155,7 @@ abstract class BaseLayoutsFragment : Fragment() {
                 layoutConfiguration = layout
                 binding.radioLayoutSelected.isChecked = isSelected
                 binding.textLayoutName.text = layout.name
-                binding.buttonLayoutEdit.isInvisible = layout.type != LayoutConfiguration.LayoutType.CUSTOM
+                binding.buttonLayoutOptions.isInvisible = layout.type != LayoutConfiguration.LayoutType.CUSTOM
             }
         }
 
@@ -111,9 +163,11 @@ abstract class BaseLayoutsFragment : Fragment() {
         private val layouts = mutableListOf<LayoutConfiguration>()
 
         fun setLayouts(newLayouts: List<LayoutConfiguration>) {
+            val result = DiffUtil.calculateDiff(LayoutsDiffUtilCallback(layouts, newLayouts))
+            result.dispatchUpdatesTo(this)
+
             layouts.clear()
             layouts.addAll(newLayouts)
-            notifyDataSetChanged()
         }
 
         fun setSelectedLayoutId(layoutId: UUID?) {
@@ -143,12 +197,22 @@ abstract class BaseLayoutsFragment : Fragment() {
                         setSelectedLayoutId(holder.layoutConfiguration.id)
 
                         if (holder.layoutConfiguration.id != previousSelectedLayoutId) {
-                            onLayoutSelected(holder.layoutConfiguration)
+                            layoutInteractionListener.onLayoutSelected(holder.layoutConfiguration)
                         }
                     }
                 }
-                binding.buttonLayoutEdit.setOnClickListener {
-                    onEditLayout(holder.layoutConfiguration)
+                binding.buttonLayoutOptions.setOnClickListener {
+                    val popup = PopupMenu(parent.context, binding.buttonLayoutOptions)
+                    popup.menuInflater.inflate(R.menu.layout_item_menu, popup.menu)
+                    popup.setOnMenuItemClickListener {
+                        when (it.itemId) {
+                            R.id.action_layout_edit -> layoutInteractionListener.onEditLayout(holder.layoutConfiguration)
+                            R.id.action_layout_delete -> layoutInteractionListener.onDeleteLayout(holder.layoutConfiguration)
+                            else -> return@setOnMenuItemClickListener false
+                        }
+                        return@setOnMenuItemClickListener true
+                    }
+                    popup.show()
                 }
             }
         }
@@ -161,5 +225,31 @@ abstract class BaseLayoutsFragment : Fragment() {
         override fun getItemCount(): Int {
             return layouts.size
         }
+
+        class LayoutsDiffUtilCallback(private val oldLayouts: List<LayoutConfiguration>, private val newLayouts: List<LayoutConfiguration>) : DiffUtil.Callback() {
+            override fun getOldListSize() = oldLayouts.size
+
+            override fun getNewListSize() = newLayouts.size
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                val oldBackground = oldLayouts[oldItemPosition]
+                val newBackground = newLayouts[newItemPosition]
+
+                return oldBackground.id == newBackground.id
+            }
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                val oldLayout = oldLayouts[oldItemPosition]
+                val newLayout = newLayouts[newItemPosition]
+
+                return oldLayout == newLayout
+            }
+        }
+    }
+
+    interface LayoutInteractionListener {
+        fun onLayoutSelected(layout: LayoutConfiguration)
+        fun onEditLayout(layout: LayoutConfiguration)
+        fun onDeleteLayout(layout: LayoutConfiguration)
     }
 }

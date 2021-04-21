@@ -5,9 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import io.reactivex.disposables.CompositeDisposable
 import me.magnum.melonds.domain.model.LayoutConfiguration
+import me.magnum.melonds.domain.repositories.LayoutsRepository
+import me.magnum.melonds.extensions.addTo
 import java.util.*
 
-abstract class BaseLayoutsViewModel : ViewModel() {
+abstract class BaseLayoutsViewModel(protected val layoutsRepository: LayoutsRepository) : ViewModel() {
     protected val disposables = CompositeDisposable()
     protected val layoutsLiveData = MutableLiveData<List<LayoutConfiguration>>()
 
@@ -15,8 +17,18 @@ abstract class BaseLayoutsViewModel : ViewModel() {
         return layoutsLiveData
     }
 
+    fun addLayout(layout: LayoutConfiguration) {
+        layoutsRepository.saveLayout(layout)
+    }
+
+    fun deleteLayout(layout: LayoutConfiguration) {
+        layoutsRepository.deleteLayout(layout)
+                .subscribe()
+                .addTo(disposables)
+    }
+
     abstract fun getSelectedLayoutId(): UUID?
-    abstract fun setSelectedLayout(layoutConfiguration: LayoutConfiguration)
+    abstract fun setSelectedLayoutId(id: UUID?)
 
     override fun onCleared() {
         super.onCleared()
