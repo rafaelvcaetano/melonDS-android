@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import me.magnum.melonds.domain.model.Background
+import me.magnum.melonds.utils.BitmapUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
@@ -90,7 +91,7 @@ class BackgroundThumbnailProvider(private val context: Context) {
             ((THUMBNAIL_SIZE * (options.outWidth / options.outHeight.toFloat())).toInt() to THUMBNAIL_SIZE)
         }
 
-        val sampleSize = calculateThumbnailSampleSize(options, thumbnailWidth, thumbnailHeight)
+        val sampleSize = BitmapUtils.calculateMinimumSampleSize(options.outWidth, options.outHeight, thumbnailWidth, thumbnailHeight)
         options.inJustDecodeBounds = false
         options.inSampleSize = sampleSize
 
@@ -102,25 +103,5 @@ class BackgroundThumbnailProvider(private val context: Context) {
             e.printStackTrace()
             null
         }
-    }
-
-    private fun calculateThumbnailSampleSize(options: BitmapFactory.Options, targetWidth: Int, targetHeight: Int): Int {
-        val width = options.outWidth
-        val height = options.outHeight
-        var inSampleSize = 1
-
-        if (height > targetHeight || width > targetWidth) {
-
-            val halfHeight: Int = height / 2
-            val halfWidth: Int = width / 2
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while (halfHeight / inSampleSize >= targetHeight && halfWidth / inSampleSize >= targetWidth) {
-                inSampleSize *= 2
-            }
-        }
-
-        return inSampleSize
     }
 }

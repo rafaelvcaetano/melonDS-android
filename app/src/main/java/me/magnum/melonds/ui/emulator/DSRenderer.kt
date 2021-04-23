@@ -1,20 +1,24 @@
 package me.magnum.melonds.ui.emulator
 
+import android.content.Context
+import android.graphics.BitmapFactory
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
+import android.opengl.GLUtils
 import android.opengl.Matrix
 import android.util.Log
-import me.magnum.melonds.domain.model.Rect
-import me.magnum.melonds.domain.model.RendererConfiguration
-import me.magnum.melonds.domain.model.VideoFiltering
-import me.magnum.melonds.utils.ShaderUtils.createDefaultShaderProgram
+import me.magnum.melonds.common.opengl.Shader
+import me.magnum.melonds.common.opengl.ShaderFactory
+import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.utils.BitmapUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+import kotlin.math.roundToInt
 
-class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLSurfaceView.Renderer {
+class DSRenderer(private var rendererConfiguration: RendererConfiguration, private val context: Context) : GLSurfaceView.Renderer {
     companion object {
         private const val TAG = "DSRenderer"
         private const val SCREEN_WIDTH = 256
@@ -23,24 +27,37 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
 
     private var rendererListener: RendererListener? = null
     private var mustUpdateConfiguration = false
+    private var isBackgroundPositionDirty = false
+    private var isBackgroundLoaded = false
 
+    private var backgroundTexture = 0
     private var mainTexture = 0
-    private var program = 0
-    private var l_MVP = 0
-    private var l_uv = 0
-    private var l_pos = 0
-    private var l_tex = 0
+
+    private lateinit var screenShader: Shader
+    private lateinit var backgroundShader: Shader
 
     private lateinit var mvpMatrix: FloatArray
     private lateinit var posBuffer: FloatBuffer
     private lateinit var uvBuffer: FloatBuffer
     private lateinit var texBuffer: ByteBuffer
 
+    private lateinit var backgroundPosBuffer: FloatBuffer
+    private lateinit var backgroundUvBuffer: FloatBuffer
+
+    // Lock used when manipulating background properties
+    private val backgroundLock = Any()
+    private var background: RuntimeBackground? = null
+    private var mustLoadBackground = false
     private var topScreenRect: Rect? = null
     private var bottomScreenRect: Rect? = null
 
     private var width = 0f
     private var height = 0f
+
+    private var backgroundWidth = 0
+    private var backgroundHeight = 0
+
+    var canRenderBackground = false
 
     fun setRendererListener(listener: RendererListener?) {
         rendererListener = listener
@@ -55,6 +72,16 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
         this.topScreenRect = topScreenRect
         this.bottomScreenRect = bottomScreenRect
         mustUpdateConfiguration = true
+        isBackgroundPositionDirty = true
+    }
+
+    fun setBackground(background: RuntimeBackground) {
+        synchronized(backgroundLock) {
+            this.background = background
+            mustLoadBackground = true
+            isBackgroundPositionDirty = true
+            isBackgroundLoaded = false
+        }
     }
 
     private fun screenXToViewportX(x: Int): Float {
@@ -71,28 +98,27 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
             return
         }
 
-        GLES20.glClearColor(0f, 0f, 0f, 0f)
+        GLES20.glClearColor(0f, 0f, 0f, 1f)
         GLES20.glDisable(GLES20.GL_CULL_FACE)
 
-        // Setup main texture
-        val texture = IntArray(1)
-        GLES20.glGenTextures(1, texture, 0)
-        mainTexture = texture[0]
+        // Setup textures
+        val textures = IntArray(2)
+        GLES20.glGenTextures(2, textures, 0)
+        mainTexture = textures[0]
+        backgroundTexture = textures[1]
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mainTexture)
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE.toFloat())
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE.toFloat())
 
-        // Create shader
-        program = createDefaultShaderProgram()
-        GLES20.glUseProgram(program)
-        l_MVP = GLES20.glGetUniformLocation(program, "MVP")
-        l_uv = GLES20.glGetAttribLocation(program, "vUV")
-        l_pos = GLES20.glGetAttribLocation(program, "vPos")
-        l_tex = GLES20.glGetUniformLocation(program, "tex")
-        GLES20.glEnableVertexAttribArray(l_MVP)
-        GLES20.glEnableVertexAttribArray(l_uv)
-        GLES20.glEnableVertexAttribArray(l_pos)
-        GLES20.glEnableVertexAttribArray(l_tex)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, backgroundTexture)
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE.toFloat())
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE.toFloat())
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+
+        // Create shaders
+        screenShader = ShaderFactory.createDefaultShaderProgram()
+        backgroundShader = ShaderFactory.createDefaultBackgroundShaderProgram()
 
         // Create MVP matrix
         mvpMatrix = FloatArray(16)
@@ -218,7 +244,6 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
         val filtering = when (rendererConfiguration.videoFiltering) {
             VideoFiltering.NONE -> GLES20.GL_NEAREST
             VideoFiltering.LINEAR -> GLES20.GL_LINEAR
-            else -> GLES20.GL_LINEAR
         }
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mainTexture)
@@ -231,6 +256,10 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
         this.height = height.toFloat()
         GLES20.glViewport(0, 0, width, height)
         mustUpdateConfiguration = true
+
+        synchronized(backgroundLock) {
+            isBackgroundPositionDirty = true
+        }
     }
 
     override fun onDrawFrame(gl: GL10) {
@@ -239,21 +268,249 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration) : GLS
             mustUpdateConfiguration = false
         }
 
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+
+        synchronized(backgroundLock) {
+            renderBackground()
+        }
+
         rendererListener?.updateFrameBuffer(texBuffer)
         posBuffer.position(0)
         uvBuffer.position(0)
         texBuffer.position(0)
 
         val indices = posBuffer.capacity() / 2
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+        screenShader.use()
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mainTexture)
         GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, texBuffer)
-        GLES20.glUniformMatrix4fv(l_MVP, 1, false, mvpMatrix, 0)
-        GLES20.glVertexAttribPointer(l_pos, 2, GLES20.GL_FLOAT, false, 2 * 4, posBuffer)
-        GLES20.glVertexAttribPointer(l_uv, 2, GLES20.GL_FLOAT, false, 2 * 4, uvBuffer)
-        GLES20.glUniform1i(l_tex, 0)
+        GLES20.glUniformMatrix4fv(screenShader.uniformMvp, 1, false, mvpMatrix, 0)
+        GLES20.glVertexAttribPointer(screenShader.attribPos, 2, GLES20.GL_FLOAT, false, 0, posBuffer)
+        GLES20.glVertexAttribPointer(screenShader.attribUv, 2, GLES20.GL_FLOAT, false, 0, uvBuffer)
+        GLES20.glUniform1i(screenShader.uniformTex, 0)
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, indices)
+    }
+
+    private fun renderBackground() {
+        if (mustLoadBackground) {
+            loadBackground()
+            mustLoadBackground = false
+        }
+
+        if (!isBackgroundLoaded || !canRenderBackground) {
+            return
+        }
+
+        if (isBackgroundPositionDirty) {
+            updateBackgroundPosition()
+        }
+
+        backgroundPosBuffer.position(0)
+        backgroundUvBuffer.position(0)
+
+        val indices = backgroundPosBuffer.capacity() / 2
+        backgroundShader.use()
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, backgroundTexture)
+        GLES20.glUniformMatrix4fv(backgroundShader.uniformMvp, 1, false, mvpMatrix, 0)
+        GLES20.glVertexAttribPointer(backgroundShader.attribPos, 2, GLES20.GL_FLOAT, false, 0, backgroundPosBuffer)
+        GLES20.glVertexAttribPointer(backgroundShader.attribUv, 2, GLES20.GL_FLOAT, false, 0, backgroundUvBuffer)
+        GLES20.glUniform1i(backgroundShader.uniformTex, 0)
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, indices)
+    }
+
+    private fun loadBackground() {
+        val background = background ?: return
+
+        background.background?.uri?.let {
+            val backgroundSampleSize = BitmapUtils.calculateMinimumSampleSize(context, it, width.roundToInt(), height.roundToInt())
+
+            context.contentResolver.openInputStream(it)?.let { stream ->
+                val options = BitmapFactory.Options().apply {
+                    inSampleSize = backgroundSampleSize
+                }
+
+                val bitmap = BitmapFactory.decodeStream(stream, null, options) ?: return
+                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, backgroundTexture)
+                GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+                bitmap.recycle()
+
+                backgroundWidth = bitmap.width
+                backgroundHeight = bitmap.height
+
+                val uvs = arrayOf(
+                        0f, 1f,
+                        0f, 0f,
+                        1f, 0f,
+                        0f, 1f,
+                        1f, 0f,
+                        1f, 1f
+                )
+
+                backgroundUvBuffer = ByteBuffer.allocateDirect(4 * uvs.size)
+                        .order(ByteOrder.nativeOrder())
+                        .asFloatBuffer()
+                        .put(uvs.toFloatArray())
+
+                isBackgroundLoaded = true
+                isBackgroundPositionDirty = true
+            }
+        }
+    }
+
+    private fun updateBackgroundPosition() {
+        val background = background ?: return
+        val coords = getBackgroundCoords(background.mode, backgroundWidth, backgroundHeight)
+
+        backgroundPosBuffer = ByteBuffer.allocateDirect(4 * coords.size)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer()
+                .put(coords.toFloatArray())
+
+        isBackgroundPositionDirty = false
+    }
+
+    private fun getBackgroundCoords(backgroundMode: BackgroundMode, backgroundWidth: Int, backgroundHeight: Int): Array<Float> {
+        val backgroundAspectRatio = backgroundWidth / backgroundHeight.toFloat()
+        val screenAspectRatio = width / height
+
+        return when (backgroundMode) {
+            BackgroundMode.STRETCH -> {
+                arrayOf(
+                        -1f, -1f,
+                        -1f, 1f,
+                        1f, 1f,
+                        -1f, -1f,
+                        1f, 1f,
+                        1f, -1f
+                )
+            }
+            BackgroundMode.FIT_CENTER -> {
+                if (screenAspectRatio > backgroundAspectRatio) {
+                    val scaleFactor = width / backgroundWidth
+                    val relativeBackgroundWidth = height / (backgroundHeight * scaleFactor) * 2f
+                    arrayOf(
+                            -(relativeBackgroundWidth / 2f), -1f,
+                            -(relativeBackgroundWidth / 2f), 1f,
+                            relativeBackgroundWidth / 2f, 1f,
+                            -(relativeBackgroundWidth / 2f), -1f,
+                            relativeBackgroundWidth / 2f, 1f,
+                            relativeBackgroundWidth / 2f, -1f
+                    )
+                } else {
+                    val scaleFactor = height / backgroundHeight
+                    val relativeBackgroundHeight = width / (backgroundWidth * scaleFactor) * 2f
+                    arrayOf(
+                            -1f, -(relativeBackgroundHeight / 2f),
+                            -1f, relativeBackgroundHeight / 2f,
+                            1f, relativeBackgroundHeight / 2f,
+                            -1f, -(relativeBackgroundHeight / 2f),
+                            1f, relativeBackgroundHeight / 2f,
+                            1f, -(relativeBackgroundHeight / 2f)
+                    )
+                }
+            }
+            BackgroundMode.FIT_LEFT -> {
+                if (screenAspectRatio > backgroundAspectRatio) {
+                    val scaleFactor = width / backgroundWidth
+                    val relativeBackgroundWidth = height / (backgroundHeight * scaleFactor) * 2f
+                    arrayOf(
+                            -1f, -1f,
+                            -1f, 1f,
+                            -1 + relativeBackgroundWidth, 1f,
+                            -1f, -1f,
+                            -1 + relativeBackgroundWidth, 1f,
+                            -1 + relativeBackgroundWidth, -1f
+                    )
+                } else {
+                    val scaleFactor = height / backgroundHeight
+                    val relativeBackgroundHeight = width / (backgroundWidth * scaleFactor) * 2f
+                    arrayOf(
+                            -1f, -(relativeBackgroundHeight / 2f),
+                            -1f, relativeBackgroundHeight / 2f,
+                            1f, relativeBackgroundHeight / 2f,
+                            -1f, -(relativeBackgroundHeight / 2f),
+                            1f, relativeBackgroundHeight / 2f,
+                            1f, -(relativeBackgroundHeight / 2f)
+                    )
+                }
+            }
+            BackgroundMode.FIT_RIGHT -> {
+                if (screenAspectRatio > backgroundAspectRatio) {
+                    val scaleFactor = width / backgroundWidth
+                    val relativeBackgroundWidth = height / (backgroundHeight * scaleFactor) * 2f
+                    arrayOf(
+                            1f - relativeBackgroundWidth, -1f,
+                            1f - relativeBackgroundWidth, 1f,
+                            1f, 1f,
+                            1f - relativeBackgroundWidth, -1f,
+                            1f, 1f,
+                            1f, -1f
+                    )
+                } else {
+                    val scaleFactor = height / backgroundHeight
+                    val relativeBackgroundHeight = width / (backgroundWidth * scaleFactor) * 2f
+                    arrayOf(
+                            -1f, -(relativeBackgroundHeight / 2f),
+                            -1f, relativeBackgroundHeight / 2f,
+                            1f, relativeBackgroundHeight / 2f,
+                            -1f, -(relativeBackgroundHeight / 2f),
+                            1f, relativeBackgroundHeight / 2f,
+                            1f, -(relativeBackgroundHeight / 2f)
+                    )
+                }
+            }
+            BackgroundMode.FIT_TOP -> {
+                if (screenAspectRatio > backgroundAspectRatio) {
+                    val scaleFactor = width / backgroundWidth
+                    val relativeBackgroundWidth = height / (backgroundHeight * scaleFactor) * 2f
+                    arrayOf(
+                            -(relativeBackgroundWidth / 2f), -1f,
+                            -(relativeBackgroundWidth / 2f), 1f,
+                            relativeBackgroundWidth / 2f, 1f,
+                            -(relativeBackgroundWidth / 2f), -1f,
+                            relativeBackgroundWidth / 2f, 1f,
+                            relativeBackgroundWidth / 2f, -1f
+                    )
+                } else {
+                    val scaleFactor = height / backgroundHeight
+                    val relativeBackgroundHeight = width / (backgroundWidth * scaleFactor) * 2f
+                    arrayOf(
+                            -1f, 1f - relativeBackgroundHeight,
+                            -1f, 1f,
+                            1f, 1f,
+                            -1f, 1f - relativeBackgroundHeight,
+                            1f, 1f,
+                            1f, 1f - relativeBackgroundHeight
+                    )
+                }
+            }
+            BackgroundMode.FIT_BOTTOM -> {
+                if (screenAspectRatio > backgroundAspectRatio) {
+                    val scaleFactor = width / backgroundWidth
+                    val relativeBackgroundWidth = height / (backgroundHeight * scaleFactor) * 2f
+                    arrayOf(
+                            -(relativeBackgroundWidth / 2f), -1f,
+                            -(relativeBackgroundWidth / 2f), 1f,
+                            relativeBackgroundWidth / 2f, 1f,
+                            -(relativeBackgroundWidth / 2f), -1f,
+                            relativeBackgroundWidth / 2f, 1f,
+                            relativeBackgroundWidth / 2f, -1f
+                    )
+                } else {
+                    val scaleFactor = height / backgroundHeight
+                    val relativeBackgroundHeight = width / (backgroundWidth * scaleFactor) * 2f
+                    arrayOf(
+                            -1f, -1f,
+                            -1f, -1f + relativeBackgroundHeight,
+                            1f, -1f + relativeBackgroundHeight,
+                            -1f, -1f,
+                            1f, -1f + relativeBackgroundHeight,
+                            1f, -1f
+                    )
+                }
+            }
+        }
     }
 
     interface RendererListener {

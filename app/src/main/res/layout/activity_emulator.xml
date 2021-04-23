@@ -8,11 +8,6 @@
     android:background="@android:color/black"
     tools:context=".ui.emulator.EmulatorActivity">
 
-    <ImageView
-        android:id="@+id/image_background"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
     <android.opengl.GLSurfaceView
         android:id="@+id/surfaceMain"
         android:layout_width="match_parent"

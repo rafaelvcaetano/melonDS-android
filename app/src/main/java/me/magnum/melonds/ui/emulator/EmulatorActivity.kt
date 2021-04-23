@@ -3,7 +3,6 @@ package me.magnum.melonds.ui.emulator
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -17,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.CompletableObserver
@@ -30,7 +28,6 @@ import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
-import me.magnum.melonds.extensions.setBackgroundMode
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
 import me.magnum.melonds.ui.emulator.input.*
@@ -140,13 +137,13 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         initializeDelegate()
 
         melonTouchHandler = MelonTouchHandler()
-        dsRenderer = DSRenderer(buildRendererConfiguration())
+        dsRenderer = DSRenderer(buildRendererConfiguration(), this)
         dsRenderer.setRendererListener(this)
         binding.surfaceMain.apply {
-            setZOrderOnTop(true)
             setEGLContextClientVersion(2)
-            setEGLConfigChooser(8, 8, 8, 8, 16, 0)
-            holder.setFormat(PixelFormat.RGBA_8888)
+            preserveEGLContextOnPause = true
+            /*setEGLConfigChooser(8, 8, 8, 8, 0, 0)
+            holder.setFormat(PixelFormat.RGBA_8888)*/
             setRenderer(dsRenderer)
         }
 
@@ -154,7 +151,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         binding.viewLayoutControls.setLayoutComponentViewBuilderFactory(RuntimeLayoutComponentViewBuilderFactory())
 
         viewModel.getBackground().observe(this) {
-            updateBackground(it)
+            dsRenderer.setBackground(it)
         }
         viewModel.getLayout().observe(this) {
             softInputVisible = true
@@ -219,8 +216,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                 .subscribe(object : CompletableObserver {
                     override fun onSubscribe(disposable: Disposable) {
                         runOnUiThread {
-                            binding.imageBackground.isInvisible = true
-                            binding.viewLayoutControls.isGone = true
+                            binding.viewLayoutControls.isInvisible = true
                             binding.textFps.isGone = true
                             binding.textLoading.isVisible = true
                         }
@@ -232,8 +228,8 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                             MelonEmulator.startEmulation()
                             setupFpsCounter()
                             binding.textLoading.visibility = View.GONE
-                            binding.imageBackground.isVisible = true
                             binding.viewLayoutControls.isVisible = true
+                            dsRenderer.canRenderBackground = true
                             emulatorReady = true
                         } catch (e: Exception) {
                             showLaunchFailDialog(e)
@@ -332,18 +328,6 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
         binding.viewLayoutControls.addOnLayoutChangeListener(layoutChangeListener)
         binding.viewLayoutControls.instantiateLayout(layoutConfiguration)
-    }
-
-    private fun updateBackground(background: RuntimeBackground) {
-        picasso.load(background.background?.uri).noFade().into(binding.imageBackground, object : Callback {
-            override fun onSuccess() {
-                binding.imageBackground.setBackgroundMode(background.mode)
-            }
-
-            override fun onError(e: java.lang.Exception?) {
-                e?.printStackTrace()
-            }
-        })
     }
 
     private fun updateSoftInput() {
