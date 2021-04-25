@@ -1,4 +1,4 @@
-package me.magnum.melonds.utils
+package me.magnum.melonds.impl
 
 import android.content.Context
 import android.graphics.Bitmap

@@ -14,7 +14,7 @@ import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.impl.*
-import me.magnum.melonds.utils.RomIconProvider
+import me.magnum.melonds.impl.RomIconProvider
 import javax.inject.Singleton
 
 @Module

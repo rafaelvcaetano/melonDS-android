@@ -16,7 +16,7 @@ import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.ui.Theme
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
-import me.magnum.melonds.utils.isSustainedPerformanceModeAvailable
+import me.magnum.melonds.extensions.isSustainedPerformanceModeAvailable
 import java.io.*
 import java.util.*
 

@@ -17,8 +17,8 @@ import me.magnum.melonds.R
 import me.magnum.melonds.common.contracts.FilePickerContract
 import me.magnum.melonds.domain.model.MicSource
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
-import me.magnum.melonds.utils.isMicrophonePermissionGranted
-import me.magnum.melonds.utils.isSustainedPerformanceModeAvailable
+import me.magnum.melonds.extensions.isMicrophonePermissionGranted
+import me.magnum.melonds.extensions.isSustainedPerformanceModeAvailable
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*

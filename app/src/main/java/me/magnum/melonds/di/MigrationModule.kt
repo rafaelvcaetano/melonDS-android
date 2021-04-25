@@ -11,7 +11,7 @@ import me.magnum.melonds.migrations.Migration14to15
 import me.magnum.melonds.migrations.Migration6to7
 import me.magnum.melonds.migrations.Migration7to8
 import me.magnum.melonds.migrations.Migrator
-import me.magnum.melonds.utils.RomIconProvider
+import me.magnum.melonds.impl.RomIconProvider
 
 @Module
 @InstallIn(ApplicationComponent::class)

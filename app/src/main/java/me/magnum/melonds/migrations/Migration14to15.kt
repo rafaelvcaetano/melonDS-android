@@ -1,6 +1,6 @@
 package me.magnum.melonds.migrations
 
-import me.magnum.melonds.utils.RomIconProvider
+import me.magnum.melonds.impl.RomIconProvider
 
 class Migration14to15(private val romIconProvider: RomIconProvider) : Migration {
     override val from = 14

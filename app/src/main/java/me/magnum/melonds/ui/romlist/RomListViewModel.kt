@@ -15,7 +15,7 @@ import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.extensions.addTo
-import me.magnum.melonds.utils.RomIconProvider
+import me.magnum.melonds.impl.RomIconProvider
 import java.text.Normalizer
 import java.util.*
 

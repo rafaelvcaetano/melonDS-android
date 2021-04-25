@@ -19,7 +19,7 @@ import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
-import me.magnum.melonds.utils.isMicrophonePermissionGranted
+import me.magnum.melonds.extensions.isMicrophonePermissionGranted
 import java.text.SimpleDateFormat
 
 class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activity) {

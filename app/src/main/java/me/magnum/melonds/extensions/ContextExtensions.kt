@@ -1,4 +1,4 @@
-package me.magnum.melonds.utils
+package me.magnum.melonds.extensions
 
 import android.Manifest
 import android.content.Context
