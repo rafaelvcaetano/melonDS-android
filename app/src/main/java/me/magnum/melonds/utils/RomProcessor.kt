@@ -4,13 +4,15 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import me.magnum.melonds.common.Crc32
 import me.magnum.melonds.domain.model.RomInfo
+import java.io.BufferedInputStream
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import kotlin.experimental.and
+import kotlin.math.min
 
 object RomProcessor {
-	fun getRomName(inputStream: InputStream): String {
+	fun getRomName(inputStream: BufferedInputStream): String {
 		// Banner offset is at header offset 0x68
 		inputStream.skip(0x68)
 		// Obtain the banner offset
@@ -18,7 +20,7 @@ object RomProcessor {
 		inputStream.read(offsetData)
 
 		val bannerOffset = byteArrayToInt(offsetData)
-		inputStream.skip(bannerOffset.toLong() + 576 - (0x68 + 4))
+		inputStream.skipStreamBytes(bannerOffset.toLong() + 576 - (0x68 + 4))
 		val titleData = ByteArray(128)
 		inputStream.read(titleData)
 		return String(titleData, StandardCharsets.UTF_16LE)
@@ -27,15 +29,15 @@ object RomProcessor {
 				.replace("\n", " ")
 	}
 
-	fun getRomIcon(inputStream: InputStream): Bitmap {
+	fun getRomIcon(inputStream: BufferedInputStream): Bitmap {
 		// Banner offset is at header offset 0x68
-		inputStream.skip(0x68)
+		inputStream.skipStreamBytes(0x68)
 		// Obtain the banner offset
 		val offsetData = ByteArray(4)
 		inputStream.read(offsetData)
 
 		val bannerOffset = byteArrayToInt(offsetData)
-		inputStream.skip(bannerOffset.toLong() + 32 - (0x68 + 4))
+		inputStream.skipStreamBytes(bannerOffset.toLong() + 32 - (0x68 + 4))
 		val tileData = ByteArray(512)
 		inputStream.read(tileData)
 
@@ -151,5 +153,22 @@ object RomProcessor {
 	private fun getRawColor(color: UShort, offset: Int): Byte {
 		// Fetch 5 bits at the given offset
 		return (color.toInt().shr(offset) and 0x1F).toByte()
+	}
+
+	/**
+	 * Custom made way to skip bytes in an input stream. When dealing with zipped files, the internal implementations (ZipInputStream and BufferedInputStream) don't work very
+	 * well. This one seems to work when dealing with a BufferedInputStream
+	 */
+	private fun BufferedInputStream.skipStreamBytes(bytes: Long) {
+		val buffer = ByteArray(1024)
+		var remaining = bytes
+		do {
+			val toRead = min(remaining, buffer.size.toLong())
+			val read = this.read(buffer, 0, toRead.toInt())
+			if (read <= 0) {
+				break
+			}
+			remaining -= read
+		} while (remaining > 0)
 	}
 }

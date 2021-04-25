@@ -28,9 +28,8 @@ class ZipRomFileProcessor(private val context: Context, private val ndsRomCache:
             context.contentResolver.openInputStream(uri)?.use {
                 val zipStream = ZipInputStream(it)
                 getNdsEntryInStream(zipStream)?.let {
-                    getRomNameInZipEntry(zipStream)?.let { romName ->
-                        Rom(romName, uri, RomConfig())
-                    }
+                    val romName = getRomNameInZipEntry(zipStream)
+                    Rom(romName, uri, RomConfig())
                 }
             }
         } catch (e: Exception) {
@@ -42,7 +41,7 @@ class ZipRomFileProcessor(private val context: Context, private val ndsRomCache:
     override fun getRomIcon(rom: Rom): Bitmap? {
         return try {
             getBestRomInputStream(rom)?.use {
-                RomProcessor.getRomIcon(it)
+                RomProcessor.getRomIcon(it.buffered())
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -83,7 +82,7 @@ class ZipRomFileProcessor(private val context: Context, private val ndsRomCache:
                 val zipStream = ZipInputStream(it)
                 try {
                     if (getNdsEntryInStream(zipStream) != null) {
-                        zipStream
+                        BufferedInputStream(zipStream)
                     } else {
                         zipStream.close()
                         null
@@ -106,8 +105,8 @@ class ZipRomFileProcessor(private val context: Context, private val ndsRomCache:
         return null
     }
 
-    private fun getRomNameInZipEntry(inputStream: ZipInputStream): String? {
-        return RomProcessor.getRomName(inputStream)
+    private fun getRomNameInZipEntry(inputStream: ZipInputStream): String {
+        return RomProcessor.getRomName(inputStream.buffered())
     }
 
     private fun extractRomFile(rom: Rom): Single<Uri> {
@@ -123,19 +122,7 @@ class ZipRomFileProcessor(private val context: Context, private val ndsRomCache:
                     val zipStream = ZipInputStream(it)
                     getNdsEntryInStream(zipStream)?.let {
                         ndsRomCache.cacheRom(rom) { fileOutputStream ->
-                            val bufferedInputStream = BufferedInputStream(zipStream)
-                            val bufferedOutputStream = BufferedOutputStream(fileOutputStream)
-                            val buffer = ByteArray(1024)
-
-                            do {
-                                val read = bufferedInputStream.read(buffer, 0, 1024)
-                                if (read <= 0) {
-                                    break
-                                }
-
-                                bufferedOutputStream.write(buffer, 0, read)
-                            } while (true)
-
+                            zipStream.copyTo(fileOutputStream)
                             emitter.onSuccess(DocumentFile.fromFile(cachedFile).uri)
                         }
                     } ?: emitter.onError(CouldNotFindNdsRomException())

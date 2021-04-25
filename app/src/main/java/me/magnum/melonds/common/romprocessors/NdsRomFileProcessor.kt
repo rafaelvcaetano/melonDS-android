@@ -24,7 +24,7 @@ class NdsRomFileProcessor(private val context: Context) : RomFileProcessor {
     override fun getRomIcon(rom: Rom): Bitmap? {
         return try {
             context.contentResolver.openInputStream(rom.uri)?.use { inputStream ->
-                RomProcessor.getRomIcon(inputStream)
+                RomProcessor.getRomIcon(inputStream.buffered())
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -49,7 +49,7 @@ class NdsRomFileProcessor(private val context: Context) : RomFileProcessor {
 
     private fun getRomName(uri: Uri): String? {
         return context.contentResolver.openInputStream(uri)?.use { inputStream ->
-            RomProcessor.getRomName(inputStream)
+            RomProcessor.getRomName(inputStream.buffered())
         }
     }
 }
