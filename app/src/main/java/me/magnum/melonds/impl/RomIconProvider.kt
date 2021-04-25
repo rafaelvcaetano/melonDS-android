@@ -32,7 +32,7 @@ class RomIconProvider(private val context: Context, private val romFileProcessor
         memoryIconCache.clear()
         val iconCacheDir = getIconCacheDir() ?: return
         if (iconCacheDir.isDirectory) {
-            iconCacheDir.delete()
+            iconCacheDir.deleteRecursively()
         }
     }
 
