@@ -6,5 +6,5 @@ data class UILayout(val backgroundId: UUID?, val backgroundMode: BackgroundMode,
     // Empty constructor allow parsing after new data is added to the class
     constructor() : this(emptyList())
 
-    constructor(components: List<PositionedLayoutComponent>): this(null, BackgroundMode.STRETCH, components)
+    constructor(components: List<PositionedLayoutComponent>): this(null, BackgroundMode.FIT_CENTER, components)
 }

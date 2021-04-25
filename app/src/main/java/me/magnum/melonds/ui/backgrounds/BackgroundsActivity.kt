@@ -150,7 +150,7 @@ class BackgroundsActivity : AppCompatActivity() {
                     viewModel.addBackground(background)
 
                     if (orientation != viewModel.getCurrentOrientationFilter()) {
-                        Toast.makeText(this, R.string.background_add_wrong_filter, Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, R.string.background_add_wrong_orientation, Toast.LENGTH_LONG).show()
                     }
                 }
                 .setNegativeButton(R.string.cancel, null)
