@@ -26,6 +26,7 @@ import com.google.android.flexbox.AlignItems
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.flexbox.JustifyContent
+import com.google.android.material.snackbar.Snackbar
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
@@ -158,10 +159,7 @@ class BackgroundsActivity : AppCompatActivity() {
     }
 
     private fun onBackgroundSelected(background: Background?) {
-        val intent = Intent().apply {
-            putExtra(KEY_SELECTED_BACKGROUND_ID, background?.id?.toString())
-        }
-        setResult(Activity.RESULT_OK, intent)
+        setSelectedBackgroundId(background?.id)
         finish()
     }
 
@@ -174,7 +172,30 @@ class BackgroundsActivity : AppCompatActivity() {
     }
 
     private fun onBackgroundDelete(background: Background) {
+        if (background.id == viewModel.getSelectedBackgroundId().value) {
+            fallbackToDefaultBackground()
+        }
+
         viewModel.deleteBackground(background)
+
+        Snackbar.make(binding.root, R.string.background_deleted, Snackbar.LENGTH_LONG).apply {
+            setAction(R.string.undo) {
+                viewModel.addBackground(background)
+            }
+            show()
+        }
+    }
+
+    private fun fallbackToDefaultBackground() {
+        backgroundListAdapter.setSelectedBackgroundId(null)
+        setSelectedBackgroundId(null)
+    }
+
+    private fun setSelectedBackgroundId(backgroundId: UUID?) {
+        val intent = Intent().apply {
+            putExtra(KEY_SELECTED_BACKGROUND_ID, backgroundId?.toString())
+        }
+        setResult(Activity.RESULT_OK, intent)
     }
 
     private class BackgroundAdapter(

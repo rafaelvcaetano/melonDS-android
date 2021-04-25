@@ -8,6 +8,7 @@ import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.subjects.PublishSubject
+import me.magnum.melonds.common.Deletable
 import me.magnum.melonds.domain.model.Background
 import me.magnum.melonds.domain.repositories.BackgroundRepository
 import java.io.File
@@ -24,20 +25,32 @@ class InternalBackgroundsRepository(private val context: Context, private val gs
     }
 
     private var areBackgroundsLoaded = false
-    private val backgrounds = mutableListOf<Background>()
+    private val backgrounds = mutableListOf<Deletable<Background>>()
     private val backgroundsChangedSubject = PublishSubject.create<Unit>()
 
     override fun getBackgrounds(): Observable<List<Background>> {
         return getCachedBackgroundsOrLoad()
                 .toObservable()
                 .concatWith(backgroundsChangedSubject.map { backgrounds })
+                .map {
+                    it.mapNotNull { deletableBackground ->
+                        if (deletableBackground.isDeleted) {
+                            null
+                        } else {
+                            deletableBackground.data
+                        }
+                    }
+                }
     }
 
     override fun getBackground(id: UUID): Maybe<Background> {
         return getCachedBackgroundsOrLoad().flatMapMaybe { backgrounds ->
-            backgrounds.find { it.id == id}?.let { background ->
-                Maybe.just(background)
-            } ?: Maybe.empty()
+            val deletableBackground = backgrounds.firstOrNull { !it.isDeleted && it.data.id == id }
+            if (deletableBackground == null) {
+                Maybe.empty()
+            } else {
+                Maybe.just(deletableBackground.data)
+            }
         }
     }
 
@@ -46,13 +59,13 @@ class InternalBackgroundsRepository(private val context: Context, private val gs
             val newBackground = background.copy(
                     id = UUID.randomUUID()
             )
-            backgrounds.add(newBackground)
+            backgrounds.add(Deletable(newBackground, false))
         } else {
-            val index = backgrounds.indexOfFirst { it.id == background.id }
+            val index = backgrounds.indexOfFirst { it.data.id == background.id }
             if (index >= 0) {
-                backgrounds[index] = background
+                backgrounds[index] = Deletable(background, false)
             } else {
-                backgrounds.add(background)
+                backgrounds.add(Deletable(background, false))
             }
         }
         backgroundsChangedSubject.onNext(Unit)
@@ -61,21 +74,21 @@ class InternalBackgroundsRepository(private val context: Context, private val gs
 
     override fun deleteBackground(background: Background): Completable {
         return getCachedBackgroundsOrLoad().doAfterSuccess {
-            backgrounds.removeAll {
-                it.id == background.id
+            backgrounds.find { !it.isDeleted && it.data.id == background.id }?.let {
+                it.isDeleted = true
+                backgroundsChangedSubject.onNext(Unit)
+                saveBackgrounds()
             }
-            backgroundsChangedSubject.onNext(Unit)
-            saveBackgrounds()
         }.ignoreElement()
     }
 
-    private fun getCachedBackgroundsOrLoad(): Single<List<Background>> {
+    private fun getCachedBackgroundsOrLoad(): Single<List<Deletable<Background>>> {
         return if (areBackgroundsLoaded) {
             Single.just(backgrounds)
         } else {
             loadBackgrounds().map {
                 backgrounds.clear()
-                backgrounds.addAll(it)
+                backgrounds.addAll(it.map { background -> Deletable(background, false) })
                 areBackgroundsLoaded = true
                 backgrounds
             }
@@ -103,7 +116,15 @@ class InternalBackgroundsRepository(private val context: Context, private val gs
         val dataFile = File(context.filesDir, DATA_FILE)
 
         try {
-            val layoutsJson = gson.toJson(backgrounds)
+            // Exclude deleted backgrounds
+            val backgroundsToSave = backgrounds.mapNotNull {
+                if (it.isDeleted) {
+                    null
+                } else {
+                    it.data
+                }
+            }
+            val layoutsJson = gson.toJson(backgroundsToSave)
 
             OutputStreamWriter(FileOutputStream(dataFile)).use {
                 it.write(layoutsJson)

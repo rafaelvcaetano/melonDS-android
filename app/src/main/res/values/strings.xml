@@ -197,6 +197,7 @@
     <string name="backgrounds">Backgrounds</string>
     <string name="action_backgrounds_new">New background</string>
     <string name="background_name">Background name</string>
+    <string name="background_deleted">Background deleted</string>
     <string name="background_add_wrong_orientation">Background added but it\'s not visible for the selected orientation.</string>
 
     <string-array name="theme_options" tools:ignore="InconsistentArrays">
