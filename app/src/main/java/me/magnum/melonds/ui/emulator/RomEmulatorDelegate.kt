@@ -12,14 +12,13 @@ import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.extensions.isMicrophonePermissionGranted
 import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
-import me.magnum.melonds.extensions.isMicrophonePermissionGranted
 import java.text.SimpleDateFormat
 
 class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activity) {
@@ -77,8 +76,9 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
                     val gbaCartPath = rom.config.gbaCartPath
                     val gbaSavePath = rom.config.gbaSavePath
                     val loadResult = MelonEmulator.loadRom(romPath, sramPath, !showBios, rom.config.loadGbaCart(), gbaCartPath, gbaSavePath)
-                    if (loadResult.isTerminal)
+                    if (loadResult.isTerminal) {
                         throw EmulatorActivity.RomLoadFailedException(loadResult)
+                    }
 
                     MelonEmulator.setupCheats(cheats.toTypedArray())
                     emitter.onSuccess(loadResult)
@@ -129,7 +129,11 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
     }
 
     override fun getCrashContext(): Any {
-        val sramUri = activity.viewModel.getRomSramFile(loadedRom)
+        val sramUri = try {
+            activity.viewModel.getRomSramFile(loadedRom)
+        } catch (e: Exception) {
+            null
+        }
         return RomCrashContext(getEmulatorConfiguration(), activity.viewModel.getRomSearchDirectory()?.toString(), loadedRom.uri, sramUri)
     }
 
@@ -163,7 +167,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
                 liveData.removeObserver(observer!!)
             }
             liveData.observeForever(observer)
-        }.subscribeOn(AndroidSchedulers.mainThread()).observeOn(Schedulers.io())
+        }.subscribeOn(activity.schedulers.uiThreadScheduler).observeOn(activity.schedulers.backgroundThreadScheduler)
     }
 
     private fun pickSaveStateSlot(onSlotPicked: (SaveStateSlot) -> Unit) {
@@ -191,5 +195,5 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
         cheatsLauncher.launch(intent)
     }
 
-    private data class RomCrashContext(val emulatorConfiguration: EmulatorConfiguration, val romSearchDirUri: String?, val romUri: Uri, val sramUri: Uri)
+    private data class RomCrashContext(val emulatorConfiguration: EmulatorConfiguration, val romSearchDirUri: String?, val romUri: Uri, val sramUri: Uri?)
 }
