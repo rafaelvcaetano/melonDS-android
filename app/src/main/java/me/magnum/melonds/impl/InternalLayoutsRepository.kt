@@ -137,8 +137,8 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
             }
 
             try {
-                val roms = gson.fromJson<List<LayoutConfiguration>>(FileReader(dataFile), layoutListType)
-                emitter.onSuccess(roms ?: emptyList())
+                val layouts = gson.fromJson<List<LayoutConfiguration>>(FileReader(dataFile), layoutListType)
+                emitter.onSuccess(layouts ?: emptyList())
             } catch (_: Exception) {
                 emitter.onSuccess(emptyList())
             }
