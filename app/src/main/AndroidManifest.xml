@@ -47,10 +47,6 @@
             android:label="@string/key_mapping"
             android:parentActivityName=".ui.settings.SettingsActivity"
             android:exported="false" >
-            <intent-filter>
-                <action android:name="me.magnum.melonds.SETUP_INPUT" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".ui.shortcutsetup.ShortcutSetupActivity"
@@ -71,10 +67,6 @@
             android:label="@string/layouts"
             android:parentActivityName=".ui.settings.SettingsActivity"
             android:exported="false">
-            <intent-filter>
-                <action android:name="me.magnum.melonds.SETUP_LAYOUTS" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".ui.layouts.LayoutSelectorActivity"
@@ -98,6 +90,7 @@
         <provider
                 android:name="androidx.work.impl.WorkManagerInitializer"
                 android:authorities="${applicationId}.workmanager-init"
+                android:exported="false"
                 tools:node="remove" />
     </application>
 </manifest>

@@ -153,14 +153,12 @@
         android:title="@string/input">
 
         <Preference
-            android:title="@string/key_mapping">
-            <intent android:action="me.magnum.melonds.SETUP_INPUT" />
-        </Preference>
+            android:key="input_key_mapping"
+            android:title="@string/key_mapping" />
 
         <Preference
-                android:title="@string/layouts">
-            <intent android:action="me.magnum.melonds.SETUP_LAYOUTS" />
-        </Preference>
+            android:key="input_layouts"
+            android:title="@string/layouts" />
 
         <SwitchPreference
             android:key="input_show_soft"

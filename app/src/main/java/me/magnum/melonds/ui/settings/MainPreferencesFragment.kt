@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.settings
 
 import android.Manifest
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -19,6 +20,8 @@ import me.magnum.melonds.domain.model.MicSource
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import me.magnum.melonds.extensions.isMicrophonePermissionGranted
 import me.magnum.melonds.extensions.isSustainedPerformanceModeAvailable
+import me.magnum.melonds.ui.inputsetup.InputSetupActivity
+import me.magnum.melonds.ui.layouts.LayoutListActivity
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
@@ -53,6 +56,8 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
         val jitPreference = findPreference<SwitchPreference>("enable_jit")!!
         val importCheatsPreference = findPreference<Preference>("cheats_import")!!
         micSourcePreference = findPreference("mic_source")!!
+        val keyMappingPreference = findPreference<Preference>("input_key_mapping")!!
+        val layoutsPreference = findPreference<Preference>("input_layouts")!!
 
         helper.setupStoragePickerPreference(findPreference("rom_search_dirs")!!)
         helper.setupStoragePickerPreference(findPreference("sram_dir")!!)
@@ -85,6 +90,16 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
             } else {
                 true
             }
+        }
+        keyMappingPreference.setOnPreferenceClickListener {
+            val intent = Intent(requireContext(), InputSetupActivity::class.java)
+            startActivity(intent)
+            true
+        }
+        layoutsPreference.setOnPreferenceClickListener {
+            val intent = Intent(requireContext(), LayoutListActivity::class.java)
+            startActivity(intent)
+            true
         }
         importCheatsPreference.setOnPreferenceClickListener {
             handleCheatsImport()
