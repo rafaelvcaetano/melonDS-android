@@ -18,7 +18,6 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
-import io.reactivex.CompletableObserver
 import io.reactivex.disposables.Disposable
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
@@ -95,7 +94,9 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
 
         override fun onPausePressed() {
-            pauseEmulation()
+            if (emulatorReady) {
+                pauseEmulation()
+            }
         }
 
         override fun onFastForwardPressed() {
@@ -123,6 +124,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         setupFpsCounter()
     }
 
+    private var emulatorSetupDisposable: Disposable? = null
     private var emulatorReady = false
     private var emulatorPaused = false
     private var softInputVisible = true
@@ -211,36 +213,31 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         val setupObservable = delegate.getEmulatorSetupObservable(intent.extras)
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        setupObservable.subscribeOn(schedulers.backgroundThreadScheduler)
+        emulatorSetupDisposable = setupObservable.subscribeOn(schedulers.backgroundThreadScheduler)
                 .observeOn(schedulers.uiThreadScheduler)
-                .subscribe(object : CompletableObserver {
-                    override fun onSubscribe(disposable: Disposable) {
-                        runOnUiThread {
-                            binding.viewLayoutControls.isInvisible = true
-                            binding.textFps.isGone = true
-                            binding.textLoading.isVisible = true
-                        }
+                .doOnSubscribe {
+                    runOnUiThread {
+                        binding.viewLayoutControls.isInvisible = true
+                        binding.textFps.isGone = true
+                        binding.textLoading.isVisible = true
                     }
-
-                    override fun onComplete() {
-                        try {
-                            setupSustainedPerformanceMode()
-                            MelonEmulator.startEmulation()
-                            setupFpsCounter()
-                            binding.textLoading.visibility = View.GONE
-                            binding.viewLayoutControls.isVisible = true
-                            dsRenderer.canRenderBackground = true
-                            emulatorReady = true
-                        } catch (e: Exception) {
-                            showLaunchFailDialog(e)
-                        }
-                    }
-
-                    override fun onError(e: Throwable) {
-                        e.printStackTrace()
+                }
+                .subscribe({
+                    try {
+                        setupSustainedPerformanceMode()
+                        MelonEmulator.startEmulation()
+                        setupFpsCounter()
+                        binding.textLoading.visibility = View.GONE
+                        binding.viewLayoutControls.isVisible = true
+                        dsRenderer.canRenderBackground = true
+                        emulatorReady = true
+                    } catch (e: Exception) {
                         showLaunchFailDialog(e)
                     }
-                })
+                }) {
+                    it.printStackTrace()
+                    showLaunchFailDialog(it)
+                }
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -407,7 +404,11 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     override fun onBackPressed() {
-        this.pauseEmulation()
+        if (emulatorReady) {
+            this.pauseEmulation()
+        } else {
+            super.onBackPressed()
+        }
     }
 
     fun pauseEmulation() {
@@ -519,9 +520,11 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     override fun onDestroy() {
-        if (emulatorReady)
+        if (emulatorReady) {
             MelonEmulator.stopEmulation()
+        }
 
+        emulatorSetupDisposable?.dispose()
         super.onDestroy()
     }
 }

@@ -22,6 +22,7 @@ pthread_t emuThread;
 pthread_mutex_t emuThreadMutex;
 pthread_cond_t emuThreadCond;
 
+bool started = false;
 bool stop;
 bool paused;
 std::atomic_bool isThreadReallyPaused = false;
@@ -54,6 +55,7 @@ Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jo
     fileHandler = new UriFileHandler(jniEnvHandler, androidUriFileHandler);
 
     MelonDSAndroid::setup(finalEmulatorConfiguration, assetManager, fileHandler);
+    paused = false;
 }
 
 JNIEXPORT void JNICALL
@@ -166,7 +168,6 @@ JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_startEmulation(JNIEnv* env, jobject thiz)
 {
     stop = false;
-    paused = false;
     isThreadReallyPaused = false;
     limitFps = true;
     targetFps = 60;
@@ -176,6 +177,8 @@ Java_me_magnum_melonds_MelonEmulator_startEmulation(JNIEnv* env, jobject thiz)
     pthread_cond_init(&emuThreadCond, NULL);
     pthread_create(&emuThread, NULL, emulate, NULL);
     pthread_setname_np(emuThread, "EmulatorThread");
+
+    started = true;
 }
 
 JNIEXPORT void JNICALL
@@ -194,10 +197,17 @@ Java_me_magnum_melonds_MelonEmulator_getFPS(JNIEnv* env, jobject thiz)
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_pauseEmulation(JNIEnv* env, jobject thiz)
 {
-    pthread_mutex_lock(&emuThreadMutex);
-    if (!stop)
+    if (started) {
+        pthread_mutex_lock(&emuThreadMutex);
+    }
+
+    if (!stop) {
         paused = true;
-    pthread_mutex_unlock(&emuThreadMutex);
+    }
+
+    if (started) {
+        pthread_mutex_unlock(&emuThreadMutex);
+    }
 
     MelonDSAndroid::pause();
 }
@@ -205,12 +215,20 @@ Java_me_magnum_melonds_MelonEmulator_pauseEmulation(JNIEnv* env, jobject thiz)
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_resumeEmulation(JNIEnv* env, jobject thiz)
 {
-    pthread_mutex_lock(&emuThreadMutex);
+    if (started) {
+        pthread_mutex_lock(&emuThreadMutex);
+    }
+
     if (!stop) {
         paused = false;
-        pthread_cond_broadcast(&emuThreadCond);
+        if (started) {
+            pthread_cond_broadcast(&emuThreadCond);
+        }
     }
-    pthread_mutex_unlock(&emuThreadMutex);
+
+    if (started) {
+        pthread_mutex_unlock(&emuThreadMutex);
+    }
 
     MelonDSAndroid::resume();
 }
@@ -260,6 +278,7 @@ Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
     pthread_mutex_lock(&emuThreadMutex);
     stop = true;
     paused = false;
+    started = false;
     pthread_cond_broadcast(&emuThreadCond);
     pthread_mutex_unlock(&emuThreadMutex);
 
