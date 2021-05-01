@@ -3,25 +3,21 @@ package me.magnum.melonds.common.romprocessors
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import androidx.documentfile.provider.DocumentFile
 import io.reactivex.Single
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.impl.NdsRomCache
 import me.magnum.melonds.utils.RomProcessor
-import java.io.*
+import java.io.BufferedInputStream
+import java.io.InputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 class ZipRomFileProcessor(private val context: Context, private val ndsRomCache: NdsRomCache) : RomFileProcessor {
-    companion object {
-        private const val EXTRACTED_ROMS_CACHE_DIR = "extracted_roms"
-    }
-
-    private class CouldNotCreateRomCacheDirectoryException : Exception("Failed to create ROM cache directory")
     private class CouldNotOpenZipFileException : Exception("Failed to open ZIP file for extraction")
     private class CouldNotFindNdsRomException : Exception("Failed to find an NDS ROM to extract")
+    private class CouldNotFindExtractedFileException : Exception("Failed to find extracted NDS ROM file")
 
     override fun getRomFromUri(uri: Uri): Rom? {
         return try {
@@ -111,23 +107,35 @@ class ZipRomFileProcessor(private val context: Context, private val ndsRomCache:
 
     private fun extractRomFile(rom: Rom): Single<Uri> {
         return Single.create { emitter ->
-            val romCacheDir = context.externalCacheDir?.let { File(it, EXTRACTED_ROMS_CACHE_DIR) }
-            if (romCacheDir == null || !(romCacheDir.isDirectory || romCacheDir.mkdirs())) {
-                emitter.onError(CouldNotCreateRomCacheDirectoryException())
-            } else {
-                val romHash = rom.uri.hashCode().toString()
-                val cachedFile = File(romCacheDir, romHash)
+            context.contentResolver.openInputStream(rom.uri)?.use {
+                val zipStream = ZipInputStream(it)
+                getNdsEntryInStream(zipStream)?.let {
+                    ndsRomCache.cacheRom(rom) { fileOutputStream ->
+                        val buffer = ByteArray(1024)
 
-                context.contentResolver.openInputStream(rom.uri)?.use {
-                    val zipStream = ZipInputStream(it)
-                    getNdsEntryInStream(zipStream)?.let {
-                        ndsRomCache.cacheRom(rom) { fileOutputStream ->
-                            zipStream.copyTo(fileOutputStream)
-                            emitter.onSuccess(DocumentFile.fromFile(cachedFile).uri)
+                        do {
+                            val read = zipStream.read(buffer, 0, 1024)
+                            if (read <= 0) {
+                                break
+                            }
+
+                            fileOutputStream.write(buffer, 0, read)
+                        } while (!emitter.isDisposed)
+
+                        // If the operation was disposed, then the process did not runny successfully
+                        !emitter.isDisposed
+                    }
+
+                    if (!emitter.isDisposed) {
+                        val cachedRomUri = ndsRomCache.getCachedRomFile(rom)
+                        if (cachedRomUri == null) {
+                            emitter.onError(CouldNotFindExtractedFileException())
+                        } else {
+                            emitter.onSuccess(cachedRomUri)
                         }
-                    } ?: emitter.onError(CouldNotFindNdsRomException())
-                } ?: emitter.onError(CouldNotOpenZipFileException())
-            }
+                    }
+                } ?: emitter.onError(CouldNotFindNdsRomException())
+            } ?: emitter.onError(CouldNotOpenZipFileException())
         }
     }
 }
