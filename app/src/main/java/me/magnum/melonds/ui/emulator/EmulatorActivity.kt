@@ -27,7 +27,9 @@ import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
+import me.magnum.melonds.ui.cheats.CheatsActivity
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
 import me.magnum.melonds.ui.emulator.input.*
 import me.magnum.melonds.ui.settings.SettingsActivity
@@ -123,8 +125,13 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         setupSustainedPerformanceMode()
         setupFpsCounter()
     }
+    private val cheatsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        cheatsClosedListener?.invoke()
+        cheatsClosedListener = null
+    }
 
     private var emulatorSetupDisposable: Disposable? = null
+    private var cheatsClosedListener: (() -> Unit)? = null
     private var emulatorReady = false
     private var emulatorPaused = false
     private var softInputVisible = true
@@ -185,6 +192,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                         MelonEmulator.stopEmulation()
                         emulatorPaused = false
                         setIntent(intent)
+                        delegate.dispose()
                         initializeDelegate()
                         launchEmulator()
                     }
@@ -466,6 +474,15 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         settingsLauncher.launch(Intent(settingsIntent))
     }
 
+    fun openCheats(rom: Rom, onCheatsClosed: () -> Unit) {
+        cheatsClosedListener = onCheatsClosed
+        val romInfo = viewModel.getRomInfo(rom) ?: return
+
+        val intent = Intent(this, CheatsActivity::class.java)
+        intent.putExtra(CheatsActivity.KEY_ROM_INFO, RomInfoParcelable.fromRomInfo(romInfo))
+        cheatsLauncher.launch(intent)
+    }
+
     private fun showLaunchFailDialog(e: Throwable) {
         AlertDialog.Builder(this)
                 .setTitle(R.string.error_load_rom)
@@ -525,6 +542,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
 
         emulatorSetupDisposable?.dispose()
+        delegate.dispose()
         super.onDestroy()
     }
 }

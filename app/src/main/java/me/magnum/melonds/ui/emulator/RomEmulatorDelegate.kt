@@ -1,10 +1,8 @@
 package me.magnum.melonds.ui.emulator
 
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.Observer
@@ -12,13 +10,12 @@ import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.extensions.isMicrophonePermissionGranted
-import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
-import me.magnum.melonds.ui.cheats.CheatsActivity
 import java.text.SimpleDateFormat
 
 class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activity) {
@@ -32,14 +29,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
     }
 
     private lateinit var loadedRom: Rom
-
-    private val cheatsLauncher = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        loadRomCheats(loadedRom).observeOn(AndroidSchedulers.mainThread())
-                .subscribe {
-                    MelonEmulator.setupCheats(it.toTypedArray())
-                    activity.resumeEmulation()
-                }
-    }
+    private var cheatsLoadDisposable: Disposable? = null
 
     override fun getEmulatorSetupObservable(extras: Bundle?): Completable {
         val romParcelable = extras?.getParcelable(EmulatorActivity.KEY_ROM) as RomParcelable?
@@ -137,6 +127,10 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
         return RomCrashContext(getEmulatorConfiguration(), activity.viewModel.getRomSearchDirectory()?.toString(), loadedRom.uri, sramUri)
     }
 
+    override fun dispose() {
+        cheatsLoadDisposable?.dispose()
+    }
+
     private fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {
         val emulatorConfiguration = activity.viewModel.getEmulatorConfigurationForRom(rom)
 
@@ -188,11 +182,14 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
     }
 
     private fun openCheatsActivity() {
-        val romInfo = activity.viewModel.getRomInfo(loadedRom) ?: return
-
-        val intent = Intent(activity, CheatsActivity::class.java)
-        intent.putExtra(CheatsActivity.KEY_ROM_INFO, RomInfoParcelable.fromRomInfo(romInfo))
-        cheatsLauncher.launch(intent)
+        activity.openCheats(loadedRom) {
+            cheatsLoadDisposable?.dispose()
+            cheatsLoadDisposable = loadRomCheats(loadedRom).observeOn(AndroidSchedulers.mainThread())
+                    .subscribe {
+                        MelonEmulator.setupCheats(it.toTypedArray())
+                        activity.resumeEmulation()
+                    }
+        }
     }
 
     private data class RomCrashContext(val emulatorConfiguration: EmulatorConfiguration, val romSearchDirUri: String?, val romUri: Uri, val sramUri: Uri?)
