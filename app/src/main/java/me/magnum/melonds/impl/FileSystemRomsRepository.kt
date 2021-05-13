@@ -137,7 +137,12 @@ class FileSystemRomsRepository(
                 })
     }
 
-    fun deleteCachedRomData() {
+    override fun invalidateRoms() {
+        if (areRomsLoaded) {
+            roms.clear()
+            areRomsLoaded = false
+        }
+
         val cacheFile = File(context.filesDir, ROM_DATA_FILE)
         if (cacheFile.isFile) {
             cacheFile.delete()

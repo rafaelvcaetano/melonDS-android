@@ -7,7 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
-import me.magnum.melonds.impl.FileSystemRomsRepository
+import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.impl.RomIconProvider
 import me.magnum.melonds.migrations.*
 
@@ -15,7 +15,7 @@ import me.magnum.melonds.migrations.*
 @InstallIn(ApplicationComponent::class)
 object MigrationModule {
     @Provides
-    fun provideMigration(@ApplicationContext context: Context, sharedPreferences: SharedPreferences, romIconProvider: RomIconProvider, romsRepository: FileSystemRomsRepository): Migrator {
+    fun provideMigration(@ApplicationContext context: Context, sharedPreferences: SharedPreferences, romIconProvider: RomIconProvider, romsRepository: RomsRepository): Migrator {
         return Migrator(context, sharedPreferences).apply {
             registerMigration(Migration6to7(sharedPreferences))
             registerMigration(Migration7to8(context))
