@@ -25,8 +25,4 @@ class CompositeUriHandler(context: Context) : UriHandler {
     override fun getUriTreeDocument(uri: Uri): DocumentFile? {
         return delegates[uri.scheme]?.getUriTreeDocument(uri)
     }
-
-    override fun getParentUri(uri: Uri): Uri? {
-        return delegates[uri.scheme]?.getParentUri(uri)
-    }
 }

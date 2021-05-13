@@ -198,7 +198,7 @@ class FileSystemRomsRepository(
                     }
 
                     romFileProcessorFactory.getFileRomProcessorForDocument(file)?.let { fileRomProcessor ->
-                        fileRomProcessor.getRomFromUri(file.uri)?.let { emitter.onNext(it) }
+                        fileRomProcessor.getRomFromUri(file.uri, directory.uri)?.let { emitter.onNext(it) }
                     }
                 }
             }

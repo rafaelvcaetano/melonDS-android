@@ -269,7 +269,7 @@ class SharedPreferencesSettingsRepository(
     }
 
     private fun getRomParentDirectory(rom: Rom): Uri {
-        return uriHandler.getParentUri(rom.uri) ?: throw Exception("Could not determine ROMs parent document")
+        return uriHandler.getUriTreeDocument(rom.parentTreeUri)?.uri ?: throw Exception("Could not determine ROMs parent document")
     }
 
     override fun getControllerConfiguration(): ControllerConfiguration {

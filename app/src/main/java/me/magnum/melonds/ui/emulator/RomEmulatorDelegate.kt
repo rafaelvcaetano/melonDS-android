@@ -35,7 +35,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
         val romParcelable = extras?.getParcelable(EmulatorActivity.KEY_ROM) as RomParcelable?
 
         val romLoader = if (romParcelable?.rom != null) {
-            Single.just(romParcelable.rom)
+            Maybe.just(romParcelable.rom)
         } else {
             if (extras?.containsKey(EmulatorActivity.KEY_PATH) == true) {
                 val romPath = extras.getString(EmulatorActivity.KEY_PATH) ?: throw NullPointerException("${EmulatorActivity.KEY_PATH} was null")
@@ -48,7 +48,16 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
             }
         }
 
-        return romLoader.flatMap { rom ->
+        return romLoader.toSingle().onErrorResumeNext {
+            if (it is NoSuchElementException) {
+                showRomNotFoundDialog()
+                // Prevent the observable from completing
+                Single.never()
+            } else {
+                // Re-throw the error
+                Single.error(it)
+            }
+        }.flatMap { rom ->
             activity.viewModel.loadLayoutForRom(rom)
             activity.viewModel.getRomLoader(rom)
         }.flatMap { romPair ->
@@ -81,6 +90,21 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
                 }
             }
         }.ignoreElement()
+    }
+
+    private fun showRomNotFoundDialog() {
+        activity.runOnUiThread {
+            AlertDialog.Builder(activity)
+                    .setTitle(R.string.error_rom_not_found)
+                    .setMessage(R.string.error_rom_not_found_info)
+                    .setPositiveButton(R.string.ok) { _, _ ->
+                        activity.finish()
+                    }
+                    .setOnDismissListener {
+                        activity.finish()
+                    }
+                    .show()
+        }
     }
 
     override fun getEmulatorConfiguration(): EmulatorConfiguration {

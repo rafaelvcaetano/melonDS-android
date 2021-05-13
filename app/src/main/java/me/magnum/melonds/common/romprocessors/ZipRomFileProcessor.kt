@@ -19,13 +19,13 @@ class ZipRomFileProcessor(private val context: Context, private val ndsRomCache:
     private class CouldNotFindNdsRomException : Exception("Failed to find an NDS ROM to extract")
     private class CouldNotFindExtractedFileException : Exception("Failed to find extracted NDS ROM file")
 
-    override fun getRomFromUri(uri: Uri): Rom? {
+    override fun getRomFromUri(romUri: Uri, parentUri: Uri): Rom? {
         return try {
-            context.contentResolver.openInputStream(uri)?.use {
+            context.contentResolver.openInputStream(romUri)?.use {
                 val zipStream = ZipInputStream(it)
                 getNdsEntryInStream(zipStream)?.let {
                     val romName = getRomNameInZipEntry(zipStream)
-                    Rom(romName, uri, RomConfig())
+                    Rom(romName, romUri, parentUri, RomConfig())
                 }
             }
         } catch (e: Exception) {

@@ -8,5 +8,4 @@ interface UriHandler {
     fun createFileDocument(uri: Uri): DocumentFile?
     fun getUriDocument(uri: Uri): DocumentFile?
     fun getUriTreeDocument(uri: Uri): DocumentFile?
-    fun getParentUri(uri: Uri): Uri?
 }

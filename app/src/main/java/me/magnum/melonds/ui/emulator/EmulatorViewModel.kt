@@ -1,11 +1,11 @@
 package me.magnum.melonds.ui.emulator
 
 import android.net.Uri
-import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
@@ -17,8 +17,8 @@ import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
+import me.magnum.melonds.ui.emulator.exceptions.SaveSlotLoadException
 import me.magnum.melonds.ui.emulator.exceptions.SramLoadException
-import java.io.File
 import java.util.*
 
 class EmulatorViewModel @ViewModelInject constructor(
@@ -172,13 +172,7 @@ class EmulatorViewModel @ViewModelInject constructor(
         val sramFileName = romFileName.replaceAfterLast('.', "sav", "$romFileName.sav")
 
         val sramDocument = rootDocument.findFile(sramFileName)
-        return sramDocument?.uri ?: rootDocument.createFile("*/*", sramFileName)?.let {
-            // Create the file and delete it immediately. By simply creating a file with a size of 0, melonDS would assume that to be the SRAM size of the ROM, which would
-            // prevent save files from working properly. Instead, we create a file to obtain its URI and delete it so that melonDS assumes that there is no save. When saving
-            // for the first time, the proper file will be created.
-            it.delete()
-            it.uri
-        } ?: throw SramLoadException("Could not create temporary SRAM file at ${rootDocument.uri}")
+        return sramDocument?.uri ?: rootDocument.createFile("*/*", sramFileName)?.uri ?: throw SramLoadException("Could not create temporary SRAM file at ${rootDocument.uri}")
     }
 
     fun getRomSaveStateSlots(rom: Rom): List<SaveStateSlot> {
@@ -203,29 +197,27 @@ class EmulatorViewModel @ViewModelInject constructor(
     }
 
     fun getRomSaveStateSlotUri(rom: Rom, slot: Int): Uri {
-        val saveStateDirectoryUri = settingsRepository.getSaveStateDirectory(rom) ?: throw SramLoadException("Could not determine save slot parent directory")
-        val saveStateDirectoryDocument = uriHandler.getUriTreeDocument(saveStateDirectoryUri) ?: throw SramLoadException("Could not create save slot parent directory")
+        val saveStateDirectoryUri = settingsRepository.getSaveStateDirectory(rom) ?: throw SaveSlotLoadException("Could not determine save slot parent directory")
+        val saveStateDirectoryDocument = uriHandler.getUriTreeDocument(saveStateDirectoryUri) ?: throw SaveSlotLoadException("Could not create parent directory document")
 
-        val romDocument = uriHandler.getUriDocument(rom.uri)!!
-        val romFileName = romDocument.name?.substringBeforeLast('.') ?: throw SramLoadException("Could not determine ROM file name")
+        val romDocument = uriHandler.getUriDocument(rom.uri) ?: throw SaveSlotLoadException("Could not create ROM document")
+        val romFileName = romDocument.name?.substringBeforeLast('.') ?: throw SaveSlotLoadException("Could not determine ROM file name")
         val saveStateName = "$romFileName.ml$slot"
         val saveStateFile = saveStateDirectoryDocument.findFile(saveStateName)
 
         return if (saveStateFile != null) {
             saveStateFile.uri
         } else {
-            saveStateDirectoryDocument.createFile("*/*", saveStateName)?.uri ?: throw SramLoadException("Could not create save state file")
+            saveStateDirectoryDocument.createFile("*/*", saveStateName)?.uri ?: throw SaveSlotLoadException("Could not create save state file")
         }
     }
 
-    fun getRomAtPath(path: String): Single<Rom> {
-        val romDocument = DocumentFile.fromFile(File(path))
-        return romsRepository.getRomAtPath(path).defaultIfEmpty(Rom(path, romDocument.uri, RomConfig())).toSingle()
+    fun getRomAtPath(path: String): Maybe<Rom> {
+        return romsRepository.getRomAtPath(path)
     }
 
-    fun getRomAtUri(uri: Uri): Single<Rom> {
-        val romDocument = uriHandler.getUriDocument(uri) ?: return Single.error(RomLoadException("Could not create ROM document"))
-        return romsRepository.getRomAtUri(uri).defaultIfEmpty(Rom(uri.toString(), romDocument.uri, RomConfig())).toSingle()
+    fun getRomAtUri(uri: Uri): Maybe<Rom> {
+        return romsRepository.getRomAtUri(uri)
     }
 
     fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {

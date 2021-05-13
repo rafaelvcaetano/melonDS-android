@@ -17,14 +17,16 @@ class RomParcelable : Parcelable {
     private constructor(parcel: Parcel) {
         val name = parcel.readString()
         val uri = Uri.parse(parcel.readString())
+        val parentTreeUri = Uri.parse(parcel.readString())
         val lastPlayed = parcel.readLong().let { if (it == (-1).toLong()) null else Date(it) }
         val romConfig = parcel.readParcelable<RomConfigParcelable>(RomConfigParcelable::class.java.classLoader)
-        rom = Rom(name!!, uri, romConfig!!.romConfig, lastPlayed)
+        rom = Rom(name!!, uri, parentTreeUri, romConfig!!.romConfig, lastPlayed)
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
         dest.writeString(rom.name)
         dest.writeString(rom.uri.toString())
+        dest.writeString(rom.parentTreeUri.toString())
         dest.writeLong(rom.lastPlayed?.time ?: -1)
         dest.writeParcelable(RomConfigParcelable(rom.config), 0)
     }

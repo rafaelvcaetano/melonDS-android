@@ -10,10 +10,10 @@ import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.utils.RomProcessor
 
 class NdsRomFileProcessor(private val context: Context) : RomFileProcessor {
-    override fun getRomFromUri(uri: Uri): Rom? {
+    override fun getRomFromUri(romUri: Uri, parentUri: Uri): Rom? {
         return try {
-            getRomName(uri)?.let {
-                Rom(it, uri, RomConfig())
+            getRomName(romUri)?.let {
+                Rom(it, romUri, parentUri, RomConfig())
             }
         } catch (e: Exception) {
             e.printStackTrace()

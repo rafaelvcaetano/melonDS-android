@@ -3,7 +3,7 @@ package me.magnum.melonds.domain.model
 import android.net.Uri
 import java.util.*
 
-data class Rom(val name: String, val uri: Uri, var config: RomConfig, var lastPlayed: Date? = null) {
+data class Rom(val name: String, val uri: Uri, val parentTreeUri: Uri, var config: RomConfig, var lastPlayed: Date? = null) {
     override fun equals(other: Any?): Boolean {
         if (this === other)
             return true
