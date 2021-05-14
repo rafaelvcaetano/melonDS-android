@@ -319,10 +319,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
     private fun setupSoftInput(layoutConfiguration: LayoutConfiguration) {
         val layoutChangeListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-            dsRenderer.updateScreenAreas(
-                    binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.TOP_SCREEN)?.getRect(),
-                    binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BOTTOM_SCREEN)?.getRect()
-            )
+            updateRendererScreenAreas()
 
             if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
                 viewModel.setOrientation(Orientation.PORTRAIT)
@@ -389,22 +386,20 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     private fun swapScreen() {
         screensSwapped = !screensSwapped
 
-        val topScreenRect: Rect?
-        val bottomScreenRect: Rect?
-
-        if (screensSwapped) {
-            topScreenRect = binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BOTTOM_SCREEN)?.getRect()
-            bottomScreenRect = binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.TOP_SCREEN)?.getRect()
-        } else {
-            topScreenRect = binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.TOP_SCREEN)?.getRect()
-            bottomScreenRect = binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BOTTOM_SCREEN)?.getRect()
-        }
-
-        dsRenderer.updateScreenAreas(
-                topScreenRect,
-                bottomScreenRect
-        )
+        updateRendererScreenAreas()
         updateSoftInput()
+    }
+
+    private fun updateRendererScreenAreas() {
+        val (topScreen, bottomScreen) = if (screensSwapped) {
+            LayoutComponent.BOTTOM_SCREEN to LayoutComponent.TOP_SCREEN
+        } else {
+            LayoutComponent.TOP_SCREEN to LayoutComponent.BOTTOM_SCREEN
+        }
+        dsRenderer.updateScreenAreas(
+                binding.viewLayoutControls.getLayoutComponentView(topScreen)?.getRect(),
+                binding.viewLayoutControls.getLayoutComponentView(bottomScreen)?.getRect()
+        )
     }
 
     private fun setupInputHandling() {

@@ -9,7 +9,7 @@ import me.magnum.melonds.ui.common.LayoutView
 class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(context, attrs) {
     fun setSoftInputVisibility(visible: Boolean) {
         getLayoutComponentViews().forEach {
-            if (it.component != LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT && it.component != LayoutComponent.BOTTOM_SCREEN) {
+            if (it.component != LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT && !it.component.isScreen()) {
                 it.view.isInvisible = !visible
             }
         }
