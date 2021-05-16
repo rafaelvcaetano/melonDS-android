@@ -57,7 +57,7 @@ abstract class MultiButtonInputHandler(inputListener: IInputListener, private va
     }
 
     private fun initDimensions(viewWidth: Int, viewHeight: Int) {
-        val radiusSquared = (viewWidth * 195f / 512f).pow(2)
+        val radiusSquared = (viewWidth * 256f / 512f).pow(2)
         val pointToLocal: (Float, Float) -> Point = { x, y ->
             Point().apply {
                 this.x = (viewWidth * x / 512f).toInt()
@@ -67,10 +67,10 @@ abstract class MultiButtonInputHandler(inputListener: IInputListener, private va
 
         // Each circle is placed on the side of each button, near the edge of the whole image. This allows for a margin of error and the circles also intersect, allowing
         // multiple buttons to be pressed at the same time
-        buttonCircles.add(ButtonCircle(pointToLocal(512f - 16, 256f), radiusSquared, getRightInput()))
-        buttonCircles.add(ButtonCircle(pointToLocal(256f, 512f - 16), radiusSquared, getBottomInput()))
-        buttonCircles.add(ButtonCircle(pointToLocal(256f, 16f), radiusSquared, getTopInput()))
-        buttonCircles.add(ButtonCircle(pointToLocal(16f, 256f), radiusSquared, getLeftInput()))
+        buttonCircles.add(ButtonCircle(pointToLocal(512f + 36f, 256f), radiusSquared, getRightInput()))
+        buttonCircles.add(ButtonCircle(pointToLocal(256f, 512f + 36f), radiusSquared, getBottomInput()))
+        buttonCircles.add(ButtonCircle(pointToLocal(256f, -36f), radiusSquared, getTopInput()))
+        buttonCircles.add(ButtonCircle(pointToLocal(-36f, 256f), radiusSquared, getLeftInput()))
     }
 
     private data class ButtonCircle(val center: Point, val radiusSquared: Float, val input: Input) {
