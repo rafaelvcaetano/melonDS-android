@@ -11,8 +11,8 @@ android {
         applicationId "me.magnum.melonds"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 16
-        versionName "Beta 1.5.1"
+        versionCode 17
+        versionName "Beta 1.5.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
