@@ -2,8 +2,8 @@
 
 buildscript {
     ext.kotlin_version = '1.4.31'
-    ext.hilt_version = '2.28-alpha'
-    ext.room_version = '2.2.6'
+    ext.hilt_version = '2.35.1'
+    ext.room_version = '2.3.0'
     ext.work_version ='2.5.0'
 
     repositories {

@@ -6,12 +6,13 @@ import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
-import androidx.hilt.Assisted
-import androidx.hilt.work.WorkerInject
+import androidx.hilt.work.HiltWorker
 import androidx.work.ForegroundInfo
 import androidx.work.RxWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import io.reactivex.Single
 import me.magnum.melonds.MelonDSApplication
 import me.magnum.melonds.R
@@ -21,7 +22,8 @@ import me.magnum.melonds.common.cheats.XmlCheatDatabaseParser
 import me.magnum.melonds.domain.model.Game
 import me.magnum.melonds.domain.repositories.CheatsRepository
 
-class CheatImportWorker @WorkerInject constructor(
+@HiltWorker
+class CheatImportWorker @AssistedInject constructor(
         @Assisted appContext: Context,
         @Assisted workerParams: WorkerParameters,
         private val cheatsRepository: CheatsRepository

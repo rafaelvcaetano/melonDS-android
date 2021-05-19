@@ -11,8 +11,8 @@ import com.squareup.picasso.Picasso
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import io.reactivex.android.schedulers.AndroidSchedulers
 import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.uridelegates.CompositeUriHandler
@@ -23,7 +23,7 @@ import me.magnum.melonds.utils.UriTypeHierarchyAdapter
 import javax.inject.Singleton
 
 @Module
-@InstallIn(ApplicationComponent::class)
+@InstallIn(SingletonComponent::class)
 object AppModule {
     @Provides
     fun provideContext(@ApplicationContext context: Context): Context = context

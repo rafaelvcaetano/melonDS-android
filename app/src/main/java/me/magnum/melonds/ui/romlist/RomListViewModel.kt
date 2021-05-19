@@ -1,11 +1,11 @@
 package me.magnum.melonds.ui.romlist
 
 import android.net.Uri
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import me.magnum.melonds.common.uridelegates.UriHandler
@@ -18,8 +18,10 @@ import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.impl.RomIconProvider
 import java.text.Normalizer
 import java.util.*
+import javax.inject.Inject
 
-class RomListViewModel @ViewModelInject constructor(
+@HiltViewModel
+class RomListViewModel @Inject constructor(
         private val romsRepository: RomsRepository,
         private val settingsRepository: SettingsRepository,
         private val layoutsRepository: LayoutsRepository,

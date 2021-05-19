@@ -1,9 +1,9 @@
 package me.magnum.melonds.ui.cheats
 
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.disposables.CompositeDisposable
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.CheatFolder
@@ -12,8 +12,10 @@ import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.utils.SingleLiveEvent
+import javax.inject.Inject
 
-class CheatsViewModel @ViewModelInject constructor(private val cheatsRepository: CheatsRepository) : ViewModel() {
+@HiltViewModel
+class CheatsViewModel @Inject constructor(private val cheatsRepository: CheatsRepository) : ViewModel() {
     private var selectedGame = MutableLiveData<Game>()
     private var selectedFolder = MutableLiveData<CheatFolder>()
     private var allRomCheatsLiveData: MutableLiveData<List<Game>>? = null

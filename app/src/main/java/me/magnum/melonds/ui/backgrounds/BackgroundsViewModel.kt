@@ -1,11 +1,10 @@
 package me.magnum.melonds.ui.backgrounds
 
-import androidx.hilt.Assisted
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.disposables.CompositeDisposable
 import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.domain.model.Background
@@ -13,11 +12,13 @@ import me.magnum.melonds.domain.model.Orientation
 import me.magnum.melonds.domain.repositories.BackgroundRepository
 import me.magnum.melonds.extensions.addTo
 import java.util.*
+import javax.inject.Inject
 
-class BackgroundsViewModel @ViewModelInject constructor(
+@HiltViewModel
+class BackgroundsViewModel @Inject constructor(
         private val backgroundsRepository: BackgroundRepository,
         private val schedulers: Schedulers,
-        @Assisted savedStateHandle: SavedStateHandle
+        savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val backgroundsLiveData = MutableLiveData<List<Background>>()

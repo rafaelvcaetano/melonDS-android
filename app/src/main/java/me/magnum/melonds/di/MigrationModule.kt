@@ -5,14 +5,14 @@ import android.content.SharedPreferences
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.impl.RomIconProvider
 import me.magnum.melonds.migrations.*
 
 @Module
-@InstallIn(ApplicationComponent::class)
+@InstallIn(SingletonComponent::class)
 object MigrationModule {
     @Provides
     fun provideMigration(@ApplicationContext context: Context, sharedPreferences: SharedPreferences, romIconProvider: RomIconProvider, romsRepository: RomsRepository): Migrator {

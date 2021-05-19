@@ -1,11 +1,10 @@
 package me.magnum.melonds.ui.layouteditor
 
-import androidx.hilt.Assisted
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Maybe
 import io.reactivex.disposables.CompositeDisposable
 import me.magnum.melonds.common.Schedulers
@@ -15,13 +14,15 @@ import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.impl.DefaultLayoutProvider
 import java.util.*
+import javax.inject.Inject
 
-class LayoutEditorViewModel @ViewModelInject constructor(
+@HiltViewModel
+class LayoutEditorViewModel @Inject constructor(
         private val layoutsRepository: LayoutsRepository,
         private val backgroundsRepository: BackgroundRepository,
         private val defaultLayoutProvider: DefaultLayoutProvider,
         private val schedulers: Schedulers,
-        @Assisted private val savedStateHandle: SavedStateHandle
+        private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private var currentOrientation: Orientation? = null

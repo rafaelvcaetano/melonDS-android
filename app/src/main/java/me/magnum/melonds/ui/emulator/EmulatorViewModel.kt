@@ -1,10 +1,10 @@
 package me.magnum.melonds.ui.emulator
 
 import android.net.Uri
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -20,8 +20,10 @@ import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
 import me.magnum.melonds.ui.emulator.exceptions.SaveSlotLoadException
 import me.magnum.melonds.ui.emulator.exceptions.SramLoadException
 import java.util.*
+import javax.inject.Inject
 
-class EmulatorViewModel @ViewModelInject constructor(
+@HiltViewModel
+class EmulatorViewModel @Inject constructor(
         private val settingsRepository: SettingsRepository,
         private val romsRepository: RomsRepository,
         private val cheatsRepository: CheatsRepository,

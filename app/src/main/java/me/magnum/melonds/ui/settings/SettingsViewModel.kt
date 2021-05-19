@@ -1,10 +1,10 @@
 package me.magnum.melonds.ui.settings
 
 import android.net.Uri
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.disposables.CompositeDisposable
 import me.magnum.melonds.domain.model.CheatImportProgress
 import me.magnum.melonds.domain.model.ConfigurationDirResult
@@ -13,8 +13,10 @@ import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.impl.NdsRomCache
+import javax.inject.Inject
 
-class SettingsViewModel @ViewModelInject constructor(
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
         private val cheatsRepository: CheatsRepository,
         private val romCache: NdsRomCache,
         private val configurationDirectoryVerifier: ConfigurationDirectoryVerifier
