@@ -41,12 +41,12 @@
     <string name="action_sort_recently_played">Recently played</string>
 
     <string name="ds_bios_dir_not_set">DS BIOS directory not set</string>
-    <string name="ds_bios_dir_not_set_info">DS BIOS directory is not set. Select the directory that contains bios7.bin, bios9.bin and firmware.bin</string>
+    <string name="ds_bios_dir_not_set_info">DS BIOS directory is not set. Select the directory that contains the following files:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
     <string name="dsi_bios_dir_not_set">DSi BIOS directory not set</string>
-    <string name="dsi_bios_dir_not_set_info">DSi BIOS directory is not set. Select the directory that contains bios7.bin, bios9.bin, firmware.bin and nand.bin</string>
+    <string name="dsi_bios_dir_not_set_info">DSi BIOS directory is not set. Select the directory that contains the following files:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
     <string name="incorrect_bios_dir">Incorrect BIOS directory</string>
-    <string name="ds_incorrect_bios_dir_info">The BIOS directory for the DS system is not correct. Make sure that the selected directory contains bios7.bin, bios9.bin and firmware.bin</string>
-    <string name="dsi_incorrect_bios_dir_info">The BIOS directory for the DSi system is not correct. Make sure that you select a directory that contains bios7.bin, bios9.bin, firmware.bin and nand.bin</string>
+    <string name="ds_incorrect_bios_dir_info">The BIOS directory for the DS system is not correct. Make sure that the selected directory contains the following files:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="dsi_incorrect_bios_dir_info">The BIOS directory for the DSi system is not correct. Make sure that the selected directory that contains the following files:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
     <string name="storage_permission_required">Storage permission required</string>
     <string name="storage_permission_required_info">Storage permission is required to load ROMs from your device. Please grant access to storage on the next dialog.</string>
     <string name="microphone_permission_required">Audio recording permission required</string>

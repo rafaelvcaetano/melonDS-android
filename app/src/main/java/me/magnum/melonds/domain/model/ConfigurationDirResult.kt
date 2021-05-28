@@ -1,6 +1,7 @@
 package me.magnum.melonds.domain.model
 
 data class ConfigurationDirResult(
+        val consoleType: ConsoleType,
         val status: Status,
         val requiredFiles: Array<String>,
         val fileResults: Array<Pair<String, FileStatus>>

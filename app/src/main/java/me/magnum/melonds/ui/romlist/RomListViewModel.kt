@@ -143,26 +143,18 @@ class RomListViewModel @Inject constructor(
         romsLiveData.value = romsLiveData.value
     }
 
-    fun getRomTargetConsoleType(rom: Rom): ConsoleType {
-        return rom.config.runtimeConsoleType.targetConsoleType ?: settingsRepository.getDefaultConsoleType()
+    fun getConsoleConfigurationDirResult(consoleType: ConsoleType): ConfigurationDirResult {
+        return configurationDirectoryVerifier.checkConsoleConfigurationDirectory(consoleType)
     }
 
-    fun getDsConfigurationDirStatus(): ConfigurationDirResult.Status {
-        return configurationDirectoryVerifier.checkDsConfigurationDirectory().status
-    }
-
-    fun getConsoleConfigurationDirStatus(consoleType: ConsoleType): ConfigurationDirResult.Status {
-        return configurationDirectoryVerifier.checkConsoleConfigurationDirectory(consoleType).status
-    }
-
-    fun getRomConfigurationDirStatus(rom: Rom): ConfigurationDirResult.Status {
+    fun getRomConfigurationDirStatus(rom: Rom): ConfigurationDirResult {
         val willUseInternalFirmware = !settingsRepository.useCustomBios() && rom.config.runtimeConsoleType == RuntimeConsoleType.DEFAULT
         if (willUseInternalFirmware) {
-            return ConfigurationDirResult.Status.VALID
+            return ConfigurationDirResult(ConsoleType.DS, ConfigurationDirResult.Status.VALID, emptyArray(), emptyArray())
         }
 
-        val romTargetConsoleType = getRomTargetConsoleType(rom)
-        return getConsoleConfigurationDirStatus(romTargetConsoleType)
+        val romTargetConsoleType = rom.config.runtimeConsoleType.targetConsoleType ?: settingsRepository.getDefaultConsoleType()
+        return getConsoleConfigurationDirResult(romTargetConsoleType)
     }
 
     fun addRomSearchDirectory(directoryUri: Uri) {

@@ -11,11 +11,17 @@ abstract class ConfigurationDirectoryVerifier(val settingsRepository: SettingsRe
     }
 
     fun checkDsiConfigurationDirectory(): ConfigurationDirResult {
-        return checkDsiConfigurationDirectory(settingsRepository.getDsiBiosDirectory())
+        // DSi requires the DS custom BIOS and firmware to be configured
+        val dsConfigurationResult = checkDsConfigurationDirectory()
+        return if (dsConfigurationResult.status != ConfigurationDirResult.Status.VALID) {
+            dsConfigurationResult
+        } else {
+            checkDsiConfigurationDirectory(settingsRepository.getDsiBiosDirectory())
+        }
     }
 
-    abstract fun checkDsConfigurationDirectory(directory: Uri?): ConfigurationDirResult
-    abstract fun checkDsiConfigurationDirectory(directory: Uri?): ConfigurationDirResult
+    protected abstract fun checkDsConfigurationDirectory(directory: Uri?): ConfigurationDirResult
+    protected abstract fun checkDsiConfigurationDirectory(directory: Uri?): ConfigurationDirResult
 
     fun checkConsoleConfigurationDirectory(consoleType: ConsoleType): ConfigurationDirResult {
         return when (consoleType) {

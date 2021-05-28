@@ -12,7 +12,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Observer
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.common.contracts.DirectoryPickerContract
@@ -42,7 +41,7 @@ class RomListActivity : AppCompatActivity() {
                 loadRom(it)
             } ?: selectedFirmwareConsole?.let {
                 bootFirmware(it)
-            } ?: checkConfigDirectorySetup()
+            }
         }
     }
     private val dsiBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract()) { uri ->
@@ -64,12 +63,12 @@ class RomListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val binding = ActivityRomListBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        viewModel.getRomScanningDirectories().observe(this, Observer {
+        viewModel.getRomScanningDirectories().observe(this) {
             if (it.isEmpty())
                 addNoSearchDirectoriesFragment()
             else
                 addRomListFragment()
-        })
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -157,25 +156,6 @@ class RomListActivity : AppCompatActivity() {
             Toast.makeText(this, getString(R.string.info_no_storage_permission), Toast.LENGTH_LONG).show()
     }
 
-    private fun checkConfigDirectorySetup(): Boolean {
-        when (viewModel.getDsConfigurationDirStatus()) {
-            ConfigurationDirResult.Status.VALID -> return true
-            ConfigurationDirResult.Status.UNSET -> AlertDialog.Builder(this)
-                    .setTitle(R.string.ds_bios_dir_not_set)
-                    .setMessage(R.string.ds_bios_dir_not_set_info)
-                    .setPositiveButton(R.string.ok) { _, _ -> dsBiosPickerLauncher.launch(null) }
-                    .setCancelable(false)
-                    .show()
-            ConfigurationDirResult.Status.INVALID -> AlertDialog.Builder(this)
-                    .setTitle(R.string.incorrect_bios_dir)
-                    .setMessage(R.string.ds_incorrect_bios_dir_info)
-                    .setPositiveButton(R.string.ok) { _, _ -> dsBiosPickerLauncher.launch(null) }
-                    .setCancelable(false)
-                    .show()
-        }
-        return false
-    }
-
     private fun addNoSearchDirectoriesFragment() {
         var noRomDirectoriesFragment = supportFragmentManager.findFragmentByTag(FRAGMENT_NO_ROM_DIRECTORIES) as NoRomSearchDirectoriesFragment?
         if (noRomDirectoriesFragment == null) {
@@ -201,12 +181,12 @@ class RomListActivity : AppCompatActivity() {
         selectedRom = rom
         selectedFirmwareConsole = null
 
-        val configurationDirStatus = viewModel.getRomConfigurationDirStatus(rom)
-        if (configurationDirStatus == ConfigurationDirResult.Status.VALID) {
+        val configurationDirResult = viewModel.getRomConfigurationDirStatus(rom)
+        if (configurationDirResult.status == ConfigurationDirResult.Status.VALID) {
             val intent = EmulatorActivity.getRomEmulatorActivityIntent(this, rom)
             startActivity(intent)
         } else {
-            showIncorrectConfigurationDirectoryDialog(configurationDirStatus, viewModel.getRomTargetConsoleType(rom))
+            showIncorrectConfigurationDirectoryDialog(configurationDirResult)
         }
     }
 
@@ -214,21 +194,21 @@ class RomListActivity : AppCompatActivity() {
         selectedRom = null
         selectedFirmwareConsole = consoleType
 
-        val configurationDirStatus = viewModel.getConsoleConfigurationDirStatus(consoleType)
-        if (configurationDirStatus == ConfigurationDirResult.Status.VALID) {
+        val configurationDirResult = viewModel.getConsoleConfigurationDirResult(consoleType)
+        if (configurationDirResult.status == ConfigurationDirResult.Status.VALID) {
             val intent = EmulatorActivity.getFirmwareEmulatorActivityIntent(this, consoleType)
             startActivity(intent)
         } else {
-            showIncorrectConfigurationDirectoryDialog(configurationDirStatus, consoleType)
+            showIncorrectConfigurationDirectoryDialog(configurationDirResult)
         }
     }
 
-    private fun showIncorrectConfigurationDirectoryDialog(configurationDirStatus: ConfigurationDirResult.Status, consoleType: ConsoleType) {
-        when (consoleType) {
+    private fun showIncorrectConfigurationDirectoryDialog(configurationDirResult: ConfigurationDirResult) {
+        when (configurationDirResult.consoleType) {
             ConsoleType.DS -> {
                 val titleRes: Int
                 val messageRes: Int
-                if (configurationDirStatus == ConfigurationDirResult.Status.UNSET) {
+                if (configurationDirResult.status == ConfigurationDirResult.Status.UNSET) {
                     titleRes = R.string.ds_bios_dir_not_set
                     messageRes = R.string.ds_bios_dir_not_set_info
                 } else {
@@ -247,7 +227,7 @@ class RomListActivity : AppCompatActivity() {
             ConsoleType.DSi -> {
                 val titleRes: Int
                 val messageRes: Int
-                if (configurationDirStatus == ConfigurationDirResult.Status.UNSET) {
+                if (configurationDirResult.status == ConfigurationDirResult.Status.UNSET) {
                     titleRes = R.string.dsi_bios_dir_not_set
                     messageRes = R.string.dsi_bios_dir_not_set_info
                 } else {

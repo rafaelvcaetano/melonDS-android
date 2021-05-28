@@ -23,13 +23,13 @@ class FileSystemConfigurationDirectoryVerifier(private val context: Context, set
         val requiredFiles = getRequiredFilesVerifiers(consoleType)
         if (directory == null) {
             val fileResults = requiredFiles.map { it.key to ConfigurationDirResult.FileStatus.MISSING }
-            return ConfigurationDirResult(ConfigurationDirResult.Status.UNSET, requiredFiles.keys.toTypedArray(), fileResults.toTypedArray())
+            return ConfigurationDirResult(consoleType, ConfigurationDirResult.Status.UNSET, requiredFiles.keys.toTypedArray(), fileResults.toTypedArray())
         }
 
         val dirDocument = DocumentFile.fromTreeUri(context, directory)
         if (dirDocument?.isDirectory != true) {
             val fileResults = requiredFiles.map { it.key to ConfigurationDirResult.FileStatus.MISSING }
-            return ConfigurationDirResult(ConfigurationDirResult.Status.INVALID, requiredFiles.keys.toTypedArray(), fileResults.toTypedArray())
+            return ConfigurationDirResult(consoleType, ConfigurationDirResult.Status.INVALID, requiredFiles.keys.toTypedArray(), fileResults.toTypedArray())
         }
 
         val fileResults = requiredFiles.map {
@@ -41,7 +41,7 @@ class FileSystemConfigurationDirectoryVerifier(private val context: Context, set
         } else {
             ConfigurationDirResult.Status.VALID
         }
-        return ConfigurationDirResult(result, requiredFiles.keys.toTypedArray(), fileResults.toTypedArray())
+        return ConfigurationDirResult(consoleType, result, requiredFiles.keys.toTypedArray(), fileResults.toTypedArray())
     }
 
     private fun getDSBios7Status(configurationDir: DocumentFile): ConfigurationDirResult.FileStatus {
