@@ -1,5 +1,6 @@
 package me.magnum.melonds.ui.emulator
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -18,7 +19,9 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
+import io.reactivex.Single
 import io.reactivex.disposables.Disposable
+import io.reactivex.subjects.PublishSubject
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.common.Schedulers
@@ -27,6 +30,7 @@ import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.extensions.isMicrophonePermissionGranted
 import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
@@ -67,6 +71,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     class RomLoadFailedException(reason: String) : Exception("Failed to load ROM: $reason") {
         constructor(result: MelonEmulator.LoadResult) : this(result.toString())
     }
+
     class FirmwareLoadFailedException(result: MelonEmulator.FirmwareLoadResult) : Exception("Failed to load firmware: $result")
 
     interface PauseMenuOption {
@@ -75,12 +80,16 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
     private lateinit var binding: ActivityEmulatorBinding
     val viewModel: EmulatorViewModel by viewModels()
+
     @Inject
     lateinit var settingsRepository: SettingsRepository
+
     @Inject
     lateinit var uriHandler: UriHandler
+
     @Inject
     lateinit var picasso: Picasso
+
     @Inject
     lateinit var schedulers: Schedulers
     private lateinit var delegate: EmulatorDelegate
@@ -129,7 +138,11 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         cheatsClosedListener?.invoke()
         cheatsClosedListener = null
     }
+    private val microphonePermissionRequester = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+        microphonePermissionSubject.onNext(it)
+    }
 
+    private val microphonePermissionSubject = PublishSubject.create<Boolean>()
     private var emulatorSetupDisposable: Disposable? = null
     private var cheatsClosedListener: (() -> Unit)? = null
     private var emulatorReady = false
@@ -266,11 +279,11 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         } else {
             window.decorView.systemUiVisibility =
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                    View.SYSTEM_UI_FLAG_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                            View.SYSTEM_UI_FLAG_FULLSCREEN or
+                            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
         }
     }
 
@@ -425,7 +438,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         AlertDialog.Builder(this)
                 .setTitle(R.string.pause)
                 .setItems(options) { _, which -> delegate.onPauseMenuOptionSelected(values[which]) }
-                .setOnCancelListener { resumeEmulation()}
+                .setOnCancelListener { resumeEmulation() }
                 .show()
     }
 
@@ -476,6 +489,39 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         val intent = Intent(this, CheatsActivity::class.java)
         intent.putExtra(CheatsActivity.KEY_ROM_INFO, RomInfoParcelable.fromRomInfo(romInfo))
         cheatsLauncher.launch(intent)
+    }
+
+    /**
+     * Returns a [Single] that emits the emulator's configuration taking into account permissions that have not been granted. If the provided base configuration requires the
+     * use of certain permissions and [requestPermissions] is true, they will be requested to the user before returning the final configuration.
+     */
+    fun adjustEmulatorConfigurationForPermissions(baseConfiguration: EmulatorConfiguration, requestPermissions: Boolean): Single<EmulatorConfiguration> {
+        if (baseConfiguration.micSource == MicSource.DEVICE) {
+            if (!isMicrophonePermissionGranted()) {
+                return if (requestPermissions) {
+                    requestMicrophonePermission().map { granted ->
+                        if (granted) {
+                            baseConfiguration
+                        } else {
+                            baseConfiguration.copy(micSource = MicSource.NONE)
+                        }
+                    }
+                } else {
+                    Single.just(baseConfiguration.copy(micSource = MicSource.NONE))
+                }
+            }
+        }
+
+        return Single.just(baseConfiguration)
+    }
+
+    private fun requestMicrophonePermission(): Single<Boolean> {
+        return microphonePermissionSubject
+                .first(false)
+                .subscribeOn(schedulers.uiThreadScheduler)
+                .doOnSubscribe {
+                    microphonePermissionRequester.launch(Manifest.permission.RECORD_AUDIO)
+                }
     }
 
     private fun showLaunchFailDialog(e: Throwable) {
@@ -536,6 +582,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             MelonEmulator.stopEmulation()
         }
 
+        microphonePermissionSubject.onComplete()
         emulatorSetupDisposable?.dispose()
         delegate.dispose()
         super.onDestroy()

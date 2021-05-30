@@ -152,12 +152,8 @@ class RomConfigDialog : DialogFragment() {
         binding.textRomConfigTitle.text = title
 
         onRuntimeConsoleTypeSelected(romConfig.runtimeConsoleType)
-        if (romConfig.runtimeMicSource == RuntimeMicSource.DEVICE && !requireContext().isMicrophonePermissionGranted()) {
-            // Set mic source to BLOW if mic permission is not granted
-            onRuntimeMicSourceSelected(RuntimeMicSource.BLOW)
-        } else {
-            onRuntimeMicSourceSelected(romConfig.runtimeMicSource)
-        }
+        onRuntimeMicSourceSelected(romConfig.runtimeMicSource)
+
         binding.switchLoadGbaRom.isChecked = romConfig.loadGbaCart()
         binding.textPrefGbaRomPath.text = getUriPathOrDefault(romConfig.gbaCartPath)
         binding.textPrefGbaSavePath.text = getUriPathOrDefault(romConfig.gbaSavePath)

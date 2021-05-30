@@ -71,11 +71,6 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
             jitPreference.setSummary(R.string.jit_not_supported)
         }
 
-        val currentMicSource = enumValueOfIgnoreCase<MicSource>(micSourcePreference.value as String)
-        if (currentMicSource == MicSource.DEVICE && !requireContext().isMicrophonePermissionGranted()) {
-            micSourcePreference.value = MicSource.BLOW.name.toLowerCase(Locale.ROOT)
-        }
-
         clearRomCachePreference.setOnPreferenceClickListener {
             if (!viewModel.clearRomCache()) {
                 Toast.makeText(requireContext(), R.string.error_clear_rom_cache, Toast.LENGTH_LONG).show()

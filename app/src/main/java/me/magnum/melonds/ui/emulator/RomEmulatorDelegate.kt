@@ -14,7 +14,6 @@ import io.reactivex.disposables.Disposable
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.*
-import me.magnum.melonds.extensions.isMicrophonePermissionGranted
 import me.magnum.melonds.parcelables.RomParcelable
 import java.text.SimpleDateFormat
 
@@ -62,9 +61,11 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
             activity.viewModel.getRomLoader(rom)
         }.flatMap { romPair ->
             loadedRom = romPair.first
-            return@flatMap loadRomCheats(loadedRom).defaultIfEmpty(emptyList()).flatMapSingle { cheats ->
+
+            loadRomCheats(loadedRom).toSingle(emptyList()).zipWith(getEmulatorLaunchConfiguration(loadedRom)) { cheats, emulatorConfiguration ->
+                Pair(cheats, emulatorConfiguration)
+            }.flatMap { (cheats, emulatorConfiguration) ->
                 Single.create<MelonEmulator.LoadResult> { emitter ->
-                    val emulatorConfiguration = getEmulatorConfigurationForRom(loadedRom)
                     MelonEmulator.setupEmulator(emulatorConfiguration, activity.assets, activity.buildUriFileHandler())
 
                     val rom = romPair.first
@@ -107,8 +108,18 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
         }
     }
 
+    private fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {
+        return activity.viewModel.getEmulatorConfigurationForRom(rom)
+    }
+
+    private fun getEmulatorLaunchConfiguration(rom: Rom): Single<EmulatorConfiguration> {
+        val baseEmulatorConfiguration = getEmulatorConfigurationForRom(rom)
+        return activity.adjustEmulatorConfigurationForPermissions(baseEmulatorConfiguration, true)
+    }
+
     override fun getEmulatorConfiguration(): EmulatorConfiguration {
-        return getEmulatorConfigurationForRom(loadedRom)
+        val baseEmulatorConfiguration = getEmulatorConfigurationForRom(loadedRom)
+        return activity.adjustEmulatorConfigurationForPermissions(baseEmulatorConfiguration, false).blockingGet()
     }
 
     override fun getPauseMenuOptions(): List<EmulatorActivity.PauseMenuOption> {
@@ -153,17 +164,6 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
 
     override fun dispose() {
         cheatsLoadDisposable?.dispose()
-    }
-
-    private fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {
-        val emulatorConfiguration = activity.viewModel.getEmulatorConfigurationForRom(rom)
-
-        // Use BLOW mic source if mic permission is not granted
-        return if (emulatorConfiguration.micSource == MicSource.DEVICE && !activity.isMicrophonePermissionGranted()) {
-            emulatorConfiguration.copy(micSource = MicSource.BLOW)
-        } else {
-            emulatorConfiguration
-        }
     }
 
     private fun loadRomCheats(rom: Rom): Maybe<List<Cheat>> {
