@@ -30,7 +30,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="ROMs">
+        android:title="@string/category_roms">
 
         <me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
                 android:key="rom_search_dirs"
@@ -101,7 +101,7 @@
 
         <ListPreference
             android:key="fps_counter_position"
-            android:title="FPS counter position"
+            android:title="@string/fps_counter_position"
             android:summary="%s"
             android:entries="@array/fps_counter_position_options"
             android:entryValues="@array/fps_counter_position_values"
@@ -170,6 +170,17 @@
             android:title="@string/vibrate_on_touch"
             android:dependency="input_show_soft"
             android:defaultValue="true" />
+
+        <!-- Vibration strength can go to 255 but the finer controls are in the lower values. As such, the max value is
+             set to 100 -->
+        <SeekBarPreference
+            android:key="input_touch_haptic_feedback_strength"
+            android:title="@string/vibration_strength"
+            android:dependency="input_touch_haptic_feedback_enabled"
+            app:updatesContinuously="true"
+            android:defaultValue="30"
+            app:min="1"
+            android:max="100" />
 
         <SeekBarPreference
             android:key="input_opacity"

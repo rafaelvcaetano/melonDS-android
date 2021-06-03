@@ -9,27 +9,27 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
-import androidx.preference.ListPreference
-import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreference
+import androidx.preference.*
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.common.contracts.FilePickerContract
+import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.domain.model.MicSource
-import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import me.magnum.melonds.extensions.isMicrophonePermissionGranted
 import me.magnum.melonds.extensions.isSustainedPerformanceModeAvailable
 import me.magnum.melonds.ui.inputsetup.InputSetupActivity
 import me.magnum.melonds.ui.layouts.LayoutListActivity
+import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
     private val viewModel: SettingsViewModel by activityViewModels()
     private val helper = PreferenceFragmentHelper(this)
+    @Inject lateinit var vibrator: TouchVibrator
 
     private lateinit var clearRomCachePreference: Preference
     private lateinit var customBiosPreference: Preference
@@ -54,6 +54,8 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
         clearRomCachePreference = findPreference("rom_cache_clear")!!
         customBiosPreference = findPreference("use_custom_bios")!!
         val jitPreference = findPreference<SwitchPreference>("enable_jit")!!
+        val touchVibratePreference = findPreference<SwitchPreference>("input_touch_haptic_feedback_enabled")!!
+        val vibrationStrengthPreference = findPreference<SeekBarPreference>("input_touch_haptic_feedback_strength")!!
         val importCheatsPreference = findPreference<Preference>("cheats_import")!!
         micSourcePreference = findPreference("mic_source")!!
         val keyMappingPreference = findPreference<Preference>("input_key_mapping")!!
@@ -71,6 +73,11 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
             jitPreference.setSummary(R.string.jit_not_supported)
         }
 
+        if (!vibrator.supportsVibration()) {
+            touchVibratePreference.isVisible = false
+            vibrationStrengthPreference.isVisible = false
+        }
+
         clearRomCachePreference.setOnPreferenceClickListener {
             if (!viewModel.clearRomCache()) {
                 Toast.makeText(requireContext(), R.string.error_clear_rom_cache, Toast.LENGTH_LONG).show()
@@ -85,6 +92,11 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
             } else {
                 true
             }
+        }
+        vibrationStrengthPreference.setOnPreferenceChangeListener { _, newValue ->
+            val strength = newValue as Int
+            vibrator.performTouchHapticFeedback(strength)
+            true
         }
         keyMappingPreference.setOnPreferenceClickListener {
             val intent = Intent(requireContext(), InputSetupActivity::class.java)

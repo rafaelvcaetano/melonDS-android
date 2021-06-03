@@ -2,6 +2,8 @@ package me.magnum.melonds.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
+import android.os.Vibrator
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
@@ -10,6 +12,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.uridelegates.UriHandler
+import me.magnum.melonds.common.vibration.Api26VibratorDelegate
+import me.magnum.melonds.common.vibration.OldVibratorDelegate
+import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
@@ -77,6 +82,18 @@ object MelonModule {
     @Singleton
     fun provideBackgroundThumbnailProvider(@ApplicationContext context: Context): BackgroundThumbnailProvider {
         return BackgroundThumbnailProvider(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTouchVibrator(@ApplicationContext context: Context, settingsRepository: SettingsRepository): TouchVibrator {
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        val delegate = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Api26VibratorDelegate(vibrator)
+        } else {
+            OldVibratorDelegate(vibrator)
+        }
+        return TouchVibrator(delegate, settingsRepository)
     }
 
     @Provides

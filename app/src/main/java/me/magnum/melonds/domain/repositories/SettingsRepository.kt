@@ -43,6 +43,7 @@ interface SettingsRepository {
     fun getSelectedLayoutId(): UUID
     fun showSoftInput(): Boolean
     fun isTouchHapticFeedbackEnabled(): Boolean
+    fun getTouchHapticFeedbackStrength(): Int
     fun getSoftInputOpacity(): Int
 
     fun areCheatsEnabled(): Boolean

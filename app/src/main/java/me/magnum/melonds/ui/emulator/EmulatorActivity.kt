@@ -27,6 +27,7 @@ import me.magnum.melonds.R
 import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.UriFileHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
+import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
@@ -89,6 +90,9 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
     @Inject
     lateinit var picasso: Picasso
+
+    @Inject
+    lateinit var touchVibrator: TouchVibrator
 
     @Inject
     lateinit var schedulers: Schedulers
@@ -351,18 +355,18 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             val inputAlpha = opacity / 100f
 
             val enableHapticFeedback = viewModel.isTouchHapticFeedbackEnabled()
-            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.DPAD)?.view?.setOnTouchListener(DpadInputHandler(melonTouchHandler, enableHapticFeedback))
-            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTONS)?.view?.setOnTouchListener(ButtonsInputHandler(melonTouchHandler, enableHapticFeedback))
-            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_L)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.L, enableHapticFeedback))
-            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_R)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.R, enableHapticFeedback))
-            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_SELECT)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.SELECT, enableHapticFeedback))
-            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_START)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.START, enableHapticFeedback))
-            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_HINGE)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.HINGE, enableHapticFeedback))
-            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_RESET)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.RESET, enableHapticFeedback))
-            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_PAUSE)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.PAUSE, enableHapticFeedback))
-            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.FAST_FORWARD, enableHapticFeedback))
-            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.TOGGLE_SOFT_INPUT, enableHapticFeedback))
-            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_SWAP_SCREENS)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.SWAP_SCREENS, enableHapticFeedback))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.DPAD)?.view?.setOnTouchListener(DpadInputHandler(melonTouchHandler, enableHapticFeedback, touchVibrator))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTONS)?.view?.setOnTouchListener(ButtonsInputHandler(melonTouchHandler, enableHapticFeedback, touchVibrator))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_L)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.L, enableHapticFeedback, touchVibrator))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_R)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.R, enableHapticFeedback, touchVibrator))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_SELECT)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.SELECT, enableHapticFeedback, touchVibrator))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_START)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.START, enableHapticFeedback, touchVibrator))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_HINGE)?.view?.setOnTouchListener(SingleButtonInputHandler(melonTouchHandler, Input.HINGE, enableHapticFeedback, touchVibrator))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_RESET)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.RESET, enableHapticFeedback, touchVibrator))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_PAUSE)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.PAUSE, enableHapticFeedback, touchVibrator))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.FAST_FORWARD, enableHapticFeedback, touchVibrator))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.TOGGLE_SOFT_INPUT, enableHapticFeedback, touchVibrator))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_SWAP_SCREENS)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.SWAP_SCREENS, enableHapticFeedback, touchVibrator))
 
             binding.viewLayoutControls.getLayoutComponentViews().forEach {
                 if (!it.component.isScreen()) {

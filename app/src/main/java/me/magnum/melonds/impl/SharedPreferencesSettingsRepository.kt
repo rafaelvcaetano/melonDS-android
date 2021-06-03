@@ -14,9 +14,9 @@ import io.reactivex.subjects.PublishSubject
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.extensions.isSustainedPerformanceModeAvailable
 import me.magnum.melonds.ui.Theme
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
-import me.magnum.melonds.extensions.isSustainedPerformanceModeAvailable
 import java.io.*
 import java.util.*
 
@@ -300,6 +300,11 @@ class SharedPreferencesSettingsRepository(
 
     override fun isTouchHapticFeedbackEnabled(): Boolean {
         return preferences.getBoolean("input_touch_haptic_feedback_enabled", true)
+    }
+
+    override fun getTouchHapticFeedbackStrength(): Int {
+        val strength = preferences.getInt("input_touch_haptic_feedback_strength", 30)
+        return strength.coerceIn(1, 100)
     }
 
     override fun getSoftInputOpacity(): Int {

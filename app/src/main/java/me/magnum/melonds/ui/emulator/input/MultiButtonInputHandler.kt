@@ -2,11 +2,12 @@ package me.magnum.melonds.ui.emulator.input
 
 import android.view.MotionEvent
 import android.view.View
+import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.Point
 import kotlin.math.pow
 
-abstract class MultiButtonInputHandler(inputListener: IInputListener, private val enableHapticFeedback: Boolean) : BaseInputHandler(inputListener) {
+abstract class MultiButtonInputHandler(inputListener: IInputListener, enableHapticFeedback: Boolean, touchVibrator: TouchVibrator) : FeedbackInputHandler(inputListener, enableHapticFeedback, touchVibrator) {
     private var areDimensionsInitialized = false
     private val buttonCircles = mutableListOf<ButtonCircle>()
     private val pressedInputs = mutableListOf<Input>()
@@ -46,8 +47,8 @@ abstract class MultiButtonInputHandler(inputListener: IInputListener, private va
             inputListener.onKeyPress(it)
         }
 
-        if (enableHapticFeedback && tempInputList.isNotEmpty()) {
-            performHapticFeedback(v)
+        if (tempInputList.isNotEmpty()) {
+            performHapticFeedback()
         }
 
         pressedInputs.clear()
