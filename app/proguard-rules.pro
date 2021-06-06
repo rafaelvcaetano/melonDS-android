@@ -20,6 +20,8 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+-dontobfuscate
+
 -keepclassmembers enum * { *; }
 
 -keep class me.magnum.melonds.domain.model.RendererConfiguration { *; }
