@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.commit
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityLayoutsBinding
@@ -29,9 +30,9 @@ class LayoutSelectorActivity : AppCompatActivity() {
             }
         }
 
-        supportFragmentManager.beginTransaction()
-                .replace(R.id.frame_layout_list, fragment)
-                .commit()
+        supportFragmentManager.commit {
+            replace(R.id.frame_layout_list, fragment)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

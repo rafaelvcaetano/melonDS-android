@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.commit
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.Rom
@@ -44,9 +45,9 @@ class ShortcutSetupActivity : AppCompatActivity() {
         val fragment = RomListFragment.newInstance(false)
         fragment.setRomSelectedListener { onRomSelected(it) }
 
-        supportFragmentManager.beginTransaction()
-                .replace(R.id.layout_root, fragment, FRAGMENT_ROM_LIST)
-                .commit()
+        supportFragmentManager.commit {
+            replace(R.id.layout_root, fragment, FRAGMENT_ROM_LIST)
+        }
     }
 
     private fun onRomSelected(rom: Rom) {

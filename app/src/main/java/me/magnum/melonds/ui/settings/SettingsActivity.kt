@@ -3,6 +3,8 @@ package me.magnum.melonds.ui.settings
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import dagger.hilt.android.AndroidEntryPoint
@@ -21,10 +23,9 @@ class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPrefere
             }
         }
 
-        supportFragmentManager
-                .beginTransaction()
-                .replace(android.R.id.content, MainPreferencesFragment())
-                .commit()
+        supportFragmentManager.commit {
+            replace<MainPreferencesFragment>(android.R.id.content)
+        }
     }
 
     private fun setupActionBar() {
@@ -60,11 +61,11 @@ class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPrefere
             arguments = pref.extras
         }
 
-        supportFragmentManager.beginTransaction()
-                .setCustomAnimations(R.anim.fragment_translate_enter_push, R.anim.fragment_translate_exit_push, R.anim.fragment_translate_enter_pop, R.anim.fragment_translate_exit_pop)
-                .replace(android.R.id.content, fragment)
-                .addToBackStack(null)
-                .commit()
+        supportFragmentManager.commit {
+            setCustomAnimations(R.anim.fragment_translate_enter_push, R.anim.fragment_translate_exit_push, R.anim.fragment_translate_enter_pop, R.anim.fragment_translate_exit_pop)
+            replace(android.R.id.content, fragment)
+            addToBackStack(null)
+        }
         return true
     }
 }
