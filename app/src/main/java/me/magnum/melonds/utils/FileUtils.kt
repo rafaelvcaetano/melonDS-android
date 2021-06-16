@@ -8,6 +8,7 @@ import android.os.Environment
 import android.os.storage.StorageManager
 import android.provider.DocumentsContract
 import android.util.Log
+import androidx.core.content.getSystemService
 import java.io.File
 import java.lang.reflect.Array
 
@@ -115,7 +116,7 @@ object FileUtils {
                 // Reading the environment var avoids hard coding the case of the "downloads" folder.
                 return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
             }
-            val mStorageManager = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
+            val mStorageManager = context.getSystemService<StorageManager>()!!
             val storageVolumeClazz = Class.forName("android.os.storage.StorageVolume")
             val getVolumeList = mStorageManager.javaClass.getMethod("getVolumeList")
             val getUuid = storageVolumeClazz.getMethod("getUuid")

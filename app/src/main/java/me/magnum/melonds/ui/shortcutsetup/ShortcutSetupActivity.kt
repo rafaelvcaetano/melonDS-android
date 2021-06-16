@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.getSystemService
 import androidx.fragment.app.commit
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
@@ -61,8 +62,8 @@ class ShortcutSetupActivity : AppCompatActivity() {
                 .setIntent(intent)
                 .build()
 
-        val shortcutManager = getSystemService(ShortcutManager::class.java) as ShortcutManager
-        val shortcutIntent = shortcutManager.createShortcutResultIntent(shortcutInfo)
+        val shortcutManager = getSystemService<ShortcutManager>()
+        val shortcutIntent = shortcutManager?.createShortcutResultIntent(shortcutInfo)
 
         setResult(Activity.RESULT_OK, shortcutIntent)
         finish()

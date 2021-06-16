@@ -11,7 +11,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
-import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import androidx.fragment.app.commit
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
@@ -79,7 +79,7 @@ class RomListActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.rom_list_menu, menu)
 
         val searchItem =  menu.findItem(R.id.action_search_roms)
-        ContextCompat.getSystemService(this, SearchManager::class.java)?.let { searchManager ->
+        getSystemService<SearchManager>()?.let { searchManager ->
             val searchView = searchItem.actionView as SearchView
             searchView.apply {
                 queryHint = getString(R.string.hint_search_roms)

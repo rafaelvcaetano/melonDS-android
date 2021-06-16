@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.view.WindowManager
+import androidx.core.content.getSystemService
 import me.magnum.melonds.domain.model.*
 import kotlin.math.roundToInt
 
@@ -18,7 +19,7 @@ class DefaultLayoutProvider(private val context: Context, private val screenUnit
     }
 
     private fun buildDefaultLayout(): LayoutConfiguration {
-        val windowService = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val windowService = context.getSystemService<WindowManager>()!!
         val display = windowService.defaultDisplay
         val point = android.graphics.Point()
         display.getRealSize(point)
