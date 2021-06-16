@@ -9,11 +9,17 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
+import me.magnum.melonds.databinding.ActivitySettingsBinding
 
 @AndroidEntryPoint
 class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
+
+    private lateinit var binding: ActivitySettingsBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         setupActionBar()
 
         supportFragmentManager.addOnBackStackChangedListener {
@@ -24,7 +30,7 @@ class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPrefere
         }
 
         supportFragmentManager.commit {
-            replace<MainPreferencesFragment>(android.R.id.content)
+            replace<MainPreferencesFragment>(binding.settingsContainer.id)
         }
     }
 
@@ -63,7 +69,7 @@ class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPrefere
 
         supportFragmentManager.commit {
             setCustomAnimations(R.anim.fragment_translate_enter_push, R.anim.fragment_translate_exit_push, R.anim.fragment_translate_enter_pop, R.anim.fragment_translate_exit_pop)
-            replace(android.R.id.content, fragment)
+            replace(binding.settingsContainer.id, fragment)
             addToBackStack(null)
         }
         return true
