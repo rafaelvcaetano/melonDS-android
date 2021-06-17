@@ -1,17 +1,16 @@
 package me.magnum.melonds.ui.backgroundpreview
 
 import android.graphics.drawable.BitmapDrawable
-import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
-import android.view.View
-import android.view.WindowInsets
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowInsetsCompat
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.databinding.ActivityBackgroundPreviewBinding
+import me.magnum.melonds.extensions.insetsControllerCompat
 import me.magnum.melonds.impl.BackgroundThumbnailProvider
 import me.magnum.melonds.parcelables.BackgroundParcelable
 import javax.inject.Inject
@@ -67,14 +66,8 @@ class BackgroundPreviewActivity : AppCompatActivity() {
      */
     private fun toggleNavigationVisibility() {
         if (isDecorVisible) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                window.insetsController?.apply {
-                    hide(WindowInsets.Type.navigationBars())
-                }
-            } else {
-                window.decorView.apply {
-                    systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                }
+            window.insetsControllerCompat?.apply {
+                hide(WindowInsetsCompat.Type.navigationBars())
             }
             val toolbarAnimation = TranslateAnimation(Animation.RELATIVE_TO_SELF, 0f, Animation.RELATIVE_TO_SELF, 0f, Animation.RELATIVE_TO_SELF, 0f, Animation.RELATIVE_TO_SELF, -1f).apply {
                 fillAfter = true
@@ -82,14 +75,8 @@ class BackgroundPreviewActivity : AppCompatActivity() {
             }
             binding.toolbar.startAnimation(toolbarAnimation)
         } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                window.insetsController?.apply {
-                    show(WindowInsets.Type.navigationBars())
-                }
-            } else {
-                window.decorView.apply {
-                    systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                }
+            window.insetsControllerCompat?.apply {
+                show(WindowInsetsCompat.Type.navigationBars())
             }
             val toolbarAnimation = TranslateAnimation(Animation.RELATIVE_TO_SELF, 0f, Animation.RELATIVE_TO_SELF, 0f, Animation.RELATIVE_TO_SELF, -1f, Animation.RELATIVE_TO_SELF, 0f).apply {
                 fillAfter = true

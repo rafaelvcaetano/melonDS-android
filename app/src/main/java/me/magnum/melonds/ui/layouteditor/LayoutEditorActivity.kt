@@ -1,16 +1,14 @@
 package me.magnum.melonds.ui.layouteditor
 
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
-import android.view.View
-import android.view.WindowInsets
-import android.view.WindowInsetsController
 import android.widget.SeekBar
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.squareup.picasso.Callback
@@ -21,6 +19,7 @@ import me.magnum.melonds.databinding.ActivityLayoutEditorBinding
 import me.magnum.melonds.domain.model.LayoutComponent
 import me.magnum.melonds.domain.model.Orientation
 import me.magnum.melonds.domain.model.RuntimeBackground
+import me.magnum.melonds.extensions.insetsControllerCompat
 import me.magnum.melonds.extensions.setBackgroundMode
 import me.magnum.melonds.impl.ScreenUnitsConverter
 import me.magnum.melonds.ui.common.TextInputDialog
@@ -135,19 +134,9 @@ class LayoutEditorActivity : AppCompatActivity() {
     }
 
     private fun setupFullscreen() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.insetsController?.let {
-                it.hide(WindowInsets.Type.navigationBars())
-                it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            }
-        } else {
-            window.decorView.systemUiVisibility =
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                    View.SYSTEM_UI_FLAG_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        window.insetsControllerCompat?.let {
+            it.hide(WindowInsetsCompat.Type.navigationBars())
+            it.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
 
