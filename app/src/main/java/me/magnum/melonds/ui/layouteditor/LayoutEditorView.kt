@@ -95,7 +95,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
                                 dragging = true
                             }
                         } else {
-                            dragView(view, motionEvent.x - downOffsetX, motionEvent.y - downOffsetY)
+                            dragView(layoutComponentView, motionEvent.x - downOffsetX, motionEvent.y - downOffsetY)
                         }
                         true
                     }
@@ -165,14 +165,11 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         views.remove(currentlySelectedView.component)
     }
 
-    private fun dragView(view: View, offsetX: Float, offsetY: Float) {
-        val finalX = min(max(view.x + offsetX, 0f), width - view.width.toFloat())
-        val finalY = min(max(view.y + offsetY, 0f), height - view.height.toFloat())
-        val newParams = LayoutParams(view.width, view.height).apply {
-            leftMargin = finalX.toInt()
-            topMargin = finalY.toInt()
-        }
-        view.layoutParams = newParams
+    private fun dragView(view: LayoutComponentView, offsetX: Float, offsetY: Float) {
+        val currentPosition = view.getPosition()
+        val finalX = min(max(currentPosition.x + offsetX, 0f), width - view.getWidth().toFloat())
+        val finalY = min(max(currentPosition.y + offsetY, 0f), height - view.getHeight().toFloat())
+        view.setPosition(Point(finalX.toInt(), finalY.toInt()))
     }
 
     fun scaleSelectedView(newScale: Float) {

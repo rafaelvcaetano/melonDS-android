@@ -2,30 +2,33 @@ package me.magnum.melonds.ui.common
 
 import android.view.View
 import android.widget.FrameLayout
+import androidx.core.view.updateLayoutParams
 import me.magnum.melonds.domain.model.LayoutComponent
 import me.magnum.melonds.domain.model.Point
 import me.magnum.melonds.domain.model.Rect
 
 class LayoutComponentView(val view: View, val aspectRatio: Float, val component: LayoutComponent) {
     fun setPosition(position: Point) {
-        val newParams = FrameLayout.LayoutParams(view.width, view.height).apply {
+        view.updateLayoutParams<FrameLayout.LayoutParams> {
             leftMargin = position.x
             topMargin = position.y
         }
-        view.layoutParams = newParams
     }
 
     fun setSize(width: Int, height: Int) {
-        val newParams = FrameLayout.LayoutParams(view.width, view.height)
-        view.layoutParams = newParams
+        view.updateLayoutParams {
+            this.width = width
+            this.height = height
+        }
     }
 
     fun setPositionAndSize(position: Point, width: Int, height: Int) {
-        val newParams = FrameLayout.LayoutParams(width, height).apply {
+        view.updateLayoutParams<FrameLayout.LayoutParams> {
+            this.width = width
+            this.height = height
             leftMargin = position.x
             topMargin = position.y
         }
-        view.layoutParams = newParams
     }
 
     fun getPosition(): Point {
