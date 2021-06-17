@@ -12,6 +12,8 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.getSystemService
+import androidx.core.graphics.applyCanvas
+import androidx.core.graphics.createBitmap
 import androidx.fragment.app.commit
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
@@ -71,13 +73,11 @@ class ShortcutSetupActivity : AppCompatActivity() {
 
     private fun buildShortcutBitmap(romIcon: RomIcon): Bitmap {
         val iconBitmap = romIcon.bitmap ?: BitmapFactory.decodeResource(resources, R.drawable.logo_splash)
-        val shortcutBitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888)
+        val shortcutBitmap = createBitmap(512, 512)
 
-        Canvas(shortcutBitmap).apply {
+        return shortcutBitmap.applyCanvas {
             val iconRect = Rect(44, 44, shortcutBitmap.width - 44, shortcutBitmap.height - 44)
             drawBitmap(iconBitmap, null, iconRect, Paint().apply { isFilterBitmap = romIcon.filtering == RomIconFiltering.LINEAR })
         }
-
-        return shortcutBitmap
     }
 }

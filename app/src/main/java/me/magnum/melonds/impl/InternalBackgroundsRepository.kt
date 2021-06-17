@@ -12,7 +12,6 @@ import me.magnum.melonds.common.Deletable
 import me.magnum.melonds.domain.model.Background
 import me.magnum.melonds.domain.repositories.BackgroundRepository
 import java.io.File
-import java.io.FileOutputStream
 import java.io.FileReader
 import java.io.OutputStreamWriter
 import java.lang.reflect.Type
@@ -126,7 +125,7 @@ class InternalBackgroundsRepository(private val context: Context, private val gs
             }
             val layoutsJson = gson.toJson(backgroundsToSave)
 
-            OutputStreamWriter(FileOutputStream(dataFile)).use {
+            OutputStreamWriter(dataFile.outputStream()).use {
                 it.write(layoutsJson)
             }
         } catch (e: Exception) {

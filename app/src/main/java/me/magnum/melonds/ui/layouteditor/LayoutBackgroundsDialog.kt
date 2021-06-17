@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,12 +31,12 @@ class LayoutBackgroundsDialog : DialogFragment() {
 
         fun newInstance(layoutConfiguration: LayoutConfiguration): LayoutBackgroundsDialog {
             return LayoutBackgroundsDialog().apply {
-                arguments = Bundle().apply {
-                    putString(KEY_PORTRAIT_BACKGROUND_ID, layoutConfiguration.portraitLayout.backgroundId?.toString())
-                    putInt(KEY_PORTRAIT_BACKGROUND_MODE, layoutConfiguration.portraitLayout.backgroundMode.ordinal)
-                    putString(KEY_LANDSCAPE_BACKGROUND_ID, layoutConfiguration.landscapeLayout.backgroundId?.toString())
-                    putInt(KEY_LANDSCAPE_BACKGROUND_MODE, layoutConfiguration.landscapeLayout.backgroundMode.ordinal)
-                }
+                arguments = bundleOf(
+                    KEY_PORTRAIT_BACKGROUND_ID to layoutConfiguration.portraitLayout.backgroundId?.toString(),
+                    KEY_PORTRAIT_BACKGROUND_MODE to layoutConfiguration.portraitLayout.backgroundMode.ordinal,
+                    KEY_LANDSCAPE_BACKGROUND_ID to layoutConfiguration.landscapeLayout.backgroundId?.toString(),
+                    KEY_LANDSCAPE_BACKGROUND_MODE to layoutConfiguration.landscapeLayout.backgroundMode.ordinal
+                )
             }
         }
     }

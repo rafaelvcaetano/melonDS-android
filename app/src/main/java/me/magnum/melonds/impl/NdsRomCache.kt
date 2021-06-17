@@ -66,7 +66,7 @@ class NdsRomCache(private val context: Context) {
         val tempCachedFile = File(romCacheDir, TEMP_FILE_NAME)
 
         try {
-            FileOutputStream(tempCachedFile).use {
+            tempCachedFile.outputStream().use {
                 val success = runner(it)
                 if (success) {
                     val romHash = rom.uri.hashCode().toString()

@@ -7,7 +7,6 @@ import androidx.documentfile.provider.DocumentFile
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import java.io.File
-import java.io.FileOutputStream
 import java.lang.Exception
 
 /**
@@ -71,7 +70,7 @@ class RomIconProvider(private val context: Context, private val romFileProcessor
         if (iconCacheDir.isDirectory || iconCacheDir.mkdirs()) {
             val iconFile = File(iconCacheDir, romHash)
             try {
-                FileOutputStream(iconFile).use {
+                iconFile.outputStream().use {
                     icon.compress(Bitmap.CompressFormat.PNG, 100, it)
                 }
             } catch (_: Exception) {

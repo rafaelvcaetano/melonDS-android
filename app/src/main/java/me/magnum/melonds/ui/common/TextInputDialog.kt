@@ -5,10 +5,11 @@ import android.content.DialogInterface
 import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.DialogFragment
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.DialogTextInputBinding
-import me.magnum.melonds.utils.BaseTextWatcher
 
 class TextInputDialog : DialogFragment() {
     companion object {
@@ -43,11 +44,9 @@ class TextInputDialog : DialogFragment() {
                 .setNegativeButton(R.string.cancel, null)
                 .show()
 
-        binding.editText.addTextChangedListener(object : BaseTextWatcher() {
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = (s?.length ?: 0) > 0
-            }
-        })
+        binding.editText.doOnTextChanged { text, _, _, _ ->
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = (text?.length ?: 0) > 0
+        }
 
         return dialog
     }
@@ -110,9 +109,7 @@ class TextInputDialog : DialogFragment() {
             return TextInputDialog().apply {
                 this@Builder.onConfirmListener?.let { setOnConfirmListener(it) }
                 this@Builder.onCancelListener?.let { setOnCancelListener(it) }
-                arguments = Bundle().apply {
-                    putString(KEY_TEXT, text)
-                }
+                arguments = bundleOf(KEY_TEXT to text)
             }
         }
     }

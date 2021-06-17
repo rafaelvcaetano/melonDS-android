@@ -4,6 +4,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.net.toUri
 import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.Observer
 import io.reactivex.Completable
@@ -41,7 +42,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
                 activity.viewModel.getRomAtPath(romPath)
             } else if (extras?.containsKey(EmulatorActivity.KEY_URI) == true) {
                 val romUri = extras.getString(EmulatorActivity.KEY_URI) ?: throw NullPointerException("${EmulatorActivity.KEY_URI} was null")
-                activity.viewModel.getRomAtUri(Uri.parse(romUri))
+                activity.viewModel.getRomAtUri(romUri.toUri())
             } else {
                 throw NullPointerException("No ROM was specified")
             }

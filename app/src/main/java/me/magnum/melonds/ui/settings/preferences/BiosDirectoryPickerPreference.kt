@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.getIntOrThrow
+import androidx.core.net.toUri
 import androidx.core.view.isGone
 import androidx.core.widget.ImageViewCompat
 import androidx.preference.Preference
@@ -93,7 +94,7 @@ class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : S
         super.onBindViewHolder(holder)
         if (holder != null) {
             imageViewStatus = holder.findViewById(R.id.imageViewStatus) as ImageView
-            updateStatusIndicator(getPersistedStringSet(emptySet()).firstOrNull()?.let { Uri.parse(it) })
+            updateStatusIndicator(getPersistedStringSet(emptySet()).firstOrNull()?.toUri())
         }
     }
 }

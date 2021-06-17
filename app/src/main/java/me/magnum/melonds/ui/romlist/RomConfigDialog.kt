@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import io.reactivex.disposables.Disposable
@@ -35,10 +36,10 @@ class RomConfigDialog : DialogFragment() {
 
         fun newInstance(title: String, rom: Rom): RomConfigDialog {
             return RomConfigDialog().apply {
-                arguments = Bundle().apply {
-                    putString(KEY_TITLE, title)
-                    putParcelable(KEY_ROM, RomParcelable(rom))
-                }
+                arguments = bundleOf(
+                    KEY_TITLE to title,
+                    KEY_ROM to RomParcelable(rom)
+                )
             }
         }
     }

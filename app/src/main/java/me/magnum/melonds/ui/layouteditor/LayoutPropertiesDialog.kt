@@ -3,6 +3,7 @@ package me.magnum.melonds.ui.layouteditor
 import android.app.Dialog
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import me.magnum.melonds.R
@@ -19,11 +20,11 @@ class LayoutPropertiesDialog : DialogFragment() {
 
         fun newInstance(layoutConfiguration: LayoutConfiguration): LayoutPropertiesDialog {
             return LayoutPropertiesDialog().apply {
-                arguments = Bundle().apply {
-                    putString(KEY_LAYOUT_NAME, layoutConfiguration.name)
-                    putBoolean(KEY_CUSTOM_OPACITY, layoutConfiguration.useCustomOpacity)
-                    putInt(KEY_LAYOUT_OPACITY, layoutConfiguration.opacity)
-                }
+                arguments = bundleOf(
+                    KEY_LAYOUT_NAME to layoutConfiguration.name,
+                    KEY_CUSTOM_OPACITY to layoutConfiguration.useCustomOpacity,
+                    KEY_LAYOUT_OPACITY to layoutConfiguration.opacity
+                )
             }
         }
     }
