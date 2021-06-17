@@ -1,6 +1,6 @@
 package me.magnum.melonds.ui.settings
 
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -34,7 +34,7 @@ class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat) {
                     if (value == null || value !is Set<*> || value.isEmpty())
                         preference.summary = preference.getContext().getString(R.string.not_set)
                     else {
-                        val uris = value.mapNotNull { FileUtils.getAbsolutePathFromSAFUri(preference.context, Uri.parse(it as String)) }
+                        val uris = value.mapNotNull { FileUtils.getAbsolutePathFromSAFUri(preference.context, (it as String).toUri()) }
                         preference.summary = uris.joinToString("\n")
                     }
                 }
@@ -89,7 +89,7 @@ class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat) {
         bindPreferenceSummaryToValue(storagePreference)
         val filePickerLauncher = activity.registerForActivityResult(DirectoryPickerContract(), storagePreference::onDirectoryPicked)
         storagePreference.setOnPreferenceClickListener { preference ->
-            val initialUri = preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) }
+            val initialUri = preference.getPersistedStringSet(null)?.firstOrNull()?.toUri()
             filePickerLauncher.launch(initialUri)
             true
         }
@@ -99,7 +99,7 @@ class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat) {
         bindPreferenceSummaryToValue(storagePreference)
         val filePickerLauncher = activity.registerForActivityResult(FilePickerContract(), storagePreference::onDirectoryPicked)
         storagePreference.setOnPreferenceClickListener { preference ->
-            val initialUri = preference.getPersistedStringSet(null)?.firstOrNull()?.let { Uri.parse(it) }
+            val initialUri = preference.getPersistedStringSet(null)?.firstOrNull()?.toUri()
             filePickerLauncher.launch(Pair(initialUri, storagePreference.mimeType?.let { arrayOf(it) }))
             true
         }

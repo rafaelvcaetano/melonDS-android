@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Vibrator
+import androidx.core.content.getSystemService
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
@@ -87,7 +88,7 @@ object MelonModule {
     @Provides
     @Singleton
     fun provideTouchVibrator(@ApplicationContext context: Context, settingsRepository: SettingsRepository): TouchVibrator {
-        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        val vibrator = context.getSystemService<Vibrator>()!!
         val delegate = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Api26VibratorDelegate(vibrator)
         } else {

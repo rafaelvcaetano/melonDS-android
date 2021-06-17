@@ -1,8 +1,8 @@
 package me.magnum.melonds.parcelables
 
-import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.core.net.toUri
 import me.magnum.melonds.domain.model.Background
 import me.magnum.melonds.domain.model.Orientation
 import java.util.*
@@ -19,7 +19,7 @@ class BackgroundParcelable : Parcelable {
         val id = parcel.readString()?.let { UUID.fromString(it) }
         val name = parcel.readString() ?: throw NullPointerException("Missing name string")
         val orientation = Orientation.values()[parcel.readInt()]
-        val uri = Uri.parse(parcel.readString())
+        val uri = parcel.readString()!!.toUri()
         background = Background(id, name, orientation, uri)
     }
 

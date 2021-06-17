@@ -1,7 +1,7 @@
 package me.magnum.melonds.common
 
 import android.content.Context
-import android.net.Uri
+import androidx.core.net.toUri
 import me.magnum.melonds.common.uridelegates.UriHandler
 
 class UriFileHandler(private val context: Context, private val uriHandler: UriHandler) {
@@ -12,7 +12,7 @@ class UriFileHandler(private val context: Context, private val uriHandler: UriHa
     }
 
     fun open(uriString: String, mode: String): Int {
-        val uri = Uri.parse(uriString)
+        val uri = uriString.toUri()
 
         var isWriteMode = false
 

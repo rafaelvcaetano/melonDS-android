@@ -2,9 +2,9 @@ package me.magnum.melonds.common.workers
 
 import android.content.Context
 import android.content.res.AssetFileDescriptor
-import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.work.HiltWorker
 import androidx.work.ForegroundInfo
@@ -41,7 +41,7 @@ class CheatImportWorker @AssistedInject constructor(
         return Single.create { emitter ->
             setForegroundAsync(createForegroundInfo(null, 0, true))
 
-            val uri = inputData.getString(KEY_URI)?.let { Uri.parse(it) }
+            val uri = inputData.getString(KEY_URI)?.toUri()
             if (uri == null) {
                 emitter.onSuccess(Result.failure())
                 return@create

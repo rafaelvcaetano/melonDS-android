@@ -8,6 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -33,9 +35,9 @@ class RomListFragment : Fragment() {
 
         fun newInstance(allowRomConfiguration: Boolean): RomListFragment {
             return RomListFragment().also {
-                it.arguments = Bundle().apply {
-                    putBoolean(KEY_ALLOW_ROM_CONFIGURATION, allowRomConfiguration)
-                }
+                it.arguments = bundleOf(
+                    KEY_ALLOW_ROM_CONFIGURATION to allowRomConfiguration
+                )
             }
         }
     }
@@ -88,7 +90,7 @@ class RomListFragment : Fragment() {
     private fun displayEmptyListViewIfRequired() {
         val isScanning = binding.swipeRefreshRoms.isRefreshing
         val emptyViewVisible = !isScanning && romListAdapter.itemCount == 0
-        binding.textRomListEmpty.visibility = if (emptyViewVisible) View.VISIBLE else View.GONE
+        binding.textRomListEmpty.isVisible = emptyViewVisible
     }
 
     fun setRomSelectedListener(listener: (Rom) -> Unit) {

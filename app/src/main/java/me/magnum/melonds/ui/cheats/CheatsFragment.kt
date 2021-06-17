@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.FragmentCheatsBinding
@@ -30,15 +32,15 @@ class CheatsFragment : Fragment() {
 
         if (viewModel.getGames().size == 1) {
             viewModel.setSelectedGame(viewModel.getGames().first())
-            childFragmentManager.beginTransaction()
-                    .replace(R.id.layout_cheats_root, FoldersSubScreenFragment())
-                    .addToBackStack(TAG_BACK_STACK_CHEATS)
-                    .commit()
+            childFragmentManager.commit {
+                replace<FoldersSubScreenFragment>(R.id.layout_cheats_root)
+                addToBackStack(TAG_BACK_STACK_CHEATS)
+            }
         } else {
-            childFragmentManager.beginTransaction()
-                    .replace(R.id.layout_cheats_root, GamesSubScreenFragment())
-                    .addToBackStack(TAG_BACK_STACK_CHEATS)
-                    .commit()
+            childFragmentManager.commit {
+                replace<GamesSubScreenFragment>(R.id.layout_cheats_root)
+                addToBackStack(TAG_BACK_STACK_CHEATS)
+            }
 
             // We only need to observe game changes if there's more than 1
             viewModel.getSelectedGame().observe(viewLifecycleOwner) {
@@ -68,19 +70,19 @@ class CheatsFragment : Fragment() {
     }
 
     private fun openGameFoldersFragment() {
-        childFragmentManager.beginTransaction()
-                .setCustomAnimations(R.anim.fragment_translate_enter_push, R.anim.fragment_translate_exit_push, R.anim.fragment_translate_enter_pop, R.anim.fragment_translate_exit_pop)
-                .replace(R.id.layout_cheats_root, FoldersSubScreenFragment())
-                .addToBackStack(TAG_BACK_STACK_CHEATS)
-                .commit()
+        openSubScreenFragment<FoldersSubScreenFragment>()
     }
 
     private fun openCheatsFragment() {
-        childFragmentManager.beginTransaction()
-                .setCustomAnimations(R.anim.fragment_translate_enter_push, R.anim.fragment_translate_exit_push, R.anim.fragment_translate_enter_pop, R.anim.fragment_translate_exit_pop)
-                .replace(R.id.layout_cheats_root, CheatsSubScreenFragment())
-                .addToBackStack(TAG_BACK_STACK_CHEATS)
-                .commit()
+        openSubScreenFragment<CheatsSubScreenFragment>()
+    }
+
+    private inline fun <reified T : Fragment> openSubScreenFragment() {
+        childFragmentManager.commit {
+            setCustomAnimations(R.anim.fragment_translate_enter_push, R.anim.fragment_translate_exit_push, R.anim.fragment_translate_enter_pop, R.anim.fragment_translate_exit_pop)
+            replace<T>(R.id.layout_cheats_root)
+            addToBackStack(TAG_BACK_STACK_CHEATS)
+        }
     }
 
     fun setOnContentTitleChangedListener(listener: (String?) -> Unit) {

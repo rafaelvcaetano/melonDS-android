@@ -5,6 +5,7 @@ buildscript {
     ext.hilt_version = '2.35.1'
     ext.room_version = '2.3.0'
     ext.work_version ='2.5.0'
+    ext.hiltx_version = '1.0.0'
 
     repositories {
         google()

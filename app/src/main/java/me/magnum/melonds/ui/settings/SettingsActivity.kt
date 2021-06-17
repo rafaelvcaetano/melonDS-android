@@ -3,15 +3,23 @@ package me.magnum.melonds.ui.settings
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
+import me.magnum.melonds.databinding.ActivitySettingsBinding
 
 @AndroidEntryPoint
 class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
+
+    private lateinit var binding: ActivitySettingsBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         setupActionBar()
 
         supportFragmentManager.addOnBackStackChangedListener {
@@ -21,10 +29,9 @@ class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPrefere
             }
         }
 
-        supportFragmentManager
-                .beginTransaction()
-                .replace(android.R.id.content, MainPreferencesFragment())
-                .commit()
+        supportFragmentManager.commit {
+            replace<MainPreferencesFragment>(binding.settingsContainer.id)
+        }
     }
 
     private fun setupActionBar() {
@@ -60,11 +67,11 @@ class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPrefere
             arguments = pref.extras
         }
 
-        supportFragmentManager.beginTransaction()
-                .setCustomAnimations(R.anim.fragment_translate_enter_push, R.anim.fragment_translate_exit_push, R.anim.fragment_translate_enter_pop, R.anim.fragment_translate_exit_pop)
-                .replace(android.R.id.content, fragment)
-                .addToBackStack(null)
-                .commit()
+        supportFragmentManager.commit {
+            setCustomAnimations(R.anim.fragment_translate_enter_push, R.anim.fragment_translate_exit_push, R.anim.fragment_translate_enter_pop, R.anim.fragment_translate_exit_pop)
+            replace(binding.settingsContainer.id, fragment)
+            addToBackStack(null)
+        }
         return true
     }
 }

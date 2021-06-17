@@ -14,7 +14,6 @@ import me.magnum.melonds.domain.model.LayoutConfiguration
 import me.magnum.melonds.domain.model.UILayout
 import me.magnum.melonds.domain.repositories.LayoutsRepository
 import java.io.File
-import java.io.FileOutputStream
 import java.io.FileReader
 import java.io.OutputStreamWriter
 import java.lang.reflect.Type
@@ -159,7 +158,7 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
             }
             val layoutsJson = gson.toJson(customLayouts)
 
-            OutputStreamWriter(FileOutputStream(dataFile)).use {
+            OutputStreamWriter(dataFile.outputStream()).use {
                 it.write(layoutsJson)
             }
         } catch (e: Exception) {

@@ -1,8 +1,8 @@
 package me.magnum.melonds.parcelables
 
-import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.core.net.toUri
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RuntimeConsoleType
 import me.magnum.melonds.domain.model.RuntimeMicSource
@@ -21,8 +21,8 @@ class RomConfigParcelable : Parcelable {
         romConfig.runtimeMicSource = RuntimeMicSource.values()[parcel.readInt()]
         romConfig.layoutId = parcel.readString()?.let { UUID.fromString(it) }
         romConfig.setLoadGbaCart(parcel.readInt() == 1)
-        romConfig.gbaCartPath = parcel.readString()?.let { Uri.parse(it) }
-        romConfig.gbaSavePath = parcel.readString()?.let { Uri.parse(it) }
+        romConfig.gbaCartPath = parcel.readString()?.toUri()
+        romConfig.gbaSavePath = parcel.readString()?.toUri()
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {

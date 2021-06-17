@@ -11,7 +11,8 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
-import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
+import androidx.fragment.app.commit
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.common.contracts.DirectoryPickerContract
@@ -78,7 +79,7 @@ class RomListActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.rom_list_menu, menu)
 
         val searchItem =  menu.findItem(R.id.action_search_roms)
-        ContextCompat.getSystemService(this, SearchManager::class.java)?.let { searchManager ->
+        getSystemService<SearchManager>()?.let { searchManager ->
             val searchView = searchItem.actionView as SearchView
             searchView.apply {
                 queryHint = getString(R.string.hint_search_roms)
@@ -160,9 +161,9 @@ class RomListActivity : AppCompatActivity() {
         var noRomDirectoriesFragment = supportFragmentManager.findFragmentByTag(FRAGMENT_NO_ROM_DIRECTORIES) as NoRomSearchDirectoriesFragment?
         if (noRomDirectoriesFragment == null) {
             noRomDirectoriesFragment = NoRomSearchDirectoriesFragment.newInstance()
-            supportFragmentManager.beginTransaction()
-                    .replace(R.id.layout_main, noRomDirectoriesFragment, FRAGMENT_NO_ROM_DIRECTORIES)
-                    .commit()
+            supportFragmentManager.commit {
+                replace(R.id.layout_main, noRomDirectoriesFragment, FRAGMENT_NO_ROM_DIRECTORIES)
+            }
         }
     }
 
@@ -170,9 +171,9 @@ class RomListActivity : AppCompatActivity() {
         var romListFragment = supportFragmentManager.findFragmentByTag(FRAGMENT_ROM_LIST) as RomListFragment?
         if (romListFragment == null) {
             romListFragment = RomListFragment.newInstance(true)
-            supportFragmentManager.beginTransaction()
-                    .replace(R.id.layout_main, romListFragment, FRAGMENT_ROM_LIST)
-                    .commit()
+            supportFragmentManager.commit {
+                replace(R.id.layout_main, romListFragment, FRAGMENT_ROM_LIST)
+            }
         }
         romListFragment.setRomSelectedListener { rom -> loadRom(rom) }
     }

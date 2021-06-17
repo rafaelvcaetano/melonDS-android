@@ -2,6 +2,7 @@ package me.magnum.melonds.utils
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import androidx.core.graphics.createBitmap
 import me.magnum.melonds.common.Crc32
 import me.magnum.melonds.domain.model.RomInfo
 import java.io.BufferedInputStream
@@ -58,7 +59,7 @@ object RomProcessor {
 		val icon = processTiles(tileData, argbPalette)
 		val bitmapData = iconToBitmapArray(icon)
 
-		val bitmap = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888)
+		val bitmap = createBitmap(32, 32)
 		bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(bitmapData))
 		return bitmap
 	}

@@ -7,6 +7,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.fragment.app.commit
 import androidx.lifecycle.Observer
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
@@ -44,9 +45,9 @@ class CheatsActivity : AppCompatActivity() {
             if (it.isEmpty()) {
                 binding.textCheatsNotFound.isVisible = true
             } else {
-                supportFragmentManager.beginTransaction()
-                        .replace(binding.cheatsRoot.id, cheatsFragment)
-                        .commit()
+                supportFragmentManager.commit {
+                    replace(binding.cheatsRoot.id, cheatsFragment)
+                }
             }
         })
 

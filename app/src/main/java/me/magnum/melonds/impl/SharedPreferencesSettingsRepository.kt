@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.content.edit
+import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import io.reactivex.Observable
@@ -46,7 +47,9 @@ class SharedPreferencesSettingsRepository(
             return
 
         val defaultTheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) "system" else "light"
-        preferences.edit().putString("theme", defaultTheme).apply()
+        preferences.edit {
+            putString("theme", defaultTheme)
+        }
     }
 
     private fun setDefaultMacAddressIfRequired() {
@@ -118,7 +121,7 @@ class SharedPreferencesSettingsRepository(
 
     override fun getRomSearchDirectories(): Array<Uri> {
         val dirPreference = preferences.getStringSet("rom_search_dirs", emptySet())
-        return dirPreference?.map { Uri.parse(it) }?.toTypedArray() ?: emptyArray()
+        return dirPreference?.map { it.toUri() }?.toTypedArray() ?: emptyArray()
     }
 
     override fun getRomIconFiltering(): RomIconFiltering {
@@ -177,12 +180,12 @@ class SharedPreferencesSettingsRepository(
 
     override fun getDsBiosDirectory(): Uri? {
         val dirPreference = preferences.getStringSet("bios_dir", null)?.firstOrNull()
-        return dirPreference?.let { Uri.parse(it) }
+        return dirPreference?.toUri()
     }
 
     override fun getDsiBiosDirectory(): Uri? {
         val dirPreference = preferences.getStringSet("dsi_bios_dir", null)?.firstOrNull()
-        return dirPreference?.let { Uri.parse(it) }
+        return dirPreference?.toUri()
     }
 
     override fun showBootScreen(): Boolean {
@@ -236,7 +239,7 @@ class SharedPreferencesSettingsRepository(
 
     override fun getSaveFileDirectory(): Uri? {
         val dirPreference = preferences.getStringSet("sram_dir", null)?.firstOrNull()
-        return dirPreference?.let { Uri.parse(it) }
+        return dirPreference?.toUri()
     }
 
     override fun getSaveFileDirectory(rom: Rom): Uri {
@@ -350,7 +353,7 @@ class SharedPreferencesSettingsRepository(
 
         try {
             val configFile = File(context.filesDir, CONTROLLER_CONFIG_FILE)
-            OutputStreamWriter(FileOutputStream(configFile)).use {
+            OutputStreamWriter(configFile.outputStream()).use {
                 val configJson = gson.toJson(controllerConfiguration)
                 it.write(configJson)
             }

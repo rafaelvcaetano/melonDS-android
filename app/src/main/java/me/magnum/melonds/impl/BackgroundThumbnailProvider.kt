@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory
 import me.magnum.melonds.domain.model.Background
 import me.magnum.melonds.utils.BitmapUtils
 import java.io.File
-import java.io.FileOutputStream
 import java.util.*
 
 class BackgroundThumbnailProvider(private val context: Context) {
@@ -50,7 +49,7 @@ class BackgroundThumbnailProvider(private val context: Context) {
     private fun saveThumbnailToDisk(background: Background, thumbnail: Bitmap) {
         try {
             val thumbnailFile = getThumbnailFile(background) ?: return
-            FileOutputStream(thumbnailFile).use {
+            thumbnailFile.outputStream().use {
                 thumbnail.compress(Bitmap.CompressFormat.PNG, 100, it)
             }
         } catch (_: Exception) {

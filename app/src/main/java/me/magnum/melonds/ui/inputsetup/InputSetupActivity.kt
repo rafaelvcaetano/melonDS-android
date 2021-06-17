@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -115,7 +116,7 @@ class InputSetupActivity : AppCompatActivity() {
                 else
                     viewBinding.textInputName.setText(inputNameResource)
 
-                viewBinding.imageInputClear.visibility = if (config.inputConfig.hasKeyAssigned()) View.VISIBLE else View.GONE
+                viewBinding.imageInputClear.isVisible = config.inputConfig.hasKeyAssigned()
 
                 if (config.isBeingConfigured) {
                     viewBinding.textAssignedInputName.setText(R.string.press_any_button)

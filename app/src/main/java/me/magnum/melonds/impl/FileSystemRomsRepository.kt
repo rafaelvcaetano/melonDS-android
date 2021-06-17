@@ -22,7 +22,6 @@ import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.utils.FileUtils
 import java.io.File
-import java.io.FileOutputStream
 import java.io.FileReader
 import java.io.OutputStreamWriter
 import java.lang.reflect.Type
@@ -256,7 +255,7 @@ class FileSystemRomsRepository(
         try {
             val romsJson = gson.toJson(romData)
 
-            val output = OutputStreamWriter(FileOutputStream(cacheFile))
+            val output = OutputStreamWriter(cacheFile.outputStream())
             output.write(romsJson)
             output.close()
         } catch (e: Exception) {
