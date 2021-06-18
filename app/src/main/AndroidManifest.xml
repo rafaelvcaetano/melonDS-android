@@ -26,7 +26,7 @@
         <activity
             android:name=".ui.emulator.EmulatorActivity"
             android:theme="@style/EmulatorTheme"
-            android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|keyboard"
+            android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|keyboard|uiMode"
             android:launchMode="singleTask"
             android:exported="true">
             <intent-filter>
