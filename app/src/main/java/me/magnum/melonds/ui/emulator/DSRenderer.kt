@@ -9,6 +9,7 @@ import android.opengl.Matrix
 import android.util.Log
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
+import me.magnum.melonds.common.opengl.ShaderProgramSource
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.utils.BitmapUtils
 import java.nio.ByteBuffer
@@ -23,6 +24,17 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
         private const val TAG = "DSRenderer"
         private const val SCREEN_WIDTH = 256
         private const val SCREEN_HEIGHT = 384
+
+        private val FILTERING_SHADER_MAP = mapOf(
+            VideoFiltering.NONE to ShaderProgramSource.NoFilterShader,
+            VideoFiltering.LINEAR to ShaderProgramSource.LinearShader,
+            VideoFiltering.XBR2 to ShaderProgramSource.XbrShader,
+            VideoFiltering.HQ2X to ShaderProgramSource.Hq2xShader,
+            VideoFiltering.HQ4X to ShaderProgramSource.Hq4xShader,
+            VideoFiltering.QUILEZ to ShaderProgramSource.QuilezShader,
+            VideoFiltering.LCD to ShaderProgramSource.LcdShader,
+            VideoFiltering.SCANLINES to ShaderProgramSource.ScanlinesShader
+        )
     }
 
     private var rendererListener: RendererListener? = null
@@ -33,7 +45,7 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
     private var backgroundTexture = 0
     private var mainTexture = 0
 
-    private lateinit var screenShader: Shader
+    private var screenShader: Shader? = null
     private lateinit var backgroundShader: Shader
 
     private lateinit var mvpMatrix: FloatArray
@@ -116,9 +128,8 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
 
-        // Create shaders
-        screenShader = ShaderFactory.createDefaultShaderProgram()
-        backgroundShader = ShaderFactory.createDefaultBackgroundShaderProgram()
+        // Create background shader
+        backgroundShader = ShaderFactory.createShaderProgram(ShaderProgramSource.BackgroundShader)
 
         // Create MVP matrix
         mvpMatrix = FloatArray(16)
@@ -136,7 +147,7 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
 
     private fun applyRendererConfiguration() {
         updateScreenCoordinates()
-        updateTextureParameters()
+        updateShader()
     }
 
     private fun updateScreenCoordinates() {
@@ -240,15 +251,21 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
                 .put(coords.toFloatArray())
     }
 
-    private fun updateTextureParameters() {
-        val filtering = when (rendererConfiguration.videoFiltering) {
-            VideoFiltering.NONE -> GLES20.GL_NEAREST
-            VideoFiltering.LINEAR -> GLES20.GL_LINEAR
+    private fun updateShader() {
+        // Delete previous shader
+        screenShader?.delete()
+
+        val shaderSource = FILTERING_SHADER_MAP[rendererConfiguration.videoFiltering] ?: throw Exception("Invalid video filtering")
+        screenShader = ShaderFactory.createShaderProgram(shaderSource)
+
+        val textureFilter = when (shaderSource.textureFiltering) {
+            ShaderProgramSource.TextureFiltering.NEAREST -> GLES20.GL_NEAREST
+            ShaderProgramSource.TextureFiltering.LINEAR -> GLES20.GL_LINEAR
         }
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mainTexture)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filtering)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filtering)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, textureFilter)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, textureFilter)
     }
 
     override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) {
@@ -280,15 +297,17 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
         texBuffer.position(0)
 
         val indices = posBuffer.capacity() / 2
-        screenShader.use()
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mainTexture)
-        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, texBuffer)
-        GLES20.glUniformMatrix4fv(screenShader.uniformMvp, 1, false, mvpMatrix, 0)
-        GLES20.glVertexAttribPointer(screenShader.attribPos, 2, GLES20.GL_FLOAT, false, 0, posBuffer)
-        GLES20.glVertexAttribPointer(screenShader.attribUv, 2, GLES20.GL_FLOAT, false, 0, uvBuffer)
-        GLES20.glUniform1i(screenShader.uniformTex, 0)
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, indices)
+        screenShader?.let {
+            it.use()
+            GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mainTexture)
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, texBuffer)
+            GLES20.glUniformMatrix4fv(it.uniformMvp, 1, false, mvpMatrix, 0)
+            GLES20.glVertexAttribPointer(it.attribPos, 2, GLES20.GL_FLOAT, false, 0, posBuffer)
+            GLES20.glVertexAttribPointer(it.attribUv, 2, GLES20.GL_FLOAT, false, 0, uvBuffer)
+            GLES20.glUniform1i(it.uniformTex, 0)
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, indices)
+        }
     }
 
     private fun renderBackground() {

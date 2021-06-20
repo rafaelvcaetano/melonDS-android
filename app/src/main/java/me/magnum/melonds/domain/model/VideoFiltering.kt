@@ -2,5 +2,11 @@ package me.magnum.melonds.domain.model
 
 enum class VideoFiltering {
     NONE,
-    LINEAR
+    LINEAR,
+    XBR2,
+    HQ2X,
+    HQ4X,
+    QUILEZ,
+    LCD,
+    SCANLINES
 }

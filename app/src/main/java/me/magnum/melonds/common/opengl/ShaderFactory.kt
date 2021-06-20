@@ -3,41 +3,8 @@ package me.magnum.melonds.common.opengl
 import android.opengl.GLES20
 
 object ShaderFactory {
-    private const val DEFAULT_VERT_SHADER = "uniform mat4 MVP;\n" +
-            "attribute vec2 vUV;\n" +
-            "attribute vec2 vPos;\n" +
-            "varying vec2 uv;\n" +
-            "void main()\n" +
-            "{\n" +
-            "    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n" +
-            "    uv = vUV;\n" +
-            "}\n"
-
-    private const val DEFAULT_FRAG_SHADER = "precision mediump float;\n" +
-            "uniform sampler2D tex;\n" +
-            "varying vec2 uv;\n" +
-            "void main()\n" +
-            "{\n" +
-            "    vec4 color = texture2D(tex, uv);\n" +
-            "    //float color = texture2D(tex, uv).a;\n" +
-            "    gl_FragColor = vec4(color.bgr, 1);\n" +
-            "}\n"
-
-    private const val DEFAULT_BACKGROUND_FRAG_SHADER = "precision mediump float;\n" +
-            "uniform sampler2D tex;\n" +
-            "varying vec2 uv;\n" +
-            "void main()\n" +
-            "{\n" +
-            "    vec4 color = texture2D(tex, uv);\n" +
-            "    gl_FragColor = vec4(color.rgb, 1);\n" +
-            "}\n"
-
-    fun createDefaultShaderProgram(): Shader {
-        return createShaderProgram(DEFAULT_VERT_SHADER, DEFAULT_FRAG_SHADER)
-    }
-
-    fun createDefaultBackgroundShaderProgram(): Shader {
-        return createShaderProgram(DEFAULT_VERT_SHADER, DEFAULT_BACKGROUND_FRAG_SHADER)
+    fun createShaderProgram(source: ShaderProgramSource): Shader {
+        return createShaderProgram(source.vertexShaderSource, source.fragmentShaderSource)
     }
 
     private fun createShaderProgram(vertexShader: String, fragmentShader: String): Shader {

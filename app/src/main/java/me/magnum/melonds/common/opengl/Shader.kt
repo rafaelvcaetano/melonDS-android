@@ -2,7 +2,7 @@ package me.magnum.melonds.common.opengl
 
 import android.opengl.GLES20
 
-class Shader(val programId: Int) {
+class Shader(private val programId: Int) {
     val uniformMvp: Int
     val attribUv: Int
     val attribPos: Int
@@ -21,5 +21,9 @@ class Shader(val programId: Int) {
         GLES20.glUseProgram(programId)
         GLES20.glEnableVertexAttribArray(attribUv)
         GLES20.glEnableVertexAttribArray(attribPos)
+    }
+
+    fun delete() {
+        GLES20.glDeleteProgram(programId)
     }
 }

@@ -87,7 +87,7 @@
 
         <ListPreference
             android:key="video_filtering"
-            android:title="@string/filtering"
+            android:title="@string/filter"
             android:summary="%s"
             android:entries="@array/video_filtering_options"
             android:entryValues="@array/video_filtering_values"
