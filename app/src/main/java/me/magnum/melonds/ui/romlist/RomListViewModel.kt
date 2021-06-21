@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
+import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.LayoutsRepository
@@ -27,14 +28,15 @@ class RomListViewModel @Inject constructor(
         private val layoutsRepository: LayoutsRepository,
         private val romIconProvider: RomIconProvider,
         private val configurationDirectoryVerifier: ConfigurationDirectoryVerifier,
-        private val uriHandler: UriHandler
+        private val uriHandler: UriHandler,
+        schedulers: Schedulers
 ) : ViewModel() {
 
     private val disposables: CompositeDisposable = CompositeDisposable()
 
     private val romsLiveData = MutableLiveData<List<Rom>>()
-    private var searchDirectoriesLiveData: MutableLiveData<Array<Uri>>? = null
-    private var romsFilteredLiveData: MediatorLiveData<List<Rom>>? = null
+    private val searchDirectoriesLiveData: MutableLiveData<Array<Uri>>
+    private val romsFilteredLiveData: MediatorLiveData<List<Rom>>
 
     private var romSearchQuery = ""
     private var sortingMode = settingsRepository.getRomSortingMode()
@@ -44,32 +46,20 @@ class RomListViewModel @Inject constructor(
         settingsRepository.observeRomIconFiltering()
                 .subscribe { romsLiveData.postValue(romsLiveData.value) }
                 .addTo(disposables)
-    }
-
-    fun getRomScanningDirectories(): LiveData<Array<Uri>> {
-        if (searchDirectoriesLiveData != null)
-            return searchDirectoriesLiveData!!
 
         searchDirectoriesLiveData = MutableLiveData()
         settingsRepository.observeRomSearchDirectories()
-                .startWith(settingsRepository.getRomSearchDirectories())
-                .distinctUntilChanged()
-                .subscribe { directories -> searchDirectoriesLiveData?.postValue(directories) }
-                .addTo(disposables)
-
-        return searchDirectoriesLiveData!!
-    }
-
-    fun getRoms(): LiveData<List<Rom>> {
-        if (romsFilteredLiveData != null)
-            return romsFilteredLiveData!!
+            .startWith(settingsRepository.getRomSearchDirectories())
+            .distinctUntilChanged()
+            .subscribe { directories -> searchDirectoriesLiveData.postValue(directories) }
+            .addTo(disposables)
 
         romsFilteredLiveData = MediatorLiveData<List<Rom>>().apply {
             addSource(romsLiveData) {
                 val romList = if (romSearchQuery.isEmpty()) {
                     it
                 } else {
-                    it.filter { rom ->
+                    it?.filter { rom ->
                         val normalizedName = Normalizer.normalize(rom.name, Normalizer.Form.NFD).replace("[^\\p{ASCII}]", "")
                         val normalizedPath = Normalizer.normalize(uriHandler.getUriDocument(rom.uri)?.name, Normalizer.Form.NFD).replace("[^\\p{ASCII}]", "")
 
@@ -77,18 +67,27 @@ class RomListViewModel @Inject constructor(
                     }
                 }
 
-                value = when (sortingMode) {
-                    SortingMode.ALPHABETICALLY -> romList.sortedWith(buildAlphabeticalRomComparator())
-                    SortingMode.RECENTLY_PLAYED -> romList.sortedWith(buildRecentlyPlayedRomComparator())
+                if (romList != null) {
+                    value = when (sortingMode) {
+                        SortingMode.ALPHABETICALLY -> romList.sortedWith(buildAlphabeticalRomComparator())
+                        SortingMode.RECENTLY_PLAYED -> romList.sortedWith(buildRecentlyPlayedRomComparator())
+                    }
                 }
             }
         }
 
         romsRepository.getRoms()
-                .subscribe { roms -> romsLiveData.postValue(roms) }
-                .addTo(disposables)
+            .subscribeOn(schedulers.backgroundThreadScheduler)
+            .subscribe { roms -> romsLiveData.postValue(roms) }
+            .addTo(disposables)
+    }
 
-        return romsFilteredLiveData!!
+    fun getRomScanningDirectories(): LiveData<Array<Uri>> {
+        return searchDirectoriesLiveData
+    }
+
+    fun getRoms(): LiveData<List<Rom>> {
+        return romsFilteredLiveData
     }
 
     fun getRomScanningStatus(): LiveData<RomScanningStatus> {
