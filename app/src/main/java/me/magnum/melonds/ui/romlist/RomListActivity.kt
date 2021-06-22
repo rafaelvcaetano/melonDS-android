@@ -64,11 +64,11 @@ class RomListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val binding = ActivityRomListBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        viewModel.getRomScanningDirectories().observe(this) {
-            if (it.isEmpty())
-                addNoSearchDirectoriesFragment()
-            else
+        viewModel.hasRomScanningDirectories().observe(this) { hasDirectories ->
+            if (hasDirectories)
                 addRomListFragment()
+            else
+                addNoSearchDirectoriesFragment()
         }
     }
 

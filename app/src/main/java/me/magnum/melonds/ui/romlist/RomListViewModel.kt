@@ -35,7 +35,7 @@ class RomListViewModel @Inject constructor(
     private val disposables: CompositeDisposable = CompositeDisposable()
 
     private val romsLiveData = MutableLiveData<List<Rom>>()
-    private val searchDirectoriesLiveData: MutableLiveData<Array<Uri>>
+    private val hasSearchDirectoriesLiveData = MutableLiveData<Boolean>()
     private val romsFilteredLiveData: MediatorLiveData<List<Rom>>
 
     private var romSearchQuery = ""
@@ -47,11 +47,10 @@ class RomListViewModel @Inject constructor(
                 .subscribe { romsLiveData.postValue(romsLiveData.value) }
                 .addTo(disposables)
 
-        searchDirectoriesLiveData = MutableLiveData()
         settingsRepository.observeRomSearchDirectories()
             .startWith(settingsRepository.getRomSearchDirectories())
             .distinctUntilChanged()
-            .subscribe { directories -> searchDirectoriesLiveData.postValue(directories) }
+            .subscribe { directories -> hasSearchDirectoriesLiveData.postValue(directories.isNotEmpty()) }
             .addTo(disposables)
 
         romsFilteredLiveData = MediatorLiveData<List<Rom>>().apply {
@@ -82,8 +81,8 @@ class RomListViewModel @Inject constructor(
             .addTo(disposables)
     }
 
-    fun getRomScanningDirectories(): LiveData<Array<Uri>> {
-        return searchDirectoriesLiveData
+    fun hasRomScanningDirectories(): LiveData<Boolean> {
+        return hasSearchDirectoriesLiveData
     }
 
     fun getRoms(): LiveData<List<Rom>> {
