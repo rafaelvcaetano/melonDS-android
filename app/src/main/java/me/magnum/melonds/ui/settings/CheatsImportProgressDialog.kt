@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Observer
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.DialogCheatsImportProgressBinding
 import me.magnum.melonds.domain.model.CheatImportProgress
@@ -21,7 +20,7 @@ class CheatsImportProgressDialog : DialogFragment() {
         return AlertDialog.Builder(requireContext())
                 .setTitle(R.string.importing_cheats)
                 .setView(binding.root)
-                .setPositiveButton("Move to background") { dialog, _ ->
+                .setPositiveButton(R.string.move_to_background) { dialog, _ ->
                     dialog.dismiss()
                 }
                 .setCancelable(false)
@@ -31,7 +30,7 @@ class CheatsImportProgressDialog : DialogFragment() {
     override fun onStart() {
         super.onStart()
 
-        settingsViewModel.observeCheatsImportProgress().observe(this, Observer {
+        settingsViewModel.observeCheatsImportProgress().observe(this) {
             when (it.status) {
                 CheatImportProgress.CheatImportStatus.STARTING -> {
                     binding.progressBarCheatImport.isIndeterminate = true
@@ -46,6 +45,6 @@ class CheatsImportProgressDialog : DialogFragment() {
                 CheatImportProgress.CheatImportStatus.FAILED,
                 CheatImportProgress.CheatImportStatus.FINISHED -> dismiss()
             }
-        })
+        }
     }
 }
