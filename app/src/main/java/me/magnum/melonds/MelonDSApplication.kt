@@ -18,7 +18,7 @@ import javax.inject.Inject
 @HiltAndroidApp
 class MelonDSApplication : Application(), Configuration.Provider {
     companion object {
-        const val NOTIFICATION_ID_CHEAT_IMPORTING = "channel_cheat_importing"
+        const val NOTIFICATION_CHANNEL_ID_BACKGROUND_TASKS = "channel_cheat_importing"
     }
 
     @Inject lateinit var workerFactory: HiltWorkerFactory
@@ -39,7 +39,7 @@ class MelonDSApplication : Application(), Configuration.Provider {
             return
         }
 
-        val defaultChannel = NotificationChannel(NOTIFICATION_ID_CHEAT_IMPORTING, getString(R.string.notification_channel_cheat_importing), NotificationManager.IMPORTANCE_LOW)
+        val defaultChannel = NotificationChannel(NOTIFICATION_CHANNEL_ID_BACKGROUND_TASKS, getString(R.string.notification_channel_background_tasks), NotificationManager.IMPORTANCE_LOW)
         defaultChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(defaultChannel)

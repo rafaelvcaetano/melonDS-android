@@ -14,6 +14,10 @@
     <string name="options">Options</string>
     <string name="preview">Preview</string>
     <string name="undo">Undo</string>
+    <string name="update">Update</string>
+
+    <string name="version_alpha">Alpha</string>
+    <string name="version_beta">Beta</string>
 
     <string name="console_ds">DS</string>
     <string name="console_dsi">DSi (Experimental)</string>
@@ -30,6 +34,13 @@
     <string name="action_boot_firmware">Boot firmware</string>
     <string name="action_refresh_rom_list">Refresh ROM list</string>
     <string name="hint_search_roms">Search ROMs…</string>
+    <string name="update_available">Update available: %1$s</string>
+    <string name="skip_update">Skip</string>
+    <string name="downloading_update">Downloading update…</string>
+    <string name="starting_download">Starting download…</string>
+    <string name="download_progress_sizes">%1$.1fMB/%2$.1fMB</string>
+    <string name="update_download_failed">Failed to download update</string>
+
     <string name="info_fps">FPS: %1$d</string>
     <string name="info_loading">LOADING…</string>
     <string name="failed_save_state">Failed to save state</string>
@@ -133,6 +144,7 @@
     <string name="error_clear_rom_cache">Failed to clear ROM cache</string>
     <string name="importing_cheats">Importing cheats…</string>
     <string name="starting">Starting…</string>
+    <string name="move_to_background">Move to background</string>
     <string name="failed_save_cheat_changes">Could not save cheat changes</string>
     <string name="no_cheats_found">Could not find cheats for the current ROM. Try importing a different cheat database.</string>
     <string name="day">Day</string>
@@ -150,7 +162,7 @@
     <string name="theme_option_dark">Dark</string>
     <string name="theme_option_system_default">System default</string>
 
-    <string name="notification_channel_cheat_importing">Cheat importing</string>
+    <string name="notification_channel_background_tasks">Background tasks</string>
 
     <string name="top_screen">Top Screen</string>
     <string name="bottom_screen">Bottom Screen</string>

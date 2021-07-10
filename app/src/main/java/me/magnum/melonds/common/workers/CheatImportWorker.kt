@@ -106,7 +106,7 @@ class CheatImportWorker @AssistedInject constructor(
     }
 
     private fun createForegroundInfo(gameName: String?, progress: Int, indeterminate: Boolean): ForegroundInfo {
-        val notification = NotificationCompat.Builder(applicationContext, MelonDSApplication.NOTIFICATION_ID_CHEAT_IMPORTING)
+        val notification = NotificationCompat.Builder(applicationContext, MelonDSApplication.NOTIFICATION_CHANNEL_ID_BACKGROUND_TASKS)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setSubText(applicationContext.getString(R.string.importing_cheats))
                 .setContentTitle(gameName ?: "")

@@ -3,6 +3,7 @@ package me.magnum.melonds.di
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
+import android.text.util.Linkify
 import androidx.preference.PreferenceManager
 import androidx.room.Room
 import com.google.gson.Gson
@@ -13,12 +14,17 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import io.noties.markwon.Markwon
+import io.noties.markwon.image.picasso.PicassoImagesPlugin
+import io.noties.markwon.linkify.LinkifyPlugin
 import io.reactivex.android.schedulers.AndroidSchedulers
 import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.uridelegates.CompositeUriHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.database.migrations.Migration1to2
+import me.magnum.melonds.domain.services.TaskManager
+import me.magnum.melonds.impl.AndroidTaskManager
 import me.magnum.melonds.utils.UriTypeHierarchyAdapter
 import javax.inject.Singleton
 
@@ -29,6 +35,7 @@ object AppModule {
     fun provideContext(@ApplicationContext context: Context): Context = context
 
     @Provides
+    @Singleton
     fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences {
         return PreferenceManager.getDefaultSharedPreferences(context)
     }
@@ -63,7 +70,22 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideMarkwon(@ApplicationContext context: Context, picasso: Picasso): Markwon {
+        return Markwon.builder(context)
+            .usePlugin(PicassoImagesPlugin.create(picasso))
+            .usePlugin(LinkifyPlugin.create(Linkify.WEB_URLS, true))
+            .build()
+    }
+
+    @Provides
+    @Singleton
     fun provideSchedulers(): Schedulers {
         return Schedulers(io.reactivex.schedulers.Schedulers.io(), AndroidSchedulers.mainThread())
+    }
+
+    @Provides
+    @Singleton
+    fun provideTaskManager(@ApplicationContext context: Context): TaskManager {
+        return AndroidTaskManager(context)
     }
 }

@@ -6,6 +6,8 @@ buildscript {
     ext.room_version = '2.3.0'
     ext.work_version ='2.5.0'
     ext.hiltx_version = '1.0.0'
+    ext.retrofit_version = '2.9.0'
+    ext.markwon_version = '4.6.2'
 
     repositories {
         google()
