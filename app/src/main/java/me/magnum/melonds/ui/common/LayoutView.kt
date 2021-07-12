@@ -18,18 +18,12 @@ open class LayoutView(context: Context, attrs: AttributeSet?) : FrameLayout(cont
     lateinit var screenUnitsConverter: ScreenUnitsConverter
 
     protected lateinit var viewBuilderFactory: LayoutComponentViewBuilderFactory
-    private var currentLayoutConfiguration: LayoutConfiguration? = null
+    protected var currentLayoutConfiguration: LayoutConfiguration? = null
+        private set
     protected val views = mutableMapOf<LayoutComponent, LayoutComponentView>()
 
     fun setLayoutComponentViewBuilderFactory(factory: LayoutComponentViewBuilderFactory) {
         viewBuilderFactory = factory
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration?) {
-        super.onConfigurationChanged(newConfig)
-        currentLayoutConfiguration?.let {
-            instantiateLayout(it)
-        }
     }
 
     fun instantiateLayout(layoutConfiguration: LayoutConfiguration) {

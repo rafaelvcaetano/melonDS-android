@@ -1,5 +1,6 @@
 package me.magnum.melonds.ui.layouteditor
 
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
 import android.widget.SeekBar
@@ -17,6 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityLayoutEditorBinding
 import me.magnum.melonds.domain.model.LayoutComponent
+import me.magnum.melonds.domain.model.LayoutConfiguration
 import me.magnum.melonds.domain.model.Orientation
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.extensions.insetsControllerCompat
@@ -102,9 +104,12 @@ class LayoutEditorActivity : AppCompatActivity() {
         } else {
             Orientation.LANDSCAPE
         }
-        viewModel.setCurrentLayoutOrientation(currentOrientation)
+        viewModel.setCurrentSystemOrientation(currentOrientation)
         viewModel.getBackground().observe(this) {
             updateBackground(it)
+        }
+        viewModel.onLayoutPropertiesUpdate().observe(this) {
+            onLayoutPropertiesUpdated()
         }
 
         setupFullscreen()
@@ -146,7 +151,17 @@ class LayoutEditorActivity : AppCompatActivity() {
             instantiateDefaultConfiguration()
             currentlySelectedBackgroundId = null
         } else {
+            val desiredSystemOrientation = when(currentLayoutConfiguration.orientation) {
+                LayoutConfiguration.LayoutOrientation.FOLLOW_SYSTEM -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                LayoutConfiguration.LayoutOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                LayoutConfiguration.LayoutOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            }
+
             binding.viewLayoutEditor.instantiateLayout(currentLayoutConfiguration)
+
+            if (desiredSystemOrientation != requestedOrientation) {
+                requestedOrientation = desiredSystemOrientation
+            }
         }
     }
 
@@ -166,6 +181,20 @@ class LayoutEditorActivity : AppCompatActivity() {
                 e?.printStackTrace()
             }
         })
+    }
+
+    private fun onLayoutPropertiesUpdated() {
+        viewModel.getCurrentLayoutConfiguration()?.let {
+            val desiredSystemOrientation = when(it.orientation) {
+                LayoutConfiguration.LayoutOrientation.FOLLOW_SYSTEM -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                LayoutConfiguration.LayoutOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                LayoutConfiguration.LayoutOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            }
+
+            if (desiredSystemOrientation != requestedOrientation) {
+                requestedOrientation = desiredSystemOrientation
+            }
+        }
     }
 
     private fun showBottomControls(animate: Boolean = true) {

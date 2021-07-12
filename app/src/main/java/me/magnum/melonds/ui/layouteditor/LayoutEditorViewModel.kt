@@ -13,6 +13,7 @@ import me.magnum.melonds.domain.repositories.BackgroundRepository
 import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.impl.DefaultLayoutProvider
+import me.magnum.melonds.utils.SingleLiveEvent
 import java.util.*
 import javax.inject.Inject
 
@@ -29,6 +30,7 @@ class LayoutEditorViewModel @Inject constructor(
     private var currentLayoutConfiguration: LayoutConfiguration? = null
     private var initialLayoutConfiguration: LayoutConfiguration? = null
     private val backgroundLiveData = MutableLiveData<RuntimeBackground>()
+    private val layoutPropertiesUpdateEvent = SingleLiveEvent<Unit>()
     private val disposables = CompositeDisposable()
 
     init {
@@ -58,6 +60,10 @@ class LayoutEditorViewModel @Inject constructor(
 
     fun getBackground(): LiveData<RuntimeBackground> {
         return backgroundLiveData
+    }
+
+    fun onLayoutPropertiesUpdate(): LiveData<Unit> {
+        return layoutPropertiesUpdateEvent
     }
 
     fun getBackgroundName(backgroundId: UUID): Maybe<String> {
@@ -116,11 +122,20 @@ class LayoutEditorViewModel @Inject constructor(
 
     fun savePropertiesToCurrentConfiguration(name: String?, orientation: LayoutConfiguration.LayoutOrientation, useCustomOpacity: Boolean, layoutOpacity: Int) {
         currentLayoutConfiguration?.let {
+            val hasLayoutOrientationChanged = it.orientation != orientation
+
             currentLayoutConfiguration = it.copy(
                     name = name,
+                    orientation = orientation,
                     useCustomOpacity = useCustomOpacity,
                     opacity = layoutOpacity
             )
+
+            if (hasLayoutOrientationChanged) {
+                loadBackgroundForCurrentLayoutConfiguration()
+            }
+
+            layoutPropertiesUpdateEvent.call()
         }
     }
 
