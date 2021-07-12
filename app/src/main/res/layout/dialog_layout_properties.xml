@@ -64,6 +64,29 @@
             </LinearLayout>
 
             <LinearLayout
+                    android:id="@+id/layout_orientation"
+                    style="@style/Layout.RomSetting">
+
+                <LinearLayout
+                        style="@style/Layout.RomSettingContent">
+
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Title"
+                            android:text="@string/layout_orientation"/>
+
+                    <TextView
+                            android:id="@+id/text_orientation"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Text.RomSetting.Summary"
+                            android:singleLine="true"
+                            tools:text="Follow system" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
                     android:id="@+id/layout_use_default_opacity"
                     style="@style/Layout.RomSetting"
                     android:minHeight="48dp">

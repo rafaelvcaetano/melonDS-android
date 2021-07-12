@@ -208,6 +208,7 @@
     <string name="landscape_background_mode">Landscape background mode</string>
     <string name="save_and_exit">Save and exit</string>
     <string name="layout_name">Layout name</string>
+    <string name="layout_orientation">Layout orientation</string>
     <string name="layout_use_default_opacity">Use default opacity</string>
     <string name="layout_opacity">Layout opacity</string>
 
@@ -293,6 +294,12 @@
         <item>Save file directory</item>
         <item>ROM directory</item>
         <item>Internal directory</item>
+    </string-array>
+
+    <string-array name="layout_orientation_options">
+        <item>Follow system</item>
+        <item>Portrait</item>
+        <item>Landscape</item>
     </string-array>
 
     <string-array name="background_portrait_mode_options">

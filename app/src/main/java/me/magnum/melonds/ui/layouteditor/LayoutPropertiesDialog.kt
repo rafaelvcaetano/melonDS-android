@@ -15,6 +15,7 @@ import me.magnum.melonds.ui.common.TextInputDialog
 class LayoutPropertiesDialog : DialogFragment() {
     companion object {
         private const val KEY_LAYOUT_NAME = "layout_name"
+        private const val KEY_LAYOUT_ORIENTATION = "layout_orientation"
         private const val KEY_CUSTOM_OPACITY = "custom_opacity"
         private const val KEY_LAYOUT_OPACITY = "layout_opacity"
 
@@ -22,6 +23,7 @@ class LayoutPropertiesDialog : DialogFragment() {
             return LayoutPropertiesDialog().apply {
                 arguments = bundleOf(
                     KEY_LAYOUT_NAME to layoutConfiguration.name,
+                    KEY_LAYOUT_ORIENTATION to layoutConfiguration.orientation.ordinal,
                     KEY_CUSTOM_OPACITY to layoutConfiguration.useCustomOpacity,
                     KEY_LAYOUT_OPACITY to layoutConfiguration.opacity
                 )
@@ -33,6 +35,7 @@ class LayoutPropertiesDialog : DialogFragment() {
     private val viewModel: LayoutEditorViewModel by activityViewModels()
 
     private var layoutName: String? = null
+    private var layoutOrientation = LayoutConfiguration.LayoutOrientation.FOLLOW_SYSTEM
     private var useCustomOpacity = false
     private var layoutOpacity = 0
 
@@ -50,10 +53,12 @@ class LayoutPropertiesDialog : DialogFragment() {
 
         if (savedInstanceState != null) {
             layoutName = savedInstanceState.getString(KEY_LAYOUT_NAME)
+            layoutOrientation = LayoutConfiguration.LayoutOrientation.values()[savedInstanceState.getInt(KEY_LAYOUT_ORIENTATION)]
             useCustomOpacity = savedInstanceState.getBoolean(KEY_CUSTOM_OPACITY)
             layoutOpacity = savedInstanceState.getInt(KEY_LAYOUT_OPACITY)
         } else {
             layoutName = arguments?.getString(KEY_LAYOUT_NAME)
+            layoutOrientation = LayoutConfiguration.LayoutOrientation.values()[arguments?.getInt(KEY_LAYOUT_ORIENTATION) ?: 0]
             useCustomOpacity = arguments?.getBoolean(KEY_CUSTOM_OPACITY) ?: true
             layoutOpacity = arguments?.getInt(KEY_LAYOUT_OPACITY) ?: 0
         }
@@ -72,6 +77,21 @@ class LayoutPropertiesDialog : DialogFragment() {
                     .build()
                     .show(childFragmentManager, null)
         }
+
+        binding.layoutOrientation.setOnClickListener {
+            AlertDialog.Builder(requireContext())
+                .setTitle(R.string.layout_orientation)
+                .setSingleChoiceItems(R.array.layout_orientation_options, LayoutConfiguration.LayoutOrientation.values().indexOf(layoutOrientation)) { dialog, which ->
+                    val newOrientation = LayoutConfiguration.LayoutOrientation.values()[which]
+                    setLayoutOrientation(newOrientation)
+                    dialog.dismiss()
+                }
+                .setNegativeButton(R.string.cancel) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .show()
+        }
+
         binding.switchUseDefaultOpacity.setOnCheckedChangeListener { _, isChecked ->
             setUseCustomOpacity(!isChecked)
         }
@@ -81,7 +101,7 @@ class LayoutPropertiesDialog : DialogFragment() {
 
         binding.buttonPropertiesOk.setOnClickListener {
             val opacity = binding.seekbarOpacity.progress
-            viewModel.savePropertiesToCurrentConfiguration(layoutName, useCustomOpacity, opacity)
+            viewModel.savePropertiesToCurrentConfiguration(layoutName, layoutOrientation, useCustomOpacity, opacity)
             dismiss()
         }
         binding.buttonPropertiesCancel.setOnClickListener {
@@ -89,6 +109,7 @@ class LayoutPropertiesDialog : DialogFragment() {
         }
 
         setLayoutName(layoutName)
+        setLayoutOrientation(layoutOrientation)
         setUseCustomOpacity(useCustomOpacity)
         binding.switchUseDefaultOpacity.isChecked = !useCustomOpacity
         binding.seekbarOpacity.progress = layoutOpacity
@@ -97,6 +118,7 @@ class LayoutPropertiesDialog : DialogFragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(KEY_LAYOUT_NAME, layoutName)
+        outState.putInt(KEY_LAYOUT_ORIENTATION, layoutOrientation.ordinal)
         outState.putBoolean(KEY_CUSTOM_OPACITY, useCustomOpacity)
         outState.putInt(KEY_LAYOUT_OPACITY, binding.seekbarOpacity.progress)
     }
@@ -109,6 +131,12 @@ class LayoutPropertiesDialog : DialogFragment() {
             binding.textName.text = name
             layoutName = name
         }
+    }
+
+    private fun setLayoutOrientation(orientation: LayoutConfiguration.LayoutOrientation) {
+        val orientationNames = requireContext().resources.getStringArray(R.array.layout_orientation_options)
+        binding.textOrientation.text = orientationNames[LayoutConfiguration.LayoutOrientation.values().indexOf(orientation)]
+        layoutOrientation = orientation
     }
 
     private fun setUseCustomOpacity(useCustomOpacity: Boolean) {

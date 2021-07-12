@@ -22,10 +22,10 @@ class LayoutEditorViewModel @Inject constructor(
         private val backgroundsRepository: BackgroundRepository,
         private val defaultLayoutProvider: DefaultLayoutProvider,
         private val schedulers: Schedulers,
-        private val savedStateHandle: SavedStateHandle
+        savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private var currentOrientation: Orientation? = null
+    private var currentSystemOrientation: Orientation? = null
     private var currentLayoutConfiguration: LayoutConfiguration? = null
     private var initialLayoutConfiguration: LayoutConfiguration? = null
     private val backgroundLiveData = MutableLiveData<RuntimeBackground>()
@@ -41,8 +41,8 @@ class LayoutEditorViewModel @Inject constructor(
         }
     }
 
-    fun setCurrentLayoutOrientation(orientation: Orientation) {
-        currentOrientation = orientation
+    fun setCurrentSystemOrientation(orientation: Orientation) {
+        currentSystemOrientation = orientation
         loadBackgroundForCurrentLayoutConfiguration()
     }
 
@@ -66,8 +66,8 @@ class LayoutEditorViewModel @Inject constructor(
 
     private fun loadBackgroundForCurrentLayoutConfiguration() {
         val layoutConfiguration = currentLayoutConfiguration ?: return
-        currentOrientation?.let { orientation ->
-            when (orientation) {
+        currentSystemOrientation?.let { systemOrientation ->
+            when (systemOrientation) {
                 Orientation.PORTRAIT -> loadBackground(layoutConfiguration.portraitLayout.backgroundId, layoutConfiguration.portraitLayout.backgroundMode)
                 Orientation.LANDSCAPE -> loadBackground(layoutConfiguration.landscapeLayout.backgroundId, layoutConfiguration.landscapeLayout.backgroundMode)
             }
@@ -106,7 +106,7 @@ class LayoutEditorViewModel @Inject constructor(
 
     fun saveLayoutToCurrentConfiguration(layout: UILayout) {
         currentLayoutConfiguration?.let {
-            val layoutOrientation = currentOrientation ?: return
+            val layoutOrientation = currentSystemOrientation ?: return
             currentLayoutConfiguration = when (layoutOrientation) {
                 Orientation.PORTRAIT -> it.copy(portraitLayout = it.portraitLayout.copy(components = layout.components))
                 Orientation.LANDSCAPE -> it.copy(landscapeLayout = it.landscapeLayout.copy(components = layout.components))
@@ -114,7 +114,7 @@ class LayoutEditorViewModel @Inject constructor(
         }
     }
 
-    fun savePropertiesToCurrentConfiguration(name: String?, useCustomOpacity: Boolean, layoutOpacity: Int) {
+    fun savePropertiesToCurrentConfiguration(name: String?, orientation: LayoutConfiguration.LayoutOrientation, useCustomOpacity: Boolean, layoutOpacity: Int) {
         currentLayoutConfiguration?.let {
             currentLayoutConfiguration = it.copy(
                     name = name,
