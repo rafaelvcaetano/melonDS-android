@@ -40,11 +40,11 @@ class EmulatorViewModel @Inject constructor(
     private val layoutLiveData = MutableLiveData<LayoutConfiguration>()
     private val backgroundLiveData = MutableLiveData<RuntimeBackground>()
 
-    private var currentOrientation: Orientation? = null
+    private var currentSystemOrientation: Orientation? = null
 
-    fun setOrientation(orientation: Orientation) {
-        if (orientation != currentOrientation) {
-            currentOrientation = orientation
+    fun setSystemOrientation(orientation: Orientation) {
+        if (orientation != currentSystemOrientation) {
+            currentSystemOrientation = orientation
             loadBackgroundForCurrentLayout()
         }
     }
@@ -94,7 +94,7 @@ class EmulatorViewModel @Inject constructor(
 
     private fun loadBackgroundForCurrentLayout() {
         layoutLiveData.value?.let { layout ->
-            currentOrientation?.let { orientation ->
+            currentSystemOrientation?.let { orientation ->
                 if (orientation == Orientation.PORTRAIT) {
                     loadBackground(layout.portraitLayout.backgroundId, layout.portraitLayout.backgroundMode)
                 } else {

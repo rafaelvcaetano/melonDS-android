@@ -23,6 +23,7 @@ import me.magnum.melonds.domain.model.Orientation
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.extensions.insetsControllerCompat
 import me.magnum.melonds.extensions.setBackgroundMode
+import me.magnum.melonds.extensions.setLayoutOrientation
 import me.magnum.melonds.impl.ScreenUnitsConverter
 import me.magnum.melonds.ui.common.TextInputDialog
 import me.magnum.melonds.utils.getLayoutComponentName
@@ -151,17 +152,8 @@ class LayoutEditorActivity : AppCompatActivity() {
             instantiateDefaultConfiguration()
             currentlySelectedBackgroundId = null
         } else {
-            val desiredSystemOrientation = when(currentLayoutConfiguration.orientation) {
-                LayoutConfiguration.LayoutOrientation.FOLLOW_SYSTEM -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                LayoutConfiguration.LayoutOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                LayoutConfiguration.LayoutOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-            }
-
             binding.viewLayoutEditor.instantiateLayout(currentLayoutConfiguration)
-
-            if (desiredSystemOrientation != requestedOrientation) {
-                requestedOrientation = desiredSystemOrientation
-            }
+            setLayoutOrientation(currentLayoutConfiguration.orientation)
         }
     }
 

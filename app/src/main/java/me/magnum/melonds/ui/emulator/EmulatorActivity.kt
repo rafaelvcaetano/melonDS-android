@@ -6,7 +6,10 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
-import android.view.*
+import android.view.KeyEvent
+import android.view.View
+import android.view.Window
+import android.view.WindowManager
 import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -31,6 +34,7 @@ import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.insetsControllerCompat
 import me.magnum.melonds.extensions.isMicrophonePermissionGranted
+import me.magnum.melonds.extensions.setLayoutOrientation
 import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
@@ -328,14 +332,18 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             updateRendererScreenAreas()
 
             if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                viewModel.setOrientation(Orientation.PORTRAIT)
+                viewModel.setSystemOrientation(Orientation.PORTRAIT)
             } else {
-                viewModel.setOrientation(Orientation.LANDSCAPE)
+                viewModel.setSystemOrientation(Orientation.LANDSCAPE)
             }
             updateSoftInput()
         }
         binding.viewLayoutControls.addOnLayoutChangeListener(layoutChangeListener)
-        binding.viewLayoutControls.instantiateLayout(layoutConfiguration)
+
+        val orientationChanged = setLayoutOrientation(layoutConfiguration.orientation)
+        if (!orientationChanged) {
+            binding.viewLayoutControls.instantiateLayout(layoutConfiguration)
+        }
     }
 
     private fun updateSoftInput() {
