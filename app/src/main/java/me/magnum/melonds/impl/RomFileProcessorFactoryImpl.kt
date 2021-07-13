@@ -17,7 +17,7 @@ class RomFileProcessorFactoryImpl(private val context: Context, ndsRomCache: Nds
         val lastDotIndex = fileName.lastIndexOf('.')
         if (lastDotIndex < 0) return null
 
-        val extension = fileName.substring(lastDotIndex + 1)
+        val extension = fileName.substring(lastDotIndex + 1).lowercase()
         return prefixProcessorMap[extension]
     }
 

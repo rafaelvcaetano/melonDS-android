@@ -94,7 +94,7 @@ class ZipRomFileProcessor(private val context: Context, private val ndsRomCache:
     private fun getNdsEntryInStream(inputStream: ZipInputStream): ZipEntry? {
         do {
             val nextEntry = inputStream.nextEntry ?: break
-            if (nextEntry.name.endsWith(".nds")) {
+            if (!nextEntry.isDirectory && nextEntry.name.lowercase().endsWith(".nds")) {
                 return nextEntry
             }
         } while (true)
