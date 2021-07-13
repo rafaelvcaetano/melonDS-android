@@ -3,15 +3,13 @@ package me.magnum.melonds.impl
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
-import me.magnum.melonds.common.romprocessors.RomFileProcessor
-import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
-import me.magnum.melonds.common.romprocessors.NdsRomFileProcessor
-import me.magnum.melonds.common.romprocessors.ZipRomFileProcessor
+import me.magnum.melonds.common.romprocessors.*
 
 class RomFileProcessorFactoryImpl(private val context: Context, ndsRomCache: NdsRomCache) : RomFileProcessorFactory {
     private val prefixProcessorMap = mapOf(
             "nds" to NdsRomFileProcessor(context),
-            "zip" to ZipRomFileProcessor(context, ndsRomCache)
+            "zip" to ZipRomFileProcessor(context, ndsRomCache),
+            "7z" to SevenZRomFileProcessor(context, ndsRomCache)
     )
 
     override fun getFileRomProcessorForDocument(romDocument: DocumentFile): RomFileProcessor? {

@@ -15,7 +15,7 @@ import kotlin.math.min
 object RomProcessor {
 	fun getRomName(inputStream: BufferedInputStream): String {
 		// Banner offset is at header offset 0x68
-		inputStream.skip(0x68)
+		inputStream.skipStreamBytes(0x68)
 		// Obtain the banner offset
 		val offsetData = ByteArray(4)
 		inputStream.read(offsetData)
