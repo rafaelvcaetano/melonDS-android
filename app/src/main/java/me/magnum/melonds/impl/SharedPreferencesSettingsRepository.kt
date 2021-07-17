@@ -129,6 +129,10 @@ class SharedPreferencesSettingsRepository(
         return enumValueOfIgnoreCase(romIconFilteringPreference)
     }
 
+    override fun getRomCacheMaxSize(): Long {
+        return 256 * 1024 * 1024
+    }
+
     override fun getDefaultConsoleType(): ConsoleType {
         val consoleTypePreference = preferences.getString("console_type", "ds")!!
         return enumValueOfIgnoreCase(consoleTypePreference)

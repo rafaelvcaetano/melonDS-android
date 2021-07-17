@@ -10,11 +10,11 @@ import java.io.InputStream
 
 class SevenZRomFileProcessor(context: Context, ndsRomCache: NdsRomCache) : CompressedRomFileProcessor(context, ndsRomCache) {
 
-    override fun getNdsEntryStreamInFileStream(fileStream: InputStream): InputStream? {
+    override fun getNdsEntryStreamInFileStream(fileStream: InputStream): RomFileStream? {
         val channel = SeekableInMemoryByteChannel(IOUtils.toByteArray(fileStream))
         val sevenZFile = SevenZFile(channel)
         return getNdsEntryInFile(sevenZFile)?.let {
-            sevenZFile.getInputStream(it)
+            RomFileStream(sevenZFile.getInputStream(it), it.size)
         }
     }
 

@@ -9,6 +9,8 @@ import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.impl.NdsRomCache
 import me.magnum.melonds.utils.RomProcessor
+import java.io.FileOutputStream
+import java.io.FilterInputStream
 import java.io.InputStream
 
 abstract class CompressedRomFileProcessor(private val context: Context, private val ndsRomCache: NdsRomCache) : RomFileProcessor {
@@ -53,7 +55,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
     }
 
     override fun getRealRomUri(rom: Rom): Single<Uri> {
-        val cachedRomUri = ndsRomCache.getCachedRomFile(rom)
+        val cachedRomUri = ndsRomCache.getCachedRomFile(rom, true)
         return if (cachedRomUri != null) {
             Single.just(cachedRomUri)
         } else {
@@ -80,20 +82,26 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
         return Single.create { emitter ->
             context.contentResolver.openInputStream(rom.uri)?.use {
                 getNdsEntryStreamInFileStream(it)?.use { romFileStream ->
-                    ndsRomCache.cacheRom(rom) { fileOutputStream ->
-                        val buffer = ByteArray(8192)
+                    ndsRomCache.cacheRom(rom, object : NdsRomCache.RomExtractor {
+                        override fun getExtractedRomFileSize(): Long {
+                            return romFileStream.romFileSize
+                        }
 
-                        do {
-                            val read = romFileStream.read(buffer)
-                            if (read <= 0) {
-                                break
-                            }
+                        override fun saveRomFile(fileStream: FileOutputStream): Boolean {
+                            val buffer = ByteArray(8192)
 
-                            fileOutputStream.write(buffer, 0, read)
-                        } while (!emitter.isDisposed)
+                            do {
+                                val read = romFileStream.read(buffer)
+                                if (read <= 0) {
+                                    break
+                                }
 
-                        !emitter.isDisposed
-                    }
+                                fileStream.write(buffer, 0, read)
+                            } while (!emitter.isDisposed)
+
+                            return !emitter.isDisposed
+                        }
+                    })
 
                     if (!emitter.isDisposed) {
                         val cachedRomUri = ndsRomCache.getCachedRomFile(rom)
@@ -109,7 +117,9 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
     }
 
     /**
-     * Retrieves the [InputStream] that points to the ROM in the compressed file. May return null if a ROM entry was not found in the compressed archive.
+     * Retrieves the [RomFileStream] that points to the ROM in the compressed file. May return null if a ROM entry was not found in the compressed archive.
      */
-    abstract fun getNdsEntryStreamInFileStream(fileStream: InputStream): InputStream?
+    abstract fun getNdsEntryStreamInFileStream(fileStream: InputStream): RomFileStream?
+
+    class RomFileStream(stream: InputStream, val romFileSize: Long) : FilterInputStream(stream)
 }

@@ -7,10 +7,10 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 class ZipRomFileProcessor(context: Context, ndsRomCache: NdsRomCache) : CompressedRomFileProcessor(context, ndsRomCache) {
-    override fun getNdsEntryStreamInFileStream(fileStream: InputStream): InputStream? {
+    override fun getNdsEntryStreamInFileStream(fileStream: InputStream): RomFileStream? {
         val zipStream = ZipInputStream(fileStream)
         return getNdsEntryInZipStream(zipStream)?.let {
-            zipStream
+            RomFileStream(zipStream, it.size)
         }
     }
 

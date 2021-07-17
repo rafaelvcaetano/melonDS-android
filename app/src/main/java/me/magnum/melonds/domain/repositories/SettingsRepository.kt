@@ -15,6 +15,7 @@ interface SettingsRepository {
 
     fun getRomSearchDirectories(): Array<Uri>
     fun getRomIconFiltering(): RomIconFiltering
+    fun getRomCacheMaxSize(): Long
 
     fun getDefaultConsoleType(): ConsoleType
     fun getFirmwareConfiguration(): FirmwareConfiguration

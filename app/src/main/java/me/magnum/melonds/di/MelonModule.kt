@@ -45,8 +45,8 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideNdsRomCache(@ApplicationContext context: Context): NdsRomCache {
-        return NdsRomCache(context)
+    fun provideNdsRomCache(@ApplicationContext context: Context, settingsRepository: SettingsRepository): NdsRomCache {
+        return NdsRomCache(context, settingsRepository)
     }
 
     @Provides
