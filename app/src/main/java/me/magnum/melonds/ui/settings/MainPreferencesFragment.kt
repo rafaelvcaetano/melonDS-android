@@ -15,6 +15,7 @@ import me.magnum.melonds.R
 import me.magnum.melonds.common.contracts.FilePickerContract
 import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.domain.model.MicSource
+import me.magnum.melonds.domain.model.SizeUnit
 import me.magnum.melonds.extensions.isMicrophonePermissionGranted
 import me.magnum.melonds.extensions.isSustainedPerformanceModeAvailable
 import me.magnum.melonds.ui.inputsetup.InputSetupActivity
@@ -22,8 +23,8 @@ import me.magnum.melonds.ui.layouts.LayoutListActivity
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.util.*
 import javax.inject.Inject
+import kotlin.math.pow
 
 @AndroidEntryPoint
 class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
@@ -51,6 +52,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.pref_main, rootKey)
         val sustainedPerformancePreference = findPreference<SwitchPreference>("enable_sustained_performance")!!
+        val cacheSizePreference = findPreference<SeekBarPreference>("rom_cache_max_size")!!
         clearRomCachePreference = findPreference("rom_cache_clear")!!
         customBiosPreference = findPreference("use_custom_bios")!!
         val jitPreference = findPreference<SwitchPreference>("enable_jit")!!
@@ -66,6 +68,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
         helper.bindPreferenceSummaryToValue(customBiosPreference)
 
         sustainedPerformancePreference.isVisible = requireContext().isSustainedPerformanceModeAvailable()
+        updateMaxCacheSizePreferenceSummary(cacheSizePreference, cacheSizePreference.value)
 
         if (Build.SUPPORTED_64_BIT_ABIS.isEmpty()) {
             jitPreference.isEnabled = false
@@ -78,6 +81,10 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
             vibrationStrengthPreference.isVisible = false
         }
 
+        cacheSizePreference.setOnPreferenceChangeListener { preference, newValue ->
+            updateMaxCacheSizePreferenceSummary(preference as SeekBarPreference, newValue as Int)
+            true
+        }
         clearRomCachePreference.setOnPreferenceClickListener {
             if (!viewModel.clearRomCache()) {
                 Toast.makeText(requireContext(), R.string.error_clear_rom_cache, Toast.LENGTH_LONG).show()
@@ -129,11 +136,20 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
         customBiosPreference.onPreferenceChangeListener.onPreferenceChange(customBiosPreference, customBiosPreference.sharedPreferences.getBoolean(customBiosPreference.key, false))
     }
 
-    private fun getBestCacheSizeRepresentation(cacheSize: Long): Pair<Double, String> {
-        if (cacheSize < 1024) return cacheSize.toDouble() to "B"
-        if (cacheSize / 1024.0 < 1024.0) return cacheSize / 1024.0 to "KB"
-        if (cacheSize / 1024.0 / 1024.0 < 1024.0) return cacheSize / 1024.0 / 1024.0 to "MB"
-        return cacheSize / 1024.0 / 1024.0 / 1024.0 to "GB"
+    private fun updateMaxCacheSizePreferenceSummary(maxCacheSizePreference: SeekBarPreference, cacheSizeStep: Int) {
+        val cacheSize = SizeUnit.MB(128) * 2.toDouble().pow(cacheSizeStep).toLong()
+        val (sizeValue, sizeUnits) = getBestCacheSizeRepresentation(cacheSize)
+        val sizeDecimal = BigDecimal(sizeValue).setScale(0, RoundingMode.HALF_EVEN)
+        maxCacheSizePreference.summary = "${sizeDecimal}${sizeUnits}"
+    }
+
+    private fun getBestCacheSizeRepresentation(cacheSize: SizeUnit): Pair<Double, String> {
+        return when(cacheSize.toBestRepresentation()) {
+            is SizeUnit.Bytes -> cacheSize.toBytes().toDouble() to "B"
+            is SizeUnit.KB -> cacheSize.toKB() to "KB"
+            is SizeUnit.MB -> cacheSize.toMB() to "MB"
+            is SizeUnit.GB -> cacheSize.toGB() to "GB"
+        }
     }
 
     private fun requestMicrophonePermission(overrideRationaleRequest: Boolean) {

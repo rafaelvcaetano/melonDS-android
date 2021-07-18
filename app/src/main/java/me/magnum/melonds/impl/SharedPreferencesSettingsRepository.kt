@@ -20,6 +20,7 @@ import me.magnum.melonds.ui.Theme
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import java.io.*
 import java.util.*
+import kotlin.math.pow
 
 class SharedPreferencesSettingsRepository(
         private val context: Context,
@@ -129,8 +130,11 @@ class SharedPreferencesSettingsRepository(
         return enumValueOfIgnoreCase(romIconFilteringPreference)
     }
 
-    override fun getRomCacheMaxSize(): Long {
-        return 256 * 1024 * 1024
+    override fun getRomCacheMaxSize(): SizeUnit {
+        // Default cache size step is 3, or 1GB
+        val cacheSizeStepPreference = preferences.getInt("rom_cache_max_size", 3)
+        // Cache size is 128MB * (cacheSizeStepPreference ^ 2)
+        return SizeUnit.MB(128) * 2.toDouble().pow(cacheSizeStepPreference).toLong()
     }
 
     override fun getDefaultConsoleType(): ConsoleType {

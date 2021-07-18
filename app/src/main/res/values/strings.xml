@@ -89,6 +89,7 @@
     <string name="sustained_performance_mode">Sustained performance mode</string>
     <string name="sustained_performance_mode_summary">When enabled, peak performance will be lower but thermal throttling will be less pronounced.</string>
     <string name="rom_icon_filtering">Icon filtering</string>
+    <string name="max_rom_cache_size">Max. ROM cache size</string>
     <string name="clear_extracted_rom_cache">Clear extracted ROM cache</string>
     <string name="cache_size">Cache size: %s</string>
     <string name="cache_size_calculating">Cache size: calculating…</string>
