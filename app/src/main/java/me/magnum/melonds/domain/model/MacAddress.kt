@@ -1,6 +1,5 @@
 package me.magnum.melonds.domain.model
 
-import java.util.*
 import kotlin.random.Random
 import kotlin.random.nextUBytes
 
@@ -28,6 +27,6 @@ data class MacAddress(private val addressBytes: List<UByte>) {
      * Returns the string representation of the MAC address. The string contains the 6 address bytes represented in hexadecimal format, each one separated by a colon.
      */
     override fun toString(): String {
-        return addressBytes.joinToString(":") { it.toString(16).padStart(2, '0') }.toUpperCase(Locale.getDefault())
+        return addressBytes.joinToString(":") { it.toString(16).padStart(2, '0') }.uppercase()
     }
 }

@@ -1,7 +1,5 @@
 package me.magnum.melonds.domain.model
 
-import java.util.*
-
 data class Version(val type: ReleaseType, val major: Int, val minor: Int, val patch: Int) : Comparable<Version> {
     enum class ReleaseType {
         ALPHA,
@@ -29,7 +27,7 @@ data class Version(val type: ReleaseType, val major: Int, val minor: Int, val pa
         }
 
         private fun releaseTypeStringToValue(typeString: String): ReleaseType {
-            val upperCaseType = typeString.toUpperCase(Locale.ROOT)
+            val upperCaseType = typeString.uppercase()
             return ReleaseType.valueOf(upperCaseType)
         }
 

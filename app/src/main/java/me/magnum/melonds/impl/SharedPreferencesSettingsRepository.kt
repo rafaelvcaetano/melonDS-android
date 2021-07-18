@@ -107,7 +107,7 @@ class SharedPreferencesSettingsRepository(
 
     override fun getTheme(): Theme {
         val themePreference = preferences.getString("theme", "light")!!
-        return Theme.valueOf(themePreference.toUpperCase(Locale.ROOT))
+        return Theme.valueOf(themePreference.uppercase())
     }
 
     override fun getFastForwardSpeedMultiplier(): Float {
@@ -207,7 +207,7 @@ class SharedPreferencesSettingsRepository(
 
     override fun getVideoFiltering(): VideoFiltering {
         val filteringPreference = preferences.getString("video_filtering", "linear")!!
-        return VideoFiltering.valueOf(filteringPreference.toUpperCase(Locale.ROOT))
+        return VideoFiltering.valueOf(filteringPreference.uppercase())
     }
 
     override fun isThreadedRenderingEnabled(): Boolean {
@@ -216,7 +216,7 @@ class SharedPreferencesSettingsRepository(
 
     override fun getFpsCounterPosition(): FpsCounterPosition {
         val fpsCounterPreference = preferences.getString("fps_counter_position", "hidden")!!
-        return FpsCounterPosition.valueOf(fpsCounterPreference.toUpperCase(Locale.ROOT))
+        return FpsCounterPosition.valueOf(fpsCounterPreference.uppercase())
     }
 
     override fun isSoundEnabled(): Boolean {
@@ -230,7 +230,7 @@ class SharedPreferencesSettingsRepository(
 
     override fun getRomSortingMode(): SortingMode {
         val sortingMode = preferences.getString("rom_sorting_mode", "alphabetically")!!
-        return SortingMode.valueOf(sortingMode.toUpperCase(Locale.ROOT))
+        return SortingMode.valueOf(sortingMode.uppercase())
     }
 
     override fun getRomSortingOrder(): SortingOrder {
@@ -238,7 +238,7 @@ class SharedPreferencesSettingsRepository(
         return if (sortingOrder == null)
             getRomSortingMode().defaultOrder
         else
-            SortingOrder.valueOf(sortingOrder.toUpperCase(Locale.ROOT))
+            SortingOrder.valueOf(sortingOrder.uppercase())
     }
 
     override fun saveNextToRomFile(): Boolean {
@@ -260,7 +260,7 @@ class SharedPreferencesSettingsRepository(
 
     override fun getSaveStateLocation(rom: Rom): SaveStateLocation {
         val locationPreference = preferences.getString("save_state_location", "save_dir")!!
-        return SaveStateLocation.valueOf(locationPreference.toUpperCase(Locale.ROOT))
+        return SaveStateLocation.valueOf(locationPreference.uppercase())
     }
 
     override fun getSaveStateDirectory(rom: Rom): Uri? {
@@ -372,13 +372,13 @@ class SharedPreferencesSettingsRepository(
 
     override fun setRomSortingMode(sortingMode: SortingMode) {
         preferences.edit {
-            putString("rom_sorting_mode", sortingMode.toString().toLowerCase(Locale.ROOT))
+            putString("rom_sorting_mode", sortingMode.toString().lowercase())
         }
     }
 
     override fun setRomSortingOrder(sortingOrder: SortingOrder) {
         preferences.edit {
-            putString("rom_sorting_order", sortingOrder.toString().toLowerCase(Locale.ROOT))
+            putString("rom_sorting_order", sortingOrder.toString().lowercase())
         }
     }
 

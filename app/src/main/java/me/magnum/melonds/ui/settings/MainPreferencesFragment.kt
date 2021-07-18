@@ -37,7 +37,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
     private lateinit var micSourcePreference: ListPreference
     private val microphonePermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) {
-            micSourcePreference.value = MicSource.DEVICE.name.toLowerCase(Locale.ROOT)
+            micSourcePreference.value = MicSource.DEVICE.name.lowercase()
         }
     }
     private val filePickerLauncher = registerForActivityResult(FilePickerContract(false)) {
