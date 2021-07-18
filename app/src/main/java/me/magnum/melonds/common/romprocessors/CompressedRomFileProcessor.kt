@@ -7,6 +7,7 @@ import io.reactivex.Single
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomInfo
+import me.magnum.melonds.domain.model.SizeUnit
 import me.magnum.melonds.impl.NdsRomCache
 import me.magnum.melonds.utils.RomProcessor
 import java.io.FileOutputStream
@@ -83,7 +84,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
             context.contentResolver.openInputStream(rom.uri)?.use {
                 getNdsEntryStreamInFileStream(it)?.use { romFileStream ->
                     ndsRomCache.cacheRom(rom, object : NdsRomCache.RomExtractor {
-                        override fun getExtractedRomFileSize(): Long {
+                        override fun getExtractedRomFileSize(): SizeUnit {
                             return romFileStream.romFileSize
                         }
 
@@ -121,5 +122,5 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
      */
     abstract fun getNdsEntryStreamInFileStream(fileStream: InputStream): RomFileStream?
 
-    class RomFileStream(stream: InputStream, val romFileSize: Long) : FilterInputStream(stream)
+    class RomFileStream(stream: InputStream, val romFileSize: SizeUnit) : FilterInputStream(stream)
 }

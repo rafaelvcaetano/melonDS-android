@@ -9,6 +9,7 @@ import io.reactivex.disposables.CompositeDisposable
 import me.magnum.melonds.domain.model.CheatImportProgress
 import me.magnum.melonds.domain.model.ConfigurationDirResult
 import me.magnum.melonds.domain.model.ConsoleType
+import me.magnum.melonds.domain.model.SizeUnit
 import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.extensions.addTo
@@ -32,8 +33,8 @@ class SettingsViewModel @Inject constructor(
         return cheatsRepository.isCheatImportOngoing()
     }
 
-    fun getRomCacheSize(): LiveData<Long> {
-        val liveData = MutableLiveData<Long>()
+    fun getRomCacheSize(): LiveData<SizeUnit> {
+        val liveData = MutableLiveData<SizeUnit>()
         romCache.getCacheSize().subscribe { size ->
             liveData.postValue(size)
         }.addTo(disposables)

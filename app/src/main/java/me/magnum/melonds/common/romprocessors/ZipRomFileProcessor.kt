@@ -1,6 +1,7 @@
 package me.magnum.melonds.common.romprocessors
 
 import android.content.Context
+import me.magnum.melonds.domain.model.SizeUnit
 import me.magnum.melonds.impl.NdsRomCache
 import java.io.InputStream
 import java.util.zip.ZipEntry
@@ -10,7 +11,7 @@ class ZipRomFileProcessor(context: Context, ndsRomCache: NdsRomCache) : Compress
     override fun getNdsEntryStreamInFileStream(fileStream: InputStream): RomFileStream? {
         val zipStream = ZipInputStream(fileStream)
         return getNdsEntryInZipStream(zipStream)?.let {
-            RomFileStream(zipStream, it.size)
+            RomFileStream(zipStream, SizeUnit.Bytes(it.size))
         }
     }
 

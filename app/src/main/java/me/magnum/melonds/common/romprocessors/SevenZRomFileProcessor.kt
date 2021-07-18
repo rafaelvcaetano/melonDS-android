@@ -1,6 +1,7 @@
 package me.magnum.melonds.common.romprocessors
 
 import android.content.Context
+import me.magnum.melonds.domain.model.SizeUnit
 import me.magnum.melonds.impl.NdsRomCache
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry
 import org.apache.commons.compress.archivers.sevenz.SevenZFile
@@ -14,7 +15,7 @@ class SevenZRomFileProcessor(context: Context, ndsRomCache: NdsRomCache) : Compr
         val channel = SeekableInMemoryByteChannel(IOUtils.toByteArray(fileStream))
         val sevenZFile = SevenZFile(channel)
         return getNdsEntryInFile(sevenZFile)?.let {
-            RomFileStream(sevenZFile.getInputStream(it), it.size)
+            RomFileStream(sevenZFile.getInputStream(it), SizeUnit.Bytes(it.size))
         }
     }
 

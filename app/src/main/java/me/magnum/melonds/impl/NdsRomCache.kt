@@ -6,6 +6,7 @@ import androidx.documentfile.provider.DocumentFile
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.SizeUnit
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import java.io.File
 import java.io.FileOutputStream
@@ -21,7 +22,7 @@ class NdsRomCache(private val context: Context, private val settingsRepository: 
 
     private val cacheModifiedSubject = PublishSubject.create<Unit>()
 
-    fun getCacheSize(): Observable<Long> {
+    fun getCacheSize(): Observable<SizeUnit> {
         return cacheModifiedSubject.startWith(Unit).map { calculateCacheSize() }
     }
 
@@ -88,33 +89,33 @@ class NdsRomCache(private val context: Context, private val settingsRepository: 
         }
     }
 
-    private fun calculateCacheSize(): Long {
+    private fun calculateCacheSize(): SizeUnit {
         val romCacheDir = context.externalCacheDir?.let { File(it, ROMS_CACHE_DIR) }
         val cacheSize = romCacheDir?.listFiles()?.sumOf { file: File -> file.length() } ?: 0L
-        return cacheSize
+        return SizeUnit.Bytes(cacheSize)
     }
 
-    private fun freeCacheSpaceIfRequired(requiredBytes: Long) {
+    private fun freeCacheSpaceIfRequired(requiredSize: SizeUnit) {
         val currentCacheSize = calculateCacheSize()
         val maxCacheSize = settingsRepository.getRomCacheMaxSize()
 
-        val requiredCacheSize = currentCacheSize + requiredBytes
+        val requiredCacheSize = currentCacheSize + requiredSize
         if (requiredCacheSize > maxCacheSize) {
             freeCacheSpace(requiredCacheSize - maxCacheSize)
         }
     }
 
-    private fun freeCacheSpace(bytesToFree: Long) {
+    private fun freeCacheSpace(sizeToFree: SizeUnit) {
         val romCacheDir = context.externalCacheDir?.let { File(it, ROMS_CACHE_DIR) }
         // Use the last modified timestamp to determine the last time the ROM was used. The timestamp must be updated whenever the ROM is requested for use
         val romFilesByCreationDate = romCacheDir?.listFiles()?.sortedBy { file: File -> file.lastModified() } ?: return
-        var freedBytes: Long = 0
+        var freedBytes = SizeUnit.Bytes(0)
 
         for (file in romFilesByCreationDate) {
             freedBytes += file.length()
             file.delete()
 
-            if (freedBytes >= bytesToFree) {
+            if (freedBytes >= sizeToFree) {
                 break
             }
         }
@@ -122,9 +123,9 @@ class NdsRomCache(private val context: Context, private val settingsRepository: 
 
     interface RomExtractor {
         /**
-         * Returns the uncompressed size in bytes of the ROM file to be extracted.
+         * Returns the uncompressed size of the ROM file to be extracted.
          */
-        fun getExtractedRomFileSize(): Long
+        fun getExtractedRomFileSize(): SizeUnit
 
         /**
          * Requests the ROM to be extracted into the given [FileOutputStream]. This function should return true if the operation was successful or false if a problem occurred
