@@ -37,6 +37,18 @@ android {
             applicationIdSuffix ".dev"
         }
     }
+
+    flavorDimensions "version"
+    productFlavors {
+        playStore {
+            dimension "version"
+            versionNameSuffix " PS"
+        }
+        gitHub {
+            dimension "version"
+            versionNameSuffix " GH"
+        }
+    }
     externalNativeBuild {
         cmake {
             path "CMakeLists.txt"
