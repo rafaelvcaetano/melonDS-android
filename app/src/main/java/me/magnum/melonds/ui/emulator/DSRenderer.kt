@@ -51,7 +51,7 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
     private lateinit var mvpMatrix: FloatArray
     private lateinit var posBuffer: FloatBuffer
     private lateinit var uvBuffer: FloatBuffer
-    private lateinit var texBuffer: ByteBuffer
+    val textureBuffer: ByteBuffer
 
     private lateinit var backgroundPosBuffer: FloatBuffer
     private lateinit var backgroundUvBuffer: FloatBuffer
@@ -70,6 +70,11 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
     private var backgroundHeight = 0
 
     var canRenderBackground = false
+
+    init {
+        textureBuffer = ByteBuffer.allocateDirect(SCREEN_WIDTH * SCREEN_HEIGHT * 4)
+            .order(ByteOrder.nativeOrder())
+    }
 
     fun setRendererListener(listener: RendererListener?) {
         rendererListener = listener
@@ -138,9 +143,6 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
         Matrix.orthoM(projectionMatrix, 0, -1f, 1f, -1f, 1f, -1f, 10f)
         Matrix.setLookAtM(viewMatrix, 0, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f)
         Matrix.multiplyMM(mvpMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
-
-        texBuffer = ByteBuffer.allocateDirect(SCREEN_WIDTH * SCREEN_HEIGHT * 4)
-                .order(ByteOrder.nativeOrder())
 
         applyRendererConfiguration()
     }
@@ -291,23 +293,24 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
             renderBackground()
         }
 
-        rendererListener?.updateFrameBuffer(texBuffer)
         posBuffer.position(0)
         uvBuffer.position(0)
-        texBuffer.position(0)
+        textureBuffer.position(0)
 
         val indices = posBuffer.capacity() / 2
         screenShader?.let {
             it.use()
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mainTexture)
-            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, texBuffer)
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, textureBuffer)
             GLES20.glUniformMatrix4fv(it.uniformMvp, 1, false, mvpMatrix, 0)
             GLES20.glVertexAttribPointer(it.attribPos, 2, GLES20.GL_FLOAT, false, 0, posBuffer)
             GLES20.glVertexAttribPointer(it.attribUv, 2, GLES20.GL_FLOAT, false, 0, uvBuffer)
             GLES20.glUniform1i(it.uniformTex, 0)
             GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, indices)
         }
+
+        rendererListener?.onFrameRendered()
     }
 
     private fun renderBackground() {
@@ -533,6 +536,6 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
     }
 
     interface RendererListener {
-        fun updateFrameBuffer(dst: ByteBuffer)
+        fun onFrameRendered()
     }
 }

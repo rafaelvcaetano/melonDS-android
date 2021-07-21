@@ -460,6 +460,10 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         return UriFileHandler(this, uriHandler)
     }
 
+    fun getRendererTextureBuffer(): ByteBuffer {
+        return dsRenderer.textureBuffer
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (nativeInputListener.onKeyEvent(event))
             return true
@@ -467,11 +471,10 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         return super.dispatchKeyEvent(event)
     }
 
-    override fun updateFrameBuffer(dst: ByteBuffer) {
+    override fun onFrameRendered() {
         if (!emulatorReady)
             return
 
-        MelonEmulator.copyFrameBuffer(dst)
         val fps = MelonEmulator.getFPS()
         runOnUiThread { binding.textFps.text = getString(R.string.info_fps, fps) }
     }

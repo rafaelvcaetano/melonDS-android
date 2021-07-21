@@ -41,7 +41,7 @@ JavaVM* vm;
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject uriFileHandler)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject uriFileHandler, jobject textureBuffer)
 {
     env->GetJavaVM(&vm);
     jniEnvHandler = new JniEnvHandler(vm);
@@ -54,7 +54,9 @@ Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jo
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
     fileHandler = new UriFileHandler(jniEnvHandler, androidUriFileHandler);
 
-    MelonDSAndroid::setup(finalEmulatorConfiguration, assetManager, fileHandler);
+    u32* textureBufferPointer = (u32*) env->GetDirectBufferAddress(textureBuffer);
+
+    MelonDSAndroid::setup(finalEmulatorConfiguration, assetManager, fileHandler, textureBufferPointer);
     paused = false;
 }
 
@@ -179,13 +181,6 @@ Java_me_magnum_melonds_MelonEmulator_startEmulation(JNIEnv* env, jobject thiz)
     pthread_setname_np(emuThread, "EmulatorThread");
 
     started = true;
-}
-
-JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_copyFrameBuffer(JNIEnv* env, jobject thiz, jobject frameBuffer)
-{
-    void* buf = env->GetDirectBufferAddress(frameBuffer);
-    MelonDSAndroid::copyFrameBuffer(buf);
 }
 
 JNIEXPORT jint JNICALL

@@ -33,7 +33,7 @@ object MelonEmulator {
         DSI_NAND_BAD
     }
 
-	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?, uriFileHandler: UriFileHandler)
+	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?, uriFileHandler: UriFileHandler, textureBuffer: ByteBuffer)
 
     external fun setupCheats(cheats: Array<Cheat>)
 
@@ -58,8 +58,6 @@ object MelonEmulator {
     private external fun bootFirmwareInternal(): Int
 
 	external fun startEmulation()
-
-	external fun copyFrameBuffer(frameBufferDst: ByteBuffer)
 
 	external fun getFPS(): Int
 
