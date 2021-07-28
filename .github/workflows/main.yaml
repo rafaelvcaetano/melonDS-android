@@ -50,10 +50,10 @@ jobs:
           echo "MELONDS_KEY_ALIAS=melonds" >> local.properties
           echo "MELONDS_KEY_PASSWORD=$MELONDS_KEYSTORE_PASSWORD" >> local.properties
           chmod +x ./gradlew
-          ./gradlew assembleGitHubRelease
+          ./gradlew :app:assembleGitHubRelease
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: melonDS-android
-          path: ${{runner.workspace}}/app/gitHub/release/app-gitHub-release.apk
+          path: ${{runner.workspace}}/app/build/outputs/apk/gitHub/release/app-gitHub-release.apk
