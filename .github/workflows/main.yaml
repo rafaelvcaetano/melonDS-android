@@ -24,7 +24,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
-          submodules: true
+          submodules: recursive
 
       - uses: actions/setup-java@v1
         with:
@@ -39,16 +39,18 @@ jobs:
           ndk-version: r21d
 
       - name: Build melonDS Android
+        env:
+          MELONDS_KEYSTORE: ${{ secrets.MELONDS_KEYSTORE }}
+          MELONDS_KEYSTORE_PASSWORD: ${{ secrets.MELONDS_KEYSTORE_PASSWORD }}
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
-          echo ${{secrets.MELONDS_KEYSTORE}} | base64 -d > keystore.jks
-          echo MELONDS_KEYSTORE=${{runner.workspace}}/keystore.jks >> local.properties
-          echo MELONDS_KEYSTORE_PASSWORD=${{secrets.MELONDS_KEYSTORE_PASSWORD}} >> local.properties
-          echo MELONDS_KEY_ALIAS=melonds >> local.properties
-          echo MELONDS_KEY_PASSWORD=${{secrets.MELONDS_KEYSTORE_PASSWORD}} >> local.properties
+          echo "$MELONDS_KEYSTORE" | base64 -d > keystore.jks
+          echo "MELONDS_KEYSTORE=${{runner.workspace}}/keystore.jks" >> local.properties
+          echo "MELONDS_KEYSTORE_PASSWORD=$MELONDS_KEYSTORE_PASSWORD" >> local.properties
+          echo "MELONDS_KEY_ALIAS=melonds" >> local.properties
+          echo "MELONDS_KEY_PASSWORD=$MELONDS_KEYSTORE_PASSWORD" >> local.properties
           chmod +x ./gradlew
           ./gradlew assembleGitHubRelease
-        env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Generate Artifact
         uses: actions/upload-artifact@v2
