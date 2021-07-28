@@ -44,7 +44,7 @@ jobs:
           MELONDS_KEYSTORE_PASSWORD: ${{ secrets.MELONDS_KEYSTORE_PASSWORD }}
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
-          echo "$MELONDS_KEYSTORE" | base64 -d > keystore.jks
+          echo "$MELONDS_KEYSTORE" | base64 -d > ${{runner.workspace}}/keystore.jks
           echo "MELONDS_KEYSTORE=${{runner.workspace}}/keystore.jks" >> local.properties
           echo "MELONDS_KEYSTORE_PASSWORD=$MELONDS_KEYSTORE_PASSWORD" >> local.properties
           echo "MELONDS_KEY_ALIAS=melonds" >> local.properties
