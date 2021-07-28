@@ -1,0 +1,57 @@
+# This is a basic workflow to help you get started with Actions
+
+name: melonDS Android Build
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '8'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1.0.5
+        with:
+          ndk-version: r21d
+
+      - name: Build melonDS Android
+        run: |
+          echo ${{secrets.MELONDS_KEYSTORE}} | base64 -d > keystore.jks
+          echo MELONDS_KEYSTORE=${{runner.workspace}}/keystore.jks >> local.properties
+          echo MELONDS_KEYSTORE_PASSWORD=${{secrets.MELONDS_KEYSTORE_PASSWORD}} >> local.properties
+          echo MELONDS_KEY_ALIAS=melonds >> local.properties
+          echo MELONDS_KEY_PASSWORD=${{secrets.MELONDS_KEYSTORE_PASSWORD}} >> local.properties
+          chmod +x ./gradlew
+          ./gradlew assembleGitHubRelease
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+      - name: Generate Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: melonDS-android
+          path: ${{runner.workspace}}/app/build/outputs/apk/gitHub/release/*.apk

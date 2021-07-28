@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -7,6 +9,16 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        create("release") {
+            val props = gradleLocalProperties(rootDir)
+            storeFile = file(props["MELONDS_KEYSTORE"] as String)
+            storePassword = props["MELONDS_KEYSTORE_PASSWORD"] as String
+            keyAlias = props["MELONDS_KEY_ALIAS"] as String
+            keyPassword = props["MELONDS_KEY_PASSWORD"] as String
+        }
+    }
+
     compileSdkVersion(AppConfig.compileSdkVersion)
     ndkVersion = AppConfig.ndkVersion
     defaultConfig {
@@ -34,6 +46,7 @@ android {
         getByName("release") {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
         }
         getByName("debug") {
             applicationIdSuffix = ".dev"
