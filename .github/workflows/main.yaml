@@ -52,8 +52,8 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleGitHubRelease
 
-      - name: Generate Artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: melonDS-android
-          path: ${{runner.workspace}}/app/build/outputs/apk/gitHub/release/*.apk
+          path: ${{runner.workspace}}/app/gitHub/release/app-gitHub-release.apk
