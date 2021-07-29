@@ -56,4 +56,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: melonDS-android
-          path: ${{runner.workspace}}/app/build/outputs/apk/gitHub/release/app-gitHub-release.apk
+          path: app/build/outputs/apk/gitHub/release/app-gitHub-release.apk
