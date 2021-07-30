@@ -12,7 +12,7 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -48,7 +48,7 @@ class RomListFragment : Fragment() {
 
     private var romSelectedListener: ((Rom) -> Unit)? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = RomListFragmentBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -77,14 +77,14 @@ class RomListFragment : Fragment() {
             adapter = romListAdapter
         }
 
-        romListViewModel.getRomScanningStatus().observe(viewLifecycleOwner, Observer { status ->
+        romListViewModel.getRomScanningStatus().observe(viewLifecycleOwner) { status ->
             binding.swipeRefreshRoms.isRefreshing = status == RomScanningStatus.SCANNING
             displayEmptyListViewIfRequired()
-        })
-        romListViewModel.getRoms().observe(viewLifecycleOwner, Observer { roms ->
+        }
+        romListViewModel.getRoms().observe(viewLifecycleOwner) { roms ->
             romListAdapter.setRoms(roms)
             displayEmptyListViewIfRequired()
-        })
+        }
     }
 
     private fun displayEmptyListViewIfRequired() {
@@ -101,9 +101,11 @@ class RomListFragment : Fragment() {
         private val roms: ArrayList<Rom> = ArrayList()
 
         fun setRoms(roms: List<Rom>) {
+            val result = DiffUtil.calculateDiff(RomsDiffUtilCallback(this.roms, roms))
+            result.dispatchUpdatesTo(this)
+
             this.roms.clear()
             this.roms.addAll(roms)
-            notifyDataSetChanged()
         }
 
         override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RomViewHolder {
@@ -164,6 +166,20 @@ class RomListFragment : Fragment() {
                 imageViewButtonRomConfig.setOnClickListener {
                     onRomConfigClick(getRom())
                 }
+            }
+        }
+
+        inner class RomsDiffUtilCallback(private val oldRoms: List<Rom>, private val newRoms: List<Rom>) : DiffUtil.Callback() {
+            override fun getOldListSize(): Int = oldRoms.size
+
+            override fun getNewListSize(): Int = newRoms.size
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return oldRoms[oldItemPosition] == newRoms[newItemPosition]
+            }
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return oldRoms[oldItemPosition] == newRoms[newItemPosition]
             }
         }
     }

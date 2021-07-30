@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -87,7 +86,9 @@ class InputSetupActivity : AppCompatActivity() {
             addItemDecoration(DividerItemDecoration(context, listLayoutManager.orientation))
             adapter = inputListAdapter
         }
-        viewModel.getInputConfig().observe(this, Observer { statefulInputConfigs -> inputListAdapter.setInputList(statefulInputConfigs) })
+        viewModel.getInputConfig().observe(this) { statefulInputConfigs ->
+            inputListAdapter.setInputList(statefulInputConfigs)
+        }
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
@@ -153,9 +154,9 @@ class InputSetupActivity : AppCompatActivity() {
             val viewHolder = InputViewHolder(viewBinding)
 
             viewBinding.root.setOnClickListener { inputConfigClickedListener.onInputConfigClicked(viewHolder.getInputConfig()) }
-            viewHolder.setOnClearInputClickListener(View.OnClickListener {
+            viewHolder.setOnClearInputClickListener {
                 inputConfigClickedListener.onInputConfigCleared(viewHolder.getInputConfig())
-            })
+            }
 
             return viewHolder
         }

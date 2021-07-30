@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.commit
-import androidx.lifecycle.Observer
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityCheatsBinding
@@ -39,7 +38,7 @@ class CheatsActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.getRomCheats(romInfoParcelable.toRomInfo()).observe(this, Observer {
+        viewModel.getRomCheats(romInfoParcelable.toRomInfo()).observe(this) {
             binding.progressBarCheats.isGone = true
 
             if (it.isEmpty()) {
@@ -49,15 +48,15 @@ class CheatsActivity : AppCompatActivity() {
                     replace(binding.cheatsRoot.id, cheatsFragment)
                 }
             }
-        })
+        }
 
-        viewModel.committingCheatsChangesStatus().observe(this, Observer {
+        viewModel.committingCheatsChangesStatus().observe(this) {
             binding.viewBlock.isGone = !it
-        })
+        }
 
-        viewModel.onCheatChangesCommitted().observe(this, Observer {
+        viewModel.onCheatChangesCommitted().observe(this) {
             finish()
-        })
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -96,10 +95,10 @@ class CheatsActivity : AppCompatActivity() {
             return
         }
 
-        viewModel.commitCheatChanges().observe(this, Observer {
+        viewModel.commitCheatChanges().observe(this) {
             if (!it) {
                 Toast.makeText(this, R.string.failed_save_cheat_changes, Toast.LENGTH_LONG).show()
             }
-        })
+        }
     }
 }

@@ -10,6 +10,7 @@ import me.magnum.melonds.domain.model.ControllerConfiguration
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.InputConfig
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.extensions.addTo
 import java.util.*
 import javax.inject.Inject
 
@@ -31,8 +32,11 @@ class InputSetupViewModel @Inject constructor(private val settingsRepository: Se
 
     fun getInputConfig(): LiveData<List<StatefulInputConfig>> {
             val inputConfigLiveData = MutableLiveData<List<StatefulInputConfig>>()
-            val disposable = inputConfigsBehaviour.subscribe { statefulInputConfigs -> inputConfigLiveData.value = statefulInputConfigs }
-            disposables.add(disposable)
+            inputConfigsBehaviour
+                .subscribe { statefulInputConfigs ->
+                    inputConfigLiveData.value = statefulInputConfigs
+                }
+                .addTo(disposables)
             return inputConfigLiveData
         }
 
