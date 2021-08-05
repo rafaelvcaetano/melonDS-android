@@ -82,7 +82,7 @@
             app:ms_switchOnBackgroundColor="@color/prefSwitchBackground"
             app:ms_switchOffBackgroundColor="@color/prefSwitchBackground"
             app:ms_switchOffExplanationText="@string/custom_bios_firmware_description"
-            app:ms_includedPrefScreen="@xml/pref_custom_firmware" />
+            app:ms_includedPrefScreen="xml/pref_custom_firmware" />
 
         <SwitchPreference
             android:key="enable_jit"

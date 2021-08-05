@@ -41,7 +41,7 @@ object Dependencies {
     }
 
     object ThirdParty {
-        const val masterSwitchPreference = "com.github.svenoaks:MasterSwitchPreference:0.9.1"
+        const val masterSwitchPreference = "com.github.svenoaks:MasterSwitchPreference:0.9.4"
         const val flexbox = "com.google.android:flexbox:2.0.1"
         const val gson = "com.google.code.gson:gson:2.8.6"
         const val hilt = "com.google.dagger:hilt-android:${Versions.Hilt}"
