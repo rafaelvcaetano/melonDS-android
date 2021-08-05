@@ -1,0 +1,110 @@
+name: melonDS Android Release
+
+on:
+  # Trigger action when a tag is pushed
+  push:
+    tags:
+
+jobs:
+  github-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '8'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Build melonDS Android
+        env:
+          MELONDS_KEYSTORE: ${{ secrets.MELONDS_KEYSTORE }}
+          MELONDS_KEYSTORE_PASSWORD: ${{ secrets.MELONDS_KEYSTORE_PASSWORD }}
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          echo "$MELONDS_KEYSTORE" | base64 -d > ${{runner.workspace}}/keystore.jks
+          echo "MELONDS_KEYSTORE=${{runner.workspace}}/keystore.jks" >> local.properties
+          echo "MELONDS_KEYSTORE_PASSWORD=$MELONDS_KEYSTORE_PASSWORD" >> local.properties
+          echo "MELONDS_KEY_ALIAS=melonds" >> local.properties
+          echo "MELONDS_KEY_PASSWORD=$MELONDS_KEYSTORE_PASSWORD" >> local.properties
+          chmod +x ./gradlew
+          ./gradlew :app:assembleGitHubRelease
+
+      - name: Get Tag and Version
+        id: release_params
+        run: |
+          echo ::set-output name=TAG::${GITHUB_REF/refs\/tags\//}
+          echo ::set-output name=VERSION::$(grep -oP 'versionName = "\K(.*?)(?=")' buildSrc/src/main/kotlin/AppConfig.kt)
+          echo ::set-output name=ASSET_NAME::$(echo ${GITHUB_REF/refs\/tags\//} | sed 's/\./_/g')
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.release_params.outputs.TAG }}
+          release_name: ${{ steps.release_params.outputs.VERSION }}
+          body_path: ./.github/changelog/gitHub.md
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: app/build/outputs/apk/gitHub/release/app-gitHub-release.apk
+          asset_name: melonDS-${{ steps.release_params.outputs.ASSET_NAME }}.apk
+          asset_content_type: application/vnd.android.package-archive
+
+  playstore-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '8'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Build melonDS Android
+        env:
+          MELONDS_KEYSTORE: ${{ secrets.MELONDS_KEYSTORE }}
+          MELONDS_KEYSTORE_PASSWORD: ${{ secrets.MELONDS_KEYSTORE_PASSWORD }}
+          MELONDS_KEY_PASSWORD: ${{ secrets.MELONDS_KEYSTORE_PLAYSTORE_PASSWORD }}
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          echo "$MELONDS_KEYSTORE" | base64 -d > ${{runner.workspace}}/keystore.jks
+          echo "MELONDS_KEYSTORE=${{runner.workspace}}/keystore.jks" >> local.properties
+          echo "MELONDS_KEYSTORE_PASSWORD=$MELONDS_KEYSTORE_PASSWORD" >> local.properties
+          echo "MELONDS_KEY_ALIAS=melonds-playstore" >> local.properties
+          echo "MELONDS_KEY_PASSWORD=$MELONDS_KEY_PASSWORD" >> local.properties
+          chmod +x ./gradlew
+          ./gradlew :app:assemblePlayStoreRelease
+
+      - name: Get Version
+        id: release_params
+        run: echo ::set-output name=VERSION::$(grep -oP 'versionName = "\K(.*?)(?=")' buildSrc/src/main/kotlin/AppConfig.kt)
+
+      - name: Create Play Store Release
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: ${{ MELONDS_PLAYSTORE_ACCOUNT_JSON }}
+          packageName: me.magnum.melonds
+          releaseName: ${{ steps.release_params.outputs.VERSION }}
+          releaseFiles: app/build/outputs/apk/playStore/release/app-playStore-release.apk
+          track: beta
+          inAppUpdatePriority: 2
+          whatsNewDirectory: ./.github/changelog/playStore
+          mappingFile: app/build/outputs/mapping/playStoreRelease/mapping.txt

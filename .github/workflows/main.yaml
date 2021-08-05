@@ -33,11 +33,6 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
 
-      - name: Setup Android NDK
-        uses: nttld/setup-ndk@v1.0.5
-        with:
-          ndk-version: r21d
-
       - name: Build melonDS Android
         env:
           MELONDS_KEYSTORE: ${{ secrets.MELONDS_KEYSTORE }}
