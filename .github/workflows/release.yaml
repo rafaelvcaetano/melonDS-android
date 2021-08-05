@@ -4,6 +4,7 @@ on:
   # Trigger action when a tag is pushed
   push:
     tags:
+      - '*'
 
 jobs:
   github-release:
@@ -100,7 +101,7 @@ jobs:
       - name: Create Play Store Release
         uses: r0adkll/upload-google-play@v1
         with:
-          serviceAccountJson: ${{ MELONDS_PLAYSTORE_ACCOUNT_JSON }}
+          serviceAccountJson: ${{ secrets.MELONDS_PLAYSTORE_ACCOUNT_JSON }}
           packageName: me.magnum.melonds
           releaseName: ${{ steps.release_params.outputs.VERSION }}
           releaseFiles: app/build/outputs/apk/playStore/release/app-playStore-release.apk

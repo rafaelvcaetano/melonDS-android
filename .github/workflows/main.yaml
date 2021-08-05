@@ -39,6 +39,8 @@ jobs:
           MELONDS_KEYSTORE_PASSWORD: ${{ secrets.MELONDS_KEYSTORE_PASSWORD }}
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
+          COMMIT=$(git rev-parse --short HEAD)
+          sed -i -e 's/\(versionName = "\)\(.*\)\("\)/\1\2 ('"$COMMIT"')\3/g' buildSrc/src/main/kotlin/AppConfig.kt
           echo "$MELONDS_KEYSTORE" | base64 -d > ${{runner.workspace}}/keystore.jks
           echo "MELONDS_KEYSTORE=${{runner.workspace}}/keystore.jks" >> local.properties
           echo "MELONDS_KEYSTORE_PASSWORD=$MELONDS_KEYSTORE_PASSWORD" >> local.properties
