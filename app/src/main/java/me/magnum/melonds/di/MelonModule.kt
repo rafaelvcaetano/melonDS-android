@@ -20,6 +20,8 @@ import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.impl.*
+import me.magnum.melonds.impl.romprocessors.Api24RomFileProcessorFactory
+import me.magnum.melonds.impl.romprocessors.OldRomFileProcessorFactory
 import javax.inject.Singleton
 
 @Module
@@ -70,7 +72,11 @@ object MelonModule {
     @Provides
     @Singleton
     fun provideFileRomProcessorFactory(@ApplicationContext context: Context, ndsRomCache: NdsRomCache): RomFileProcessorFactory {
-        return RomFileProcessorFactoryImpl(context, ndsRomCache)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            Api24RomFileProcessorFactory(context, ndsRomCache)
+        } else {
+            OldRomFileProcessorFactory(context, ndsRomCache)
+        }
     }
 
     @Provides
