@@ -9,21 +9,21 @@ import android.os.storage.StorageManager
 import android.provider.DocumentsContract
 import android.util.Log
 import androidx.core.content.getSystemService
+import androidx.documentfile.provider.DocumentFile
 import java.io.File
 import java.lang.reflect.Array
-
 
 object FileUtils {
     private const val TAG = "FileUtils"
 
-    private val isCompatible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
     private const val DOWNLOADS_VOLUME_NAME = "downloads"
     private const val PRIMARY_VOLUME_NAME = "primary"
     private const val HOME_VOLUME_NAME = "home"
 
     fun getAbsolutePathFromSAFUri(context: Context, safResultUri: Uri?): String? {
-        if (safResultUri == null)
+        if (safResultUri == null) {
             return null
+        }
 
         val uriSchema = getUriSchema(safResultUri)
 
@@ -50,27 +50,33 @@ object FileUtils {
     }
 
     private fun getFilePathFromSafUri(context: Context, safUri: Uri): String? {
-        if (DocumentsContract.isDocumentUri(context, safUri)) {
-            val docId = DocumentsContract.getDocumentId(safUri)
-            val split = docId.split(":".toRegex()).toTypedArray()
-            val type = split[0]
+        val isSingleDocument = DocumentsContract.isDocumentUri(context, safUri)
 
-            return when {
-                "primary".equals(type, ignoreCase = true) -> Environment.getExternalStorageDirectory().toString() + "/" + split[1]
-                "raw".equals(type, ignoreCase = true) -> split[1]
-                else -> "/storage/${split[0]}/${split[1]}"
+        return try {
+            if (isSingleDocument) {
+                getAbsolutePathFromSingleUri(context, safUri)
+            } else {
+                val documentUri = DocumentsContract.buildDocumentUriUsingTree(safUri, DocumentsContract.getTreeDocumentId(safUri))
+                getAbsolutePathFromTreeUri(context, documentUri)
+            }
+        } catch (e: Exception) {
+            // Fallback to simple filename if the path cannot be determined
+            if (isSingleDocument) {
+                DocumentFile.fromSingleUri(context, safUri)?.name
+            } else {
+                DocumentFile.fromTreeUri(context, safUri)?.name
             }
         }
+    }
 
-        val documentUri = DocumentsContract.buildDocumentUriUsingTree(safUri, DocumentsContract.getTreeDocumentId(safUri))
-        return getAbsolutePathFromTreeUri(context, documentUri)
+    private fun getAbsolutePathFromSingleUri(context: Context, uri: Uri): String? {
+        return context.contentResolver.openFileDescriptor(uri, "r")?.use {
+            val file = File("/proc/self/fd/${it.fd}")
+            file.canonicalPath
+        }
     }
 
     private fun getAbsolutePathFromTreeUri(context: Context, treeUri: Uri?): String? {
-        if (!isCompatible) {
-            Log.e(TAG, "getAbsolutePathFromTreeUri: called on unsupported API level")
-            return null
-        }
         if (treeUri == null) {
             Log.w(TAG, "getAbsolutePathFromTreeUri: called with treeUri == null")
             return null
@@ -101,10 +107,6 @@ object FileUtils {
 
     @SuppressLint("ObsoleteSdkInt")
     private fun getVolumePath(volumeId: String, context: Context): String? {
-        if (!isCompatible) {
-            Log.e(TAG, "getVolumePath called on unsupported API level")
-            return null
-        }
         try {
             if (HOME_VOLUME_NAME == volumeId) {
                 Log.v(TAG, "getVolumePath: isHomeVolume")
@@ -172,7 +174,7 @@ object FileUtils {
 
     private fun getDocumentPathFromTreeUri(treeUri: Uri): String? {
         val docId = DocumentsContract.getTreeDocumentId(treeUri)
-        val split: kotlin.Array<String?> = docId.split(":").toTypedArray()
-        return if (split.size >= 2 && split[1] != null) split[1] else File.separator
+        val split = docId.split(":").toTypedArray()
+        return if (split.size >= 2) split[1] else File.separator
     }
 }
