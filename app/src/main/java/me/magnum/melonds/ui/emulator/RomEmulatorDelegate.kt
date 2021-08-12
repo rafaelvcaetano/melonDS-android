@@ -76,7 +76,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
 
                     val gbaCartPath = rom.config.gbaCartPath
                     val gbaSavePath = rom.config.gbaSavePath
-                    val loadResult = MelonEmulator.loadRom(romPath, sramPath, !showBios, rom.config.loadGbaCart(), gbaCartPath, gbaSavePath)
+                    val loadResult = MelonEmulator.loadRom(romPath, sramPath, !showBios, rom.config.mustLoadGbaCart(), gbaCartPath, gbaSavePath)
                     if (loadResult.isTerminal) {
                         throw EmulatorActivity.RomLoadFailedException(loadResult)
                     }

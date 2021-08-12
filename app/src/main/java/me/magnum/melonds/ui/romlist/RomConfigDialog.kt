@@ -82,7 +82,7 @@ class RomConfigDialog : DialogFragment() {
         romConfig = if (savedInstanceState != null) {
             savedInstanceState.getParcelable<RomConfigParcelable>(KEY_ROM_CONFIG)?.romConfig ?: return
         } else {
-            rom.config
+            rom.config.copy()
         }
     }
 
@@ -155,12 +155,12 @@ class RomConfigDialog : DialogFragment() {
         onRuntimeConsoleTypeSelected(romConfig.runtimeConsoleType)
         onRuntimeMicSourceSelected(romConfig.runtimeMicSource)
 
-        binding.switchLoadGbaRom.isChecked = romConfig.loadGbaCart()
+        binding.switchLoadGbaRom.isChecked = romConfig.loadGbaCart
         binding.textPrefGbaRomPath.text = getUriPathOrDefault(romConfig.gbaCartPath)
         binding.textPrefGbaSavePath.text = getUriPathOrDefault(romConfig.gbaSavePath)
 
-        binding.layoutPrefGbaRomPath.setViewEnabledRecursive(romConfig.loadGbaCart())
-        binding.layoutPrefGbaSavePath.setViewEnabledRecursive(romConfig.loadGbaCart())
+        binding.layoutPrefGbaRomPath.setViewEnabledRecursive(romConfig.loadGbaCart)
+        binding.layoutPrefGbaSavePath.setViewEnabledRecursive(romConfig.loadGbaCart)
 
         binding.buttonRomConfigOk.setOnClickListener {
             romListViewModel.updateRomConfig(rom, romConfig)
@@ -175,7 +175,7 @@ class RomConfigDialog : DialogFragment() {
     }
 
     private fun setLoadGbaRom(loadGbaRom: Boolean) {
-        romConfig.setLoadGbaCart(loadGbaRom)
+        romConfig.loadGbaCart = loadGbaRom
         binding.layoutPrefGbaRomPath.setViewEnabledRecursive(loadGbaRom)
         binding.layoutPrefGbaSavePath.setViewEnabledRecursive(loadGbaRom)
     }
