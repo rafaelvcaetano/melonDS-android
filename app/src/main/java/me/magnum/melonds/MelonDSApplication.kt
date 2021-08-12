@@ -1,12 +1,9 @@
 package me.magnum.melonds
 
 import android.app.Application
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
-import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.app.NotificationChannelCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
@@ -35,13 +32,11 @@ class MelonDSApplication : Application(), Configuration.Provider {
     }
 
     private fun createNotificationChannels() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return
-        }
+        val defaultChannel = NotificationChannelCompat.Builder(NOTIFICATION_CHANNEL_ID_BACKGROUND_TASKS, NotificationManagerCompat.IMPORTANCE_LOW)
+            .setName(getString(R.string.notification_channel_background_tasks))
+            .build()
 
-        val defaultChannel = NotificationChannel(NOTIFICATION_CHANNEL_ID_BACKGROUND_TASKS, getString(R.string.notification_channel_background_tasks), NotificationManager.IMPORTANCE_LOW)
-        defaultChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = NotificationManagerCompat.from(this)
         notificationManager.createNotificationChannel(defaultChannel)
     }
 
