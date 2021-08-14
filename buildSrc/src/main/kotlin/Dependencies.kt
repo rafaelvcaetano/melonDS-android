@@ -2,7 +2,7 @@ object Dependencies {
     private object Versions {
         const val Kotlin = "1.5.10"
         const val HiltX = "1.0.0"
-        const val Hilt = "2.35.1"
+        const val Hilt = "2.37"
         const val Room = "2.3.0"
         const val Work = "2.5.0"
         const val Markwon = "4.6.2"
@@ -10,7 +10,7 @@ object Dependencies {
     }
 
     object GradlePlugins {
-        const val gradle = "com.android.tools.build:gradle:4.2.2"
+        const val gradle = "com.android.tools.build:gradle:7.0.0"
         const val hiltAndroid = "com.google.dagger:hilt-android-gradle-plugin:${Versions.Hilt}"
         const val kotlin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.Kotlin}"
     }
