@@ -13,6 +13,7 @@ import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
 import androidx.fragment.app.commit
 import dagger.hilt.android.AndroidEntryPoint
+import io.reactivex.disposables.Disposable
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomIconFiltering
@@ -28,6 +29,7 @@ class ShortcutSetupActivity : AppCompatActivity() {
     }
 
     private val viewModel: RomListViewModel by viewModels()
+    private var romIconLoadDisposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,17 +47,19 @@ class ShortcutSetupActivity : AppCompatActivity() {
         val intent = Intent("${packageName}.LAUNCH_ROM").apply {
             putExtra(EmulatorActivity.KEY_URI, rom.uri.toString())
         }
-        val romIcon = viewModel.getRomIcon(rom)
-        val shortcutInfo = ShortcutInfoCompat.Builder(this, rom.uri.toString())
+
+        romIconLoadDisposable = viewModel.getRomIcon(rom).subscribe { romIcon ->
+            val shortcutInfo = ShortcutInfoCompat.Builder(this, rom.uri.toString())
                 .setShortLabel(rom.name)
                 .setIcon(IconCompat.createWithBitmap(buildShortcutBitmap(romIcon)))
                 .setIntent(intent)
                 .build()
 
-        val shortcutIntent = ShortcutManagerCompat.createShortcutResultIntent(this, shortcutInfo)
+            val shortcutIntent = ShortcutManagerCompat.createShortcutResultIntent(this, shortcutInfo)
 
-        setResult(Activity.RESULT_OK, shortcutIntent)
-        finish()
+            setResult(Activity.RESULT_OK, shortcutIntent)
+            finish()
+        }
     }
 
     private fun buildShortcutBitmap(romIcon: RomIcon): Bitmap {
@@ -63,8 +67,13 @@ class ShortcutSetupActivity : AppCompatActivity() {
         val shortcutBitmap = createBitmap(256, 256)
 
         return shortcutBitmap.applyCanvas {
-            val iconRect = Rect(44, 44, shortcutBitmap.width - 44, shortcutBitmap.height - 44)
+            val iconRect = Rect(22, 22, shortcutBitmap.width - 22, shortcutBitmap.height - 22)
             drawBitmap(iconBitmap, null, iconRect, Paint().apply { isFilterBitmap = romIcon.filtering == RomIconFiltering.LINEAR })
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        romIconLoadDisposable?.dispose()
     }
 }

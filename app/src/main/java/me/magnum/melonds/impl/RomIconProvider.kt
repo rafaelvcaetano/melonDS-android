@@ -4,16 +4,20 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.documentfile.provider.DocumentFile
+import io.reactivex.Maybe
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import java.io.File
 import java.lang.Exception
+import java.util.*
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * Provider for ROM icons that supports caching. Both memory and disk caches are supported. If upon
  * request an icon is not found, it is generated and, if generated successfully, it's stored on both
  * caches.
- * The name of the file for the disk cache is the hash of the ROM's path.
+ * The name of the file for the disk cache is the hash of the ROM's URI.
  */
 class RomIconProvider(private val context: Context, private val romFileProcessorFactory: RomFileProcessorFactory) {
     companion object {
@@ -21,10 +25,21 @@ class RomIconProvider(private val context: Context, private val romFileProcessor
     }
 
     private val memoryIconCache = mutableMapOf<String, Bitmap>()
+    private val romIconLocks = Collections.synchronizedMap(mutableMapOf<String, ReentrantLock>())
 
-    fun getRomIcon(rom: Rom): Bitmap? {
-        val romHash = rom.uri.hashCode().toString()
-        return loadIconFromMemory(romHash, rom)
+    fun getRomIcon(rom: Rom): Maybe<Bitmap> {
+        return Maybe.create {
+            val romHash = rom.uri.hashCode().toString()
+            getRomIconLock(romHash).withLock {
+                val icon = loadIconFromMemory(romHash, rom)
+
+                if (icon == null) {
+                    it.onComplete()
+                } else {
+                    it.onSuccess(icon)
+                }
+            }
+        }
     }
 
     fun clearIconCache() {
@@ -32,6 +47,14 @@ class RomIconProvider(private val context: Context, private val romFileProcessor
         val iconCacheDir = getIconCacheDir() ?: return
         if (iconCacheDir.isDirectory) {
             iconCacheDir.deleteRecursively()
+        }
+    }
+
+    private fun getRomIconLock(romHash: String): ReentrantLock {
+        synchronized(romIconLocks) {
+            return romIconLocks.getOrPut(romHash) {
+                ReentrantLock()
+            }
         }
     }
 

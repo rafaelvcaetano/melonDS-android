@@ -29,7 +29,7 @@ class RomListViewModel @Inject constructor(
         private val romIconProvider: RomIconProvider,
         private val configurationDirectoryVerifier: ConfigurationDirectoryVerifier,
         private val uriHandler: UriHandler,
-        schedulers: Schedulers
+        private val schedulers: Schedulers
 ) : ViewModel() {
 
     private val disposables: CompositeDisposable = CompositeDisposable()
@@ -167,10 +167,16 @@ class RomListViewModel @Inject constructor(
         settingsRepository.setDsiBiosDirectory(uri)
     }
 
-    fun getRomIcon(rom: Rom): RomIcon {
-        val iconBitmap = romIconProvider.getRomIcon(rom)
-        val iconFiltering = settingsRepository.getRomIconFiltering()
-        return RomIcon(iconBitmap, iconFiltering)
+    fun getRomIcon(rom: Rom): Single<RomIcon> {
+        return romIconProvider.getRomIcon(rom)
+            .subscribeOn(schedulers.backgroundThreadScheduler)
+            .observeOn(schedulers.uiThreadScheduler)
+            .materialize()
+            .map {
+                val bitmap = it.value
+                val iconFiltering = settingsRepository.getRomIconFiltering()
+                RomIcon(bitmap, iconFiltering)
+            }
     }
 
     private fun buildAlphabeticalRomComparator(): Comparator<Rom> {

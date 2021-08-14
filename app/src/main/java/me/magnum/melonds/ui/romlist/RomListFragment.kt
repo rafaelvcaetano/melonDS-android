@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
+import io.reactivex.disposables.Disposable
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ItemRomConfigurableBinding
 import me.magnum.melonds.databinding.ItemRomSimpleBinding
@@ -123,6 +124,10 @@ class RomListFragment : Fragment() {
             romViewHolder.setRom(rom)
         }
 
+        override fun onViewRecycled(holder: RomViewHolder) {
+            holder.cleanup()
+        }
+
         override fun getItemCount(): Int {
             return roms.size
         }
@@ -133,6 +138,7 @@ class RomListFragment : Fragment() {
             private val textViewRomPath = itemView.findViewById<TextView>(R.id.textRomPath)
 
             private lateinit var rom: Rom
+            private var romIconLoadDisposable: Disposable? = null
 
             init {
                 itemView.setOnClickListener {
@@ -140,20 +146,20 @@ class RomListFragment : Fragment() {
                 }
             }
 
+            fun cleanup() {
+                romIconLoadDisposable?.dispose()
+            }
+
             open fun setRom(rom: Rom) {
                 this.rom = rom
+                textViewRomName.text = rom.name
+                textViewRomPath.text = FileUtils.getAbsolutePathFromSAFUri(view!!.context, rom.uri)
 
-                try {
-                    val romIcon = romListViewModel.getRomIcon(rom)
+                romIconLoadDisposable = romListViewModel.getRomIcon(rom).subscribe { romIcon ->
                     val iconDrawable = BitmapDrawable(itemView.resources, romIcon.bitmap)
                     iconDrawable.paint.isFilterBitmap = romIcon.filtering == RomIconFiltering.LINEAR
                     imageViewRomIcon.setImageDrawable(iconDrawable)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    imageViewRomIcon.setImageBitmap(null)
                 }
-                textViewRomName.text = rom.name
-                textViewRomPath.text = FileUtils.getAbsolutePathFromSAFUri(view!!.context, rom.uri)
             }
 
             protected fun getRom() = rom
