@@ -23,14 +23,15 @@ class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPrefere
         setupActionBar()
 
         supportFragmentManager.addOnBackStackChangedListener {
-            val fragment = supportFragmentManager.fragments.lastOrNull()
-            if (fragment is PreferenceFragmentTitleProvider) {
-                supportActionBar?.title = fragment.getTitle()
-            }
+            updateTitle()
         }
 
-        supportFragmentManager.commit {
-            replace<MainPreferencesFragment>(binding.settingsContainer.id)
+        if (savedInstanceState == null) {
+            supportFragmentManager.commit {
+                replace<MainPreferencesFragment>(binding.settingsContainer.id)
+            }
+        } else {
+            updateTitle()
         }
     }
 
@@ -48,6 +49,13 @@ class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPrefere
             return true
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun updateTitle() {
+        val fragment = supportFragmentManager.fragments.lastOrNull()
+        if (fragment is PreferenceFragmentTitleProvider) {
+            supportActionBar?.title = fragment.getTitle()
+        }
     }
 
     private fun popBackStackIfNeeded(): Boolean {
