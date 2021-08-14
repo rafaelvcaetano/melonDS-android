@@ -2,7 +2,7 @@ object Dependencies {
     private object Versions {
         const val Kotlin = "1.5.10"
         const val HiltX = "1.0.0"
-        const val Hilt = "2.37"
+        const val Hilt = "2.38.1"
         const val Room = "2.3.0"
         const val Work = "2.5.0"
         const val Markwon = "4.6.2"

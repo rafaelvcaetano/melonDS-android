@@ -36,7 +36,7 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
         freeCompilerArgs += "-Xopt-in=kotlin.ExperimentalUnsignedTypes"
     }
     buildFeatures {
@@ -70,8 +70,6 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
     }
     configurations.all {
         resolutionStrategy.eachDependency {
