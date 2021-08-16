@@ -4,73 +4,73 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.subjects.BehaviorSubject
 import me.magnum.melonds.domain.model.ControllerConfiguration
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.InputConfig
 import me.magnum.melonds.domain.repositories.SettingsRepository
-import me.magnum.melonds.extensions.addTo
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
 class InputSetupViewModel @Inject constructor(private val settingsRepository: SettingsRepository) : ViewModel() {
-    private val inputConfigs: ArrayList<StatefulInputConfig>
-    private val inputConfigsBehaviour: BehaviorSubject<List<StatefulInputConfig>>
-    private val disposables: CompositeDisposable
+    private val inputConfigLiveData: MutableLiveData<List<StatefulInputConfig>>
 
     init {
         val currentConfiguration = settingsRepository.getControllerConfiguration()
-        inputConfigs = ArrayList()
-        for (config in currentConfiguration.inputMapper) {
-            inputConfigs.add(StatefulInputConfig(config.copy()))
+        val currentInputs = currentConfiguration.inputMapper.map {
+            StatefulInputConfig(it.copy())
         }
-        inputConfigsBehaviour = BehaviorSubject.createDefault(inputConfigs as List<StatefulInputConfig>)
-        disposables = CompositeDisposable()
+
+        inputConfigLiveData = MutableLiveData(currentInputs)
     }
 
     fun getInputConfig(): LiveData<List<StatefulInputConfig>> {
-            val inputConfigLiveData = MutableLiveData<List<StatefulInputConfig>>()
-            inputConfigsBehaviour
-                .subscribe { statefulInputConfigs ->
-                    inputConfigLiveData.value = statefulInputConfigs
-                }
-                .addTo(disposables)
-            return inputConfigLiveData
+        return inputConfigLiveData
+    }
+
+    fun getNextInputToConfigure(currentInput: Input): Input? {
+        val currentConfig = inputConfigLiveData.value ?: return null
+        val inputIndex = currentConfig.indexOfFirst { it.inputConfig.input == currentInput }
+        return if (inputIndex < currentConfig.lastIndex) {
+            currentConfig[inputIndex + 1].inputConfig.input
+        } else {
+            null
         }
+    }
 
     fun startUpdatingInputConfig(input: Input) {
-        for (i in inputConfigs.indices) {
-            val inputConfig = inputConfigs[i].inputConfig
-            if (inputConfig.input === input) {
-                inputConfigs[i].isBeingConfigured = true
-                onConfigsChanged()
-                break
+        val newConfig = inputConfigLiveData.value?.toMutableList() ?: return
+        val inputIndex = newConfig.indexOfFirst { it.inputConfig.input == input }
+        if (inputIndex >= 0) {
+            newConfig[inputIndex].apply {
+                isBeingConfigured = true
             }
+
+            onConfigsChanged(newConfig)
         }
     }
 
     fun stopUpdatingInputConfig(input: Input) {
-        for (i in inputConfigs.indices) {
-            val inputConfig = inputConfigs[i].inputConfig
-            if (inputConfig.input === input) {
-                inputConfigs[i].isBeingConfigured = false
-                onConfigsChanged()
-                break
+        val newConfig = inputConfigLiveData.value?.toMutableList() ?: return
+        val inputIndex = newConfig.indexOfFirst { it.inputConfig.input == input }
+        if (inputIndex >= 0) {
+            newConfig[inputIndex].apply {
+                isBeingConfigured = false
             }
+
+            onConfigsChanged(newConfig)
         }
     }
 
     fun updateInputConfig(input: Input, key: Int) {
-        for (i in inputConfigs.indices) {
-            val inputConfig = inputConfigs[i].inputConfig
-            if (inputConfig.input === input) {
+        val newConfig = inputConfigLiveData.value?.toMutableList() ?: return
+        val inputIndex = newConfig.indexOfFirst { it.inputConfig.input == input }
+        if (inputIndex >= 0) {
+            newConfig[inputIndex].apply {
+                isBeingConfigured = false
                 inputConfig.key = key
-                inputConfigs[i].isBeingConfigured = false
-                onConfigsChanged()
-                break
             }
+
+            onConfigsChanged(newConfig)
         }
     }
 
@@ -78,22 +78,18 @@ class InputSetupViewModel @Inject constructor(private val settingsRepository: Se
         updateInputConfig(input, InputConfig.KEY_NOT_SET)
     }
 
-    private fun onConfigsChanged() {
-        inputConfigsBehaviour.onNext(inputConfigs)
+    private fun onConfigsChanged(newConfig: List<StatefulInputConfig>) {
+        inputConfigLiveData.value = newConfig
         val currentConfiguration = buildCurrentControllerConfiguration()
         settingsRepository.setControllerConfiguration(currentConfiguration)
     }
 
     private fun buildCurrentControllerConfiguration(): ControllerConfiguration {
-        val configs = ArrayList<InputConfig>()
-        for ((inputConfig1) in inputConfigs) {
-            configs.add(inputConfig1.copy())
+        val currentInputs = inputConfigLiveData.value!!
+        val configs = currentInputs.map {
+            it.inputConfig.copy()
         }
-        return ControllerConfiguration(configs)
-    }
 
-    override fun onCleared() {
-        super.onCleared()
-        disposables.clear()
+        return ControllerConfiguration(configs)
     }
 }

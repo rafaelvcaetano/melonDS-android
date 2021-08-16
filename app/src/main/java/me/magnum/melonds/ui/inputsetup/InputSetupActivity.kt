@@ -59,8 +59,9 @@ class InputSetupActivity : AppCompatActivity() {
         setContentView(binding.root)
         val inputListAdapter = InputListAdapter(object : OnInputConfigClickedListener {
             override fun onInputConfigClicked(inputConfig: InputConfig) {
-                if (inputUnderConfiguration != null)
+                if (inputUnderConfiguration != null) {
                     viewModel.stopUpdatingInputConfig(inputUnderConfiguration!!.input)
+                }
 
                 viewModel.startUpdatingInputConfig(inputConfig.input)
                 waitingForInput = true
@@ -69,8 +70,9 @@ class InputSetupActivity : AppCompatActivity() {
 
             override fun onInputConfigCleared(inputConfig: InputConfig) {
                 if (inputUnderConfiguration != null) {
-                    if (inputConfig.input === inputUnderConfiguration!!.input)
+                    if (inputConfig.input === inputUnderConfiguration!!.input) {
                         viewModel.stopUpdatingInputConfig(inputConfig.input)
+                    }
 
                     inputUnderConfiguration = null
                     waitingForInput = false
@@ -87,7 +89,8 @@ class InputSetupActivity : AppCompatActivity() {
             adapter = inputListAdapter
         }
         viewModel.getInputConfig().observe(this) { statefulInputConfigs ->
-            inputListAdapter.setInputList(statefulInputConfigs)
+            val nextInput = inputUnderConfiguration?.let { viewModel.getNextInputToConfigure(it.input) }
+            inputListAdapter.setInputList(statefulInputConfigs, nextInput)
         }
     }
 
@@ -141,12 +144,38 @@ class InputSetupActivity : AppCompatActivity() {
             }
         }
 
+        private var recyclerView: RecyclerView? = null
+        private var layoutManager: LinearLayoutManager? = null
         private val inputList: ArrayList<StatefulInputConfig> = ArrayList()
+        private var nextInput: Input? = null
 
-        fun setInputList(inputList: List<StatefulInputConfig>) {
+        override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+            recyclerView.layoutManager?.let {
+                if (it is LinearLayoutManager) {
+                    layoutManager = it
+                }
+            }
+
+            this.recyclerView = recyclerView
+        }
+
+        fun setInputList(inputList: List<StatefulInputConfig>, nextInput: Input?) {
             this.inputList.clear()
             this.inputList.addAll(inputList)
+            this.nextInput = nextInput
             notifyDataSetChanged()
+            scrollToNextInputIfNeeded()
+        }
+
+        private fun scrollToNextInputIfNeeded() {
+            val nextInputIndex = inputList.indexOfFirst { it.inputConfig.input == nextInput }
+            if (nextInputIndex >= 0) {
+                val lastVisibleIndex = layoutManager?.findLastCompletelyVisibleItemPosition()
+                // Add an offset of 1 so that there is still some content visible below the selected item
+                if (lastVisibleIndex != null && (nextInputIndex + 1) > lastVisibleIndex) {
+                    recyclerView?.smoothScrollToPosition(nextInputIndex + 1)
+                }
+            }
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): InputViewHolder {
@@ -162,7 +191,14 @@ class InputSetupActivity : AppCompatActivity() {
         }
 
         override fun onBindViewHolder(holder: InputViewHolder, position: Int) {
-            holder.setInputConfig(inputList[position])
+            val inputConfig = inputList[position]
+            holder.setInputConfig(inputConfig)
+
+            if (nextInput == inputConfig.inputConfig.input) {
+                holder.itemView.requestFocus()
+                // Clear next input so that focus is not requested again if the list is updated
+                nextInput = null
+            }
         }
 
         override fun getItemId(position: Int): Long {
