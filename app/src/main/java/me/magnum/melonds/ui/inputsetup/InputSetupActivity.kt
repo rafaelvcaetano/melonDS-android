@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.inputsetup
 
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
@@ -173,8 +175,21 @@ class InputSetupActivity : AppCompatActivity() {
                 val lastVisibleIndex = layoutManager?.findLastCompletelyVisibleItemPosition()
                 // Add an offset of 1 so that there is still some content visible below the selected item
                 if (lastVisibleIndex != null && (nextInputIndex + 1) > lastVisibleIndex) {
-                    recyclerView?.smoothScrollToPosition(nextInputIndex + 1)
+                    val smoothScroller = createSmoothScroller(nextInputIndex + 1)
+                    layoutManager?.startSmoothScroll(smoothScroller)
                 }
+            }
+        }
+
+        private fun createSmoothScroller(targetPosition: Int): LinearSmoothScroller {
+            return object : LinearSmoothScroller(recyclerView!!.context) {
+                private val MILLISECONDS_PER_INCH = 100f
+
+                override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics): Float {
+                    return MILLISECONDS_PER_INCH / displayMetrics.densityDpi
+                }
+            }.apply {
+                setTargetPosition(targetPosition)
             }
         }
 
