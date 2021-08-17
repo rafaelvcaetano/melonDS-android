@@ -18,6 +18,7 @@ import androidx.fragment.app.commit
 import dagger.hilt.android.AndroidEntryPoint
 import io.noties.markwon.Markwon
 import me.magnum.melonds.R
+import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.contracts.DirectoryPickerContract
 import me.magnum.melonds.databinding.ActivityRomListBinding
 import me.magnum.melonds.domain.model.*
@@ -40,7 +41,7 @@ class RomListActivity : AppCompatActivity() {
 
     private var downloadProgressDialog: AlertDialog? = null
 
-    private val dsBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract()) { uri ->
+    private val dsBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract(Permission.READ_WRITE)) { uri ->
         if (uri != null) {
             viewModel.setDsBiosDirectory(uri)
             selectedRom?.let {
@@ -50,7 +51,7 @@ class RomListActivity : AppCompatActivity() {
             }
         }
     }
-    private val dsiBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract()) { uri ->
+    private val dsiBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract(Permission.READ_WRITE)) { uri ->
         if (uri != null) {
             viewModel.setDsiBiosDirectory(uri)
             selectedRom?.let {

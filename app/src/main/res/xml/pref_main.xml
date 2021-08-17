@@ -36,7 +36,9 @@
                 android:key="rom_search_dirs"
                 android:title="@string/rom_search_directories"
                 app:selection="multi"
-                app:type="directory" />
+                app:type="directory"
+                app:permissions="read_write"
+                app:persistPermissions="true" />
 
         <ListPreference
             android:key="rom_icon_filtering"
@@ -147,7 +149,9 @@
             android:key="sram_dir"
             android:title="@string/save_file_directory"
             android:dependency="use_rom_dir"
-            app:type="directory" />
+            app:type="directory"
+            app:permissions="read_write"
+            app:persistPermissions="true" />
 
         <ListPreference
             android:key="save_state_location"

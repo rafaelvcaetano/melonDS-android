@@ -30,6 +30,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
+import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.contracts.FilePickerContract
 import me.magnum.melonds.databinding.ActivityBackgroundsBinding
 import me.magnum.melonds.databinding.DialogTextInputBinding
@@ -60,7 +61,7 @@ class BackgroundsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityBackgroundsBinding
     private lateinit var backgroundListAdapter: BackgroundAdapter
 
-    private val backgroundPicker = registerForActivityResult(FilePickerContract(false)) {
+    private val backgroundPicker = registerForActivityResult(FilePickerContract(Permission.READ)) {
         it?.let { addBackground(it) }
     }
 
@@ -131,10 +132,7 @@ class BackgroundsActivity : AppCompatActivity() {
                 .setView(binding.root)
                 .setPositiveButton(R.string.ok) { _, _ ->
                     var orientation = Orientation.PORTRAIT
-                    val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
 
-                    // Only persist URI permission after making sure the user has finalized the process
-                    contentResolver.takePersistableUriPermission(uri, flags)
                     contentResolver.openInputStream(uri)?.let {
                         val decoder = BitmapRegionDecoder.newInstance(it, true)
                         val width = decoder.width

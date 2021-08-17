@@ -7,14 +7,16 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import com.smp.masterswitchpreference.MasterSwitchPreference
 import me.magnum.melonds.R
+import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.ui.settings.preferences.FirmwareBirthdayPreference
 import me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
 import me.magnum.melonds.common.contracts.DirectoryPickerContract
 import me.magnum.melonds.common.contracts.FilePickerContract
+import me.magnum.melonds.extensions.addOnPreferenceChangeListener
 import me.magnum.melonds.ui.settings.preferences.MacAddressPreference
 import me.magnum.melonds.utils.FileUtils
 
-class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat) {
+class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat, private val uriPermissionManager: UriPermissionManager) {
     companion object {
         private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->
             when (preference) {
@@ -65,7 +67,7 @@ class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat) {
             return
 
         // Set the listener to watch for value changes.
-        preference.onPreferenceChangeListener = sBindPreferenceSummaryToValueListener
+        preference.addOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener)
 
         // Trigger the listener immediately with the preference's current value. Special handling
         // for directory pickers and master switches since they can't be converted to string
@@ -87,21 +89,37 @@ class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat) {
 
     private fun setupDirectoryPickerPreference(storagePreference: StoragePickerPreference) {
         bindPreferenceSummaryToValue(storagePreference)
-        val filePickerLauncher = activity.registerForActivityResult(DirectoryPickerContract(), storagePreference::onDirectoryPicked)
+        val filePickerLauncher = activity.registerForActivityResult(DirectoryPickerContract(storagePreference.permissions), storagePreference::onDirectoryPicked)
         storagePreference.setOnPreferenceClickListener { preference ->
             val initialUri = preference.getPersistedStringSet(null)?.firstOrNull()?.toUri()
             filePickerLauncher.launch(initialUri)
             true
         }
+        if (storagePreference.persistPermissions) {
+            storagePreference.addOnPreferenceChangeListener { _, newValue ->
+                (newValue as Set<String>?)?.firstOrNull()?.let {
+                    uriPermissionManager.persistDirectoryPermissions(it.toUri(), storagePreference.permissions)
+                }
+                true
+            }
+        }
     }
 
     private fun setupFilePickerPreference(storagePreference: StoragePickerPreference) {
         bindPreferenceSummaryToValue(storagePreference)
-        val filePickerLauncher = activity.registerForActivityResult(FilePickerContract(), storagePreference::onDirectoryPicked)
+        val filePickerLauncher = activity.registerForActivityResult(FilePickerContract(storagePreference.permissions), storagePreference::onDirectoryPicked)
         storagePreference.setOnPreferenceClickListener { preference ->
             val initialUri = preference.getPersistedStringSet(null)?.firstOrNull()?.toUri()
             filePickerLauncher.launch(Pair(initialUri, storagePreference.mimeType?.let { arrayOf(it) }))
             true
+        }
+        if (storagePreference.persistPermissions) {
+            storagePreference.addOnPreferenceChangeListener { _, newValue ->
+                (newValue as Set<String>?)?.firstOrNull()?.let {
+                    uriPermissionManager.persistFilePermissions(it.toUri(), storagePreference.permissions)
+                }
+                true
+            }
         }
     }
 }

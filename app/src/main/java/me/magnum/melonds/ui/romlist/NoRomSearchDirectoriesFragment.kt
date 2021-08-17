@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import dagger.hilt.android.AndroidEntryPoint
+import me.magnum.melonds.common.Permission
 import me.magnum.melonds.databinding.FragmentNoDirectoriesBinding
 import me.magnum.melonds.common.contracts.DirectoryPickerContract
 
@@ -28,9 +29,10 @@ class NoRomSearchDirectoriesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val romPickerLauncher = registerForActivityResult(DirectoryPickerContract()) {
-            if (it != null)
+        val romPickerLauncher = registerForActivityResult(DirectoryPickerContract(Permission.READ_WRITE)) {
+            if (it != null) {
                 romListViewModel.addRomSearchDirectory(it)
+            }
         }
 
         binding.buttonSetRomDirectory.setOnClickListener {

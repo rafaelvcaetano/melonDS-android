@@ -8,7 +8,9 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
+import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.Schedulers
+import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.LayoutsRepository
@@ -29,6 +31,7 @@ class RomListViewModel @Inject constructor(
         private val romIconProvider: RomIconProvider,
         private val configurationDirectoryVerifier: ConfigurationDirectoryVerifier,
         private val uriHandler: UriHandler,
+        private val uriPermissionManager: UriPermissionManager,
         private val schedulers: Schedulers
 ) : ViewModel() {
 
@@ -102,6 +105,8 @@ class RomListViewModel @Inject constructor(
     }
 
     fun updateRomConfig(rom: Rom, newConfig: RomConfig) {
+        newConfig.gbaCartPath?.let { uriPermissionManager.persistFilePermissions(it, Permission.READ) }
+        newConfig.gbaSavePath?.let { uriPermissionManager.persistFilePermissions(it, Permission.READ_WRITE) }
         romsRepository.updateRomConfig(rom, newConfig)
     }
 
@@ -156,14 +161,17 @@ class RomListViewModel @Inject constructor(
     }
 
     fun addRomSearchDirectory(directoryUri: Uri) {
+        uriPermissionManager.persistDirectoryPermissions(directoryUri, Permission.READ_WRITE)
         settingsRepository.addRomSearchDirectory(directoryUri)
     }
 
     fun setDsBiosDirectory(uri: Uri) {
+        uriPermissionManager.persistDirectoryPermissions(uri, Permission.READ_WRITE)
         settingsRepository.setDsBiosDirectory(uri)
     }
 
     fun setDsiBiosDirectory(uri: Uri) {
+        uriPermissionManager.persistDirectoryPermissions(uri, Permission.READ_WRITE)
         settingsRepository.setDsiBiosDirectory(uri)
     }
 

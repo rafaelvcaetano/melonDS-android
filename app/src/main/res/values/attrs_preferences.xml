@@ -7,11 +7,19 @@
         </attr>
 
         <attr name="selection" format="enum">
-            <enum name="single" value="0"/>
-            <enum name="multi" value="1"/>
+            <enum name="single" value="0" />
+            <enum name="multi" value="1" />
         </attr>
 
         <attr name="mimeType" format="string" />
+
+        <attr name="permissions" format="enum">
+            <enum name="read" value="0" />
+            <enum name="write" value="1" />
+            <enum name="read_write" value="2" />
+        </attr>
+
+        <attr name="persistPermissions" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="BiosDirectoryPickerPreference">

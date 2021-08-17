@@ -14,6 +14,7 @@ import androidx.core.widget.ImageViewCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
 import me.magnum.melonds.R
+import me.magnum.melonds.common.Permission
 import me.magnum.melonds.domain.model.ConfigurationDirResult
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.ui.settings.FileStatusPopup
@@ -26,6 +27,8 @@ class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : S
     init {
         widgetLayoutResource = R.layout.preference_directory_picker_status
         selectionType = SelectionType.DIRECTORY
+        permissions = Permission.READ_WRITE
+        persistPermissions = true
     }
 
     private var consoleType: ConsoleType? = null

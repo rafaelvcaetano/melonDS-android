@@ -2,10 +2,15 @@ package me.magnum.melonds.ui.settings
 
 import android.os.Bundle
 import androidx.preference.PreferenceFragmentCompat
+import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
+import me.magnum.melonds.common.UriPermissionManager
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class FirmwarePreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
-    private val helper = PreferenceFragmentHelper(this)
+    private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager) }
+    @Inject lateinit var uriPermissionManager: UriPermissionManager
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.pref_internal_firmware_settings, rootKey)

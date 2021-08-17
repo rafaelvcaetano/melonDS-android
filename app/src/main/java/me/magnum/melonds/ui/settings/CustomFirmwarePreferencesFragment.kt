@@ -6,15 +6,20 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
 import androidx.preference.ListPreference
 import com.smp.masterswitchpreference.MasterSwitchPreferenceFragment
+import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
+import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.domain.model.ConfigurationDirResult
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.ui.settings.preferences.BiosDirectoryPickerPreference
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class CustomFirmwarePreferencesFragment : MasterSwitchPreferenceFragment(), PreferenceFragmentTitleProvider {
     private val viewModel: SettingsViewModel by activityViewModels()
-    private val helper = PreferenceFragmentHelper(this)
+    private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager) }
+    @Inject lateinit var uriPermissionManager: UriPermissionManager
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         super.onCreatePreferences(savedInstanceState, rootKey)

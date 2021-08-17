@@ -19,6 +19,7 @@ import io.noties.markwon.image.picasso.PicassoImagesPlugin
 import io.noties.markwon.linkify.LinkifyPlugin
 import io.reactivex.android.schedulers.AndroidSchedulers
 import me.magnum.melonds.common.Schedulers
+import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.common.uridelegates.CompositeUriHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.database.MelonDatabase
@@ -87,5 +88,11 @@ object AppModule {
     @Singleton
     fun provideTaskManager(@ApplicationContext context: Context): TaskManager {
         return AndroidTaskManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUriPermissionManager(@ApplicationContext context: Context): UriPermissionManager {
+        return UriPermissionManager(context)
     }
 }

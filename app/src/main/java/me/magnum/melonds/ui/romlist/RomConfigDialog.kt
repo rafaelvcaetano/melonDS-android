@@ -14,6 +14,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import io.reactivex.disposables.Disposable
 import me.magnum.melonds.R
+import me.magnum.melonds.common.Permission
 import me.magnum.melonds.databinding.DialogRomConfigBinding
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
@@ -57,12 +58,12 @@ class RomConfigDialog : DialogFragment() {
             onLayoutIdSelected(layoutId)
         }
     }
-    private val gbaRomFilePicker = registerForActivityResult(FilePickerContract()) {
+    private val gbaRomFilePicker = registerForActivityResult(FilePickerContract(Permission.READ)) {
         if (it != null) {
             onGbaRomPathSelected(it)
         }
     }
-    private val gbaSramFilePicker = registerForActivityResult(FilePickerContract()) {
+    private val gbaSramFilePicker = registerForActivityResult(FilePickerContract(Permission.READ_WRITE)) {
         if (it != null) {
             onGbaSavePathSelected(it)
         }

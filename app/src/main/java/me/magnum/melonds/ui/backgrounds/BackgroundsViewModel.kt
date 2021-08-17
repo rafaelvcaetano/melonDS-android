@@ -6,7 +6,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.disposables.CompositeDisposable
+import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.Schedulers
+import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.domain.model.Background
 import me.magnum.melonds.domain.model.Orientation
 import me.magnum.melonds.domain.repositories.BackgroundRepository
@@ -17,6 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class BackgroundsViewModel @Inject constructor(
         private val backgroundsRepository: BackgroundRepository,
+        private val uriPermissionManager: UriPermissionManager,
         private val schedulers: Schedulers,
         savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -52,6 +55,7 @@ class BackgroundsViewModel @Inject constructor(
     }
 
     fun addBackground(background: Background) {
+        uriPermissionManager.persistFilePermissions(background.uri, Permission.READ)
         backgroundsRepository.addBackground(background)
     }
 

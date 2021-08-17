@@ -12,6 +12,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.preference.*
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
+import me.magnum.melonds.common.Permission
+import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.common.contracts.FilePickerContract
 import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.domain.model.MicSource
@@ -29,7 +31,8 @@ import kotlin.math.pow
 @AndroidEntryPoint
 class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
     private val viewModel: SettingsViewModel by activityViewModels()
-    private val helper = PreferenceFragmentHelper(this)
+    private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager) }
+    @Inject lateinit var uriPermissionManager: UriPermissionManager
     @Inject lateinit var vibrator: TouchVibrator
 
     private lateinit var clearRomCachePreference: Preference
@@ -40,7 +43,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
             micSourcePreference.value = MicSource.DEVICE.name.lowercase()
         }
     }
-    private val filePickerLauncher = registerForActivityResult(FilePickerContract(false)) {
+    private val cheatFilePickerLauncher = registerForActivityResult(FilePickerContract(Permission.READ)) {
         if (it != null) {
             viewModel.importCheatsDatabase(it)
             CheatsImportProgressDialog().show(childFragmentManager, null)
@@ -171,7 +174,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
         if (viewModel.areCheatsBeingImported()) {
             CheatsImportProgressDialog().show(childFragmentManager, null)
         } else {
-            filePickerLauncher.launch(Pair(null, arrayOf("text/xml")))
+            cheatFilePickerLauncher.launch(Pair(null, arrayOf("text/xml")))
         }
     }
 }
