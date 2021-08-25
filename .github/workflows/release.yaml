@@ -101,7 +101,7 @@ jobs:
       - name: Create Play Store Release
         uses: r0adkll/upload-google-play@v1
         with:
-          serviceAccountJson: ${{ secrets.MELONDS_PLAYSTORE_ACCOUNT_JSON }}
+          serviceAccountJsonPlainText: ${{ secrets.MELONDS_PLAYSTORE_ACCOUNT_JSON }}
           packageName: me.magnum.melonds
           releaseName: ${{ steps.release_params.outputs.VERSION }}
           releaseFiles: app/build/outputs/apk/playStore/release/app-playStore-release.apk
