@@ -1,19 +1,24 @@
 package me.magnum.melonds.common.romprocessors
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import me.magnum.melonds.domain.model.SizeUnit
 import me.magnum.melonds.impl.NdsRomCache
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry
 import org.apache.commons.compress.archivers.sevenz.SevenZFile
-import org.apache.commons.compress.utils.IOUtils
-import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
+import java.io.FileInputStream
 import java.io.InputStream
 
+@RequiresApi(Build.VERSION_CODES.N)
 class SevenZRomFileProcessor(context: Context, ndsRomCache: NdsRomCache) : CompressedRomFileProcessor(context, ndsRomCache) {
 
     override fun getNdsEntryStreamInFileStream(fileStream: InputStream): RomFileStream? {
-        val channel = SeekableInMemoryByteChannel(IOUtils.toByteArray(fileStream))
-        val sevenZFile = SevenZFile(channel)
+        if (fileStream !is FileInputStream) {
+            return null
+        }
+
+        val sevenZFile = SevenZFile(fileStream.channel)
         return getNdsEntryInFile(sevenZFile)?.let {
             RomFileStream(sevenZFile.getInputStream(it), SizeUnit.Bytes(it.size))
         }
