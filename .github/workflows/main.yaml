@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: melonDS Android Build
+name: melonDS Android Nightly Build
 
 # Controls when the action will run.
 on:
