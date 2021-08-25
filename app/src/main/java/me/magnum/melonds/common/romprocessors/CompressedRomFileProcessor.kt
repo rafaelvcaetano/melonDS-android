@@ -4,26 +4,30 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import io.reactivex.Single
+import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.SizeUnit
+import me.magnum.melonds.extensions.isBlank
+import me.magnum.melonds.extensions.nameWithoutExtension
 import me.magnum.melonds.impl.NdsRomCache
 import me.magnum.melonds.utils.RomProcessor
 import java.io.FileOutputStream
 import java.io.FilterInputStream
 import java.io.InputStream
 
-abstract class CompressedRomFileProcessor(private val context: Context, private val ndsRomCache: NdsRomCache) : RomFileProcessor {
+abstract class CompressedRomFileProcessor(private val context: Context, private val uriHandler: UriHandler, private val ndsRomCache: NdsRomCache) : RomFileProcessor {
+
     private class CouldNotOpenCompressedFileException : Exception("Failed to open compressed file for extraction")
     private class CouldNotFindNdsRomException : Exception("Failed to find an NDS ROM to extract")
     private class CouldNotFindExtractedFileException : Exception("Failed to find extracted NDS ROM file")
 
     override fun getRomFromUri(romUri: Uri, parentUri: Uri): Rom? {
         return try {
-            context.contentResolver.openInputStream(romUri)?.use {
-                getNdsEntryStreamInFileStream(it)?.use { romFileStream ->
-                    val romName = getRomNameInZipEntry(romFileStream)
+            context.contentResolver.openInputStream(romUri)?.use { stream ->
+                getNdsEntryStreamInFileStream(stream)?.use { romFileStream ->
+                    val romName = getRomNameInZipEntry(romFileStream).takeUnless { it.isBlank() } ?: uriHandler.getUriDocument(romUri)?.nameWithoutExtension ?: ""
                     Rom(romName, romUri, parentUri, RomConfig())
                 }
             }

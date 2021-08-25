@@ -154,6 +154,7 @@ class RomListFragment : Fragment() {
                 this.rom = rom
                 textViewRomName.text = rom.name
                 textViewRomPath.text = FileUtils.getAbsolutePathFromSAFUri(view!!.context, rom.uri)
+                imageViewRomIcon.setImageDrawable(null)
 
                 romIconLoadDisposable = romListViewModel.getRomIcon(rom).subscribe { romIcon ->
                     val iconDrawable = BitmapDrawable(itemView.resources, romIcon.bitmap)

@@ -71,11 +71,11 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideFileRomProcessorFactory(@ApplicationContext context: Context, ndsRomCache: NdsRomCache): RomFileProcessorFactory {
+    fun provideFileRomProcessorFactory(@ApplicationContext context: Context, uriHandler: UriHandler, ndsRomCache: NdsRomCache): RomFileProcessorFactory {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Api24RomFileProcessorFactory(context, ndsRomCache)
+            Api24RomFileProcessorFactory(context, uriHandler, ndsRomCache)
         } else {
-            OldRomFileProcessorFactory(context, ndsRomCache)
+            OldRomFileProcessorFactory(context, uriHandler, ndsRomCache)
         }
     }
 

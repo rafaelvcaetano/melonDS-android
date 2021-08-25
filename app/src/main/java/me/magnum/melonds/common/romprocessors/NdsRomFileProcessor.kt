@@ -4,16 +4,21 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import io.reactivex.Single
+import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomInfo
+import me.magnum.melonds.extensions.isBlank
+import me.magnum.melonds.extensions.nameWithoutExtension
 import me.magnum.melonds.utils.RomProcessor
 
-class NdsRomFileProcessor(private val context: Context) : RomFileProcessor {
+class NdsRomFileProcessor(private val context: Context, private val uriHandler: UriHandler) : RomFileProcessor {
+
     override fun getRomFromUri(romUri: Uri, parentUri: Uri): Rom? {
         return try {
-            getRomName(romUri)?.let {
-                Rom(it, romUri, parentUri, RomConfig())
+            getRomName(romUri)?.let { name ->
+                val romName = name.takeUnless { it.isBlank() } ?: uriHandler.getUriDocument(romUri)?.nameWithoutExtension ?: ""
+                Rom(romName, romUri, parentUri, RomConfig())
             }
         } catch (e: Exception) {
             e.printStackTrace()
