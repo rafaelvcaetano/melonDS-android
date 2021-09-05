@@ -4,6 +4,7 @@ import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
@@ -171,6 +172,7 @@ class LayoutEditorActivity : AppCompatActivity() {
 
             override fun onError(e: java.lang.Exception?) {
                 e?.printStackTrace()
+                Toast.makeText(this@LayoutEditorActivity, R.string.layout_background_load_failed, Toast.LENGTH_LONG).show()
             }
         })
     }
@@ -352,5 +354,10 @@ class LayoutEditorActivity : AppCompatActivity() {
             viewModel.setCurrentLayoutConfiguration(it)
             binding.viewLayoutEditor.instantiateLayout(it)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        picasso.cancelRequest(binding.imageBackground)
     }
 }

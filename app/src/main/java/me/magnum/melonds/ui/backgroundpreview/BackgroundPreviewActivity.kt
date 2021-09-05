@@ -5,14 +5,18 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsCompat
+import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
+import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityBackgroundPreviewBinding
 import me.magnum.melonds.extensions.insetsControllerCompat
 import me.magnum.melonds.impl.BackgroundThumbnailProvider
 import me.magnum.melonds.parcelables.BackgroundParcelable
+import java.lang.Exception
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -50,7 +54,15 @@ class BackgroundPreviewActivity : AppCompatActivity() {
         super.onStart()
         val background = intent.getParcelableExtra<BackgroundParcelable>(KEY_BACKGROUND)?.background ?: throw NullPointerException("No background provided")
         val thumbnail = backgroundThumbnailProvider.getBackgroundThumbnail(background)
-        picasso.load(background.uri).placeholder(BitmapDrawable(resources, thumbnail)).noFade().into(binding.image)
+        picasso.load(background.uri).placeholder(BitmapDrawable(resources, thumbnail)).noFade().into(binding.image, object : Callback {
+            override fun onSuccess() {
+            }
+
+            override fun onError(e: Exception?) {
+                e?.printStackTrace()
+                Toast.makeText(this@BackgroundPreviewActivity, R.string.layout_background_load_failed, Toast.LENGTH_LONG).show()
+            }
+        })
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -85,5 +97,10 @@ class BackgroundPreviewActivity : AppCompatActivity() {
             binding.toolbar.startAnimation(toolbarAnimation)
         }
         isDecorVisible = !isDecorVisible
+    }
+
+    override fun onStop() {
+        super.onStop()
+        picasso.cancelRequest(binding.image)
     }
 }

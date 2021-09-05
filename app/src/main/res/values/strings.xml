@@ -212,12 +212,14 @@
     <string name="layout_orientation">Layout orientation</string>
     <string name="layout_use_default_opacity">Use default opacity</string>
     <string name="layout_opacity">Layout opacity</string>
+    <string name="layout_background_load_failed">Failed to load the background</string>
 
     <string name="backgrounds">Backgrounds</string>
     <string name="action_backgrounds_new">New background</string>
     <string name="background_name">Background name</string>
     <string name="background_deleted">Background deleted</string>
     <string name="background_add_wrong_orientation">Background added but it\'s not visible for the selected orientation.</string>
+    <string name="background_add_processing_failed">Failed to process the selected background image. Make sure it\'s not corrupted.</string>
 
     <string-array name="theme_options" tools:ignore="InconsistentArrays">
         <item>@string/theme_option_light</item>

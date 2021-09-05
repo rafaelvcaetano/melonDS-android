@@ -37,6 +37,7 @@ import me.magnum.melonds.databinding.DialogTextInputBinding
 import me.magnum.melonds.databinding.ItemBackgroundBinding
 import me.magnum.melonds.domain.model.Background
 import me.magnum.melonds.domain.model.Orientation
+import me.magnum.melonds.extensions.nameWithoutExtension
 import me.magnum.melonds.impl.BackgroundThumbnailProvider
 import me.magnum.melonds.parcelables.BackgroundParcelable
 import me.magnum.melonds.ui.backgroundpreview.BackgroundPreviewActivity
@@ -123,27 +124,20 @@ class BackgroundsActivity : AppCompatActivity() {
     }
 
     private fun addBackground(uri: Uri) {
-        val documentName = DocumentFile.fromSingleUri(this, uri)?.name?.substringBeforeLast('.') ?: ""
+        val documentName = DocumentFile.fromSingleUri(this, uri)?.nameWithoutExtension ?: ""
         val binding = DialogTextInputBinding.inflate(layoutInflater)
         binding.editText.setText(documentName, TextView.BufferType.NORMAL)
+
+        val orientation = getBackgroundOrientation(uri).getOrNull()
+        if (orientation == null) {
+            Toast.makeText(this, R.string.background_add_processing_failed, Toast.LENGTH_LONG).show()
+            return
+        }
 
         AlertDialog.Builder(this)
                 .setTitle(R.string.background_name)
                 .setView(binding.root)
                 .setPositiveButton(R.string.ok) { _, _ ->
-                    var orientation = Orientation.PORTRAIT
-
-                    contentResolver.openInputStream(uri)?.let {
-                        val decoder = BitmapRegionDecoder.newInstance(it, true)
-                        val width = decoder.width
-                        val height = decoder.height
-
-                        if (width > height) {
-                            orientation = Orientation.LANDSCAPE
-                        }
-                        decoder.recycle()
-                    }
-
                     val backgroundName = binding.editText.text.toString()
                     val background = Background(null, backgroundName, orientation, uri)
                     viewModel.addBackground(background)
@@ -154,6 +148,24 @@ class BackgroundsActivity : AppCompatActivity() {
                 }
                 .setNegativeButton(R.string.cancel, null)
                 .show()
+    }
+
+    private fun getBackgroundOrientation(backgroundUri: Uri): Result<Orientation> {
+        return runCatching {
+            contentResolver.openInputStream(backgroundUri)?.use {
+                val decoder = BitmapRegionDecoder.newInstance(it, true)
+                val width = decoder.width
+                val height = decoder.height
+
+                decoder.recycle()
+
+                if (width > height) {
+                    Orientation.LANDSCAPE
+                } else {
+                    Orientation.PORTRAIT
+                }
+            } ?: throw Exception("Failed to open stream")
+        }
     }
 
     private fun onBackgroundSelected(background: Background?) {
