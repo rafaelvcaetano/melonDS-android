@@ -347,36 +347,41 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
         background.background?.uri?.let {
             val backgroundSampleSize = BitmapUtils.calculateMinimumSampleSize(context, it, width.roundToInt(), height.roundToInt())
 
-            context.contentResolver.openInputStream(it)?.let { stream ->
-                val options = BitmapFactory.Options().apply {
-                    inSampleSize = backgroundSampleSize
+            val bitmapResult = runCatching {
+                context.contentResolver.openInputStream(it)?.let { stream ->
+                    val options = BitmapFactory.Options().apply {
+                        inSampleSize = backgroundSampleSize
+                    }
+
+                    BitmapFactory.decodeStream(stream, null, options)
                 }
-
-                val bitmap = BitmapFactory.decodeStream(stream, null, options) ?: return
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, backgroundTexture)
-                GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
-                bitmap.recycle()
-
-                backgroundWidth = bitmap.width
-                backgroundHeight = bitmap.height
-
-                val uvs = arrayOf(
-                        0f, 1f,
-                        0f, 0f,
-                        1f, 0f,
-                        0f, 1f,
-                        1f, 0f,
-                        1f, 1f
-                )
-
-                backgroundUvBuffer = ByteBuffer.allocateDirect(4 * uvs.size)
-                        .order(ByteOrder.nativeOrder())
-                        .asFloatBuffer()
-                        .put(uvs.toFloatArray())
-
-                isBackgroundLoaded = true
-                isBackgroundPositionDirty = true
             }
+
+            val bitmap = bitmapResult.getOrNull() ?: return
+
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, backgroundTexture)
+            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+            bitmap.recycle()
+
+            backgroundWidth = bitmap.width
+            backgroundHeight = bitmap.height
+
+            val uvs = arrayOf(
+                0f, 1f,
+                0f, 0f,
+                1f, 0f,
+                0f, 1f,
+                1f, 0f,
+                1f, 1f
+            )
+
+            backgroundUvBuffer = ByteBuffer.allocateDirect(4 * uvs.size)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer()
+                .put(uvs.toFloatArray())
+
+            isBackgroundLoaded = true
+            isBackgroundPositionDirty = true
         }
     }
 
