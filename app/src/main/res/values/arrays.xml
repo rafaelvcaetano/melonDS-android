@@ -39,6 +39,12 @@
         <item>lcd</item>
     </string-array>
 
+    <string-array name="audio_latency_values">
+        <item>low</item>
+        <item>medium</item>
+        <item>high</item>
+    </string-array>
+
     <string-array name="mic_source_values">
         <item>none</item>
         <item>blow</item>

@@ -117,6 +117,7 @@
     <string name="filter">Filter</string>
     <string name="category_audio">Audio</string>
     <string name="enable_sound">Enable sound</string>
+    <string name="audio_latency">Audio latency</string>
     <string name="microphone_source">Microphone source</string>
     <string name="controller_layout">Controller layout</string>
     <string name="category_save_files">Save Files</string>
@@ -285,6 +286,12 @@
         <item>HQ4X</item>
         <item>Quilez</item>
         <item>LCD</item>
+    </string-array>
+
+    <string-array name="audio_latency_options">
+        <item>Low (Slower)</item>
+        <item>Medium</item>
+        <item>High (Faster)</item>
     </string-array>
 
     <string-array name="mic_source_options">

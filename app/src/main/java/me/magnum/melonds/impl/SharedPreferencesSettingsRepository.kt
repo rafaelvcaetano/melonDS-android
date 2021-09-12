@@ -96,6 +96,7 @@ class SharedPreferencesSettingsRepository(
             isJitEnabled(),
             consoleType,
             isSoundEnabled(),
+            getAudioLatency(),
             getMicSource(),
             getFirmwareConfiguration(),
             RendererConfiguration(
@@ -221,6 +222,11 @@ class SharedPreferencesSettingsRepository(
 
     override fun isSoundEnabled(): Boolean {
         return preferences.getBoolean("sound_enabled", true)
+    }
+
+    override fun getAudioLatency(): AudioLatency {
+        val audioLatencyPreference = preferences.getString("audio_latency", "medium")!!
+        return enumValueOfIgnoreCase(audioLatencyPreference)
     }
 
     override fun getMicSource(): MicSource {

@@ -30,6 +30,7 @@ interface SettingsRepository {
     fun getFpsCounterPosition(): FpsCounterPosition
 
     fun isSoundEnabled(): Boolean
+    fun getAudioLatency(): AudioLatency
     fun getMicSource(): MicSource
 
     fun getRomSortingMode(): SortingMode

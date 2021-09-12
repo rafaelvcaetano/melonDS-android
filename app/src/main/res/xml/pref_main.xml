@@ -128,6 +128,14 @@
             android:defaultValue="true" />
 
         <ListPreference
+            android:key="audio_latency"
+            android:title="@string/audio_latency"
+            android:summary="%s"
+            android:entries="@array/audio_latency_options"
+            android:entryValues="@array/audio_latency_values"
+            android:defaultValue="medium" />
+
+        <ListPreference
             android:key="mic_source"
             android:title="@string/microphone_source"
             android:summary="%s"
