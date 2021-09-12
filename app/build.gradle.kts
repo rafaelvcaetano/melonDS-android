@@ -145,8 +145,6 @@ dependencies {
     // Testing
     with(Dependencies.Testing) {
         testImplementation(junit)
-        androidTestImplementation(junitAndroidX)
-        androidTestImplementation(espresso)
     }
 }
 
