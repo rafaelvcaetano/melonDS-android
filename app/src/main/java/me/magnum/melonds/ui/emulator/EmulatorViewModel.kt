@@ -214,6 +214,22 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
+    fun deleteRomSaveStateSlot(rom: Rom, slot: SaveStateSlot) {
+        if (!slot.exists) {
+            return
+        }
+
+        val saveStateDirectoryUri = settingsRepository.getSaveStateDirectory(rom) ?: throw SaveSlotLoadException("Could not determine save slot parent directory")
+        val saveStateDirectoryDocument = uriHandler.getUriTreeDocument(saveStateDirectoryUri) ?: throw SaveSlotLoadException("Could not create parent directory document")
+
+        val romDocument = uriHandler.getUriDocument(rom.uri) ?: throw SaveSlotLoadException("Could not create ROM document")
+        val romFileName = romDocument.name?.substringBeforeLast('.') ?: throw SaveSlotLoadException("Could not determine ROM file name")
+        val saveStateName = "$romFileName.ml${slot.slot}"
+        val saveStateFile = saveStateDirectoryDocument.findFile(saveStateName)
+
+        saveStateFile?.delete()
+    }
+
     fun getRomAtPath(path: String): Maybe<Rom> {
         return romsRepository.getRomAtPath(path)
     }

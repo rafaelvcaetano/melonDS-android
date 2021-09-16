@@ -44,6 +44,11 @@
     </style>
 
     <style name="Button.Ripple" parent="android:Widget.ImageButton">
+        <item name="android:background">@drawable/drawable_ripple</item>
+        <item name="android:scaleType">fitCenter</item>
+    </style>
+
+    <style name="Button.Ripple.Small" parent="android:Widget.ImageButton">
         <item name="android:background">@drawable/drawable_ripple_small</item>
         <item name="android:scaleType">fitCenter</item>
     </style>
@@ -106,6 +111,11 @@
     <style name="Text.RomSetting.Summary" parent="Widget.AppCompat.TextView">
         <item name="android:textAppearance">?android:attr/textAppearanceSmall</item>
         <item name="android:textColor">?android:attr/textColorSecondary</item>
+    </style>
+
+    <style name="Text.SaveStateSlot" parent="Widget.AppCompat.TextView">
+        <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
     </style>
 
     <style name="SeekBar.RomSetting" parent="Widget.AppCompat.SeekBar">

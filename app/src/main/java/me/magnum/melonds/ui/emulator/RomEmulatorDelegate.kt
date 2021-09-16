@@ -190,17 +190,26 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
     }
 
     private fun pickSaveStateSlot(onSlotPicked: (SaveStateSlot) -> Unit) {
-        val dateFormatter = SimpleDateFormat("EEE, dd MMMM yyyy kk:mm:ss", ConfigurationCompat.getLocales(activity.resources.configuration)[0])
+        val dateFormatter = SimpleDateFormat("EEE, dd MMM yyyy kk:mm:ss", ConfigurationCompat.getLocales(activity.resources.configuration)[0])
         val slots = activity.viewModel.getRomSaveStateSlots(loadedRom)
-        val options = slots.map { "${it.slot}. ${if (it.exists) dateFormatter.format(it.lastUsedDate!!) else activity.getString(R.string.empty_slot)}" }.toTypedArray()
+        var dialog: AlertDialog? = null
+        var adapter: SaveStateListAdapter? = null
 
-        AlertDialog.Builder(activity)
+        adapter = SaveStateListAdapter(slots, dateFormatter, {
+            dialog?.cancel()
+            onSlotPicked(it)
+        }) {
+            activity.viewModel.deleteRomSaveStateSlot(loadedRom, it)
+            val newSlots = activity.viewModel.getRomSaveStateSlots(loadedRom)
+            adapter?.updateSaveStateSlots(newSlots)
+        }
+
+        dialog = AlertDialog.Builder(activity)
                 .setTitle(activity.getString(R.string.save_slot))
-                .setItems(options) { _, which ->
-                    onSlotPicked(slots[which])
+                .setAdapter(adapter) { _, _ ->
                 }
-                .setNegativeButton(R.string.cancel) { dialog, _ ->
-                    dialog.cancel()
+                .setNegativeButton(R.string.cancel) { dialogInterface, _ ->
+                    dialogInterface.cancel()
                 }
                 .setOnCancelListener { activity.resumeEmulation() }
                 .show()

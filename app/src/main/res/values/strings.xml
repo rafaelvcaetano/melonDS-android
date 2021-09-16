@@ -43,6 +43,7 @@
 
     <string name="info_fps">FPS: %1$d</string>
     <string name="info_loading">LOADING…</string>
+    <string name="save_state_slot">%1$d.</string>
     <string name="failed_save_state">Failed to save state</string>
     <string name="failed_load_state">Failed to load state</string>
     <string name="cant_load_empty_slot">Can\'t load an empty save state slot</string>
