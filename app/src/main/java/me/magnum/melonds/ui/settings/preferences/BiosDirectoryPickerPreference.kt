@@ -32,8 +32,10 @@ class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : S
     }
 
     private var consoleType: ConsoleType? = null
-    private var imageViewStatus: ImageView? = null
     private var biosDirectoryValidator: BiosDirectoryValidator? = null
+    private var currentValidationResult: ConfigurationDirResult? = null
+
+    private var imageViewStatus: ImageView? = null
 
     override fun onDirectoryPicked(uri: Uri?) {
         super.onDirectoryPicked(uri)
@@ -41,7 +43,7 @@ class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : S
         if (uri == null)
             return
 
-        updateStatusIndicator(uri)
+        validateDirectory(uri)
     }
 
     override fun onDependencyChanged(dependency: Preference?, disableDependent: Boolean) {
@@ -53,7 +55,7 @@ class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : S
         biosDirectoryValidator = validator
     }
 
-    private fun updateStatusIndicator(uri: Uri?) {
+    private fun validateDirectory(uri: Uri?) {
         if (!isEnabled) {
             imageViewStatus?.isGone = true
             return
@@ -61,26 +63,8 @@ class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : S
 
         imageViewStatus?.isGone = false
 
-        biosDirectoryValidator?.getBiosDirectoryValidationResult(consoleType!!, uri)?.let { dirResult ->
-            when (dirResult.status) {
-                ConfigurationDirResult.Status.VALID -> {
-                    (imageViewStatus!!.parent as View).visibility = View.GONE
-                }
-                ConfigurationDirResult.Status.INVALID -> {
-                    (imageViewStatus!!.parent as View).visibility = View.VISIBLE
-                    imageViewStatus!!.setImageResource(R.drawable.ic_status_warn)
-                    ImageViewCompat.setImageTintList(imageViewStatus!!, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusWarn)))
-                }
-                ConfigurationDirResult.Status.UNSET ->{
-                    (imageViewStatus!!.parent as View).visibility = View.VISIBLE
-                    imageViewStatus!!.setImageResource(R.drawable.ic_status_error)
-                    ImageViewCompat.setImageTintList(imageViewStatus!!, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusError)))
-                }
-            }
-            imageViewStatus!!.setOnClickListener {
-                FileStatusPopup(context, dirResult.fileResults).showAt(imageViewStatus!!)
-            }
-        }
+        currentValidationResult = biosDirectoryValidator?.getBiosDirectoryValidationResult(consoleType!!, uri)
+        updateStatusView()
     }
 
     override fun initAttributes(attrs: AttributeSet?) {
@@ -93,11 +77,47 @@ class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : S
         attrArray.recycle()
     }
 
-    override fun onBindViewHolder(holder: PreferenceViewHolder?) {
+    override fun onAttached() {
+        super.onAttached()
+        // Perform initial validation
+        validateDirectory(getPersistedStringSet(emptySet()).firstOrNull()?.toUri())
+    }
+
+    override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
-        if (holder != null) {
-            imageViewStatus = holder.findViewById(R.id.imageViewStatus) as ImageView
-            updateStatusIndicator(getPersistedStringSet(emptySet()).firstOrNull()?.toUri())
+
+        imageViewStatus = holder.findViewById(R.id.imageViewStatus) as ImageView
+        updateStatusView()
+    }
+
+    private fun updateStatusView() {
+        val statusView = imageViewStatus ?: return
+
+        statusView.isGone = !isEnabled
+
+        if (!isEnabled) {
+            return
+        }
+
+        currentValidationResult?.let { dirResult ->
+            when (dirResult.status) {
+                ConfigurationDirResult.Status.VALID -> {
+                    (statusView.parent as View).visibility = View.GONE
+                }
+                ConfigurationDirResult.Status.INVALID -> {
+                    (statusView.parent as View).visibility = View.VISIBLE
+                    statusView.setImageResource(R.drawable.ic_status_warn)
+                    ImageViewCompat.setImageTintList(statusView, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusWarn)))
+                }
+                ConfigurationDirResult.Status.UNSET -> {
+                    (statusView.parent as View).visibility = View.VISIBLE
+                    statusView.setImageResource(R.drawable.ic_status_error)
+                    ImageViewCompat.setImageTintList(statusView, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.statusError)))
+                }
+            }
+            statusView.setOnClickListener {
+                FileStatusPopup(context, dirResult.fileResults).showAt(statusView)
+            }
         }
     }
 }
