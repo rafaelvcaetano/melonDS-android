@@ -65,6 +65,12 @@ object MelonModule {
 
     @Provides
     @Singleton
+    fun provideSaveStatesRepository(settingsRepository: SettingsRepository, uriHandler: UriHandler): SaveStatesRepository {
+        return FileSystemSaveStatesRepository(settingsRepository, uriHandler)
+    }
+
+    @Provides
+    @Singleton
     fun provideConfigurationDirectoryVerifier(@ApplicationContext context: Context, settingsRepository: SettingsRepository): ConfigurationDirectoryVerifier {
         return FileSystemConfigurationDirectoryVerifier(context, settingsRepository)
     }

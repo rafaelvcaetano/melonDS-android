@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui.emulator
+package me.magnum.melonds.ui.emulator.rom
 
 import android.database.DataSetObserver
 import android.view.LayoutInflater

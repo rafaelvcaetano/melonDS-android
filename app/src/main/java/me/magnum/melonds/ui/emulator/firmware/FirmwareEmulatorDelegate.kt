@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui.emulator
+package me.magnum.melonds.ui.emulator.firmware
 
 import android.os.Bundle
 import io.reactivex.Completable
@@ -7,6 +7,8 @@ import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.EmulatorConfiguration
+import me.magnum.melonds.ui.emulator.EmulatorActivity
+import me.magnum.melonds.ui.emulator.EmulatorDelegate
 
 class FirmwareEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activity) {
     private enum class FirmwarePauseMenuOptions(override val textResource: Int) : EmulatorActivity.PauseMenuOption {

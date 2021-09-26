@@ -17,7 +17,6 @@ import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
-import me.magnum.melonds.ui.emulator.exceptions.SaveSlotLoadException
 import me.magnum.melonds.ui.emulator.exceptions.SramLoadException
 import java.util.*
 import javax.inject.Inject
@@ -30,6 +29,7 @@ class EmulatorViewModel @Inject constructor(
         private val romFileProcessorFactory: RomFileProcessorFactory,
         private val layoutsRepository: LayoutsRepository,
         private val backgroundsRepository: BackgroundRepository,
+        private val saveStatesRepository: SaveStatesRepository,
         private val uriHandler: UriHandler,
         private val schedulers: Schedulers
 ) : ViewModel() {
@@ -178,56 +178,15 @@ class EmulatorViewModel @Inject constructor(
     }
 
     fun getRomSaveStateSlots(rom: Rom): List<SaveStateSlot> {
-        val saveStateDirectoryUri = settingsRepository.getSaveStateDirectory(rom) ?: return emptyList()
-        val saveStateDirectoryDocument = uriHandler.getUriTreeDocument(saveStateDirectoryUri) ?: return emptyList()
-        val romDocument = uriHandler.getUriDocument(rom.uri)!!
-        val romFileName = romDocument.name?.substringBeforeLast('.') ?: return emptyList()
-
-        val saveStateSlots = Array(8) {
-            SaveStateSlot(it + 1, false, null)
-        }
-        val fileNameRegex = "${Regex.escape(romFileName)}\\.ml[1-8]".toRegex()
-        saveStateDirectoryDocument.listFiles().forEach {
-            val fileName = it.name
-            if (fileName?.matches(fileNameRegex) == true) {
-                val slot = fileName.last().minus('0')
-                saveStateSlots[slot - 1] = SaveStateSlot(slot, true, Date(it.lastModified()))
-            }
-        }
-
-        return saveStateSlots.toList()
+        return saveStatesRepository.getRomSaveStates(rom)
     }
 
-    fun getRomSaveStateSlotUri(rom: Rom, slot: Int): Uri {
-        val saveStateDirectoryUri = settingsRepository.getSaveStateDirectory(rom) ?: throw SaveSlotLoadException("Could not determine save slot parent directory")
-        val saveStateDirectoryDocument = uriHandler.getUriTreeDocument(saveStateDirectoryUri) ?: throw SaveSlotLoadException("Could not create parent directory document")
-
-        val romDocument = uriHandler.getUriDocument(rom.uri) ?: throw SaveSlotLoadException("Could not create ROM document")
-        val romFileName = romDocument.name?.substringBeforeLast('.') ?: throw SaveSlotLoadException("Could not determine ROM file name")
-        val saveStateName = "$romFileName.ml$slot"
-        val saveStateFile = saveStateDirectoryDocument.findFile(saveStateName)
-
-        return if (saveStateFile != null) {
-            saveStateFile.uri
-        } else {
-            saveStateDirectoryDocument.createFile("*/*", saveStateName)?.uri ?: throw SaveSlotLoadException("Could not create save state file")
-        }
+    fun getRomSaveStateSlotUri(rom: Rom, saveState: SaveStateSlot): Uri {
+        return saveStatesRepository.getRomSaveStateUri(rom, saveState)
     }
 
-    fun deleteRomSaveStateSlot(rom: Rom, slot: SaveStateSlot) {
-        if (!slot.exists) {
-            return
-        }
-
-        val saveStateDirectoryUri = settingsRepository.getSaveStateDirectory(rom) ?: throw SaveSlotLoadException("Could not determine save slot parent directory")
-        val saveStateDirectoryDocument = uriHandler.getUriTreeDocument(saveStateDirectoryUri) ?: throw SaveSlotLoadException("Could not create parent directory document")
-
-        val romDocument = uriHandler.getUriDocument(rom.uri) ?: throw SaveSlotLoadException("Could not create ROM document")
-        val romFileName = romDocument.name?.substringBeforeLast('.') ?: throw SaveSlotLoadException("Could not determine ROM file name")
-        val saveStateName = "$romFileName.ml${slot.slot}"
-        val saveStateFile = saveStateDirectoryDocument.findFile(saveStateName)
-
-        saveStateFile?.delete()
+    fun deleteRomSaveStateSlot(rom: Rom, saveState: SaveStateSlot) {
+        saveStatesRepository.deleteRomSaveState(rom, saveState)
     }
 
     fun getRomAtPath(path: String): Maybe<Rom> {

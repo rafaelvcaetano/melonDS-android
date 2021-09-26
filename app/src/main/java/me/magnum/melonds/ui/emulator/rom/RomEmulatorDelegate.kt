@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui.emulator
+package me.magnum.melonds.ui.emulator.rom
 
 import android.net.Uri
 import android.os.Bundle
@@ -16,6 +16,8 @@ import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.parcelables.RomParcelable
+import me.magnum.melonds.ui.emulator.EmulatorActivity
+import me.magnum.melonds.ui.emulator.EmulatorDelegate
 import java.text.SimpleDateFormat
 
 class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activity) {
@@ -131,7 +133,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
         when (option) {
             RomPauseMenuOptions.SETTINGS -> activity.openSettings()
             RomPauseMenuOptions.SAVE_STATE -> pickSaveStateSlot {
-                val saveStateUri = activity.viewModel.getRomSaveStateSlotUri(loadedRom, it.slot)
+                val saveStateUri = activity.viewModel.getRomSaveStateSlotUri(loadedRom, it)
                 if (!MelonEmulator.saveState(saveStateUri))
                     Toast.makeText(activity, activity.getString(R.string.failed_save_state), Toast.LENGTH_SHORT).show()
 
@@ -141,7 +143,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
                 if (!it.exists) {
                     Toast.makeText(activity, activity.getString(R.string.cant_load_empty_slot), Toast.LENGTH_SHORT).show()
                 } else {
-                    val saveStateUri = activity.viewModel.getRomSaveStateSlotUri(loadedRom, it.slot)
+                    val saveStateUri = activity.viewModel.getRomSaveStateSlotUri(loadedRom, it)
                     if (!MelonEmulator.loadState(saveStateUri))
                         Toast.makeText(activity, activity.getString(R.string.failed_load_state), Toast.LENGTH_SHORT).show()
                 }
