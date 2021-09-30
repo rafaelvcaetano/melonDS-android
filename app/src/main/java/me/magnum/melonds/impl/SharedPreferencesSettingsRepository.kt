@@ -96,6 +96,7 @@ class SharedPreferencesSettingsRepository(
             isJitEnabled(),
             consoleType,
             isSoundEnabled(),
+            getVolume(),
             getAudioLatency(),
             getMicSource(),
             getFirmwareConfiguration(),
@@ -222,6 +223,10 @@ class SharedPreferencesSettingsRepository(
 
     override fun isSoundEnabled(): Boolean {
         return preferences.getBoolean("sound_enabled", true)
+    }
+
+    private fun getVolume(): Int {
+        return preferences.getInt("volume", 256).coerceIn(0, 256)
     }
 
     override fun getAudioLatency(): AudioLatency {

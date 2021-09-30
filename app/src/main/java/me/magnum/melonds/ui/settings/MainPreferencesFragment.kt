@@ -62,6 +62,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
         val touchVibratePreference = findPreference<SwitchPreference>("input_touch_haptic_feedback_enabled")!!
         val vibrationStrengthPreference = findPreference<SeekBarPreference>("input_touch_haptic_feedback_strength")!!
         val importCheatsPreference = findPreference<Preference>("cheats_import")!!
+        val volumePreference = findPreference<SeekBarPreference>("volume")!!
         micSourcePreference = findPreference("mic_source")!!
         val keyMappingPreference = findPreference<Preference>("input_key_mapping")!!
         val layoutsPreference = findPreference<Preference>("input_layouts")!!
@@ -72,6 +73,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
 
         sustainedPerformancePreference.isVisible = requireContext().isSustainedPerformanceModeAvailable()
         updateMaxCacheSizePreferenceSummary(cacheSizePreference, cacheSizePreference.value)
+        updateVolumePreferenceSummary(volumePreference, volumePreference.value)
 
         if (Build.SUPPORTED_64_BIT_ABIS.isEmpty()) {
             jitPreference.isEnabled = false
@@ -92,6 +94,10 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
             if (!viewModel.clearRomCache()) {
                 Toast.makeText(requireContext(), R.string.error_clear_rom_cache, Toast.LENGTH_LONG).show()
             }
+            true
+        }
+        volumePreference.setOnPreferenceChangeListener { _, newValue ->
+            updateVolumePreferenceSummary(volumePreference, newValue as Int)
             true
         }
         micSourcePreference.setOnPreferenceChangeListener { _, newValue ->
@@ -153,6 +159,11 @@ class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
             is SizeUnit.MB -> cacheSize.toMB() to "MB"
             is SizeUnit.GB -> cacheSize.toGB() to "GB"
         }
+    }
+
+    private fun updateVolumePreferenceSummary(volumePreference: SeekBarPreference, volume: Int) {
+        val volumePercentage = (volume / 256f * 100f).toInt()
+        volumePreference.summary = getString(R.string.volume_percentage, volumePercentage)
     }
 
     private fun requestMicrophonePermission(overrideRationaleRequest: Boolean) {

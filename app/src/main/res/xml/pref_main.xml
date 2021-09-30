@@ -127,9 +127,19 @@
             android:title="@string/enable_sound"
             android:defaultValue="true" />
 
+        <SeekBarPreference
+            android:key="volume"
+            android:title="@string/volume"
+            android:dependency="sound_enabled"
+            app:updatesContinuously="true"
+            android:defaultValue="256"
+            app:min="0"
+            android:max="256" />
+
         <ListPreference
             android:key="audio_latency"
             android:title="@string/audio_latency"
+            android:dependency="sound_enabled"
             android:summary="%s"
             android:entries="@array/audio_latency_options"
             android:entryValues="@array/audio_latency_values"

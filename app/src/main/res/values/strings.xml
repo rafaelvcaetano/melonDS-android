@@ -118,6 +118,8 @@
     <string name="filter">Filter</string>
     <string name="category_audio">Audio</string>
     <string name="enable_sound">Enable sound</string>
+    <string name="volume">Volume</string>
+    <string name="volume_percentage">%1$d%%</string>
     <string name="audio_latency">Audio latency</string>
     <string name="microphone_source">Microphone source</string>
     <string name="controller_layout">Controller layout</string>
