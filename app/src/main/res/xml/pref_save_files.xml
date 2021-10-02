@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreference
+            android:key="use_rom_dir"
+            android:title="@string/save_next_rom"
+            app:iconSpaceReserved="false"
+            android:defaultValue="true"
+            android:disableDependentsState="true" />
+
+    <me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
+            android:key="sram_dir"
+            android:title="@string/save_file_directory"
+            android:dependency="use_rom_dir"
+            app:iconSpaceReserved="false"
+            app:type="directory"
+            app:permissions="read_write"
+            app:persistPermissions="true" />
+
+    <ListPreference
+            android:key="save_state_location"
+            android:title="@string/save_state_location"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/save_state_locations"
+            android:entryValues="@array/save_state_location_values"
+            android:defaultValue="save_dir" />
+</PreferenceScreen>

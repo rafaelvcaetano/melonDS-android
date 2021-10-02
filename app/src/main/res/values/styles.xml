@@ -6,6 +6,7 @@
         <item name="android:navigationBarColor">?android:attr/colorBackground</item>
         <item name="android:windowLightNavigationBar">@bool/lightNavigationBar</item>
         <item name="actionOverflowMenuStyle">@style/Menu.OverflowUnder</item>
+        <item name="preferenceTheme">@style/Preference</item>
     </style>
 
     <style name="SplashTheme" parent="AppTheme">
@@ -37,6 +38,10 @@
         <item name="android:textColorPrimary">@android:color/white</item>
         <item name="android:textColorSecondary">@android:color/white</item>
         <item name="actionMenuTextColor">@android:color/white</item>
+    </style>
+
+    <style name="Preference" parent="@style/PreferenceThemeOverlay">
+        <item name="android:tint">@color/buttonContrasted</item>
     </style>
 
     <style name="Toolbar.Transparent" parent="Widget.AppCompat.Light.ActionBar">

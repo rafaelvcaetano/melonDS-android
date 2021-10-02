@@ -1,237 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    <Preference
+            android:title="@string/category_general"
+            android:summary="@string/category_general_summary"
+            app:icon="@drawable/ic_settings"
+            android:fragment="me.magnum.melonds.ui.settings.fragments.GeneralPreferencesFragment" />
 
-    <PreferenceCategory
-        android:title="@string/category_general">
+    <Preference
+            android:title="@string/category_roms"
+            android:summary="@string/category_roms_summary"
+            app:icon="@drawable/ic_folder"
+            android:fragment="me.magnum.melonds.ui.settings.fragments.RomsPreferencesFragment" />
 
-        <ListPreference
-                android:key="theme"
-                android:title="@string/theme"
-                android:summary="%s"
-                android:entries="@array/theme_options"
-                android:entryValues="@array/theme_values"
-                android:defaultValue="light" />
+    <Preference
+            android:title="@string/category_save_files"
+            android:summary="@string/category_save_files_summary"
+            app:icon="@drawable/ic_file"
+            android:fragment="me.magnum.melonds.ui.settings.fragments.SaveFilesPreferencesFragment" />
 
-        <ListPreference
-            android:key="fast_forward_speed_multiplier"
-            android:title="@string/fast_forward_max_speed"
-            android:summary="%s"
-            android:entries="@array/fast_forward_speed_multiplier_options"
-            android:entryValues="@array/fast_forward_speed_multiplier_values"
-            android:defaultValue="-1" />
+    <Preference
+            android:title="@string/category_system"
+            android:summary="@string/category_system_summary"
+            app:icon="@drawable/ic_firmware"
+            android:fragment="me.magnum.melonds.ui.settings.fragments.SystemPreferencesFragment" />
 
-        <SwitchPreference
-            android:key="enable_sustained_performance"
-            android:title="@string/sustained_performance_mode"
-            android:summary="@string/sustained_performance_mode_summary"
-            android:defaultValue="true" />
-    </PreferenceCategory>
+    <Preference
+            android:title="@string/category_video"
+            android:summary="@string/category_video_summary"
+            app:icon="@drawable/ic_video"
+            android:fragment="me.magnum.melonds.ui.settings.fragments.VideoPreferencesFragment" />
 
-    <PreferenceCategory
-        android:title="@string/category_roms">
+    <Preference
+            android:title="@string/category_audio"
+            android:summary="@string/category_audio_summary"
+            app:icon="@drawable/ic_audio"
+            android:fragment="me.magnum.melonds.ui.settings.fragments.AudioPreferencesFragment" />
 
-        <me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
-                android:key="rom_search_dirs"
-                android:title="@string/rom_search_directories"
-                app:selection="multi"
-                app:type="directory"
-                app:permissions="read_write"
-                app:persistPermissions="true" />
+    <Preference
+            android:title="@string/input"
+            android:summary="@string/input_summary"
+            app:icon="@drawable/ic_input"
+            android:fragment="me.magnum.melonds.ui.settings.fragments.InputPreferencesFragment" />
 
-        <ListPreference
-            android:key="rom_icon_filtering"
-            android:title="@string/rom_icon_filtering"
-            android:summary="%s"
-            android:entries="@array/rom_icon_filtering_options"
-            android:entryValues="@array/rom_icon_filtering_values"
-            android:defaultValue="linear" />
-
-        <!-- 7 steps of cache size. Real cache size is equal to 128MB * (2 ^ rom_cache_max_size) -->
-        <SeekBarPreference
-            android:key="rom_cache_max_size"
-            android:title="@string/max_rom_cache_size"
-            app:updatesContinuously="true"
-            android:defaultValue="3"
-            app:min="0"
-            android:max="6" />
-
-        <Preference
-            android:key="rom_cache_clear"
-            android:title="@string/clear_extracted_rom_cache"
-            android:summary="@string/cache_size_calculating" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:title="@string/category_system">
-
-        <Preference
-            android:key="internal_firmware_settings"
-            android:title="@string/internal_firmware_settings"
-            android:summary="@string/internal_firmware_settings_summary"
-            android:fragment="me.magnum.melonds.ui.settings.FirmwarePreferencesFragment" />
-
-        <com.smp.masterswitchpreference.MasterSwitchPreference
-            android:key="use_custom_bios"
-            android:title="@string/custom_bios_firmware"
-            android:fragment="me.magnum.melonds.ui.settings.CustomFirmwarePreferencesFragment"
-            android:defaultValue="false"
-            app:ms_switchOnText="@string/on"
-            app:ms_switchOffText="@string/off"
-            app:ms_switchThumbColor="?android:colorAccent"
-            app:ms_switchTrackColor="@color/prefSwitchRailColor"
-            app:ms_switchOnBackgroundColor="@color/prefSwitchBackground"
-            app:ms_switchOffBackgroundColor="@color/prefSwitchBackground"
-            app:ms_switchOffExplanationText="@string/custom_bios_firmware_description"
-            app:ms_includedPrefScreen="xml/pref_custom_firmware" />
-
-        <SwitchPreference
-            android:key="enable_jit"
-            android:title="@string/enable_jit"
-            android:summary="@string/enable_jit_summary"
-            android:defaultValue="true" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:title="@string/category_video">
-
-        <ListPreference
-            android:key="video_filtering"
-            android:title="@string/filter"
-            android:summary="%s"
-            android:entries="@array/video_filtering_options"
-            android:entryValues="@array/video_filtering_values"
-            android:defaultValue="linear"/>
-
-        <SwitchPreference
-            android:key="enable_threaded_rendering"
-            android:title="@string/threaded_rendering"
-            android:summary="@string/threaded_rendering_summary"
-            android:defaultValue="true" />
-
-        <ListPreference
-            android:key="fps_counter_position"
-            android:title="@string/fps_counter_position"
-            android:summary="%s"
-            android:entries="@array/fps_counter_position_options"
-            android:entryValues="@array/fps_counter_position_values"
-            android:defaultValue="hidden" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:title="@string/category_audio">
-
-        <SwitchPreference
-            android:key="sound_enabled"
-            android:title="@string/enable_sound"
-            android:defaultValue="true" />
-
-        <SeekBarPreference
-            android:key="volume"
-            android:title="@string/volume"
-            android:dependency="sound_enabled"
-            app:updatesContinuously="true"
-            android:defaultValue="256"
-            app:min="0"
-            android:max="256" />
-
-        <ListPreference
-            android:key="audio_latency"
-            android:title="@string/audio_latency"
-            android:dependency="sound_enabled"
-            android:summary="%s"
-            android:entries="@array/audio_latency_options"
-            android:entryValues="@array/audio_latency_values"
-            android:defaultValue="medium" />
-
-        <ListPreference
-            android:key="mic_source"
-            android:title="@string/microphone_source"
-            android:summary="%s"
-            android:entries="@array/mic_source_options"
-            android:entryValues="@array/mic_source_values"
-            android:defaultValue="blow" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:title="@string/category_save_files">
-
-        <SwitchPreference
-            android:key="use_rom_dir"
-            android:title="@string/save_next_rom"
-            android:defaultValue="true"
-            android:disableDependentsState="true" />
-
-        <me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
-            android:key="sram_dir"
-            android:title="@string/save_file_directory"
-            android:dependency="use_rom_dir"
-            app:type="directory"
-            app:permissions="read_write"
-            app:persistPermissions="true" />
-
-        <ListPreference
-            android:key="save_state_location"
-            android:title="@string/save_state_location"
-            android:summary="%s"
-            android:entries="@array/save_state_locations"
-            android:entryValues="@array/save_state_location_values"
-            android:defaultValue="save_dir" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:title="@string/input">
-
-        <Preference
-            android:key="input_key_mapping"
-            android:title="@string/key_mapping" />
-
-        <Preference
-            android:key="input_layouts"
-            android:title="@string/layouts" />
-
-        <SwitchPreference
-            android:key="input_show_soft"
-            android:title="@string/show_soft_input"
-            android:defaultValue="true" />
-
-        <SwitchPreference
-            android:key="input_touch_haptic_feedback_enabled"
-            android:title="@string/vibrate_on_touch"
-            android:dependency="input_show_soft"
-            android:defaultValue="true" />
-
-        <!-- Vibration strength can go to 255 but the finer controls are in the lower values. As such, the max value is
-             set to 100 -->
-        <SeekBarPreference
-            android:key="input_touch_haptic_feedback_strength"
-            android:title="@string/vibration_strength"
-            android:dependency="input_touch_haptic_feedback_enabled"
-            app:updatesContinuously="true"
-            android:defaultValue="30"
-            app:min="1"
-            android:max="100" />
-
-        <SeekBarPreference
-            android:key="input_opacity"
-            android:title="@string/soft_input_opacity"
-            android:dependency="input_show_soft"
-            android:defaultValue="50"
-            android:max="100" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:title="@string/cheats">
-
-        <SwitchPreference
-            android:key="cheats_enabled"
-            android:title="@string/enable_cheats"
-            android:defaultValue="false" />
-
-        <Preference
-            android:key="cheats_import"
-            android:title="@string/import_cheats"
-            android:summary="@string/import_cheats_summary" />
-    </PreferenceCategory>
+    <Preference
+            android:title="@string/cheats"
+            android:summary="@string/cheats_summary"
+            app:icon="@drawable/ic_cheat"
+            android:fragment="me.magnum.melonds.ui.settings.fragments.CheatsPreferencesFragment" />
 </PreferenceScreen>

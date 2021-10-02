@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ListPreference
+            android:key="video_filtering"
+            android:title="@string/filter"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/video_filtering_options"
+            android:entryValues="@array/video_filtering_values"
+            android:defaultValue="linear"/>
+
+    <SwitchPreference
+            android:key="enable_threaded_rendering"
+            android:title="@string/threaded_rendering"
+            android:summary="@string/threaded_rendering_summary"
+            app:iconSpaceReserved="false"
+            android:defaultValue="true" />
+
+    <ListPreference
+            android:key="fps_counter_position"
+            android:title="@string/fps_counter_position"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/fps_counter_position_options"
+            android:entryValues="@array/fps_counter_position_values"
+            android:defaultValue="hidden" />
+</PreferenceScreen>

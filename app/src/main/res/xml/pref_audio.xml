@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreference
+            android:key="sound_enabled"
+            android:title="@string/enable_sound"
+            app:iconSpaceReserved="false"
+            android:defaultValue="true" />
+
+    <SeekBarPreference
+            android:key="volume"
+            android:title="@string/volume"
+            android:dependency="sound_enabled"
+            app:iconSpaceReserved="false"
+            app:updatesContinuously="true"
+            android:defaultValue="256"
+            app:min="0"
+            android:max="256" />
+
+    <ListPreference
+            android:key="audio_latency"
+            android:title="@string/audio_latency"
+            android:dependency="sound_enabled"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/audio_latency_options"
+            android:entryValues="@array/audio_latency_values"
+            android:defaultValue="medium" />
+
+    <ListPreference
+            android:key="mic_source"
+            android:title="@string/microphone_source"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/mic_source_options"
+            android:entryValues="@array/mic_source_values"
+            android:defaultValue="blow" />
+</PreferenceScreen>

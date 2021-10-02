@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ListPreference
+            android:key="theme"
+            android:title="@string/theme"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/theme_options"
+            android:entryValues="@array/theme_values"
+            android:defaultValue="light" />
+
+    <ListPreference
+            android:key="fast_forward_speed_multiplier"
+            android:title="@string/fast_forward_max_speed"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/fast_forward_speed_multiplier_options"
+            android:entryValues="@array/fast_forward_speed_multiplier_values"
+            android:defaultValue="-1" />
+
+    <SwitchPreference
+            android:key="enable_sustained_performance"
+            android:title="@string/sustained_performance_mode"
+            android:summary="@string/sustained_performance_mode_summary"
+            app:iconSpaceReserved="false"
+            android:defaultValue="true" />
+</PreferenceScreen>

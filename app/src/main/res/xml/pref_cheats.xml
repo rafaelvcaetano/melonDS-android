@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreference
+            android:key="cheats_enabled"
+            android:title="@string/enable_cheats"
+            app:iconSpaceReserved="false"
+            android:defaultValue="false" />
+
+    <Preference
+            android:key="cheats_import"
+            android:title="@string/import_cheats"
+            android:summary="@string/import_cheats_summary"
+            app:iconSpaceReserved="false" />
+</PreferenceScreen>

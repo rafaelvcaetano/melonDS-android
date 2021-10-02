@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <Preference
+            android:key="input_key_mapping"
+            android:title="@string/key_mapping"
+            android:summary="@string/key_mapping_summary"
+            app:iconSpaceReserved="false" />
+
+    <Preference
+            android:key="input_layouts"
+            android:title="@string/layouts"
+            android:summary="@string/layouts_summary"
+            app:iconSpaceReserved="false" />
+
+    <SwitchPreference
+            android:key="input_show_soft"
+            android:title="@string/show_soft_input"
+            app:iconSpaceReserved="false"
+            android:defaultValue="true" />
+
+    <SwitchPreference
+            android:key="input_touch_haptic_feedback_enabled"
+            android:title="@string/vibrate_on_touch"
+            android:dependency="input_show_soft"
+            app:iconSpaceReserved="false"
+            android:defaultValue="true" />
+
+    <!-- Vibration strength can go to 255 but the finer controls are in the lower values. As such, the max value is
+         set to 100 -->
+    <SeekBarPreference
+            android:key="input_touch_haptic_feedback_strength"
+            android:title="@string/vibration_strength"
+            android:dependency="input_touch_haptic_feedback_enabled"
+            app:iconSpaceReserved="false"
+            app:updatesContinuously="true"
+            android:defaultValue="30"
+            app:min="1"
+            android:max="100" />
+
+    <SeekBarPreference
+            android:key="input_opacity"
+            android:title="@string/soft_input_opacity"
+            android:dependency="input_show_soft"
+            app:iconSpaceReserved="false"
+            android:defaultValue="50"
+            android:max="100" />
+</PreferenceScreen>

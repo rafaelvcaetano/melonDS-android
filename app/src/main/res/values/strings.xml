@@ -83,8 +83,11 @@
     <string name="empty_slot">&lt;Empty&gt;</string>
     <string name="title_activity_settings">Settings</string>
     <string name="category_general">General</string>
+    <string name="category_general_summary">Theme, generic settings</string>
     <string name="category_roms">ROMs</string>
+    <string name="category_roms_summary">Search directory, icon filtering, cache settings</string>
     <string name="category_system">System</string>
+    <string name="category_system_summary">Firmware settings, custom BIOS, JIT</string>
     <string name="theme">Theme</string>
     <string name="fast_forward_max_speed">Fast-forward max speed</string>
     <string name="sustained_performance_mode">Sustained performance mode</string>
@@ -94,7 +97,7 @@
     <string name="clear_extracted_rom_cache">Clear extracted ROM cache</string>
     <string name="cache_size">Cache size: %s</string>
     <string name="cache_size_calculating">Cache size: calculating…</string>
-    <string name="rom_search_directories">Search directories</string>
+    <string name="rom_search_directory">Search directory</string>
     <string name="console_type">Default system</string>
     <string name="internal_firmware_settings">Internal firmware settings</string>
     <string name="internal_firmware_settings_summary">Adjust the settings of the internal firmware.</string>
@@ -115,8 +118,10 @@
     <string name="fps_counter_position">FPS counter position</string>
     <string name="threaded_rendering_summary">Improves performance on 3D games when enabled but may cause graphical glitches.</string>
     <string name="category_video">Video</string>
+    <string name="category_video_summary">Filter, threaded rendering, FPS counter</string>
     <string name="filter">Filter</string>
     <string name="category_audio">Audio</string>
+    <string name="category_audio_summary">Volume, latency, microphone source</string>
     <string name="enable_sound">Enable sound</string>
     <string name="volume">Volume</string>
     <string name="volume_percentage">%1$d%%</string>
@@ -124,16 +129,20 @@
     <string name="microphone_source">Microphone source</string>
     <string name="controller_layout">Controller layout</string>
     <string name="category_save_files">Save Files</string>
+    <string name="category_save_files_summary">Save file &amp; save state locations</string>
     <string name="save_next_rom">Save next to ROM file</string>
     <string name="save_file_directory">Save file directory</string>
     <string name="save_state_location">Save state location</string>
     <string name="input">Input</string>
+    <string name="input_summary">Key mapping, layouts, haptic feedback</string>
     <string name="key_mapping">Key mapping</string>
+    <string name="key_mapping_summary">Assign keys to controller inputs</string>
     <string name="show_soft_input">Show soft input</string>
     <string name="vibrate_on_touch">Vibrate on touch</string>
     <string name="vibration_strength">Vibration strength</string>
     <string name="soft_input_opacity">Soft input opacity</string>
     <string name="cheats">Cheats</string>
+    <string name="cheats_summary">Enable &amp; import cheat codes</string>
     <string name="enable_cheats">Enable cheats</string>
     <string name="cheats_database">Cheats database (XML format)</string>
     <string name="import_cheats">Import cheats</string>
@@ -193,6 +202,7 @@
     <string name="input_swap_screens">Swap Screens</string>
 
     <string name="layouts">Layouts</string>
+    <string name="layouts_summary">Manage custom layout configurations</string>
     <string name="action_layouts_new">New layout</string>
     <string name="default_layout_name">Default</string>
     <string name="use_global_layout">Use global layout</string>

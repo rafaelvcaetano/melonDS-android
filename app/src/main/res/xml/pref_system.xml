@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <Preference
+            android:key="internal_firmware_settings"
+            android:title="@string/internal_firmware_settings"
+            android:summary="@string/internal_firmware_settings_summary"
+            app:iconSpaceReserved="false"
+            android:fragment="me.magnum.melonds.ui.settings.FirmwarePreferencesFragment" />
+
+    <com.smp.masterswitchpreference.MasterSwitchPreference
+            android:key="use_custom_bios"
+            android:title="@string/custom_bios_firmware"
+            app:iconSpaceReserved="false"
+            android:fragment="me.magnum.melonds.ui.settings.CustomFirmwarePreferencesFragment"
+            android:defaultValue="false"
+            app:ms_switchOnText="@string/on"
+            app:ms_switchOffText="@string/off"
+            app:ms_switchThumbColor="?android:colorAccent"
+            app:ms_switchTrackColor="@color/prefSwitchRailColor"
+            app:ms_switchOnBackgroundColor="@color/prefSwitchBackground"
+            app:ms_switchOffBackgroundColor="@color/prefSwitchBackground"
+            app:ms_switchOffExplanationText="@string/custom_bios_firmware_description"
+            app:ms_includedPrefScreen="xml/pref_custom_firmware" />
+
+    <SwitchPreference
+            android:key="enable_jit"
+            android:title="@string/enable_jit"
+            android:summary="@string/enable_jit_summary"
+            app:iconSpaceReserved="false"
+            android:defaultValue="true" />
+</PreferenceScreen>
