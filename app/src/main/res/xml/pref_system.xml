@@ -8,13 +8,13 @@
             android:title="@string/internal_firmware_settings"
             android:summary="@string/internal_firmware_settings_summary"
             app:iconSpaceReserved="false"
-            android:fragment="me.magnum.melonds.ui.settings.FirmwarePreferencesFragment" />
+            android:fragment="me.magnum.melonds.ui.settings.fragments.FirmwarePreferencesFragment" />
 
     <com.smp.masterswitchpreference.MasterSwitchPreference
             android:key="use_custom_bios"
             android:title="@string/custom_bios_firmware"
             app:iconSpaceReserved="false"
-            android:fragment="me.magnum.melonds.ui.settings.CustomFirmwarePreferencesFragment"
+            android:fragment="me.magnum.melonds.ui.settings.fragments.CustomFirmwarePreferencesFragment"
             android:defaultValue="false"
             app:ms_switchOnText="@string/on"
             app:ms_switchOffText="@string/off"
