@@ -7,6 +7,7 @@
             android:key="console_type"
             android:title="@string/console_type"
             android:summary="%s"
+            app:iconSpaceReserved="false"
             android:entries="@array/console_type_options"
             android:entryValues="@array/console_type_values"
             android:defaultValue="ds" />
@@ -14,21 +15,25 @@
     <SwitchPreference
             android:key="show_bios"
             android:title="@string/show_boot_screen"
+            app:iconSpaceReserved="false"
             android:defaultValue="false" />
 
     <me.magnum.melonds.ui.settings.preferences.BiosDirectoryPickerPreference
             android:key="bios_dir"
             android:title="@string/bios_directory"
+            app:iconSpaceReserved="false"
             app:consoleType="ds" />
 
     <me.magnum.melonds.ui.settings.preferences.BiosDirectoryPickerPreference
             android:key="dsi_bios_dir"
             android:title="@string/dsi_bios_directory"
+            app:iconSpaceReserved="false"
             app:consoleType="dsi" />
 
     <SwitchPreference
             android:key="custom_randomize_mac_address"
             android:title="@string/randomize_mac_address"
             android:summary="@string/randomize_mac_address_summary"
+            app:iconSpaceReserved="false"
             android:defaultValue="false" />
 </PreferenceScreen>

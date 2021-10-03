@@ -4,45 +4,52 @@
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <EditTextPreference
-        android:key="firmware_settings_nickname"
-        android:title="@string/firmware_nickname"
-        android:summary="%s"
-        app:useSimpleSummaryProvider="true"
-        android:defaultValue="Player" />
+            android:key="firmware_settings_nickname"
+            android:title="@string/firmware_nickname"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true"
+            android:defaultValue="Player" />
 
     <EditTextPreference
-        android:key="firmware_settings_message"
-        android:title="@string/firmware_message"
-        android:summary="%s"
-        app:useSimpleSummaryProvider="true"
-        android:defaultValue="Hello!" />
+            android:key="firmware_settings_message"
+            android:title="@string/firmware_message"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true"
+            android:defaultValue="Hello!" />
 
     <ListPreference
-        android:key="firmware_settings_language"
-        android:title="@string/firmware_language"
-        android:summary="%s"
-        android:entries="@array/firmware_settings_language_options"
-        android:entryValues="@array/firmware_settings_language_values"
-        android:defaultValue="1" />
+            android:key="firmware_settings_language"
+            android:title="@string/firmware_language"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/firmware_settings_language_options"
+            android:entryValues="@array/firmware_settings_language_values"
+            android:defaultValue="1" />
 
     <me.magnum.melonds.ui.settings.preferences.FirmwareColourPickerPreference
-        android:key="firmware_settings_colour"
-        android:title="@string/firmware_favourite_colour" />
+            android:key="firmware_settings_colour"
+            android:title="@string/firmware_favourite_colour"
+            app:iconSpaceReserved="false" />
 
     <me.magnum.melonds.ui.settings.preferences.FirmwareBirthdayPreference
-        android:key="firmware_settings_birthday"
-        android:title="@string/firmware_birthday"
-        android:defaultValue="01/01" />
+            android:key="firmware_settings_birthday"
+            android:title="@string/firmware_birthday"
+            app:iconSpaceReserved="false"
+            android:defaultValue="01/01" />
 
     <SwitchPreference
-        android:key="internal_randomize_mac_address"
-        android:title="@string/randomize_mac_address"
-        android:summary="@string/randomize_mac_address_summary"
-        android:defaultValue="false"
-        android:disableDependentsState="true" />
+            android:key="internal_randomize_mac_address"
+            android:title="@string/randomize_mac_address"
+            android:summary="@string/randomize_mac_address_summary"
+            app:iconSpaceReserved="false"
+            android:defaultValue="false"
+            android:disableDependentsState="true" />
 
     <me.magnum.melonds.ui.settings.preferences.MacAddressPreference
-        android:key="internal_mac_address"
-        android:title="@string/mac_address"
-        android:dependency="internal_randomize_mac_address" />
+            android:key="internal_mac_address"
+            android:title="@string/mac_address"
+            android:dependency="internal_randomize_mac_address"
+            app:iconSpaceReserved="false"/>
 </PreferenceScreen>
