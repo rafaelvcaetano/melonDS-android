@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
@@ -195,7 +196,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
     private fun initializeDelegate() {
         val bootFirmwareOnly = intent.extras?.getBoolean(KEY_BOOT_FIRMWARE_ONLY) ?: false
-        delegate = if (bootFirmwareOnly) FirmwareEmulatorDelegate(this) else RomEmulatorDelegate(this)
+        delegate = if (bootFirmwareOnly) FirmwareEmulatorDelegate(this) else RomEmulatorDelegate(this, picasso)
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -464,6 +465,10 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
     fun getRendererTextureBuffer(): ByteBuffer {
         return dsRenderer.textureBuffer
+    }
+
+    fun takeScreenshot(): Bitmap {
+        return dsRenderer.takeScreenshot()
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {

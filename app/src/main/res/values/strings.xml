@@ -80,7 +80,7 @@
     <string name="save_state">Save state</string>
     <string name="load_state">Load state</string>
     <string name="save_slot">Save slot</string>
-    <string name="empty_slot">&lt;Empty&gt;</string>
+    <string name="empty_slot">%1$d. &lt;Empty&gt;</string>
     <string name="title_activity_settings">Settings</string>
     <string name="category_general">General</string>
     <string name="category_general_summary">Theme, generic settings</string>

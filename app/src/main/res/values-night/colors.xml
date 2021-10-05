@@ -10,6 +10,7 @@
     <color name="prefSwitchRailColor">#80F54336</color>
 
     <color name="buttonContrasted">#DFFF</color>
+    <color name="divider">#4A4A4A</color>
 
     <color name="splashBackground">@color/colorPrimary</color>
     <color name="splashToolbar">@color/colorPrimaryDark</color>

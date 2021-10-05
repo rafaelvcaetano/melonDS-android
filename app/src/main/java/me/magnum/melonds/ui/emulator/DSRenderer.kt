@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.emulator
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
@@ -98,6 +99,21 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
             mustLoadBackground = true
             isBackgroundPositionDirty = true
             isBackgroundLoaded = false
+        }
+    }
+
+    fun takeScreenshot(): Bitmap {
+        return Bitmap.createBitmap(SCREEN_WIDTH, SCREEN_HEIGHT, Bitmap.Config.ARGB_8888).apply {
+            // Texture buffer is in BGR format. Convert to RGB
+            for (x in 0 until SCREEN_WIDTH) {
+                for (y in 0 until SCREEN_HEIGHT) {
+                    val b = textureBuffer[(y * SCREEN_WIDTH + x) * 4 + 0].toInt() and 0xFF
+                    val g = textureBuffer[(y * SCREEN_WIDTH + x) * 4 + 1].toInt() and 0xFF
+                    val r = textureBuffer[(y * SCREEN_WIDTH + x) * 4 + 2].toInt() and 0xFF
+                    val argbPixel = 0xFF000000.toInt() or r.shl(16) or g.shl(8) or b
+                    setPixel(x, y, argbPixel)
+                }
+            }
         }
     }
 

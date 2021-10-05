@@ -11,6 +11,7 @@
     <color name="romConfigPrefSeparator">#DDD</color>
 
     <color name="buttonContrasted">#D000</color>
+    <color name="divider">#DCDCDC</color>
 
     <color name="textLayoutEditor">@android:color/black</color>
 

@@ -65,8 +65,8 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideSaveStatesRepository(settingsRepository: SettingsRepository, uriHandler: UriHandler): SaveStatesRepository {
-        return FileSystemSaveStatesRepository(settingsRepository, uriHandler)
+    fun provideSaveStatesRepository(settingsRepository: SettingsRepository, saveStateScreenshotProvider: SaveStateScreenshotProvider, uriHandler: UriHandler): SaveStatesRepository {
+        return FileSystemSaveStatesRepository(settingsRepository, saveStateScreenshotProvider, uriHandler)
     }
 
     @Provides
@@ -89,6 +89,12 @@ object MelonModule {
     @Singleton
     fun provideRomIconProvider(@ApplicationContext context: Context, romFileProcessorFactory: RomFileProcessorFactory): RomIconProvider {
         return RomIconProvider(context, romFileProcessorFactory)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSaveStateScreenshotProvider(@ApplicationContext context: Context): SaveStateScreenshotProvider {
+        return SaveStateScreenshotProvider(context)
     }
 
     @Provides

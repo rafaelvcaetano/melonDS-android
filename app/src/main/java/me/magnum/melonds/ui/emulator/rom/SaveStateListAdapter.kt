@@ -5,7 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ListAdapter
+import androidx.core.view.isGone
 import androidx.core.view.isInvisible
+import com.squareup.picasso.Callback
+import com.squareup.picasso.Picasso
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ItemSaveStateSlotBinding
 import me.magnum.melonds.domain.model.SaveStateSlot
@@ -13,7 +16,9 @@ import java.text.SimpleDateFormat
 
 class SaveStateListAdapter(
     slots: List<SaveStateSlot>,
+    private val picasso: Picasso,
     private val dateFormat: SimpleDateFormat,
+    private val timeFormat: SimpleDateFormat,
     private val onSlotSelected: (SaveStateSlot) -> Unit,
     private val onDeletedSlot: (SaveStateSlot) -> Unit,
 ) : ListAdapter {
@@ -63,12 +68,33 @@ class SaveStateListAdapter(
         }
 
         val item = items[position]
-        view.textSlot.text = parent.context.getString(R.string.save_state_slot, item.slot)
-        view.textDateTime.text = if (item.exists) {
-            dateFormat.format(item.lastUsedDate!!)
+
+        if (item.screenshot != null) {
+            view.imageScreenshot.isGone = false
+            picasso.load(item.screenshot).into(view.imageScreenshot, object : Callback {
+                override fun onSuccess() {
+                }
+
+                override fun onError(e: Exception?) {
+                    view.imageScreenshot.isGone = true
+                }
+            })
         } else {
-            parent.context.getString(R.string.empty_slot)
+            view.imageScreenshot.isGone = true
         }
+
+        if (item.exists) {
+            view.textDate.isGone = false
+            view.textTime.isGone = false
+            view.textSlot.text = parent.context.getString(R.string.save_state_slot, item.slot)
+            view.textDate.text = dateFormat.format(item.lastUsedDate!!)
+            view.textTime.text = timeFormat.format(item.lastUsedDate)
+        } else {
+            view.textDate.isGone = true
+            view.textTime.isGone = true
+            view.textSlot.text = parent.context.getString(R.string.empty_slot, item.slot)
+        }
+
         view.root.setOnClickListener {
             onSlotSelected(item)
         }
@@ -76,6 +102,7 @@ class SaveStateListAdapter(
             onDeletedSlot(item)
         }
         view.buttonDelete.isInvisible = !item.exists
+        view.divider.isGone = position == items.size - 1
 
         return view.root
     }

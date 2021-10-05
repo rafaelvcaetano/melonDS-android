@@ -1,5 +1,6 @@
 package me.magnum.melonds.impl
 
+import android.graphics.Bitmap
 import android.net.Uri
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.Rom
@@ -11,6 +12,7 @@ import java.util.*
 
 class FileSystemSaveStatesRepository(
     private val settingsRepository: SettingsRepository,
+    private val saveStateScreenshotProvider: SaveStateScreenshotProvider,
     private val uriHandler: UriHandler
 ) : SaveStatesRepository {
 
@@ -21,14 +23,16 @@ class FileSystemSaveStatesRepository(
         val romFileName = romDocument.name?.substringBeforeLast('.') ?: return emptyList()
 
         val saveStateSlots = Array(8) {
-            SaveStateSlot(it + 1, false, null)
+            SaveStateSlot(it + 1, false, null, null)
         }
         val fileNameRegex = "${Regex.escape(romFileName)}\\.ml[1-8]".toRegex()
         saveStateDirectoryDocument.listFiles().forEach {
             val fileName = it.name
             if (fileName?.matches(fileNameRegex) == true) {
-                val slot = fileName.last().minus('0')
-                saveStateSlots[slot - 1] = SaveStateSlot(slot, true, Date(it.lastModified()))
+                val slotNumber = fileName.last().digitToInt()
+                val slot = SaveStateSlot(slotNumber, true, Date(it.lastModified()), null)
+                val screenshotUri = saveStateScreenshotProvider.getRomSaveStateScreenshotUri(rom, slot)
+                saveStateSlots[slotNumber - 1] = slot.copy(screenshot = screenshotUri)
             }
         }
 
@@ -53,6 +57,10 @@ class FileSystemSaveStatesRepository(
         return uri
     }
 
+    override fun setRomSaveStateScreenshot(rom: Rom, saveState: SaveStateSlot, screenshot: Bitmap) {
+        saveStateScreenshotProvider.saveRomSaveStateScreenshot(rom, saveState, screenshot)
+    }
+
     override fun deleteRomSaveState(rom: Rom, saveState: SaveStateSlot) {
         if (!saveState.exists) {
             return
@@ -67,5 +75,6 @@ class FileSystemSaveStatesRepository(
         val saveStateFile = saveStateDirectoryDocument.findFile(saveStateName)
 
         saveStateFile?.delete()
+        saveStateScreenshotProvider.deleteRomSaveStateScreenshot(rom, saveState)
     }
 }

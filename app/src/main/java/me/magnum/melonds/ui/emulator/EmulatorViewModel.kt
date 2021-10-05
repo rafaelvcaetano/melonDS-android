@@ -1,5 +1,6 @@
 package me.magnum.melonds.ui.emulator
 
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -183,6 +184,10 @@ class EmulatorViewModel @Inject constructor(
 
     fun getRomSaveStateSlotUri(rom: Rom, saveState: SaveStateSlot): Uri {
         return saveStatesRepository.getRomSaveStateUri(rom, saveState)
+    }
+
+    fun setRomSaveStateSlotScreenshot(rom: Rom, saveState: SaveStateSlot, screenshot: Bitmap) {
+        saveStatesRepository.setRomSaveStateScreenshot(rom, saveState, screenshot)
     }
 
     fun deleteRomSaveStateSlot(rom: Rom, saveState: SaveStateSlot) {

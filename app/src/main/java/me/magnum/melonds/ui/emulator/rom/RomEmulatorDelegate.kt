@@ -7,6 +7,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.net.toUri
 import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.Observer
+import com.squareup.picasso.Picasso
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
@@ -20,7 +21,8 @@ import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.ui.emulator.EmulatorDelegate
 import java.text.SimpleDateFormat
 
-class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activity) {
+class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picasso) : EmulatorDelegate(activity) {
+
     private enum class RomPauseMenuOptions(override val textResource: Int) : EmulatorActivity.PauseMenuOption {
         SETTINGS(R.string.settings),
         SAVE_STATE(R.string.save_state),
@@ -134,8 +136,12 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
             RomPauseMenuOptions.SETTINGS -> activity.openSettings()
             RomPauseMenuOptions.SAVE_STATE -> pickSaveStateSlot {
                 val saveStateUri = activity.viewModel.getRomSaveStateSlotUri(loadedRom, it)
-                if (!MelonEmulator.saveState(saveStateUri))
+                if (MelonEmulator.saveState(saveStateUri)) {
+                    val screenshot = activity.takeScreenshot()
+                    activity.viewModel.setRomSaveStateSlotScreenshot(loadedRom, it, screenshot)
+                } else {
                     Toast.makeText(activity, activity.getString(R.string.failed_save_state), Toast.LENGTH_SHORT).show()
+                }
 
                 activity.resumeEmulation()
             }
@@ -192,12 +198,13 @@ class RomEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activit
     }
 
     private fun pickSaveStateSlot(onSlotPicked: (SaveStateSlot) -> Unit) {
-        val dateFormatter = SimpleDateFormat("EEE, dd MMM yyyy kk:mm:ss", ConfigurationCompat.getLocales(activity.resources.configuration)[0])
+        val dateFormatter = SimpleDateFormat("EEE, dd MMM yyyy", ConfigurationCompat.getLocales(activity.resources.configuration)[0])
+        val timeFormatter = SimpleDateFormat("kk:mm:ss", ConfigurationCompat.getLocales(activity.resources.configuration)[0])
         val slots = activity.viewModel.getRomSaveStateSlots(loadedRom)
         var dialog: AlertDialog? = null
         var adapter: SaveStateListAdapter? = null
 
-        adapter = SaveStateListAdapter(slots, dateFormatter, {
+        adapter = SaveStateListAdapter(slots, picasso, dateFormatter, timeFormatter, {
             dialog?.cancel()
             onSlotPicked(it)
         }) {
