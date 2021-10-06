@@ -4,11 +4,15 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
+import com.squareup.picasso.Picasso
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.SaveStateSlot
 import java.io.File
 
-class SaveStateScreenshotProvider(private val context: Context) {
+class SaveStateScreenshotProvider(
+    private val context: Context,
+    private val picasso: Picasso
+) {
 
     companion object {
         private const val SAVE_STATE_SCREENSHOTS_DIR = "ss_screenshots"
@@ -19,6 +23,8 @@ class SaveStateScreenshotProvider(private val context: Context) {
         screenshotFile.outputStream().use {
             screenshot.compress(Bitmap.CompressFormat.PNG, 100, it)
         }
+
+        invalidateScreenshotFile(screenshotFile)
     }
 
     fun getRomSaveStateScreenshotUri(rom: Rom, saveState: SaveStateSlot): Uri? {
@@ -31,7 +37,10 @@ class SaveStateScreenshotProvider(private val context: Context) {
     }
 
     fun deleteRomSaveStateScreenshot(rom: Rom, saveState: SaveStateSlot) {
-        getRomSaveStateScreenshotFile(rom, saveState)?.delete()
+        getRomSaveStateScreenshotFile(rom, saveState)?.let {
+            invalidateScreenshotFile(it)
+            it.delete()
+        }
     }
 
     private fun getRomSaveStateScreenshotFile(rom: Rom, saveState: SaveStateSlot, createDirectoriesIfNeeded: Boolean = false): File? {
@@ -47,5 +56,10 @@ class SaveStateScreenshotProvider(private val context: Context) {
 
     private fun getScreenshotsDir(): File {
         return File(context.filesDir, SAVE_STATE_SCREENSHOTS_DIR)
+    }
+
+    private fun invalidateScreenshotFile(screenshotFile: File) {
+        val screenshotDocument = DocumentFile.fromFile(screenshotFile)
+        picasso.invalidate(screenshotDocument.uri)
     }
 }

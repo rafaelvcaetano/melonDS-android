@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Vibrator
 import androidx.core.content.getSystemService
 import com.google.gson.Gson
+import com.squareup.picasso.Picasso
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -93,8 +94,8 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideSaveStateScreenshotProvider(@ApplicationContext context: Context): SaveStateScreenshotProvider {
-        return SaveStateScreenshotProvider(context)
+    fun provideSaveStateScreenshotProvider(@ApplicationContext context: Context, picasso: Picasso): SaveStateScreenshotProvider {
+        return SaveStateScreenshotProvider(context, picasso)
     }
 
     @Provides
