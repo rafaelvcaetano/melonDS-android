@@ -153,16 +153,17 @@ class BackgroundsActivity : AppCompatActivity() {
     private fun getBackgroundOrientation(backgroundUri: Uri): Result<Orientation> {
         return runCatching {
             contentResolver.openInputStream(backgroundUri)?.use {
-                val decoder = BitmapRegionDecoder.newInstance(it, true)
-                val width = decoder.width
-                val height = decoder.height
+                BitmapRegionDecoder.newInstance(it, true)?.let { decoder ->
+                    val width = decoder.width
+                    val height = decoder.height
 
-                decoder.recycle()
+                    decoder.recycle()
 
-                if (width > height) {
-                    Orientation.LANDSCAPE
-                } else {
-                    Orientation.PORTRAIT
+                    if (width > height) {
+                        Orientation.LANDSCAPE
+                    } else {
+                        Orientation.PORTRAIT
+                    }
                 }
             } ?: throw Exception("Failed to open stream")
         }

@@ -18,7 +18,8 @@
         <activity
             android:name=".ui.romlist.RomListActivity"
             android:theme="@style/SplashTheme"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
