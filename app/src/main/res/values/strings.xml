@@ -43,11 +43,12 @@
 
     <string name="info_fps">FPS: %1$d</string>
     <string name="info_loading">LOADING…</string>
-    <string name="save_state_slot">%1$d.</string>
+    <string name="save_state_slot">%1$s.</string>
     <string name="failed_save_state">Failed to save state</string>
     <string name="failed_load_state">Failed to load state</string>
     <string name="cant_load_empty_slot">Can\'t load an empty save state slot</string>
     <string name="failed_reset_emulation">Failed to reset emulation</string>
+    <string name="save_states_not_supported">Save states are not supported while running the firmware</string>
 
     <string name="action_sort_alphabetically">Alphabetically</string>
     <string name="action_sort_recently_played">Recently played</string>
@@ -80,7 +81,10 @@
     <string name="save_state">Save state</string>
     <string name="load_state">Load state</string>
     <string name="save_slot">Save slot</string>
-    <string name="empty_slot">%1$d. &lt;Empty&gt;</string>
+    <string name="empty_slot">%1$s. &lt;Empty&gt;</string>
+    <string name="quick_slot">Quick Slot</string>
+    <string name="saved">Saved</string>
+    <string name="loaded">Loaded</string>
     <string name="title_activity_settings">Settings</string>
     <string name="category_general">General</string>
     <string name="category_general_summary">Theme, generic settings</string>
@@ -200,6 +204,8 @@
     <string name="input_dpad">DPAD</string>
     <string name="input_abxy_buttons">ABXY Buttons</string>
     <string name="input_swap_screens">Swap Screens</string>
+    <string name="input_quick_save">Quick Save</string>
+    <string name="input_quick_load">Quick Load</string>
 
     <string name="layouts">Layouts</string>
     <string name="layouts_summary">Manage custom layout configurations</string>

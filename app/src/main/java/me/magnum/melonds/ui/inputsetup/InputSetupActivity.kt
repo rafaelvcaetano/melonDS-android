@@ -44,6 +44,8 @@ class InputSetupActivity : AppCompatActivity() {
                 Input.FAST_FORWARD -> R.string.input_fast_forward
                 Input.RESET -> R.string.input_reset
                 Input.SWAP_SCREENS -> R.string.input_swap_screens
+                Input.QUICK_SAVE -> R.string.input_quick_save
+                Input.QUICK_LOAD -> R.string.input_quick_load
                 else -> -1
             }
         }

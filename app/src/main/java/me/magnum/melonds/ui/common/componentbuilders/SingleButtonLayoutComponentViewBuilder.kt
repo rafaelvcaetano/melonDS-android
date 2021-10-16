@@ -29,6 +29,8 @@ class SingleButtonLayoutComponentViewBuilder(private val layoutComponent: Layout
             LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT -> R.drawable.ic_touch_enabled
             LayoutComponent.BUTTON_RESET -> R.drawable.button_reset
             LayoutComponent.BUTTON_SWAP_SCREENS -> R.drawable.button_swap_screens
+            LayoutComponent.BUTTON_QUICK_SAVE -> R.drawable.button_quick_save
+            LayoutComponent.BUTTON_QUICK_LOAD -> R.drawable.button_quick_load
             else -> -1
         }
     }

@@ -135,31 +135,35 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
         when (option) {
             RomPauseMenuOptions.SETTINGS -> activity.openSettings()
             RomPauseMenuOptions.SAVE_STATE -> pickSaveStateSlot {
-                val saveStateUri = activity.viewModel.getRomSaveStateSlotUri(loadedRom, it)
-                if (MelonEmulator.saveState(saveStateUri)) {
-                    val screenshot = activity.takeScreenshot()
-                    activity.viewModel.setRomSaveStateSlotScreenshot(loadedRom, it, screenshot)
-                } else {
-                    Toast.makeText(activity, activity.getString(R.string.failed_save_state), Toast.LENGTH_SHORT).show()
-                }
-
+                saveState(it)
                 activity.resumeEmulation()
             }
             RomPauseMenuOptions.LOAD_STATE -> pickSaveStateSlot {
-                if (!it.exists) {
-                    Toast.makeText(activity, activity.getString(R.string.cant_load_empty_slot), Toast.LENGTH_SHORT).show()
-                } else {
-                    val saveStateUri = activity.viewModel.getRomSaveStateSlotUri(loadedRom, it)
-                    if (!MelonEmulator.loadState(saveStateUri))
-                        Toast.makeText(activity, activity.getString(R.string.failed_load_state), Toast.LENGTH_SHORT).show()
-                }
-
+                loadState(it)
                 activity.resumeEmulation()
             }
             RomPauseMenuOptions.CHEATS -> openCheatsActivity()
             RomPauseMenuOptions.RESET -> activity.resetEmulation()
             RomPauseMenuOptions.EXIT -> activity.finish()
         }
+    }
+
+    override fun performQuickSave() {
+        MelonEmulator.pauseEmulation()
+        val quickSlot = activity.viewModel.getRomQuickSaveStateSlot(loadedRom)
+        if (saveState(quickSlot)) {
+            Toast.makeText(activity, R.string.saved, Toast.LENGTH_SHORT).show()
+        }
+        MelonEmulator.resumeEmulation()
+    }
+
+    override fun performQuickLoad() {
+        MelonEmulator.pauseEmulation()
+        val quickSlot = activity.viewModel.getRomQuickSaveStateSlot(loadedRom)
+        if (loadState(quickSlot)) {
+            Toast.makeText(activity, R.string.loaded, Toast.LENGTH_SHORT).show()
+        }
+        MelonEmulator.resumeEmulation()
     }
 
     override fun getCrashContext(): Any {
@@ -173,6 +177,33 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
 
     override fun dispose() {
         cheatsLoadDisposable?.dispose()
+    }
+
+    private fun saveState(slot: SaveStateSlot): Boolean {
+        val saveStateUri = activity.viewModel.getRomSaveStateSlotUri(loadedRom, slot)
+        return if (MelonEmulator.saveState(saveStateUri)) {
+            val screenshot = activity.takeScreenshot()
+            activity.viewModel.setRomSaveStateSlotScreenshot(loadedRom, slot, screenshot)
+            true
+        } else {
+            Toast.makeText(activity, activity.getString(R.string.failed_save_state), Toast.LENGTH_SHORT).show()
+            false
+        }
+    }
+
+    private fun loadState(slot: SaveStateSlot): Boolean {
+        return if (!slot.exists) {
+            Toast.makeText(activity, activity.getString(R.string.cant_load_empty_slot), Toast.LENGTH_SHORT).show()
+            false
+        } else {
+            val saveStateUri = activity.viewModel.getRomSaveStateSlotUri(loadedRom, slot)
+            if (!MelonEmulator.loadState(saveStateUri)) {
+                Toast.makeText(activity, activity.getString(R.string.failed_load_state), Toast.LENGTH_SHORT).show()
+                false
+            } else {
+                true
+            }
+        }
     }
 
     private fun loadRomCheats(rom: Rom): Maybe<List<Cheat>> {

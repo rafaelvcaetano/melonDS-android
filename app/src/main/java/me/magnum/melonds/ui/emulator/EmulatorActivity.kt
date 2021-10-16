@@ -134,6 +134,14 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         override fun onSwapScreens() {
             swapScreen()
         }
+
+        override fun onQuickSave() {
+            performQuickSave()
+        }
+
+        override fun onQuickLoad() {
+            performQuickLoad()
+        }
     }
     private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         val newEmulatorConfiguration = delegate.getEmulatorConfiguration()
@@ -367,6 +375,8 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.FAST_FORWARD, enableHapticFeedback, touchVibrator))
             binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.TOGGLE_SOFT_INPUT, enableHapticFeedback, touchVibrator))
             binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_SWAP_SCREENS)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.SWAP_SCREENS, enableHapticFeedback, touchVibrator))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_QUICK_SAVE)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.QUICK_SAVE, enableHapticFeedback, touchVibrator))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_QUICK_LOAD)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.QUICK_LOAD, enableHapticFeedback, touchVibrator))
 
             binding.viewLayoutControls.getLayoutComponentViews().forEach {
                 if (!it.component.isScreen()) {
@@ -405,6 +415,14 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
         updateRendererScreenAreas()
         updateSoftInput()
+    }
+
+    private fun performQuickSave() {
+        delegate.performQuickSave()
+    }
+
+    private fun performQuickLoad() {
+        delegate.performQuickLoad()
     }
 
     private fun updateRendererScreenAreas() {

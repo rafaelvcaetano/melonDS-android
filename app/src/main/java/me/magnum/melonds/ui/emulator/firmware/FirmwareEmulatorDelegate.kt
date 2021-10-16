@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.emulator.firmware
 
 import android.os.Bundle
+import android.widget.Toast
 import io.reactivex.Completable
 import io.reactivex.Single
 import me.magnum.melonds.MelonEmulator
@@ -61,6 +62,18 @@ class FirmwareEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(ac
             FirmwarePauseMenuOptions.RESET -> activity.resetEmulation()
             FirmwarePauseMenuOptions.EXIT -> activity.finish()
         }
+    }
+
+    override fun performQuickSave() {
+        showSaveStatesNotSupportedToast()
+    }
+
+    override fun performQuickLoad() {
+        showSaveStatesNotSupportedToast()
+    }
+
+    private fun showSaveStatesNotSupportedToast() {
+        Toast.makeText(activity, R.string.save_states_not_supported, Toast.LENGTH_LONG).show()
     }
 
     override fun getCrashContext(): Any {

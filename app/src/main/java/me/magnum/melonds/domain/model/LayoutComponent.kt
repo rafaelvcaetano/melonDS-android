@@ -14,7 +14,9 @@ enum class LayoutComponent {
     BUTTON_TOGGLE_SOFT_INPUT,
     BUTTON_RESET,
     BUTTON_PAUSE,
-    BUTTON_SWAP_SCREENS;
+    BUTTON_SWAP_SCREENS,
+    BUTTON_QUICK_SAVE,
+    BUTTON_QUICK_LOAD;
 
     fun isScreen(): Boolean {
         return this == TOP_SCREEN || this == BOTTOM_SCREEN
