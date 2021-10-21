@@ -344,6 +344,8 @@ MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jo
     jclass emulatorConfigurationClass = env->GetObjectClass(emulatorConfiguration);
     jclass uriClass = env->FindClass("android/net/Uri");
     jclass consoleTypeEnumClass = env->FindClass("me/magnum/melonds/domain/model/ConsoleType");
+    jclass audioBitrateEnumClass = env->FindClass("me/magnum/melonds/domain/model/AudioBitrate");
+    jclass audioInterpolationEnumClass = env->FindClass("me/magnum/melonds/domain/model/AudioInterpolation");
     jclass audioLatencyEnumClass = env->FindClass("me/magnum/melonds/domain/model/AudioLatency");
     jclass micSourceEnumClass = env->FindClass("me/magnum/melonds/domain/model/MicSource");
 
@@ -364,6 +366,10 @@ MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jo
     jint consoleType = env->GetIntField(consoleTypeEnum, env->GetFieldID(consoleTypeEnumClass, "consoleType", "I"));
     jboolean soundEnabled = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "soundEnabled", "Z"));
     jint volume = env->GetIntField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "volume", "I"));
+    jobject audioInterpolationEnum = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "audioInterpolation", "Lme/magnum/melonds/domain/model/AudioInterpolation;"));
+    jint audioInterpolation = env->GetIntField(audioInterpolationEnum, env->GetFieldID(audioInterpolationEnumClass, "interpolationValue", "I"));
+    jobject audioBitrateEnum = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "audioBitrate", "Lme/magnum/melonds/domain/model/AudioBitrate;"));
+    jint audioBitrate = env->GetIntField(audioBitrateEnum, env->GetFieldID(audioBitrateEnumClass, "bitrateValue", "I"));
     jobject audioLatencyEnum = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "audioLatency", "Lme/magnum/melonds/domain/model/AudioLatency;"));
     jint audioLatency = env->GetIntField(audioLatencyEnum, env->GetFieldID(audioLatencyEnumClass, "latencyValue", "I"));
     jobject micSourceEnum = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "micSource", "Lme/magnum/melonds/domain/model/MicSource;"));
@@ -402,6 +408,8 @@ MelonDSAndroid::EmulatorConfiguration buildEmulatorConfiguration(JNIEnv* env, jo
     finalEmulatorConfiguration.consoleType = consoleType;
     finalEmulatorConfiguration.soundEnabled = soundEnabled;
     finalEmulatorConfiguration.volume = volume;
+    finalEmulatorConfiguration.audioInterpolation = audioInterpolation;
+    finalEmulatorConfiguration.audioBitrate = audioBitrate;
     finalEmulatorConfiguration.audioLatency = audioLatency;
     finalEmulatorConfiguration.micSource = micSource;
     finalEmulatorConfiguration.firmwareConfiguration = buildFirmwareConfiguration(env, firmwareConfigurationObject);

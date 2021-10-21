@@ -9,6 +9,26 @@
             app:iconSpaceReserved="false"
             android:defaultValue="true" />
 
+    <ListPreference
+            android:key="audio_interpolation"
+            android:title="@string/interpolation"
+            android:dependency="sound_enabled"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/audio_interpolation_options"
+            android:entryValues="@array/audio_interpolation_values"
+            android:defaultValue="none" />
+
+    <ListPreference
+            android:key="audio_bitrate"
+            android:title="@string/bitrate"
+            android:dependency="sound_enabled"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/audio_bitrate_options"
+            android:entryValues="@array/audio_bitrate_values"
+            android:defaultValue="auto" />
+
     <SeekBarPreference
             android:key="volume"
             android:title="@string/volume"

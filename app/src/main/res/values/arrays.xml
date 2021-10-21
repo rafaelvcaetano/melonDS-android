@@ -39,6 +39,19 @@
         <item>lcd</item>
     </string-array>
 
+    <string-array name="audio_interpolation_values">
+        <item>none</item>
+        <item>linear</item>
+        <item>cosine</item>
+        <item>cubic</item>
+    </string-array>
+
+    <string-array name="audio_bitrate_values">
+        <item>auto</item>
+        <item>bit10</item>
+        <item>bit16</item>
+    </string-array>
+
     <string-array name="audio_latency_values">
         <item>low</item>
         <item>medium</item>

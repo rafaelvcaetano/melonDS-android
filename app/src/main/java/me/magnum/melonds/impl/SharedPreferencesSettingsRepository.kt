@@ -96,6 +96,8 @@ class SharedPreferencesSettingsRepository(
             isJitEnabled(),
             consoleType,
             isSoundEnabled(),
+            getAudioInterpolation(),
+            getAudioBitrate(),
             getVolume(),
             getAudioLatency(),
             getMicSource(),
@@ -227,6 +229,16 @@ class SharedPreferencesSettingsRepository(
 
     private fun getVolume(): Int {
         return preferences.getInt("volume", 256).coerceIn(0, 256)
+    }
+
+    private fun getAudioInterpolation(): AudioInterpolation {
+        val interpolationPreference = preferences.getString("audio_interpolation", "none")!!
+        return enumValueOfIgnoreCase(interpolationPreference)
+    }
+
+    private fun getAudioBitrate(): AudioBitrate {
+        val bitratePreference = preferences.getString("audio_bitrate", "auto")!!
+        return enumValueOfIgnoreCase(bitratePreference)
     }
 
     override fun getAudioLatency(): AudioLatency {

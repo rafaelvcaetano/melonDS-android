@@ -17,6 +17,8 @@ data class EmulatorConfiguration(
         val useJit: Boolean,
         val consoleType: ConsoleType,
         val soundEnabled: Boolean,
+        val audioInterpolation: AudioInterpolation,
+        val audioBitrate: AudioBitrate,
         val volume: Int,
         val audioLatency: AudioLatency,
         val micSource: MicSource,
