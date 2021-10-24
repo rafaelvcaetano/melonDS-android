@@ -41,6 +41,7 @@ import me.magnum.melonds.extensions.nameWithoutExtension
 import me.magnum.melonds.impl.BackgroundThumbnailProvider
 import me.magnum.melonds.parcelables.BackgroundParcelable
 import me.magnum.melonds.ui.backgroundpreview.BackgroundPreviewActivity
+import me.magnum.melonds.utils.BitmapRegionDecoderCompat
 import java.util.*
 import javax.inject.Inject
 
@@ -153,7 +154,7 @@ class BackgroundsActivity : AppCompatActivity() {
     private fun getBackgroundOrientation(backgroundUri: Uri): Result<Orientation> {
         return runCatching {
             contentResolver.openInputStream(backgroundUri)?.use {
-                BitmapRegionDecoder.newInstance(it, true)?.let { decoder ->
+                BitmapRegionDecoderCompat.newInstance(it)?.let { decoder ->
                     val width = decoder.width
                     val height = decoder.height
 
