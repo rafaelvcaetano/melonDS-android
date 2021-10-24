@@ -9,10 +9,7 @@ import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.isGone
-import androidx.core.view.isVisible
+import androidx.core.view.*
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,6 +32,8 @@ import javax.inject.Inject
 class LayoutEditorActivity : AppCompatActivity() {
     companion object {
         const val KEY_LAYOUT_ID = "layout_id"
+
+        private const val CONTROLS_SLIDE_ANIMATION_DURATION_MS = 100L
     }
 
     enum class MenuOption(@StringRes val stringRes: Int) {
@@ -192,38 +191,47 @@ class LayoutEditorActivity : AppCompatActivity() {
     }
 
     private fun showBottomControls(animate: Boolean = true) {
-        if (areBottomControlsShown)
+        if (areBottomControlsShown) {
             return
+        }
 
-        /*binding.layoutControls.isClickable = true
+        binding.layoutControls.clearAnimation()
         if (animate) {
-            val animation = TranslateAnimation(0f, 0f, binding.layoutControls.height.toFloat(), 0f).apply {
-                duration = 100
-                fillAfter = true
-            }
-            binding.layoutControls.startAnimation(animation)
+            binding.layoutControls
+                .animate()
+                .y(binding.layoutControls.bottom.toFloat() - binding.layoutControls.height.toFloat())
+                .setDuration(CONTROLS_SLIDE_ANIMATION_DURATION_MS)
+                .withStartAction {
+                    binding.layoutControls.isVisible = true
+                }
+                .start()
         } else {
-            binding.layoutControls.translationY = 0f
-        }*/
-        binding.layoutControls.isVisible = true
+            binding.layoutControls.isVisible = true
+        }
+
         areBottomControlsShown = true
     }
 
     private fun hideBottomControls(animate: Boolean = true) {
-        if (!areBottomControlsShown)
+        if (!areBottomControlsShown) {
             return
+        }
 
-       /* binding.layoutControls.isClickable = false
         if (animate) {
-            val animation = TranslateAnimation(0f, 0f, binding.layoutControls.translationY, binding.layoutControls.height.toFloat()).apply {
-                duration = 100
-                fillAfter = true
+            binding.layoutControls.clearAnimation()
+            if (animate) {
+                binding.layoutControls.animate()
+                    .y(binding.layoutControls.bottom.toFloat())
+                    .setDuration(CONTROLS_SLIDE_ANIMATION_DURATION_MS)
+                    .withEndAction {
+                        binding.layoutControls.isGone = true
+                    }
+                    .start()
             }
-            binding.layoutControls.startAnimation(animation)
         } else {
-            binding.layoutControls.translationY = binding.layoutControls.height.toFloat()
-        }*/
-        binding.layoutControls.isGone = true
+            binding.layoutControls.isGone = true
+        }
+
         areBottomControlsShown = false
     }
 
@@ -235,38 +243,44 @@ class LayoutEditorActivity : AppCompatActivity() {
 
         selectedViewMinSize = minSize
 
-        if (areScalingControlsShown)
+        if (areScalingControlsShown) {
             return
+        }
 
-        /*binding.layoutScaling.isClickable = true
         if (animate) {
-            val animation = TranslateAnimation(0f, 0f, binding.layoutScaling.height.toFloat(), 0f).apply {
-                duration = 100
-                fillAfter = true
-            }
-            binding.layoutScaling.startAnimation(animation)
+            binding.layoutScaling
+                .animate()
+                .y(binding.layoutScaling.bottom.toFloat() - binding.layoutScaling.height.toFloat())
+                .setDuration(CONTROLS_SLIDE_ANIMATION_DURATION_MS)
+                .withStartAction {
+                    binding.layoutScaling.isVisible = true
+                }
+                .start()
         } else {
-            binding.layoutScaling.translationY = 0f
-        }*/
-        binding.layoutScaling.isVisible = true
+            binding.layoutScaling.isVisible = true
+        }
+
         areScalingControlsShown = true
     }
 
     private fun hideScalingControls(animate: Boolean = true) {
-        if (!areScalingControlsShown)
+        if (!areScalingControlsShown) {
             return
+        }
 
-        /*binding.layoutScaling.isClickable = false
         if (animate) {
-            val animation = TranslateAnimation(0f, 0f, binding.layoutScaling.translationY, binding.layoutScaling.height.toFloat()).apply {
-                duration = 100
-                fillAfter = true
-            }
-            binding.layoutScaling.startAnimation(animation)
+            binding.layoutScaling
+                .animate()
+                .y(binding.layoutScaling.bottom.toFloat())
+                .setDuration(CONTROLS_SLIDE_ANIMATION_DURATION_MS)
+                .withEndAction {
+                    binding.layoutScaling.isInvisible = true
+                }
+                .start()
         } else {
-            binding.layoutScaling.translationY = binding.layoutScaling.height.toFloat()
-        }*/
-        binding.layoutScaling.isVisible = false
+            binding.layoutScaling.isInvisible = true
+        }
+
         areScalingControlsShown = false
     }
 
