@@ -26,7 +26,7 @@ object Dependencies {
         const val RxAndroid = "2.1.1"
         const val RxJava = "2.2.10"
         const val SwipeRefreshLayout = "1.1.0"
-        const val Work = "2.5.0"
+        const val Work = "2.7.0"
         const val Markwon = "4.6.2"
         const val Retrofit = "2.9.0"
         const val Xz = "1.9"
