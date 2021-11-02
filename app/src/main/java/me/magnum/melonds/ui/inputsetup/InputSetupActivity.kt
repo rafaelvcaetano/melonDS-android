@@ -9,10 +9,7 @@ import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.LinearSmoothScroller
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.*
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityInputSetupBinding
@@ -20,7 +17,6 @@ import me.magnum.melonds.databinding.ItemInputBinding
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.InputConfig
 import me.magnum.melonds.ui.inputsetup.InputSetupActivity.InputListAdapter.InputViewHolder
-import java.util.*
 
 @AndroidEntryPoint
 class InputSetupActivity : AppCompatActivity() {
@@ -150,7 +146,7 @@ class InputSetupActivity : AppCompatActivity() {
 
         private var recyclerView: RecyclerView? = null
         private var layoutManager: LinearLayoutManager? = null
-        private val inputList: ArrayList<StatefulInputConfig> = ArrayList()
+        private val inputList = mutableListOf<StatefulInputConfig>()
         private var nextInput: Input? = null
 
         override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
@@ -164,10 +160,13 @@ class InputSetupActivity : AppCompatActivity() {
         }
 
         fun setInputList(inputList: List<StatefulInputConfig>, nextInput: Input?) {
+            val diff = DiffUtil.calculateDiff(InputDiffUtilCallback(this.inputList, inputList), false)
+            diff.dispatchUpdatesTo(this)
+
             this.inputList.clear()
             this.inputList.addAll(inputList)
             this.nextInput = nextInput
-            notifyDataSetChanged()
+
             scrollToNextInputIfNeeded()
         }
 
@@ -180,6 +179,7 @@ class InputSetupActivity : AppCompatActivity() {
                     val smoothScroller = createSmoothScroller(nextInputIndex + 1)
                     layoutManager?.startSmoothScroll(smoothScroller)
                 }
+                layoutManager?.findViewByPosition(nextInputIndex)?.requestFocus()
             }
         }
 
@@ -224,6 +224,20 @@ class InputSetupActivity : AppCompatActivity() {
 
         override fun getItemCount(): Int {
             return inputList.size
+        }
+
+        inner class InputDiffUtilCallback(private val oldInputs: List<StatefulInputConfig>, private val newInputs: List<StatefulInputConfig>) : DiffUtil.Callback() {
+            override fun getOldListSize(): Int = oldInputs.size
+
+            override fun getNewListSize(): Int = newInputs.size
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return oldInputs[oldItemPosition].inputConfig.input == newInputs[newItemPosition].inputConfig.input
+            }
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return oldInputs[oldItemPosition] == newInputs[newItemPosition]
+            }
         }
     }
 

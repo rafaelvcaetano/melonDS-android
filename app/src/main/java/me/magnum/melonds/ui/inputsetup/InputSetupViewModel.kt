@@ -41,10 +41,7 @@ class InputSetupViewModel @Inject constructor(private val settingsRepository: Se
         val newConfig = inputConfigLiveData.value?.toMutableList() ?: return
         val inputIndex = newConfig.indexOfFirst { it.inputConfig.input == input }
         if (inputIndex >= 0) {
-            newConfig[inputIndex].apply {
-                isBeingConfigured = true
-            }
-
+            newConfig[inputIndex] = newConfig[inputIndex].copy(isBeingConfigured = true)
             onConfigsChanged(newConfig)
         }
     }
@@ -53,10 +50,7 @@ class InputSetupViewModel @Inject constructor(private val settingsRepository: Se
         val newConfig = inputConfigLiveData.value?.toMutableList() ?: return
         val inputIndex = newConfig.indexOfFirst { it.inputConfig.input == input }
         if (inputIndex >= 0) {
-            newConfig[inputIndex].apply {
-                isBeingConfigured = false
-            }
-
+            newConfig[inputIndex] = newConfig[inputIndex].copy(isBeingConfigured = false)
             onConfigsChanged(newConfig)
         }
     }
@@ -65,11 +59,8 @@ class InputSetupViewModel @Inject constructor(private val settingsRepository: Se
         val newConfig = inputConfigLiveData.value?.toMutableList() ?: return
         val inputIndex = newConfig.indexOfFirst { it.inputConfig.input == input }
         if (inputIndex >= 0) {
-            newConfig[inputIndex].apply {
-                isBeingConfigured = false
-                inputConfig.key = key
-            }
-
+            val oldInputConfig = newConfig[inputIndex]
+            newConfig[inputIndex] = oldInputConfig.copy(inputConfig = oldInputConfig.inputConfig.copy(key = key), isBeingConfigured = false)
             onConfigsChanged(newConfig)
         }
     }
