@@ -42,12 +42,12 @@ It's possible to launch melonDS from third part frontends. For that, you simply 
 # Building
 To build the project you will need Android SDK, NDK and CMake.
 
-##Build steps:
+## Build steps:
 1.  Clone the project, including submodules with:
     
     `git clone --recurse-submodules https://github.com/rafaelvcaetano/melonDS-android.git`
 2.  Install the Android SDK, NDK and CMake
 3.  Build with:
-    1.  Unix: `gradlew :app:assembleGitHubRelease`
+    1.  Unix: `./gradlew :app:assembleGitHubRelease`
     2.  Windows: `gradlew.bat :app:assembleGitHubRelease`
 4.  The generated APK can be found at `app/gitHub/release`
