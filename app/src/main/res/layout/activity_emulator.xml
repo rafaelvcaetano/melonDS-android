@@ -1,40 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/layout_root"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/black"
-    tools:context=".ui.emulator.EmulatorActivity">
+<androidx.constraintlayout.motion.widget.MotionLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/layout_root"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black"
+        app:layoutDescription="@xml/scene_activity_emulator"
+        tools:context=".ui.emulator.EmulatorActivity">
 
     <android.opengl.GLSurfaceView
-        android:id="@+id/surfaceMain"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+            android:id="@+id/surfaceMain"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
 
     <me.magnum.melonds.ui.emulator.RuntimeLayoutView
-        android:id="@+id/view_layout_controls"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+            android:id="@+id/view_layout_controls"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
     <TextView
-        android:id="@+id/textFps"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="12dp"
-        android:textColor="@android:color/white"
-        tools:layout_alignParentBottom="true"
-        tools:layout_centerHorizontal="true"
-        tools:text="FPS: 60"/>
+            android:id="@+id/textFps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:textColor="@android:color/white"
+            tools:text="FPS: 60"/>
 
     <TextView
-        android:id="@+id/textLoading"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/white"
-        android:text="@string/info_loading"/>
-</RelativeLayout>
+            android:id="@+id/textLoading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:text="@string/info_loading"/>
+
+    <RelativeLayout
+            android:id="@+id/layout_rewind"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#A000"
+            android:focusable="false">
+    </RelativeLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/list_rewind"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent" />
+</androidx.constraintlayout.motion.widget.MotionLayout>

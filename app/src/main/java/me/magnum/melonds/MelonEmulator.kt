@@ -6,6 +6,8 @@ import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.common.UriFileHandler
+import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
+import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 import java.nio.ByteBuffer
 
 object MelonEmulator {
@@ -80,6 +82,10 @@ object MelonEmulator {
     }
 
     private external fun loadStateInternal(path: String): Boolean
+
+    external fun loadRewindState(rewindSaveState: RewindSaveState): Boolean
+
+    external fun getRewindWindow(): RewindWindow
 
 	external fun onScreenTouch(x: Int, y: Int)
 

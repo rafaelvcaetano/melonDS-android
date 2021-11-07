@@ -17,8 +17,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.net.toUri
 import androidx.core.view.*
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.Single
@@ -42,6 +44,9 @@ import me.magnum.melonds.ui.cheats.CheatsActivity
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
 import me.magnum.melonds.ui.emulator.firmware.FirmwareEmulatorDelegate
 import me.magnum.melonds.ui.emulator.input.*
+import me.magnum.melonds.ui.emulator.rewind.EdgeSpacingDecorator
+import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
+import me.magnum.melonds.ui.emulator.rewind.RewindSaveStateAdapter
 import me.magnum.melonds.ui.emulator.rom.RomEmulatorDelegate
 import me.magnum.melonds.ui.settings.SettingsActivity
 import java.net.URLEncoder
@@ -160,6 +165,10 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         microphonePermissionSubject.onNext(it)
     }
 
+    private val rewindSaveStateAdapter = RewindSaveStateAdapter {
+        MelonEmulator.loadRewindState(it)
+        closeRewindWindow()
+    }
     private val microphonePermissionSubject = PublishSubject.create<Boolean>()
     private var emulatorSetupDisposable: Disposable? = null
     private var cheatsClosedListener: (() -> Unit)? = null
@@ -189,6 +198,15 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
         binding.textFps.visibility = View.INVISIBLE
         binding.viewLayoutControls.setLayoutComponentViewBuilderFactory(RuntimeLayoutComponentViewBuilderFactory())
+        binding.layoutRewind.setOnClickListener {
+            closeRewindWindow()
+        }
+        binding.listRewind.apply {
+            val listLayoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, true)
+            layoutManager = listLayoutManager
+            addItemDecoration(EdgeSpacingDecorator())
+            adapter = rewindSaveStateAdapter
+        }
 
         viewModel.getBackground().observe(this) {
             dsRenderer.setBackground(it)
@@ -242,8 +260,9 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         super.onResume()
         binding.surfaceMain.onResume()
 
-        if (emulatorReady && !emulatorPaused)
+        if (emulatorReady && !emulatorPaused) {
             MelonEmulator.resumeEmulation()
+        }
     }
 
     private fun launchEmulator() {
@@ -307,31 +326,33 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             binding.textFps.isGone = true
         } else {
             binding.textFps.isVisible = true
-            val newParams = RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT)
+            val newParams = ConstraintLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT)
             when (fpsCounterPosition) {
                 FpsCounterPosition.TOP_LEFT -> {
-                    newParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT)
-                    newParams.addRule(RelativeLayout.ALIGN_PARENT_TOP)
+                    newParams.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                    newParams.leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
                 }
                 FpsCounterPosition.TOP_CENTER -> {
-                    newParams.addRule(RelativeLayout.CENTER_HORIZONTAL)
-                    newParams.addRule(RelativeLayout.ALIGN_PARENT_TOP)
+                    newParams.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                    newParams.leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
+                    newParams.rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
                 }
                 FpsCounterPosition.TOP_RIGHT -> {
-                    newParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT)
-                    newParams.addRule(RelativeLayout.ALIGN_PARENT_TOP)
+                    newParams.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                    newParams.rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
                 }
                 FpsCounterPosition.BOTTOM_LEFT -> {
-                    newParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT)
-                    newParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+                    newParams.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                    newParams.leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
                 }
                 FpsCounterPosition.BOTTOM_CENTER -> {
-                    newParams.addRule(RelativeLayout.CENTER_HORIZONTAL)
-                    newParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+                    newParams.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                    newParams.leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
+                    newParams.rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
                 }
                 FpsCounterPosition.BOTTOM_RIGHT -> {
-                    newParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT)
-                    newParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+                    newParams.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                    newParams.rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
                 }
             }
             binding.textFps.layoutParams = newParams
@@ -443,7 +464,11 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
     override fun onBackPressed() {
         if (emulatorReady) {
-            this.pauseEmulation()
+            if (isRewindWindowOpen()) {
+                closeRewindWindow()
+            } else {
+                this.pauseEmulation()
+            }
         } else {
             super.onBackPressed()
         }
@@ -490,7 +515,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (nativeInputListener.onKeyEvent(event))
+        if (!isRewindWindowOpen() && nativeInputListener.onKeyEvent(event))
             return true
 
         return super.dispatchKeyEvent(event)
@@ -518,6 +543,27 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         val intent = Intent(this, CheatsActivity::class.java)
         intent.putExtra(CheatsActivity.KEY_ROM_INFO, RomInfoParcelable.fromRomInfo(romInfo))
         cheatsLauncher.launch(intent)
+    }
+
+    private fun isRewindWindowOpen(): Boolean {
+        return binding.root.currentState == R.id.rewind_visible
+    }
+
+    fun openRewindWindow() {
+        binding.root.transitionToState(R.id.rewind_visible)
+        val rewindWindow = MelonEmulator.getRewindWindow()
+        rewindSaveStateAdapter.setRewindWindow(rewindWindow)
+    }
+
+    fun closeRewindWindow() {
+        binding.root.transitionToState(R.id.rewind_hidden)
+        MelonEmulator.resumeEmulation()
+    }
+
+    fun rewindToState(state: RewindSaveState) {
+        if (!MelonEmulator.loadRewindState(state)) {
+            Toast.makeText(this@EmulatorActivity, "Failed to rewind", Toast.LENGTH_SHORT).show()
+        }
     }
 
     /**
@@ -602,8 +648,9 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         super.onPause()
         binding.surfaceMain.onPause()
 
-        if (emulatorReady && !emulatorPaused)
+        if (emulatorReady && !emulatorPaused) {
             MelonEmulator.pauseEmulation()
+        }
     }
 
     override fun onDestroy() {

@@ -6,6 +6,7 @@ object Dependencies {
         const val CommonsCompress = "1.21"
         const val ConstraintLayout = "2.0.4"
         const val Core = "1.6.0"
+        const val Desugar = "1.1.5"
         const val DocumentFile = "1.0.1"
         const val Flexbox = "2.0.1"
         const val Fragment = "1.3.5"
@@ -36,6 +37,10 @@ object Dependencies {
         const val gradle = "com.android.tools.build:gradle:${Versions.Gradle}"
         const val hiltAndroid = "com.google.dagger:hilt-android-gradle-plugin:${Versions.Hilt}"
         const val kotlin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.Kotlin}"
+    }
+
+    object Tools {
+        const val desugarJdkLibs = "com.android.tools:desugar_jdk_libs:${Versions.Desugar}"
     }
 
     object Kotlin {

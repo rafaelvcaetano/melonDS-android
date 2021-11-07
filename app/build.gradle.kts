@@ -74,6 +74,7 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
     }
     configurations.all {
         resolutionStrategy.eachDependency {
@@ -89,6 +90,10 @@ android {
 
 dependencies {
     val gitHubImplementation by configurations
+
+    with(Dependencies.Tools) {
+        coreLibraryDesugaring(desugarJdkLibs)
+    }
 
     with(Dependencies.Kotlin) {
         implementation(kotlinStdlib)

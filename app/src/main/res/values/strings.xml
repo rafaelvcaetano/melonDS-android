@@ -49,6 +49,8 @@
     <string name="cant_load_empty_slot">Can\'t load an empty save state slot</string>
     <string name="failed_reset_emulation">Failed to reset emulation</string>
     <string name="save_states_not_supported">Save states are not supported while running the firmware</string>
+    <string name="rewind_time_seconds">%1$ss</string>
+    <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string>
 
     <string name="action_sort_alphabetically">Alphabetically</string>
     <string name="action_sort_recently_played">Recently played</string>
@@ -80,6 +82,7 @@
     <string name="settings">Settings</string>
     <string name="save_state">Save state</string>
     <string name="load_state">Load state</string>
+    <string name="rewind">Rewind</string>
     <string name="save_slot">Save slot</string>
     <string name="empty_slot">%1$s. &lt;Empty&gt;</string>
     <string name="quick_slot">Quick Slot</string>
