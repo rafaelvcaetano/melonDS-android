@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Each step represents 1 second -->
+    <SeekBarPreference
+            android:key="rewind_period"
+            android:title="@string/rewind_save_period"
+            app:min="1"
+            android:max="60"
+            android:defaultValue="10"
+            app:updatesContinuously="true"
+            app:iconSpaceReserved="false" />
+
+    <!-- Each step represents 10 seconds. Min: 10 sec, max: 5 min. Default: 1 min -->
+    <SeekBarPreference
+            android:key="rewind_window"
+            android:title="@string/rewind_length"
+            app:min="1"
+            android:max="30"
+            android:defaultValue="6"
+            app:updatesContinuously="true"
+            app:iconSpaceReserved="false" />
+
+    <!--Only used to display information (max. memory usage) -->
+    <Preference
+            android:key="rewind_info"
+            android:enabled="false"
+            app:iconSpaceReserved="false"
+            tools:summary="Max. memory usage: 100MB" />
+</PreferenceScreen>

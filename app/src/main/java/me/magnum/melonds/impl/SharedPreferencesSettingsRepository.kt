@@ -93,6 +93,9 @@ class SharedPreferencesSettingsRepository(
             dsiDirDocument?.findFile("nand.bin")?.uri,
             context.filesDir.absolutePath,
             getFastForwardSpeedMultiplier(),
+            isRewindEnabled(),
+            getRewindPeriod(),
+            getRewindWindow(),
             isJitEnabled(),
             consoleType,
             isSoundEnabled(),
@@ -225,6 +228,18 @@ class SharedPreferencesSettingsRepository(
 
     override fun isSoundEnabled(): Boolean {
         return preferences.getBoolean("sound_enabled", true)
+    }
+
+    private fun isRewindEnabled(): Boolean {
+        return preferences.getBoolean("enable_rewind", false)
+    }
+
+    private fun getRewindPeriod(): Int {
+        return preferences.getInt("rewind_period", 10)
+    }
+
+    private fun getRewindWindow(): Int {
+        return preferences.getInt("rewind_window", 6) * 10
     }
 
     private fun getVolume(): Int {

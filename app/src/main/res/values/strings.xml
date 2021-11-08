@@ -97,6 +97,11 @@
     <string name="category_system_summary">Firmware settings, custom BIOS, JIT</string>
     <string name="theme">Theme</string>
     <string name="fast_forward_max_speed">Fast-forward max speed</string>
+    <string name="rewind_description">When enabled, a save-state is periodically saved automatically. Whenever you want to go back on your progress by a short amount of time, just open the rewind screen and select the state that you want to resume from.\n\nBe aware that by enabling this feature, you may experience occasional stutters if your device is not powerful enough. A considerable amount of memory is also used depending on how often you want the state to be captured and for how long it should be kept.</string>
+    <string name="rewind_save_period">Save period</string>
+    <string name="rewind_length">Rewind length</string>
+    <string name="rewind_max_memory_usage">Max. memory usage: %1$s</string>
+    <string name="rewind_memory_usage_above_recommended_limit">Memory usage above recommended limit</string>
     <string name="sustained_performance_mode">Sustained performance mode</string>
     <string name="sustained_performance_mode_summary">When enabled, peak performance will be lower but thermal throttling will be less pronounced.</string>
     <string name="rom_icon_filtering">Icon filtering</string>

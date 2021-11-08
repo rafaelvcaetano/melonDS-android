@@ -27,4 +27,5 @@ sealed class SizeUnit(private val sizeInBytes: Long) : Comparable<SizeUnit> {
     operator fun minus(other: SizeUnit) = Bytes(sizeInBytes - other.sizeInBytes)
     operator fun times(multiplier: Int) = Bytes(sizeInBytes * multiplier.toLong())
     operator fun times(multiplier: Long) = Bytes(sizeInBytes * multiplier)
+    operator fun times(multiplier: Float) = Bytes((sizeInBytes * multiplier).toLong())
 }

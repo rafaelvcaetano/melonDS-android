@@ -14,8 +14,7 @@ import me.magnum.melonds.domain.model.SizeUnit
 import me.magnum.melonds.ui.settings.PreferenceFragmentHelper
 import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
 import me.magnum.melonds.ui.settings.SettingsViewModel
-import java.math.BigDecimal
-import java.math.RoundingMode
+import me.magnum.melonds.utils.SizeUtils
 import javax.inject.Inject
 import kotlin.math.pow
 
@@ -54,25 +53,13 @@ class RomsPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.getRomCacheSize().observe(viewLifecycleOwner, {
-            val cacheSizeRepresentation = getBestCacheSizeRepresentation(it)
-            val sizeDecimal = BigDecimal(cacheSizeRepresentation.first).setScale(1, RoundingMode.HALF_EVEN)
-            clearRomCachePreference.summary = getString(R.string.cache_size, "${sizeDecimal}${cacheSizeRepresentation.second}")
+            val cacheSizeRepresentation = SizeUtils.getBestSizeStringRepresentation(it)
+            clearRomCachePreference.summary = getString(R.string.cache_size, cacheSizeRepresentation)
         })
     }
 
     private fun updateMaxCacheSizePreferenceSummary(maxCacheSizePreference: SeekBarPreference, cacheSizeStep: Int) {
         val cacheSize = SizeUnit.MB(128) * 2.toDouble().pow(cacheSizeStep).toLong()
-        val (sizeValue, sizeUnits) = getBestCacheSizeRepresentation(cacheSize)
-        val sizeDecimal = BigDecimal(sizeValue).setScale(0, RoundingMode.HALF_EVEN)
-        maxCacheSizePreference.summary = "${sizeDecimal}${sizeUnits}"
-    }
-
-    private fun getBestCacheSizeRepresentation(cacheSize: SizeUnit): Pair<Double, String> {
-        return when(cacheSize.toBestRepresentation()) {
-            is SizeUnit.Bytes -> cacheSize.toBytes().toDouble() to "B"
-            is SizeUnit.KB -> cacheSize.toKB() to "KB"
-            is SizeUnit.MB -> cacheSize.toMB() to "MB"
-            is SizeUnit.GB -> cacheSize.toGB() to "GB"
-        }
+        maxCacheSizePreference.summary = SizeUtils.getBestSizeStringRepresentation(cacheSize)
     }
 }

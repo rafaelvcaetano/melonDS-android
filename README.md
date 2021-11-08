@@ -15,6 +15,7 @@ This is a WIP Android frontend for the melonDS Android port. For the Android por
 *  Mic input
 *  Game saves
 *  Save states
+*  Rewind
 *  AR cheats
 *  GBA ROM support
 *  DSi support (experimental)

@@ -21,6 +21,21 @@
             android:entryValues="@array/fast_forward_speed_multiplier_values"
             android:defaultValue="-1" />
 
+    <com.smp.masterswitchpreference.MasterSwitchPreference
+            android:key="enable_rewind"
+            android:title="@string/rewind"
+            app:iconSpaceReserved="false"
+            android:fragment="me.magnum.melonds.ui.settings.fragments.RewindPreferencesFragment"
+            android:defaultValue="false"
+            app:ms_switchOnText="@string/on"
+            app:ms_switchOffText="@string/off"
+            app:ms_switchThumbColor="?android:colorAccent"
+            app:ms_switchTrackColor="@color/prefSwitchRailColor"
+            app:ms_switchOnBackgroundColor="@color/prefSwitchBackground"
+            app:ms_switchOffBackgroundColor="@color/prefSwitchBackground"
+            app:ms_switchOffExplanationText="@string/rewind_description"
+            app:ms_includedPrefScreen="xml/pref_rewind" />
+
     <SwitchPreference
             android:key="enable_sustained_performance"
             android:title="@string/sustained_performance_mode"
