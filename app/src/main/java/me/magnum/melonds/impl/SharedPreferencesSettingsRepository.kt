@@ -122,6 +122,10 @@ class SharedPreferencesSettingsRepository(
         return speedMultiplierPreference.toFloat()
     }
 
+    override fun isRewindEnabled(): Boolean {
+        return preferences.getBoolean("enable_rewind", false)
+    }
+
     override fun isSustainedPerformanceModeEnabled(): Boolean {
         val defaultValue = context.isSustainedPerformanceModeAvailable()
         return preferences.getBoolean("enable_sustained_performance", defaultValue)
@@ -228,10 +232,6 @@ class SharedPreferencesSettingsRepository(
 
     override fun isSoundEnabled(): Boolean {
         return preferences.getBoolean("sound_enabled", true)
-    }
-
-    private fun isRewindEnabled(): Boolean {
-        return preferences.getBoolean("enable_rewind", false)
     }
 
     private fun getRewindPeriod(): Int {

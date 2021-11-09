@@ -86,10 +86,6 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
     class FirmwareLoadFailedException(result: MelonEmulator.FirmwareLoadResult) : Exception("Failed to load firmware: $result")
 
-    interface PauseMenuOption {
-        val textResource: Int
-    }
-
     private lateinit var binding: ActivityEmulatorBinding
     val viewModel: EmulatorViewModel by viewModels()
 

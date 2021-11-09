@@ -10,13 +10,9 @@ import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.ui.emulator.EmulatorDelegate
+import me.magnum.melonds.ui.emulator.PauseMenuOption
 
 class FirmwareEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(activity) {
-    private enum class FirmwarePauseMenuOptions(override val textResource: Int) : EmulatorActivity.PauseMenuOption {
-        SETTINGS(R.string.settings),
-        RESET(R.string.reset),
-        EXIT(R.string.exit)
-    }
 
     private lateinit var firmwareConsoleType: ConsoleType
 
@@ -52,15 +48,15 @@ class FirmwareEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(ac
         return activity.adjustEmulatorConfigurationForPermissions(baseEmulatorConfiguration, false).blockingGet()
     }
 
-    override fun getPauseMenuOptions(): List<EmulatorActivity.PauseMenuOption> {
-        return FirmwarePauseMenuOptions.values().toList()
+    override fun getPauseMenuOptions(): List<PauseMenuOption> {
+        return activity.viewModel.getFirmwarePauseMenuOptions()
     }
 
-    override fun onPauseMenuOptionSelected(option: EmulatorActivity.PauseMenuOption) {
+    override fun onPauseMenuOptionSelected(option: PauseMenuOption) {
         when (option) {
-            FirmwarePauseMenuOptions.SETTINGS -> activity.openSettings()
-            FirmwarePauseMenuOptions.RESET -> activity.resetEmulation()
-            FirmwarePauseMenuOptions.EXIT -> activity.finish()
+            FirmwarePauseMenuOption.SETTINGS -> activity.openSettings()
+            FirmwarePauseMenuOption.RESET -> activity.resetEmulation()
+            FirmwarePauseMenuOption.EXIT -> activity.finish()
         }
     }
 

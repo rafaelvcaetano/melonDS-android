@@ -19,6 +19,8 @@ import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
 import me.magnum.melonds.ui.emulator.exceptions.SramLoadException
+import me.magnum.melonds.ui.emulator.firmware.FirmwarePauseMenuOption
+import me.magnum.melonds.ui.emulator.rom.RomPauseMenuOption
 import java.util.*
 import javax.inject.Inject
 
@@ -225,6 +227,14 @@ class EmulatorViewModel @Inject constructor(
         )
     }
 
+    fun getRomPauseMenuOptions(): List<PauseMenuOption> {
+        return RomPauseMenuOption.values().filter(this::filterRomPauseMenuOption)
+    }
+
+    fun getFirmwarePauseMenuOptions(): List<PauseMenuOption> {
+        return FirmwarePauseMenuOption.values().toList()
+    }
+
     fun isSustainedPerformanceModeEnabled(): Boolean {
         return settingsRepository.isSustainedPerformanceModeEnabled()
     }
@@ -252,6 +262,13 @@ class EmulatorViewModel @Inject constructor(
         }
 
         return liveData
+    }
+
+    private fun filterRomPauseMenuOption(option: RomPauseMenuOption): Boolean {
+        return when (option) {
+            RomPauseMenuOption.REWIND -> settingsRepository.isRewindEnabled()
+            else -> true
+        }
     }
 
     override fun onCleared() {

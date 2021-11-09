@@ -19,19 +19,10 @@ import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.ui.emulator.EmulatorDelegate
+import me.magnum.melonds.ui.emulator.PauseMenuOption
 import java.text.SimpleDateFormat
 
 class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picasso) : EmulatorDelegate(activity) {
-
-    private enum class RomPauseMenuOptions(override val textResource: Int) : EmulatorActivity.PauseMenuOption {
-        SETTINGS(R.string.settings),
-        SAVE_STATE(R.string.save_state),
-        LOAD_STATE(R.string.load_state),
-        REWIND(R.string.rewind),
-        CHEATS(R.string.cheats),
-        RESET(R.string.reset),
-        EXIT(R.string.exit)
-    }
 
     private lateinit var loadedRom: Rom
     private var cheatsLoadDisposable: Disposable? = null
@@ -128,25 +119,25 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
         return activity.adjustEmulatorConfigurationForPermissions(baseEmulatorConfiguration, false).blockingGet()
     }
 
-    override fun getPauseMenuOptions(): List<EmulatorActivity.PauseMenuOption> {
-        return RomPauseMenuOptions.values().toList()
+    override fun getPauseMenuOptions(): List<PauseMenuOption> {
+        return activity.viewModel.getRomPauseMenuOptions()
     }
 
-    override fun onPauseMenuOptionSelected(option: EmulatorActivity.PauseMenuOption) {
+    override fun onPauseMenuOptionSelected(option: PauseMenuOption) {
         when (option) {
-            RomPauseMenuOptions.SETTINGS -> activity.openSettings()
-            RomPauseMenuOptions.SAVE_STATE -> pickSaveStateSlot {
+            RomPauseMenuOption.SETTINGS -> activity.openSettings()
+            RomPauseMenuOption.SAVE_STATE -> pickSaveStateSlot {
                 saveState(it)
                 activity.resumeEmulation()
             }
-            RomPauseMenuOptions.LOAD_STATE -> pickSaveStateSlot {
+            RomPauseMenuOption.LOAD_STATE -> pickSaveStateSlot {
                 loadState(it)
                 activity.resumeEmulation()
             }
-            RomPauseMenuOptions.REWIND -> activity.openRewindWindow()
-            RomPauseMenuOptions.CHEATS -> openCheatsActivity()
-            RomPauseMenuOptions.RESET -> activity.resetEmulation()
-            RomPauseMenuOptions.EXIT -> activity.finish()
+            RomPauseMenuOption.REWIND -> activity.openRewindWindow()
+            RomPauseMenuOption.CHEATS -> openCheatsActivity()
+            RomPauseMenuOption.RESET -> activity.resetEmulation()
+            RomPauseMenuOption.EXIT -> activity.finish()
         }
     }
 
