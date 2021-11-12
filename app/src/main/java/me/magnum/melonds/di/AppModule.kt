@@ -18,6 +18,7 @@ import io.noties.markwon.Markwon
 import io.noties.markwon.image.picasso.PicassoImagesPlugin
 import io.noties.markwon.linkify.LinkifyPlugin
 import io.reactivex.android.schedulers.AndroidSchedulers
+import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.common.uridelegates.CompositeUriHandler
@@ -94,5 +95,11 @@ object AppModule {
     @Singleton
     fun provideUriPermissionManager(@ApplicationContext context: Context): UriPermissionManager {
         return UriPermissionManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun providesDirectoryAccessValidator(@ApplicationContext context: Context): DirectoryAccessValidator {
+        return DirectoryAccessValidator(context)
     }
 }

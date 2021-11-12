@@ -1,5 +1,7 @@
 package me.magnum.melonds.ui.settings
 
+import androidx.activity.result.ActivityResultCallback
+import androidx.appcompat.app.AlertDialog
 import androidx.core.net.toUri
 import androidx.preference.ListPreference
 import androidx.preference.Preference
@@ -7,6 +9,7 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import com.smp.masterswitchpreference.MasterSwitchPreference
 import me.magnum.melonds.R
+import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.ui.settings.preferences.FirmwareBirthdayPreference
 import me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
@@ -16,7 +19,12 @@ import me.magnum.melonds.extensions.addOnPreferenceChangeListener
 import me.magnum.melonds.ui.settings.preferences.MacAddressPreference
 import me.magnum.melonds.utils.FileUtils
 
-class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat, private val uriPermissionManager: UriPermissionManager) {
+class PreferenceFragmentHelper(
+    private val fragment: PreferenceFragmentCompat,
+    private val uriPermissionManager: UriPermissionManager,
+    private val directoryAccessValidator: DirectoryAccessValidator
+) {
+
     companion object {
         private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->
             when (preference) {
@@ -89,7 +97,18 @@ class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat, p
 
     private fun setupDirectoryPickerPreference(storagePreference: StoragePickerPreference) {
         bindPreferenceSummaryToValue(storagePreference)
-        val filePickerLauncher = activity.registerForActivityResult(DirectoryPickerContract(storagePreference.permissions), storagePreference::onDirectoryPicked)
+        val filePickerLauncher = fragment.registerForActivityResult(DirectoryPickerContract(storagePreference.permissions), ActivityResultCallback {
+            if (it == null) {
+                return@ActivityResultCallback
+            }
+
+            // Validate directory access before update preference
+            if (directoryAccessValidator.getDirectoryAccessForPermission(it, storagePreference.permissions) == DirectoryAccessValidator.DirectoryAccessResult.OK) {
+                storagePreference.onDirectoryPicked(it)
+            } else {
+                showInvalidDirectoryAccessDialog()
+            }
+        })
         storagePreference.setOnPreferenceClickListener { preference ->
             val initialUri = preference.getPersistedStringSet(null)?.firstOrNull()?.toUri()
             filePickerLauncher.launch(initialUri)
@@ -100,14 +119,14 @@ class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat, p
                 (newValue as Set<String>?)?.firstOrNull()?.let {
                     uriPermissionManager.persistDirectoryPermissions(it.toUri(), storagePreference.permissions)
                 }
-                true
+                false
             }
         }
     }
 
     private fun setupFilePickerPreference(storagePreference: StoragePickerPreference) {
         bindPreferenceSummaryToValue(storagePreference)
-        val filePickerLauncher = activity.registerForActivityResult(FilePickerContract(storagePreference.permissions), storagePreference::onDirectoryPicked)
+        val filePickerLauncher = fragment.registerForActivityResult(FilePickerContract(storagePreference.permissions), storagePreference::onDirectoryPicked)
         storagePreference.setOnPreferenceClickListener { preference ->
             val initialUri = preference.getPersistedStringSet(null)?.firstOrNull()?.toUri()
             filePickerLauncher.launch(Pair(initialUri, storagePreference.mimeType?.let { arrayOf(it) }))
@@ -121,5 +140,14 @@ class PreferenceFragmentHelper(private val activity: PreferenceFragmentCompat, p
                 true
             }
         }
+    }
+
+    private fun showInvalidDirectoryAccessDialog() {
+        AlertDialog.Builder(fragment.requireContext())
+            .setTitle(R.string.error_invalid_directory)
+            .setMessage(R.string.error_invalid_directory_description)
+            .setPositiveButton(R.string.ok, null)
+            .setCancelable(true)
+            .show()
     }
 }

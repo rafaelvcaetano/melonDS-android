@@ -68,6 +68,8 @@
     <string name="microphone_permission_required_info">Audio recording permission is required to send microphone data to the emulator. Please grant access to storage on the next dialog.</string>
     <string name="no_rom_search_directory_specified">No ROM search directory specified</string>
     <string name="set_rom_directory">Set ROM directory</string>
+    <string name="error_invalid_directory">Invalid directory</string>
+    <string name="error_invalid_directory_description">It\'s not possible to write to the selected directory. Please select a different one. If you are selecting a compressed file, try extracting its contents.</string>
     <string name="info_no_storage_permission">Cannot load ROM without storage permission</string>
     <string name="no_roms_found">No ROMs found</string>
 

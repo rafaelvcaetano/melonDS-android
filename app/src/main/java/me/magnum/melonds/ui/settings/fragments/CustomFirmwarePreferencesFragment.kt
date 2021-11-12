@@ -8,6 +8,7 @@ import androidx.preference.ListPreference
 import com.smp.masterswitchpreference.MasterSwitchPreferenceFragment
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
+import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.domain.model.ConfigurationDirResult
 import me.magnum.melonds.domain.model.ConsoleType
@@ -21,8 +22,9 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class CustomFirmwarePreferencesFragment : MasterSwitchPreferenceFragment(), PreferenceFragmentTitleProvider {
     private val viewModel: SettingsViewModel by activityViewModels()
-    private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager) }
+    private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager, directoryAccessValidator) }
     @Inject lateinit var uriPermissionManager: UriPermissionManager
+    @Inject lateinit var directoryAccessValidator: DirectoryAccessValidator
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         super.onCreatePreferences(savedInstanceState, rootKey)

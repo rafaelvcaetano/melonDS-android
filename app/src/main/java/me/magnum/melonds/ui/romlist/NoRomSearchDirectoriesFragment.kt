@@ -8,8 +8,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.common.Permission
-import me.magnum.melonds.databinding.FragmentNoDirectoriesBinding
 import me.magnum.melonds.common.contracts.DirectoryPickerContract
+import me.magnum.melonds.databinding.FragmentNoDirectoriesBinding
 
 @AndroidEntryPoint
 class NoRomSearchDirectoriesFragment : Fragment() {

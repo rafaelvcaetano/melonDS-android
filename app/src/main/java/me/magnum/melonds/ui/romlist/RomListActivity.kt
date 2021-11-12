@@ -43,21 +43,23 @@ class RomListActivity : AppCompatActivity() {
 
     private val dsBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract(Permission.READ_WRITE)) { uri ->
         if (uri != null) {
-            viewModel.setDsBiosDirectory(uri)
-            selectedRom?.let {
-                loadRom(it)
-            } ?: selectedFirmwareConsole?.let {
-                bootFirmware(it)
+            if (viewModel.setDsBiosDirectory(uri)) {
+                selectedRom?.let {
+                    loadRom(it)
+                } ?: selectedFirmwareConsole?.let {
+                    bootFirmware(it)
+                }
             }
         }
     }
     private val dsiBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract(Permission.READ_WRITE)) { uri ->
         if (uri != null) {
-            viewModel.setDsiBiosDirectory(uri)
-            selectedRom?.let {
-                loadRom(it)
-            } ?: selectedFirmwareConsole?.let {
-                bootFirmware(it)
+            if (viewModel.setDsiBiosDirectory(uri)) {
+                selectedRom?.let {
+                    loadRom(it)
+                } ?: selectedFirmwareConsole?.let {
+                    bootFirmware(it)
+                }
             }
         }
     }
@@ -76,6 +78,9 @@ class RomListActivity : AppCompatActivity() {
                 addRomListFragment()
             else
                 addNoSearchDirectoriesFragment()
+        }
+        viewModel.invalidDirectoryAccessEvent.observe(this) {
+            showInvalidDirectoryAccessDialog()
         }
         updatesViewModel.getAppUpdate().observe(this) {
             showUpdateAvailableDialog(it)
@@ -328,5 +333,14 @@ class RomListActivity : AppCompatActivity() {
                         .show()
             }
         }
+    }
+
+    private fun showInvalidDirectoryAccessDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.error_invalid_directory)
+            .setMessage(R.string.error_invalid_directory_description)
+            .setPositiveButton(R.string.ok, null)
+            .setCancelable(true)
+            .show()
     }
 }

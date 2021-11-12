@@ -7,6 +7,7 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
+import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.ui.settings.PreferenceFragmentHelper
 import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
@@ -15,8 +16,9 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class SystemPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
 
-    private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager) }
+    private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager, directoryAccessValidator) }
     @Inject lateinit var uriPermissionManager: UriPermissionManager
+    @Inject lateinit var directoryAccessValidator: DirectoryAccessValidator
 
     private lateinit var customBiosPreference: Preference
 

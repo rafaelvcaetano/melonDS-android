@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
+import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.UriPermissionManager
@@ -19,6 +20,7 @@ import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.impl.RomIconProvider
+import me.magnum.melonds.utils.SingleLiveEvent
 import java.text.Normalizer
 import java.util.*
 import javax.inject.Inject
@@ -32,10 +34,14 @@ class RomListViewModel @Inject constructor(
         private val configurationDirectoryVerifier: ConfigurationDirectoryVerifier,
         private val uriHandler: UriHandler,
         private val uriPermissionManager: UriPermissionManager,
+        private val directoryAccessValidator: DirectoryAccessValidator,
         private val schedulers: Schedulers
 ) : ViewModel() {
 
     private val disposables: CompositeDisposable = CompositeDisposable()
+
+    private val _invalidDirectoryAccessEvent = SingleLiveEvent<Unit>()
+    val invalidDirectoryAccessEvent: LiveData<Unit> = _invalidDirectoryAccessEvent
 
     private val romsLiveData = MutableLiveData<List<Rom>>()
     private val hasSearchDirectoriesLiveData = MutableLiveData<Boolean>()
@@ -161,18 +167,50 @@ class RomListViewModel @Inject constructor(
     }
 
     fun addRomSearchDirectory(directoryUri: Uri) {
-        uriPermissionManager.persistDirectoryPermissions(directoryUri, Permission.READ_WRITE)
-        settingsRepository.addRomSearchDirectory(directoryUri)
+        val accessValidationResult = directoryAccessValidator.getDirectoryAccessForPermission(directoryUri, Permission.READ_WRITE)
+
+        if (accessValidationResult == DirectoryAccessValidator.DirectoryAccessResult.OK) {
+            uriPermissionManager.persistDirectoryPermissions(directoryUri, Permission.READ_WRITE)
+            settingsRepository.addRomSearchDirectory(directoryUri)
+        } else {
+            _invalidDirectoryAccessEvent.call()
+        }
     }
 
-    fun setDsBiosDirectory(uri: Uri) {
-        uriPermissionManager.persistDirectoryPermissions(uri, Permission.READ_WRITE)
-        settingsRepository.setDsBiosDirectory(uri)
+    /**
+     * Sets the DS BIOS directory to the given one if its access is validated.
+     *
+     * @return True if the directory access is validated and the directory is updated. False otherwise.
+     */
+    fun setDsBiosDirectory(uri: Uri): Boolean {
+        val accessValidationResult = directoryAccessValidator.getDirectoryAccessForPermission(uri, Permission.READ_WRITE)
+
+        return if (accessValidationResult == DirectoryAccessValidator.DirectoryAccessResult.OK) {
+            uriPermissionManager.persistDirectoryPermissions(uri, Permission.READ_WRITE)
+            settingsRepository.setDsBiosDirectory(uri)
+            true
+        } else {
+            _invalidDirectoryAccessEvent.call()
+            false
+        }
     }
 
-    fun setDsiBiosDirectory(uri: Uri) {
-        uriPermissionManager.persistDirectoryPermissions(uri, Permission.READ_WRITE)
-        settingsRepository.setDsiBiosDirectory(uri)
+    /**
+     * Sets the DSi BIOS directory to the given one if its access is validated.
+     *
+     * @return True if the directory access is validated and the directory is updated. False otherwise.
+     */
+    fun setDsiBiosDirectory(uri: Uri): Boolean {
+        val accessValidationResult = directoryAccessValidator.getDirectoryAccessForPermission(uri, Permission.READ_WRITE)
+
+        return if (accessValidationResult == DirectoryAccessValidator.DirectoryAccessResult.OK) {
+            uriPermissionManager.persistDirectoryPermissions(uri, Permission.READ_WRITE)
+            settingsRepository.setDsiBiosDirectory(uri)
+            true
+        } else {
+            _invalidDirectoryAccessEvent.call()
+            false
+        }
     }
 
     fun getRomIcon(rom: Rom): Single<RomIcon> {

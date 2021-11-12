@@ -9,6 +9,7 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SeekBarPreference
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
+import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.domain.model.SizeUnit
 import me.magnum.melonds.ui.settings.PreferenceFragmentHelper
@@ -22,8 +23,9 @@ import kotlin.math.pow
 class RomsPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
 
     private val viewModel: SettingsViewModel by activityViewModels()
-    private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager) }
+    private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager, directoryAccessValidator) }
     @Inject lateinit var uriPermissionManager: UriPermissionManager
+    @Inject lateinit var directoryAccessValidator: DirectoryAccessValidator
 
     private lateinit var clearRomCachePreference: Preference
 

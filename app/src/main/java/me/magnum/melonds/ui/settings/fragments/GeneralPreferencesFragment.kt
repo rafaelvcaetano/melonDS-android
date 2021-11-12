@@ -6,6 +6,7 @@ import androidx.preference.SwitchPreference
 import com.smp.masterswitchpreference.MasterSwitchPreference
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
+import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.extensions.isSustainedPerformanceModeAvailable
 import me.magnum.melonds.ui.settings.PreferenceFragmentHelper
@@ -15,8 +16,9 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class GeneralPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
 
-    private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager) }
+    private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager, directoryAccessValidator) }
     @Inject lateinit var uriPermissionManager: UriPermissionManager
+    @Inject lateinit var directoryAccessValidator: DirectoryAccessValidator
 
     private lateinit var rewindPreference: MasterSwitchPreference
 
