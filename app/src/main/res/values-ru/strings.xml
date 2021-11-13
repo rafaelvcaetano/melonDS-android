@@ -51,6 +51,7 @@
     <string name="save_states_not_supported">Сохранения недоступны во время запуска прошивки</string>
     <string name="rewind_time_seconds">%1$ss</string>
     <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string>
+    <string name="rewind_not_enabled">Перемотка назад не включена</string>
 
     <string name="action_sort_alphabetically">По алфавиту</string>
     <string name="action_sort_recently_played">Недавние</string>
@@ -99,7 +100,7 @@
     <string name="category_system_summary">Настройки прошивки, выбор BIOS, JIT</string>
     <string name="theme">Тема</string>
     <string name="fast_forward_max_speed">Макс. ускорение</string>
-    <string name="rewind_description">Включение активирует автоматическое сохранение через заданный период времени. При необходимости отмотать прогресс откройте меню перемотки и выберите сохранение, с которого хотите продолжить.\n\nУчитывайте, что включение данной функции может привести к появлению подтормаживаний, если ваше устройство недостаточно мощное. Также, потребуется значительный объём памяти в зависимости от длительности хранения и частоты создания сохранений.</string>    <string name="rewind_save_period">Частота сохранения</string>
+    <string name="rewind_description">Включение активирует автоматическое сохранение через заданный период времени. При необходимости отмотать прогресс откройте меню перемотки и выберите сохранение, с которого хотите продолжить.\n\nУчитывайте, что включение данной функции может привести к появлению подтормаживаний, если ваше устройство недостаточно мощное. Также, потребуется значительный объём памяти в зависимости от длительности хранения и частоты создания сохранений.</string>
     <string name="rewind_save_period">Частота сохранения</string>
     <string name="rewind_length">Буфер перемотки</string>
     <string name="rewind_max_memory_usage">Макс. объём памяти: %1$s</string>
