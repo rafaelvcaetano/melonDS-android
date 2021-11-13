@@ -1,0 +1,372 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">melonDS</string>
+
+    <string name="ok">OK</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="on">Вкл</string>
+    <string name="off">Выкл</string>
+    <string name="cancel">Отмена</string>
+    <string name="not_set">Не задано</string>
+    <string name="delete">Удалить</string>
+    <string name="edit">Изменить</string>
+    <string name="none">Нет</string>
+    <string name="options">Опции</string>
+    <string name="preview">Предпросмотр</string>
+    <string name="undo">Отмена</string>
+    <string name="update">Обновить</string>
+
+    <string name="version_alpha">Альфа</string>
+    <string name="version_beta">Бета</string>
+
+    <string name="console_ds">DS</string>
+    <string name="console_dsi">DSi (экспериментально)</string>
+
+    <string name="error_rom_not_found">Игра не найдена</string>
+    <string name="error_rom_not_found_info">Выбранный ROM не найден. Убедитесь, что файл присутствует в текущем каталоге поиска.</string>
+    <string name="error_load_rom">Не удалось загрузить игру</string>
+    <string name="error_load_rom_report_issue">Сгенерирован лог об ошибке, который может помочь устранить проблему. Создать на GitHub обращение с содержимым лога? Требуется аккаунт GitHub.</string>
+    <string name="title_emulator_running">Эмулятор запущен</string>
+    <string name="message_stop_emulation">Остановить эмуляцию и загрузить новый файл?</string>
+    <string name="error_load_gba_rom">Не удалось загрузить файл GBA</string>
+    <string name="action_search_roms">Поиск игр</string>
+    <string name="action_sort_roms">Сортировка</string>
+    <string name="action_boot_firmware">Загрузить прошивку</string>
+    <string name="action_refresh_rom_list">Обновить список игр</string>
+    <string name="hint_search_roms">Поиск игр…</string>
+    <string name="update_available">Доступно обновление: %1$s</string>
+    <string name="skip_update">Пропустить</string>
+    <string name="downloading_update">Загрузка обновления…</string>
+    <string name="starting_download">Запуск загрузки…</string>
+    <string name="download_progress_sizes">%1$.1fMB/%2$.1fMB</string>
+    <string name="update_download_failed">Не удалось загрузить обновление</string>
+
+    <string name="info_fps">FPS: %1$d</string>
+    <string name="info_loading">ЗАГРУЗКА…</string>
+    <string name="save_state_slot">%1$s.</string>
+    <string name="failed_save_state">Не удалось создать сохранение</string>
+    <string name="failed_load_state">Не удалось загрузить сохранение</string>
+    <string name="cant_load_empty_slot">Невозможно загрузить пустой слот сохранения</string>
+    <string name="failed_reset_emulation">Не удалось перезапустить эмуляцию</string>
+    <string name="save_states_not_supported">Сохранения недоступны во время запуска прошивки</string>
+    <string name="rewind_time_seconds">%1$ss</string>
+    <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string>
+
+    <string name="action_sort_alphabetically">По алфавиту</string>
+    <string name="action_sort_recently_played">Недавние</string>
+
+    <string name="ds_bios_dir_not_set">Не задан каталог DS BIOS</string>
+    <string name="ds_bios_dir_not_set_info">Не задан каталог DS BIOS. Укажите путь к каталогу с файлами:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="dsi_bios_dir_not_set">Не задан каталог DSi BIOS</string>
+    <string name="dsi_bios_dir_not_set_info">Не задан каталог DSi BIOS. Укажите путь к каталогу с файлами:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
+    <string name="incorrect_bios_dir">Неправильный каталог BIOS</string>
+    <string name="ds_incorrect_bios_dir_info">Неправильный каталог DS BIOS. Убедитесь, что выбранный каталог содержит файлы:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="dsi_incorrect_bios_dir_info">Неправильный каталог DSi BIOS. Убедитесь, что выбранный каталог содержит файлы:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
+    <string name="storage_permission_required">Требуется разрешение на доступ к памяти</string>
+    <string name="storage_permission_required_info">Для запуска игр с устройства требуется разрешение на доступ к памяти. Пожалуйста, предоставьте доступ к памяти в следующем окне.</string>
+    <string name="microphone_permission_required">Требуется разрешение на запись звука</string>
+    <string name="microphone_permission_required_info">Для передачи данных с микрофона эмулятору требуется разрешение на запись звука. Пожалуйста, предоставьте доступ к памяти в следующем окне.</string>
+    <string name="no_rom_search_directory_specified">Не указан каталог поиска игр</string>
+    <string name="set_rom_directory">Указать каталог игр</string>
+    <string name="error_invalid_directory">Неправильный каталог</string>
+    <string name="error_invalid_directory_description">Невозможно произвести запись в выбранный каталог. Пожалуйста, укажите другой. Если выбран архив, попробуйте извлечь его содержимое.</string>
+    <string name="info_no_storage_permission">Невозможно загрузить образ игры без разрешения на доступ к памяти</string>
+    <string name="no_roms_found">Игры не найдены</string>
+
+    <string name="press_any_button">Нажмите любую кнопку…</string>
+
+    <string name="choose_component">Выберите компонент</string>
+
+    <string name="pause">Пауза</string>
+    <string name="reset">Сброс</string>
+    <string name="exit">Выход</string>
+
+    <string name="settings">Настройки</string>
+    <string name="save_state">Сохранение</string>
+    <string name="load_state">Загрузка</string>
+    <string name="rewind">Перемотка</string>
+    <string name="save_slot">Слот сохранения</string>
+    <string name="empty_slot">%1$s. &lt;Пусто&gt;</string>
+    <string name="quick_slot">Быстрый слот</string>
+    <string name="saved">Сохранено</string>
+    <string name="loaded">Загружено</string>
+    <string name="title_activity_settings">Настройки</string>
+    <string name="category_general">Основные</string>
+    <string name="category_general_summary">Тема, общие настройки</string>
+    <string name="category_roms">Образы игр</string>
+    <string name="category_roms_summary">Каталог поиска, сглаживание иконок, настройки кэширования</string>
+    <string name="category_system">Система</string>
+    <string name="category_system_summary">Настройки прошивки, выбор BIOS, JIT</string>
+    <string name="theme">Тема</string>
+    <string name="fast_forward_max_speed">Макс. ускорение</string>
+    <string name="rewind_description">Включение активирует автоматическое сохранение через заданный период времени. При необходимости отмотать прогресс откройте меню перемотки и выберите сохранение, с которого хотите продолжить.\n\nУчитывайте, что включение данной функции может привести к появлению подтормаживаний, если ваше устройство недостаточно мощное. Также, потребуется значительный объём памяти в зависимости от длительности хранения и частоты создания сохранений.</string>    <string name="rewind_save_period">Частота сохранения</string>
+    <string name="rewind_save_period">Частота сохранения</string>
+    <string name="rewind_length">Буфер перемотки</string>
+    <string name="rewind_max_memory_usage">Макс. объём памяти: %1$s</string>
+    <string name="rewind_memory_usage_above_recommended_limit">Превышен рекомендуемый объём памяти</string>
+    <string name="sustained_performance_mode">Режим устойчивой производительности</string>
+    <string name="sustained_performance_mode_summary">При включении снижает пиковую производительность и уменьшает троттлинг.</string>
+    <string name="rom_icon_filtering">Сглаживание иконок</string>
+    <string name="max_rom_cache_size">Макс. размер кэша игр</string>
+    <string name="clear_extracted_rom_cache">Удалить кэш извлечённых  игр</string>
+    <string name="cache_size">Размер кэша: %s</string>
+    <string name="cache_size_calculating">Размер кэша: вычисление…</string>
+    <string name="rom_search_directory">Каталог поиска</string>
+    <string name="console_type">Система по умолчанию</string>
+    <string name="internal_firmware_settings">Настройки прошивки</string>
+    <string name="internal_firmware_settings_summary">Параметры встроенного программного обеспечения.</string>
+    <string name="custom_bios_firmware">Ручная установка BIOS и прошивки</string>
+    <string name="custom_bios_firmware_description">Использование внешних BIOS и прошивки позволяет запускать и настраивать прошивку DS без загрузки игры, как на реальной системе.\n\n.Требуются копии BIOS и прошивки, снятые с консоли.\n\nОбразы BIOS и прошивки необходимы для поддержки DSi.</string>
+    <string name="bios_directory">Каталог DS BIOS</string>
+    <string name="dsi_bios_directory">Каталог DSi BIOS</string>
+    <string name="show_boot_screen">Показывать экран загрузки</string>
+    <string name="mac_address">MAC-адрес</string>
+    <string name="randomize_mac_address">Случайный MAC-адрес</string>
+    <string name="randomize_mac_address_summary">Если включено, при каждой загрузке будет использоваться случайный MAC-адрес. Это может привести к тому, что некоторые игры будут определять, что они запущены на другой системе и к сбоям событий с привязкой ко времени.</string>
+    <string name="generate_new_mac_address">Сгенерировать новый</string>
+    <string name="generate_new_mac_address_description">Создание нового MAC-адреса может привести  к тому, что игры будут определять, что они запущены на другой системе.</string>
+    <string name="enable_jit">Включить JIT</string>
+    <string name="enable_jit_summary">Улучшает производительность, но может вызывать подвисания и вылеты.</string>
+    <string name="jit_not_supported">JIT доступен для 64-битных устройств.</string>
+    <string name="threaded_rendering">Рендеринг в отдельном потоке</string>
+    <string name="fps_counter_position">Положение счётчика FPS</string>
+    <string name="threaded_rendering_summary">Повышает производительность в 3D-играх, но может приводить к ошибкам графики.</string>
+    <string name="category_video">Видео</string>
+    <string name="category_video_summary">Сглаживание, рендеринг в отдельном потоке, счётчик FPS</string>
+    <string name="filter">Сглаживание</string>
+    <string name="category_audio">Аудио</string>
+    <string name="category_audio_summary">Громкость, задержка, источник микрофона</string>
+    <string name="enable_sound">Включить звук</string>
+    <string name="interpolation">Интерполяция</string>
+    <string name="bitrate">Битрейт</string>
+    <string name="volume">Громкость</string>
+    <string name="volume_percentage">%1$d%%</string>
+    <string name="audio_latency">Задержка звука</string>
+    <string name="microphone_source">Источник микрофона</string>
+    <string name="controller_layout">Раскладка контроллера</string>
+    <string name="category_save_files">Сохранения</string>
+    <string name="category_save_files_summary">Расположение файлов сохранений</string>
+    <string name="save_next_rom">Сохранять в каталог с игрой</string>
+    <string name="save_file_directory">Каталог сохранений</string>
+    <string name="save_state_location">Расположение быстрых сохранений</string>
+    <string name="input">Ввод</string>
+    <string name="input_summary">Привязки кнопок, раскладки, тактильная отдача</string>
+    <string name="key_mapping">Привязки кнопок</string>
+    <string name="key_mapping_summary">Назначить кнопки контроллера</string>
+    <string name="show_soft_input">Экранные кнопки</string>
+    <string name="vibrate_on_touch">Вибрация при касании</string>
+    <string name="vibration_strength">Сила вибрации</string>
+    <string name="soft_input_opacity">Видимость экранных кнопок</string>
+    <string name="cheats">Чит-коды</string>
+    <string name="cheats_summary">Активация и импорт чит-кодов</string>
+    <string name="enable_cheats">Включить чит-коды</string>
+    <string name="cheats_database">База чит-кодов (в формате XML)</string>
+    <string name="import_cheats">Импорт чит-кодов</string>
+    <string name="import_cheats_summary">Для доступа к чит-кодам импортируйте их из внешней базы. Поддерживаются только файлы в формате XML. Все ранее добавленные коды будут удалены.</string>
+    <string name="rom_shortcut">Ярлык для игры</string>
+
+    <string name="firmware_nickname">Никнейм</string>
+    <string name="firmware_message">Сообщение</string>
+    <string name="firmware_language">Язык</string>
+    <string name="firmware_favourite_colour">Любимый цвет</string>
+    <string name="firmware_birthday">Дата рождения</string>
+
+    <string name="error_clear_rom_cache">Не удалось очистить кэш игр</string>
+    <string name="importing_cheats">Импортирование чит-кодов…</string>
+    <string name="starting">Запуск…</string>
+    <string name="move_to_background">Переместить на задний план</string>
+    <string name="failed_save_cheat_changes">Не удалось сохранить изменения чит-кода</string>
+    <string name="no_cheats_found">Не найдены чит-коды для текущей игры. Попробуйте импортировать другую базу.</string>
+    <string name="day">День</string>
+    <string name="month">Месяц</string>
+    <string name="symbol_increase">+</string>
+    <string name="symbol_decrease">-</string>
+
+    <string name="rom_settings">Настройки игры</string> <!-- Accessibility string. Should not use acronyms -->
+    <string name="label_rom_config_console">Система загрузки</string>
+    <string name="label_rom_config_load_gba_rom">Загрузить файл GBA</string>
+    <string name="label_rom_config_gba_rom_path">Путь к файлу GBA</string>
+    <string name="label_rom_config_gba_save_path">Путь к сохранению GBA</string>
+
+    <string name="theme_option_light">Светлая</string>
+    <string name="theme_option_dark">Тёмная</string>
+    <string name="theme_option_system_default">Системная</string>
+
+    <string name="notification_channel_background_tasks">Фоновые задачи</string>
+
+    <string name="top_screen">Верхний экран</string>
+    <string name="bottom_screen">Нижний экран</string>
+    <string name="input_a">A</string>
+    <string name="input_b">B</string>
+    <string name="input_x">X</string>
+    <string name="input_y">Y</string>
+    <string name="input_left">Влево</string>
+    <string name="input_right">Вправо</string>
+    <string name="input_up">Вверх</string>
+    <string name="input_down">Вниз</string>
+    <string name="input_l">L</string>
+    <string name="input_r">R</string>
+    <string name="input_start">Start</string>
+    <string name="input_select">Select</string>
+    <string name="input_lid">Закрыть крышку</string>
+    <string name="input_pause">Пауза</string>
+    <string name="input_fast_forward">Ускорить (переключение)</string>
+    <string name="input_toggle_soft_input">Экранные кнопки</string>
+    <string name="input_reset">@string/reset</string>
+    <string name="input_dpad">DPAD</string>
+    <string name="input_abxy_buttons">Кнопки ABXY</string>
+    <string name="input_swap_screens">Поменять экраны</string>
+    <string name="input_quick_save">Быстрое сохранение</string>
+    <string name="input_quick_load">Быстрая загрузка</string>
+
+    <string name="layouts">Раскладки</string>
+    <string name="layouts_summary">Настройка пользовательских раскладок</string>
+    <string name="action_layouts_new">Новая раскладка</string>
+    <string name="default_layout_name">По умолчанию</string>
+    <string name="use_global_layout">Глобальная раскладка</string>
+    <string name="layout_deleted">Раскладка удалена</string>
+
+    <string name="layout_editor">Редактор раскладки</string>
+    <string name="add_component">Добавить компонент</string>
+    <string name="no_more_components">Нет компонентов для добавления</string>
+    <string name="label_size">Размер:</string>
+    <string name="menu">Меню</string>
+    <string name="properties">Свойства</string>
+    <string name="revert_changes">Отменить изменения</string>
+    <string name="reset_default">Сброс к стандартным</string>
+    <string name="exit_without_saving">Закрыть без сохранения</string>
+    <string name="portrait_background">Фон в портрете</string>
+    <string name="portrait_background_mode">Режим фона в портрете</string>
+    <string name="landscape_background">Фон в ландшафте</string>
+    <string name="landscape_background_mode">Режим фона в ландшафте</string>
+    <string name="save_and_exit">Сохранить и выйти</string>
+    <string name="layout_name">Имя раскладки</string>
+    <string name="layout_orientation">Ориентация раскладки</string>
+    <string name="layout_use_default_opacity">Исп. видимость по умолчанию</string>
+    <string name="layout_opacity">Видимость раскладки</string>
+    <string name="layout_background_load_failed">Не удалось загрузить фон</string>
+
+    <string name="backgrounds">Задний фон</string>
+    <string name="action_backgrounds_new">Новый фон</string>
+    <string name="background_name">Имя фона</string>
+    <string name="background_deleted">Фон удалён</string>
+    <string name="background_add_wrong_orientation">Фон добавлен, но не отображается в выбранной ориентации.</string>
+    <string name="background_add_processing_failed">Не удалось обработать выбранное изображение. Убедитесь, что файл не повреждён.</string>
+
+    <string-array name="theme_options" tools:ignore="InconsistentArrays">
+        <item>@string/theme_option_light</item>
+        <item>@string/theme_option_dark</item>
+    </string-array>
+
+    <string-array name="fast_forward_speed_multiplier_options" tools:ignore="InconsistentArrays">
+        <item>Без ограничения</item>
+        <item>1.5x</item>
+        <item>2x</item>
+        <item>3x</item>
+        <item>4x</item>
+        <item>8x</item>
+    </string-array>
+
+    <string-array name="rom_icon_filtering_options">
+        <item>Нет (пиксельно)</item>
+        <item>Линейное (сглажено)</item>
+    </string-array>
+
+    <string-array name="game_runtime_console_type_options">
+        <item>По умолчанию</item>
+        <item>@string/console_ds</item>
+        <item>@string/console_dsi</item>
+    </string-array>
+
+    <string-array name="firmware_settings_language_options">
+        <item>Английский</item>
+        <item>Французский</item>
+        <item>Немецкий</item>
+        <item>Итальянский</item>
+        <item>Испанский</item>
+        <item>Японский</item>
+    </string-array>
+
+    <string-array name="game_runtime_mic_source_options">
+        <item>По умолчанию</item>
+        <item>Нет</item>
+        <item>Подуть</item>
+        <item>Микрофон устройства</item>
+    </string-array>
+
+    <string-array name="console_type_options">
+        <item>@string/console_ds</item>
+        <item>@string/console_dsi</item>
+    </string-array>
+
+    <string-array name="fps_counter_position_options">
+        <item>Скрывать</item>
+        <item>Вверху слева</item>
+        <item>Вверху по центру</item>
+        <item>Вверху справа</item>
+        <item>Внизу слева</item>
+        <item>Внизу по центру</item>
+        <item>Внизу справа</item>
+    </string-array>
+
+    <string-array name="video_filtering_options">
+        <item>Нет</item>
+        <item>Линейное</item>
+        <item>2xBR</item>
+        <item>HQ2X</item>
+        <item>HQ4X</item>
+        <item>Quilez</item>
+        <item>LCD</item>
+    </string-array>
+
+    <string-array name="audio_interpolation_options">
+        <item>Нет</item>
+        <item>Линейная</item>
+        <item>Косинусная</item>
+        <item>Кубическая</item>
+    </string-array>
+
+    <string-array name="audio_bitrate_options">
+        <item>Автоматически</item>
+        <item>10-бит</item>
+        <item>16-бит</item>
+    </string-array>
+
+    <string-array name="audio_latency_options">
+        <item>Низкая (медленнее)</item>
+        <item>Средняя</item>
+        <item>Высокая (быстрее)</item>
+    </string-array>
+
+    <string-array name="mic_source_options">
+        <item>Нет</item>
+        <item>Подуть</item>
+        <item>Микрофон устройства</item>
+    </string-array>
+
+    <string-array name="save_state_locations">
+        <item>Каталог сохранений</item>
+        <item>Каталог игры</item>
+        <item>Внутренний каталог</item>
+    </string-array>
+
+    <string-array name="layout_orientation_options">
+        <item>Системная</item>
+        <item>Портретная</item>
+        <item>Ландшафтная</item>
+    </string-array>
+
+    <string-array name="background_portrait_mode_options">
+        <item>Растянуть</item>
+        <item>По центру</item>
+        <item>По верху</item>
+        <item>По низу</item>
+    </string-array>
+
+    <string-array name="background_landscape_mode_options">
+        <item>Растянуть</item>
+        <item>По центру</item>
+        <item>По левой стороне</item>
+        <item>По правой стороне</item>
+    </string-array>
+</resources>
