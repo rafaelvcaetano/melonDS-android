@@ -71,7 +71,6 @@
     <string name="set_rom_directory">Set ROM directory</string>
     <string name="error_invalid_directory">Invalid directory</string>
     <string name="error_invalid_directory_description">It\'s not possible to write to the selected directory. Please select a different one. If you are selecting a compressed file, try extracting its contents.</string>
-    <string name="info_no_storage_permission">Cannot load ROM without storage permission</string>
     <string name="no_roms_found">No ROMs found</string>
 
     <string name="press_any_button">Press any button…</string>

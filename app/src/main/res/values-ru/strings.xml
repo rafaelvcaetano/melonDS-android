@@ -71,7 +71,6 @@
     <string name="set_rom_directory">Указать каталог игр</string>
     <string name="error_invalid_directory">Неправильный каталог</string>
     <string name="error_invalid_directory_description">Невозможно произвести запись в выбранный каталог. Пожалуйста, укажите другой. Если выбран архив, попробуйте извлечь его содержимое.</string>
-    <string name="info_no_storage_permission">Невозможно загрузить образ игры без разрешения на доступ к памяти</string>
     <string name="no_roms_found">Игры не найдены</string>
 
     <string name="press_any_button">Нажмите любую кнопку…</string>

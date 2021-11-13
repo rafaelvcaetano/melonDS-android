@@ -2,7 +2,6 @@ package me.magnum.melonds.ui.romlist
 
 import android.app.SearchManager
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -29,8 +28,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class RomListActivity : AppCompatActivity() {
     companion object {
-        private const val REQUEST_STORAGE_PERMISSION = 1
-
         private const val FRAGMENT_ROM_LIST = "ROM_LIST"
         private const val FRAGMENT_NO_ROM_DIRECTORIES = "NO_ROM_DIRECTORY"
     }
@@ -159,20 +156,6 @@ class RomListActivity : AppCompatActivity() {
             }
         }
         return false
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode != REQUEST_STORAGE_PERMISSION)
-            return
-
-        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            selectedRom?.let {
-                loadRom(it)
-            }
-        } else
-            Toast.makeText(this, getString(R.string.info_no_storage_permission), Toast.LENGTH_LONG).show()
     }
 
     private fun addNoSearchDirectoriesFragment() {
