@@ -15,6 +15,7 @@ interface SettingsRepository {
     fun isSustainedPerformanceModeEnabled(): Boolean
 
     fun getRomSearchDirectories(): Array<Uri>
+    fun clearRomSearchDirectories()
     fun getRomIconFiltering(): RomIconFiltering
     fun getRomCacheMaxSize(): SizeUnit
 

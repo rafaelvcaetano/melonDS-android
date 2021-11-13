@@ -136,6 +136,12 @@ class SharedPreferencesSettingsRepository(
         return dirPreference?.map { it.toUri() }?.toTypedArray() ?: emptyArray()
     }
 
+    override fun clearRomSearchDirectories() {
+        preferences.edit {
+            putStringSet("rom_search_dirs", null)
+        }
+    }
+
     override fun getRomIconFiltering(): RomIconFiltering {
         val romIconFilteringPreference = preferences.getString("rom_icon_filtering", "linear")!!
         return enumValueOfIgnoreCase(romIconFilteringPreference)
