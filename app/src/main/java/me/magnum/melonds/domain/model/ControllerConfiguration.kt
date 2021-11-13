@@ -23,7 +23,8 @@ class ControllerConfiguration(configList: List<InputConfig>) {
                 Input.RESET,
                 Input.SWAP_SCREENS,
                 Input.QUICK_SAVE,
-                Input.QUICK_LOAD
+                Input.QUICK_LOAD,
+                Input.REWIND
         )
 
         fun empty(): ControllerConfiguration {

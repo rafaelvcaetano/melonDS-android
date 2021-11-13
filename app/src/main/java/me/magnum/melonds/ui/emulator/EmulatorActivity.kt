@@ -117,7 +117,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
         override fun onPausePressed() {
             if (emulatorReady) {
-                pauseEmulation()
+                showPauseMenu()
             }
         }
 
@@ -142,6 +142,15 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
         override fun onQuickLoad() {
             performQuickLoad()
+        }
+
+        override fun onRewind() {
+            if (viewModel.isRewindEnabled()) {
+                pauseEmulation()
+                openRewindWindow()
+            } else {
+                Toast.makeText(this@EmulatorActivity, R.string.rewind_not_enabled, Toast.LENGTH_SHORT).show()
+            }
         }
     }
     private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -394,6 +403,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_SWAP_SCREENS)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.SWAP_SCREENS, enableHapticFeedback, touchVibrator))
             binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_QUICK_SAVE)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.QUICK_SAVE, enableHapticFeedback, touchVibrator))
             binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_QUICK_LOAD)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.QUICK_LOAD, enableHapticFeedback, touchVibrator))
+            binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BUTTON_REWIND)?.view?.setOnTouchListener(SingleButtonInputHandler(frontendInputHandler, Input.REWIND, enableHapticFeedback, touchVibrator))
 
             binding.viewLayoutControls.getLayoutComponentViews().forEach {
                 if (!it.component.isScreen()) {
@@ -463,26 +473,29 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             if (isRewindWindowOpen()) {
                 closeRewindWindow()
             } else {
-                this.pauseEmulation()
+                this.showPauseMenu()
             }
         } else {
             super.onBackPressed()
         }
     }
 
-    fun pauseEmulation() {
-        emulatorPaused = true
+    private fun showPauseMenu() {
+        pauseEmulation()
         val values = delegate.getPauseMenuOptions()
         val options = Array(values.size) { i -> getString(values[i].textResource) }
-
-        MelonEmulator.pauseEmulation()
-        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         AlertDialog.Builder(this)
                 .setTitle(R.string.pause)
                 .setItems(options) { _, which -> delegate.onPauseMenuOptionSelected(values[which]) }
                 .setOnCancelListener { resumeEmulation() }
                 .show()
+    }
+
+    private fun pauseEmulation() {
+        emulatorPaused = true
+        MelonEmulator.pauseEmulation()
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     fun resumeEmulation() {
@@ -551,7 +564,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         rewindSaveStateAdapter.setRewindWindow(rewindWindow)
     }
 
-    fun closeRewindWindow() {
+    private fun closeRewindWindow() {
         binding.root.transitionToState(R.id.rewind_hidden)
         MelonEmulator.resumeEmulation()
     }

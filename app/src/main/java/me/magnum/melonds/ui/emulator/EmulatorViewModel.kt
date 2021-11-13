@@ -157,6 +157,10 @@ class EmulatorViewModel @Inject constructor(
         return settingsRepository.isTouchHapticFeedbackEnabled()
     }
 
+    fun isRewindEnabled(): Boolean {
+        return settingsRepository.isRewindEnabled()
+    }
+
     fun getRomLoader(rom: Rom): Single<Pair<Rom, Uri>> {
         val fileRomProcessor = romFileProcessorFactory.getFileRomProcessorForDocument(rom.uri)
         // ?.flatMap { WfcRomPatcher().patchRom(rom, it).andThen(Single.just(it)) }

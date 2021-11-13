@@ -21,6 +21,7 @@ fun getLayoutComponentName(layoutComponent: LayoutComponent): Int {
         LayoutComponent.BUTTON_SWAP_SCREENS -> R.string.input_swap_screens
         LayoutComponent.BUTTON_QUICK_SAVE -> R.string.input_quick_save
         LayoutComponent.BUTTON_QUICK_LOAD -> R.string.input_quick_load
+        LayoutComponent.BUTTON_REWIND -> R.string.rewind
         else -> -1
     }
 }

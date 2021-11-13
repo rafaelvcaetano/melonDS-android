@@ -30,7 +30,8 @@ enum class Input(val keyCode: Int) {
     TOGGLE_SOFT_INPUT(-1),
     SWAP_SCREENS(-1),
     QUICK_SAVE(-1),
-    QUICK_LOAD(-1);
+    QUICK_LOAD(-1),
+    REWIND(-1);
 
     val isSystemInput: Boolean
         get() = keyCode != -1

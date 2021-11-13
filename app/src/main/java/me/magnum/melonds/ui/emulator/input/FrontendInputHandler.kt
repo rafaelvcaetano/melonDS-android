@@ -13,6 +13,7 @@ abstract class FrontendInputHandler : IInputListener {
             Input.SWAP_SCREENS -> onSwapScreens()
             Input.QUICK_SAVE -> onQuickSave()
             Input.QUICK_LOAD -> onQuickLoad()
+            Input.REWIND -> onRewind()
         }
     }
 
@@ -29,4 +30,5 @@ abstract class FrontendInputHandler : IInputListener {
     abstract fun onSwapScreens()
     abstract fun onQuickSave()
     abstract fun onQuickLoad()
+    abstract fun onRewind()
 }
