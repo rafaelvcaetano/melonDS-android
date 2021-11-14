@@ -64,6 +64,15 @@ jobs:
           asset_name: melonDS-${{ steps.release_params.outputs.ASSET_NAME }}.apk
           asset_content_type: application/vnd.android.package-archive
 
+      - name: Upload APK, Mapping and Debug Symbols
+        uses: actions/upload-artifact@v2
+        with:
+          name: github-release
+          path: |
+            app/build/outputs/apk/gitHub/release/app-gitHub-release.apk
+            app/build/outputs/mapping/gitHubRelease/mapping.txt
+            app/build/outputs/native-debug-symbols/gitHubRelease/native-debug-symbols.zip
+
   playstore-release:
     runs-on: ubuntu-latest
 
@@ -109,3 +118,12 @@ jobs:
           inAppUpdatePriority: 2
           whatsNewDirectory: ./.github/changelog/playStore
           mappingFile: app/build/outputs/mapping/playStoreRelease/mapping.txt
+
+      - name: Upload APK, Mapping and Debug Symbols
+        uses: actions/upload-artifact@v2
+        with:
+          name: playstore-release
+          path: |
+            app/build/outputs/apk/playStore/release/app-playStore-release.apk
+            app/build/outputs/mapping/playStoreRelease/mapping.txt
+            app/build/outputs/native-debug-symbols/playStoreRelease/native-debug-symbols.zip
