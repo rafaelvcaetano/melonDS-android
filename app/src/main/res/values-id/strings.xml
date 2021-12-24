@@ -285,7 +285,6 @@
         <item>Italia</item>
         <item>Spanyol</item>
         <item>Jepang</item>
-        <item>Bahasa Indonesia</item>
     </string-array>
 
     <string-array name="game_runtime_mic_source_options">
