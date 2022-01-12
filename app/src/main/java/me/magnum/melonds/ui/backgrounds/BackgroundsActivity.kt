@@ -2,7 +2,6 @@ package me.magnum.melonds.ui.backgrounds
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.BitmapRegionDecoder
 import android.graphics.PorterDuff
 import android.net.Uri
 import android.os.Bundle

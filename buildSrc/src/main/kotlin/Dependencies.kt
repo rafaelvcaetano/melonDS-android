@@ -8,7 +8,7 @@ object Dependencies {
         const val Core = "1.6.0"
         const val Desugar = "1.1.5"
         const val DocumentFile = "1.0.1"
-        const val Flexbox = "2.0.1"
+        const val Flexbox = "3.0.0"
         const val Fragment = "1.3.5"
         const val Gradle = "7.0.0"
         const val Gson = "2.8.6"
@@ -70,7 +70,7 @@ object Dependencies {
 
     object ThirdParty {
         const val masterSwitchPreference = "com.github.svenoaks:MasterSwitchPreference:${Versions.MasterSwitchPreference}"
-        const val flexbox = "com.google.android:flexbox:${Versions.Flexbox}"
+        const val flexbox = "com.google.android.flexbox:flexbox:${Versions.Flexbox}"
         const val gson = "com.google.code.gson:gson:${Versions.Gson}"
         const val hilt = "com.google.dagger:hilt-android:${Versions.Hilt}"
         const val picasso = "com.squareup.picasso:picasso:${Versions.Picasso}"
