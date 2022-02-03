@@ -225,6 +225,10 @@ class RomListViewModel @Inject constructor(
             }
     }
 
+    fun getUriDocumentName(uri: Uri): String? {
+        return uriHandler.getUriDocument(uri)?.name
+    }
+
     private fun buildAlphabeticalRomComparator(): Comparator<Rom> {
         return if (sortingOrder == SortingOrder.ASCENDING) {
             Comparator { o1: Rom, o2: Rom ->

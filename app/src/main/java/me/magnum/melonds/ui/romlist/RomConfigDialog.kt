@@ -25,7 +25,6 @@ import me.magnum.melonds.parcelables.RomConfigParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.layouts.LayoutSelectorActivity
 import me.magnum.melonds.common.contracts.FilePickerContract
-import me.magnum.melonds.utils.FileUtils
 import me.magnum.melonds.extensions.isMicrophonePermissionGranted
 import java.util.*
 
@@ -212,7 +211,7 @@ class RomConfigDialog : DialogFragment() {
     }
 
     private fun getUriPathOrDefault(uri: Uri?): String {
-        return FileUtils.getAbsolutePathFromSAFUri(requireContext(), uri) ?: getString(R.string.not_set)
+        return uri?.let { romListViewModel.getUriDocumentName(it) } ?: getString(R.string.not_set)
     }
 
     override fun onStop() {
