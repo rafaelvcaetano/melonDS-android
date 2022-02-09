@@ -115,6 +115,7 @@ dependencies {
         implementation(recyclerView)
         implementation(room)
         implementation(roomRxJava)
+        implementation(splashscreen)
         implementation(swipeRefreshLayout)
         implementation(work)
         implementation(workRxJava)

@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.getSystemService
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.commit
 import dagger.hilt.android.AndroidEntryPoint
 import io.noties.markwon.Markwon
@@ -65,7 +66,7 @@ class RomListActivity : AppCompatActivity() {
     private var selectedFirmwareConsole: ConsoleType? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.AppTheme)
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         val binding = ActivityRomListBinding.inflate(layoutInflater)
         setContentView(binding.root)
