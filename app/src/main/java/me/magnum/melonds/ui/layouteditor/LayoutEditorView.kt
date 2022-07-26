@@ -2,6 +2,7 @@ package me.magnum.melonds.ui.layouteditor
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import me.magnum.melonds.domain.model.*
@@ -54,6 +55,20 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
 
     fun buildCurrentLayout(): UILayout {
         return UILayout(views.values.map { PositionedLayoutComponent(it.getRect(), it.component) })
+    }
+
+    fun handleKeyDown(event: KeyEvent): Boolean {
+        val currentlySelectedView = selectedView ?: return false
+
+        when (event.keyCode) {
+            KeyEvent.KEYCODE_DPAD_UP -> dragView(currentlySelectedView, 0f, -1f)
+            KeyEvent.KEYCODE_DPAD_DOWN -> dragView(currentlySelectedView, 0f, 1f)
+            KeyEvent.KEYCODE_DPAD_LEFT -> dragView(currentlySelectedView, -1f, 0f)
+            KeyEvent.KEYCODE_DPAD_RIGHT -> dragView(currentlySelectedView, 1f, 0f)
+            else -> return false
+        }
+
+        return true
     }
 
     override fun setOnClickListener(l: OnClickListener?) {

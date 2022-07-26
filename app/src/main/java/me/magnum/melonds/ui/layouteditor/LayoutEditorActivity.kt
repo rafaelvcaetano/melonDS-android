@@ -3,6 +3,7 @@ package me.magnum.melonds.ui.layouteditor
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.KeyEvent
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -116,6 +117,16 @@ class LayoutEditorActivity : AppCompatActivity() {
         setupFullscreen()
         instantiateLayout()
         hideScalingControls(false)
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (event == null) return super.onKeyDown(keyCode, event)
+
+        return if (binding.viewLayoutEditor.handleKeyDown(event)) {
+            true
+        } else {
+            super.onKeyDown(keyCode, event)
+        }
     }
 
     override fun onBackPressed() {
