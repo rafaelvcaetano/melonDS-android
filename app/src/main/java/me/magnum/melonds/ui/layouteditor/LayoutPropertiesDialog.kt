@@ -70,6 +70,7 @@ class LayoutPropertiesDialog : DialogFragment() {
 
         binding.layoutName.setOnClickListener {
             TextInputDialog.Builder()
+                    .setTitle(getString(R.string.layout_name))
                     .setText(layoutName)
                     .setOnConfirmListener {
                         setLayoutName(it)

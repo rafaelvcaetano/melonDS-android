@@ -13,11 +13,13 @@ import me.magnum.melonds.databinding.DialogTextInputBinding
 
 class TextInputDialog : DialogFragment() {
     companion object {
+        private const val KEY_TITLE = "title"
         private const val KEY_TEXT = "text"
     }
 
     private lateinit var binding: DialogTextInputBinding
 
+    private var title: String? = null
     private var startText: String? = null
     private var onConfirmListener: ((String) -> Unit)? = null
     private var onCancelListener: (() -> Unit)? = null
@@ -26,8 +28,10 @@ class TextInputDialog : DialogFragment() {
         super.onCreate(savedInstanceState)
 
         if (savedInstanceState != null) {
+            title = savedInstanceState.getString(KEY_TITLE)
             startText = savedInstanceState.getString(KEY_TEXT)
         } else {
+            title = arguments?.getString(KEY_TITLE)
             startText = arguments?.getString(KEY_TEXT)
         }
     }
@@ -35,7 +39,7 @@ class TextInputDialog : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         binding = DialogTextInputBinding.inflate(layoutInflater)
         val dialog = AlertDialog.Builder(requireContext())
-                .setTitle(R.string.layout_name)
+                .setTitle(title)
                 .setView(binding.root)
                 .setPositiveButton(R.string.ok) { _, _ ->
                     val text = binding.editText.text.toString()
@@ -64,6 +68,7 @@ class TextInputDialog : DialogFragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        outState.putString(KEY_TITLE, title)
         outState.putString(KEY_TEXT, binding.editText.text.toString())
     }
 
@@ -86,9 +91,15 @@ class TextInputDialog : DialogFragment() {
     }
 
     class Builder {
+        private var title: String? = null
         private var text: String? = null
         private var onConfirmListener: ((String) -> Unit)? = null
         private var onCancelListener: (() -> Unit)? = null
+
+        fun setTitle(title: String?): Builder {
+            this.title = title
+            return this
+        }
 
         fun setText(text: String?): Builder {
             this.text = text
@@ -109,7 +120,10 @@ class TextInputDialog : DialogFragment() {
             return TextInputDialog().apply {
                 this@Builder.onConfirmListener?.let { setOnConfirmListener(it) }
                 this@Builder.onCancelListener?.let { setOnCancelListener(it) }
-                arguments = bundleOf(KEY_TEXT to text)
+                arguments = bundleOf(
+                    KEY_TITLE to title,
+                    KEY_TEXT to text
+                )
             }
         }
     }

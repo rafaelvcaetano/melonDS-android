@@ -349,6 +349,7 @@ class LayoutEditorActivity : AppCompatActivity() {
 
     private fun showLayoutNameInputDialog() {
         TextInputDialog.Builder()
+                .setTitle(getString(R.string.layout_name))
                 .setOnConfirmListener {
                     viewModel.setCurrentLayoutName(it)
                     saveLayoutAndExit()
