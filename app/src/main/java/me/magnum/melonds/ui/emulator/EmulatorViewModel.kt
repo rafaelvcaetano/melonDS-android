@@ -11,6 +11,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import kotlinx.coroutines.rx2.rxMaybe
 import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.uridelegates.UriHandler
@@ -206,11 +207,15 @@ class EmulatorViewModel @Inject constructor(
     }
 
     fun getRomAtPath(path: String): Maybe<Rom> {
-        return romsRepository.getRomAtPath(path)
+        return rxMaybe {
+            romsRepository.getRomAtPath(path)
+        }
     }
 
     fun getRomAtUri(uri: Uri): Maybe<Rom> {
-        return romsRepository.getRomAtUri(uri)
+        return rxMaybe {
+            romsRepository.getRomAtUri(uri)
+        }
     }
 
     fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {

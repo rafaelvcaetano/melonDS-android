@@ -1,13 +1,15 @@
 package me.magnum.melonds.ui.romlist
 
 import android.net.Uri
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.Schedulers
@@ -20,7 +22,8 @@ import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.impl.RomIconProvider
-import me.magnum.melonds.utils.SingleLiveEvent
+import me.magnum.melonds.utils.EventSharedFlow
+import me.magnum.melonds.utils.SubjectSharedFlow
 import java.text.Normalizer
 import java.util.*
 import javax.inject.Inject
@@ -40,70 +43,67 @@ class RomListViewModel @Inject constructor(
 
     private val disposables: CompositeDisposable = CompositeDisposable()
 
-    private val _invalidDirectoryAccessEvent = SingleLiveEvent<Unit>()
-    val invalidDirectoryAccessEvent: LiveData<Unit> = _invalidDirectoryAccessEvent
+    private val _searchQuery = MutableStateFlow("")
+    private val _sortingMode = MutableStateFlow(settingsRepository.getRomSortingMode())
+    private val _sortingOrder = MutableStateFlow(settingsRepository.getRomSortingOrder())
 
-    private val romsLiveData = MutableLiveData<List<Rom>>()
-    private val hasSearchDirectoriesLiveData = MutableLiveData<Boolean>()
-    private val romsFilteredLiveData: MediatorLiveData<List<Rom>>
+    private val _hasSearchDirectories = SubjectSharedFlow<Boolean>()
+    val hasSearchDirectories: Flow<Boolean> = _hasSearchDirectories
 
-    private var romSearchQuery = ""
-    private var sortingMode = settingsRepository.getRomSortingMode()
-    private var sortingOrder = settingsRepository.getRomSortingOrder()
+    private val _invalidDirectoryAccessEvent = EventSharedFlow<Unit>()
+    val invalidDirectoryAccessEvent: Flow<Unit> = _invalidDirectoryAccessEvent
+
+    private val _romScanningStatus = MutableStateFlow(RomScanningStatus.NOT_SCANNING)
+    val romScanningStatus = _romScanningStatus.asStateFlow()
+
+    private val _roms = MutableStateFlow<List<Rom>>(emptyList())
+    val roms = _roms.asStateFlow()
 
     init {
-        settingsRepository.observeRomIconFiltering()
-                .subscribe { romsLiveData.postValue(romsLiveData.value) }
-                .addTo(disposables)
-
         settingsRepository.observeRomSearchDirectories()
             .startWith(settingsRepository.getRomSearchDirectories())
             .distinctUntilChanged()
-            .subscribe { directories -> hasSearchDirectoriesLiveData.postValue(directories.isNotEmpty()) }
+            .subscribe { directories -> _hasSearchDirectories.tryEmit(directories.isNotEmpty()) }
             .addTo(disposables)
 
-        romsFilteredLiveData = MediatorLiveData<List<Rom>>().apply {
-            addSource(romsLiveData) {
-                val romList = if (romSearchQuery.isEmpty()) {
-                    it
-                } else {
-                    it?.filter { rom ->
+        settingsRepository.observeRomIconFiltering()
+            .subscribe { _roms.value = _roms.value }
+            .addTo(disposables)
+
+        romsRepository.getRomScanningStatus()
+            .subscribe { status -> _romScanningStatus.value = status }
+            .addTo(disposables)
+
+        combine(romsRepository.getRoms(), _searchQuery) { roms, query ->
+            val romList = if (query.isEmpty()) {
+                roms
+            } else {
+                withContext(Dispatchers.Default) {
+                    roms.filter { rom ->
+                        if (!isActive) {
+                            return@withContext emptyList()
+                        }
+
                         val normalizedName = Normalizer.normalize(rom.name, Normalizer.Form.NFD).replace("[^\\p{ASCII}]", "")
                         val normalizedPath = Normalizer.normalize(uriHandler.getUriDocument(rom.uri)?.name, Normalizer.Form.NFD).replace("[^\\p{ASCII}]", "")
 
-                        normalizedName.contains(romSearchQuery, true) || normalizedPath.contains(romSearchQuery, true)
-                    }
-                }
-
-                if (romList != null) {
-                    value = when (sortingMode) {
-                        SortingMode.ALPHABETICALLY -> romList.sortedWith(buildAlphabeticalRomComparator())
-                        SortingMode.RECENTLY_PLAYED -> romList.sortedWith(buildRecentlyPlayedRomComparator())
+                        normalizedName.contains(query, true) || normalizedPath.contains(query, true)
                     }
                 }
             }
-        }
 
-        romsRepository.getRoms()
-            .subscribeOn(schedulers.backgroundThreadScheduler)
-            .subscribe { roms -> romsLiveData.postValue(roms) }
-            .addTo(disposables)
-    }
+            _roms.value = when (_sortingMode.value) {
+                SortingMode.ALPHABETICALLY -> romList.sortedWith(buildAlphabeticalRomComparator(_sortingOrder.value))
+                SortingMode.RECENTLY_PLAYED -> romList.sortedWith(buildRecentlyPlayedRomComparator(_sortingOrder.value))
+            }
+        }.launchIn(viewModelScope)
 
-    fun hasRomScanningDirectories(): LiveData<Boolean> {
-        return hasSearchDirectoriesLiveData
-    }
-
-    fun getRoms(): LiveData<List<Rom>> {
-        return romsFilteredLiveData
-    }
-
-    fun getRomScanningStatus(): LiveData<RomScanningStatus> {
-        val scanningStatusLiveData = MutableLiveData<RomScanningStatus>()
-        val disposable = romsRepository.getRomScanningStatus()
-                .subscribe { status -> scanningStatusLiveData.postValue(status) }
-        disposables.add(disposable)
-        return scanningStatusLiveData
+        combine(_sortingMode, _sortingOrder) { sortingMode, sortingOrder ->
+            _roms.value = when (sortingMode) {
+                SortingMode.ALPHABETICALLY -> _roms.value.sortedWith(buildAlphabeticalRomComparator(sortingOrder))
+                SortingMode.RECENTLY_PLAYED -> _roms.value.sortedWith(buildRecentlyPlayedRomComparator(sortingOrder))
+            }
+        }.launchIn(viewModelScope)
     }
 
     fun refreshRoms() {
@@ -129,27 +129,25 @@ class RomListViewModel @Inject constructor(
     }
 
     fun setRomSearchQuery(query: String?) {
-        romSearchQuery = Normalizer.normalize(query ?: "", Normalizer.Form.NFD).replace("[^\\p{ASCII}]", "")
-        romsLiveData.value = romsLiveData.value
+        _searchQuery.tryEmit(Normalizer.normalize(query ?: "", Normalizer.Form.NFD).replace("[^\\p{ASCII}]", ""))
     }
 
     fun setRomSorting(sortingMode: SortingMode) {
-        if (sortingMode == this.sortingMode) {
-            sortingOrder = if (sortingOrder == SortingOrder.ASCENDING)
+        if (sortingMode == _sortingMode.value) {
+            val newSortingOrder = if (_sortingOrder.value == SortingOrder.ASCENDING)
                 SortingOrder.DESCENDING
             else
                 SortingOrder.ASCENDING
 
-            settingsRepository.setRomSortingOrder(sortingOrder)
+            settingsRepository.setRomSortingOrder(_sortingOrder.value)
+            _sortingOrder.value = newSortingOrder
         } else {
-            this.sortingMode = sortingMode
-            sortingOrder = sortingMode.defaultOrder
-
             settingsRepository.setRomSortingMode(sortingMode)
-            settingsRepository.setRomSortingOrder(sortingOrder)
-        }
+            settingsRepository.setRomSortingOrder(sortingMode.defaultOrder)
 
-        romsLiveData.value = romsLiveData.value
+            _sortingMode.value = sortingMode
+            _sortingOrder.value = sortingMode.defaultOrder
+        }
     }
 
     fun getConsoleConfigurationDirResult(consoleType: ConsoleType): ConfigurationDirResult {
@@ -173,7 +171,7 @@ class RomListViewModel @Inject constructor(
             uriPermissionManager.persistDirectoryPermissions(directoryUri, Permission.READ_WRITE)
             settingsRepository.addRomSearchDirectory(directoryUri)
         } else {
-            _invalidDirectoryAccessEvent.call()
+            _invalidDirectoryAccessEvent.tryEmit(Unit)
         }
     }
 
@@ -190,7 +188,7 @@ class RomListViewModel @Inject constructor(
             settingsRepository.setDsBiosDirectory(uri)
             true
         } else {
-            _invalidDirectoryAccessEvent.call()
+            _invalidDirectoryAccessEvent.tryEmit(Unit)
             false
         }
     }
@@ -208,7 +206,7 @@ class RomListViewModel @Inject constructor(
             settingsRepository.setDsiBiosDirectory(uri)
             true
         } else {
-            _invalidDirectoryAccessEvent.call()
+            _invalidDirectoryAccessEvent.tryEmit(Unit)
             false
         }
     }
@@ -229,7 +227,7 @@ class RomListViewModel @Inject constructor(
         return uriHandler.getUriDocument(uri)?.name
     }
 
-    private fun buildAlphabeticalRomComparator(): Comparator<Rom> {
+    private fun buildAlphabeticalRomComparator(sortingOrder: SortingOrder): Comparator<Rom> {
         return if (sortingOrder == SortingOrder.ASCENDING) {
             Comparator { o1: Rom, o2: Rom ->
                 o1.name.compareTo(o2.name)
@@ -241,7 +239,7 @@ class RomListViewModel @Inject constructor(
         }
     }
 
-    private fun buildRecentlyPlayedRomComparator(): Comparator<Rom> {
+    private fun buildRecentlyPlayedRomComparator(sortingOrder: SortingOrder): Comparator<Rom> {
         return if (sortingOrder == SortingOrder.ASCENDING) {
             Comparator { o1: Rom, o2: Rom ->
                 when {

@@ -12,12 +12,14 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.disposables.Disposable
+import kotlinx.coroutines.flow.collectLatest
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ItemRomConfigurableBinding
 import me.magnum.melonds.databinding.ItemRomSimpleBinding
@@ -26,8 +28,6 @@ import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.domain.model.RomScanningStatus
 import me.magnum.melonds.ui.romlist.RomListFragment.RomListAdapter.RomViewHolder
-import me.magnum.melonds.utils.FileUtils
-import java.util.*
 
 @AndroidEntryPoint
 class RomListFragment : Fragment() {
@@ -78,13 +78,18 @@ class RomListFragment : Fragment() {
             adapter = romListAdapter
         }
 
-        romListViewModel.getRomScanningStatus().observe(viewLifecycleOwner) { status ->
-            binding.swipeRefreshRoms.isRefreshing = status == RomScanningStatus.SCANNING
-            displayEmptyListViewIfRequired()
+        lifecycleScope.launchWhenStarted {
+            romListViewModel.romScanningStatus.collectLatest { status ->
+                binding.swipeRefreshRoms.isRefreshing = status == RomScanningStatus.SCANNING
+                displayEmptyListViewIfRequired()
+            }
         }
-        romListViewModel.getRoms().observe(viewLifecycleOwner) { roms ->
-            romListAdapter.setRoms(roms)
-            displayEmptyListViewIfRequired()
+
+        lifecycleScope.launchWhenStarted {
+            romListViewModel.roms.collectLatest { roms ->
+                romListAdapter.setRoms(roms)
+                displayEmptyListViewIfRequired()
+            }
         }
     }
 

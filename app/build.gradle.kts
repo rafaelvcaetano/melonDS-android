@@ -128,6 +128,7 @@ dependencies {
         implementation(flexbox)
         implementation(gson)
         implementation(hilt)
+        implementation(kotlinxCoroutinesRx)
         implementation(picasso)
         implementation(markwon)
         implementation(markwonImagePicasso)

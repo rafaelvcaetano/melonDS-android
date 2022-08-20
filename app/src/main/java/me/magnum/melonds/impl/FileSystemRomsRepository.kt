@@ -6,13 +6,15 @@ import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import io.reactivex.*
 import io.reactivex.Observable
-import io.reactivex.Observer
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
@@ -26,7 +28,7 @@ import java.io.FileReader
 import java.io.OutputStreamWriter
 import java.lang.reflect.Type
 import java.util.*
-import kotlin.collections.ArrayList
+import java.util.concurrent.atomic.AtomicBoolean
 
 class FileSystemRomsRepository(
         private val context: Context,
@@ -40,17 +42,21 @@ class FileSystemRomsRepository(
         private const val ROM_DATA_FILE = "rom_data.json"
     }
 
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
     private val disposables = CompositeDisposable()
     private val romListType: Type = object : TypeToken<List<Rom>>(){}.type
-    private val romsSubject: BehaviorSubject<List<Rom>> = BehaviorSubject.create()
+    private val romsChannel: MutableSharedFlow<List<Rom>> = MutableSharedFlow(replay = 1, extraBufferCapacity = 0, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     private val scanningStatusSubject: BehaviorSubject<RomScanningStatus> = BehaviorSubject.createDefault(RomScanningStatus.NOT_SCANNING)
     private val roms: ArrayList<Rom> = ArrayList()
-    private var areRomsLoaded = false
+    private var areRomsLoaded = AtomicBoolean(false)
 
     init {
-        romsSubject.subscribeOn(Schedulers.io())
-                .subscribe { roms -> saveRomData(roms) }
-                .addTo(disposables)
+        coroutineScope.launch {
+            romsChannel.onEach {
+                saveRomData(it)
+            }.collect()
+        }
+
         settingsRepository.observeRomSearchDirectories()
                 .subscribe { directories -> onRomSearchDirectoriesChanged(directories) }
                 .addTo(disposables)
@@ -59,7 +65,7 @@ class FileSystemRomsRepository(
     private fun onRomSearchDirectoriesChanged(searchDirectories: Array<Uri>) {
         // If ROMs have not been loaded yet, there's no point in searching or discarding ROMs now.
         // They will be scanned once needed
-        if (!areRomsLoaded)
+        if (!areRomsLoaded.get())
             return
 
         // TODO: Check if existing ROMs are still found in the new directory(s). How can we do that reliably using URIs?
@@ -67,35 +73,30 @@ class FileSystemRomsRepository(
         rescanRoms()
     }
 
-    override fun getRoms(): Observable<List<Rom>> {
-        if (!areRomsLoaded) {
-            areRomsLoaded = true
-            loadCachedRoms()
+    override fun getRoms(): Flow<List<Rom>> = flow {
+        if (areRomsLoaded.compareAndSet(false, true)) {
+            coroutineScope.launch {
+                loadCachedRoms()
+            }
         }
-        return romsSubject
+        emitAll(romsChannel)
     }
 
     override fun getRomScanningStatus(): Observable<RomScanningStatus> {
         return scanningStatusSubject
     }
 
-    override fun getRomAtPath(path: String): Maybe<Rom> {
-        return getRoms().firstElement()
-                .flatMap {
-                    it.find { rom ->
-                        val romPath = FileUtils.getAbsolutePathFromSAFUri(context, rom.uri)
-                        romPath == path
-                    }?.let { rom -> Maybe.just(rom) } ?: Maybe.empty()
-                }
+    override suspend fun getRomAtPath(path: String): Rom? {
+        return getRoms().first().find { rom ->
+            val romPath = FileUtils.getAbsolutePathFromSAFUri(context, rom.uri)
+            romPath == path
+        }
     }
 
-    override fun getRomAtUri(uri: Uri): Maybe<Rom> {
-        return getRoms().firstElement()
-                .flatMap {
-                    it.find { rom ->
-                        rom.uri == uri
-                    }?.let { rom -> Maybe.just(rom) } ?: Maybe.empty()
-                }
+    override suspend fun getRomAtUri(uri: Uri): Rom? {
+        return getRoms().first().find { rom ->
+            rom.uri == uri
+        }
     }
 
     override fun updateRomConfig(rom: Rom, romConfig: RomConfig) {
@@ -118,28 +119,20 @@ class FileSystemRomsRepository(
     }
 
     override fun rescanRoms() {
-        scanForNewRoms()
-                .subscribeOn(Schedulers.io())
-                .subscribe(object : Observer<Rom> {
-                    override fun onSubscribe(d: Disposable) {
-                        scanningStatusSubject.onNext(RomScanningStatus.SCANNING)
-                    }
+        coroutineScope.launch(Dispatchers.IO) {
+            scanningStatusSubject.onNext(RomScanningStatus.SCANNING)
 
-                    override fun onNext(rom: Rom) {
-                        addRom(rom)
-                    }
+            scanForNewRoms().collect {
+                addRom(it)
+            }
 
-                    override fun onError(e: Throwable) {}
-                    override fun onComplete() {
-                        scanningStatusSubject.onNext(RomScanningStatus.NOT_SCANNING)
-                    }
-                })
+            scanningStatusSubject.onNext(RomScanningStatus.NOT_SCANNING)
+        }
     }
 
     override fun invalidateRoms() {
-        if (areRomsLoaded) {
+        if (areRomsLoaded.compareAndSet(true, false)) {
             roms.clear()
-            areRomsLoaded = false
         }
 
         val cacheFile = File(context.filesDir, ROM_DATA_FILE)
@@ -168,85 +161,60 @@ class FileSystemRomsRepository(
     }
 
     private fun onRomsChanged() {
-        romsSubject.onNext(ArrayList(roms))
+        romsChannel.tryEmit(roms)
     }
 
-    private fun loadCachedRoms() {
-        getCachedRoms()
-                .filter { rom -> DocumentFile.fromSingleUri(context, rom.uri)?.exists() == true }
-                .toList()
-                .doOnSuccess { cachedRoms ->
-                    roms.addAll(cachedRoms!!)
-                    onRomsChanged()
-                }
-                .flatMapObservable { scanForNewRoms() }
-                .subscribeOn(Schedulers.io())
-                .subscribe(object : Observer<Rom> {
-                    override fun onSubscribe(d: Disposable) {
-                        scanningStatusSubject.onNext(RomScanningStatus.SCANNING)
-                    }
+    private suspend fun loadCachedRoms() = withContext(Dispatchers.IO) {
+        scanningStatusSubject.onNext(RomScanningStatus.SCANNING)
 
-                    override fun onNext(rom: Rom) {
-                        addRom(rom)
-                    }
+        val cachedRoms = getCachedRoms().filter {
+            DocumentFile.fromSingleUri(context, it.uri)?.exists() == true
+        }.toCollection(mutableListOf())
 
-                    override fun onError(e: Throwable) {}
+        roms.addAll(cachedRoms)
+        onRomsChanged()
+        scanForNewRoms().collect {
+            addRom(it)
+        }
 
-                    override fun onComplete() {
-                        scanningStatusSubject.onNext(RomScanningStatus.NOT_SCANNING)
-                    }
-                })
+        scanningStatusSubject.onNext(RomScanningStatus.NOT_SCANNING)
     }
 
-    private fun scanForNewRoms(): Observable<Rom> {
-        return Observable.create(object : ObservableOnSubscribe<Rom> {
-            private fun findFiles(directory: DocumentFile, emitter: ObservableEmitter<Rom>) {
-                val files = directory.listFiles()
-                for (file in files) {
-                    if (file.isDirectory) {
-                        findFiles(file, emitter)
-                        continue
-                    }
-
-                    romFileProcessorFactory.getFileRomProcessorForDocument(file)?.let { fileRomProcessor ->
-                        fileRomProcessor.getRomFromUri(file.uri, directory.uri)?.let { emitter.onNext(it) }
-                    }
-                }
+    private fun scanForNewRoms(): Flow<Rom> = flow {
+        for (directory in settingsRepository.getRomSearchDirectories()) {
+            val documentFile = DocumentFile.fromTreeUri(context, directory)
+            if (documentFile != null) {
+                findCachedRomFiles(documentFile, this)
             }
-
-            override fun subscribe(emitter: ObservableEmitter<Rom>) {
-                for (directory in settingsRepository.getRomSearchDirectories()) {
-                    val documentFile = DocumentFile.fromTreeUri(context, directory)
-                    if (documentFile != null) {
-                        findFiles(documentFile, emitter)
-                    }
-                }
-
-                emitter.onComplete()
-            }
-        })
+        }
     }
 
-    private fun getCachedRoms(): Observable<Rom> {
-        return Observable.create(ObservableOnSubscribe { emitter ->
-            val cacheFile = File(context.filesDir, ROM_DATA_FILE)
-            if (!cacheFile.isFile) {
-                emitter.onComplete()
-                return@ObservableOnSubscribe
+    private suspend fun findCachedRomFiles(directory: DocumentFile, collector: FlowCollector<Rom>) {
+        val files = directory.listFiles()
+        for (file in files) {
+            if (file.isDirectory) {
+                findCachedRomFiles(file, collector)
+                continue
             }
 
-            try {
-                val roms = gson.fromJson<List<Rom>>(FileReader(cacheFile), romListType)
-                if (roms != null) {
-                    for (rom in roms) {
-                        emitter.onNext(rom)
-                    }
-                }
-                emitter.onComplete()
-            } catch (_: Exception) {
-                emitter.onComplete()
+            romFileProcessorFactory.getFileRomProcessorForDocument(file)?.let { fileRomProcessor ->
+                fileRomProcessor.getRomFromUri(file.uri, directory.uri)?.let { collector.emit(it) }
             }
-        })
+        }
+    }
+
+    private fun getCachedRoms(): Flow<Rom> = flow {
+        val cacheFile = File(context.filesDir, ROM_DATA_FILE)
+        if (!cacheFile.isFile) {
+            return@flow
+        }
+
+        try {
+            gson.fromJson<List<Rom>>(FileReader(cacheFile), romListType)?.forEach {
+                emit(it)
+            }
+        } catch (_: Exception) {
+        }
     }
 
     private fun saveRomData(romData: List<Rom>) {
