@@ -12,7 +12,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.Permission
-import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.*
@@ -30,15 +29,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RomListViewModel @Inject constructor(
-        private val romsRepository: RomsRepository,
-        private val settingsRepository: SettingsRepository,
-        private val layoutsRepository: LayoutsRepository,
-        private val romIconProvider: RomIconProvider,
-        private val configurationDirectoryVerifier: ConfigurationDirectoryVerifier,
-        private val uriHandler: UriHandler,
-        private val uriPermissionManager: UriPermissionManager,
-        private val directoryAccessValidator: DirectoryAccessValidator,
-        private val schedulers: Schedulers
+    private val romsRepository: RomsRepository,
+    private val settingsRepository: SettingsRepository,
+    private val layoutsRepository: LayoutsRepository,
+    private val romIconProvider: RomIconProvider,
+    private val configurationDirectoryVerifier: ConfigurationDirectoryVerifier,
+    private val uriHandler: UriHandler,
+    private val uriPermissionManager: UriPermissionManager,
+    private val directoryAccessValidator: DirectoryAccessValidator
 ) : ViewModel() {
 
     private val disposables: CompositeDisposable = CompositeDisposable()
@@ -211,16 +209,10 @@ class RomListViewModel @Inject constructor(
         }
     }
 
-    fun getRomIcon(rom: Rom): Single<RomIcon> {
-        return romIconProvider.getRomIcon(rom)
-            .subscribeOn(schedulers.backgroundThreadScheduler)
-            .observeOn(schedulers.uiThreadScheduler)
-            .materialize()
-            .map {
-                val bitmap = it.value
-                val iconFiltering = settingsRepository.getRomIconFiltering()
-                RomIcon(bitmap, iconFiltering)
-            }
+    suspend fun getRomIcon(rom: Rom): RomIcon {
+        val romIconBitmap = romIconProvider.getRomIcon(rom)
+        val iconFiltering = settingsRepository.getRomIconFiltering()
+        return RomIcon(romIconBitmap, iconFiltering)
     }
 
     fun getUriDocumentName(uri: Uri): String? {

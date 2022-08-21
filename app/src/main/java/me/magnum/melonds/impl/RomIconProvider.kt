@@ -4,11 +4,11 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.documentfile.provider.DocumentFile
-import io.reactivex.Maybe
-import me.magnum.melonds.domain.model.Rom
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
+import me.magnum.melonds.domain.model.Rom
 import java.io.File
-import java.lang.Exception
 import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -27,18 +27,10 @@ class RomIconProvider(private val context: Context, private val romFileProcessor
     private val memoryIconCache = mutableMapOf<String, Bitmap>()
     private val romIconLocks = Collections.synchronizedMap(mutableMapOf<String, ReentrantLock>())
 
-    fun getRomIcon(rom: Rom): Maybe<Bitmap> {
-        return Maybe.create {
-            val romHash = rom.uri.hashCode().toString()
-            getRomIconLock(romHash).withLock {
-                val icon = loadIconFromMemory(romHash, rom)
-
-                if (icon == null) {
-                    it.onComplete()
-                } else {
-                    it.onSuccess(icon)
-                }
-            }
+    suspend fun getRomIcon(rom: Rom): Bitmap? = withContext(Dispatchers.IO) {
+        val romHash = rom.uri.hashCode().toString()
+        getRomIconLock(romHash).withLock {
+            loadIconFromMemory(romHash, rom)
         }
     }
 
