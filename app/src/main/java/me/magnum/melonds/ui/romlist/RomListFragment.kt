@@ -93,6 +93,12 @@ class RomListFragment : Fragment() {
                 displayEmptyListViewIfRequired()
             }
         }
+
+        lifecycleScope.launchWhenStarted {
+            romListViewModel.onRomIconFilteringChanged.collectLatest {
+                romListAdapter.updateIcons()
+            }
+        }
     }
 
     private fun displayEmptyListViewIfRequired() {
@@ -120,6 +126,11 @@ class RomListFragment : Fragment() {
 
             this.roms.clear()
             this.roms.addAll(roms)
+        }
+
+        fun updateIcons() {
+            val diff = DiffUtil.calculateDiff(RomIconDiffUtilCallback(this.roms.size))
+            diff.dispatchUpdatesTo(this)
         }
 
         override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RomViewHolder {
@@ -208,6 +219,20 @@ class RomListFragment : Fragment() {
             override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
                 return oldRoms[oldItemPosition] == newRoms[newItemPosition]
             }
+        }
+
+        /**
+         * [DiffUtil] callback used to update the ROM icons in the adapter. This callback doesn't compare any item and has a fixed output. To force the icons to update, the
+         * items are always assume to be the same but with different content.
+         */
+        inner class RomIconDiffUtilCallback(private val romCount: Int) : DiffUtil.Callback() {
+            override fun getOldListSize(): Int = romCount
+
+            override fun getNewListSize(): Int = romCount
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean = true
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean = false
         }
     }
 

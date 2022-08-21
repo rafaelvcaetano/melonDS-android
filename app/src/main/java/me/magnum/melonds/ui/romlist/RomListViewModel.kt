@@ -9,6 +9,7 @@ import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.Permission
@@ -54,6 +55,8 @@ class RomListViewModel @Inject constructor(
     private val _roms = MutableStateFlow<List<Rom>>(emptyList())
     val roms = _roms.asStateFlow()
 
+    val onRomIconFilteringChanged = settingsRepository.observeRomIconFiltering().asFlow()
+
     val romScanningStatus = romsRepository.getRomScanningStatus()
 
     init {
@@ -61,10 +64,6 @@ class RomListViewModel @Inject constructor(
             .startWith(settingsRepository.getRomSearchDirectories())
             .distinctUntilChanged()
             .subscribe { directories -> _hasSearchDirectories.tryEmit(directories.isNotEmpty()) }
-            .addTo(disposables)
-
-        settingsRepository.observeRomIconFiltering()
-            .subscribe { _roms.value = _roms.value }
             .addTo(disposables)
 
         combine(romsRepository.getRoms(), _searchQuery) { roms, query ->
