@@ -6,12 +6,9 @@ import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.subjects.BehaviorSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -23,6 +20,7 @@ import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.utils.FileUtils
+import me.magnum.melonds.utils.SubjectSharedFlow
 import java.io.File
 import java.io.FileReader
 import java.io.OutputStreamWriter
@@ -45,8 +43,8 @@ class FileSystemRomsRepository(
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
     private val disposables = CompositeDisposable()
     private val romListType: Type = object : TypeToken<List<Rom>>(){}.type
-    private val romsChannel: MutableSharedFlow<List<Rom>> = MutableSharedFlow(replay = 1, extraBufferCapacity = 0, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    private val scanningStatusSubject: BehaviorSubject<RomScanningStatus> = BehaviorSubject.createDefault(RomScanningStatus.NOT_SCANNING)
+    private val romsChannel = SubjectSharedFlow<List<Rom>>()
+    private val scanningStatusSubject = MutableStateFlow(RomScanningStatus.NOT_SCANNING)
     private val roms: ArrayList<Rom> = ArrayList()
     private var areRomsLoaded = AtomicBoolean(false)
 
@@ -82,8 +80,8 @@ class FileSystemRomsRepository(
         emitAll(romsChannel)
     }
 
-    override fun getRomScanningStatus(): Observable<RomScanningStatus> {
-        return scanningStatusSubject
+    override fun getRomScanningStatus(): StateFlow<RomScanningStatus> {
+        return scanningStatusSubject.asStateFlow()
     }
 
     override suspend fun getRomAtPath(path: String): Rom? {
@@ -120,13 +118,13 @@ class FileSystemRomsRepository(
 
     override fun rescanRoms() {
         coroutineScope.launch(Dispatchers.IO) {
-            scanningStatusSubject.onNext(RomScanningStatus.SCANNING)
+            scanningStatusSubject.emit(RomScanningStatus.SCANNING)
 
             scanForNewRoms().collect {
                 addRom(it)
             }
 
-            scanningStatusSubject.onNext(RomScanningStatus.NOT_SCANNING)
+            scanningStatusSubject.emit(RomScanningStatus.NOT_SCANNING)
         }
     }
 
@@ -165,7 +163,7 @@ class FileSystemRomsRepository(
     }
 
     private suspend fun loadCachedRoms() = withContext(Dispatchers.IO) {
-        scanningStatusSubject.onNext(RomScanningStatus.SCANNING)
+        scanningStatusSubject.emit(RomScanningStatus.SCANNING)
 
         val cachedRoms = getCachedRoms().filter {
             DocumentFile.fromSingleUri(context, it.uri)?.exists() == true
@@ -177,7 +175,7 @@ class FileSystemRomsRepository(
             addRom(it)
         }
 
-        scanningStatusSubject.onNext(RomScanningStatus.NOT_SCANNING)
+        scanningStatusSubject.emit(RomScanningStatus.NOT_SCANNING)
     }
 
     private fun scanForNewRoms(): Flow<Rom> = flow {

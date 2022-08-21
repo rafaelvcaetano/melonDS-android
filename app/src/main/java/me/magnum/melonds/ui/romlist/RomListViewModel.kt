@@ -51,11 +51,10 @@ class RomListViewModel @Inject constructor(
     private val _invalidDirectoryAccessEvent = EventSharedFlow<Unit>()
     val invalidDirectoryAccessEvent: Flow<Unit> = _invalidDirectoryAccessEvent
 
-    private val _romScanningStatus = MutableStateFlow(RomScanningStatus.NOT_SCANNING)
-    val romScanningStatus = _romScanningStatus.asStateFlow()
-
     private val _roms = MutableStateFlow<List<Rom>>(emptyList())
     val roms = _roms.asStateFlow()
+
+    val romScanningStatus = romsRepository.getRomScanningStatus()
 
     init {
         settingsRepository.observeRomSearchDirectories()
@@ -66,10 +65,6 @@ class RomListViewModel @Inject constructor(
 
         settingsRepository.observeRomIconFiltering()
             .subscribe { _roms.value = _roms.value }
-            .addTo(disposables)
-
-        romsRepository.getRomScanningStatus()
-            .subscribe { status -> _romScanningStatus.value = status }
             .addTo(disposables)
 
         combine(romsRepository.getRoms(), _searchQuery) { roms, query ->
