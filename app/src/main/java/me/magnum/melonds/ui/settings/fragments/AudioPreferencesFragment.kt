@@ -57,7 +57,7 @@ class AudioPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
             return
 
-        if (!overrideRationaleRequest && shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+        if (!overrideRationaleRequest && shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO)) {
             AlertDialog.Builder(requireContext())
                 .setTitle(R.string.microphone_permission_required)
                 .setMessage(R.string.microphone_permission_required_info)
