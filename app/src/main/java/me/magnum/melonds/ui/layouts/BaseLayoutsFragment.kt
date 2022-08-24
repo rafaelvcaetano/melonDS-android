@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.PopupMenu
+import androidx.core.view.MenuProvider
 import androidx.core.view.isInvisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DiffUtil
@@ -41,7 +42,15 @@ abstract class BaseLayoutsFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentLayoutListBinding.inflate(inflater, container, false)
-        setHasOptionsMenu(true)
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.layouts_menu, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return handleOptionItemSelected(menuItem)
+            }
+        })
         return binding.root
     }
 
@@ -80,14 +89,10 @@ abstract class BaseLayoutsFragment : Fragment() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.layouts_menu, menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    private fun handleOptionItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_layouts_add -> createLayout()
-            else -> return super.onOptionsItemSelected(item)
+            else -> return false
         }
         return true
     }

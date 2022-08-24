@@ -3,6 +3,7 @@ package me.magnum.melonds.ui.cheats
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
@@ -21,11 +22,18 @@ class CheatsActivity : AppCompatActivity() {
 
     private val viewModel: CheatsViewModel by viewModels()
 
+    private val backHandler = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            goBack()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityCheatsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        onBackPressedDispatcher.addCallback(backHandler)
 
         val romInfoParcelable = intent.getParcelableExtra<RomInfoParcelable>(KEY_ROM_INFO) ?: throw NullPointerException("KEY_ROM_INFO argument is required")
 
@@ -62,16 +70,14 @@ class CheatsActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                if (!popChildBackStackIfNeeded()) {
-                    commitCheatChangesAndFinish()
-                }
+                goBack()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    override fun onBackPressed() {
+    private fun goBack() {
         if (!popChildBackStackIfNeeded()) {
             commitCheatChangesAndFinish()
         }

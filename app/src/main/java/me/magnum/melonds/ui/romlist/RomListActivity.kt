@@ -126,7 +126,7 @@ class RomListActivity : AppCompatActivity() {
             }
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-                invalidateOptionsMenu()
+                invalidateMenu()
                 return true
             }
         })

@@ -54,10 +54,10 @@ class RomsPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTi
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.getRomCacheSize().observe(viewLifecycleOwner, {
+        viewModel.getRomCacheSize().observe(viewLifecycleOwner) {
             val cacheSizeRepresentation = SizeUtils.getBestSizeStringRepresentation(it)
             clearRomCachePreference.summary = getString(R.string.cache_size, cacheSizeRepresentation)
-        })
+        }
     }
 
     private fun updateMaxCacheSizePreferenceSummary(maxCacheSizePreference: SeekBarPreference, cacheSizeStep: Int) {

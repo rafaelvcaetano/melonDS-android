@@ -22,7 +22,7 @@ class NoRomSearchDirectoriesFragment : Fragment() {
     private lateinit var binding: FragmentNoDirectoriesBinding
     private val romListViewModel: RomListViewModel by activityViewModels()
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentNoDirectoriesBinding.inflate(inflater, container, false)
         return binding.root
     }

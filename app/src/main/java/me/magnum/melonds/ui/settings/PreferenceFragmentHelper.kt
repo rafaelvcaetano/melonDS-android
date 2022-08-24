@@ -116,7 +116,7 @@ class PreferenceFragmentHelper(
         }
         if (storagePreference.persistPermissions) {
             storagePreference.addOnPreferenceChangeListener { _, newValue ->
-                (newValue as Set<String>?)?.firstOrNull()?.let {
+                (newValue as? Set<String>)?.firstOrNull()?.let {
                     uriPermissionManager.persistDirectoryPermissions(it.toUri(), storagePreference.permissions)
                 }
                 false
@@ -134,7 +134,7 @@ class PreferenceFragmentHelper(
         }
         if (storagePreference.persistPermissions) {
             storagePreference.addOnPreferenceChangeListener { _, newValue ->
-                (newValue as Set<String>?)?.firstOrNull()?.let {
+                (newValue as? Set<String>)?.firstOrNull()?.let {
                     uriPermissionManager.persistFilePermissions(it.toUri(), storagePreference.permissions)
                 }
                 true

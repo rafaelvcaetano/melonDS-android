@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
@@ -62,6 +63,12 @@ class LayoutEditorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityLayoutEditorBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                openMenu()
+            }
+        })
 
         binding.buttonAddButton.setOnClickListener {
             openButtonsMenu()
@@ -127,10 +134,6 @@ class LayoutEditorActivity : AppCompatActivity() {
         } else {
             super.onKeyDown(keyCode, event)
         }
-    }
-
-    override fun onBackPressed() {
-        openMenu()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

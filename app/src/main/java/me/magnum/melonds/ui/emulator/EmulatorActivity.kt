@@ -13,6 +13,7 @@ import android.view.Window
 import android.view.WindowManager
 import android.widget.RelativeLayout
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -49,6 +50,7 @@ import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.RewindSaveStateAdapter
 import me.magnum.melonds.ui.emulator.rom.RomEmulatorDelegate
 import me.magnum.melonds.ui.settings.SettingsActivity
+import me.magnum.melonds.utils.PackageManagerCompat
 import java.net.URLEncoder
 import java.nio.ByteBuffer
 import javax.inject.Inject
@@ -169,6 +171,11 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     private val microphonePermissionRequester = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
         microphonePermissionSubject.onNext(it)
     }
+    private val backPressedCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            handleBackPressed()
+        }
+    }
 
     private val rewindSaveStateAdapter = RewindSaveStateAdapter {
         MelonEmulator.loadRewindState(it)
@@ -189,6 +196,8 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         setContentView(binding.root)
         setupFullscreen()
         initializeDelegate()
+
+        onBackPressedDispatcher.addCallback(backPressedCallback)
 
         melonTouchHandler = MelonTouchHandler()
         dsRenderer = DSRenderer(buildRendererConfiguration(), this)
@@ -238,6 +247,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             MelonEmulator.pauseEmulation()
             emulatorPaused = true
             emulatorReady = false
+            backPressedCallback.isEnabled = false
 
             AlertDialog.Builder(this)
                     .setTitle(getString(R.string.title_emulator_running))
@@ -255,6 +265,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                     }
                     .setOnCancelListener {
                         emulatorReady = true
+                        backPressedCallback.isEnabled = true
                         resumeEmulation()
                     }
                     .show()
@@ -294,6 +305,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                         binding.viewLayoutControls.isVisible = true
                         dsRenderer.canRenderBackground = true
                         emulatorReady = true
+                        backPressedCallback.isEnabled = true
                     } catch (e: Exception) {
                         showLaunchFailDialog(e)
                     }
@@ -469,15 +481,11 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         nativeInputListener = InputProcessor(settingsRepository.getControllerConfiguration(), melonTouchHandler, frontendInputHandler)
     }
 
-    override fun onBackPressed() {
-        if (emulatorReady) {
-            if (isRewindWindowOpen()) {
-                closeRewindWindow()
-            } else {
-                this.showPauseMenu()
-            }
+    private fun handleBackPressed() {
+        if (isRewindWindowOpen()) {
+            closeRewindWindow()
         } else {
-            super.onBackPressed()
+            this.showPauseMenu()
         }
     }
 
@@ -629,7 +637,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     private fun getGitHubReportIntent(e: Throwable): Intent {
-        val packageInfo = packageManager.getPackageInfo(packageName, 0)
+        val packageInfo = PackageManagerCompat.getPackageInfo(packageManager, packageName, 0)
 
         val errorBody = "" +
                 "* **Device model:** ${Build.MODEL}\n" +

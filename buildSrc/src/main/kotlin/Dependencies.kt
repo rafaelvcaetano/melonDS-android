@@ -1,7 +1,7 @@
 object Dependencies {
     private object Versions {
-        const val Activity = "1.2.3"
-        const val AppCompat = "1.3.0"
+        const val Activity = "1.5.1"
+        const val AppCompat = "1.5.0"
         const val CardView = "1.0.0"
         const val CommonsCompress = "1.21"
         const val ConstraintLayout = "2.1.4"
@@ -9,7 +9,7 @@ object Dependencies {
         const val Desugar = "1.1.5"
         const val DocumentFile = "1.0.1"
         const val Flexbox = "3.0.0"
-        const val Fragment = "1.3.5"
+        const val Fragment = "1.5.2"
         const val Gradle = "7.0.0"
         const val Gson = "2.8.6"
         const val HiltX = "1.0.0"

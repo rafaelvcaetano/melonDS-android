@@ -19,7 +19,7 @@ class CheatsViewModel @Inject constructor(private val cheatsRepository: CheatsRe
     private var selectedGame = MutableLiveData<Game>()
     private var selectedFolder = MutableLiveData<CheatFolder>()
     private var allRomCheatsLiveData: MutableLiveData<List<Game>>? = null
-    private val committingCheatsChangesStatusLiveData = MutableLiveData<Boolean>(false)
+    private val committingCheatsChangesStatusLiveData = MutableLiveData(false)
     private val cheatChangesCommittedLiveEvent = SingleLiveEvent<Unit>()
     private val modifiedCheatSet = mutableListOf<Cheat>()
 
