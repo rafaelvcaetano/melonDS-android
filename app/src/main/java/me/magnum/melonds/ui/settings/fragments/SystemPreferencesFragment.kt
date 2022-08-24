@@ -41,6 +41,6 @@ class SystemPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragment
     override fun onResume() {
         super.onResume()
         // Set proper value for Custom BIOS option when returning from the fragment. Let's just pretend this is not here
-        customBiosPreference.onPreferenceChangeListener.onPreferenceChange(customBiosPreference, customBiosPreference.sharedPreferences.getBoolean(customBiosPreference.key, false))
+        customBiosPreference.onPreferenceChangeListener?.onPreferenceChange(customBiosPreference, customBiosPreference.sharedPreferences?.getBoolean(customBiosPreference.key, false))
     }
 }

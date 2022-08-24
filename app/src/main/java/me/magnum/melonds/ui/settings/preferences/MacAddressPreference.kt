@@ -11,7 +11,7 @@ import me.magnum.melonds.databinding.DialogMacAddressEditorBinding
 import me.magnum.melonds.domain.model.MacAddress
 import kotlin.random.Random
 
-class MacAddressPreference(context: Context?, attrs: AttributeSet?) : Preference(context, attrs) {
+class MacAddressPreference(context: Context, attrs: AttributeSet?) : Preference(context, attrs) {
     private val random = Random(System.nanoTime())
     private var currentMacAddress: MacAddress? = null
 

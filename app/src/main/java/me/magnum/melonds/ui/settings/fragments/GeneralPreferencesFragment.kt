@@ -35,7 +35,7 @@ class GeneralPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmen
     override fun onResume() {
         super.onResume()
         // Set proper value for Rewind preference since the value is not updated when returning from the fragment
-        rewindPreference.onPreferenceChangeListener.onPreferenceChange(rewindPreference, rewindPreference.sharedPreferences.getBoolean(rewindPreference.key, false))
+        rewindPreference.onPreferenceChangeListener?.onPreferenceChange(rewindPreference, rewindPreference.sharedPreferences?.getBoolean(rewindPreference.key, false))
     }
 
     override fun getTitle() = getString(R.string.category_general)

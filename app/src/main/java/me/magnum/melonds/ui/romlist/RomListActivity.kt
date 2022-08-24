@@ -97,10 +97,7 @@ class RomListActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        if (menu == null)
-            return super.onCreateOptionsMenu(menu)
-
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.rom_list_menu, menu)
 
         val searchItem =  menu.findItem(R.id.action_search_roms)

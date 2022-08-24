@@ -14,6 +14,7 @@ abstract class FrontendInputHandler : IInputListener {
             Input.QUICK_SAVE -> onQuickSave()
             Input.QUICK_LOAD -> onQuickLoad()
             Input.REWIND -> onRewind()
+            else -> {}
         }
     }
 

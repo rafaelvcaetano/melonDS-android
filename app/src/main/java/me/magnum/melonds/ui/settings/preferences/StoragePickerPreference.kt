@@ -7,7 +7,7 @@ import androidx.preference.Preference
 import me.magnum.melonds.R
 import me.magnum.melonds.common.Permission
 
-open class StoragePickerPreference(context: Context?, attrs: AttributeSet?) : Preference(context, attrs) {
+open class StoragePickerPreference(context: Context, attrs: AttributeSet?) : Preference(context, attrs) {
     enum class SelectionType {
         FILE,
         DIRECTORY

@@ -13,7 +13,7 @@ import me.magnum.melonds.R
 import me.magnum.melonds.databinding.DialogFirmwareColourPickerBinding
 import me.magnum.melonds.domain.model.FirmwareColour
 
-class FirmwareColourPickerPreference(context: Context?, attrs: AttributeSet?) : Preference(context, attrs) {
+class FirmwareColourPickerPreference(context: Context, attrs: AttributeSet?) : Preference(context, attrs) {
     companion object {
         private val colorMapper = mapOf(
                 FirmwareColour.GRAY to 0x61829A,
@@ -74,11 +74,10 @@ class FirmwareColourPickerPreference(context: Context?, attrs: AttributeSet?) : 
         }
     }
 
-    override fun onBindViewHolder(holder: PreferenceViewHolder?) {
+    override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
-        if (holder != null) {
-            viewSelectedColour = holder.findViewById(R.id.viewSelectedColour)
-            updateSelectedColour(getPersistedInt(0))
-        }
+
+        viewSelectedColour = holder.findViewById(R.id.viewSelectedColour)
+        updateSelectedColour(getPersistedInt(0))
     }
 }

@@ -10,7 +10,7 @@ import me.magnum.melonds.R
 import me.magnum.melonds.databinding.DialogFirmwareBirthdayBinding
 import java.text.NumberFormat
 
-class FirmwareBirthdayPreference(context: Context?, attrs: AttributeSet?) : Preference(context, attrs) {
+class FirmwareBirthdayPreference(context: Context, attrs: AttributeSet?) : Preference(context, attrs) {
     companion object {
         private val daysInMonth = mapOf(
                 1 to 31,

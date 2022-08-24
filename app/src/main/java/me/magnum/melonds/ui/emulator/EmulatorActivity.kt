@@ -359,6 +359,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                     newParams.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
                     newParams.rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
                 }
+                FpsCounterPosition.HIDDEN -> { /* Do nothing here */ }
             }
             binding.textFps.layoutParams = newParams
         }

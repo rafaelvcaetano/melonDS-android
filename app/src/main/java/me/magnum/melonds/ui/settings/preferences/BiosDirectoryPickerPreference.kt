@@ -19,7 +19,7 @@ import me.magnum.melonds.domain.model.ConfigurationDirResult
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.ui.settings.FileStatusPopup
 
-class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : StoragePickerPreference(context, attrs) {
+class BiosDirectoryPickerPreference(context: Context, attrs: AttributeSet?) : StoragePickerPreference(context, attrs) {
     interface BiosDirectoryValidator {
         fun getBiosDirectoryValidationResult(consoleType: ConsoleType, directory: Uri?): ConfigurationDirResult
     }
@@ -46,7 +46,7 @@ class BiosDirectoryPickerPreference(context: Context?, attrs: AttributeSet?) : S
         validateDirectory(uri)
     }
 
-    override fun onDependencyChanged(dependency: Preference?, disableDependent: Boolean) {
+    override fun onDependencyChanged(dependency: Preference, disableDependent: Boolean) {
         super.onDependencyChanged(dependency, disableDependent)
         imageViewStatus?.isGone = disableDependent
     }

@@ -105,7 +105,7 @@ class BackgroundsActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.backgrounds_menu, menu)
         return true
     }
