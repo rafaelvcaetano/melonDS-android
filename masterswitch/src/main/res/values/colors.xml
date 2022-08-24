@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:shrinkMode="safe">
+    <public />
+    <color name="ms_md_grey_50">#fafafa</color>
+    <color name="ms_md_grey_50_transparent">#4dfafafa</color>
+    <color name="ms_md_teal_700">#00796b</color>
+    <color name="ms_md_grey_600">#757575</color>
+</resources>
