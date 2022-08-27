@@ -50,7 +50,7 @@ abstract class BaseLayoutsFragment : Fragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return handleOptionItemSelected(menuItem)
             }
-        })
+        }, viewLifecycleOwner)
         return binding.root
     }
 
