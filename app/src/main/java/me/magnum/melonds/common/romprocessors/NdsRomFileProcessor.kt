@@ -17,8 +17,9 @@ class NdsRomFileProcessor(private val context: Context, private val uriHandler: 
     override fun getRomFromUri(romUri: Uri, parentUri: Uri): Rom? {
         return try {
             getRomName(romUri)?.let { name ->
-                val romName = name.takeUnless { it.isBlank() } ?: uriHandler.getUriDocument(romUri)?.nameWithoutExtension ?: ""
-                Rom(romName, romUri, parentUri, RomConfig())
+                val romDocument = uriHandler.getUriDocument(romUri)
+                val romName = name.takeUnless { it.isBlank() } ?: romDocument?.nameWithoutExtension ?: ""
+                Rom(romName, romDocument?.name ?: "", romUri, parentUri, RomConfig())
             }
         } catch (e: Exception) {
             e.printStackTrace()

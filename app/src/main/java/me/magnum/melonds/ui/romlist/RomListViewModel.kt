@@ -77,7 +77,7 @@ class RomListViewModel @Inject constructor(
                         }
 
                         val normalizedName = Normalizer.normalize(rom.name, Normalizer.Form.NFD).replace("[^\\p{ASCII}]", "")
-                        val normalizedPath = Normalizer.normalize(uriHandler.getUriDocument(rom.uri)?.name, Normalizer.Form.NFD).replace("[^\\p{ASCII}]", "")
+                        val normalizedPath = Normalizer.normalize(rom.fileName, Normalizer.Form.NFD).replace("[^\\p{ASCII}]", "")
 
                         normalizedName.contains(query, true) || normalizedPath.contains(query, true)
                     }

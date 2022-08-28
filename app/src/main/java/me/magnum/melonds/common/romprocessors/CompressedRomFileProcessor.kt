@@ -27,8 +27,9 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
         return try {
             context.contentResolver.openInputStream(romUri)?.use { stream ->
                 getNdsEntryStreamInFileStream(stream)?.use { romFileStream ->
-                    val romName = getRomNameInZipEntry(romFileStream).takeUnless { it.isBlank() } ?: uriHandler.getUriDocument(romUri)?.nameWithoutExtension ?: ""
-                    Rom(romName, romUri, parentUri, RomConfig())
+                    val romDocument = uriHandler.getUriDocument(romUri)
+                    val romName = getRomNameInZipEntry(romFileStream).takeUnless { it.isBlank() } ?: romDocument?.nameWithoutExtension ?: ""
+                    Rom(romName, romDocument?.name ?: "", romUri, parentUri, RomConfig())
                 }
             }
         } catch (e: Exception) {

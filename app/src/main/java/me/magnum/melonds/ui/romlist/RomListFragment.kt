@@ -177,7 +177,7 @@ class RomListFragment : Fragment() {
             open fun setRom(rom: Rom) {
                 this.rom = rom
                 textViewRomName.text = rom.name
-                textViewRomPath.text = romListViewModel.getUriDocumentName(rom.uri) ?: ""
+                textViewRomPath.text = rom.fileName
                 imageViewRomIcon.setImageDrawable(null)
 
                 romIconLoadJob = coroutineScope.launch {
