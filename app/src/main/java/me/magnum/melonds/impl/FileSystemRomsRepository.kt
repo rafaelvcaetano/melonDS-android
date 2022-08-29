@@ -167,7 +167,7 @@ class FileSystemRomsRepository(
 
         val cachedRoms = getCachedRoms().filter {
             DocumentFile.fromSingleUri(context, it.uri)?.exists() == true
-        }.toCollection(mutableListOf())
+        }
 
         roms.addAll(cachedRoms)
         onRomsChanged()
@@ -201,18 +201,15 @@ class FileSystemRomsRepository(
         }
     }
 
-    private fun getCachedRoms(): Flow<Rom> = flow {
+    private fun getCachedRoms(): List<Rom> {
         val cacheFile = File(context.filesDir, ROM_DATA_FILE)
         if (!cacheFile.isFile) {
-            return@flow
+            return emptyList()
         }
 
-        try {
-            gson.fromJson<List<Rom>>(FileReader(cacheFile), romListType)?.forEach {
-                emit(it)
-            }
-        } catch (_: Exception) {
-        }
+        return runCatching {
+            gson.fromJson<List<Rom>>(FileReader(cacheFile), romListType)
+        }.getOrElse { emptyList() }
     }
 
     private fun saveRomData(romData: List<Rom>) {

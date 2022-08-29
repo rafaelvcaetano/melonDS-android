@@ -21,6 +21,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ItemRomConfigurableBinding
@@ -88,7 +89,7 @@ class RomListFragment : Fragment() {
         }
 
         lifecycleScope.launchWhenStarted {
-            romListViewModel.roms.collectLatest { roms ->
+            romListViewModel.roms.filterNotNull().collectLatest { roms ->
                 romListAdapter.setRoms(roms)
                 displayEmptyListViewIfRequired()
             }
@@ -103,7 +104,7 @@ class RomListFragment : Fragment() {
 
     private fun displayEmptyListViewIfRequired() {
         val isScanning = binding.swipeRefreshRoms.isRefreshing
-        val emptyViewVisible = !isScanning && romListAdapter.itemCount == 0
+        val emptyViewVisible = !isScanning && romListViewModel.roms.value?.size == 0
         binding.textRomListEmpty.isVisible = emptyViewVisible
     }
 

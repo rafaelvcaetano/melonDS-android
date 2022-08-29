@@ -52,7 +52,7 @@ class RomListViewModel @Inject constructor(
     private val _invalidDirectoryAccessEvent = EventSharedFlow<Unit>()
     val invalidDirectoryAccessEvent: Flow<Unit> = _invalidDirectoryAccessEvent
 
-    private val _roms = MutableStateFlow<List<Rom>>(emptyList())
+    private val _roms = MutableStateFlow<List<Rom>?>(null)
     val roms = _roms.asStateFlow()
 
     val onRomIconFilteringChanged = settingsRepository.observeRomIconFiltering().asFlow()
@@ -92,8 +92,8 @@ class RomListViewModel @Inject constructor(
 
         combine(_sortingMode, _sortingOrder) { sortingMode, sortingOrder ->
             _roms.value = when (sortingMode) {
-                SortingMode.ALPHABETICALLY -> _roms.value.sortedWith(buildAlphabeticalRomComparator(sortingOrder))
-                SortingMode.RECENTLY_PLAYED -> _roms.value.sortedWith(buildRecentlyPlayedRomComparator(sortingOrder))
+                SortingMode.ALPHABETICALLY -> _roms.value?.sortedWith(buildAlphabeticalRomComparator(sortingOrder))
+                SortingMode.RECENTLY_PLAYED -> _roms.value?.sortedWith(buildRecentlyPlayedRomComparator(sortingOrder))
             }
         }.launchIn(viewModelScope)
     }
