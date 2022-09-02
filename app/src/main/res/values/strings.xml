@@ -178,6 +178,7 @@
     <string name="failed_save_cheat_changes">Could not save cheat changes</string>
     <string name="no_cheats_found">Could not find cheats for the current ROM. Try importing a different cheat database.</string>
     <string name="enabled_cheats">Enabled cheats</string>
+    <string name="no_enabled_cheats_for_rom">You haven\'t enabled any cheat for this ROM</string>
     <string name="day">Day</string>
     <string name="month">Month</string>
     <string name="symbol_increase">+</string>

@@ -9,6 +9,10 @@ class EnabledCheatsFragment : CheatsScreenFragment() {
         return getString(R.string.enabled_cheats)
     }
 
+    override fun getNoContentText(): String {
+        return getString(R.string.no_enabled_cheats_for_rom)
+    }
+
     override fun getCheats(): List<Cheat> {
         return viewModel.getGameSelectedCheats()
     }

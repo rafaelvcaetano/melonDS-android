@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -32,10 +33,21 @@ abstract class SubScreenFragment : Fragment() {
         }
         binding.listItems.adapter?.notifyDataSetChanged()
 
+        if (binding.listItems.adapter?.itemCount == 0) {
+            getNoContentText()?.let {
+                binding.textNoContent.apply {
+                    isVisible = true
+                    text = it
+                }
+            }
+        }
+
         (requireActivity() as AppCompatActivity).supportActionBar?.title = getScreenName()
     }
 
     abstract fun getSubScreenAdapter(): RecyclerView.Adapter<*>
 
     abstract fun getScreenName(): String?
+
+    open fun getNoContentText(): String? = null
 }
