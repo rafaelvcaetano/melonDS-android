@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -30,7 +31,11 @@ abstract class SubScreenFragment : Fragment() {
             adapter = getSubScreenAdapter()
         }
         binding.listItems.adapter?.notifyDataSetChanged()
+
+        (requireActivity() as AppCompatActivity).supportActionBar?.title = getScreenName()
     }
 
     abstract fun getSubScreenAdapter(): RecyclerView.Adapter<*>
+
+    abstract fun getScreenName(): String?
 }

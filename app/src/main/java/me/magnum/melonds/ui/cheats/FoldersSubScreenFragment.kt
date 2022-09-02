@@ -3,13 +3,23 @@ package me.magnum.melonds.ui.cheats
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ItemCheatsFolderBinding
 import me.magnum.melonds.domain.model.CheatFolder
 
 class FoldersSubScreenFragment : SubScreenFragment() {
+
     override fun getSubScreenAdapter(): RecyclerView.Adapter<*> {
         return FoldersAdapter(viewModel.getSelectedGame().value?.cheats ?: emptyList()) {
             viewModel.setSelectedFolder(it)
+        }
+    }
+
+    override fun getScreenName(): String? {
+        return if (viewModel.getGames().size == 1) {
+            getString(R.string.cheats)
+        } else {
+            viewModel.getSelectedGame().value?.name
         }
     }
 

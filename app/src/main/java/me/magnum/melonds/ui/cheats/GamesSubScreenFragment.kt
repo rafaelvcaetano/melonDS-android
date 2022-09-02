@@ -3,14 +3,20 @@ package me.magnum.melonds.ui.cheats
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ItemCheatsGameBinding
 import me.magnum.melonds.domain.model.Game
 
 class GamesSubScreenFragment : SubScreenFragment() {
+
     override fun getSubScreenAdapter(): RecyclerView.Adapter<*> {
         return GamesAdapter(viewModel.getGames()) {
             viewModel.setSelectedGame(it)
         }
+    }
+
+    override fun getScreenName(): String {
+        return getString(R.string.cheats)
     }
 
     private class GamesAdapter(val games: List<Game>, private val onGameClicked: (Game) -> Unit) : RecyclerView.Adapter<GamesAdapter.ViewHolder>() {

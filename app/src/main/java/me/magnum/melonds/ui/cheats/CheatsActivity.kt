@@ -12,50 +12,44 @@ import androidx.fragment.app.commit
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityCheatsBinding
-import me.magnum.melonds.parcelables.RomInfoParcelable
 
 @AndroidEntryPoint
 class CheatsActivity : AppCompatActivity() {
     companion object {
         const val KEY_ROM_INFO = "key_rom_info"
+
+        private const val CHEATS_FRAGMENT_TAG = "cheats_fragment"
+        private const val CHEATS_BACKSTACK = "cheats"
     }
 
+    private lateinit var binding: ActivityCheatsBinding
     private val viewModel: CheatsViewModel by viewModels()
 
     private val backHandler = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            goBack()
+            commitCheatChangesAndFinish()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val binding = ActivityCheatsBinding.inflate(layoutInflater)
+        binding = ActivityCheatsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         onBackPressedDispatcher.addCallback(backHandler)
 
-        val romInfoParcelable = intent.getParcelableExtra<RomInfoParcelable>(KEY_ROM_INFO) ?: throw NullPointerException("KEY_ROM_INFO argument is required")
-
-        val cheatsFragment = CheatsFragment()
-        cheatsFragment.setOnContentTitleChangedListener {
-            if (it == null) {
-                supportActionBar?.title = getString(R.string.cheats)
-            } else {
-                supportActionBar?.title = it
-            }
-        }
-
-        viewModel.getRomCheats(romInfoParcelable.toRomInfo()).observe(this) {
+        viewModel.getRomCheats().observe(this) {
             binding.progressBarCheats.isGone = true
 
             if (it.isEmpty()) {
                 binding.textCheatsNotFound.isVisible = true
-            } else {
-                supportFragmentManager.commit {
-                    replace(binding.cheatsRoot.id, cheatsFragment)
-                }
+            } else if (savedInstanceState == null) {
+                openCheatsFragment()
             }
+        }
+
+        viewModel.openEnabledCheatsEvent.observe(this) {
+            openEnabledCheatsFragment()
         }
 
         viewModel.committingCheatsChangesStatus().observe(this) {
@@ -77,22 +71,30 @@ class CheatsActivity : AppCompatActivity() {
         }
     }
 
-    private fun goBack() {
-        if (!popChildBackStackIfNeeded()) {
-            commitCheatChangesAndFinish()
+    private fun openCheatsFragment() {
+        supportFragmentManager.commit {
+            val fragment = CheatsFragment()
+
+            add(binding.cheatsRoot.id, fragment, CHEATS_FRAGMENT_TAG)
+            setPrimaryNavigationFragment(fragment)
         }
     }
 
-    private fun popChildBackStackIfNeeded(): Boolean {
-        supportFragmentManager.fragments.forEach { fragment ->
-            if (fragment.isVisible) {
-                if (fragment.childFragmentManager.backStackEntryCount > 1) {
-                    fragment.childFragmentManager.popBackStack()
-                    return true
-                }
-            }
+    private fun openEnabledCheatsFragment() {
+        supportFragmentManager.commit {
+            val fragment = EnabledCheatsFragment()
+
+            setCustomAnimations(R.anim.fragment_translate_enter_push, R.anim.fragment_translate_exit_push, R.anim.fragment_translate_enter_pop, R.anim.fragment_translate_exit_pop)
+            replace(binding.cheatsRoot.id, fragment)
+            addToBackStack(CHEATS_BACKSTACK)
+            setPrimaryNavigationFragment(fragment)
         }
-        return false
+    }
+
+    private fun goBack() {
+        if (!supportFragmentManager.popBackStackImmediate()) {
+            commitCheatChangesAndFinish()
+        }
     }
 
     private fun commitCheatChangesAndFinish() {

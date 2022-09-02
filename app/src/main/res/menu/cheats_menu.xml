@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_cheats_filter_enabled"
+        android:title="@string/enabled_cheats"
+        android:icon="@drawable/ic_checkbox_checked"
+        android:orderInCategory="0"
+        app:showAsAction="ifRoom" />
+</menu>
