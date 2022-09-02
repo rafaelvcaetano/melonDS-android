@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.disposables.CompositeDisposable
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.CheatFolder
+import me.magnum.melonds.domain.model.CheatInFolder
 import me.magnum.melonds.domain.model.Game
 import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.extensions.addTo
@@ -88,16 +89,18 @@ class CheatsViewModel @Inject constructor(
         return cheats
     }
 
-    fun getGameSelectedCheats(): List<Cheat> {
-        val cheats = selectedGame.value?.cheats?.flatMap { it.cheats }?.toMutableList() ?: mutableListOf()
+    fun getGameSelectedCheats(): List<CheatInFolder> {
+        val cheats = selectedGame.value?.cheats?.flatMap { folder ->
+            folder.cheats.map { CheatInFolder(it, folder.name) }
+        }?.toMutableList() ?: mutableListOf()
 
         modifiedCheatSet.forEach { cheat ->
-            val originalCheatIndex = cheats.indexOfFirst { it.id == cheat.id }
+            val originalCheatIndex = cheats.indexOfFirst { it.cheat.id == cheat.id }
             if (originalCheatIndex >= 0) {
-                cheats[originalCheatIndex] = cheat
+                cheats[originalCheatIndex] = CheatInFolder(cheat, cheats[originalCheatIndex].folderName)
             }
         }
-        return cheats.filter { it.enabled }
+        return cheats.filter { it.cheat.enabled }
     }
 
     fun notifyCheatEnabledStatusChanged(cheat: Cheat, isEnabled: Boolean) {
