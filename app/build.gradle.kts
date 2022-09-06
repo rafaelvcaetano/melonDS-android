@@ -44,6 +44,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        compose = true
     }
     buildTypes {
         getByName("release") {
@@ -54,6 +55,9 @@ android {
         getByName("debug") {
             applicationIdSuffix = ".dev"
         }
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.3.0"
     }
 
     flavorDimensions.add("version")
@@ -102,6 +106,7 @@ dependencies {
     // AndroidX
     with(Dependencies.AndroidX) {
         implementation(activity)
+        implementation(activityCompose)
         implementation(appCompat)
         implementation(cardView)
         implementation(constraintLayout)
@@ -120,6 +125,14 @@ dependencies {
         implementation(work)
         implementation(workRxJava)
         implementation(material)
+    }
+
+    with(Dependencies.Compose) {
+        implementation(foundation)
+        implementation(material)
+        implementation(ui)
+
+        debugImplementation(uiTooling)
     }
 
     // Third-party

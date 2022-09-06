@@ -1,16 +1,17 @@
 object Dependencies {
-    private object Versions {
+    object Versions {
         const val Activity = "1.5.1"
         const val AppCompat = "1.5.0"
         const val CardView = "1.0.0"
         const val CommonsCompress = "1.21"
+        const val Compose = "1.2.1"
         const val ConstraintLayout = "2.1.4"
         const val Core = "1.8.0"
         const val Desugar = "1.1.5"
         const val DocumentFile = "1.0.1"
         const val Flexbox = "3.0.0"
         const val Fragment = "1.5.2"
-        const val Gradle = "7.0.0"
+        const val Gradle = "7.2.2"
         const val Gson = "2.8.6"
         const val HiltX = "1.0.0"
         const val Hilt = "2.42"
@@ -50,6 +51,7 @@ object Dependencies {
 
     object AndroidX {
         const val activity = "androidx.activity:activity-ktx:${Versions.Activity}"
+        const val activityCompose = "androidx.activity:activity-compose:${Versions.Activity}"
         const val appCompat = "androidx.appcompat:appcompat:${Versions.AppCompat}"
         const val cardView = "androidx.cardview:cardview:${Versions.CardView}"
         const val constraintLayout = "androidx.constraintlayout:constraintlayout:${Versions.ConstraintLayout}"
@@ -68,6 +70,13 @@ object Dependencies {
         const val work = "androidx.work:work-runtime-ktx:${Versions.Work}"
         const val workRxJava = "androidx.work:work-rxjava2:${Versions.Work}"
         const val material = "com.google.android.material:material:${Versions.Material}"
+    }
+
+    object Compose {
+        const val foundation = "androidx.compose.foundation:foundation:${Versions.Compose}"
+        const val material = "androidx.compose.material:material:${Versions.Compose}"
+        const val ui = "androidx.compose.ui:ui:${Versions.Compose}"
+        const val uiTooling = "androidx.compose.ui:ui-tooling:${Versions.Compose}"
     }
 
     object ThirdParty {
