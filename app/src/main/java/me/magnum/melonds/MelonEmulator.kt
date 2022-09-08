@@ -35,7 +35,7 @@ object MelonEmulator {
         DSI_NAND_BAD
     }
 
-	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?, uriFileHandler: UriFileHandler, textureBuffer: ByteBuffer)
+	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?, textureBuffer: ByteBuffer)
 
     external fun setupCheats(cheats: Array<Cheat>)
 

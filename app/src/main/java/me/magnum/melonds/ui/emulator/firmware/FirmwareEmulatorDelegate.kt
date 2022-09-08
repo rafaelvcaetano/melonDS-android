@@ -26,7 +26,7 @@ class FirmwareEmulatorDelegate(activity: EmulatorActivity) : EmulatorDelegate(ac
         return getEmulatorLaunchConfiguration(firmwareConsoleType).flatMapCompletable { emulatorConfiguration ->
             Completable.create {
                 activity.viewModel.loadLayoutForFirmware()
-                MelonEmulator.setupEmulator(emulatorConfiguration, activity.assets, activity.buildUriFileHandler(), activity.getRendererTextureBuffer())
+                MelonEmulator.setupEmulator(emulatorConfiguration, activity.assets, activity.getRendererTextureBuffer())
 
                 val loadResult = MelonEmulator.bootFirmware()
                 if (loadResult != MelonEmulator.FirmwareLoadResult.SUCCESS) {

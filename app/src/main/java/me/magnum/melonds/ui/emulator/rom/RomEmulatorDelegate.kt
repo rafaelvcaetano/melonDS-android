@@ -63,7 +63,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
                 Pair(cheats, emulatorConfiguration)
             }.flatMap { (cheats, emulatorConfiguration) ->
                 Single.create<MelonEmulator.LoadResult> { emitter ->
-                    MelonEmulator.setupEmulator(emulatorConfiguration, activity.assets, activity.buildUriFileHandler(), activity.getRendererTextureBuffer())
+                    MelonEmulator.setupEmulator(emulatorConfiguration, activity.assets, activity.getRendererTextureBuffer())
 
                     val rom = romPair.first
                     val romPath = romPair.second

@@ -8,6 +8,8 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
 import io.reactivex.disposables.Disposable
+import me.magnum.melonds.common.UriFileHandler
+import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.migrations.Migrator
 import javax.inject.Inject
@@ -16,11 +18,16 @@ import javax.inject.Inject
 class MelonDSApplication : Application(), Configuration.Provider {
     companion object {
         const val NOTIFICATION_CHANNEL_ID_BACKGROUND_TASKS = "channel_cheat_importing"
+
+        init {
+            System.loadLibrary("melonDS-android-frontend")
+        }
     }
 
     @Inject lateinit var workerFactory: HiltWorkerFactory
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var migrator: Migrator
+    @Inject lateinit var uriHandler: UriHandler
 
     private var themeObserverDisposable: Disposable? = null
 
@@ -29,6 +36,7 @@ class MelonDSApplication : Application(), Configuration.Provider {
         createNotificationChannels()
         applyTheme()
         performMigrations()
+        MelonDSAndroidInterface.setup(UriFileHandler(this, uriHandler))
     }
 
     private fun createNotificationChannels() {
@@ -60,5 +68,6 @@ class MelonDSApplication : Application(), Configuration.Provider {
     override fun onTerminate() {
         super.onTerminate()
         themeObserverDisposable?.dispose()
+        MelonDSAndroidInterface.cleanup()
     }
 }

@@ -30,7 +30,6 @@ import io.reactivex.subjects.PublishSubject
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.common.Schedulers
-import me.magnum.melonds.common.UriFileHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
@@ -46,8 +45,8 @@ import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
 import me.magnum.melonds.ui.emulator.firmware.FirmwareEmulatorDelegate
 import me.magnum.melonds.ui.emulator.input.*
 import me.magnum.melonds.ui.emulator.rewind.EdgeSpacingDecorator
-import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.RewindSaveStateAdapter
+import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rom.RomEmulatorDelegate
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.utils.PackageManagerCompat
@@ -63,10 +62,6 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         const val KEY_URI = "uri"
         const val KEY_BOOT_FIRMWARE_CONSOLE = "boot_firmware_console"
         private const val KEY_BOOT_FIRMWARE_ONLY = "boot_firmware_only"
-
-        init {
-            System.loadLibrary("melonDS-android-frontend")
-        }
 
         fun getRomEmulatorActivityIntent(context: Context, rom: Rom): Intent {
             return Intent(context, EmulatorActivity::class.java).apply {
@@ -518,10 +513,6 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         if (!result) {
             Toast.makeText(this, R.string.failed_reset_emulation, Toast.LENGTH_SHORT).show()
         }
-    }
-
-    fun buildUriFileHandler(): UriFileHandler {
-        return UriFileHandler(this, uriHandler)
     }
 
     fun getRendererTextureBuffer(): ByteBuffer {
