@@ -3,6 +3,11 @@
     <color name="colorPrimary">#f44336</color>
     <color name="colorPrimaryDark">#d32f2f</color>
     <color name="colorAccent">@color/melonMain</color>
+    <color name="colorOnPrimary">#fff</color>
+    <color name="colorOnSecondary">#fff</color>
+
+    <color name="textColorPrimary">#DD000000</color>
+    <color name="textColorSecondary">#89000000</color>
 
     <color name="itemSelected">#AAA</color>
 

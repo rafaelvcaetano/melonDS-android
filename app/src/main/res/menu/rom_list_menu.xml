@@ -54,6 +54,12 @@
     </item>
 
     <item
+        android:id="@+id/action_dsiware_manager"
+        android:title="@string/dsiware_manager"
+        android:orderInCategory="3"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_rom_list_refresh"
         android:title="@string/action_refresh_rom_list"
         android:icon="@drawable/ic_refresh"

@@ -38,6 +38,12 @@
             </intent-filter>
         </activity>
         <activity
+                android:name=".ui.dsiwaremanager.DSiWareManagerActivity"
+                android:label="@string/dsiware_manager"
+                android:parentActivityName=".ui.romlist.RomListActivity"
+                android:exported="false">
+        </activity>
+        <activity
             android:name=".ui.settings.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:parentActivityName=".ui.romlist.RomListActivity"

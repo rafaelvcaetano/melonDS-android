@@ -4,6 +4,9 @@
     <color name="colorPrimaryDark">#222</color>
     <color name="colorAccent">#f44336</color>
 
+    <color name="textColorPrimary">#FFFFFF</color>
+    <color name="textColorSecondary">#B3FFFFFF</color>
+
     <color name="romConfigButtonDefault">#AAA</color>
 
     <color name="navigationBarBackground">#333</color>

@@ -20,6 +20,8 @@ import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
+import me.magnum.melonds.domain.services.DSiNandManager
+import me.magnum.melonds.impl.AndroidDSiNandManager
 import me.magnum.melonds.impl.*
 import me.magnum.melonds.impl.romprocessors.Api24RomFileProcessorFactory
 import me.magnum.melonds.impl.romprocessors.OldRomFileProcessorFactory
@@ -68,6 +70,12 @@ object MelonModule {
     @Singleton
     fun provideSaveStatesRepository(settingsRepository: SettingsRepository, saveStateScreenshotProvider: SaveStateScreenshotProvider, uriHandler: UriHandler): SaveStatesRepository {
         return FileSystemSaveStatesRepository(settingsRepository, saveStateScreenshotProvider, uriHandler)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDSiWareMetadataRepository(): DSiWareMetadataRepository {
+        return NusDSiWareMetadataRepository()
     }
 
     @Provides
@@ -126,5 +134,16 @@ object MelonModule {
     @Singleton
     fun provideDefaultLayoutBuilder(@ApplicationContext context: Context, screenUnitsConverter: ScreenUnitsConverter): DefaultLayoutProvider {
         return DefaultLayoutProvider(context, screenUnitsConverter)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDSiNandManager(
+        @ApplicationContext context: Context,
+        settingsRepository: SettingsRepository,
+        dSiWareMetadataRepository: DSiWareMetadataRepository,
+        configurationDirectoryVerifier: ConfigurationDirectoryVerifier
+    ): DSiNandManager {
+        return AndroidDSiNandManager(context, settingsRepository, dSiWareMetadataRepository, configurationDirectoryVerifier)
     }
 }

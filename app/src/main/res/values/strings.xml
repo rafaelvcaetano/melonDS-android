@@ -41,6 +41,10 @@
     <string name="download_progress_sizes">%1$.1fMB/%2$.1fMB</string>
     <string name="update_download_failed">Failed to download update</string>
 
+    <string name="dsiware_manager">DSiWare Manager</string>
+    <string name="no_dsiware_titles_installed">You don\'t have any DSiWare title installed</string>
+    <string name="import_dsiware_title">Import DSiWare title</string>
+
     <string name="info_fps">FPS: %1$d</string>
     <string name="info_loading">LOADING…</string>
     <string name="save_state_slot">%1$s.</string>

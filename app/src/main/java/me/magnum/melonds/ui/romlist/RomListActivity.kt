@@ -24,6 +24,7 @@ import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.contracts.DirectoryPickerContract
 import me.magnum.melonds.databinding.ActivityRomListBinding
 import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.ui.dsiwaremanager.DSiWareManagerActivity
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.ui.settings.SettingsActivity
 import javax.inject.Inject
@@ -150,6 +151,11 @@ class RomListActivity : AppCompatActivity() {
             }
             R.id.action_boot_firmware_dsi -> {
                 bootFirmware(ConsoleType.DSi)
+                return true
+            }
+            R.id.action_dsiware_manager -> {
+                val intent = Intent(this, DSiWareManagerActivity::class.java)
+                startActivity(intent)
                 return true
             }
             R.id.action_rom_list_refresh -> {
