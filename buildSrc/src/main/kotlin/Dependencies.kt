@@ -77,6 +77,7 @@ object Dependencies {
         const val material = "androidx.compose.material:material:${Versions.Compose}"
         const val ui = "androidx.compose.ui:ui:${Versions.Compose}"
         const val uiTooling = "androidx.compose.ui:ui-tooling:${Versions.Compose}"
+        const val uiToolingPreview = "androidx.compose.ui:ui-tooling-preview:${Versions.Compose}"
     }
 
     object ThirdParty {

@@ -131,6 +131,7 @@ dependencies {
         implementation(foundation)
         implementation(material)
         implementation(ui)
+        implementation(uiToolingPreview)
 
         debugImplementation(uiTooling)
     }
