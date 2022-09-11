@@ -57,8 +57,8 @@ class RewindPreferencesFragment : MasterSwitchPreferenceFragment(), PreferenceFr
         val recommendedMaximumMemoryUsage = deviceMemory?.let { it * 0.2f }
 
         val maximumRewindStates = rewindWindow / rewindPeriod
-        // Assume 10MB per save state
-        val maximumMemoryUsage = SizeUnit.MB(10) * maximumRewindStates
+        // Assume 20MB per save state
+        val maximumMemoryUsage = SizeUnit.MB(20) * maximumRewindStates
         val memoryUsageRepresentation = SizeUtils.getBestSizeStringRepresentation(maximumMemoryUsage, 2)
 
         val summaryStringBuilder = StringBuilder()

@@ -131,7 +131,7 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
 }
 
 JNIEXPORT jint JNICALL
-Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jobject thiz, jstring romPath, jstring sramPath, jboolean loadDirect, jboolean loadGbaRom, jstring gbaRomPath, jstring gbaSramPath)
+Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jobject thiz, jstring romPath, jstring sramPath, jboolean loadGbaRom, jstring gbaRomPath, jstring gbaSramPath)
 {
     jboolean isCopy = JNI_FALSE;
     const char* rom = romPath == nullptr ? nullptr : env->GetStringUTFChars(romPath, &isCopy);
@@ -139,7 +139,7 @@ Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jobject thiz, 
     const char* gbaRom = gbaRomPath == nullptr ? nullptr : env->GetStringUTFChars(gbaRomPath, &isCopy);
     const char* gbaSram = gbaSramPath == nullptr ? nullptr : env->GetStringUTFChars(gbaSramPath, &isCopy);
 
-    int result = MelonDSAndroid::loadRom(const_cast<char*>(rom), const_cast<char*>(sram), loadDirect, loadGbaRom, const_cast<char*>(gbaRom), const_cast<char*>(gbaSram));
+    int result = MelonDSAndroid::loadRom(const_cast<char*>(rom), const_cast<char*>(sram), loadGbaRom, const_cast<char*>(gbaRom), const_cast<char*>(gbaSram));
 
     if (isCopy == JNI_TRUE) {
         if (romPath) env->ReleaseStringUTFChars(romPath, rom);

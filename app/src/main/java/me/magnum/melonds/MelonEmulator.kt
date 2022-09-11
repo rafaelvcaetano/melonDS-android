@@ -39,8 +39,8 @@ object MelonEmulator {
 
     external fun setupCheats(cheats: Array<Cheat>)
 
-	fun loadRom(romUri: Uri, sramUri: Uri, loadDirect: Boolean, loadGbaRom: Boolean, gbaRomUri: Uri?, gbaSramUri: Uri?): LoadResult {
-        val loadResult = loadRomInternal(romUri.toString(), sramUri.toString(), loadDirect, loadGbaRom, gbaRomUri?.toString(), gbaSramUri?.toString())
+	fun loadRom(romUri: Uri, sramUri: Uri, loadGbaRom: Boolean, gbaRomUri: Uri?, gbaSramUri: Uri?): LoadResult {
+        val loadResult = loadRomInternal(romUri.toString(), sramUri.toString(), loadGbaRom, gbaRomUri?.toString(), gbaSramUri?.toString())
         return when (loadResult) {
             0 -> LoadResult.SUCCESS
             1 -> LoadResult.SUCCESS_GBA_FAILED
@@ -55,7 +55,7 @@ object MelonEmulator {
         return FirmwareLoadResult.values()[loadResult]
     }
 
-    private external fun loadRomInternal(romPath: String, sramPath: String, loadDirect: Boolean, loadGbaRom: Boolean, gbaRomPath: String?, gbaSramPath: String?): Int
+    private external fun loadRomInternal(romPath: String, sramPath: String, loadGbaRom: Boolean, gbaRomPath: String?, gbaSramPath: String?): Int
 
     private external fun bootFirmwareInternal(): Int
 

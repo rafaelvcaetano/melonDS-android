@@ -14,6 +14,7 @@ MelonDSAndroid::EmulatorConfiguration MelonDSAndroidConfiguration::buildEmulator
     jmethodID uriToStringMethod = env->GetMethodID(uriClass, "toString", "()Ljava/lang/String;");
 
     jboolean useCustomBios = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "useCustomBios", "Z"));
+    jboolean showBootScreen = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "showBootScreen", "Z"));
     jobject dsBios7Uri = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsBios7Uri", "Landroid/net/Uri;"));
     jobject dsBios9Uri = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsBios9Uri", "Landroid/net/Uri;"));
     jobject dsFirmwareUri = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsFirmwareUri", "Landroid/net/Uri;"));
@@ -69,6 +70,7 @@ MelonDSAndroid::EmulatorConfiguration MelonDSAndroidConfiguration::buildEmulator
     finalEmulatorConfiguration.dsiNandPath = const_cast<char*>(dsiNandPath);
     finalEmulatorConfiguration.internalFilesDir = const_cast<char*>(internalDir);
     finalEmulatorConfiguration.fastForwardSpeedMultiplier = fastForwardMaxSpeed;
+    finalEmulatorConfiguration.showBootScreen = showBootScreen;
     finalEmulatorConfiguration.useJit = useJit;
     finalEmulatorConfiguration.consoleType = consoleType;
     finalEmulatorConfiguration.soundEnabled = soundEnabled;
@@ -101,65 +103,6 @@ MelonDSAndroid::FirmwareConfiguration MelonDSAndroidConfiguration::buildFirmware
     const char* message = env->GetStringUTFChars(messageString, &isCopy);
     const char* macAddress = macAddressString ? env->GetStringUTFChars(macAddressString, &isCopy) : nullptr;
 
-    u8 macAddressArray[6] = { 0 };
-
-    if (macAddress) {
-        bool isBad = false;
-        int sectionCounter = 0;
-        std::size_t start = 0;
-        std::size_t end = 0;
-
-        // Split address string into sections separated by a colon (:)
-        std::string macString = macAddress;
-        while ((end = macString.find(':', start)) != std::string::npos) {
-            if (end != start) {
-                char* endPointer;
-                std::string sectionString = macString.substr(start, end - start);
-                // Each code section must be 2 hex characters
-                if (sectionString.size() != 2) {
-                    isBad = true;
-                    break;
-                }
-
-                unsigned long section = strtoul(sectionString.c_str(), &endPointer, 16);
-                if (*endPointer == 0) {
-                    if (sectionCounter >= sizeof(macAddressArray)) {
-                        isBad = true;
-                        break;
-                    }
-
-                    macAddressArray[sectionCounter] = (u8) section;
-                    sectionCounter++;
-                } else {
-                    isBad = true;
-                    break;
-                }
-            }
-            start = end + 1;
-        }
-
-        if (!isBad && end != start) {
-            char* endPointer;
-            std::string sectionString = macString.substr(start, end - start);
-            if (sectionString.size() != 8) {
-                isBad = true;
-            } else {
-                unsigned long section = strtoul(sectionString.c_str(), &endPointer, 16);
-                if (*endPointer == 0 && sectionCounter < sizeof(macAddressArray)) {
-                    macAddressArray[sectionCounter] = (u32) section;
-                    sectionCounter++;
-                } else {
-                    isBad = true;
-                }
-            }
-        }
-
-        // If the MAC address is invalid, enable randomization
-        if (isBad) {
-            randomizeMacAddress = true;
-        }
-    }
-
     MelonDSAndroid::FirmwareConfiguration finalFirmwareConfiguration;
     strncpy(finalFirmwareConfiguration.username, nickname, sizeof(finalFirmwareConfiguration.username) - 1);
     strncpy(finalFirmwareConfiguration.message, message, sizeof(finalFirmwareConfiguration.message) - 1);
@@ -170,7 +113,15 @@ MelonDSAndroid::FirmwareConfiguration MelonDSAndroidConfiguration::buildFirmware
     finalFirmwareConfiguration.birthdayDay = birthdayDay;
     finalFirmwareConfiguration.birthdayMonth = birthdayMonth;
     finalFirmwareConfiguration.randomizeMacAddress = randomizeMacAddress;
-    memcpy(finalFirmwareConfiguration.macAddress, macAddressArray, sizeof(macAddressArray));
+    if (macAddress != nullptr)
+    {
+        strncpy(finalFirmwareConfiguration.macAddress, macAddress, sizeof(finalFirmwareConfiguration.macAddress) - 1);
+        finalFirmwareConfiguration.macAddress[sizeof(finalFirmwareConfiguration.macAddress) - 1] = '\0';
+    }
+    else
+    {
+        finalFirmwareConfiguration.macAddress[0] = '\0';
+    }
 
     if (isCopy) {
         env->ReleaseStringUTFChars(nicknameString, nickname);

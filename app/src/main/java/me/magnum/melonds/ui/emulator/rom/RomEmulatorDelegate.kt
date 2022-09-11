@@ -68,11 +68,10 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
                     val rom = romPair.first
                     val romPath = romPair.second
                     val sramPath = activity.viewModel.getRomSramFile(rom)
-                    val showBios = emulatorConfiguration.showBootScreen
 
                     val gbaCartPath = rom.config.gbaCartPath
                     val gbaSavePath = rom.config.gbaSavePath
-                    val loadResult = MelonEmulator.loadRom(romPath, sramPath, !showBios, rom.config.mustLoadGbaCart(), gbaCartPath, gbaSavePath)
+                    val loadResult = MelonEmulator.loadRom(romPath, sramPath, rom.config.mustLoadGbaCart(), gbaCartPath, gbaSavePath)
                     if (loadResult.isTerminal) {
                         throw EmulatorActivity.RomLoadFailedException(loadResult)
                     }

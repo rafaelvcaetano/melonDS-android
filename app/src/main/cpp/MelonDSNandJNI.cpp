@@ -3,7 +3,7 @@
 #include <locale>
 #include <codecvt>
 #include "DSi_NAND.h"
-#include "FrontendUtil.h"
+#include "ROMManager.h"
 #include "Platform.h"
 #include "MelonDSAndroidConfiguration.h"
 #include "MelonDS.h"
@@ -153,7 +153,7 @@ jobject getTitleData(JNIEnv* env, u32 category, u32 titleId)
     DSi_NAND::GetTitleInfo(category, titleId, version, &header, &banner);
 
     u32 iconData[32 * 32];
-    Frontend::ROMIcon(banner.Icon, banner.Palette, iconData);
+    ROMManager::ROMIcon(banner.Icon, banner.Palette, iconData);
     jbyteArray iconBytes = env->NewByteArray(32 * 32 * sizeof(u32));
     jbyte* iconArrayElements = env->GetByteArrayElements(iconBytes, NULL);
     memcpy(iconArrayElements, iconData, sizeof(iconData));
