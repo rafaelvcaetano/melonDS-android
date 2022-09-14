@@ -10,20 +10,10 @@
             app:iconSpaceReserved="false"
             android:fragment="me.magnum.melonds.ui.settings.fragments.FirmwarePreferencesFragment" />
 
-    <com.smp.masterswitchpreference.MasterSwitchPreference
-            android:key="use_custom_bios"
+    <Preference
             android:title="@string/custom_bios_firmware"
             app:iconSpaceReserved="false"
-            android:fragment="me.magnum.melonds.ui.settings.fragments.CustomFirmwarePreferencesFragment"
-            android:defaultValue="false"
-            app:ms_switchOnText="@string/on"
-            app:ms_switchOffText="@string/off"
-            app:ms_switchThumbColor="?android:colorAccent"
-            app:ms_switchTrackColor="@color/prefSwitchRailColor"
-            app:ms_switchOnBackgroundColor="@color/prefSwitchBackground"
-            app:ms_switchOffBackgroundColor="@color/prefSwitchBackground"
-            app:ms_switchOffExplanationText="@string/custom_bios_firmware_description"
-            app:ms_includedPrefScreen="xml/pref_custom_firmware" />
+            android:fragment="me.magnum.melonds.ui.settings.fragments.CustomFirmwarePreferencesFragment" />
 
     <SwitchPreference
             android:key="enable_jit"

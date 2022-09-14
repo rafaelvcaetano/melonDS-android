@@ -116,11 +116,12 @@
     <string name="cache_size">Cache size: %s</string>
     <string name="cache_size_calculating">Cache size: calculating…</string>
     <string name="rom_search_directory">Search directory</string>
+    <string name="use_custom_bios">Use custom BIOS and firmware</string>
     <string name="console_type">Default system</string>
     <string name="internal_firmware_settings">Internal firmware settings</string>
     <string name="internal_firmware_settings_summary">Adjust the settings of the internal firmware.</string>
     <string name="custom_bios_firmware">Custom BIOS and firmware</string>
-    <string name="custom_bios_firmware_description">Using a custom BIOS and firmware allows you to launch and navigate in the DS\'s firmware without loading a ROM, just like in a real system.\n\nYou will need to dump the BIOS and firmware files from a real system.\n\nUsing a custom BIOS and firmware is required for DSi support.</string>
+    <string name="custom_bios_firmware_description">Using a custom BIOS and firmware allows you to launch and navigate in the DS\'s firmware without loading a ROM, just like in a real system</string>
     <string name="bios_directory">DS BIOS directory</string>
     <string name="dsi_bios_directory">DSi BIOS directory</string>
     <string name="show_boot_screen">Show boot screen</string>

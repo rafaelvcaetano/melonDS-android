@@ -3,6 +3,20 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <SwitchPreference
+            android:key="use_custom_bios"
+            android:title="@string/use_custom_bios"
+            android:summary="@string/custom_bios_firmware_description"
+            app:iconSpaceReserved="false"
+            android:defaultValue="false" />
+
+    <SwitchPreference
+            android:key="show_bios"
+            android:title="@string/show_boot_screen"
+            app:iconSpaceReserved="false"
+            android:defaultValue="false"
+            android:dependency="use_custom_bios" />
+
     <ListPreference
             android:key="console_type"
             android:title="@string/console_type"
@@ -11,12 +25,6 @@
             android:entries="@array/console_type_options"
             android:entryValues="@array/console_type_values"
             android:defaultValue="ds" />
-
-    <SwitchPreference
-            android:key="show_bios"
-            android:title="@string/show_boot_screen"
-            app:iconSpaceReserved="false"
-            android:defaultValue="false" />
 
     <me.magnum.melonds.ui.settings.preferences.BiosDirectoryPickerPreference
             android:key="bios_dir"

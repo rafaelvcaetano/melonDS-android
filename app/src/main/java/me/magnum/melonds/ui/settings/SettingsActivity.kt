@@ -44,7 +44,7 @@ class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPrefere
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         if (id == android.R.id.home) {
-            if (!popBackStackIfNeeded()) {
+            if (!supportFragmentManager.popBackStackImmediate()) {
                 finish()
             }
             return true
@@ -57,14 +57,6 @@ class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPrefere
         if (fragment is PreferenceFragmentTitleProvider) {
             supportActionBar?.title = fragment.getTitle()
         }
-    }
-
-    private fun popBackStackIfNeeded(): Boolean {
-        if (supportFragmentManager.backStackEntryCount > 0) {
-            supportFragmentManager.popBackStack()
-            return true
-        }
-        return false
     }
 
     override fun onPreferenceStartFragment(caller: PreferenceFragmentCompat, pref: Preference): Boolean {

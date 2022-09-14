@@ -116,7 +116,7 @@
     <string name="internal_firmware_settings">Pengaturan firmware internal</string>
     <string name="internal_firmware_settings_summary">Sesuaikan pengaturan firmware internal.</string>
     <string name="custom_bios_firmware">BIOS dan firmware khusus</string>
-    <string name="custom_bios_firmware_description">Menggunakan BIOS dan firmware khusus memungkinkan Anda meluncurkan dan menavigasi di firmware DS\'s tanpa memuat ROM, sama seperti di sistem nyata.\n\nAnda perlu membuang file BIOS dan firmware dari sistem nyata.\n\nMenggunakan BIOS dan firmware khusus diperlukan untuk mendukung DSi.</string>
+    <string name="custom_bios_firmware_description">Menggunakan BIOS dan firmware khusus memungkinkan Anda meluncurkan dan menavigasi di firmware DS\'s tanpa memuat ROM, sama seperti di sistem nyata</string>
     <string name="bios_directory">Direktori DS BIOS</string>
     <string name="dsi_bios_directory">Direktori BIOS DSi</string>
     <string name="show_boot_screen">Tampilkan layar boot</string>

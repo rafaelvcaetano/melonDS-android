@@ -116,7 +116,7 @@
     <string name="internal_firmware_settings">Настройки прошивки</string>
     <string name="internal_firmware_settings_summary">Параметры встроенного программного обеспечения.</string>
     <string name="custom_bios_firmware">Ручная установка BIOS и прошивки</string>
-    <string name="custom_bios_firmware_description">Использование внешних BIOS и прошивки позволяет запускать и настраивать прошивку DS без загрузки игры, как на реальной системе.\n\n.Требуются копии BIOS и прошивки, снятые с консоли.\n\nОбразы BIOS и прошивки необходимы для поддержки DSi.</string>
+    <string name="custom_bios_firmware_description">Использование внешних BIOS и прошивки позволяет запускать и настраивать прошивку DS без загрузки игры, как на реальной системе</string>
     <string name="bios_directory">Каталог DS BIOS</string>
     <string name="dsi_bios_directory">Каталог DSi BIOS</string>
     <string name="show_boot_screen">Показывать экран загрузки</string>

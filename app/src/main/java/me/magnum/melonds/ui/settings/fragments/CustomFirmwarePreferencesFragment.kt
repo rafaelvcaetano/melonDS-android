@@ -5,7 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
 import androidx.preference.ListPreference
-import com.smp.masterswitchpreference.MasterSwitchPreferenceFragment
+import androidx.preference.PreferenceFragmentCompat
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.common.DirectoryAccessValidator
@@ -20,15 +20,15 @@ import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class CustomFirmwarePreferencesFragment : MasterSwitchPreferenceFragment(), PreferenceFragmentTitleProvider {
+class CustomFirmwarePreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
+
     private val viewModel: SettingsViewModel by activityViewModels()
     private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager, directoryAccessValidator) }
     @Inject lateinit var uriPermissionManager: UriPermissionManager
     @Inject lateinit var directoryAccessValidator: DirectoryAccessValidator
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        super.onCreatePreferences(savedInstanceState, rootKey)
-
+        setPreferencesFromResource(R.xml.pref_custom_firmware, rootKey)
         val consoleTypePreference = findPreference<ListPreference>("console_type")!!
         val dsBiosDirPreference = findPreference<BiosDirectoryPickerPreference>("bios_dir")!!
         val dsiBiosDirPreference = findPreference<BiosDirectoryPickerPreference>("dsi_bios_dir")!!
