@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Environment
 import android.os.storage.StorageManager
 import android.provider.DocumentsContract
+import android.system.Os
 import android.util.Log
 import androidx.core.content.getSystemService
 import androidx.documentfile.provider.DocumentFile
@@ -72,7 +73,7 @@ object FileUtils {
     private fun getAbsolutePathFromSingleUri(context: Context, uri: Uri): String? {
         return context.contentResolver.openFileDescriptor(uri, "r")?.use {
             val file = File("/proc/self/fd/${it.fd}")
-            file.canonicalPath
+            Os.readlink(file.absolutePath)
         }
     }
 

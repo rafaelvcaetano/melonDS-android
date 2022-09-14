@@ -6,7 +6,6 @@ import android.app.Dialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
@@ -87,7 +86,7 @@ class RomConfigDialog : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        binding = DialogRomConfigBinding.inflate(LayoutInflater.from(requireContext()))
+        binding = DialogRomConfigBinding.inflate(layoutInflater)
 
         return AlertDialog.Builder(requireContext())
                 .setView(binding.root)
@@ -211,7 +210,7 @@ class RomConfigDialog : DialogFragment() {
     }
 
     private fun getUriPathOrDefault(uri: Uri?): String {
-        return uri?.let { romListViewModel.getUriDocumentName(it) } ?: getString(R.string.not_set)
+        return FileUtils.getAbsolutePathFromSAFUri(requireContext(), uri) ?: getString(R.string.not_set)
     }
 
     override fun onStop() {
