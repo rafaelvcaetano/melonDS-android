@@ -25,6 +25,7 @@ import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.layouts.LayoutSelectorActivity
 import me.magnum.melonds.common.contracts.FilePickerContract
 import me.magnum.melonds.extensions.isMicrophonePermissionGranted
+import me.magnum.melonds.utils.FileUtils
 import java.util.*
 
 class RomConfigDialog : DialogFragment() {
