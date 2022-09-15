@@ -43,7 +43,11 @@
 
     <string name="dsiware_manager">DSiWare Manager</string>
     <string name="no_dsiware_titles_installed">You don\'t have any DSiWare title installed</string>
+    <string name="dsiware_manager_no_dsi_setup">You haven\'t setup the DSi system</string>
+    <string name="dsiware_manager_invalid_dsi_setup">Your DSi system setup is invalid</string>
     <string name="import_dsiware_title">Import DSiWare title</string>
+    <string name="dsiware_manager_setup">Setup</string>
+    <string name="dsiware_manager_fix_setup">Fix setup</string>
 
     <string name="info_fps">FPS: %1$d</string>
     <string name="info_loading">LOADING…</string>
