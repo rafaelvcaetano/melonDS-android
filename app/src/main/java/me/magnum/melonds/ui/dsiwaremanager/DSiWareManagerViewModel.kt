@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.domain.model.ConfigurationDirResult
 import me.magnum.melonds.domain.model.DSiWareTitle
+import me.magnum.melonds.domain.model.dsinand.OpenNandResult
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.domain.services.DSiNandManager
@@ -40,9 +41,15 @@ class DSiWareManagerViewModel @Inject constructor(
         } else {
             viewModelScope.launch {
                 withContext(Dispatchers.Default) {
-                    dsiNandManager.openNand()
-                    val titles = dsiNandManager.listTitles()
-                    _state.value = DSiWareManagerUiState.Ready(titles)
+                    val openNandResult = dsiNandManager.openNand()
+                    if (openNandResult == OpenNandResult.SUCCESS) {
+                        val titles = dsiNandManager.listTitles()
+                        _state.value = DSiWareManagerUiState.Ready(titles)
+                    } else {
+                        // All pre-requirements are validate beforehand and no unexpected error should occur. As such,
+                        // there's no point in providing a detailed description of the error to the UI.
+                        _state.value = DSiWareManagerUiState.Error
+                    }
                 }
             }
         }

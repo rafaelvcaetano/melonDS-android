@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.createBitmap
@@ -55,6 +56,7 @@ fun DSiWareManager(
                 retrieveTitleIcon = retrieveTitleIcon,
             )
         }
+        is DSiWareManagerUiState.Error -> Error(modifier)
     }
 }
 
@@ -65,8 +67,10 @@ private fun InvalidSetup(modifier: Modifier, configurationStatus: ConfigurationD
     Column(modifier.padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
         when (configurationStatus) {
             ConfigurationDirResult.Status.UNSET -> {
-
-                Text(text = stringResource(R.string.dsiware_manager_no_dsi_setup))
+                Text(
+                    text = stringResource(R.string.dsiware_manager_no_dsi_setup),
+                    textAlign = TextAlign.Center,
+                )
                 Spacer(Modifier.height(8.dp))
                 Button(
                     onClick = {
@@ -81,7 +85,10 @@ private fun InvalidSetup(modifier: Modifier, configurationStatus: ConfigurationD
                 }
             }
             ConfigurationDirResult.Status.INVALID -> {
-                Text(text = stringResource(R.string.dsiware_manager_invalid_dsi_setup))
+                Text(
+                    text = stringResource(R.string.dsiware_manager_invalid_dsi_setup),
+                    textAlign = TextAlign.Center,
+                )
                 Spacer(Modifier.height(8.dp))
                 Button(
                     onClick = {
@@ -152,6 +159,19 @@ private fun Ready(
 }
 
 @Composable
+private fun Error(modifier: Modifier) {
+    Box(
+        modifier = modifier.padding(24.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.dsiware_manager_load_error),
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
 private fun DSiWareTitleList(modifier: Modifier, titles: List<DSiWareTitle>, onDeleteTitle: (DSiWareTitle) -> Unit, retrieveTitleIcon: (DSiWareTitle) -> RomIcon) {
     LazyColumn(modifier) {
         items(
@@ -198,5 +218,14 @@ private fun PreviewDSiWareManagerInvalidSetup() {
             modifier = Modifier.fillMaxSize(),
             configurationStatus = ConfigurationDirResult.Status.INVALID,
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewDSiWareManagerErrpr() {
+    MelonTheme {
+        Error(Modifier.fillMaxSize())
     }
 }

@@ -48,6 +48,7 @@
     <string name="import_dsiware_title">Import DSiWare title</string>
     <string name="dsiware_manager_setup">Setup</string>
     <string name="dsiware_manager_fix_setup">Fix setup</string>
+    <string name="dsiware_manager_load_error">There was a problem listing your DSiWare titles. Please check your DSi setup</string>
 
     <string name="info_fps">FPS: %1$d</string>
     <string name="info_loading">LOADING…</string>

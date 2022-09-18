@@ -11,8 +11,15 @@
 
 #define NAND_INIT_OK 0
 #define NAND_INIT_ERROR_ALREADY_OPEN 1
-#define NAND_INIT_ERROR_BIOS7_FAILED 2
+#define NAND_INIT_ERROR_BIOS7_NOT_FOUND 2
 #define NAND_INIT_ERROR_NAND_FAILED 3
+
+#define TITLE_IMPORT_OK 0
+#define TITLE_IMPORT_NAND_NOT_OPEN 1
+#define TITLE_IMPORT_ERROR_OPENING_FILE 2
+#define TITLE_IMPORT_NOT_DSIWARE_TITLE 3
+#define TITLE_IMPORT_TITLE_ALREADY_IMPORTED 4
+#define TITLE_IMPORT_INSATLL_FAILED 5
 
 FILE* nandFile = nullptr;
 
@@ -33,7 +40,7 @@ Java_me_magnum_melonds_MelonDSiNand_openNand(JNIEnv* env, jobject thiz, jobject 
     auto bios7file = Platform::OpenLocalFile(configuration.dsBios7Path, "rb");
     if (!bios7file)
     {
-        return NAND_INIT_ERROR_BIOS7_FAILED;
+        return NAND_INIT_ERROR_BIOS7_NOT_FOUND;
     }
 
     u8 esKey[16];
@@ -75,12 +82,12 @@ Java_me_magnum_melonds_MelonDSiNand_listTitles(JNIEnv* env, jobject thiz)
     return jniTitleList;
 }
 
-JNIEXPORT void JNICALL
+JNIEXPORT jint JNICALL
 Java_me_magnum_melonds_MelonDSiNand_importTitle(JNIEnv* env, jobject thiz, jstring titleUri, jbyteArray tmdMetadata)
 {
     if (nandFile == nullptr)
     {
-        return;
+        return TITLE_IMPORT_NAND_NOT_OPEN;
     }
 
     u32 titleId[2];
@@ -91,7 +98,7 @@ Java_me_magnum_melonds_MelonDSiNand_importTitle(JNIEnv* env, jobject thiz, jstri
     if (!titleFile)
     {
         env->ReleaseStringUTFChars(titleUri, titlePath);
-        return;
+        return TITLE_IMPORT_ERROR_OPENING_FILE;
     }
 
     fseek(titleFile, 0x230, SEEK_SET);
@@ -102,26 +109,29 @@ Java_me_magnum_melonds_MelonDSiNand_importTitle(JNIEnv* env, jobject thiz, jstri
     {
         // Not a DSiWare title
         env->ReleaseStringUTFChars(titleUri, titlePath);
-        return;
+        return TITLE_IMPORT_NOT_DSIWARE_TITLE;
     }
 
     if (DSi_NAND::TitleExists(titleId[1], titleId[0]))
     {
         // Title already exists
         env->ReleaseStringUTFChars(titleUri, titlePath);
-        return;
+        return TITLE_IMPORT_TITLE_ALREADY_IMPORTED;
     }
 
     jbyte* tmdBytes = env->GetByteArrayElements(tmdMetadata, NULL);
 
     DSi_NAND::DeleteTitle(titleId[0], titleId[1]);
     bool result = DSi_NAND::ImportTitle(titlePath, (u8*) tmdBytes, false);
-    if (!result) {
-        DSi_NAND::DeleteTitle(titleId[0], titleId[1]);
-    }
-
     env->ReleaseStringUTFChars(titleUri, titlePath);
     env->ReleaseByteArrayElements(tmdMetadata, tmdBytes, 0);
+
+    if (!result) {
+        DSi_NAND::DeleteTitle(titleId[0], titleId[1]);
+        return TITLE_IMPORT_INSATLL_FAILED;
+    }
+
+    return TITLE_IMPORT_OK;
 }
 
 JNIEXPORT void JNICALL
