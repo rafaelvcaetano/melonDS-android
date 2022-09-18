@@ -37,14 +37,14 @@ Java_me_magnum_melonds_MelonDSiNand_openNand(JNIEnv* env, jobject thiz, jobject 
 
     MelonDSAndroid::EmulatorConfiguration configuration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
 
-    auto bios7file = Platform::OpenLocalFile(configuration.dsBios7Path, "rb");
+    auto bios7file = Platform::OpenLocalFile(configuration.dsiBios7Path, "rb");
     if (!bios7file)
     {
         return NAND_INIT_ERROR_BIOS7_NOT_FOUND;
     }
 
     u8 esKey[16];
-    fseek(bios7file, 0x8303, SEEK_SET);
+    fseek(bios7file, 0x8308, SEEK_SET);
     fread(esKey, 16, 1, bios7file);
     fclose(bios7file);
 
