@@ -4,6 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import androidx.core.net.toUri
 import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.extensions.parcelable
 import java.util.*
 
 class RomParcelable : Parcelable {
@@ -20,7 +21,7 @@ class RomParcelable : Parcelable {
         val uri = parcel.readString()!!.toUri()
         val parentTreeUri = parcel.readString()!!.toUri()
         val lastPlayed = parcel.readLong().let { if (it == (-1).toLong()) null else Date(it) }
-        val romConfig = parcel.readParcelable<RomConfigParcelable>(RomConfigParcelable::class.java.classLoader)
+        val romConfig = parcel.parcelable<RomConfigParcelable>()
         rom = Rom(name!!, fileName!!, uri, parentTreeUri, romConfig!!.romConfig, lastPlayed)
     }
 

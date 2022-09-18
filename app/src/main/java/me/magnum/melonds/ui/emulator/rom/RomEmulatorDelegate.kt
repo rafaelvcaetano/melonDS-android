@@ -28,7 +28,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
     private var cheatsLoadDisposable: Disposable? = null
 
     override fun getEmulatorSetupObservable(extras: Bundle?): Completable {
-        val romParcelable = extras?.getParcelable(EmulatorActivity.KEY_ROM) as RomParcelable?
+        val romParcelable = extras?.parcelable(EmulatorActivity.KEY_ROM) as RomParcelable?
 
         val romLoader = if (romParcelable?.rom != null) {
             Maybe.just(romParcelable.rom)

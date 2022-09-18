@@ -2,9 +2,9 @@ package me.magnum.melonds.migrations
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.pm.PackageInfo
 import androidx.core.content.edit
 import androidx.core.content.pm.PackageInfoCompat
+import me.magnum.melonds.utils.PackageManagerCompat
 
 class Migrator(private val context: Context, private val sharedPreferences: SharedPreferences) {
     private val migrations = mutableListOf<Migration>()
@@ -48,7 +48,7 @@ class Migrator(private val context: Context, private val sharedPreferences: Shar
     }
 
     private fun getCurrentVersion(): Long {
-        val pInfo: PackageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-        return PackageInfoCompat.getLongVersionCode(pInfo)
+        val packageInfo = PackageManagerCompat.getPackageInfo(context.packageManager, context.packageName, 0)
+        return PackageInfoCompat.getLongVersionCode(packageInfo)
     }
 }

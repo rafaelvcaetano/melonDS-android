@@ -14,6 +14,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityBackgroundPreviewBinding
 import me.magnum.melonds.extensions.insetsControllerCompat
+import me.magnum.melonds.extensions.parcelable
 import me.magnum.melonds.impl.BackgroundThumbnailProvider
 import me.magnum.melonds.parcelables.BackgroundParcelable
 import java.lang.Exception
@@ -52,7 +53,7 @@ class BackgroundPreviewActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        val background = intent.getParcelableExtra<BackgroundParcelable>(KEY_BACKGROUND)?.background ?: throw NullPointerException("No background provided")
+        val background = intent.parcelable<BackgroundParcelable>(KEY_BACKGROUND)?.background ?: throw NullPointerException("No background provided")
         val thumbnail = backgroundThumbnailProvider.getBackgroundThumbnail(background)
         picasso.load(background.uri).placeholder(BitmapDrawable(resources, thumbnail)).noFade().into(binding.image, object : Callback {
             override fun onSuccess() {

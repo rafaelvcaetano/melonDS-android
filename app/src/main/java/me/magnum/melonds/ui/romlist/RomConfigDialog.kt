@@ -25,6 +25,7 @@ import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.layouts.LayoutSelectorActivity
 import me.magnum.melonds.common.contracts.FilePickerContract
 import me.magnum.melonds.extensions.isMicrophonePermissionGranted
+import me.magnum.melonds.extensions.parcelable
 import me.magnum.melonds.utils.FileUtils
 import java.util.*
 
@@ -78,9 +79,9 @@ class RomConfigDialog : DialogFragment() {
         super.onCreate(savedInstanceState)
 
         // ROM is immutable so we can use the arguments' one. Only the ROM config needs to be saved if the fragment is rebuilt
-        rom = arguments?.getParcelable<RomParcelable>(KEY_ROM)?.rom ?: return
+        rom = arguments?.parcelable<RomParcelable>(KEY_ROM)?.rom ?: return
         romConfig = if (savedInstanceState != null) {
-            savedInstanceState.getParcelable<RomConfigParcelable>(KEY_ROM_CONFIG)?.romConfig ?: return
+            savedInstanceState.parcelable<RomConfigParcelable>(KEY_ROM_CONFIG)?.romConfig ?: return
         } else {
             rom.config.copy()
         }

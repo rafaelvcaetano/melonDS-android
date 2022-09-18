@@ -11,6 +11,7 @@ import me.magnum.melonds.domain.model.Version
 import me.magnum.melonds.domain.repositories.UpdatesRepository
 import me.magnum.melonds.github.GitHubApi
 import me.magnum.melonds.github.dtos.ReleaseDto
+import me.magnum.melonds.utils.PackageManagerCompat
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -95,7 +96,7 @@ class GitHubUpdatesRepository(private val context: Context, private val api: Git
     }
 
     private fun isReleaseNewUpdate(releaseDto: ReleaseDto): Boolean {
-        val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+        val packageInfo = PackageManagerCompat.getPackageInfo(context.packageManager, context.packageName, 0)
 
         val currentVersion = getCurrentAppVersion(packageInfo.versionName)
         val releaseVersion = Version.fromString(releaseDto.tagName)
