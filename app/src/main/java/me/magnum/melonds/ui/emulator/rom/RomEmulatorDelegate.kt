@@ -15,7 +15,11 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
-import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.Cheat
+import me.magnum.melonds.domain.model.EmulatorConfiguration
+import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.SaveStateSlot
+import me.magnum.melonds.extensions.parcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.ui.emulator.EmulatorDelegate
