@@ -7,8 +7,8 @@ import kotlinx.coroutines.withContext
 import me.magnum.melonds.MelonDSiNand
 import me.magnum.melonds.domain.model.ConfigurationDirResult
 import me.magnum.melonds.domain.model.DSiWareTitle
-import me.magnum.melonds.domain.model.dsinand.ImportTitleResult
-import me.magnum.melonds.domain.model.dsinand.OpenNandResult
+import me.magnum.melonds.domain.model.dsinand.ImportDSiWareTitleResult
+import me.magnum.melonds.domain.model.dsinand.OpenDSiNandResult
 import me.magnum.melonds.domain.repositories.DSiWareMetadataRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
@@ -28,14 +28,14 @@ class AndroidDSiNandManager(
 
     private val isNandOpen = AtomicBoolean(false)
 
-    override suspend fun openNand(): OpenNandResult {
+    override suspend fun openNand(): OpenDSiNandResult {
         if (!isNandOpen.compareAndSet(false, true)) {
-            return OpenNandResult.NAND_ALREADY_OPEN
+            return OpenDSiNandResult.NAND_ALREADY_OPEN
         }
         val dsiDirectoryStatus = biosDirectoryVerifier.checkDsiConfigurationDirectory()
         if (dsiDirectoryStatus.status != ConfigurationDirResult.Status.VALID) {
             isNandOpen.set(false)
-            return OpenNandResult.INVALID_DSI_SETUP
+            return OpenDSiNandResult.INVALID_DSI_SETUP
         }
 
         val result = MelonDSiNand.openNand(settingsRepository.getEmulatorConfiguration())
@@ -50,9 +50,9 @@ class AndroidDSiNandManager(
         return MelonDSiNand.listTitles()
     }
 
-    override suspend fun importTitle(titleUri: Uri): ImportTitleResult = withContext(Dispatchers.IO) {
+    override suspend fun importTitle(titleUri: Uri): ImportDSiWareTitleResult = withContext(Dispatchers.IO) {
         if (!isNandOpen.get()) {
-            return@withContext ImportTitleResult.NAND_NOT_OPEN
+            return@withContext ImportDSiWareTitleResult.NAND_NOT_OPEN
         }
 
         var categoryId: UInt = 0.toUInt()
@@ -62,10 +62,10 @@ class AndroidDSiNandManager(
             it.skip(0x230)
             titleId = it.read().toUInt() or it.read().shl(8).toUInt() or it.read().shl(16).toUInt() or it.read().shl(24).toUInt()
             categoryId = it.read().toUInt() or it.read().shl(8).toUInt() or it.read().shl(16).toUInt() or it.read().shl(24).toUInt()
-        } ?: return@withContext ImportTitleResult.ERROR_OPENING_FILE
+        } ?: return@withContext ImportDSiWareTitleResult.ERROR_OPENING_FILE
 
         if (categoryId != DSIWARE_CATEGORY) {
-            return@withContext ImportTitleResult.NOT_DSIWARE_TITLE
+            return@withContext ImportDSiWareTitleResult.NOT_DSIWARE_TITLE
         }
 
         val tmdMetadata = dSiWareMetadataRepository.getDSiWareTitleMetadata(categoryId, titleId)
@@ -90,25 +90,25 @@ class AndroidDSiNandManager(
         MelonDSiNand.closeNand()
     }
 
-    private fun mapOpenNandReturnCodeToResult(returnCode: Int): OpenNandResult {
+    private fun mapOpenNandReturnCodeToResult(returnCode: Int): OpenDSiNandResult {
         return when (returnCode) {
-            0 -> OpenNandResult.SUCCESS
-            1 -> OpenNandResult.NAND_ALREADY_OPEN
-            2 -> OpenNandResult.BIOS7_NOT_FOUND
-            3 -> OpenNandResult.NAND_OPEN_FAILED
-            else -> OpenNandResult.UNKNOWN
+            0 -> OpenDSiNandResult.SUCCESS
+            1 -> OpenDSiNandResult.NAND_ALREADY_OPEN
+            2 -> OpenDSiNandResult.BIOS7_NOT_FOUND
+            3 -> OpenDSiNandResult.NAND_OPEN_FAILED
+            else -> OpenDSiNandResult.UNKNOWN
         }
     }
 
-    private fun mapImportTitleReturnCodeToResult(returnCode: Int): ImportTitleResult {
+    private fun mapImportTitleReturnCodeToResult(returnCode: Int): ImportDSiWareTitleResult {
         return when (returnCode) {
-            0 -> ImportTitleResult.SUCCESS
-            1 -> ImportTitleResult.NAND_NOT_OPEN
-            2 -> ImportTitleResult.ERROR_OPENING_FILE
-            3 -> ImportTitleResult.NOT_DSIWARE_TITLE
-            4 -> ImportTitleResult.TITLE_ALREADY_IMPORTED
-            5 -> ImportTitleResult.INSATLL_FAILED
-            else -> ImportTitleResult.UNKNOWN
+            0 -> ImportDSiWareTitleResult.SUCCESS
+            1 -> ImportDSiWareTitleResult.NAND_NOT_OPEN
+            2 -> ImportDSiWareTitleResult.ERROR_OPENING_FILE
+            3 -> ImportDSiWareTitleResult.NOT_DSIWARE_TITLE
+            4 -> ImportDSiWareTitleResult.TITLE_ALREADY_IMPORTED
+            5 -> ImportDSiWareTitleResult.INSATLL_FAILED
+            else -> ImportDSiWareTitleResult.UNKNOWN
         }
     }
 }

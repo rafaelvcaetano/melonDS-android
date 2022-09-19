@@ -49,6 +49,12 @@
     <string name="dsiware_manager_setup">Setup</string>
     <string name="dsiware_manager_fix_setup">Fix setup</string>
     <string name="dsiware_manager_load_error">There was a problem listing your DSiWare titles. Please check your DSi setup</string>
+    <string name="dsiware_manager_import_title_error_open_nand_failed">The NAND could not be opened</string>
+    <string name="dsiware_manager_import_title_error_open_file_failed">Error opening selected file</string>
+    <string name="dsiware_manager_import_title_error_not_dsiware_title">Not a DSiWare title</string>
+    <string name="dsiware_manager_import_title_error_title_already_imported">DSiWare title already imported</string>
+    <string name="dsiware_manager_import_title_error_insatll_failed">Failed to install title</string>
+    <string name="dsiware_manager_import_title_error_unknown">An unknown error occurred</string>
 
     <string name="info_fps">FPS: %1$d</string>
     <string name="info_loading">LOADING…</string>

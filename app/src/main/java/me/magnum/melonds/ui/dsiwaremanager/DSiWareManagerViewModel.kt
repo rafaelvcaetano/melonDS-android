@@ -6,13 +6,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.domain.model.ConfigurationDirResult
 import me.magnum.melonds.domain.model.DSiWareTitle
-import me.magnum.melonds.domain.model.dsinand.OpenNandResult
+import me.magnum.melonds.domain.model.dsinand.ImportDSiWareTitleResult
+import me.magnum.melonds.domain.model.dsinand.OpenDSiNandResult
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.domain.services.DSiNandManager
@@ -32,7 +33,10 @@ class DSiWareManagerViewModel @Inject constructor(
     val state: StateFlow<DSiWareManagerUiState> = _state
 
     private val _importingTitle = MutableStateFlow(false)
-    val importingTitle: StateFlow<Boolean> = _importingTitle
+    val importingTitle: StateFlow<Boolean> = _importingTitle.asStateFlow()
+
+    private val _importTitleError = MutableSharedFlow<ImportDSiWareTitleResult>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val importTitleError: SharedFlow<ImportDSiWareTitleResult> = _importTitleError.asSharedFlow()
 
     init {
         val dsiConfiguration = configurationDirectoryVerifier.checkDsiConfigurationDirectory()
@@ -42,7 +46,7 @@ class DSiWareManagerViewModel @Inject constructor(
             viewModelScope.launch {
                 withContext(Dispatchers.Default) {
                     val openNandResult = dsiNandManager.openNand()
-                    if (openNandResult == OpenNandResult.SUCCESS) {
+                    if (openNandResult == OpenDSiNandResult.SUCCESS) {
                         val titles = dsiNandManager.listTitles()
                         _state.value = DSiWareManagerUiState.Ready(titles)
                     } else {
@@ -60,9 +64,13 @@ class DSiWareManagerViewModel @Inject constructor(
 
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                dsiNandManager.importTitle(titleUri)
-                val titles = dsiNandManager.listTitles()
-                _state.value = DSiWareManagerUiState.Ready(titles)
+                val result = dsiNandManager.importTitle(titleUri)
+                if (result == ImportDSiWareTitleResult.SUCCESS) {
+                    val titles = dsiNandManager.listTitles()
+                    _state.value = DSiWareManagerUiState.Ready(titles)
+                } else {
+                    _importTitleError.tryEmit(result)
+                }
                 _importingTitle.value = false
             }
         }

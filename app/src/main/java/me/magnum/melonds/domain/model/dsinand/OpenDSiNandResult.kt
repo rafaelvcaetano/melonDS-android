@@ -1,6 +1,6 @@
 package me.magnum.melonds.domain.model.dsinand
 
-enum class OpenNandResult {
+enum class OpenDSiNandResult {
     SUCCESS,
     NAND_ALREADY_OPEN,
     BIOS7_NOT_FOUND,

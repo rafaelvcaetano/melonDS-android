@@ -1,6 +1,6 @@
 package me.magnum.melonds.domain.model.dsinand
 
-enum class ImportTitleResult {
+enum class ImportDSiWareTitleResult {
     SUCCESS,
     NAND_NOT_OPEN,
     ERROR_OPENING_FILE,
