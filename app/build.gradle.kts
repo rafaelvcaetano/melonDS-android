@@ -36,6 +36,11 @@ android {
                 cppFlags("-std=c++17 -Wno-write-strings")
             }
         }
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
+            }
+        }
         vectorDrawables.useSupportLibrary = true
     }
     kotlinOptions {

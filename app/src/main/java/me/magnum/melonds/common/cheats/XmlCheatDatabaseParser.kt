@@ -9,6 +9,10 @@ class XmlCheatDatabaseParser : CheatDatabaseParser {
         val saxFactory = SAXParserFactory.newInstance()
         val parser = saxFactory.newSAXParser()
         val handler = XmlCheatDatabaseSAXHandler(object : XmlCheatDatabaseSAXHandler.HandlerListener {
+            override fun onCheatDatabaseParseStart(databaseName: String) {
+                parseListener.onDatabaseParseStart(databaseName)
+            }
+
             override fun onGameParseStart(gameName: String) {
                 parseListener.onGameParseStart(gameName)
             }

@@ -8,11 +8,14 @@ import org.xml.sax.helpers.DefaultHandler
 
 class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : DefaultHandler() {
     interface HandlerListener {
+        fun onCheatDatabaseParseStart(databaseName: String)
         fun onGameParseStart(gameName: String)
         fun onGameParsed(game: Game)
         fun onParseComplete()
     }
 
+    private var parsingDatabase = false
+    private var parsingDatabaseName = false
     private var parsingGame = false
     private var parsingGameName = false
     private var parsingGameCode = false
@@ -24,6 +27,7 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
     private var parsingCheatCodes = false
     private var parsingText = false
 
+    private var databaseName: String? = null
     private var gameName: String? = null
     private var gameCode: String? = null
     private var gameChecksum: String? = null
@@ -37,6 +41,18 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
     private val currentGameFolders = mutableListOf<CheatFolder>()
 
     override fun startElement(uri: String?, localName: String?, qName: String?, attributes: Attributes?) {
+        if (!parsingDatabase) {
+            if (qName == "codelist") {
+                parsingDatabase = true
+            }
+            return
+        }
+
+        if (parsingDatabase && databaseName == null && qName == "name") {
+            parsingDatabaseName = true
+            parsingText = true
+        }
+
         if (!parsingGame) {
             if (qName == "game") {
                 parsingGame = true
@@ -90,6 +106,15 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
     }
 
     override fun endElement(uri: String?, localName: String?, qName: String?) {
+        if (parsingDatabase) {
+            if (parsingDatabaseName) {
+                // Remove everything between parenthesis. Most likely it contains the DB's version
+                databaseName = textStringBuilder.toString().replace("\\(.*?\\)".toRegex(), "")
+                parsingDatabaseName = false
+                emitCheatDatabaseName(databaseName!!)
+            }
+        }
+
         if (parsingGame) {
             if (parsingGameName) {
                 gameName = textStringBuilder.toString()
@@ -175,6 +200,10 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
 
     override fun endDocument() {
         listener.onParseComplete()
+    }
+
+    private fun emitCheatDatabaseName(databaseName: String) {
+        listener.onCheatDatabaseParseStart(databaseName)
     }
 
     private fun emitGameNameParsed(gameName: String) {

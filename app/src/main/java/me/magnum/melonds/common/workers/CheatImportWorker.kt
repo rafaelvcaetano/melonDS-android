@@ -19,6 +19,7 @@ import me.magnum.melonds.R
 import me.magnum.melonds.common.cheats.CheatDatabaseParserListener
 import me.magnum.melonds.common.cheats.ProgressTrackerInputStream
 import me.magnum.melonds.common.cheats.XmlCheatDatabaseParser
+import me.magnum.melonds.domain.model.CheatDatabase
 import me.magnum.melonds.domain.model.Game
 import me.magnum.melonds.domain.repositories.CheatsRepository
 
@@ -71,12 +72,16 @@ class CheatImportWorker @AssistedInject constructor(
                     }
                 }
 
-                // Delete all cheats before importing
-                cheatsRepository.deleteAllCheats()
-
                 applicationContext.contentResolver.openInputStream(uri)?.use {
                     val progressTrackerStream = ProgressTrackerInputStream(it)
                     parser.parseCheatDatabase(progressTrackerStream, object : CheatDatabaseParserListener {
+                        private var cheatDatabase: CheatDatabase? = null
+
+                        override fun onDatabaseParseStart(databaseName: String) {
+                            cheatsRepository.deleteCheatDatabaseIfExists(databaseName)
+                            cheatDatabase = cheatsRepository.addCheatDatabase(databaseName)
+                        }
+
                         override fun onGameParseStart(gameName: String) {
                             val readProgress = if (totalFileSize != null)
                                 (progressTrackerStream.totalReadBytes.toDouble() / totalFileSize * 100).toInt()
@@ -91,7 +96,9 @@ class CheatImportWorker @AssistedInject constructor(
                         }
 
                         override fun onGameParsed(game: Game) {
-                            cheatsRepository.addGameCheats(game)
+                            cheatDatabase?.id?.let {
+                                cheatsRepository.addGameCheats(it, game)
+                            }
                         }
 
                         override fun onParseComplete() {

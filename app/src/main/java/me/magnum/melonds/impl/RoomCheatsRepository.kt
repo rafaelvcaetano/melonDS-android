@@ -11,10 +11,7 @@ import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import me.magnum.melonds.common.workers.CheatImportWorker
 import me.magnum.melonds.database.MelonDatabase
-import me.magnum.melonds.database.entities.CheatEntity
-import me.magnum.melonds.database.entities.CheatFolderEntity
-import me.magnum.melonds.database.entities.CheatStatusUpdate
-import me.magnum.melonds.database.entities.GameEntity
+import me.magnum.melonds.database.entities.*
 import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.domain.repositories.CheatsRepository
 
@@ -76,9 +73,24 @@ class RoomCheatsRepository(private val context: Context, private val database: M
         }.subscribeOn(Schedulers.io())
     }
 
-    override fun addGameCheats(game: Game) {
+    override fun deleteCheatDatabaseIfExists(databaseName: String) {
+        database.cheatDatabaseDao().deleteCheatDatabase(databaseName)
+    }
+
+    override fun addCheatDatabase(databaseName: String): CheatDatabase {
+        val cheatDatabaseEntity = CheatDatabaseEntity(
+            null,
+            databaseName,
+        )
+
+        val databaseId = database.cheatDatabaseDao().insertCheatDatabase(cheatDatabaseEntity)
+        return CheatDatabase(databaseId, databaseName)
+    }
+
+    override fun addGameCheats(databaseId: Long, game: Game) {
         val gameEntity = GameEntity(
                 null,
+                databaseId,
                 game.name,
                 game.gameCode,
                 game.gameChecksum
