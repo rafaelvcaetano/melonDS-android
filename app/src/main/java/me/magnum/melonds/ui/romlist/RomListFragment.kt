@@ -1,6 +1,8 @@
 package me.magnum.melonds.ui.romlist
 
 import android.content.Context
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,7 +10,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.os.bundleOf
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -30,20 +34,29 @@ import me.magnum.melonds.databinding.RomListFragmentBinding
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.domain.model.RomScanningStatus
+import me.magnum.melonds.extensions.setViewEnabledRecursive
+import me.magnum.melonds.ui.romlist.RomListFragment.RomEnabledFilter
 import me.magnum.melonds.ui.romlist.RomListFragment.RomListAdapter.RomViewHolder
 
 @AndroidEntryPoint
 class RomListFragment : Fragment() {
     companion object {
         private const val KEY_ALLOW_ROM_CONFIGURATION = "allow_rom_configuration"
+        private const val KEY_ROM_ENABLE_CRITERIA = "rom_enable_criteria"
 
-        fun newInstance(allowRomConfiguration: Boolean): RomListFragment {
+        fun newInstance(allowRomConfiguration: Boolean, enableCriteria: RomEnableCriteria): RomListFragment {
             return RomListFragment().also {
                 it.arguments = bundleOf(
-                    KEY_ALLOW_ROM_CONFIGURATION to allowRomConfiguration
+                    KEY_ALLOW_ROM_CONFIGURATION to allowRomConfiguration,
+                    KEY_ROM_ENABLE_CRITERIA to enableCriteria.toString(),
                 )
             }
         }
+    }
+
+    enum class RomEnableCriteria {
+        ENABLE_ALL,
+        ENABLE_NON_DSIWARE,
     }
 
     private lateinit var binding: RomListFragmentBinding
@@ -63,16 +76,24 @@ class RomListFragment : Fragment() {
         binding.swipeRefreshRoms.setOnRefreshListener { romListViewModel.refreshRoms() }
 
         val allowRomConfiguration = arguments?.getBoolean(KEY_ALLOW_ROM_CONFIGURATION) ?: true
-        romListAdapter = RomListAdapter(allowRomConfiguration, requireContext(), lifecycleScope, object : RomClickListener {
-            override fun onRomClicked(rom: Rom) {
-                romListViewModel.setRomLastPlayedNow(rom)
-                romSelectedListener?.invoke(rom)
-            }
+        val romEnableCriteria = arguments?.getString(KEY_ROM_ENABLE_CRITERIA)?.let { RomEnableCriteria.valueOf(it) } ?: RomEnableCriteria.ENABLE_ALL
 
-            override fun onRomConfigClicked(rom: Rom) {
-                RomConfigDialog.newInstance(rom.name, rom.copy()).show(parentFragmentManager, null)
-            }
-        })
+        romListAdapter = RomListAdapter(
+            allowRomConfiguration = allowRomConfiguration,
+            context = requireContext(),
+            coroutineScope = lifecycleScope,
+            listener = object : RomClickListener {
+                override fun onRomClicked(rom: Rom) {
+                    romListViewModel.setRomLastPlayedNow(rom)
+                    romSelectedListener?.invoke(rom)
+                }
+
+                override fun onRomConfigClicked(rom: Rom) {
+                    RomConfigDialog.newInstance(rom.name, rom.copy()).show(parentFragmentManager, null)
+                }
+            },
+            romEnabledFilter = buildRomEnabledFilter(romEnableCriteria),
+        )
 
         binding.listRoms.apply {
             val listLayoutManager = LinearLayoutManager(context)
@@ -108,6 +129,13 @@ class RomListFragment : Fragment() {
         binding.textRomListEmpty.isVisible = emptyViewVisible
     }
 
+    private fun buildRomEnabledFilter(romEnableCriteria: RomEnableCriteria): RomEnabledFilter {
+        return when (romEnableCriteria) {
+            RomEnableCriteria.ENABLE_ALL -> RomEnabledFilter { true }
+            RomEnableCriteria.ENABLE_NON_DSIWARE -> RomEnabledFilter { !it.isDsiWareTitle}
+        }
+    }
+
     fun setRomSelectedListener(listener: (Rom) -> Unit) {
         romSelectedListener = listener
     }
@@ -116,7 +144,8 @@ class RomListFragment : Fragment() {
         private val allowRomConfiguration: Boolean,
         private val context: Context,
         private val coroutineScope: CoroutineScope,
-        private val listener: RomClickListener
+        private val listener: RomClickListener,
+        private val romEnabledFilter: RomEnabledFilter,
     ) : RecyclerView.Adapter<RomViewHolder>() {
 
         private val roms: ArrayList<Rom> = ArrayList()
@@ -146,7 +175,8 @@ class RomListFragment : Fragment() {
 
         override fun onBindViewHolder(romViewHolder: RomViewHolder, i: Int) {
             val rom = roms[i]
-            romViewHolder.setRom(rom)
+            val isRomEnabled = romEnabledFilter.isRomEnabled(rom)
+            romViewHolder.setRom(rom, isRomEnabled)
         }
 
         override fun onViewRecycled(holder: RomViewHolder) {
@@ -161,6 +191,7 @@ class RomListFragment : Fragment() {
             private val imageViewRomIcon = itemView.findViewById<ImageView>(R.id.imageRomIcon)
             private val textViewRomName = itemView.findViewById<TextView>(R.id.textRomName)
             private val textViewRomPath = itemView.findViewById<TextView>(R.id.textRomPath)
+            private val imagePlatformLogo = itemView.findViewById<ImageView>(R.id.logoPlatform)
 
             private lateinit var rom: Rom
             private var romIconLoadJob: Job? = null
@@ -175,18 +206,44 @@ class RomListFragment : Fragment() {
                 romIconLoadJob?.cancel()
             }
 
-            open fun setRom(rom: Rom) {
+            open fun setRom(rom: Rom, isEnabled: Boolean) {
                 this.rom = rom
                 textViewRomName.text = rom.name
                 textViewRomPath.text = rom.fileName
                 imageViewRomIcon.setImageDrawable(null)
+                imagePlatformLogo.isVisible = rom.isDsiWareTitle
+
+                val platformDrawable = if (rom.isDsiWareTitle) {
+                     ResourcesCompat.getDrawable(itemView.resources, R.drawable.logo_dsiware, null)
+                } else {
+                    null
+                }
+
+                if (platformDrawable != null && !isEnabled) {
+                    platformDrawable.apply {
+                        colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(0f) })
+                        alpha = 127
+                    }
+                }
+
+                imagePlatformLogo.setImageDrawable(platformDrawable)
 
                 romIconLoadJob = coroutineScope.launch {
                     val romIcon = romListViewModel.getRomIcon(rom)
-                    val iconDrawable = BitmapDrawable(itemView.resources, romIcon.bitmap)
-                    iconDrawable.paint.isFilterBitmap = romIcon.filtering == RomIconFiltering.LINEAR
+                    val iconDrawable = BitmapDrawable(itemView.resources, romIcon.bitmap).apply {
+                        paint.isFilterBitmap = romIcon.filtering == RomIconFiltering.LINEAR
+                        if (isEnabled) {
+                            colorFilter = null
+                            alpha = 255
+                        } else {
+                            colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(0f) })
+                            alpha = 127
+                        }
+                    }
                     imageViewRomIcon.setImageDrawable(iconDrawable)
                 }
+
+                itemView.setViewEnabledRecursive(isEnabled)
             }
 
             protected fun getRom() = rom
@@ -205,6 +262,11 @@ class RomListFragment : Fragment() {
                 imageViewButtonRomConfig.setOnClickListener {
                     onRomConfigClick(getRom())
                 }
+            }
+
+            override fun setRom(rom: Rom, isEnabled: Boolean) {
+                super.setRom(rom, isEnabled)
+                imageViewButtonRomConfig.isGone = rom.isDsiWareTitle
             }
         }
 
@@ -240,5 +302,9 @@ class RomListFragment : Fragment() {
     private interface RomClickListener {
         fun onRomClicked(rom: Rom)
         fun onRomConfigClicked(rom: Rom)
+    }
+
+    fun interface RomEnabledFilter {
+        fun isRomEnabled(rom: Rom): Boolean
     }
 }

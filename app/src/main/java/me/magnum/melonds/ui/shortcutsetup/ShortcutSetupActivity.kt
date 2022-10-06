@@ -38,12 +38,17 @@ class ShortcutSetupActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_shortcut_setup)
 
-        val fragment = RomListFragment.newInstance(false)
-        fragment.setRomSelectedListener { onRomSelected(it) }
-
-        supportFragmentManager.commit {
-            replace(R.id.layout_root, fragment, FRAGMENT_ROM_LIST)
+        val fragment = if (savedInstanceState == null) {
+            RomListFragment.newInstance(false, RomListFragment.RomEnableCriteria.ENABLE_NON_DSIWARE).also {
+                supportFragmentManager.commit {
+                    replace(R.id.layout_root, it, FRAGMENT_ROM_LIST)
+                }
+            }
+        } else {
+            supportFragmentManager.findFragmentByTag(FRAGMENT_ROM_LIST) as RomListFragment
         }
+
+        fragment.setRomSelectedListener { onRomSelected(it) }
     }
 
     private fun onRomSelected(rom: Rom) {

@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.migrations.legacy.Rom21
+import me.magnum.melonds.utils.RomProcessor
 import java.io.File
 import java.io.FileReader
 import java.io.OutputStreamWriter
@@ -28,16 +29,20 @@ class Migration21to22(
     override fun migrate() {
         val originalRoms = getOriginalRoms()
         val newRoms = originalRoms.mapNotNull { rom ->
-            uriHandler.getUriDocument(rom.uri)?.name?.let { fileName ->
-                Rom(
-                    rom.name,
-                    fileName,
-                    rom.uri,
-                    rom.parentTreeUri,
-                    rom.config,
-                    rom.lastPlayed,
-                )
-            }
+            val fileName = uriHandler.getUriDocument(rom.uri)?.name ?: return@mapNotNull null
+            val romMetadata = context.contentResolver.openInputStream(rom.uri)?.use {
+                RomProcessor.getRomMetadata(it.buffered())
+            } ?: return@mapNotNull null
+
+            Rom(
+                rom.name,
+                fileName,
+                rom.uri,
+                rom.parentTreeUri,
+                rom.config,
+                rom.lastPlayed,
+                romMetadata.isDSiWareTitle,
+            )
         }
 
         saveNewRoms(newRoms)

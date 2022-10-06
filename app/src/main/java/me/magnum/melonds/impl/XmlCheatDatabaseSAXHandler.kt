@@ -109,7 +109,7 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
         if (parsingDatabase) {
             if (parsingDatabaseName) {
                 // Remove everything between parenthesis. Most likely it contains the DB's version
-                databaseName = textStringBuilder.toString().replace("\\(.*?\\)".toRegex(), "")
+                databaseName = textStringBuilder.toString().replace("\\(.*?\\)".toRegex(), "").trim()
                 parsingDatabaseName = false
                 emitCheatDatabaseName(databaseName!!)
             }

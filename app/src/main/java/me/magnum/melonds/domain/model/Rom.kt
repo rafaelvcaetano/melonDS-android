@@ -10,6 +10,7 @@ data class Rom(
     val parentTreeUri: Uri,
     var config: RomConfig,
     var lastPlayed: Date? = null,
+    val isDsiWareTitle: Boolean,
 ) {
 
     override fun equals(other: Any?): Boolean {

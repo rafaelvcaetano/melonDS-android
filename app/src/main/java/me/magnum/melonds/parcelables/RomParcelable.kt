@@ -22,7 +22,8 @@ class RomParcelable : Parcelable {
         val parentTreeUri = parcel.readString()!!.toUri()
         val lastPlayed = parcel.readLong().let { if (it == (-1).toLong()) null else Date(it) }
         val romConfig = parcel.parcelable<RomConfigParcelable>()
-        rom = Rom(name!!, fileName!!, uri, parentTreeUri, romConfig!!.romConfig, lastPlayed)
+        val isDsiWareTitle = parcel.readInt() == 1
+        rom = Rom(name!!, fileName!!, uri, parentTreeUri, romConfig!!.romConfig, lastPlayed, isDsiWareTitle)
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
@@ -32,6 +33,7 @@ class RomParcelable : Parcelable {
         dest.writeString(rom.parentTreeUri.toString())
         dest.writeLong(rom.lastPlayed?.time ?: -1)
         dest.writeParcelable(RomConfigParcelable(rom.config), 0)
+        dest.writeInt(if (rom.isDsiWareTitle) 1 else 0)
     }
 
     override fun describeContents(): Int {

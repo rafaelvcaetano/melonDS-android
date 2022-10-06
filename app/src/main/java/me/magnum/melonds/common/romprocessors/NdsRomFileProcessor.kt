@@ -8,6 +8,7 @@ import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomInfo
+import me.magnum.melonds.domain.model.RomMetadata
 import me.magnum.melonds.extensions.isBlank
 import me.magnum.melonds.extensions.nameWithoutExtension
 import me.magnum.melonds.utils.RomProcessor
@@ -16,10 +17,10 @@ class NdsRomFileProcessor(private val context: Context, private val uriHandler: 
 
     override fun getRomFromUri(romUri: Uri, parentUri: Uri): Rom? {
         return try {
-            getRomName(romUri)?.let { name ->
+            getRomMetadata(romUri)?.let { metadata ->
                 val romDocument = uriHandler.getUriDocument(romUri)
-                val romName = name.takeUnless { it.isBlank() } ?: romDocument?.nameWithoutExtension ?: ""
-                Rom(romName, romDocument?.name ?: "", romUri, parentUri, RomConfig())
+                val romName = metadata.romTitle.takeUnless { it.isBlank() } ?: romDocument?.nameWithoutExtension ?: ""
+                Rom(romName, romDocument?.name ?: "", romUri, parentUri, RomConfig(), null, metadata.isDSiWareTitle)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -53,9 +54,9 @@ class NdsRomFileProcessor(private val context: Context, private val uriHandler: 
         return Single.just(rom.uri)
     }
 
-    private fun getRomName(uri: Uri): String? {
+    private fun getRomMetadata(uri: Uri): RomMetadata? {
         return context.contentResolver.openInputStream(uri)?.use { inputStream ->
-            RomProcessor.getRomName(inputStream.buffered())
+            RomProcessor.getRomMetadata(inputStream.buffered())
         }
     }
 }

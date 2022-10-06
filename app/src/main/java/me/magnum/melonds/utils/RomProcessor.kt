@@ -4,7 +4,9 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import androidx.core.graphics.createBitmap
 import me.magnum.melonds.common.Crc32
+import me.magnum.melonds.common.cheats.ProgressTrackerInputStream
 import me.magnum.melonds.domain.model.RomInfo
+import me.magnum.melonds.domain.model.RomMetadata
 import java.io.BufferedInputStream
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -13,21 +15,54 @@ import kotlin.experimental.and
 import kotlin.math.min
 
 object RomProcessor {
-	fun getRomName(inputStream: BufferedInputStream): String {
-		// Banner offset is at header offset 0x68
-		inputStream.skipStreamBytes(0x68)
-		// Obtain the banner offset
-		val offsetData = ByteArray(4)
-		inputStream.read(offsetData)
+	private val DSIWARE_CATEGORY = 0x00030004.toUInt()
+	private const val KEY_ROM_NAME = "name"
+	private const val KEY_ROM_IS_DSIWARE_TITLE = "isDsiWareTitle"
 
-		val bannerOffset = byteArrayToInt(offsetData)
-		inputStream.skipStreamBytes(bannerOffset.toLong() + 576 - (0x68 + 4))
-		val titleData = ByteArray(128)
-		inputStream.read(titleData)
-		return String(titleData, StandardCharsets.UTF_16LE)
-				.trim()
-				.replaceFirst("\n.*?$".toRegex(), "")
-				.replace("\n", " ")
+	fun getRomMetadata(inputStream: BufferedInputStream): RomMetadata {
+		val romStreamProcessor = RomStreamDataProcessor().apply {
+			registerProcessor(
+				RomStreamDataProcessor.SectionProcessor.SubSectionProcessor(
+					KEY_ROM_NAME,
+					streamOffset = 0x68,
+					processor = {
+						val offsetData = ByteArray(4)
+						inputStream.read(offsetData)
+						val bannerOffset = byteArrayToInt(offsetData)
+						bannerOffset + (0x0340 - 4 * 2).toLong()
+					},
+					valueProcessor = {
+						val titleData = ByteArray(128)
+						inputStream.read(titleData)
+						String(titleData, StandardCharsets.UTF_16LE)
+							.trim()
+							.substringBeforeLast('\n')
+							.replace("\n", " ")
+					}
+				)
+			)
+			registerProcessor(
+				RomStreamDataProcessor.SectionProcessor.SectionValueProcessor(
+					KEY_ROM_IS_DSIWARE_TITLE,
+					streamOffset = 0x230,
+					processor = {
+						val categoryData = ByteArray(4)
+						inputStream.read(categoryData)
+						val categoryId = byteArrayToInt(categoryData)
+						categoryId.toUInt() == DSIWARE_CATEGORY
+					}
+				)
+			)
+			process(inputStream)
+		}
+
+		val romName = romStreamProcessor.getValue<String>(KEY_ROM_NAME)
+		val isDsiWareTitle = romStreamProcessor.getValue<Boolean>(KEY_ROM_IS_DSIWARE_TITLE)
+
+		return RomMetadata(
+			romName,
+			isDsiWareTitle,
+		)
 	}
 
 	fun getRomIcon(inputStream: BufferedInputStream): Bitmap {
@@ -160,7 +195,7 @@ object RomProcessor {
 	 * Custom made way to skip bytes in an input stream. When dealing with zipped files, the internal implementations (ZipInputStream and BufferedInputStream) don't work very
 	 * well. This one seems to work when dealing with a BufferedInputStream
 	 */
-	private fun BufferedInputStream.skipStreamBytes(bytes: Long) {
+	private fun InputStream.skipStreamBytes(bytes: Long) {
 		val buffer = ByteArray(1024)
 		var remaining = bytes
 		do {
@@ -171,5 +206,44 @@ object RomProcessor {
 			}
 			remaining -= read
 		} while (remaining > 0)
+	}
+
+	private class RomStreamDataProcessor {
+		private val processors = mutableListOf<SectionProcessor>()
+		private val values = mutableMapOf<String, Any>()
+
+		fun registerProcessor(processor: SectionProcessor) {
+			processors.add(processor)
+		}
+
+		fun process(stream: BufferedInputStream) {
+			val trackedStream = ProgressTrackerInputStream(stream)
+			val sortedProcessors = processors.sortedBy { it.streamOffset }.toMutableList()
+
+			while (sortedProcessors.isNotEmpty()) {
+				val processor = sortedProcessors.removeFirst()
+				val bytesToSkip = processor.streamOffset - trackedStream.totalReadBytes
+				trackedStream.skipStreamBytes(bytesToSkip)
+
+				if (processor is SectionProcessor.SectionValueProcessor) {
+					val value = processor.processor(trackedStream)
+					values[processor.key] = value
+				} else if (processor is SectionProcessor.SubSectionProcessor) {
+					val newOffset = processor.processor(trackedStream)
+					sortedProcessors.add(SectionProcessor.SectionValueProcessor(processor.key, newOffset, processor.valueProcessor))
+					sortedProcessors.sortBy { it.streamOffset }
+				}
+			}
+		}
+
+		@Suppress("UNCHECKED_CAST")
+		fun <T> getValue(key: String): T {
+			return values[key] as T
+		}
+
+		sealed class SectionProcessor(val streamOffset: Long) {
+			class SectionValueProcessor(val key: String, streamOffset: Long, val processor: (InputStream) -> Any) : SectionProcessor(streamOffset)
+			class SubSectionProcessor(val key: String, streamOffset: Long, val processor: (InputStream) -> Long, val valueProcessor: (InputStream) -> Any) : SectionProcessor(streamOffset)
+		}
 	}
 }

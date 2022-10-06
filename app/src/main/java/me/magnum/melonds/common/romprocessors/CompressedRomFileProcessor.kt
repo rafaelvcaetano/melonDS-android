@@ -5,10 +5,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import io.reactivex.Single
 import me.magnum.melonds.common.uridelegates.UriHandler
-import me.magnum.melonds.domain.model.Rom
-import me.magnum.melonds.domain.model.RomConfig
-import me.magnum.melonds.domain.model.RomInfo
-import me.magnum.melonds.domain.model.SizeUnit
+import me.magnum.melonds.domain.model.*
 import me.magnum.melonds.extensions.isBlank
 import me.magnum.melonds.extensions.nameWithoutExtension
 import me.magnum.melonds.impl.NdsRomCache
@@ -28,8 +25,9 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
             context.contentResolver.openInputStream(romUri)?.use { stream ->
                 getNdsEntryStreamInFileStream(stream)?.use { romFileStream ->
                     val romDocument = uriHandler.getUriDocument(romUri)
-                    val romName = getRomNameInZipEntry(romFileStream).takeUnless { it.isBlank() } ?: romDocument?.nameWithoutExtension ?: ""
-                    Rom(romName, romDocument?.name ?: "", romUri, parentUri, RomConfig())
+                    val romMetadata = getRomMetadataInZipEntry(romFileStream)
+                    val romName = romMetadata.romTitle.takeUnless { it.isBlank() } ?: romDocument?.nameWithoutExtension ?: ""
+                    Rom(romName, romDocument?.name ?: "", romUri, parentUri, RomConfig(), null, romMetadata.isDSiWareTitle)
                 }
             }
         } catch (e: Exception) {
@@ -80,8 +78,8 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
         }
     }
 
-    private fun getRomNameInZipEntry(inputStream: InputStream): String {
-        return RomProcessor.getRomName(inputStream.buffered())
+    private fun getRomMetadataInZipEntry(inputStream: InputStream): RomMetadata {
+        return RomProcessor.getRomMetadata(inputStream.buffered())
     }
 
     private fun extractRomFile(rom: Rom): Single<Uri> {

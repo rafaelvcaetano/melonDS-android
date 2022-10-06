@@ -184,7 +184,7 @@ class RomListActivity : AppCompatActivity() {
     private fun addRomListFragment() {
         var romListFragment = supportFragmentManager.findFragmentByTag(FRAGMENT_ROM_LIST) as RomListFragment?
         if (romListFragment == null) {
-            romListFragment = RomListFragment.newInstance(true)
+            romListFragment = RomListFragment.newInstance(true, RomListFragment.RomEnableCriteria.ENABLE_ALL)
             supportFragmentManager.commit {
                 replace(R.id.layout_main, romListFragment, FRAGMENT_ROM_LIST)
             }
