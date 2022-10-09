@@ -30,9 +30,11 @@ class Migration21to22(
         val originalRoms = getOriginalRoms()
         val newRoms = originalRoms.mapNotNull { rom ->
             val fileName = uriHandler.getUriDocument(rom.uri)?.name ?: return@mapNotNull null
-            val romMetadata = context.contentResolver.openInputStream(rom.uri)?.use {
-                RomProcessor.getRomMetadata(it.buffered())
-            } ?: return@mapNotNull null
+            val romMetadata = runCatching {
+                context.contentResolver.openInputStream(rom.uri)?.use {
+                    RomProcessor.getRomMetadata(it.buffered())
+                }
+            }.getOrNull() ?: return@mapNotNull null
 
             Rom(
                 rom.name,
