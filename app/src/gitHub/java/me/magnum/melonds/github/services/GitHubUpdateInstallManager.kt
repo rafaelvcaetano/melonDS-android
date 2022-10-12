@@ -1,4 +1,4 @@
-package me.magnum.melonds.impl
+package me.magnum.melonds.github.services
 
 import android.app.DownloadManager
 import android.content.BroadcastReceiver
@@ -12,10 +12,10 @@ import io.reactivex.Observable
 import me.magnum.melonds.common.providers.UpdateContentProvider
 import me.magnum.melonds.domain.model.AppUpdate
 import me.magnum.melonds.domain.model.DownloadProgress
-import me.magnum.melonds.domain.services.TaskManager
+import me.magnum.melonds.domain.services.UpdateInstallManager
 import java.io.File
 
-class AndroidTaskManager(private val context: Context) : TaskManager {
+class GitHubUpdateInstallManager(private val context: Context) : UpdateInstallManager {
     private val downloadCompleteReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1) ?: return

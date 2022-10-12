@@ -25,8 +25,6 @@ import me.magnum.melonds.common.uridelegates.CompositeUriHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.database.migrations.Migration1to2
-import me.magnum.melonds.domain.services.TaskManager
-import me.magnum.melonds.impl.AndroidTaskManager
 import me.magnum.melonds.utils.UriTypeHierarchyAdapter
 import javax.inject.Singleton
 
@@ -83,12 +81,6 @@ object AppModule {
     @Singleton
     fun provideSchedulers(): Schedulers {
         return Schedulers(io.reactivex.schedulers.Schedulers.io(), AndroidSchedulers.mainThread())
-    }
-
-    @Provides
-    @Singleton
-    fun provideTaskManager(@ApplicationContext context: Context): TaskManager {
-        return AndroidTaskManager(context)
     }
 
     @Provides

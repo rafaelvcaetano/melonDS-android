@@ -63,7 +63,7 @@ data class Version(val type: ReleaseType, val major: Int, val minor: Int, val pa
         val thisParts = parts()
         val otherParts = other.parts()
 
-        for (i in 0..4) {
+        for (i in 0 until 4) {
             val diff = thisParts[i] - otherParts[i]
             if (diff != 0) {
                 return diff

@@ -8,7 +8,7 @@ import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.domain.model.AppUpdate
 import me.magnum.melonds.domain.model.DownloadProgress
 import me.magnum.melonds.domain.repositories.UpdatesRepository
-import me.magnum.melonds.domain.services.TaskManager
+import me.magnum.melonds.domain.services.UpdateInstallManager
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.utils.SingleLiveEvent
 import javax.inject.Inject
@@ -16,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class UpdatesViewModel @Inject constructor(
     private val updatesRepository: UpdatesRepository,
-    private val taskManager: TaskManager,
+    private val updateInstallManager: UpdateInstallManager,
     private val schedulers: Schedulers
 ) : ViewModel() {
 
@@ -43,7 +43,7 @@ class UpdatesViewModel @Inject constructor(
     }
 
     fun downloadUpdate(update: AppUpdate) {
-        taskManager.downloadAndInstallUpdate(update)
+        updateInstallManager.downloadAndInstallUpdate(update)
             .subscribeOn(schedulers.backgroundThreadScheduler)
             .subscribe {
                 updateDownloadProgressLiveData.postValue(it)
