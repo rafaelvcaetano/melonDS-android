@@ -1,30 +1,30 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">melonDS</string>
 
-    <string name="ok">OK</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
-    <string name="on">On</string>
-    <string name="off">Off</string>
-    <string name="cancel">Cancel</string>
-    <string name="not_set">Not set</string>
-    <string name="delete">Delete</string>
-    <string name="edit">Edit</string>
-    <string name="none">None</string>
-    <string name="options">Options</string>
-    <string name="preview">Preview</string>
-    <string name="undo">Undo</string>
-    <string name="update">Update</string>
+    <string name="ok">好的</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
+    <string name="on">开</string>
+    <string name="off">关</string>
+    <string name="cancel">取消</string>
+    <string name="not_set">未设置</string>
+    <string name="delete">删除</string>
+    <string name="edit">修改</string>
+    <string name="none">无</string>
+    <string name="options">选项</string>
+    <string name="preview">预览</string>
+    <string name="undo">撤销</string>
+    <string name="update">更新</string>
 
     <string name="version_alpha">Alpha</string>
     <string name="version_beta">Beta</string>
 
     <string name="console_ds">DS</string>
-    <string name="console_dsi">DSi (Experimental)</string>
+    <string name="console_dsi">DSi (实验性)</string>
 
-    <string name="error_rom_not_found">Could not find ROM</string>
-    <string name="error_rom_not_found_info">The ROM you have selected has not been found. Make sure the selected ROM can be found in the current ROM search directory.</string>
-    <string name="error_load_rom">Could not load ROM</string>
+    <string name="error_rom_not_found">找不到 ROM</string>
+    <string name="error_rom_not_found_info">无法找到您所选择的 ROM。确保所选 ROM 可以在当前 ROM 目录中找到。</string>
+    <string name="error_load_rom">无法加载 ROM</string>
     <string name="error_load_rom_report_issue">An error log was generated that can help fix this problem. Do you want to open an issue on GitHub with this log? You will need a GitHub account.</string>
     <string name="title_emulator_running">Emulator running</string>
     <string name="message_stop_emulation">Stop emulation and load new ROM?</string>
@@ -32,8 +32,8 @@
     <string name="action_search_roms">Search ROMs</string>
     <string name="action_sort_roms">Sort ROMs</string>
     <string name="action_boot_firmware">Boot firmware</string>
-    <string name="action_refresh_rom_list">Refresh ROM list</string>
-    <string name="hint_search_roms">Search ROMs…</string>
+    <string name="action_refresh_rom_list">刷新 ROM 列表</string>
+    <string name="hint_search_roms">搜索 ROM…</string>
     <string name="update_available">Update available: %1$s</string>
     <string name="skip_update">Skip</string>
     <string name="downloading_update">Downloading update…</string>
@@ -92,11 +92,11 @@
 
     <string name="choose_component">Choose component</string>
 
-    <string name="pause">Pause</string>
-    <string name="reset">Reset</string>
-    <string name="exit">Exit</string>
+    <string name="pause">暂停</string>
+    <string name="reset">重置</string>
+    <string name="exit">退出</string>
 
-    <string name="settings">Settings</string>
+    <string name="settings">设置</string>
     <string name="save_state">Save state</string>
     <string name="load_state">Load state</string>
     <string name="rewind">Rewind</string>
