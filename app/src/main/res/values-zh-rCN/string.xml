@@ -1,1 +1,390 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">melonDS</string>
 
+    <string name="ok">OK</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="cancel">Cancel</string>
+    <string name="not_set">Not set</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="none">None</string>
+    <string name="options">Options</string>
+    <string name="preview">Preview</string>
+    <string name="undo">Undo</string>
+    <string name="update">Update</string>
+
+    <string name="version_alpha">Alpha</string>
+    <string name="version_beta">Beta</string>
+
+    <string name="console_ds">DS</string>
+    <string name="console_dsi">DSi (Experimental)</string>
+
+    <string name="error_rom_not_found">Could not find ROM</string>
+    <string name="error_rom_not_found_info">The ROM you have selected has not been found. Make sure the selected ROM can be found in the current ROM search directory.</string>
+    <string name="error_load_rom">Could not load ROM</string>
+    <string name="error_load_rom_report_issue">An error log was generated that can help fix this problem. Do you want to open an issue on GitHub with this log? You will need a GitHub account.</string>
+    <string name="title_emulator_running">Emulator running</string>
+    <string name="message_stop_emulation">Stop emulation and load new ROM?</string>
+    <string name="error_load_gba_rom">Could not load GBA ROM</string>
+    <string name="action_search_roms">Search ROMs</string>
+    <string name="action_sort_roms">Sort ROMs</string>
+    <string name="action_boot_firmware">Boot firmware</string>
+    <string name="action_refresh_rom_list">Refresh ROM list</string>
+    <string name="hint_search_roms">Search ROMs…</string>
+    <string name="update_available">Update available: %1$s</string>
+    <string name="skip_update">Skip</string>
+    <string name="downloading_update">Downloading update…</string>
+    <string name="starting_download">Starting download…</string>
+    <string name="download_progress_sizes">%1$.1fMB/%2$.1fMB</string>
+    <string name="update_download_failed">Failed to download update</string>
+
+    <string name="dsiware_manager">DSiWare Manager</string>
+    <string name="no_dsiware_titles_installed">You don\'t have any DSiWare title installed</string>
+    <string name="dsiware_manager_no_dsi_setup">You haven\'t setup the DSi system</string>
+    <string name="dsiware_manager_invalid_dsi_setup">Your DSi system setup is invalid</string>
+    <string name="import_dsiware_title">Import DSiWare title</string>
+    <string name="dsiware_manager_setup">Setup</string>
+    <string name="dsiware_manager_fix_setup">Fix setup</string>
+    <string name="dsiware_manager_load_error">There was a problem listing your DSiWare titles. Please check your DSi setup</string>
+    <string name="dsiware_manager_import_title_error_open_nand_failed">The NAND could not be opened</string>
+    <string name="dsiware_manager_import_title_error_open_file_failed">Error opening selected file</string>
+    <string name="dsiware_manager_import_title_error_not_dsiware_title">Not a DSiWare title</string>
+    <string name="dsiware_manager_import_title_error_title_already_imported">DSiWare title already imported</string>
+    <string name="dsiware_manager_import_title_error_insatll_failed">Failed to install title</string>
+    <string name="dsiware_manager_import_title_error_unknown">An unknown error occurred</string>
+
+    <string name="info_fps">FPS: %1$d</string>
+    <string name="info_loading">LOADING…</string>
+    <string name="save_state_slot">%1$s.</string>
+    <string name="failed_save_state">Failed to save state</string>
+    <string name="failed_load_state">Failed to load state</string>
+    <string name="cant_load_empty_slot">Can\'t load an empty save state slot</string>
+    <string name="failed_reset_emulation">Failed to reset emulation</string>
+    <string name="save_states_not_supported">Save states are not supported while running the firmware</string>
+    <string name="rewind_time_seconds">%1$ss</string> <!-- Ex: 43.56s -->
+    <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string> <!-- Ex: 2m37.93s -->
+    <string name="rewind_not_enabled">Rewind is not enabled</string>
+
+    <string name="action_sort_alphabetically">Alphabetically</string>
+    <string name="action_sort_recently_played">Recently played</string>
+
+    <string name="ds_bios_dir_not_set">DS BIOS directory not set</string>
+    <string name="ds_bios_dir_not_set_info">DS BIOS directory is not set. Select the directory that contains the following files:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="dsi_bios_dir_not_set">DSi BIOS directory not set</string>
+    <string name="dsi_bios_dir_not_set_info">DSi BIOS directory is not set. Select the directory that contains the following files:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
+    <string name="incorrect_bios_dir">Incorrect BIOS directory</string>
+    <string name="ds_incorrect_bios_dir_info">The BIOS directory for the DS system is not correct. Make sure that the selected directory contains the following files:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="dsi_incorrect_bios_dir_info">The BIOS directory for the DSi system is not correct. Make sure that the selected directory that contains the following files:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
+    <string name="storage_permission_required">Storage permission required</string>
+    <string name="storage_permission_required_info">Storage permission is required to load ROMs from your device. Please grant access to storage on the next dialog.</string>
+    <string name="microphone_permission_required">Audio recording permission required</string>
+    <string name="microphone_permission_required_info">Audio recording permission is required to send microphone data to the emulator. Please grant access to storage on the next dialog.</string>
+    <string name="no_rom_search_directory_specified">No ROM search directory specified</string>
+    <string name="set_rom_directory">Set ROM directory</string>
+    <string name="error_invalid_directory">Invalid directory</string>
+    <string name="error_invalid_directory_description">It\'s not possible to write to the selected directory. Please select a different one. If you are selecting a compressed file, try extracting its contents.</string>
+    <string name="no_roms_found">No ROMs found</string>
+
+    <string name="press_any_button">Press any button…</string>
+
+    <string name="choose_component">Choose component</string>
+
+    <string name="pause">Pause</string>
+    <string name="reset">Reset</string>
+    <string name="exit">Exit</string>
+
+    <string name="settings">Settings</string>
+    <string name="save_state">Save state</string>
+    <string name="load_state">Load state</string>
+    <string name="rewind">Rewind</string>
+    <string name="save_slot">Save slot</string>
+    <string name="empty_slot">%1$s. &lt;Empty&gt;</string>
+    <string name="quick_slot">Quick Slot</string>
+    <string name="saved">Saved</string>
+    <string name="loaded">Loaded</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="category_general">General</string>
+    <string name="category_general_summary">Theme, generic settings</string>
+    <string name="category_roms">ROMs</string>
+    <string name="category_roms_summary">Search directory, icon filtering, cache settings</string>
+    <string name="category_system">System</string>
+    <string name="category_system_summary">Firmware settings, custom BIOS, JIT</string>
+    <string name="theme">Theme</string>
+    <string name="fast_forward_max_speed">Fast-forward max speed</string>
+    <string name="rewind_description">When enabled, a save-state is periodically saved automatically. Whenever you want to go back on your progress by a short amount of time, just open the rewind screen and select the state that you want to resume from.\n\nBe aware that by enabling this feature, you may experience occasional stutters if your device is not powerful enough. A considerable amount of memory is also used depending on how often you want the state to be captured and for how long it should be kept.</string>
+    <string name="rewind_save_period">Save period</string>
+    <string name="rewind_length">Rewind length</string>
+    <string name="rewind_max_memory_usage">Max. memory usage: %1$s</string>
+    <string name="rewind_memory_usage_above_recommended_limit">Memory usage above recommended limit</string>
+    <string name="sustained_performance_mode">Sustained performance mode</string>
+    <string name="sustained_performance_mode_summary">When enabled, peak performance will be lower but thermal throttling will be less pronounced.</string>
+    <string name="rom_icon_filtering">Icon filtering</string>
+    <string name="max_rom_cache_size">Max. ROM cache size</string>
+    <string name="clear_extracted_rom_cache">Clear extracted ROM cache</string>
+    <string name="cache_size">Cache size: %s</string>
+    <string name="cache_size_calculating">Cache size: calculating…</string>
+    <string name="rom_search_directory">Search directory</string>
+    <string name="use_custom_bios">Use custom BIOS and firmware</string>
+    <string name="console_type">Default system</string>
+    <string name="internal_firmware_settings">Internal firmware settings</string>
+    <string name="internal_firmware_settings_summary">Adjust the settings of the internal firmware.</string>
+    <string name="custom_bios_firmware">Custom BIOS and firmware</string>
+    <string name="custom_bios_firmware_description">Using a custom BIOS and firmware allows you to launch and navigate in the DS\'s firmware without loading a ROM, just like in a real system</string>
+    <string name="bios_directory">DS BIOS directory</string>
+    <string name="dsi_bios_directory">DSi BIOS directory</string>
+    <string name="show_boot_screen">Show boot screen</string>
+    <string name="mac_address">MAC address</string>
+    <string name="randomize_mac_address">Randomize MAC address</string>
+    <string name="randomize_mac_address_summary">When enabled, a random MAC address is used at every boot. This may cause some games to think its running on a different system and can break time based events.</string>
+    <string name="generate_new_mac_address">Generate new</string>
+    <string name="generate_new_mac_address_description">Generating a new MAC address will make games think they are running on a different system.</string>
+    <string name="enable_jit">Enable JIT</string>
+    <string name="enable_jit_summary">Improves performance but may cause freezes or crashes.</string>
+    <string name="jit_not_supported">JIT is only supported in 64 bit devices.</string>
+    <string name="threaded_rendering">Threaded rendering</string>
+    <string name="fps_counter_position">FPS counter position</string>
+    <string name="threaded_rendering_summary">Improves performance on 3D games when enabled but may cause graphical glitches.</string>
+    <string name="category_video">Video</string>
+    <string name="category_video_summary">Filter, threaded rendering, FPS counter</string>
+    <string name="filter">Filter</string>
+    <string name="category_audio">Audio</string>
+    <string name="category_audio_summary">Volume, latency, microphone source</string>
+    <string name="enable_sound">Enable sound</string>
+    <string name="interpolation">Interpolation</string>
+    <string name="bitrate">Bitrate</string>
+    <string name="volume">Volume</string>
+    <string name="volume_percentage">%1$d%%</string>
+    <string name="audio_latency">Audio latency</string>
+    <string name="microphone_source">Microphone source</string>
+    <string name="controller_layout">Controller layout</string>
+    <string name="category_save_files">Save Files</string>
+    <string name="category_save_files_summary">Save file &amp; save state locations</string>
+    <string name="save_next_rom">Save next to ROM file</string>
+    <string name="save_file_directory">Save file directory</string>
+    <string name="save_state_location">Save state location</string>
+    <string name="input">Input</string>
+    <string name="input_summary">Key mapping, layouts, haptic feedback</string>
+    <string name="key_mapping">Key mapping</string>
+    <string name="key_mapping_summary">Assign keys to controller inputs</string>
+    <string name="show_soft_input">Show soft input</string>
+    <string name="vibrate_on_touch">Vibrate on touch</string>
+    <string name="vibration_strength">Vibration strength</string>
+    <string name="soft_input_opacity">Soft input opacity</string>
+    <string name="cheats">Cheats</string>
+    <string name="cheats_summary">Enable &amp; import cheat codes</string>
+    <string name="enable_cheats">Enable cheats</string>
+    <string name="cheats_database">Cheats database (XML format)</string>
+    <string name="import_cheats">Import cheats</string>
+    <string name="import_cheats_summary">Import cheats from database files to make them available. Only XML databases are supported for now. Any previously imported cheat will be deleted.</string>
+    <string name="rom_shortcut">ROM shortcut</string>
+
+    <string name="firmware_nickname">Nickname</string>
+    <string name="firmware_message">Message</string>
+    <string name="firmware_language">Language</string>
+    <string name="firmware_favourite_colour">Favourite colour</string>
+    <string name="firmware_birthday">Birthday</string>
+
+    <string name="error_clear_rom_cache">Failed to clear ROM cache</string>
+    <string name="importing_cheats">Importing cheats…</string>
+    <string name="starting">Starting…</string>
+    <string name="move_to_background">Move to background</string>
+    <string name="failed_save_cheat_changes">Could not save cheat changes</string>
+    <string name="no_cheats_found">Could not find cheats for the current ROM. Try importing a different cheat database.</string>
+    <string name="enabled_cheats">Enabled cheats</string>
+    <string name="no_enabled_cheats_for_rom">You haven\'t enabled any cheat for this ROM</string>
+    <string name="day">Day</string>
+    <string name="month">Month</string>
+    <string name="symbol_increase">+</string>
+    <string name="symbol_decrease">-</string>
+
+    <string name="rom_settings">Rom settings</string> <!-- Accessibility string. Should not use acronyms -->
+    <string name="label_rom_config_console">Boot system</string>
+    <string name="label_rom_config_load_gba_rom">Load GBA ROM</string>
+    <string name="label_rom_config_gba_rom_path">GBA ROM path</string>
+    <string name="label_rom_config_gba_save_path">GBA save path</string>
+
+    <string name="theme_option_light">Light</string>
+    <string name="theme_option_dark">Dark</string>
+    <string name="theme_option_system_default">System default</string>
+
+    <string name="notification_channel_background_tasks">Background tasks</string>
+
+    <string name="top_screen">Top Screen</string>
+    <string name="bottom_screen">Bottom Screen</string>
+    <string name="input_a">A</string>
+    <string name="input_b">B</string>
+    <string name="input_x">X</string>
+    <string name="input_y">Y</string>
+    <string name="input_left">Left</string>
+    <string name="input_right">Right</string>
+    <string name="input_up">Up</string>
+    <string name="input_down">Down</string>
+    <string name="input_l">L</string>
+    <string name="input_r">R</string>
+    <string name="input_start">Start</string>
+    <string name="input_select">Select</string>
+    <string name="input_lid">Toggle Lid</string>
+    <string name="input_pause">Pause</string>
+    <string name="input_fast_forward">Fast Forward (Toggle)</string>
+    <string name="input_toggle_soft_input">Toggle Soft Input</string>
+    <string name="input_reset">@string/reset</string>
+    <string name="input_dpad">DPAD</string>
+    <string name="input_abxy_buttons">ABXY Buttons</string>
+    <string name="input_swap_screens">Swap Screens</string>
+    <string name="input_quick_save">Quick Save</string>
+    <string name="input_quick_load">Quick Load</string>
+
+    <string name="layouts">Layouts</string>
+    <string name="layouts_summary">Manage custom layout configurations</string>
+    <string name="action_layouts_new">New layout</string>
+    <string name="default_layout_name">Default</string>
+    <string name="use_global_layout">Use global layout</string>
+    <string name="layout_deleted">Layout deleted</string>
+
+    <string name="layout_editor">Layout editor</string>
+    <string name="add_component">Add component</string>
+    <string name="no_more_components">No more components to add</string>
+    <string name="label_size">Size:</string>
+    <string name="menu">Menu</string>
+    <string name="properties">Properties</string>
+    <string name="revert_changes">Revert changes</string>
+    <string name="reset_default">Reset to default</string>
+    <string name="exit_without_saving">Exit without saving</string>
+    <string name="portrait_background">Portrait background</string>
+    <string name="portrait_background_mode">Portrait background mode</string>
+    <string name="landscape_background">Landscape background</string>
+    <string name="landscape_background_mode">Landscape background mode</string>
+    <string name="save_and_exit">Save and exit</string>
+    <string name="layout_name">Layout name</string>
+    <string name="layout_orientation">Layout orientation</string>
+    <string name="layout_use_default_opacity">Use default opacity</string>
+    <string name="layout_opacity">Layout opacity</string>
+    <string name="layout_background_load_failed">Failed to load the background</string>
+
+    <string name="backgrounds">Backgrounds</string>
+    <string name="action_backgrounds_new">New background</string>
+    <string name="background_name">Background name</string>
+    <string name="background_deleted">Background deleted</string>
+    <string name="background_add_wrong_orientation">Background added but it\'s not visible for the selected orientation.</string>
+    <string name="background_add_processing_failed">Failed to process the selected background image. Make sure it\'s not corrupted.</string>
+
+    <string-array name="theme_options" tools:ignore="InconsistentArrays">
+        <item>@string/theme_option_light</item>
+        <item>@string/theme_option_dark</item>
+    </string-array>
+
+    <string-array name="fast_forward_speed_multiplier_options" tools:ignore="InconsistentArrays">
+        <item>Unlimited</item>
+        <item>1.5x</item>
+        <item>2x</item>
+        <item>3x</item>
+        <item>4x</item>
+        <item>8x</item>
+    </string-array>
+
+    <string-array name="rom_icon_filtering_options">
+        <item>None (Pixelated)</item>
+        <item>Linear (Smooth)</item>
+    </string-array>
+
+    <string-array name="game_runtime_console_type_options">
+        <item>Default</item>
+        <item>@string/console_ds</item>
+        <item>@string/console_dsi</item>
+    </string-array>
+
+    <string-array name="firmware_settings_language_options">
+        <item>English</item>
+        <item>French</item>
+        <item>German</item>
+        <item>Italian</item>
+        <item>Spanish</item>
+        <item>Japanese</item>
+    </string-array>
+
+    <string-array name="game_runtime_mic_source_options">
+        <item>Default</item>
+        <item>None</item>
+        <item>Blow</item>
+        <item>Device microphone</item>
+    </string-array>
+
+    <string-array name="console_type_options">
+        <item>@string/console_ds</item>
+        <item>@string/console_dsi</item>
+    </string-array>
+
+    <string-array name="fps_counter_position_options">
+        <item>Hidden</item>
+        <item>Top left</item>
+        <item>Top center</item>
+        <item>Top right</item>
+        <item>Bottom left</item>
+        <item>Bottom center</item>
+        <item>Bottom right</item>
+    </string-array>
+
+    <string-array name="video_filtering_options">
+        <item>None</item>
+        <item>Linear</item>
+        <item>2xBR</item>
+        <item>HQ2X</item>
+        <item>HQ4X</item>
+        <item>Quilez</item>
+        <item>LCD</item>
+    </string-array>
+
+    <string-array name="audio_interpolation_options">
+        <item>None</item>
+        <item>Linear</item>
+        <item>Cosine</item>
+        <item>Cubic</item>
+    </string-array>
+
+    <string-array name="audio_bitrate_options">
+        <item>Auto</item>
+        <item>10-bit</item>
+        <item>16-bit</item>
+    </string-array>
+
+    <string-array name="audio_latency_options">
+        <item>Low (Slower)</item>
+        <item>Medium</item>
+        <item>High (Faster)</item>
+    </string-array>
+
+    <string-array name="mic_source_options">
+        <item>None</item>
+        <item>Blow</item>
+        <item>Device microphone</item>
+    </string-array>
+
+    <string-array name="save_state_locations">
+        <item>Save file directory</item>
+        <item>ROM directory</item>
+        <item>Internal directory</item>
+    </string-array>
+
+    <string-array name="layout_orientation_options">
+        <item>Follow system</item>
+        <item>Portrait</item>
+        <item>Landscape</item>
+    </string-array>
+
+    <string-array name="background_portrait_mode_options">
+        <item>Stretch</item>
+        <item>Fit center</item>
+        <item>Fit top</item>
+        <item>Fit bottom</item>
+    </string-array>
+
+    <string-array name="background_landscape_mode_options">
+        <item>Stretch</item>
+        <item>Fit center</item>
+        <item>Fit left</item>
+        <item>Fit right</item>
+    </string-array>
+</resources>
