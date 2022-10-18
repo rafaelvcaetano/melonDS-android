@@ -31,7 +31,7 @@
     <string name="error_load_gba_rom">Could not load GBA ROM</string>
     <string name="action_search_roms">Search ROMs</string>
     <string name="action_sort_roms">Sort ROMs</string>
-    <string name="action_boot_firmware">Boot firmware</string>
+    <string name="action_boot_firmware">引导固件</string>
     <string name="action_refresh_rom_list">刷新 ROM 列表</string>
     <string name="hint_search_roms">搜索 ROM…</string>
     <string name="update_available">Update available: %1$s</string>
