@@ -364,7 +364,7 @@
 
     <string-array name="save_state_locations">
         <item>Save file directory</item>
-        <item>ROM directory</item>
+        <item>ROM 目录</item>
         <item>Internal directory</item>
     </string-array>
 
