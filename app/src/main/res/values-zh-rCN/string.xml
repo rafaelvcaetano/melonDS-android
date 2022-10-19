@@ -80,8 +80,8 @@
     <string name="dsi_incorrect_bios_dir_info">DSi 系统的 BIOS 目录设置错误. 请确保所选目录包含以下文件:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
     <string name="storage_permission_required">需要储存权限</string>
     <string name="storage_permission_required_info">需要储存权限才能从设备中加载 ROM. 请在下一个对话框中授予对存储的访问.</string>
-    <string name="microphone_permission_required">需要麦克风权限</string>
-    <string name="microphone_permission_required_info">需要麦克风权限才能将麦克风数据发送给模拟器. 请在下一个对话框中授予对麦克风的访问.</string>
+    <string name="microphone_permission_required">需要录音权限</string>
+    <string name="microphone_permission_required_info">需要录音权限才能将录音数据发送给模拟器. 请在下一个对话框中授予录音权限.</string>
     <string name="no_rom_search_directory_specified">未设置 ROM 搜索目录</string>
     <string name="set_rom_directory">设置 ROM 目录</string>
     <string name="error_invalid_directory">无效的目录</string>
