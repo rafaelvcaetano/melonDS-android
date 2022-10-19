@@ -23,7 +23,7 @@
     <string name="console_dsi">DSi (实验性)</string>
 
     <string name="error_rom_not_found">找不到 ROM</string>
-    <string name="error_rom_not_found_info">无法找到您所选择的 ROM。确保所选 ROM 可以在当前 ROM 目录中找到。</string>
+    <string name="error_rom_not_found_info">无法找到你所选择的 ROM. 确保所选 ROM 可以在当前 ROM 目录中找到. </string>
     <string name="error_load_rom">无法加载 ROM</string>
     <string name="error_load_rom_report_issue">生成了一个错误日志, 可以帮助解决此问题. 你想在 Github 上报告此问题吗? 需要一个 Github 账户.</string>
     <string name="title_emulator_running">模拟器运行中</string>
@@ -48,7 +48,7 @@
     <string name="import_dsiware_title">导入 DSiWare title</string>
     <string name="dsiware_manager_setup">设置</string>
     <string name="dsiware_manager_fix_setup">修复设置</string>
-    <string name="dsiware_manager_load_error">在列出您的 DSiWare titles 时出现了一个问题. 请检查您的 DSi 设置</string>
+    <string name="dsiware_manager_load_error">在列出你的 DSiWare titles 时出现了一个问题. 请检查你的 DSi 设置</string>
     <string name="dsiware_manager_import_title_error_open_nand_failed">无法打开 NAND</string>
     <string name="dsiware_manager_import_title_error_open_file_failed">无法打开所选文件</string>
     <string name="dsiware_manager_import_title_error_not_dsiware_title">不是合法的 DSiWare title</string>
@@ -192,7 +192,7 @@
     <string name="starting">启动中…</string>
     <string name="move_to_background">移到背景</string>
     <string name="failed_save_cheat_changes">无法保存金手指文件更改</string>
-    <string name="no_cheats_found">无法找到当前 ROM 的金手指文件. 请尝试导入另一个金手指文件。</string>
+    <string name="no_cheats_found">无法找到当前 ROM 的金手指文件. 请尝试导入另一个金手指文件. </string>
     <string name="enabled_cheats">启用金手指</string>
     <string name="no_enabled_cheats_for_rom">你没有为这个 ROM 启用任何金手指</string>
     <string name="day">日</string>
