@@ -62,7 +62,7 @@ android {
         }
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.3.0"
+        kotlinCompilerExtensionVersion = "1.3.2"
     }
 
     flavorDimensions.add("version")
@@ -119,7 +119,6 @@ dependencies {
         implementation(documentFile)
         implementation(fragment)
         implementation(hiltWork)
-        implementation(lifecycleExtensions)
         implementation(lifecycleViewModel)
         implementation(preference)
         implementation(recyclerView)
