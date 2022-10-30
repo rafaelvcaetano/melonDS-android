@@ -26,7 +26,7 @@ import javax.inject.Inject
 class DSiWareManagerViewModel @Inject constructor(
     private val dsiNandManager: DSiNandManager,
     private val settingsRepository: SettingsRepository,
-    configurationDirectoryVerifier: ConfigurationDirectoryVerifier,
+    private val configurationDirectoryVerifier: ConfigurationDirectoryVerifier,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<DSiWareManagerUiState>(DSiWareManagerUiState.Loading)
@@ -39,24 +39,7 @@ class DSiWareManagerViewModel @Inject constructor(
     val importTitleError: SharedFlow<ImportDSiWareTitleResult> = _importTitleError.asSharedFlow()
 
     init {
-        val dsiConfiguration = configurationDirectoryVerifier.checkDsiConfigurationDirectory()
-        if (dsiConfiguration.status != ConfigurationDirResult.Status.VALID) {
-            _state.value = DSiWareManagerUiState.DSiSetupInvalid(dsiConfiguration.status)
-        } else {
-            viewModelScope.launch {
-                withContext(Dispatchers.Default) {
-                    val openNandResult = dsiNandManager.openNand()
-                    if (openNandResult == OpenDSiNandResult.SUCCESS) {
-                        val titles = dsiNandManager.listTitles()
-                        _state.value = DSiWareManagerUiState.Ready(titles)
-                    } else {
-                        // All pre-requirements are validate beforehand and no unexpected error should occur. As such,
-                        // there's no point in providing a detailed description of the error to the UI.
-                        _state.value = DSiWareManagerUiState.Error
-                    }
-                }
-            }
-        }
+        loadDSiWareData()
     }
 
     fun importTitleToNand(titleUri: Uri) {
@@ -92,6 +75,32 @@ class DSiWareManagerViewModel @Inject constructor(
         }
         val iconFiltering = settingsRepository.getRomIconFiltering()
         return RomIcon(bitmap, iconFiltering)
+    }
+
+    fun revalidateBiosConfiguration() {
+        _state.value = DSiWareManagerUiState.Loading
+        loadDSiWareData()
+    }
+
+    private fun loadDSiWareData() {
+        val dsiConfiguration = configurationDirectoryVerifier.checkDsiConfigurationDirectory()
+        if (dsiConfiguration.status != ConfigurationDirResult.Status.VALID) {
+            _state.value = DSiWareManagerUiState.DSiSetupInvalid(dsiConfiguration.status)
+        } else {
+            viewModelScope.launch {
+                withContext(Dispatchers.Default) {
+                    val openNandResult = dsiNandManager.openNand()
+                    if (openNandResult == OpenDSiNandResult.SUCCESS) {
+                        val titles = dsiNandManager.listTitles()
+                        _state.value = DSiWareManagerUiState.Ready(titles)
+                    } else {
+                        // All pre-requirements are validate beforehand and no unexpected error should occur. As such,
+                        // there's no point in providing a detailed description of the error to the UI.
+                        _state.value = DSiWareManagerUiState.Error
+                    }
+                }
+            }
+        }
     }
 
     override fun onCleared() {

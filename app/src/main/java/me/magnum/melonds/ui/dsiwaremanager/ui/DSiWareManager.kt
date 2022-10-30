@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,6 +37,7 @@ fun DSiWareManager(
     state: DSiWareManagerUiState,
     onImportTitle: (Uri) -> Unit,
     onDeleteTitle: (DSiWareTitle) -> Unit,
+    onBiosConfigurationFinished: () -> Unit,
     retrieveTitleIcon: (DSiWareTitle) -> RomIcon,
 ) {
     val importTitleLauncher = rememberLauncherForActivityResult(FilePickerContract(Permission.READ)) {
@@ -45,7 +47,13 @@ fun DSiWareManager(
     }
 
     when (state) {
-        is DSiWareManagerUiState.DSiSetupInvalid -> InvalidSetup(modifier, state.status)
+        is DSiWareManagerUiState.DSiSetupInvalid -> {
+            InvalidSetup(
+                modifier = modifier,
+                configurationStatus = state.status,
+                onBiosConfigurationFinished = onBiosConfigurationFinished,
+            )
+        }
         is DSiWareManagerUiState.Loading -> Loading(modifier)
         is DSiWareManagerUiState.Ready -> {
             Ready(
@@ -61,8 +69,12 @@ fun DSiWareManager(
 }
 
 @Composable
-private fun InvalidSetup(modifier: Modifier, configurationStatus: ConfigurationDirResult.Status) {
+private fun InvalidSetup(modifier: Modifier, configurationStatus: ConfigurationDirResult.Status, onBiosConfigurationFinished: () -> Unit) {
     val context = LocalContext.current
+    
+    val biosSetupLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        onBiosConfigurationFinished()
+    }
 
     Column(modifier.padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
         when (configurationStatus) {
@@ -77,7 +89,7 @@ private fun InvalidSetup(modifier: Modifier, configurationStatus: ConfigurationD
                         val intent = Intent(context, SettingsActivity::class.java).apply {
                             putExtra(SettingsActivity.KEY_ENTRY_POINT, SettingsActivity.CUSTOM_FIRMWARE_ENTRY_POINT)
                         }
-                        context.startActivity(intent)
+                        biosSetupLauncher.launch(intent)
                     },
                     colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary, contentColor = MaterialTheme.colors.onSecondary),
                 ) {
@@ -95,7 +107,7 @@ private fun InvalidSetup(modifier: Modifier, configurationStatus: ConfigurationD
                         val intent = Intent(context, SettingsActivity::class.java).apply {
                             putExtra(SettingsActivity.KEY_ENTRY_POINT, SettingsActivity.CUSTOM_FIRMWARE_ENTRY_POINT)
                         }
-                        context.startActivity(intent)
+                        biosSetupLauncher.launch(intent)
                     },
                     colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary, contentColor = MaterialTheme.colors.onSecondary),
                 ) {
@@ -217,6 +229,7 @@ private fun PreviewDSiWareManagerInvalidSetup() {
         InvalidSetup(
             modifier = Modifier.fillMaxSize(),
             configurationStatus = ConfigurationDirResult.Status.INVALID,
+            onBiosConfigurationFinished = {},
         )
     }
 }

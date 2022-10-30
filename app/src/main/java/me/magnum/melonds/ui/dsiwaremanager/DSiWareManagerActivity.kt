@@ -38,6 +38,7 @@ class DSiWareManagerActivity : AppCompatActivity() {
                     state = state.value,
                     onImportTitle = { viewModel.importTitleToNand(it) },
                     onDeleteTitle = { viewModel.deleteTitle(it) },
+                    onBiosConfigurationFinished = { viewModel.revalidateBiosConfiguration() },
                     retrieveTitleIcon = { viewModel.getTitleIcon(it) },
                 )
 
