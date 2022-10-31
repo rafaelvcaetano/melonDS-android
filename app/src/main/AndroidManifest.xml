@@ -33,6 +33,7 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="${applicationId}.LAUNCH_ROM" />
+                <action android:name="${applicationId}.LAUNCH_FIRMWARE" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -60,6 +61,26 @@
         <activity
             android:name=".ui.shortcutsetup.ShortcutSetupActivity"
             android:label="@string/rom_shortcut"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.CREATE_SHORTCUT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.shortcutsetup.DSFirmwareShortcutSetupActivity"
+            android:label="DS Firmware"
+            android:icon="@mipmap/ic_platform_ds"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.CREATE_SHORTCUT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.shortcutsetup.DSiFirmwareShortcutSetupActivity"
+            android:label="DSi Firmware"
+            android:icon="@mipmap/ic_platform_dsi"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.CREATE_SHORTCUT" />

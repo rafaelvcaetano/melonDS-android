@@ -33,4 +33,6 @@
     <color name="statusOk">#4A4</color>
     <color name="statusWarn">#FF9800</color>
     <color name="statusError">#D51F12</color>
+
+    <color name="white">#FFF</color>
 </resources>

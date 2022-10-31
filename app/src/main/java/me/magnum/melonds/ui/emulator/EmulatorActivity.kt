@@ -61,7 +61,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         const val KEY_PATH = "PATH"
         const val KEY_URI = "uri"
         const val KEY_BOOT_FIRMWARE_CONSOLE = "boot_firmware_console"
-        private const val KEY_BOOT_FIRMWARE_ONLY = "boot_firmware_only"
+        const val KEY_BOOT_FIRMWARE_ONLY = "boot_firmware_only"
 
         fun getRomEmulatorActivityIntent(context: Context, rom: Rom): Intent {
             return Intent(context, EmulatorActivity::class.java).apply {

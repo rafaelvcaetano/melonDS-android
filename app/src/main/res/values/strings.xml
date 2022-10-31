@@ -22,6 +22,9 @@
     <string name="console_ds">DS</string>
     <string name="console_dsi">DSi (Experimental)</string>
 
+    <string name="console_ds_full">Nintendo DS</string>
+    <string name="console_dsi_full">Nintendo DSi</string>
+
     <string name="error_rom_not_found">Could not find ROM</string>
     <string name="error_rom_not_found_info">The ROM you have selected has not been found. Make sure the selected ROM can be found in the current ROM search directory.</string>
     <string name="error_load_rom">Could not load ROM</string>
