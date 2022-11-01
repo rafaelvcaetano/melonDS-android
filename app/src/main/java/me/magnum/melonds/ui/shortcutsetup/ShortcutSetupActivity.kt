@@ -2,10 +2,7 @@ package me.magnum.melonds.ui.shortcutsetup
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Paint
-import android.graphics.Rect
+import android.graphics.*
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -60,7 +57,7 @@ class ShortcutSetupActivity : AppCompatActivity() {
             val romIcon = viewModel.getRomIcon(rom)
             val shortcutInfo = ShortcutInfoCompat.Builder(this@ShortcutSetupActivity, rom.uri.toString())
                 .setShortLabel(rom.name)
-                .setIcon(IconCompat.createWithBitmap(buildShortcutBitmap(romIcon)))
+                .setIcon(IconCompat.createWithAdaptiveBitmap(buildShortcutBitmap(romIcon)))
                 .setIntent(intent)
                 .build()
 
@@ -76,7 +73,8 @@ class ShortcutSetupActivity : AppCompatActivity() {
         val shortcutBitmap = createBitmap(256, 256)
 
         return shortcutBitmap.applyCanvas {
-            val iconRect = Rect(22, 22, shortcutBitmap.width - 22, shortcutBitmap.height - 22)
+            drawRect(Rect(0, 0, width, height), Paint().apply { color = Color.WHITE })
+            val iconRect = Rect(77, 77, shortcutBitmap.width - 77, shortcutBitmap.height - 77)
             drawBitmap(iconBitmap, null, iconRect, Paint().apply { isFilterBitmap = romIcon.filtering == RomIconFiltering.LINEAR })
         }
     }
