@@ -92,11 +92,15 @@ class DSiWareManagerViewModel @Inject constructor(
                     val openNandResult = dsiNandManager.openNand()
                     if (openNandResult == OpenDSiNandResult.SUCCESS) {
                         val titles = dsiNandManager.listTitles()
-                        _state.value = DSiWareManagerUiState.Ready(titles)
+                        withContext(Dispatchers.Main) {
+                            _state.value = DSiWareManagerUiState.Ready(titles)
+                        }
                     } else {
                         // All pre-requirements are validate beforehand and no unexpected error should occur. As such,
                         // there's no point in providing a detailed description of the error to the UI.
-                        _state.value = DSiWareManagerUiState.Error
+                        withContext(Dispatchers.Main) {
+                            _state.value = DSiWareManagerUiState.Error
+                        }
                     }
                 }
             }
