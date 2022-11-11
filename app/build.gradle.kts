@@ -120,6 +120,7 @@ dependencies {
         implementation(fragment)
         implementation(hiltWork)
         implementation(lifecycleViewModel)
+        implementation(lifecycleViewModelCompose)
         implementation(preference)
         implementation(recyclerView)
         implementation(room)

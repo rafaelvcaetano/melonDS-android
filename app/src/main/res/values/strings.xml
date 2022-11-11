@@ -15,6 +15,7 @@
     <string name="preview">Preview</string>
     <string name="undo">Undo</string>
     <string name="update">Update</string>
+    <string name="close">Close</string>
 
     <string name="version_alpha">Alpha</string>
     <string name="version_beta">Beta</string>
@@ -58,6 +59,11 @@
     <string name="dsiware_manager_import_title_error_title_already_imported">DSiWare title already imported</string>
     <string name="dsiware_manager_import_title_error_insatll_failed">Failed to install title</string>
     <string name="dsiware_manager_import_title_error_unknown">An unknown error occurred</string>
+    <string name="dsiware_import_from_file">From file</string>
+    <string name="dsiware_import_from_rom_list">From ROM list</string>
+
+    <string name="select_dsiware_title">Select DSiWare title</string>
+    <string name="no_dsiware_roms_found">No DSiWare ROMs found</string>
 
     <string name="info_fps">FPS: %1$d</string>
     <string name="info_loading">LOADING…</string>

@@ -3,6 +3,7 @@ package me.magnum.melonds.ui.dsiwaremanager.ui
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Divider
@@ -74,6 +75,7 @@ fun DSiWareItem(
                     .size(48.dp)
                     .align(CenterVertically)
                     .padding(8.dp)
+                    .focusable()
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         onClick = onDeleteClicked,

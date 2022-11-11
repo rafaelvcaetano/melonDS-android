@@ -5,9 +5,12 @@
     <color name="colorAccent">@color/melonMain</color>
     <color name="colorOnPrimary">#fff</color>
     <color name="colorOnSecondary">#fff</color>
+    <color name="colorSurface">#fafafa</color>
 
     <color name="textColorPrimary">#DD000000</color>
     <color name="textColorSecondary">#89000000</color>
+
+    <color name="toolbarBackground">@color/colorPrimary</color>
 
     <color name="itemSelected">#AAA</color>
 

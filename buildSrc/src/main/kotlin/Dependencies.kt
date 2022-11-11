@@ -59,6 +59,7 @@ object Dependencies {
         const val fragment = "androidx.fragment:fragment-ktx:${Versions.Fragment}"
         const val hiltWork = "androidx.hilt:hilt-work:${Versions.HiltX}"
         const val lifecycleViewModel = "androidx.lifecycle:lifecycle-viewmodel-ktx:${Versions.LifecycleViewModel}"
+        const val lifecycleViewModelCompose = "androidx.lifecycle:lifecycle-viewmodel-compose:${Versions.LifecycleViewModel}"
         const val preference = "androidx.preference:preference-ktx:${Versions.Preference}"
         const val recyclerView = "androidx.recyclerview:recyclerview:${Versions.RecyclerView}"
         const val room = "androidx.room:room-runtime:${Versions.Room}"
