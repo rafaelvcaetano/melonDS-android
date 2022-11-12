@@ -21,7 +21,7 @@
 #define TITLE_IMPORT_TITLE_ALREADY_IMPORTED 4
 #define TITLE_IMPORT_INSATLL_FAILED 5
 
-FILE* nandFile = nullptr;
+bool isNandOpen = false;
 
 jobject getTitleData(JNIEnv* env, u32 category, u32 titleId);
 
@@ -30,12 +30,13 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_me_magnum_melonds_MelonDSiNand_openNand(JNIEnv* env, jobject thiz, jobject emulatorConfiguration)
 {
-    if (nandFile != nullptr)
+    if (isNandOpen)
     {
         return NAND_INIT_ERROR_ALREADY_OPEN;
     }
 
     MelonDSAndroid::EmulatorConfiguration configuration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
+    MelonDSAndroid::setConfiguration(configuration);
 
     auto bios7file = Platform::OpenLocalFile(configuration.dsiBios7Path, "rb");
     if (!bios7file)
@@ -48,14 +49,12 @@ Java_me_magnum_melonds_MelonDSiNand_openNand(JNIEnv* env, jobject thiz, jobject 
     fread(esKey, 16, 1, bios7file);
     fclose(bios7file);
 
-    nandFile = Platform::OpenLocalFile(configuration.dsiNandPath, "r+b");
-    if (!DSi_NAND::Init(nandFile, esKey))
+    if (!DSi_NAND::Init(esKey))
     {
-        fclose(nandFile);
-        nandFile = nullptr;
         return NAND_INIT_ERROR_NAND_FAILED;
     }
 
+    isNandOpen = true;
     return NAND_INIT_OK;
 }
 
@@ -85,7 +84,7 @@ Java_me_magnum_melonds_MelonDSiNand_listTitles(JNIEnv* env, jobject thiz)
 JNIEXPORT jint JNICALL
 Java_me_magnum_melonds_MelonDSiNand_importTitle(JNIEnv* env, jobject thiz, jstring titleUri, jbyteArray tmdMetadata)
 {
-    if (nandFile == nullptr)
+    if (!isNandOpen)
     {
         return TITLE_IMPORT_NAND_NOT_OPEN;
     }
@@ -143,14 +142,13 @@ Java_me_magnum_melonds_MelonDSiNand_deleteTitle(JNIEnv* env, jobject thiz, jint 
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonDSiNand_closeNand(JNIEnv* env, jobject thiz)
 {
-    if (nandFile == nullptr)
+    if (!isNandOpen)
     {
         return;
     }
 
     DSi_NAND::DeInit();
-    fclose(nandFile);
-    nandFile = nullptr;
+    isNandOpen = false;
 }
 }
 
@@ -175,8 +173,7 @@ jobject getTitleData(JNIEnv* env, u32 category, u32 titleId)
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
     std::string englishTitle = convert.to_bytes(banner.EnglishTitle);
 
-    size_t pos = 0;
-    pos = englishTitle.find("\n");
+    size_t pos = englishTitle.find("\n");
     std::string title = englishTitle.substr(0, pos);
     std::string producer = englishTitle.substr(pos + 1);
 

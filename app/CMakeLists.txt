@@ -1,3 +1,5 @@
+project(melonDS-android-frontend)
+
 cmake_minimum_required(VERSION 3.4.1)
 
 include(CheckSymbolExists)

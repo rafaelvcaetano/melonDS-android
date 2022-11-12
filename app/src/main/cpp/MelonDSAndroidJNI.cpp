@@ -46,7 +46,8 @@ Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jo
 
     u32* textureBufferPointer = (u32*) env->GetDirectBufferAddress(textureBuffer);
 
-    MelonDSAndroid::setup(finalEmulatorConfiguration, assetManager, textureBufferPointer);
+    MelonDSAndroid::setConfiguration(finalEmulatorConfiguration);
+    MelonDSAndroid::setup(assetManager, textureBufferPointer);
     paused = false;
 }
 
