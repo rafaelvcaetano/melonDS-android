@@ -99,7 +99,7 @@
     <string name="load_state">Charger l\'état</string>
     <string name="rewind">Rembobiner</string>
     <string name="save_slot">Emplacement de sauvegarde</string>
-    <string name="empty_slot">%1$s. &lt;Empty&gt;</string>
+    <string name="empty_slot">%1$s. &lt;Vide&gt;</string>
     <string name="quick_slot">Emplacement rapide</string>
     <string name="saved">Sauvegardé</string>
     <string name="loaded">Chargé</string>
