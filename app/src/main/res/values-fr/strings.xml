@@ -15,12 +15,12 @@
     <string name="preview">Prévisualiser</string>
     <string name="undo">Annuler</string>
     <string name="update">Mettre à jour</string>
-    <string name="close">Fermer</string>
+	<string name="close">Fermer</string>
     <string name="version_alpha">Alpha</string>
     <string name="version_beta">Bêta</string>
     <string name="console_ds">DS</string>
     <string name="console_dsi">DSi (expérimental)</string>
-    <string name="console_ds_full">Nintendo DS</string>
+	<string name="console_ds_full">Nintendo DS</string>
     <string name="console_dsi_full">Nintendo DSi</string>
     <string name="error_rom_not_found">Impossible de trouver la ROM</string>
     <string name="error_rom_not_found_info">La ROM que vous avez sélectionnée n\'a pas été trouvée. Assurez-vous que la ROM sélectionnée peut être trouvée dans le répertoire de recherche de ROMs actuel.</string>
@@ -33,14 +33,14 @@
     <string name="action_sort_roms">Trier les ROMs</string>
     <string name="action_boot_firmware">Démarrer le firmware</string>
     <string name="action_refresh_rom_list">Rafraîchir la liste des ROMs</string>
-    <string name="hint_search_roms">Rechercher de ROMs…</string>
+    <string name="hint_search_roms">Chercher des ROMs…</string>
     <string name="update_available">Mise à jour disponible : %1$s</string>
     <string name="skip_update">Ignorer</string>
     <string name="downloading_update">Téléchargement de la mise à jour…</string>
     <string name="starting_download">Début du téléchargement…</string>
     <string name="download_progress_sizes">%1$.1f Mo/%2$.1f Mo</string>
     <string name="update_download_failed">Échec du téléchargement de la mise à jour</string>
-    <string name="dsiware_manager">Gestionnaire des DSiWare</string>
+	<string name="dsiware_manager">Gestionnaire des DSiWare</string>
     <string name="no_dsiware_titles_installed">Vous n\'avez aucun titre DSiWare installé</string>
     <string name="dsiware_manager_no_dsi_setup">Vous n\'avez pas configuré le système DSi</string>
     <string name="dsiware_manager_invalid_dsi_setup">La configuration de votre système DSi n\'est pas valide</string>
@@ -66,9 +66,9 @@
     <string name="cant_load_empty_slot">Impossible de charger un emplacement de sauvegarde d\'état vide</string>
     <string name="failed_reset_emulation">Impossible de réinitialiser l\'émulation</string>
     <string name="save_states_not_supported">Les sauvegardes d\'état ne sont pas prises en charge pendant l\'exécution du firmware</string>
-    <string name="rewind_time_seconds">%1$ss</string>
+    <string name="rewind_time_seconds">%1$s sec</string>
     <!-- Ex: 43.56s -->
-    <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string>
+    <string name="rewind_time_minutes_seconds">%1$d min%2$s sec</string>
     <!-- Ex: 2m37.93s -->
     <string name="rewind_not_enabled">Le rembobinage n\'est pas activé</string>
     <string name="action_sort_alphabetically">Ordre alphabétique</string>
@@ -84,7 +84,7 @@
     <string name="storage_permission_required_info">L\'autorisation de stockage est nécessaire pour charger les ROMs de votre appareil. Veuillez accorder l\'accès au stockage dans la boîte de dialogue suivante.</string>
     <string name="microphone_permission_required">Autorisation d\'enregistrement audio requise</string>
     <string name="microphone_permission_required_info">L\'autorisation d\'enregistrement audio est nécessaire pour envoyer les données du microphone à l\'émulateur. Veuillez accorder l\'accès au stockage dans la prochaine boîte de dialogue.</string>
-    <string name="no_rom_search_directory_specified">Aucun répertoire de recherche de ROMs n\'est spécifié</string>
+    <string name="no_rom_search_directory_specified">Aucun répertoire de ROMs spécifié</string>
     <string name="set_rom_directory">Définir le répertoire des ROMs</string>
     <string name="error_invalid_directory">Répertoire invalide</string>
     <string name="error_invalid_directory_description">Il n\'est pas possible d\'écrire dans le répertoire sélectionné. Veuillez en sélectionner un autre. Si vous sélectionnez un fichier compressé, essayez d\'extraire son contenu.</string>
@@ -109,7 +109,7 @@
     <string name="category_roms">ROMs</string>
     <string name="category_roms_summary">Répertoire de recherche, filtrage des icônes, paramètres du cache</string>
     <string name="category_system">Système</string>
-    <string name="category_system_summary">Paramètres du firmware, BIOS personnalisé, JIT</string>
+    <string name="category_system_summary">Paramètres du firmware, BIOS personnalisé, JAT</string>
     <string name="theme">Thème</string>
     <string name="fast_forward_max_speed">Vitesse maximale de l\'avance rapide</string>
     <string name="rewind_description">Lorsqu\'il est activé, une sauvegarde d\'état est périodiquement enregistrée automatiquement. Lorsque vous souhaitez revenir à une progression antérieure, il vous suffit d\'ouvrir l\'écran de rembobinage et de sélectionner l\'état à partir duquel vous souhaitez reprendre votre progression.\n\nVeuillez noter qu\'en activant cette fonction, vous pouvez rencontrer des bégaiements occasionnels si votre appareil n\'est pas assez puissant. Une quantité considérable de mémoire est également utilisée en fonction de la fréquence à laquelle vous souhaitez que l\'état soit capturé et de la durée pendant laquelle il doit être conservé.</string>
@@ -120,12 +120,12 @@
     <string name="sustained_performance_mode">Mode performance soutenue</string>
     <string name="sustained_performance_mode_summary">Lorsqu\'il est activé, les performances maximales seront plus faibles, mais la régulation thermique sera moins prononcée.</string>
     <string name="rom_icon_filtering">Filtrage des icônes</string>
-    <string name="max_rom_cache_size">Taille max. cache ROM</string>
+    <string name="max_rom_cache_size">Taille max. du cache ROM</string>
     <string name="clear_extracted_rom_cache">Effacer le cache ROM extrait</string>
     <string name="cache_size">Taille du cache : %s</string>
     <string name="cache_size_calculating">Taille du cache : calcul…</string>
     <string name="rom_search_directory">Répertoire de recherche</string>
-    <string name="use_custom_bios">Utiliser un BIOS et un firmware personnalisés</string>
+	<string name="use_custom_bios">Utiliser un BIOS et un firmware personnalisés</string>
     <string name="console_type">Système par défaut</string>
     <string name="internal_firmware_settings">Paramètres internes du firmware</string>
     <string name="internal_firmware_settings_summary">Régler les paramètres du firmware interne.</string>
@@ -136,7 +136,7 @@
     <string name="show_boot_screen">Afficher l\'écran de démarrage</string>
     <string name="mac_address">Adresse MAC</string>
     <string name="randomize_mac_address">Adresse MAC aléatoire</string>
-    <string name="randomize_mac_address_summary">Lorsqu\'il est activé, une adresse MAC aléatoire est utilisée à chaque démarrage. Cela peut amener certains jeux à penser qu\'ils fonctionnent sur un système différent et peut perturber les événements basés sur le temps.</string>
+    <string name="randomize_mac_address_summary">Lorsque ce paramètre est activé, une adresse MAC aléatoire est utilisée à chaque démarrage. Cela peut amener certains jeux à penser qu\'ils fonctionnent sur un système différent et peut perturber les événements basés sur le temps.</string>
     <string name="generate_new_mac_address">Générer une nouvelle</string>
     <string name="generate_new_mac_address_description">La génération d\'une nouvelle adresse MAC fera croire aux jeux qu\'ils fonctionnent sur un système différent.</string>
     <string name="enable_jit">Activer compilation JAT</string>
@@ -144,7 +144,7 @@
     <string name="jit_not_supported">La compilation JAT n\'est prise en charge que par les appareils 64 bits.</string>
     <string name="threaded_rendering">Rendu fileté</string>
     <string name="fps_counter_position">Position du compteur FPS</string>
-    <string name="threaded_rendering_summary">Améliore les performances des jeux en 3D lorsqu\'il est activé, mais peut provoquer des problèmes graphiques.</string>
+    <string name="threaded_rendering_summary">Ce paramètre améliore les performances des jeux en 3D lorsqu\'il est activé, mais peut provoquer des problèmes graphiques.</string>
     <string name="category_video">Vidéo</string>
     <string name="category_video_summary">Filtre, rendu fileté, compteur FPS</string>
     <string name="filter">Filtre</string>
@@ -154,7 +154,7 @@
     <string name="interpolation">Interpolation</string>
     <string name="bitrate">Débit binaire</string>
     <string name="volume">Volume</string>
-    <string name="volume_percentage">%1$d%%</string>
+    <string name="volume_percentage">%1$d %%</string>
     <string name="audio_latency">Latence audio</string>
     <string name="microphone_source">Source du microphone</string>
     <string name="controller_layout">Configuration manette</string>
@@ -172,7 +172,7 @@
     <string name="vibration_strength">Force de vibration</string>
     <string name="soft_input_opacity">Opacité des entrées logicielles</string>
     <string name="cheats">Triches</string>
-    <string name="cheats_summary">Activer et importer les codes de triche</string>
+    <string name="cheats_summary">Activer et importer des codes de triche</string>
     <string name="enable_cheats">Activer les triches</string>
     <string name="cheats_database">Base de données de triches (au format XML)</string>
     <string name="import_cheats">Importer des triches</string>
@@ -221,12 +221,12 @@
     <string name="input_select">SELECT</string>
     <string name="input_lid">Fermer/Ouvrir la console</string>
     <string name="input_pause">Pause</string>
-    <string name="input_fast_forward">Accélération</string>
+    <string name="input_fast_forward">Accélérer</string>
     <string name="input_toggle_soft_input">Entrée logicielle</string>
     <string name="input_reset">@string/reset</string>
     <string name="input_dpad">Croix directionnelle</string>
     <string name="input_abxy_buttons">Boutons ABXY</string>
-    <string name="input_swap_screens">Permuter écrans</string>
+    <string name="input_swap_screens">Permuter les écrans</string>
     <string name="input_quick_save">Sauvegarde rapide</string>
     <string name="input_quick_load">Chargement rapide</string>
     <string name="layouts">Dispositions</string>
