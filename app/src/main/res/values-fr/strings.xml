@@ -117,7 +117,7 @@
     <string name="loaded">Chargé</string>
     <string name="title_activity_settings">Paramètres</string>
     <string name="category_general">Général</string>
-    <string name="category_general_summary">Thème, paramètres génériques</string>
+    <string name="category_general_summary">Thème, paramètres généraux</string>
     <string name="category_roms">ROMs</string>
     <string name="category_roms_summary">Répertoire de recherche, filtrage des icônes, paramètres du cache</string>
     <string name="category_system">Système</string>
