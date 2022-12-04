@@ -74,8 +74,8 @@
     <string name="cant_load_empty_slot">Impossible de charger un emplacement de sauvegarde d\'état vide</string>
     <string name="failed_reset_emulation">Impossible de réinitialiser l\'émulation</string>
     <string name="save_states_not_supported">Les sauvegardes d\'état ne sont pas prises en charge pendant l\'exécution du firmware</string>
-    <string name="rewind_time_seconds">%1$s sec</string>
-    <string name="rewind_time_minutes_seconds">%1$d min%2$s sec</string>
+    <string name="rewind_time_seconds">%1$s s</string>
+    <string name="rewind_time_minutes_seconds">%1$d min%2$s s</string>
     <string name="rewind_not_enabled">Le rembobinage n\'est pas activé</string>
 
     <string name="action_sort_alphabetically">Ordre alphabétique</string>
@@ -348,9 +348,9 @@
     </string-array>
 
     <string-array name="audio_interpolation_options">
-        <item>Aucun</item>
+        <item>Aucune</item>
         <item>Linéaire</item>
-        <item>Sinusoïdal</item>
+        <item>Sinusoïdale</item>
         <item>Cubique</item>
     </string-array>
 
