@@ -48,46 +48,46 @@
     <string name="dsiware_manager">Administrador de DSiWare</string>
     <string name="no_dsiware_titles_installed">Usted no\tiene ningún título DSiWare instalado</string>
     <string name="dsiware_manager_no_dsi_setup">Usted no\tiene configurado el sistema DSi</string>
-    <string name="dsiware_manager_invalid_dsi_setup">Your DSi system setup is invalid</string>
-    <string name="import_dsiware_title">Import DSiWare title</string>
+    <string name="dsiware_manager_invalid_dsi_setup">La configuración del sistema DSi no es válida</string>
+    <string name="import_dsiware_title">Importar título de DSiWare</string>
     <string name="dsiware_manager_setup">Setup</string>
     <string name="dsiware_manager_fix_setup">Fix setup</string>
-    <string name="dsiware_manager_load_error">There was a problem listing your DSiWare titles. Please check your DSi setup</string>
-    <string name="dsiware_manager_import_title_error_open_nand_failed">The NAND could not be opened</string>
-    <string name="dsiware_manager_import_title_error_open_file_failed">Error opening selected file</string>
-    <string name="dsiware_manager_import_title_error_not_dsiware_title">Not a DSiWare title</string>
-    <string name="dsiware_manager_import_title_error_title_already_imported">DSiWare title already imported</string>
-    <string name="dsiware_manager_import_title_error_insatll_failed">Failed to install title</string>
-    <string name="dsiware_manager_import_title_error_unknown">An unknown error occurred</string>
-    <string name="dsiware_import_from_file">From file</string>
-    <string name="dsiware_import_from_rom_list">From ROM list</string>
+    <string name="dsiware_manager_load_error">Ha habido un problema al enumerar los títulos de DSiWare. Compruebe la configuración de su DSi</string>
+    <string name="dsiware_manager_import_title_error_open_nand_failed">No se pudo abrir la NAND</string>
+    <string name="dsiware_manager_import_title_error_open_file_failed">Error al abrir el archivo seleccionado</string>
+    <string name="dsiware_manager_import_title_error_not_dsiware_title">No es un título de DSiWare</string>
+    <string name="dsiware_manager_import_title_error_title_already_imported">Título de DSiWare ya importado</string>
+    <string name="dsiware_manager_import_title_error_insatll_failed">Error al instalar el título</string>
+    <string name="dsiware_manager_import_title_error_unknown">Se ha producido un error desconocido</string>
+    <string name="dsiware_import_from_file">Desde el archivo</string>
+    <string name="dsiware_import_from_rom_list">De la lista de ROM</string>
 
-    <string name="select_dsiware_title">Select DSiWare title</string>
-    <string name="no_dsiware_roms_found">No DSiWare ROMs found</string>
+    <string name="select_dsiware_title">Seleccione el título de DSiWare</string>
+    <string name="no_dsiware_roms_found">Seleccione el título de DSiWare</string>
 
     <string name="info_fps">FPS: %1$d</string>
-    <string name="info_loading">LOADING…</string>
+    <string name="info_loading">CARGANDO…</string>
     <string name="save_state_slot">%1$s.</string>
-    <string name="failed_save_state">Failed to save state</string>
-    <string name="failed_load_state">Failed to load state</string>
-    <string name="cant_load_empty_slot">Can\'t load an empty save state slot</string>
-    <string name="failed_reset_emulation">Failed to reset emulation</string>
-    <string name="save_states_not_supported">Save states are not supported while running the firmware</string>
+    <string name="failed_save_state">No se pudo guardar</string>
+    <string name="failed_load_state">No se pudo cargar</string>
+    <string name="cant_load_empty_slot">No\se puede cargar un espacio vacío</string>
+    <string name="failed_reset_emulation">No se pudo restablecer</string>
+    <string name="save_states_not_supported">Los estados de guardado no son compatibles mientras se ejecuta el firmware</string>
     <string name="rewind_time_seconds">%1$ss</string> <!-- Ex: 43.56s -->
     <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string> <!-- Ex: 2m37.93s -->
-    <string name="rewind_not_enabled">Rewind is not enabled</string>
+    <string name="rewind_not_enabled">El rebobinado no está habilitado</string>
 
-    <string name="action_sort_alphabetically">Alphabetically</string>
-    <string name="action_sort_recently_played">Recently played</string>
+    <string name="action_sort_alphabetically">Alfabéticamente</string>
+    <string name="action_sort_recently_played">Recientemente jugado</string>
 
-    <string name="ds_bios_dir_not_set">DS BIOS directory not set</string>
-    <string name="ds_bios_dir_not_set_info">DS BIOS directory is not set. Select the directory that contains the following files:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
-    <string name="dsi_bios_dir_not_set">DSi BIOS directory not set</string>
-    <string name="dsi_bios_dir_not_set_info">DSi BIOS directory is not set. Select the directory that contains the following files:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
-    <string name="incorrect_bios_dir">Incorrect BIOS directory</string>
-    <string name="ds_incorrect_bios_dir_info">The BIOS directory for the DS system is not correct. Make sure that the selected directory contains the following files:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
-    <string name="dsi_incorrect_bios_dir_info">The BIOS directory for the DSi system is not correct. Make sure that the selected directory that contains the following files:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
-    <string name="storage_permission_required">Storage permission required</string>
+    <string name="ds_bios_dir_not_set">El directorio BIOS de DS no está configurado</string>
+    <string name="ds_bios_dir_not_set_info">El directorio BIOS de DS no está configurado. Seleccione el directorio que contiene los siguientes archivos:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="dsi_bios_dir_not_set">El directorio BIOS de DSi no está configurado</string>
+    <string name="dsi_bios_dir_not_set_info">El directorio DSi BIOS no está configurado. Seleccione el directorio que contiene los siguientes archivos:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
+    <string name="incorrect_bios_dir">Directorio de BIOS incorrecto</string>
+    <string name="ds_incorrect_bios_dir_info">El directorio BIOS para el sistema DS no es correcto. Asegúrese de que el directorio seleccionado contenga los siguientes archivos:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="dsi_incorrect_bios_dir_info">El directorio BIOS para el sistema DSi no es correcto. Asegúrese de que el directorio seleccionado que contiene los siguientes archivos:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
+    <string name="storage_permission_required">Se requiere permiso de almacenamiento</string>
     <string name="storage_permission_required_info">Storage permission is required to load ROMs from your device. Please grant access to storage on the next dialog.</string>
     <string name="microphone_permission_required">Audio recording permission required</string>
     <string name="microphone_permission_required_info">Audio recording permission is required to send microphone data to the emulator. Please grant access to storage on the next dialog.</string>
@@ -97,7 +97,7 @@
     <string name="error_invalid_directory_description">It\'s not possible to write to the selected directory. Please select a different one. If you are selecting a compressed file, try extracting its contents.</string>
     <string name="no_roms_found">No ROMs found</string>
 
-    <string name="press_any_button">Press any button…</string>
+    <string name="press_any_button">Pulse cualquier botón…</string>
 
     <string name="choose_component">Choose component</string>
 
