@@ -26,6 +26,11 @@
     <string name="console_ds_full">Nintendo DS</string>
     <string name="console_dsi_full">Nintendo DSi</string>
 
+    <string name="size_bytes">B</string>
+    <string name="size_kb">KB</string>
+    <string name="size_mb">MB</string>
+    <string name="size_gb">GB</string>
+
     <string name="error_rom_not_found">Could not find ROM</string>
     <string name="error_rom_not_found_info">The ROM you have selected has not been found. Make sure the selected ROM can be found in the current ROM search directory.</string>
     <string name="error_load_rom">Could not load ROM</string>
@@ -96,6 +101,8 @@
     <string name="error_invalid_directory">Invalid directory</string>
     <string name="error_invalid_directory_description">It\'s not possible to write to the selected directory. Please select a different one. If you are selecting a compressed file, try extracting its contents.</string>
     <string name="no_roms_found">No ROMs found</string>
+    <string name="dsiware_title_cannot_be_launched_directly_title">DSiWare titles cannot be launched</string>
+    <string name="dsiware_title_cannot_be_launched_directly_message">DSiWare titles cannot be launched directly. They must be installed to the NAND (through the DSiWare Manager)</string>
 
     <string name="press_any_button">Press any button…</string>
 
