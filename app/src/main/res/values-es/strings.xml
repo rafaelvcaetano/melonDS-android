@@ -51,8 +51,8 @@
     <string name="update_download_failed">Error al descargar la actualización</string>
 
     <string name="dsiware_manager">Administrador de DSiWare</string>
-    <string name="no_dsiware_titles_installed">Usted no\tiene ningún título DSiWare instalado</string>
-    <string name="dsiware_manager_no_dsi_setup">Usted no\tiene configurado el sistema DSi</string>
+    <string name="no_dsiware_titles_installed">no tienes ningún título DSiWare instalado</string>
+    <string name="dsiware_manager_no_dsi_setup">no tienes configurado el sistema DSi</string>
     <string name="dsiware_manager_invalid_dsi_setup">La configuración del sistema DSi no es válida</string>
     <string name="import_dsiware_title">Importar título de DSiWare</string>
     <string name="dsiware_manager_setup">Setup</string>
@@ -75,7 +75,7 @@
     <string name="save_state_slot">%1$s.</string>
     <string name="failed_save_state">No se pudo guardar</string>
     <string name="failed_load_state">No se pudo cargar</string>
-    <string name="cant_load_empty_slot">No\se puede cargar un espacio vacío</string>
+    <string name="cant_load_empty_slot">No se puede cargar un espacio vacío</string>
     <string name="failed_reset_emulation">No se pudo restablecer</string>
     <string name="save_states_not_supported">Los estados de guardado no son compatibles mientras se ejecuta el firmware</string>
     <string name="rewind_time_seconds">%1$ss</string> <!-- Ex: 43.56s -->
@@ -83,7 +83,7 @@
     <string name="rewind_not_enabled">El rebobinado no está habilitado</string>
 
     <string name="action_sort_alphabetically">Alfabéticamente</string>
-    <string name="action_sort_recently_played">Recientemente jugado</string>
+    <string name="action_sort_recently_played">Recientemente</string>
 
     <string name="ds_bios_dir_not_set">El directorio BIOS de DS no está configurado</string>
     <string name="ds_bios_dir_not_set_info">El directorio BIOS de DS no está configurado. Seleccione el directorio que contiene los siguientes archivos:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
@@ -93,44 +93,44 @@
     <string name="ds_incorrect_bios_dir_info">El directorio BIOS para el sistema DS no es correcto. Asegúrese de que el directorio seleccionado contenga los siguientes archivos:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
     <string name="dsi_incorrect_bios_dir_info">El directorio BIOS para el sistema DSi no es correcto. Asegúrese de que el directorio seleccionado que contiene los siguientes archivos:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
     <string name="storage_permission_required">Se requiere permiso de almacenamiento</string>
-    <string name="storage_permission_required_info">Storage permission is required to load ROMs from your device. Please grant access to storage on the next dialog.</string>
-    <string name="microphone_permission_required">Audio recording permission required</string>
-    <string name="microphone_permission_required_info">Audio recording permission is required to send microphone data to the emulator. Please grant access to storage on the next dialog.</string>
-    <string name="no_rom_search_directory_specified">No ROM search directory specified</string>
-    <string name="set_rom_directory">Set ROM directory</string>
-    <string name="error_invalid_directory">Invalid directory</string>
-    <string name="error_invalid_directory_description">It\'s not possible to write to the selected directory. Please select a different one. If you are selecting a compressed file, try extracting its contents.</string>
-    <string name="no_roms_found">No ROMs found</string>
-    <string name="dsiware_title_cannot_be_launched_directly_title">DSiWare titles cannot be launched</string>
-    <string name="dsiware_title_cannot_be_launched_directly_message">DSiWare titles cannot be launched directly. They must be installed to the NAND (through the DSiWare Manager)</string>
+    <string name="storage_permission_required_info">Se requiere permiso de almacenamiento para cargar la ROM. Conceda acceso al almacenamiento en el siguiente cuadro de diálogo.</string>
+    <string name="microphone_permission_required">Se requiere permiso de grabación de audio</string>
+    <string name="microphone_permission_required_info">Se requiere permiso de grabación de audio para enviar datos del micrófono. Conceda acceso al almacenamiento en el siguiente cuadro de diálogo.</string>
+    <string name="no_rom_search_directory_specified">No se ha especificado ningún directorio de búsqueda de la ROM</string>
+    <string name="set_rom_directory">Establecer directorio de la ROM</string>
+    <string name="error_invalid_directory">Directorio no válido</string>
+    <string name="error_invalid_directory_description">No es posible escribir en el directorio seleccionado. Seleccione uno diferente. Si está seleccionando un archivo comprimido, intente extraerlo.</string>
+    <string name="no_roms_found">No se han encontrado ROMs</string>
+    <string name="dsiware_title_cannot_be_launched_directly_title">No se pueden iniciar títulos de DSiWare</string>
+    <string name="dsiware_title_cannot_be_launched_directly_message">Los títulos de DSiWare no se pueden iniciar directamente. Deben instalarse en la NAND (a través de DSiWare Manager)</string>
     
     <string name="press_any_button">Pulse cualquier botón…</string>
 
-    <string name="choose_component">Choose component</string>
+    <string name="choose_component">Elegir componente</string>
 
-    <string name="pause">Pause</string>
-    <string name="reset">Reset</string>
-    <string name="exit">Exit</string>
+    <string name="pause">Pausar</string>
+    <string name="reset">resetear</string>
+    <string name="exit">Salir</string>
 
-    <string name="settings">Settings</string>
-    <string name="save_state">Save state</string>
-    <string name="load_state">Load state</string>
-    <string name="rewind">Rewind</string>
-    <string name="save_slot">Save slot</string>
-    <string name="empty_slot">%1$s. &lt;Empty&gt;</string>
-    <string name="quick_slot">Quick Slot</string>
-    <string name="saved">Saved</string>
-    <string name="loaded">Loaded</string>
-    <string name="title_activity_settings">Settings</string>
+    <string name="settings">Configuración</string>
+    <string name="save_state">Guardar estado</string>
+    <string name="load_state">Cargar estado</string>
+    <string name="rewind">Rebobinar</string>
+    <string name="save_slot">Guardar ranura</string>
+    <string name="empty_slot">%1$s. &lt;Vacío&gt;</string>
+    <string name="quick_slot">Ranura rápida</string>
+    <string name="saved">Guardado</string>
+    <string name="loaded">Cargado</string>
+    <string name="title_activity_settings">Ajustes</string>
     <string name="category_general">General</string>
-    <string name="category_general_summary">Theme, generic settings</string>
+    <string name="category_general_summary">Tema, configuración genérica</string>
     <string name="category_roms">ROMs</string>
-    <string name="category_roms_summary">Search directory, icon filtering, cache settings</string>
-    <string name="category_system">System</string>
-    <string name="category_system_summary">Firmware settings, custom BIOS, JIT</string>
-    <string name="theme">Theme</string>
-    <string name="fast_forward_max_speed">Fast-forward max speed</string>
-    <string name="rewind_description">When enabled, a save-state is periodically saved automatically. Whenever you want to go back on your progress by a short amount of time, just open the rewind screen and select the state that you want to resume from.\n\nBe aware that by enabling this feature, you may experience occasional stutters if your device is not powerful enough. A considerable amount of memory is also used depending on how often you want the state to be captured and for how long it should be kept.</string>
+    <string name="category_roms_summary">Directorio de búsqueda, filtrado de iconos, configuración de caché</string>
+    <string name="category_system">Sistema</string>
+    <string name="category_system_summary">Configuración de firmware, BIOS personalizado, JIT</string>
+    <string name="theme">Tema</string>
+    <string name="fast_forward_max_speed">Velocidad máxima avance rápido</string>
+    <string name="rewind_description">Cuando está habilitado, un estado de guardado se guarda periódicamente de forma automática. Siempre que desee retroceder en su progreso por un corto período de tiempo, simplemente abra la pantalla de rebobinado y seleccione el estado desde el que desea reanudar.\n\nTenga en cuenta que al habilitar esta función, puede experimentar tartamudeos ocasionales si su dispositivo no es lo suficientemente potente. También se utiliza una cantidad considerable de memoria dependiendo de la frecuencia con la que desee que se capture el estado y durante cuánto tiempo se debe mantener.</string>
     <string name="rewind_save_period">Save period</string>
     <string name="rewind_length">Rewind length</string>
     <string name="rewind_max_memory_usage">Max. memory usage: %1$s</string>
