@@ -26,7 +26,12 @@
 
     <string name="console_ds_full">Nintendo DS</string>
     <string name="console_dsi_full">Nintendo DSi</string>
-
+    
+    <string name="size_bytes">octets</string>
+    <string name="size_kb">ko</string>
+    <string name="size_mb">Mo</string>
+    <string name="size_gb">Go</string>
+    
     <string name="error_rom_not_found">Impossible de trouver la ROM</string>
     <string name="error_rom_not_found_info">La ROM que vous avez sélectionnée n\'a pas été trouvée. Assurez-vous que la ROM sélectionnée peut être trouvée dans le répertoire de recherche de ROMs actuel.</string>
     <string name="error_load_rom">Impossible de charger la ROM</string>
