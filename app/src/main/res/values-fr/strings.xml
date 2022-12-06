@@ -102,7 +102,7 @@
     <string name="error_invalid_directory">Répertoire invalide</string>
     <string name="error_invalid_directory_description">Il n\'est pas possible d\'écrire dans le répertoire sélectionné. Veuillez en sélectionner un autre. Si vous sélectionnez un fichier compressé, essayez d\'extraire son contenu.</string>
     <string name="no_roms_found">Aucune ROM trouvée</string>
-    <string name="dsiware_title_cannot_be_launched_directly_title">Les titres DSiWare ne peuvent pas être lancés</string>
+    <string name="dsiware_title_cannot_be_launched_directly_title">Impossible de lancer les titres DSiWare</string>
     <string name="dsiware_title_cannot_be_launched_directly_message">Les titres DSiWare ne peuvent pas être lancés directement. Ils doivent être installés sur la NAND (via le gestionnaire des DSiWare)</string>
 
     <string name="press_any_button">Appuyez sur n\'importe quel bouton…</string>
