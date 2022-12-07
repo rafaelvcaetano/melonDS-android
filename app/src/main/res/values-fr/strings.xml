@@ -131,13 +131,13 @@
     <string name="category_system_summary">Paramètres du firmware, BIOS personnalisé, JAT</string>
     <string name="theme">Thème</string>
     <string name="fast_forward_max_speed">Vitesse maximale de l\'avance rapide</string>
-    <string name="rewind_description">Lorsqu\'il est activé, une sauvegarde d\'état est périodiquement enregistrée automatiquement. Lorsque vous souhaitez revenir à une progression antérieure, il vous suffit d\'ouvrir l\'écran de rembobinage et de sélectionner l\'état à partir duquel vous souhaitez reprendre votre progression.\n\nVeuillez noter qu\'en activant cette fonction, vous pouvez rencontrer des bégaiements occasionnels si votre appareil n\'est pas assez puissant. Une quantité considérable de mémoire est également utilisée en fonction de la fréquence à laquelle vous souhaitez que l\'état soit capturé et de la durée pendant laquelle il doit être conservé.</string>
+    <string name="rewind_description">Lorsque le rembobinage est activé, une sauvegarde d\'état est périodiquement enregistrée automatiquement. Lorsque vous souhaitez revenir à une progression antérieure, il vous suffit d\'ouvrir l\'écran de rembobinage et de sélectionner l\'état à partir duquel vous souhaitez reprendre votre progression.\n\nVeuillez noter qu\'en activant cette fonction, vous pouvez rencontrer des bégaiements occasionnels si votre appareil n\'est pas assez puissant. Une quantité considérable de mémoire est également utilisée en fonction de la fréquence à laquelle vous souhaitez que l\'état soit capturé et de la durée pendant laquelle il doit être conservé.</string>
     <string name="rewind_save_period">Période de sauvegarde</string>
     <string name="rewind_length">Longueur du rembobinage</string>
     <string name="rewind_max_memory_usage">Utilisation max. mémoire : %1$s</string>
     <string name="rewind_memory_usage_above_recommended_limit">Utilisation de la mémoire supérieure à la limite recommandée</string>
     <string name="sustained_performance_mode">Mode performance soutenue</string>
-    <string name="sustained_performance_mode_summary">Lorsqu\'il est activé, les performances maximales seront plus faibles, mais la régulation thermique sera moins prononcée.</string>
+    <string name="sustained_performance_mode_summary">Lorsque ce paramètre est activé, les performances maximales seront plus faibles, mais la régulation thermique sera moins prononcée.</string>
     <string name="rom_icon_filtering">Filtrage des icônes</string>
     <string name="max_rom_cache_size">Taille max. du cache ROM</string>
     <string name="clear_extracted_rom_cache">Effacer le cache ROM extrait</string>
