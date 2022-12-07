@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string-array name="theme_options">
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string-array name="theme_options" tools:ignore="InconsistentArrays">
         <item>@string/theme_option_light</item>
         <item>@string/theme_option_dark</item>
         <item>@string/theme_option_system_default</item>

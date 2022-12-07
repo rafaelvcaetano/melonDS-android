@@ -253,12 +253,7 @@
     <string name="background_add_wrong_orientation">Фон добавлен, но не отображается в выбранной ориентации.</string>
     <string name="background_add_processing_failed">Не удалось обработать выбранное изображение. Убедитесь, что файл не повреждён.</string>
 
-    <string-array name="theme_options" tools:ignore="InconsistentArrays">
-        <item>@string/theme_option_light</item>
-        <item>@string/theme_option_dark</item>
-    </string-array>
-
-    <string-array name="fast_forward_speed_multiplier_options" tools:ignore="InconsistentArrays">
+    <string-array name="fast_forward_speed_multiplier_options">
         <item>Без ограничения</item>
         <item>1.5x</item>
         <item>2x</item>
