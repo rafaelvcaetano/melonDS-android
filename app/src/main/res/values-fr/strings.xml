@@ -288,12 +288,7 @@
     <string name="background_add_wrong_orientation">L\'arrière-plan a été ajouté mais n\'est pas visible pour l\'orientation sélectionnée.</string>
     <string name="background_add_processing_failed">Le traitement de l\'image d\'arrière-plan sélectionnée a échoué. Vérifiez qu\'elle n\'est pas corrompue.</string>
 
-    <string-array name="theme_options" tools:ignore="InconsistentArrays">
-        <item>@string/theme_option_light</item>
-        <item>@string/theme_option_dark</item>
-    </string-array>
-
-    <string-array name="fast_forward_speed_multiplier_options" tools:ignore="InconsistentArrays">
+    <string-array name="fast_forward_speed_multiplier_options">
         <item>Illimitée</item>
         <item>x1,5</item>
         <item>x2</item>
