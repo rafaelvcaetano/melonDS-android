@@ -253,12 +253,7 @@
     <string name="background_add_wrong_orientation">Latar belakang ditambahkan tetapi tidak terlihat untuk orientasi yang dipilih.</string>
     <string name="background_add_processing_failed">Gagal memproses gambar latar yang dipilih. Pastikan tidak rusak.</string>
 
-    <string-array name="theme_options" tools:ignore="InconsistentArrays">
-        <item>@string/theme_option_light</item>
-        <item>@string/theme_option_dark</item>
-    </string-array>
-
-    <string-array name="fast_forward_speed_multiplier_options" tools:ignore="InconsistentArrays">
+    <string-array name="fast_forward_speed_multiplier_options">
         <item>Unlimited</item>
         <item>1.5x</item>
         <item>2x</item>
