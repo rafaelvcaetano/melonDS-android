@@ -215,7 +215,7 @@
     <string name="day">Día</string>
     <string name="month">Mes</string>
     <string name="symbol_increase">+</string>
-    <string name="symbol_decrease">-</…string>
+    <string name="symbol_decrease">-</string>
 
     <string name="rom_settings">Configuración de Rom</string> <!-- Cadena de accesibilidad. No debe usar acrónimos -->
     <string name="label_rom_config_console">Sistema de arranque</string>
@@ -243,53 +243,53 @@
     <string name="input_r">R</string>
     <string name="input_start">Start</string>
     <string name="input_select">Select</string>
-    <string name="input_lid">Toggle Lid</string>
-    <string name="input_pause">Pause</string>
-    <string name="input_fast_forward">Fast Forward (Toggle)</string>
-    <string name="input_toggle_soft_input">Toggle Soft Input</string>
+    <string name="input_lid">Cerrar/Abrir consola</string>
+    <string name="input_pause">Pausa</string>
+    <string name="input_fast_forward">Avance rápido (alternar)</string>
+    <string name="input_toggle_soft_input">Alternar entrada suave</string>
     <string name="input_reset">@string/reset</string>
-    <string name="input_dpad">DPAD</string>
-    <string name="input_abxy_buttons">ABXY Buttons</string>
-    <string name="input_swap_screens">Swap Screens</string>
-    <string name="input_quick_save">Quick Save</string>
-    <string name="input_quick_load">Quick Load</string>
+    <string name="input_dpad">Cruceta</string>
+    <string name="input_abxy_buttons">Botones ABXY</string>
+    <string name="input_swap_screens">Intercambiar pantallas</string>
+    <string name="input_quick_save">Guardado rápido</string>
+    <string name="input_quick_load">Carga rápida</string>
 
-    <string name="layouts">Layouts</string>
-    <string name="layouts_summary">Manage custom layout configurations</string>
-    <string name="action_layouts_new">New layout</string>
-    <string name="default_layout_name">Default</string>
-    <string name="use_global_layout">Use global layout</string>
-    <string name="layout_deleted">Layout deleted</string>
+    <string name="layouts">Diseños</string>
+    <string name="layouts_summary">Administrar configuraciones de diseño personalizadas</string>
+    <string name="action_layouts_new">Nuevo diseño</string>
+    <string name="default_layout_name">Predeterminado</string>
+    <string name="use_global_layout">Usar diseño global</string>
+    <string name="layout_deleted">Diseño eliminado</string>
 
-    <string name="layout_editor">Layout editor</string>
-    <string name="add_component">Add component</string>
-    <string name="no_more_components">No more components to add</string>
-    <string name="label_size">Size:</string>
-    <string name="menu">Menu</string>
-    <string name="properties">Properties</string>
-    <string name="revert_changes">Revert changes</string>
-    <string name="reset_default">Reset to default</string>
-    <string name="exit_without_saving">Exit without saving</string>
-    <string name="portrait_background">Portrait background</string>
-    <string name="portrait_background_mode">Portrait background mode</string>
-    <string name="landscape_background">Landscape background</string>
-    <string name="landscape_background_mode">Landscape background mode</string>
-    <string name="save_and_exit">Save and exit</string>
-    <string name="layout_name">Layout name</string>
-    <string name="layout_orientation">Layout orientation</string>
-    <string name="layout_use_default_opacity">Use default opacity</string>
-    <string name="layout_opacity">Layout opacity</string>
-    <string name="layout_background_load_failed">Failed to load the background</string>
+    <string name="layout_editor">Editor de diseño</string>
+    <string name="add_component">Agregar componente</string>
+    <string name="no_more_components">No hay más componentes que agregar</string>
+    <string name="label_size">Tamaño:</string>
+    <string name="menu">Menú</string>
+    <string name="properties">Propiedades</string>
+    <string name="revert_changes">Revertir cambios</string>
+    <string name="reset_default">Restablecer los valores predeterminados</string>
+    <string name="exit_without_saving">Salir sin guardar</string>
+    <string name="portrait_background">Fondo vertical</string>
+    <string name="portrait_background_mode">Modo de fondo vertical</string>
+    <string name="landscape_background">Fondo horizontal</string>
+    <string name="landscape_background_mode">Modo de fondo horizontal</string>
+    <string name="save_and_exit">Guardar y salir</string>
+    <string name="layout_name">Nombre de diseño</string>
+    <string name="layout_orientation">Orientación de diseño</string>
+    <string name="layout_use_default_opacity">Usar opacidad predeterminada</string>
+    <string name="layout_opacity">Opacidad de diseño</string>
+    <string name="layout_background_load_failed">Error al cargar el fondo</string>
 
-    <string name="backgrounds">Backgrounds</string>
-    <string name="action_backgrounds_new">New background</string>
-    <string name="background_name">Background name</string>
-    <string name="background_deleted">Background deleted</string>
-    <string name="background_add_wrong_orientation">Background added but it\'s not visible for the selected orientation.</string>
-    <string name="background_add_processing_failed">Failed to process the selected background image. Make sure it\'s not corrupted.</string>
+    <string name="backgrounds">Fondos</string>
+    <string name="action_backgrounds_new">Nuevo fondo</string>
+    <string name="background_name">Nombre de fondo</string>
+    <string name="background_deleted">Fondo eliminado</string>
+    <string name="background_add_wrong_orientation">Se agregó fondo pero no es visible para la orientación seleccionada.</string>
+    <string name="background_add_processing_failed">Error al procesar la imagen de fondo seleccionada. Asegúrese de que no esté dañado.</string>
    
     <string-array name="fast_forward_speed_multiplier_options">
-        <item>Unlimited</item>
+        <item>Ilimitado</item>
         <item>1.5x</item>
         <item>2x</item>
         <item>3x</item>
@@ -298,30 +298,30 @@
     </string-array>
 
     <string-array name="rom_icon_filtering_options">
-        <item>None (Pixelated)</item>
-        <item>Linear (Smooth)</item>
+        <item>Ninguno (pixelado)</item>
+        <item>Lineal (suave)</item>
     </string-array>
 
     <string-array name="game_runtime_console_type_options">
-        <item>Default</item>
+        <item>Predeterminado</item>
         <item>@string/console_ds</item>
         <item>@string/console_dsi</item>
     </string-array>
 
     <string-array name="firmware_settings_language_options">
-        <item>English</item>
-        <item>French</item>
-        <item>German</item>
-        <item>Italian</item>
-        <item>Spanish</item>
-        <item>Japanese</item>
+        <item>Inglés</item>
+        <item>Francés</item>
+        <item>Alemán</item>
+        <item>Italiano</item>
+        <item>Español</item>
+        <item>Japonés</item>
     </string-array>
 
     <string-array name="game_runtime_mic_source_options">
-        <item>Default</item>
-        <item>None</item>
-        <item>Blow</item>
-        <item>Device microphone</item>
+        <item>Predeterminado</item>
+        <item>Ninguno</item>
+        <item>Soplar</item>
+        <item>Micrófono del dispositivo</item>
     </string-array>
 
     <string-array name="console_type_options">
@@ -330,18 +330,18 @@
     </string-array>
 
     <string-array name="fps_counter_position_options">
-        <item>Hidden</item>
-        <item>Top left</item>
-        <item>Top center</item>
-        <item>Top right</item>
-        <item>Bottom left</item>
-        <item>Bottom center</item>
-        <item>Bottom right</item>
+        <item>escondido</item>
+        <item>Arriba-izquierda</item>
+        <item>Centro-superior</item>
+        <item>Arriba-derecha</item>
+        <item>Abajo-izquierda</item>
+        <item>inferior-central</item>
+        <item>Abajo-derecha</item>
     </string-array>
 
     <string-array name="video_filtering_options">
-        <item>None</item>
-        <item>Linear</item>
+        <item>ninguno</item>
+        <item>lineal</item>
         <item>2xBR</item>
         <item>HQ2X</item>
         <item>HQ4X</item>
@@ -350,53 +350,53 @@
     </string-array>
 
     <string-array name="audio_interpolation_options">
-        <item>None</item>
-        <item>Linear</item>
-        <item>Cosine</item>
-        <item>Cubic</item>
+        <item>ninguno</item>
+        <item>lineal</item>
+        <item>coseno</item>
+        <item>cúbico</item>
     </string-array>
 
     <string-array name="audio_bitrate_options">
-        <item>Auto</item>
-        <item>10-bit</item>
-        <item>16-bit</item>
+        <item>Automático</item>
+        <item>10-bits</item>
+        <item>16-bits</item>
     </string-array>
 
     <string-array name="audio_latency_options">
-        <item>Low (Slower)</item>
-        <item>Medium</item>
-        <item>High (Faster)</item>
+        <item>Bajo (más lento)</item>
+        <item>Medio</item>
+        <item>Alto (más rápido)</item>
     </string-array>
 
     <string-array name="mic_source_options">
-        <item>None</item>
-        <item>Blow</item>
-        <item>Device microphone</item>
+        <item>ninguno</item>
+        <item>soplar</item>
+        <item>Micrófono del dispositivo</item>
     </string-array>
 
     <string-array name="save_state_locations">
-        <item>Save file directory</item>
-        <item>ROM directory</item>
-        <item>Internal directory</item>
+        <item>Guardar directorio de archivos</item>
+        <item>Directorio de ROMs</item>
+        <item>Directorio interno</item>
     </string-array>
 
     <string-array name="layout_orientation_options">
-        <item>Follow system</item>
-        <item>Portrait</item>
-        <item>Landscape</item>
+        <item>Seguir sistema</item>
+        <item>retrato</item>
+        <item>paisaje</item>
     </string-array>
 
     <string-array name="background_portrait_mode_options">
-        <item>Stretch</item>
-        <item>Fit center</item>
-        <item>Fit top</item>
-        <item>Fit bottom</item>
+        <item>elasticidad</item>
+        <item>Centro de ajuste</item>
+        <item>Ajuste superior</item>
+        <item>Ajuste inferior</item>
     </string-array>
 
     <string-array name="background_landscape_mode_options">
-        <item>Stretch</item>
-        <item>Fit center</item>
-        <item>Fit left</item>
-        <item>Fit right</item>
+        <item>elasticidad</item>
+        <item>Centro de ajuste</item>
+        <item>Ajuste a la izquierda</item>
+        <item>Ajuste correcto</item>
     </string-array>
 </resources>
