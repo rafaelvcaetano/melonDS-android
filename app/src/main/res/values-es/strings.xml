@@ -205,7 +205,7 @@
     <string name="firmware_birthday">Cumpleaños</string>
 
     <string name="error_clear_rom_cache">Error al borrar la caché ROM</string>
-    <string name="importing_cheats">Importando trucos...</string>
+    <string name="importing_cheats">Importando trucos…</string>
     <string name="starting">Iniciando…</string>
     <string name="move_to_background">Mover a segundo plano</string>
     <string name="failed_save_cheat_changes">No se pudieron guardar los cambios de trucos</string>
