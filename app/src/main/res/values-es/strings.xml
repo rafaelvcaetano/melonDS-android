@@ -1,6 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">melonDS</string>
-
+    
     <string name="ok">OK</string>
     <string name="yes">Sí</string>
     <string name="no">No</string>
@@ -148,48 +149,48 @@
     <string name="internal_firmware_settings">Configuración interna del firmware</string>
     <string name="internal_firmware_settings_summary">Ajuste la configuración del firmware interno.</string>
     <string name="custom_bios_firmware">BIOS y firmware customizado</string>
-    <string name="custom_bios_firmware_description">Using a custom BIOS and firmware allows you to launch and navigate in the DS\'s firmware without loading a ROM, just like in a real system</string>
+    <string name="custom_bios_firmware_description"El uso de un BIOS y firmware customizado le permite iniciar y navegar en el firmware de la DS sin cargar una ROM, al igual que en un sistema real.</string>
     <string name="bios_directory">DS BIOS directory</string>
-    <string name="dsi_bios_directory">DSi BIOS directory</string>
-    <string name="show_boot_screen">Show boot screen</string>
-    <string name="mac_address">MAC address</string>
-    <string name="randomize_mac_address">Randomize MAC address</string>
-    <string name="randomize_mac_address_summary">When enabled, a random MAC address is used at every boot. This may cause some games to think its running on a different system and can break time based events.</string>
-    <string name="generate_new_mac_address">Generate new</string>
-    <string name="generate_new_mac_address_description">Generating a new MAC address will make games think they are running on a different system.</string>
-    <string name="enable_jit">Enable JIT</string>
-    <string name="enable_jit_summary">Improves performance but may cause freezes or crashes.</string>
-    <string name="jit_not_supported">JIT is only supported in 64 bit devices.</string>
-    <string name="threaded_rendering">Threaded rendering</string>
-    <string name="fps_counter_position">FPS counter position</string>
-    <string name="threaded_rendering_summary">Improves performance on 3D games when enabled but may cause graphical glitches.</string>
+    <string name="dsi_bios_directory">Directorio de DSi BIOS</string>
+    <string name="show_boot_screen">Mostrar pantalla de arranque</string>
+    <string name="mac_address">Dirección MAC</string>
+    <string name="randomize_mac_address">Aleatorizar la dirección MAC</string>
+    <string name="randomize_mac_address_summary">Cuando está habilitado, se usa una dirección MAC aleatoria en cada arranque. Algunos juegos pensarán que se están ejecutando en un sistema diferente y puede romper eventos basados en el tiempo.</string>
+    <string name="generate_new_mac_address">Generar nueva</string>
+    <string name="generate_new_mac_address_description">Generar una nueva dirección MAC hará que los juegos piensen que se están ejecutando en un sistema diferente.</string>
+    <string name="enable_jit">Habilitar JIT</string>
+    <string name="enable_jit_summary">Mejora el rendimiento, pero puede provocar bloqueos o crasheos</string>
+    <string name="jit_not_supported">JIT compatible con dispositivos de 64 bits.</string>
+    <string name="threaded_rendering">Renderizado de subprocesos</string>
+    <string name="fps_counter_position">Posición del contador de FPS</string>
+    <string name="threaded_rendering_summary">Mejora el rendimiento de los juegos en 3D cuando está habilitado, pero causará fallas gráficas.</string>
     <string name="category_video">Video</string>
-    <string name="category_video_summary">Filter, threaded rendering, FPS counter</string>
-    <string name="filter">Filter</string>
+    <string name="category_video_summary">Filtro, Renderizado de subprocesos, contador de FPS</string>
+    <string name="filter">filtro</string>
     <string name="category_audio">Audio</string>
-    <string name="category_audio_summary">Volume, latency, microphone source</string>
-    <string name="enable_sound">Enable sound</string>
-    <string name="interpolation">Interpolation</string>
-    <string name="bitrate">Bitrate</string>
-    <string name="volume">Volume</string>
+    <string name="category_audio_summary">Volumen, latencia, fuente de micrófono</string>
+    <string name="enable_sound">Activar sonido</string>
+    <string name="interpolation">Interpolación</string>
+    <string name="bitrate">Tasa de bits</string>
+    <string name="volume">Volumen</string>
     <string name="volume_percentage">%1$d%%</string>
-    <string name="audio_latency">Audio latency</string>
-    <string name="microphone_source">Microphone source</string>
-    <string name="controller_layout">Controller layout</string>
-    <string name="category_save_files">Save Files</string>
-    <string name="category_save_files_summary">Save file &amp; save state locations</string>
-    <string name="save_next_rom">Save next to ROM file</string>
-    <string name="save_file_directory">Save file directory</string>
-    <string name="save_state_location">Save state location</string>
-    <string name="input">Input</string>
-    <string name="input_summary">Key mapping, layouts, haptic feedback</string>
-    <string name="key_mapping">Key mapping</string>
+    <string name="audio_latency">Latencia de audio</string>
+    <string name="microphone_source">Fuente de micrófono</string>
+    <string name="controller_layout">Disposición del controlador</string>
+    <string name="category_save_files">Guardar archivos</string>
+    <string name="category_save_files_summary">Guardar archivo y guardar ubicaciones estatales</string>
+    <string name="save_next_rom">Guardar junto al archivo ROM</string>
+    <string name="save_file_directory">Guardar directorio de archivos</string>
+    <string name="save_state_location">Guardar ubicación de estado</string>
+    <string name="input">Entrada</string>
+    <string name="input_summary">Mapeo de teclas, diseños, retroalimentación háptica</string>
+    <string name="key_mapping">Mapeo de teclas</string>
     <string name="key_mapping_summary">Assign keys to controller inputs</string>
     <string name="show_soft_input">Show soft input</string>
     <string name="vibrate_on_touch">Vibrate on touch</string>
     <string name="vibration_strength">Vibration strength</string>
     <string name="soft_input_opacity">Soft input opacity</string>
-    <string name="cheats">Cheats</string>
+    <string name="cheats">Trucos</string>
     <string name="cheats_summary">Enable &amp; import cheat codes</string>
     <string name="enable_cheats">Enable cheats</string>
     <string name="cheats_database">Cheats database (XML format)</string>
@@ -197,11 +198,11 @@
     <string name="import_cheats_summary">Import cheats from database files to make them available. Only XML databases are supported for now. Any previously imported cheat will be deleted.</string>
     <string name="rom_shortcut">ROM shortcut</string>
 
-    <string name="firmware_nickname">Nickname</string>
-    <string name="firmware_message">Message</string>
-    <string name="firmware_language">Language</string>
-    <string name="firmware_favourite_colour">Favourite colour</string>
-    <string name="firmware_birthday">Birthday</string>
+    <string name="firmware_nickname">Apodo</string>
+    <string name="firmware_message">Mensaje</string>
+    <string name="firmware_language">Idioma</string>
+    <string name="firmware_favourite_colour">Color favorito</string>
+    <string name="firmware_birthday">Cumpleaños</string>
 
     <string name="error_clear_rom_cache">Failed to clear ROM cache</string>
     <string name="importing_cheats">Importing cheats…</string>
@@ -286,13 +287,8 @@
     <string name="background_deleted">Background deleted</string>
     <string name="background_add_wrong_orientation">Background added but it\'s not visible for the selected orientation.</string>
     <string name="background_add_processing_failed">Failed to process the selected background image. Make sure it\'s not corrupted.</string>
-
-    <string-array name="theme_options" tools:ignore="InconsistentArrays">
-        <item>@string/theme_option_light</item>
-        <item>@string/theme_option_dark</item>
-    </string-array>
-
-    <string-array name="fast_forward_speed_multiplier_options" tools:ignore="InconsistentArrays">
+   
+    <string-array name="fast_forward_speed_multiplier_options">
         <item>Unlimited</item>
         <item>1.5x</item>
         <item>2x</item>
