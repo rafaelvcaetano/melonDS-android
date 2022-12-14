@@ -10,7 +10,7 @@ This is a WIP Android frontend for the melonDS Android port. For the Android por
 # Requirements
 In order to play games through melonDS, you need to set the ROM directory for your games and you need the BIOS/firmware files from an original DS or DS Lite. 
 
-If you are unable to play games and they keep crashing when loading, make sure you have the appropriate DS and/or DSi BIOS/firmware files being loaded. You can set the directories for them under Settings > System > Custom BIOS and Firmware > DS BIOS directory / DSi BIOS directory.
+If you are unable to play games because they keep crashing when loading, make sure you have the appropriate DS and/or DSi BIOS/firmware files being loaded. You can set the directories for them under Settings > System > Custom BIOS and Firmware > DS BIOS directory / DSi BIOS directory.
 
 # What is working
 *  Device scanning for ROMS
