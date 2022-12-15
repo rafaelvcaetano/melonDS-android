@@ -1,7 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">melonDS</string>
     
-    <string name="ok">OK</string>
+    <string name="ok">Ok</string>
     <string name="yes">Sí</string>
     <string name="no">No</string>
     <string name="on">Activar</string>
@@ -55,7 +55,7 @@
     <string name="dsiware_manager_no_dsi_setup">No tienes configurado el sistema DSi</string>
     <string name="dsiware_manager_invalid_dsi_setup">La configuración del sistema DSi no es válida</string>
     <string name="import_dsiware_title">Importar título de DSiWare</string>
-    <string name="dsiware_manager_setup">configuración</string>
+    <string name="dsiware_manager_setup">Configuración</string>
     <string name="dsiware_manager_fix_setup">Arreglar configuración</string>
     <string name="dsiware_manager_load_error">Ha habido un problema al enumerar los títulos de DSiWare. Compruebe la configuración de su DSi</string>
     <string name="dsiware_manager_import_title_error_open_nand_failed">No se pudo abrir la NAND</string>
@@ -132,7 +132,7 @@
     <string name="fast_forward_max_speed">Velocidad máxima avance rápido</string>
     <string name="rewind_description">Cuando está habilitado, un estado de guardado se guarda periódicamente de forma automática. Siempre que desee retroceder en su progreso por un corto período de tiempo, simplemente abra la pantalla de rebobinado y seleccione el estado desde el que desea reanudar.\n\nTenga en cuenta que al habilitar esta función, puede experimentar tartamudeos ocasionales si su dispositivo no es lo suficientemente potente. También se utiliza una cantidad considerable de memoria dependiendo de la frecuencia con la que desee que se capture el estado y durante cuánto tiempo se debe mantener.</string>
     <string name="rewind_save_period">Período de guardado</string>
-    <string name="rewind_length">duración de rebobinado</string>
+    <string name="rewind_length">Duración de rebobinado</string>
     <string name="rewind_max_memory_usage">Uso máximo de memoria: %1$s</string>
     <string name="rewind_memory_usage_above_recommended_limit">Uso de memoria por encima del límite recomendado</string>
     <string name="sustained_performance_mode">Modo de rendimiento sostenido</string>
@@ -159,13 +159,13 @@
     <string name="generate_new_mac_address_description">Generar una nueva dirección MAC hará que los juegos piensen que se están ejecutando en un sistema diferente.</string>
     <string name="enable_jit">Habilitar JIT</string>
     <string name="enable_jit_summary">Mejora el rendimiento, pero puede provocar bloqueos o crasheos</string>
-    <string name="jit_not_supported">JIT compatible con dispositivos de 64 bits.</string>
+    <string name="jit_not_supported">JIT solamente es compatible con dispositivos de 64 bits.</string>
     <string name="threaded_rendering">Renderizado de subprocesos</string>
     <string name="fps_counter_position">Posición del contador de FPS</string>
     <string name="threaded_rendering_summary">Mejora el rendimiento de los juegos en 3D cuando está habilitado, pero causará fallas gráficas.</string>
     <string name="category_video">Video</string>
     <string name="category_video_summary">Filtro, Renderizado de subprocesos, contador de FPS</string>
-    <string name="filter">filtro</string>
+    <string name="filter">Filtro</string>
     <string name="category_audio">Audio</string>
     <string name="category_audio_summary">Volumen, latencia, fuente de micrófono</string>
     <string name="enable_sound">Activar sonido</string>
@@ -176,11 +176,11 @@
     <string name="audio_latency">Latencia de audio</string>
     <string name="microphone_source">Fuente de micrófono</string>
     <string name="controller_layout">Disposición del controlador</string>
-    <string name="category_save_files">Guardar archivos</string>
-    <string name="category_save_files_summary">Guardar archivo y guardar ubicaciones estatales</string>
+    <string name="category_save_files">Archivos de guardado</string>
+    <string name="category_save_files_summary">Ubicaciones de archivos de guardado & estados de guardado</string>
     <string name="save_next_rom">Guardar junto al archivo ROM</string>
-    <string name="save_file_directory">Guardar directorio de archivos</string>
-    <string name="save_state_location">Guardar ubicación de estado</string>
+    <string name="save_file_directory">Directorio de archivos de guardado</string>
+    <string name="save_state_location">Directorio de estados de guardado</string>
     <string name="input">Entrada</string>
     <string name="input_summary">Mapeo de teclas, diseños, retroalimentación háptica</string>
     <string name="key_mapping">Mapeo de teclas</string>
