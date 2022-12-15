@@ -160,7 +160,7 @@
     <string name="enable_jit">Habilitar JIT</string>
     <string name="enable_jit_summary">Mejora el rendimiento, pero puede provocar bloqueos o crasheos</string>
     <string name="jit_not_supported">JIT solamente es compatible con dispositivos de 64 bits.</string>
-    <string name="threaded_rendering">Renderizado de subprocesos</string>
+    <string name="threaded_rendering">Renderizar en subproceso</string>
     <string name="fps_counter_position">Posición del contador de FPS</string>
     <string name="threaded_rendering_summary">Mejora el rendimiento de los juegos en 3D cuando está habilitado, pero causará fallas gráficas.</string>
     <string name="category_video">Video</string>
