@@ -194,7 +194,7 @@
     <string name="enable_cheats">Habilitar trucos</string>
     <string name="cheats_database">Base de datos de trucos (formato XML)</string>
     <string name="import_cheats">Importar trucos</string>
-    <string name="import_cheats_summary">Importar trucos de archivos base que estén disponibles. Por ahora, solo se admiten bases de datos XML. Se eliminará cualquier truco importado anteriormente.</string>
+    <string name="import_cheats_summary">Importar trucos de archivos base disponibles. Por ahora, solo se admite XML. Se eliminará cualquier truco importado anteriormente</string>
     <string name="rom_shortcut"> Acceso directo de ROM</string>
     
     <string name="firmware_nickname">Apodo</string>
