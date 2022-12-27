@@ -53,7 +53,7 @@ class DSiWareManagerActivity : AppCompatActivity() {
 
                 LaunchedEffect(null) {
                     viewModel.importTitleError.collectLatest {
-                        Toast.makeText(this@DSiWareManagerActivity, getImportTitleResultMessage(it), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@DSiWareManagerActivity, getImportTitleResultMessage(it), Toast.LENGTH_LONG).show()
                     }
                 }
             }
@@ -68,6 +68,7 @@ class DSiWareManagerActivity : AppCompatActivity() {
             ImportDSiWareTitleResult.NOT_DSIWARE_TITLE -> getString(R.string.dsiware_manager_import_title_error_not_dsiware_title)
             ImportDSiWareTitleResult.TITLE_ALREADY_IMPORTED -> getString(R.string.dsiware_manager_import_title_error_title_already_imported)
             ImportDSiWareTitleResult.INSATLL_FAILED -> getString(R.string.dsiware_manager_import_title_error_insatll_failed)
+            ImportDSiWareTitleResult.METADATA_FETCH_FAILED -> getString(R.string.dsiware_manager_import_title_error_metadat_fetch_failed)
             ImportDSiWareTitleResult.UNKNOWN -> getString(R.string.dsiware_manager_import_title_error_unknown)
         }
     }

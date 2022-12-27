@@ -13,12 +13,13 @@ import me.magnum.melonds.domain.repositories.DSiWareMetadataRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.domain.services.DSiNandManager
+import java.io.InputStream
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AndroidDSiNandManager(
     private val context: Context,
     private val settingsRepository: SettingsRepository,
-    private val dSiWareMetadataRepository: DSiWareMetadataRepository,
+    private val dsiWareMetadataRepository: DSiWareMetadataRepository,
     private val biosDirectoryVerifier: ConfigurationDirectoryVerifier,
 ) : DSiNandManager {
 
@@ -60,17 +61,23 @@ class AndroidDSiNandManager(
 
         context.contentResolver.openInputStream(titleUri)?.use {
             it.skip(0x230)
-            titleId = it.read().toUInt() or it.read().shl(8).toUInt() or it.read().shl(16).toUInt() or it.read().shl(24).toUInt()
-            categoryId = it.read().toUInt() or it.read().shl(8).toUInt() or it.read().shl(16).toUInt() or it.read().shl(24).toUInt()
+            titleId = it.readUInt()
+            categoryId = it.readUInt()
         } ?: return@withContext ImportDSiWareTitleResult.ERROR_OPENING_FILE
 
         if (categoryId != DSIWARE_CATEGORY) {
             return@withContext ImportDSiWareTitleResult.NOT_DSIWARE_TITLE
         }
 
-        val tmdMetadata = dSiWareMetadataRepository.getDSiWareTitleMetadata(categoryId, titleId)
+        val tmdMetadataResult = runCatching {
+            dsiWareMetadataRepository.getDSiWareTitleMetadata(categoryId, titleId)
+        }
 
-        val result = MelonDSiNand.importTitle(titleUri.toString(), tmdMetadata)
+        if (tmdMetadataResult.isFailure) {
+            return@withContext ImportDSiWareTitleResult.METADATA_FETCH_FAILED
+        }
+
+        val result = MelonDSiNand.importTitle(titleUri.toString(), tmdMetadataResult.getOrThrow())
         mapImportTitleReturnCodeToResult(result)
     }
 
@@ -110,5 +117,9 @@ class AndroidDSiNandManager(
             5 -> ImportDSiWareTitleResult.INSATLL_FAILED
             else -> ImportDSiWareTitleResult.UNKNOWN
         }
+    }
+
+    private fun InputStream.readUInt(): UInt {
+        return read().toUInt() or read().shl(8).toUInt() or read().shl(16).toUInt() or read().shl(24).toUInt()
     }
 }

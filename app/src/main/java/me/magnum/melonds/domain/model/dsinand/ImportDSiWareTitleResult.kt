@@ -7,5 +7,6 @@ enum class ImportDSiWareTitleResult {
     NOT_DSIWARE_TITLE,
     TITLE_ALREADY_IMPORTED,
     INSATLL_FAILED,
+    METADATA_FETCH_FAILED,
     UNKNOWN,
 }
