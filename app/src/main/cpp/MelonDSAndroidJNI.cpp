@@ -40,14 +40,14 @@ Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jo
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
     fastForwardSpeedMultiplier = finalEmulatorConfiguration.fastForwardSpeedMultiplier;
 
-    globalAssetManager = env->NewGlobalRef(javaAssetManager);;
+    globalAssetManager = env->NewGlobalRef(javaAssetManager);
 
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
 
     u32* textureBufferPointer = (u32*) env->GetDirectBufferAddress(textureBuffer);
 
     MelonDSAndroid::setConfiguration(finalEmulatorConfiguration);
-    MelonDSAndroid::setup(assetManager, textureBufferPointer);
+    MelonDSAndroid::setup(assetManager, textureBufferPointer, true);
     paused = false;
 }
 
