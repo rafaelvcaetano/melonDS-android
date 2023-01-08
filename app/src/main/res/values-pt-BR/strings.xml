@@ -374,7 +374,7 @@
     </string-array>
 
     <string-array name="save_state_locations">
-        <item>Diretório de arquivos de salvamento</item>
+        <item>Diretório de arquivo de salvamento</item>
         <item>Diretório da ROM</item>
         <item>Diretório interno</item>
     </string-array>
