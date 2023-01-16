@@ -4,8 +4,8 @@
     <string name="ok">OK</string>
     <string name="yes">Sim</string>
     <string name="no">Não</string>
-    <string name="on">Ligar</string>
-    <string name="off">Desligar</string>
+    <string name="on">Ligado</string>
+    <string name="off">Desligado</string>
     <string name="cancel">Cancelar</string>
     <string name="not_set">Não configurado</string>
     <string name="delete">Apagar</string>
@@ -85,10 +85,10 @@
     <string name="action_sort_alphabetically">Alfabeticamente</string>
     <string name="action_sort_recently_played">Jogado recentemente</string>
 
-    <string name="ds_bios_dir_not_set">Diretório DS BIOS não definido</string>
-    <string name="ds_bios_dir_not_set_info">O diretório DS BIOS não está definido. Selecione o diretório que contém os seguintes arquivos:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="ds_bios_dir_not_set">Diretório BIOS DS não definido</string>
+    <string name="ds_bios_dir_not_set_info">O diretório BIOS DS não está definido. Selecione o diretório que contém os seguintes arquivos:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
     <string name="dsi_bios_dir_not_set">Diretório BIOS DSi não definido</string>
-    <string name="dsi_bios_dir_not_set_info">O diretório DSi BIOS não está definido. Selecione o diretório que contém os seguintes arquivos:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
+    <string name="dsi_bios_dir_not_set_info">O diretório BIOS DSi não está definido. Selecione o diretório que contém os seguintes arquivos:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
     <string name="incorrect_bios_dir">Diretório BIOS incorreto</string>
     <string name="ds_incorrect_bios_dir_info">O diretório BIOS para o sistema DS não está correto. Certifique-se de que o diretório selecionado contém os seguintes arquivos:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
     <string name="dsi_incorrect_bios_dir_info">O diretório BIOS para o sistema DSi não está correto. Certifique-se de que o diretório selecionado contém os seguintes arquivos:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
