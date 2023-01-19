@@ -179,8 +179,8 @@
     <string name="category_save_files">Arquivos de salvamento</string>
     <string name="category_save_files_summary">Arquivo de salvamento &amp; locais de salvamento de estado</string>
     <string name="save_next_rom">Salvar arquivo próximo à ROM</string>
-    <string name="save_file_directory">Diretório do arquivo de salvamento</string>
-    <string name="save_state_location">Local do salvamento de estado</string>
+    <string name="save_file_directory">Diretório de arquivo de salvamento</string>
+    <string name="save_state_location">Local de salvamento de estado</string>
     <string name="input">Entrada</string>
     <string name="input_summary">Mapeamento de teclas, layouts, feedback (resposta) tátil</string>
     <string name="key_mapping">Mapeamento de teclas</string>
