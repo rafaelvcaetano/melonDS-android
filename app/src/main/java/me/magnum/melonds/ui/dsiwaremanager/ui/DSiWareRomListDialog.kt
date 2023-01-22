@@ -14,7 +14,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -85,29 +84,29 @@ private fun FullScreenDialog(
     retrieveRomIcon: suspend (Rom) -> RomIcon
 ) {
     FullScreen(onDismiss = onDismiss) {
-        Column(Modifier.fillMaxSize()) {
-            Card(shape = RectangleShape, elevation = 4.dp) {
-                TopAppBar(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    title = {
-                        Text(
-                            text = stringResource(id = R.string.select_dsiware_title),
-                            color = MaterialTheme.colors.onPrimary,
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onDismiss) {
-                            Icon(
-                                imageVector = Icons.Filled.Close,
-                                contentDescription = stringResource(id = R.string.close),
-                                tint = MaterialTheme.colors.onPrimary,
+        Column(Modifier.fillMaxSize().background(MaterialTheme.colors.background)) {
+            CompositionLocalProvider(LocalElevationOverlay provides null) {
+                Surface(elevation = 4.dp) {
+                    TopAppBar(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = {
+                            Text(
+                                text = stringResource(id = R.string.select_dsiware_title),
+                                color = MaterialTheme.colors.onPrimary,
                             )
-                        }
-                    },
-                    backgroundColor = MaterialTheme.colors.toolbarBackground,
-                    elevation = 4.dp,
-                )
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = onDismiss) {
+                                Icon(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = stringResource(id = R.string.close),
+                                    tint = MaterialTheme.colors.onPrimary,
+                                )
+                            }
+                        },
+                        backgroundColor = MaterialTheme.colors.toolbarBackground,
+                    )
+                }
             }
 
             when (romsUiState) {
@@ -116,15 +115,13 @@ private fun FullScreenDialog(
                         Modifier
                             .fillMaxWidth()
                             .weight(1f)
-                            .background(MaterialTheme.colors.surface)
                     )
                 }
                 is DSiWareMangerRomListUiState.Loaded -> {
                     DSiWareRomList(
                         Modifier
                             .fillMaxWidth()
-                            .weight(1f)
-                            .background(MaterialTheme.colors.surface),
+                            .weight(1f),
                         roms = romsUiState.roms,
                         onRomSelected = onRomSelected,
                         retrieveRomIcon = retrieveRomIcon,
@@ -135,7 +132,6 @@ private fun FullScreenDialog(
                         Modifier
                             .fillMaxWidth()
                             .weight(1f)
-                            .background(MaterialTheme.colors.surface)
                     )
                 }
             }

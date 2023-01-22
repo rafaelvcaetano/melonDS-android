@@ -12,4 +12,5 @@ val MelonTypography @Composable get() = Typography(
     body1 = MaterialTheme.typography.body1.copy(fontFamily = FontFamily.SansSerif, color = colorResource(id = R.color.textColorPrimary)),
     body2 = MaterialTheme.typography.body2.copy(fontFamily = FontFamily.SansSerif, color = colorResource(id = R.color.textColorSecondary)),
     button = MaterialTheme.typography.button.copy(fontFamily = FontFamily.SansSerif, color = colorResource(id = R.color.colorOnSecondary), fontWeight = FontWeight.Bold),
+    caption = MaterialTheme.typography.caption.copy(fontFamily = FontFamily.SansSerif, color = colorResource(id = R.color.textColorSecondary)),
 )

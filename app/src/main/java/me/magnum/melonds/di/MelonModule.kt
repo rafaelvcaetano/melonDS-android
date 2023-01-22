@@ -25,6 +25,7 @@ import me.magnum.melonds.impl.AndroidDSiNandManager
 import me.magnum.melonds.impl.*
 import me.magnum.melonds.impl.romprocessors.Api24RomFileProcessorFactory
 import me.magnum.melonds.impl.romprocessors.OldRomFileProcessorFactory
+import me.magnum.melonds.ui.romdetails.RomDetailsUiMapper
 import javax.inject.Singleton
 
 @Module
@@ -145,5 +146,11 @@ object MelonModule {
         configurationDirectoryVerifier: ConfigurationDirectoryVerifier
     ): DSiNandManager {
         return AndroidDSiNandManager(context, settingsRepository, dSiWareMetadataRepository, configurationDirectoryVerifier)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRomDetailsUiMapper(@ApplicationContext context: Context, layoutsRepository: LayoutsRepository): RomDetailsUiMapper {
+        return RomDetailsUiMapper(context, layoutsRepository)
     }
 }

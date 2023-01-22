@@ -1,5 +1,6 @@
 object Dependencies {
     object Versions {
+        const val Accompanist = "0.25.1"
         const val Activity = "1.6.0"
         const val AppCompat = "1.5.1"
         const val CardView = "1.0.0"
@@ -73,6 +74,9 @@ object Dependencies {
     }
 
     object Compose {
+        const val accompanistPager = "com.google.accompanist:accompanist-pager:${Versions.Accompanist}"
+        const val accompanistPagerIndicators = "com.google.accompanist:accompanist-pager-indicators:${Versions.Accompanist}"
+        const val accompanistSystemUiController = "com.google.accompanist:accompanist-systemuicontroller:${Versions.Accompanist}"
         const val foundation = "androidx.compose.foundation:foundation:${Versions.Compose}"
         const val material = "androidx.compose.material:material:${Versions.Compose}"
         const val ui = "androidx.compose.ui:ui:${Versions.Compose}"

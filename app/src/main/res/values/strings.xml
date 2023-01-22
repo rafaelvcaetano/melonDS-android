@@ -16,6 +16,7 @@
     <string name="undo">Undo</string>
     <string name="update">Update</string>
     <string name="close">Close</string>
+    <string name="play">Play</string>
 
     <string name="version_alpha">Alpha</string>
     <string name="version_beta">Beta</string>
@@ -222,6 +223,8 @@
     <string name="label_rom_config_load_gba_rom">Load GBA ROM</string>
     <string name="label_rom_config_gba_rom_path">GBA ROM path</string>
     <string name="label_rom_config_gba_save_path">GBA save path</string>
+    <string name="rom_details_configuration">Configuration</string>
+    <string name="retro_achievements">Retro Achievements</string>
 
     <string name="theme_option_light">Light</string>
     <string name="theme_option_dark">Dark</string>

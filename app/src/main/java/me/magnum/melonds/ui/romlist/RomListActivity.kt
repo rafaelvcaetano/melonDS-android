@@ -263,6 +263,17 @@ class RomListActivity : AppCompatActivity() {
     }
 
     private fun loadRom(rom: Rom) {
+        if (rom.isDsiWareTitle) {
+            AlertDialog.Builder(this)
+                .setTitle(R.string.dsiware_title_cannot_be_launched_directly_title)
+                .setMessage(R.string.dsiware_title_cannot_be_launched_directly_message)
+                .setPositiveButton(R.string.ok) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .show()
+            return
+        }
+
         selectedRom = rom
         selectedFirmwareConsole = null
 

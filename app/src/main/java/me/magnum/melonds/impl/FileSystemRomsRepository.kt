@@ -98,7 +98,7 @@ class FileSystemRomsRepository(
     }
 
     override fun updateRomConfig(rom: Rom, romConfig: RomConfig) {
-        val romIndex = roms.indexOf(rom)
+        val romIndex = roms.indexOfFirst { it.hasSameFileAsRom(rom) }
         if (romIndex < 0)
             return
 
@@ -107,7 +107,7 @@ class FileSystemRomsRepository(
     }
 
     override fun setRomLastPlayed(rom: Rom, lastPlayed: Date) {
-        val romIndex = roms.indexOf(rom)
+        val romIndex = roms.indexOfFirst { it.hasSameFileAsRom(rom) }
         if (romIndex < 0)
             return
 
@@ -140,7 +140,7 @@ class FileSystemRomsRepository(
     }
 
     private fun addRom(rom: Rom) {
-        if (roms.contains(rom))
+        if (roms.any { it.hasSameFileAsRom(rom) })
             return
 
         roms.add(rom)
@@ -148,7 +148,7 @@ class FileSystemRomsRepository(
     }
 
     private fun removeRom(rom: Rom, notifyChanged: Boolean = true) {
-        if (roms.remove(rom) && notifyChanged) {
+        if (roms.removeAll { it.hasSameFileAsRom(rom) } && notifyChanged) {
             onRomsChanged()
         }
     }

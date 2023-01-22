@@ -6,6 +6,7 @@ plugins {
     id("kotlin-parcelize")
     id("kotlin-kapt")
     id("dagger.hilt.android.plugin")
+    id("org.jetbrains.kotlin.android")
 }
 
 android {
@@ -98,6 +99,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.core:core-ktx:+")
     val gitHubImplementation by configurations
 
     with(Dependencies.Tools) {
@@ -133,6 +135,9 @@ dependencies {
     }
 
     with(Dependencies.Compose) {
+        implementation(accompanistPager)
+        implementation(accompanistPagerIndicators)
+        implementation(accompanistSystemUiController)
         implementation(foundation)
         implementation(material)
         implementation(ui)

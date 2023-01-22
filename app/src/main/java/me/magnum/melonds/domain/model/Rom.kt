@@ -13,18 +13,7 @@ data class Rom(
     val isDsiWareTitle: Boolean,
 ) {
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other)
-            return true
-
-        if (other == null || javaClass != other.javaClass)
-            return false
-
-        val rom = other as Rom
-        return uri == rom.uri
-    }
-
-    override fun hashCode(): Int {
-        return uri.hashCode()
+    fun hasSameFileAsRom(other: Rom): Boolean {
+        return uri == other.uri
     }
 }
