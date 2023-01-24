@@ -177,7 +177,7 @@
     <string name="microphone_source">Fuente de micrófono</string>
     <string name="controller_layout">Disposición del controlador</string>
     <string name="category_save_files">Archivos de guardado</string>
-    <string name="category_save_files_summary">Ubicaciones de archivos de guardado & estados de guardado</string>
+    <string name="category_save_files_summary">Ubicaciones de archivos de guardado &amp; estados de guardado</string>
     <string name="save_next_rom">Guardar junto al archivo ROM</string>
     <string name="save_file_directory">Directorio de archivos de guardado</string>
     <string name="save_state_location">Directorio de estados de guardado</string>
