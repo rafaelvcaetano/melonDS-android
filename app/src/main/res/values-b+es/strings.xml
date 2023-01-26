@@ -102,7 +102,7 @@
     <string name="error_invalid_directory_description">No es posible escribir en el directorio seleccionado. Seleccione uno diferente. Si está seleccionando un archivo comprimido, intente extraerlo.</string>
     <string name="no_roms_found">No se han encontrado ROMs</string>
     <string name="dsiware_title_cannot_be_launched_directly_title">No se pueden iniciar títulos de DSiWare</string>
-    <string name="dsiware_title_cannot_be_launched_directly_message">Los títulos de DSiWare no se pueden iniciar directamente. Deben instalarse en la NAND (a través de DSiWare Manager)</string>
+    <string name="dsiware_title_cannot_be_launched_directly_message">Los títulos de DSiWare no se pueden iniciar directamente. Deben instalarse en la NAND (a través de DSiWare Manager) y iniciarse por el firmware de DSi.</string>
     
     <string name="press_any_button">Pulse cualquier botón…</string>
 

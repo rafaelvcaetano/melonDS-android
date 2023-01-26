@@ -76,7 +76,7 @@
     <string name="failed_save_state">Falha em salvar o estado</string>
     <string name="failed_load_state">Falha em carregar o estado</string>
     <string name="cant_load_empty_slot">Não é possível carregar um slot de estado de salvamento vazio</string>
-    <string name="failed_reset_emulation">Falha para reiniciar a emulação</string>
+    <string name="failed_reset_emulation">Falha ao reiniciar a emulação</string>
     <string name="save_states_not_supported">Salvar estados não são suportados durante a execução do firmware</string>
     <string name="rewind_time_seconds">%1$ss</string> <!-- Ex: 43.56s -->
     <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string> <!-- Ex: 2m37.93s -->
@@ -102,7 +102,7 @@
     <string name="error_invalid_directory_description">Não é possível escrever para o diretório selecionado. Por favor, selecione um diretório diferente. Se você estiver selecionando um arquivo compactado, tente extrair seu conteúdo.</string>
     <string name="no_roms_found">Não foram encontradas ROMs</string>
     <string name="dsiware_title_cannot_be_launched_directly_title">Os títulos de DSiWare não podem ser lançados</string>
-    <string name="dsiware_title_cannot_be_launched_directly_message">Os títulos de DSiWare não podem ser lançados diretamente. Eles devem ser instalados na NAND (através do Gerenciador DSiWare).</string>
+    <string name="dsiware_title_cannot_be_launched_directly_message">Os títulos de DSiWare não podem ser lançados diretamente. Eles devem ser instalados na NAND (através do Gerenciador DSiWare) e lançados pelo firmware de DSi.</string>
 
     <string name="press_any_button">Pressione qualquer botão…</string>
 
@@ -143,8 +143,8 @@
     <string name="cache_size">Tamanho do cache: %s</string>
     <string name="cache_size_calculating">Tamanho do cache: calculando…</string>
     <string name="rom_search_directory">Diretório de pesquisa</string>
-    <string name="use_custom_bios">Usar BIOS e firmware personalizado/string>
-    <string name="console_type">Padrão do sistema</string>
+    <string name="use_custom_bios">Usar BIOS e firmware personalizado</string>
+    <string name="console_type">Sistema padrão</string>
     <string name="internal_firmware_settings">Configurações internas de firmware</string>
     <string name="internal_firmware_settings_summary">Ajustar as configurações do firmware interno.</string>
     <string name="custom_bios_firmware">BIOS e firmware personalizado</string>
@@ -177,9 +177,9 @@
     <string name="microphone_source">Fonte do microfone</string>
     <string name="controller_layout">Layout do Controle</string>
     <string name="category_save_files">Arquivos de salvamento</string>
-    <string name="category_save_files_summary">Arquivo de salvamento &amp; locais de salvamento de estado</string>
+    <string name="category_save_files_summary">Locais de arquivos de salvamento &amp; salvamento de estado</string>
     <string name="save_next_rom">Salvar arquivo próximo à ROM</string>
-    <string name="save_file_directory">Diretório de arquivo de salvamento</string>
+    <string name="save_file_directory">Diretório de arquivos de salvamento</string>
     <string name="save_state_location">Local de salvamento de estado</string>
     <string name="input">Entrada</string>
     <string name="input_summary">Mapeamento de teclas, layouts, feedback (resposta) tátil</string>
@@ -270,9 +270,9 @@
     <string name="reset_default">Reiniciar para o padrão</string>
     <string name="exit_without_saving">Sair sem salvar</string>
     <string name="portrait_background">Fundo do modo retrato</string>
-    <string name="portrait_background_mode">Modo retrato de plano de fundo</string>
+    <string name="portrait_background_mode">Modo de fundo de retrato</string>
     <string name="landscape_background">Fundo do modo paisagem</string>
-    <string name="landscape_background_mode">Modo paisagem de plano de fundo</string>
+    <string name="landscape_background_mode">Modo de fundo de paisagem</string>
     <string name="save_and_exit">Salvar e sair</string>
     <string name="layout_name">Nome do layout</string>
     <string name="layout_orientation">Orientação do layout</string>
@@ -374,7 +374,7 @@
     </string-array>
 
     <string-array name="save_state_locations">
-        <item>Diretório de arquivo de salvamento</item>
+        <item>Diretório de arquivos de salvamento</item>
         <item>Diretório da ROM</item>
         <item>Diretório interno</item>
     </string-array>
