@@ -2,6 +2,7 @@ object Dependencies {
     object Versions {
         const val Activity = "1.6.0"
         const val AppCompat = "1.5.1"
+        const val CameraX = "1.2.1"
         const val CardView = "1.0.0"
         const val CommonsCompress = "1.21"
         const val Compose = "1.2.1"
@@ -52,6 +53,8 @@ object Dependencies {
         const val activity = "androidx.activity:activity-ktx:${Versions.Activity}"
         const val activityCompose = "androidx.activity:activity-compose:${Versions.Activity}"
         const val appCompat = "androidx.appcompat:appcompat:${Versions.AppCompat}"
+        const val camera2 = "androidx.camera:camera-camera2:${Versions.CameraX}"
+        const val cameraLifecycle = "androidx.camera:camera-lifecycle:${Versions.CameraX}"
         const val cardView = "androidx.cardview:cardview:${Versions.CardView}"
         const val constraintLayout = "androidx.constraintlayout:constraintlayout:${Versions.ConstraintLayout}"
         const val core = "androidx.core:core-ktx:${Versions.Core}"

@@ -11,6 +11,7 @@
 #include "UriFileHandler.h"
 #include "JniEnvHandler.h"
 #include "MelonDSAndroidConfiguration.h"
+#include "MelonDSAndroidCameraHandler.h"
 
 #define MAX_CHEAT_SIZE (2*64)
 
@@ -19,6 +20,9 @@ void* emulate(void*);
 pthread_t emuThread;
 pthread_mutex_t emuThreadMutex;
 pthread_cond_t emuThreadCond;
+
+JavaVM* newVm;
+JniEnvHandler* newJniEnvHandler;
 
 bool started = false;
 bool stop;
@@ -31,23 +35,28 @@ float fastForwardSpeedMultiplier;
 bool limitFps = true;
 bool isFastForwardEnabled = false;
 jobject globalAssetManager;
+jobject globalCameraManager;
 
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject textureBuffer)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject cameraManager, jobject textureBuffer)
 {
+    env->GetJavaVM(&newVm);
+    newJniEnvHandler = new JniEnvHandler(newVm);
+
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
     fastForwardSpeedMultiplier = finalEmulatorConfiguration.fastForwardSpeedMultiplier;
 
     globalAssetManager = env->NewGlobalRef(javaAssetManager);
+    globalCameraManager = env->NewGlobalRef(cameraManager);
 
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
 
     u32* textureBufferPointer = (u32*) env->GetDirectBufferAddress(textureBuffer);
 
     MelonDSAndroid::setConfiguration(finalEmulatorConfiguration);
-    MelonDSAndroid::setup(assetManager, textureBufferPointer, true);
+    MelonDSAndroid::setup(assetManager, new MelonDSAndroidCameraHandler(newJniEnvHandler, globalCameraManager), textureBufferPointer, true);
     paused = false;
 }
 
@@ -347,6 +356,12 @@ Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
 
     env->DeleteGlobalRef(globalAssetManager);
     globalAssetManager = nullptr;
+
+    env->DeleteGlobalRef(globalCameraManager);
+    globalCameraManager = nullptr;
+
+    newVm = nullptr;
+    delete newJniEnvHandler;
 }
 
 JNIEXPORT void JNICALL

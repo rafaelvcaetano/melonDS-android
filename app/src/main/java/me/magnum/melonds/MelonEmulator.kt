@@ -2,10 +2,10 @@ package me.magnum.melonds
 
 import android.content.res.AssetManager
 import android.net.Uri
+import me.magnum.melonds.common.CameraManager
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.Input
-import me.magnum.melonds.common.UriFileHandler
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 import java.nio.ByteBuffer
@@ -35,7 +35,7 @@ object MelonEmulator {
         DSI_NAND_BAD
     }
 
-	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?, textureBuffer: ByteBuffer)
+	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?, cameraManager: CameraManager?, textureBuffer: ByteBuffer)
 
     external fun setupCheats(cheats: Array<Cheat>)
 

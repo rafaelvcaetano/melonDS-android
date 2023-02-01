@@ -29,6 +29,7 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
+import me.magnum.melonds.common.CameraManager
 import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.common.vibration.TouchVibrator
@@ -42,6 +43,7 @@ import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
 import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
+import me.magnum.melonds.ui.emulator.camera.AndroidCameraManager
 import me.magnum.melonds.ui.emulator.firmware.FirmwareEmulatorDelegate
 import me.magnum.melonds.ui.emulator.input.*
 import me.magnum.melonds.ui.emulator.rewind.EdgeSpacingDecorator
@@ -166,12 +168,19 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     private val microphonePermissionRequester = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
         microphonePermissionSubject.onNext(it)
     }
+    private val cameraPermissionRequester = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+        if (it) {
+            cameraPermissionGrantedListener?.invoke()
+            cameraPermissionGrantedListener = null
+        }
+    }
     private val backPressedCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
             handleBackPressed()
         }
     }
 
+    private var cameraManager: AndroidCameraManager? = null
     private val rewindSaveStateAdapter = RewindSaveStateAdapter {
         MelonEmulator.loadRewindState(it)
         closeRewindWindow()
@@ -179,6 +188,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     private val microphonePermissionSubject = PublishSubject.create<Boolean>()
     private var emulatorSetupDisposable: Disposable? = null
     private var cheatsClosedListener: (() -> Unit)? = null
+    private var cameraPermissionGrantedListener: (() -> Unit)? = null
     private var emulatorReady = false
     private var emulatorPaused = false
     private var softInputVisible = true
@@ -281,6 +291,11 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         viewModel.let { }
         val setupObservable = delegate.getEmulatorSetupObservable(intent.extras)
 
+        cameraManager?.destroy()
+        cameraManager = AndroidCameraManager(this, this) {
+            cameraPermissionGrantedListener = it
+            cameraPermissionRequester.launch(Manifest.permission.CAMERA)
+        }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         emulatorSetupDisposable = setupObservable.subscribeOn(schedulers.backgroundThreadScheduler)
                 .observeOn(schedulers.uiThreadScheduler)
@@ -305,6 +320,8 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
                         showLaunchFailDialog(e)
                     }
                 }) {
+                    cameraManager?.destroy()
+                    cameraManager = null
                     it.printStackTrace()
                     showLaunchFailDialog(it)
                 }
@@ -519,6 +536,10 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         return dsRenderer.textureBuffer
     }
 
+    fun getCameraManager(): CameraManager? {
+        return cameraManager
+    }
+
     fun takeScreenshot(): Bitmap {
         return dsRenderer.takeScreenshot()
     }
@@ -667,6 +688,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             MelonEmulator.stopEmulation()
         }
 
+        cameraManager?.destroy()
         microphonePermissionSubject.onComplete()
         emulatorSetupDisposable?.dispose()
         delegate.dispose()

@@ -113,6 +113,8 @@ dependencies {
         implementation(activity)
         implementation(activityCompose)
         implementation(appCompat)
+        implementation(camera2)
+        implementation(cameraLifecycle)
         implementation(cardView)
         implementation(constraintLayout)
         implementation(core)
