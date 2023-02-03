@@ -1,0 +1,63 @@
+name: melonDS Android Release
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    if: github.actor == 'rafaelvcaetano'
+
+jobs:
+  playstore-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Build melonDS Android
+        env:
+          MELONDS_KEYSTORE: ${{ secrets.MELONDS_KEYSTORE }}
+          MELONDS_KEYSTORE_PASSWORD: ${{ secrets.MELONDS_KEYSTORE_PASSWORD }}
+          MELONDS_KEY_PASSWORD: ${{ secrets.MELONDS_KEYSTORE_PLAYSTORE_PASSWORD }}
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          echo "$MELONDS_KEYSTORE" | base64 -d > ${{runner.workspace}}/keystore.jks
+          echo "MELONDS_KEYSTORE=${{runner.workspace}}/keystore.jks" >> local.properties
+          echo "MELONDS_KEYSTORE_PASSWORD=$MELONDS_KEYSTORE_PASSWORD" >> local.properties
+          echo "MELONDS_KEY_ALIAS=melonds-playstore" >> local.properties
+          echo "MELONDS_KEY_PASSWORD=$MELONDS_KEY_PASSWORD" >> local.properties
+          chmod +x ./gradlew
+          ./gradlew :app:assemblePlayStoreRelease
+
+      - name: Get Version
+        id: release_params
+        run: echo ::set-output name=VERSION::$(grep -oP 'versionName = "\K(.*?)(?=")' buildSrc/src/main/kotlin/AppConfig.kt)
+
+      - name: Create Play Store Release
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.MELONDS_PLAYSTORE_ACCOUNT_JSON }}
+          packageName: me.magnum.melonds
+          releaseName: ${{ steps.release_params.outputs.VERSION }}
+          releaseFiles: app/build/outputs/apk/playStore/release/app-playStore-release.apk
+          track: beta
+          inAppUpdatePriority: 2
+          status: draft
+          whatsNewDirectory: ./.github/changelog/playStore
+          mappingFile: app/build/outputs/mapping/playStoreRelease/mapping.txt
+
+      - name: Upload APK, Mapping and Debug Symbols
+        uses: actions/upload-artifact@v2
+        with:
+          name: playstore-release
+          path: |
+            app/build/outputs/apk/playStore/release/app-playStore-release.apk
+            app/build/outputs/mapping/playStoreRelease/mapping.txt
+            app/build/outputs/native-debug-symbols/playStoreRelease/native-debug-symbols.zip
