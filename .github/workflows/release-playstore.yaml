@@ -1,4 +1,4 @@
-name: melonDS Android Release
+name: melonDS Android PlayStore Release
 
 on:
   # Allows you to run this workflow manually from the Actions tab
@@ -41,7 +41,7 @@ jobs:
         run: echo ::set-output name=VERSION::$(grep -oP 'versionName = "\K(.*?)(?=")' buildSrc/src/main/kotlin/AppConfig.kt)
 
       - name: Create Play Store Release
-        uses: r0adkll/upload-google-play@v1
+        uses: r0adkll/upload-google-play@v1.0.19
         with:
           serviceAccountJsonPlainText: ${{ secrets.MELONDS_PLAYSTORE_ACCOUNT_JSON }}
           packageName: me.magnum.melonds
