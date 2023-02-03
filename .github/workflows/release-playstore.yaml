@@ -50,6 +50,7 @@ jobs:
           track: beta
           inAppUpdatePriority: 2
           status: draft
+          changesNotSentForReview: true
           whatsNewDirectory: ./.github/changelog/playStore
           mappingFile: app/build/outputs/mapping/playStoreRelease/mapping.txt
 
