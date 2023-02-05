@@ -46,7 +46,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
-        freeCompilerArgs += "-Xopt-in=kotlin.ExperimentalUnsignedTypes"
+        freeCompilerArgs += "-opt-in=kotlin.ExperimentalUnsignedTypes"
     }
     buildFeatures {
         viewBinding = true
@@ -84,6 +84,8 @@ android {
         }
     }
     compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
         isCoreLibraryDesugaringEnabled = true
     }
     configurations.all {
@@ -99,11 +101,15 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:+")
     val gitHubImplementation by configurations
 
     with(Dependencies.Tools) {
         coreLibraryDesugaring(desugarJdkLibs)
+    }
+
+    with(Dependencies.Modules) {
+        implementation(project(masterSwitchPreference))
+        implementation(project(rcheevosApi))
     }
 
     with(Dependencies.Kotlin) {
@@ -148,7 +154,6 @@ dependencies {
 
     // Third-party
     with(Dependencies.ThirdParty) {
-        implementation(project(masterSwitchPreference))
         implementation(flexbox)
         implementation(gson)
         implementation(hilt)

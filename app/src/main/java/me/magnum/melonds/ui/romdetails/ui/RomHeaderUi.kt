@@ -160,7 +160,7 @@ fun RomHeaderUi(
                         onClick = { onTabClicked(RomDetailsTab.CONFIG) },
                         text = {
                             Text(
-                                text = stringResource(id = R.string.rom_details_configuration).uppercase(),
+                                text = stringResource(id = R.string.rom_details_configuration_tab).uppercase(),
                                 color = MaterialTheme.colors.onBackground,
                             )
                         }
@@ -170,7 +170,7 @@ fun RomHeaderUi(
                         onClick = { onTabClicked(RomDetailsTab.RETRO_ACHIEVEMENTS) },
                         text = {
                             Text(
-                                text = stringResource(id = R.string.retro_achievements).uppercase(),
+                                text = stringResource(id = R.string.retro_achievements_tab).uppercase(),
                                 color = MaterialTheme.colors.onBackground
                             )
                         }

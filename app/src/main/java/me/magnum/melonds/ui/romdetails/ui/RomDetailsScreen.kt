@@ -1,13 +1,10 @@
 package me.magnum.melonds.ui.romdetails.ui
 
 import android.net.Uri
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -17,10 +14,7 @@ import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.ui.common.MelonPreviewSet
-import me.magnum.melonds.ui.romdetails.model.RomConfigUiModel
-import me.magnum.melonds.ui.romdetails.model.RomConfigUiState
-import me.magnum.melonds.ui.romdetails.model.RomConfigUpdateEvent
-import me.magnum.melonds.ui.romdetails.model.RomDetailsTab
+import me.magnum.melonds.ui.romdetails.model.*
 import me.magnum.melonds.ui.romlist.RomIcon
 import me.magnum.melonds.ui.theme.MelonTheme
 import java.util.*
@@ -31,10 +25,12 @@ fun RomScreen(
     modifier: Modifier,
     rom: Rom,
     romConfigUiState: RomConfigUiState,
+    retroAchievementsUiState: RomRetroAchievementsUiState,
     loadRomIcon: suspend (Rom) -> RomIcon,
     onNavigateBack: () -> Unit,
     onLaunchRom: (Rom) -> Unit,
-    onRomConfigUpdate: (RomConfigUpdateEvent) -> Unit
+    onRomConfigUpdate: (RomConfigUpdateEvent) -> Unit,
+    onRetroAchievementsLogin: (username: String, password: String) -> Unit,
 ) {
     val pagerState = rememberPagerState(RomDetailsTab.CONFIG.tabIndex)
     val coroutineScope = rememberCoroutineScope()
@@ -67,12 +63,11 @@ fun RomScreen(
                     )
                 }
                 RomDetailsTab.RETRO_ACHIEVEMENTS.tabIndex -> {
-                    Box(
+                    RomRetroAchievementsUi(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(text = "TODO")
-                    }
+                        retroAchievementsUiState = retroAchievementsUiState,
+                        onLogin = onRetroAchievementsLogin,
+                    )
                 }
             }
         }
@@ -99,10 +94,12 @@ private fun PreviewRomScreen() {
                     layoutName = "Default",
                 ),
             ),
+            retroAchievementsUiState = RomRetroAchievementsUiState.LoggedOut,
             loadRomIcon = { RomIcon(null, RomIconFiltering.NONE) },
             onLaunchRom = { },
             onNavigateBack = { },
             onRomConfigUpdate = { },
+            onRetroAchievementsLogin = { _, _ -> },
         )
     }
 }

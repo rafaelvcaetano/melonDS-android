@@ -85,7 +85,6 @@ object Dependencies {
     }
 
     object ThirdParty {
-        const val masterSwitchPreference = ":masterswitch"
         const val flexbox = "com.google.android.flexbox:flexbox:${Versions.Flexbox}"
         const val gson = "com.google.code.gson:gson:${Versions.Gson}"
         const val hilt = "com.google.dagger:hilt-android:${Versions.Hilt}"
@@ -111,6 +110,11 @@ object Dependencies {
         const val hiltCompiler = "androidx.hilt:hilt-compiler:${Versions.HiltX}"
         const val hiltCompilerAndroid = "com.google.dagger:hilt-android-compiler:${Versions.Hilt}"
         const val roomCompiler = "androidx.room:room-compiler:${Versions.Room}"
+    }
+
+    object Modules {
+        const val masterSwitchPreference = ":masterswitch"
+        const val rcheevosApi = ":rcheevos-api"
     }
 
     object Testing {

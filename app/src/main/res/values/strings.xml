@@ -223,8 +223,8 @@
     <string name="label_rom_config_load_gba_rom">Load GBA ROM</string>
     <string name="label_rom_config_gba_rom_path">GBA ROM path</string>
     <string name="label_rom_config_gba_save_path">GBA save path</string>
-    <string name="rom_details_configuration">Configuration</string>
-    <string name="retro_achievements">Retro Achievements</string>
+    <string name="rom_details_configuration_tab">Configuration</string>
+    <string name="retro_achievements_tab">Retro Achievements</string> <!-- Keep words separated to help with word wrapping -->
 
     <string name="theme_option_light">Light</string>
     <string name="theme_option_dark">Dark</string>
@@ -290,6 +290,12 @@
     <string name="background_deleted">Background deleted</string>
     <string name="background_add_wrong_orientation">Background added but it\'s not visible for the selected orientation.</string>
     <string name="background_add_processing_failed">Failed to process the selected background image. Make sure it\'s not corrupted.</string>
+
+    <string name="retro_achievements">RetroAchievements</string>
+    <string name="retro_achievements_login_description">Login with RetroAchievements to view achievements that you can unlock while playing this game!</string>
+    <string name="login">Login</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
 
     <string-array name="fast_forward_speed_multiplier_options">
         <item>Unlimited</item>

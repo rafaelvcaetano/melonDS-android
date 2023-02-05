@@ -26,6 +26,8 @@ import me.magnum.melonds.impl.*
 import me.magnum.melonds.impl.romprocessors.Api24RomFileProcessorFactory
 import me.magnum.melonds.impl.romprocessors.OldRomFileProcessorFactory
 import me.magnum.melonds.ui.romdetails.RomDetailsUiMapper
+import me.magnum.rcheevosapi.RAApi
+import me.magnum.rcheevosapi.RAUserAuthStore
 import javax.inject.Singleton
 
 @Module
@@ -77,6 +79,12 @@ object MelonModule {
     @Singleton
     fun provideDSiWareMetadataRepository(): DSiWareMetadataRepository {
         return NusDSiWareMetadataRepository()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRetroAchievementsRepository(raApi: RAApi, raUserAuthStore: RAUserAuthStore): RetroAchievementsRepository {
+        return AndroidRetroAchievementsRepository(raApi, raUserAuthStore)
     }
 
     @Provides

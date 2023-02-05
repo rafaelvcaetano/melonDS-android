@@ -26,9 +26,13 @@ class RomDetailsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val systemUiController = rememberSystemUiController()
-            val viewModel by viewModels<RomDetailsViewModel>()
-            val rom by viewModel.rom.collectAsState()
-            val romConfig by viewModel.romConfig.collectAsState()
+            val romDetailsViewModel by viewModels<RomDetailsViewModel>()
+            val romRetroAchievementsViewModel by viewModels<RomRetroAchievementsViewModel>()
+
+            val rom by romDetailsViewModel.rom.collectAsState()
+            val romConfig by romDetailsViewModel.romConfig.collectAsState()
+
+            val retroAchievementsUiState by romRetroAchievementsViewModel.uiState.collectAsState()
 
             MelonTheme {
                 systemUiController.setStatusBarColor(MaterialTheme.colors.surface)
@@ -37,14 +41,18 @@ class RomDetailsActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     rom = rom,
                     romConfigUiState = romConfig,
-                    loadRomIcon = { viewModel.getRomIcon(it) },
+                    retroAchievementsUiState = retroAchievementsUiState,
+                    loadRomIcon = { romDetailsViewModel.getRomIcon(it) },
                     onLaunchRom = {
                         val intent = EmulatorActivity.getRomEmulatorActivityIntent(this, it)
                         startActivity(intent)
                     },
                     onNavigateBack = { onNavigateUp() },
                     onRomConfigUpdate = {
-                        viewModel.onRomConfigUpdateEvent(it)
+                        romDetailsViewModel.onRomConfigUpdateEvent(it)
+                    },
+                    onRetroAchievementsLogin = { username, password ->
+                        romRetroAchievementsViewModel.login(username, password)
                     }
                 )
             }

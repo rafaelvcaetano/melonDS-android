@@ -13,7 +13,7 @@ import me.magnum.rcheevosapi.model.RAGameId
 import me.magnum.rcheevosapi.model.RAUserAuth
 import okhttp3.*
 import java.io.IOException
-import java.net.URI
+import java.net.URLEncoder
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -21,7 +21,7 @@ import kotlin.coroutines.suspendCoroutine
 class RAApi(
     private val okHttpClient: OkHttpClient,
     private val gson: Gson,
-    private val userAuthStore: UserAuthStore,
+    private val userAuthStore: RAUserAuthStore,
     private val achievementSignatureProvider: RAAchievementSignatureProvider,
 ) {
 
@@ -174,14 +174,14 @@ class RAApi(
 
     private fun buildGetRequest(parameters: Map<String, String>): Request {
         val query = parameters.map {
-            "${it.key}=${it.value}"
+            "${URLEncoder.encode(it.key, "utf-8")}=${URLEncoder.encode(it.value, "utf-8")}"
         }.joinToString(separator = "&")
 
-        val uri = URI("https", "retroachievements.org", "/dorequest.php", query, null)
+        val url ="https://retroachievements.org/dorequest.php?$query"
 
         return Request.Builder()
             .get()
-            .url(uri.toURL())
+            .url(url)
             .build()
     }
 
