@@ -1,73 +1,16 @@
-name: melonDS Android Release
+name: melonDS Android PlayStore Release
 
 on:
-  # Trigger action when a tag is pushed
-  push:
-    tags:
-      - '*'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    if: github.actor == 'rafaelvcaetano'
 
 jobs:
-  github-release:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: zulu
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
-
-      - name: Build melonDS Android
-        env:
-          MELONDS_KEYSTORE: ${{ secrets.MELONDS_KEYSTORE }}
-          MELONDS_KEYSTORE_PASSWORD: ${{ secrets.MELONDS_KEYSTORE_PASSWORD }}
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-        run: |
-          echo "$MELONDS_KEYSTORE" | base64 -d > ${{runner.workspace}}/keystore.jks
-          echo "MELONDS_KEYSTORE=${{runner.workspace}}/keystore.jks" >> local.properties
-          echo "MELONDS_KEYSTORE_PASSWORD=$MELONDS_KEYSTORE_PASSWORD" >> local.properties
-          echo "MELONDS_KEY_ALIAS=melonds" >> local.properties
-          echo "MELONDS_KEY_PASSWORD=$MELONDS_KEYSTORE_PASSWORD" >> local.properties
-          chmod +x ./gradlew
-          ./gradlew :app:assembleGitHubRelease
-
-      - name: Get Tag and Version
-        id: release_params
-        run: |
-          echo TAG=${GITHUB_REF/refs\/tags\//} >> $GITHUB_OUTPUT
-          echo VERSION=$(grep -oP 'versionName = "\K(.*?)(?=")' buildSrc/src/main/kotlin/AppConfig.kt) >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: ncipollo/release-action@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.release_params.outputs.TAG }}
-          name: ${{ steps.release_params.outputs.VERSION }}
-          bodyFile: ./.github/changelog/gitHub.md
-          artifacts: app/build/outputs/apk/gitHub/release/app-gitHub-release.apk
-          artifactContentType: application/vnd.android.package-archive
-
-      - name: Upload APK, Mapping and Debug Symbols
-        uses: actions/upload-artifact@v3
-        with:
-          name: github-release
-          path: |
-            app/build/outputs/apk/gitHub/release/app-gitHub-release.apk
-            app/build/outputs/mapping/gitHubRelease/mapping.txt
-            app/build/outputs/native-debug-symbols/gitHubRelease/native-debug-symbols.zip
-
   playstore-release:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
 
@@ -111,6 +54,7 @@ jobs:
           changesNotSentForReview: true
           whatsNewDirectory: ./.github/changelog/playStore
           mappingFile: app/build/outputs/mapping/playStoreRelease/mapping.txt
+          debugSymbols: app/build/outputs/native-debug-symbols/playStoreRelease/native-debug-symbols.zip
 
       - name: Upload APK, Mapping and Debug Symbols
         uses: actions/upload-artifact@v3
