@@ -6,7 +6,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -17,6 +19,7 @@ import androidx.compose.ui.window.Dialog
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.ui.common.MelonPreviewSet
+import me.magnum.melonds.ui.common.autofill
 import me.magnum.melonds.ui.common.melonButtonColors
 import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
 import me.magnum.melonds.ui.theme.MelonTheme
@@ -68,7 +71,7 @@ private fun LoggedOut(
                 onClick = { showLoginPopup = true },
                 colors = melonButtonColors(),
             ) {
-                Text(text = stringResource(id = R.string.login))
+                Text(text = stringResource(id = R.string.login).uppercase())
             }
         }
     }
@@ -84,6 +87,7 @@ private fun LoggedOut(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun LoginPopup(
     onDismiss: () -> Unit,
@@ -122,6 +126,10 @@ private fun LoginPopup(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     OutlinedTextField(
+                        modifier = Modifier.autofill(
+                            autofillTypes = listOf(AutofillType.Username),
+                            onFill = { username = it },
+                        ),
                         value = username,
                         onValueChange = { username = it },
                         label = {
@@ -130,6 +138,10 @@ private fun LoginPopup(
                     )
 
                     OutlinedTextField(
+                        modifier = Modifier.autofill(
+                            autofillTypes = listOf(AutofillType.Password),
+                            onFill = { password = it },
+                        ),
                         value = password,
                         onValueChange = { password = it },
                         visualTransformation = PasswordVisualTransformation(),
