@@ -12,9 +12,17 @@ internal fun AchievementDto.mapToModel(): RAAchievement {
         title = title,
         description = description,
         points = points.toIntOrNull() ?: 0,
-        displayOrder = displayOrder.toIntOrNull() ?: 0,
+        displayOrder = displayOrder?.toIntOrNull() ?: 0,
         badgeUrlUnlocked = URL(badgeUrl),
         badgeUrlLocked = URL(badgeUrlLocked),
         memoryAddress = memoryAddress,
+        type = achievementFlagsToType(flags),
     )
+}
+
+private fun achievementFlagsToType(achievementFlags: Int): RAAchievement.Type {
+    return when (achievementFlags) {
+        3 -> RAAchievement.Type.CORE
+        else -> RAAchievement.Type.UNOFFICIAL
+    }
 }

@@ -14,7 +14,7 @@ internal fun GameDto.mapToModel(): RAGame {
         numPlayersCasual = numDistinctPlayersCasual,
         numPlayersHardcore = numDistinctPlayersHardcore,
         achievements = achievements.map {
-            it.value.mapToModel()
+            it.mapToModel()
         },
     )
 }

@@ -17,6 +17,8 @@ import java.net.URLEncoder
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
+import kotlin.reflect.javaType
+import kotlin.reflect.typeOf
 
 class RAApi(
     private val okHttpClient: OkHttpClient,
@@ -156,17 +158,19 @@ class RAApi(
         )
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     private suspend inline fun <reified T> get(parameters: Map<String, String>): Result<T> {
         val request = buildGetRequest(parameters)
         val response = executeRequest(request)
         return if (response.isSuccessful) {
-            val result = if (T::class == Unit::class) {
-                // Ignore response. Don't parse anything
-                Unit as T
-            } else {
-                gson.fromJson(response.body?.charStream(), T::class.java)
+            runCatching {
+                if (T::class == Unit::class) {
+                    // Ignore response. Don't parse anything
+                    Unit as T
+                } else {
+                    gson.fromJson(response.body?.charStream(), typeOf<T>().javaType)
+                }
             }
-            Result.success(result)
         } else {
             Result.failure(Exception(response.message))
         }

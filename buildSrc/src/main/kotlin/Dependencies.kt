@@ -4,6 +4,7 @@ object Dependencies {
         const val Activity = "1.6.0"
         const val AppCompat = "1.5.1"
         const val CardView = "1.0.0"
+        const val Coil = "2.2.2"
         const val CommonsCompress = "1.21"
         const val Compose = "1.2.1"
         const val ConstraintLayout = "2.1.4"
@@ -85,6 +86,7 @@ object Dependencies {
     }
 
     object ThirdParty {
+        const val coil = "io.coil-kt:coil-compose:${Versions.Coil}"
         const val flexbox = "com.google.android.flexbox:flexbox:${Versions.Flexbox}"
         const val gson = "com.google.code.gson:gson:${Versions.Gson}"
         const val hilt = "com.google.dagger:hilt-android:${Versions.Hilt}"

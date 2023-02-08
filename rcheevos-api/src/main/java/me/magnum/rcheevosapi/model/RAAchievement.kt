@@ -13,4 +13,11 @@ data class RAAchievement(
     val badgeUrlUnlocked: URL,
     val badgeUrlLocked: URL,
     val memoryAddress: String,
-)
+    val type: Type,
+) {
+
+    enum class Type {
+        CORE,
+        UNOFFICIAL
+    }
+}

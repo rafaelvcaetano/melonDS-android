@@ -1,15 +1,22 @@
 package me.magnum.melonds.ui.romdetails.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -17,12 +24,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import me.magnum.melonds.R
-import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.ui.common.MelonPreviewSet
 import me.magnum.melonds.ui.common.autofill
 import me.magnum.melonds.ui.common.melonButtonColors
+import me.magnum.melonds.ui.romdetails.model.RomAchievementsSummary
 import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
 import me.magnum.melonds.ui.theme.MelonTheme
+
+private const val HEADER_ITEM_TYPE = "header"
+private const val ACHIEVEMENT_ITEM_TYPE = "achievement"
 
 @Composable
 fun RomRetroAchievementsUi(
@@ -38,7 +48,7 @@ fun RomRetroAchievementsUi(
         is RomRetroAchievementsUiState.Loading -> Loading(modifier)
         is RomRetroAchievementsUiState.Ready -> Ready(
             modifier = modifier,
-            achievements = retroAchievementsUiState.achievements,
+            content = retroAchievementsUiState,
         )
         is RomRetroAchievementsUiState.LoginError -> LoginError(modifier)
         is RomRetroAchievementsUiState.AchievementLoadError -> LoadError(modifier)
@@ -193,17 +203,84 @@ private fun Loading(modifier: Modifier) {
 @Composable
 private fun Ready(
     modifier: Modifier,
-    achievements: List<RAUserAchievement>,
+    content: RomRetroAchievementsUiState.Ready,
 ) {
     LazyColumn(
         modifier = modifier,
     ) {
-        items(
-            items = achievements,
-            key = { it.achievement.id },
-        ) {
-
+        item(contentType = HEADER_ITEM_TYPE) {
+            Header(
+                modifier = Modifier.fillMaxWidth(),
+                achievementsSummary = content.summary,
+            )
+            Divider(Modifier.fillMaxWidth())
         }
+
+        items(
+            items = content.achievements,
+            key = { it.achievement.id },
+            contentType = { ACHIEVEMENT_ITEM_TYPE },
+        ) {
+            RomAchievementUi(modifier = Modifier.fillMaxWidth(), userAchievement = it)
+        }
+    }
+}
+
+@Composable
+private fun Header(
+    modifier: Modifier,
+    achievementsSummary: RomAchievementsSummary,
+) {
+    Column(
+        modifier = modifier.padding(horizontal = 8.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = buildAnnotatedString {
+                appendInlineContent("icon-points")
+                append(' ')
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append(achievementsSummary.totalPoints.toString())
+                }
+                append(' ')
+                append(stringResource(id = R.string.points_abbreviated))
+            },
+            inlineContent = mapOf(
+                "icon-points" to InlineTextContent(Placeholder(MaterialTheme.typography.body1.fontSize, MaterialTheme.typography.body1.fontSize, PlaceholderVerticalAlign.Center)) {
+                    Image(
+                        modifier = Modifier.fillMaxSize(),
+                        painter = painterResource(id = R.drawable.ic_points),
+                        contentDescription = null,
+                    )
+                }
+            )
+        )
+
+        Text(
+            text = buildAnnotatedString {
+                appendInlineContent(id = "icon-completed", alternateText = stringResource(id = R.string.completed))
+                append(' ')
+                append(stringResource(id = R.string.completed_achievements, achievementsSummary.completedAchievements, achievementsSummary.totalAchievements, achievementsSummary.completedPercentage))
+            },
+            inlineContent = mapOf(
+                "icon-completed" to InlineTextContent(Placeholder(MaterialTheme.typography.body1.fontSize, MaterialTheme.typography.body1.fontSize, PlaceholderVerticalAlign.Center)) {
+                    Image(
+                        modifier = Modifier.fillMaxSize(),
+                        painter = painterResource(id = R.drawable.ic_completed),
+                        contentDescription = null,
+                    )
+                }
+            )
+        )
+
+        LinearProgressIndicator(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(50)),
+            progress = achievementsSummary.completedAchievements / achievementsSummary.totalAchievements.toFloat(),
+            color = MaterialTheme.colors.secondary,
+        )
     }
 }
 

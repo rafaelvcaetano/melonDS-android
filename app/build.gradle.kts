@@ -154,6 +154,7 @@ dependencies {
 
     // Third-party
     with(Dependencies.ThirdParty) {
+        implementation(coil)
         implementation(flexbox)
         implementation(gson)
         implementation(hilt)
