@@ -132,6 +132,7 @@ dependencies {
         implementation(preference)
         implementation(recyclerView)
         implementation(room)
+        implementation(roomKtx)
         implementation(roomRxJava)
         implementation(splashscreen)
         implementation(swipeRefreshLayout)

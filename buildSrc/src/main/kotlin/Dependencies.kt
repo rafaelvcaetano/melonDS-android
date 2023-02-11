@@ -66,6 +66,7 @@ object Dependencies {
         const val preference = "androidx.preference:preference-ktx:${Versions.Preference}"
         const val recyclerView = "androidx.recyclerview:recyclerview:${Versions.RecyclerView}"
         const val room = "androidx.room:room-runtime:${Versions.Room}"
+        const val roomKtx = "androidx.room:room-ktx:${Versions.Room}"
         const val roomRxJava = "androidx.room:room-rxjava2:${Versions.Room}"
         const val splashscreen = "androidx.core:core-splashscreen:${Versions.Splashscreen}"
         const val swipeRefreshLayout = "androidx.swiperefreshlayout:swiperefreshlayout:${Versions.SwipeRefreshLayout}"
