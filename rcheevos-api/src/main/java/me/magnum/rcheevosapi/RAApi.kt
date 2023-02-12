@@ -1,12 +1,15 @@
 package me.magnum.rcheevosapi
 
 import com.google.gson.Gson
+import com.google.gson.JsonParser
+import me.magnum.rcheevosapi.dto.*
 import me.magnum.rcheevosapi.dto.GameIdDto
 import me.magnum.rcheevosapi.dto.GamePatchDto
 import me.magnum.rcheevosapi.dto.HashLibraryDto
 import me.magnum.rcheevosapi.dto.UserLoginDto
 import me.magnum.rcheevosapi.dto.UserUnlocksDto
 import me.magnum.rcheevosapi.dto.mapper.mapToModel
+import me.magnum.rcheevosapi.exception.UnsuccessfulRequestException
 import me.magnum.rcheevosapi.exception.UserNotAuthenticatedException
 import me.magnum.rcheevosapi.model.RAAchievement
 import me.magnum.rcheevosapi.model.RAGame
@@ -176,11 +179,18 @@ class RAApi(
         val response = executeRequest(request)
         return if (response.isSuccessful) {
             runCatching {
+                val json = JsonParser.parseReader(response.body?.charStream())
+                val isSuccessful = json.asJsonObject["Success"].asBoolean
+                if (!isSuccessful) {
+                    val reason = json.asJsonObject["Error"]?.asString
+                    throw UnsuccessfulRequestException(reason ?: "Unknown reason")
+                }
+
                 if (T::class == Unit::class) {
                     // Ignore response. Don't parse anything
                     Unit as T
                 } else {
-                    gson.fromJson(response.body?.charStream(), typeOf<T>().javaType)
+                    gson.fromJson(json, typeOf<T>().javaType)
                 }
             }
         } else {
