@@ -31,6 +31,7 @@ fun RomScreen(
     onLaunchRom: (Rom) -> Unit,
     onRomConfigUpdate: (RomConfigUpdateEvent) -> Unit,
     onRetroAchievementsLogin: (username: String, password: String) -> Unit,
+    onRetroAchievementsRetryLoad: () -> Unit,
 ) {
     val pagerState = rememberPagerState(RomDetailsTab.CONFIG.tabIndex)
     val coroutineScope = rememberCoroutineScope()
@@ -67,6 +68,7 @@ fun RomScreen(
                         modifier = Modifier.fillMaxSize(),
                         retroAchievementsUiState = retroAchievementsUiState,
                         onLogin = onRetroAchievementsLogin,
+                        onRetryLoad = onRetroAchievementsRetryLoad,
                     )
                 }
             }
@@ -101,6 +103,7 @@ private fun PreviewRomScreen() {
             onNavigateBack = { },
             onRomConfigUpdate = { },
             onRetroAchievementsLogin = { _, _ -> },
+            onRetroAchievementsRetryLoad = { },
         )
     }
 }

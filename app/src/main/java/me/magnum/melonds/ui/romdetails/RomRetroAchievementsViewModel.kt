@@ -55,6 +55,11 @@ class RomRetroAchievementsViewModel @Inject constructor(
         }
     }
 
+    fun retryLoadAchievements() {
+        _uiState.value = RomRetroAchievementsUiState.Loading
+        loadAchievements()
+    }
+
     private fun buildAchievementsSummary(userAchievements: List<RAUserAchievement>): RomAchievementsSummary {
         return RomAchievementsSummary(
             totalAchievements = userAchievements.size,

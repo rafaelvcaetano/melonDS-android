@@ -53,6 +53,9 @@ class RomDetailsActivity : AppCompatActivity() {
                     },
                     onRetroAchievementsLogin = { username, password ->
                         romRetroAchievementsViewModel.login(username, password)
+                    },
+                    onRetroAchievementsRetryLoad = {
+                        romRetroAchievementsViewModel.retryLoadAchievements()
                     }
                 )
             }

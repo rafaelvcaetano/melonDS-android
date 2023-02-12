@@ -39,6 +39,7 @@ fun RomRetroAchievementsUi(
     modifier: Modifier,
     retroAchievementsUiState: RomRetroAchievementsUiState,
     onLogin: (username: String, password: String) -> Unit,
+    onRetryLoad: () -> Unit,
 ) {
     when (retroAchievementsUiState) {
         is RomRetroAchievementsUiState.LoggedOut -> LoggedOut(
@@ -46,12 +47,18 @@ fun RomRetroAchievementsUi(
             onLogin = onLogin,
         )
         is RomRetroAchievementsUiState.Loading -> Loading(modifier)
-        is RomRetroAchievementsUiState.Ready -> Ready(
-            modifier = modifier,
-            content = retroAchievementsUiState,
-        )
-        is RomRetroAchievementsUiState.LoginError -> LoginError(modifier)
-        is RomRetroAchievementsUiState.AchievementLoadError -> LoadError(modifier)
+        is RomRetroAchievementsUiState.Ready -> {
+            if (retroAchievementsUiState.achievements.isEmpty()) {
+                NoAchievements(modifier)
+            } else {
+                Ready(
+                    modifier = modifier,
+                    content = retroAchievementsUiState,
+                )
+            }
+        }
+        is RomRetroAchievementsUiState.LoginError -> LoginError(modifier = modifier, onLogin = onLogin)
+        is RomRetroAchievementsUiState.AchievementLoadError -> LoadError(modifier = modifier, onRetry = onRetryLoad)
     }
 }
 
@@ -81,7 +88,7 @@ private fun LoggedOut(
                 onClick = { showLoginPopup = true },
                 colors = melonButtonColors(),
             ) {
-                Text(text = stringResource(id = R.string.login).uppercase())
+                Text(text = stringResource(id = R.string.login_with_retro_achievements).uppercase())
             }
         }
     }
@@ -123,7 +130,7 @@ private fun LoginPopup(
                 ) {
                     Text(
                         modifier = Modifier,
-                        text = stringResource(id = R.string.retro_achievements),
+                        text = stringResource(id = R.string.login_with_retro_achievements),
                         style = MaterialTheme.typography.h6,
                         fontWeight = FontWeight.Bold,
                         maxLines = 2,
@@ -179,7 +186,7 @@ private fun LoginPopup(
 
                     TextButton(onClick = { onLogin(username, password) }) {
                         Text(
-                            text = stringResource(id = R.string.login).uppercase(),
+                            text = stringResource(id = R.string.login_with_retro_achievements).uppercase(),
                             style = MaterialTheme.typography.button,
                             color = MaterialTheme.colors.secondary,
                         )
@@ -196,7 +203,20 @@ private fun Loading(modifier: Modifier) {
         modifier = modifier,
         contentAlignment = Alignment.Center,
     ) {
-        CircularProgressIndicator(color = MaterialTheme.colors.primary)
+        CircularProgressIndicator(color = MaterialTheme.colors.secondary)
+    }
+}
+
+@Composable
+private fun NoAchievements(modifier: Modifier) {
+    Box(
+        modifier = modifier.padding(16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(id = R.string.retro_achievements_no_achievements),
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -286,16 +306,72 @@ private fun Header(
 
 @Composable
 private fun LoginError(
-    modifier: Modifier
+    modifier: Modifier,
+    onLogin: (username: String, password: String) -> Unit,
 ) {
-    Text(text = "Login error")
+    var showLoginPopup by remember {
+        mutableStateOf(false)
+    }
+
+    Box(
+        modifier = modifier.padding(16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = stringResource(id = R.string.retro_achievements_login_error),
+                textAlign = TextAlign.Center,
+            )
+
+            Button(
+                onClick = { showLoginPopup = true },
+                colors = melonButtonColors(),
+            ) {
+                Text(text = stringResource(id = R.string.login_with_retro_achievements).uppercase())
+            }
+        }
+    }
+
+    if (showLoginPopup) {
+        LoginPopup(
+            onDismiss = { showLoginPopup = false },
+            onLogin = { username, password ->
+                onLogin(username, password)
+                showLoginPopup = false
+            },
+        )
+    }
 }
 
 @Composable
 private fun LoadError(
-    modifier: Modifier
+    modifier: Modifier,
+    onRetry: () -> Unit,
 ) {
-    Text(text = "Load error")
+    Box(
+        modifier = modifier.padding(16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = stringResource(id = R.string.retro_achievements_load_error),
+                textAlign = TextAlign.Center,
+            )
+
+            Button(
+                onClick = onRetry,
+                colors = melonButtonColors(),
+            ) {
+                Text(text = stringResource(id = R.string.retry).uppercase())
+            }
+        }
+    }
 }
 
 @MelonPreviewSet
@@ -305,6 +381,28 @@ private fun PreviewLoggedOut() {
         LoggedOut(
             modifier = Modifier.fillMaxSize(),
             onLogin = { _, _ -> },
+        )
+    }
+}
+
+@MelonPreviewSet
+@Composable
+private fun PreviewLoginError() {
+    MelonTheme {
+        LoginError(
+            modifier = Modifier.fillMaxSize(),
+            onLogin = { _, _ -> },
+        )
+    }
+}
+
+@MelonPreviewSet
+@Composable
+private fun PreviewLoadError() {
+    MelonTheme {
+        LoadError(
+            modifier = Modifier.fillMaxSize(),
+            onRetry = { },
         )
     }
 }

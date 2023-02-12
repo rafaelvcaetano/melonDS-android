@@ -291,11 +291,14 @@
     <string name="background_add_wrong_orientation">Background added but it\'s not visible for the selected orientation.</string>
     <string name="background_add_processing_failed">Failed to process the selected background image. Make sure it\'s not corrupted.</string>
 
-    <string name="retro_achievements">RetroAchievements</string>
     <string name="retro_achievements_login_description">Login with RetroAchievements to view achievements that you can unlock while playing this game!</string>
-    <string name="login">Login</string>
+    <string name="login_with_retro_achievements">Login with RetroAchievements</string>
+    <string name="retro_achievements_login_error">There was a problem when trying to login. Make sure that your username and password are correct</string>
+    <string name="retro_achievements_load_error">There was a problem when trying to load the achievements for this game. Make sure you are connected to the internet and try again later</string>
+    <string name="retro_achievements_no_achievements">No RetroAchievements wre found for this game</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
+    <string name="retry">Retry</string>
     <string name="points_abbreviated">PTS</string>
     <string name="points">Points</string>
     <string name="completed">Completed</string>
