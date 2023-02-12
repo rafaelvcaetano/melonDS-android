@@ -25,7 +25,7 @@ class AndroidRetroAchievementsRepository(
 ) : RetroAchievementsRepository {
 
     private companion object {
-        const val IS_RA_HASH_LIBRARY_CACHED = "is_ra_hash_library_cached"
+        const val RA_HASH_LIBRARY_LAST_UPDATED = "ra_hash_library_last_updated"
     }
 
     override suspend fun isUserAuthenticated(): Boolean {
@@ -73,7 +73,21 @@ class AndroidRetroAchievementsRepository(
     }
 
     private suspend fun getGameIdFromGameHash(gameHash: String): Result<RAGameId?> {
-        return if (sharedPreferences.getBoolean(IS_RA_HASH_LIBRARY_CACHED, false)) {
+        return if (mustRefreshHashLibrary()) {
+            raApi.getGameHashList()
+                .onSuccess { gameHashes ->
+                    val gameHashEntities = gameHashes.map {
+                        RAGameHashEntity(it.key, it.value.id)
+                    }
+                    achievementsDao.updateGameHashLibrary(gameHashEntities)
+                    sharedPreferences.edit {
+                        putLong(RA_HASH_LIBRARY_LAST_UPDATED, Instant.now().toEpochMilli())
+                    }
+                }
+                .map {
+                    it[gameHash]
+                }
+        } else {
             runCatching {
                 achievementsDao.getGameHashEntity(gameHash)
             }.map {
@@ -81,20 +95,6 @@ class AndroidRetroAchievementsRepository(
                     RAGameId(it.gameId)
                 }
             }
-        } else {
-            raApi.getGameHashList()
-                .onSuccess {
-                    val gameHashEntities = it.map {
-                        RAGameHashEntity(it.key, it.value.id)
-                    }
-                    achievementsDao.updateGameHashLibrary(gameHashEntities)
-                    sharedPreferences.edit {
-                        putBoolean(IS_RA_HASH_LIBRARY_CACHED, true)
-                    }
-                }
-                .map {
-                    it[gameHash]
-                }
         }
     }
 
@@ -144,6 +144,14 @@ class AndroidRetroAchievementsRepository(
                 }
             }
         }
+    }
+
+    private fun mustRefreshHashLibrary(): Boolean {
+        val hashLibraryLastUpdateTimestamp = sharedPreferences.getLong(RA_HASH_LIBRARY_LAST_UPDATED, 0)
+        val hashLibraryLastUpdate = Instant.ofEpochMilli(hashLibraryLastUpdateTimestamp)
+
+        // Update the game hash library once a month
+        return Duration.between(hashLibraryLastUpdate, Instant.now()) > Duration.ofDays(30)
     }
 
     private fun mustRefreshAchievementSet(gameSetMetadata: RAGameSetMetadata?): Boolean {
