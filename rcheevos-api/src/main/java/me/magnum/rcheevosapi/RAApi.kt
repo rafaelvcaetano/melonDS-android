@@ -176,9 +176,10 @@ class RAApi(
     @OptIn(ExperimentalStdlibApi::class)
     private suspend inline fun <reified T> get(parameters: Map<String, String>): Result<T> {
         val request = buildGetRequest(parameters)
-        val response = executeRequest(request)
-        return if (response.isSuccessful) {
-            runCatching {
+        return runCatching {
+            executeRequest(request)
+        }.mapCatching { response ->
+            if (response.isSuccessful) {
                 val json = JsonParser.parseReader(response.body?.charStream())
                 val isSuccessful = json.asJsonObject["Success"].asBoolean
                 if (!isSuccessful) {
@@ -192,9 +193,9 @@ class RAApi(
                 } else {
                     gson.fromJson(json, typeOf<T>().javaType)
                 }
+            } else {
+                throw Exception(response.message)
             }
-        } else {
-            Result.failure(Exception(response.message))
         }
     }
 

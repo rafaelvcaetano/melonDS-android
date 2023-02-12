@@ -27,6 +27,7 @@ import me.magnum.melonds.R
 import me.magnum.melonds.ui.common.MelonPreviewSet
 import me.magnum.melonds.ui.common.autofill
 import me.magnum.melonds.ui.common.melonButtonColors
+import me.magnum.melonds.ui.common.melonOutlinedTextFieldColors
 import me.magnum.melonds.ui.romdetails.model.RomAchievementsSummary
 import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
 import me.magnum.melonds.ui.theme.MelonTheme
@@ -149,6 +150,7 @@ private fun LoginPopup(
                         ),
                         value = username,
                         onValueChange = { username = it },
+                        colors = melonOutlinedTextFieldColors(),
                         label = {
                             Text(text = stringResource(id = R.string.username))
                         }
@@ -162,6 +164,7 @@ private fun LoginPopup(
                         value = password,
                         onValueChange = { password = it },
                         visualTransformation = PasswordVisualTransformation(),
+                        colors = melonOutlinedTextFieldColors(),
                         label = {
                             Text(text = stringResource(id = R.string.password))
                         }
@@ -186,7 +189,7 @@ private fun LoginPopup(
 
                     TextButton(onClick = { onLogin(username, password) }) {
                         Text(
-                            text = stringResource(id = R.string.login_with_retro_achievements).uppercase(),
+                            text = stringResource(id = R.string.login).uppercase(),
                             style = MaterialTheme.typography.button,
                             color = MaterialTheme.colors.secondary,
                         )

@@ -293,7 +293,8 @@
 
     <string name="retro_achievements_login_description">Login with RetroAchievements to view achievements that you can unlock while playing this game!</string>
     <string name="login_with_retro_achievements">Login with RetroAchievements</string>
-    <string name="retro_achievements_login_error">There was a problem when trying to login. Make sure that your username and password are correct</string>
+    <string name="login">Login</string>
+    <string name="retro_achievements_login_error">There was a problem when trying to login. Make sure that your username and password are correct, and that you are connected to the internet</string>
     <string name="retro_achievements_load_error">There was a problem when trying to load the achievements for this game. Make sure you are connected to the internet and try again later</string>
     <string name="retro_achievements_no_achievements">No RetroAchievements wre found for this game</string>
     <string name="username">Username</string>
