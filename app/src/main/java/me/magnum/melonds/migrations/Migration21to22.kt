@@ -4,8 +4,8 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import me.magnum.melonds.common.uridelegates.UriHandler
-import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.migrations.legacy.Rom21
+import me.magnum.melonds.migrations.legacy.Rom22
 import me.magnum.melonds.utils.RomProcessor
 import java.io.File
 import java.io.FileReader
@@ -36,7 +36,7 @@ class Migration21to22(
                 }
             }.getOrNull() ?: return@mapNotNull null
 
-            Rom(
+            Rom22(
                 rom.name,
                 fileName,
                 rom.uri,
@@ -62,7 +62,7 @@ class Migration21to22(
         }.getOrElse { emptyList() }
     }
 
-    private fun saveNewRoms(roms: List<Rom>) {
+    private fun saveNewRoms(roms: List<Rom22>) {
         val cacheFile = File(context.filesDir, ROM_DATA_FILE)
 
         OutputStreamWriter(cacheFile.outputStream()).use {

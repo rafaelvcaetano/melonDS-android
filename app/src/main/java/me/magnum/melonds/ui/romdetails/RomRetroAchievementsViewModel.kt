@@ -1,5 +1,6 @@
 package me.magnum.melonds.ui.romdetails
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,15 +9,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.domain.repositories.RetroAchievementsRepository
+import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.romdetails.model.RomAchievementsSummary
 import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
-import me.magnum.rcheevosapi.model.RAGameId
 import javax.inject.Inject
 
 @HiltViewModel
 class RomRetroAchievementsViewModel @Inject constructor(
     private val retroAchievementsRepository: RetroAchievementsRepository,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+
+    private val rom by lazy {
+        savedStateHandle.get<RomParcelable>(RomDetailsActivity.KEY_ROM)!!.rom
+    }
 
     private val _uiState = MutableStateFlow<RomRetroAchievementsUiState>(RomRetroAchievementsUiState.Loading)
     val uiState by lazy {
@@ -27,7 +33,7 @@ class RomRetroAchievementsViewModel @Inject constructor(
     private fun loadAchievements() {
         viewModelScope.launch {
             if (retroAchievementsRepository.isUserAuthenticated()) {
-                retroAchievementsRepository.getGameUserAchievements(RAGameId(12711)).fold(
+                retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash).fold(
                     onSuccess = { _uiState.value = RomRetroAchievementsUiState.Ready(it, buildAchievementsSummary(it)) },
                     onFailure = { _uiState.value = RomRetroAchievementsUiState.AchievementLoadError },
                 )

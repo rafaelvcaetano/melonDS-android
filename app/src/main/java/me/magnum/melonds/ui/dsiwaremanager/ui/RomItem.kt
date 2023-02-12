@@ -113,7 +113,7 @@ private fun PreviewRomItem() {
     MelonTheme {
         RomItem(
             modifier = Modifier.fillMaxWidth(),
-            item = Rom("Highway 4: Mediocre Racing", "Highway_4.nds", Uri.EMPTY, Uri.EMPTY, RomConfig(), null, true),
+            item = Rom("Highway 4: Mediocre Racing", "Highway_4.nds", Uri.EMPTY, Uri.EMPTY, RomConfig(), null, true, ""),
             onClick = {},
             retrieveTitleIcon = { RomIcon(bitmap, RomIconFiltering.NONE) }
         )

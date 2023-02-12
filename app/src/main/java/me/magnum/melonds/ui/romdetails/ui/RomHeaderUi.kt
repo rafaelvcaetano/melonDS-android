@@ -201,6 +201,7 @@ private fun PreviewRomHeaderUi() {
                 config = RomConfig(),
                 lastPlayed = Date(),
                 isDsiWareTitle = false,
+                retroAchievementsHash = "",
             ),
             loadRomIcon = {
                 RomIcon(

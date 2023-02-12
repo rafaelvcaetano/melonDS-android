@@ -1,6 +1,9 @@
 package me.magnum.melonds.impl
 
+import android.content.SharedPreferences
+import androidx.core.content.edit
 import me.magnum.melonds.database.daos.RAAchievementsDao
+import me.magnum.melonds.database.entities.retroachievements.RAGameHashEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameSetMetadata
 import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEntity
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
@@ -18,7 +21,12 @@ class AndroidRetroAchievementsRepository(
     private val raApi: RAApi,
     private val achievementsDao: RAAchievementsDao,
     private val raUserAuthStore: RAUserAuthStore,
+    private val sharedPreferences: SharedPreferences,
 ) : RetroAchievementsRepository {
+
+    private companion object {
+        const val IS_RA_HASH_LIBRARY_CACHED = "is_ra_hash_library_cached"
+    }
 
     override suspend fun isUserAuthenticated(): Boolean {
         return raUserAuthStore.getUserAuth() != null
@@ -28,7 +36,17 @@ class AndroidRetroAchievementsRepository(
         return raApi.login(username, password)
     }
 
-    override suspend fun getGameUserAchievements(gameId: RAGameId): Result<List<RAUserAchievement>> {
+    override suspend fun getGameUserAchievements(gameHash: String): Result<List<RAUserAchievement>> {
+        val gameIdResult = getGameIdFromGameHash(gameHash)
+        if (gameIdResult.isFailure) {
+            return Result.failure(gameIdResult.exceptionOrNull()!!)
+        }
+
+        val gameId = gameIdResult.getOrThrow()
+        if (gameId == null) {
+            return Result.success(emptyList())
+        }
+
         val gameSetMetadata = achievementsDao.getGameSetMetadata(gameId.id)
         val currentMetadata = CurrentGameSetMetadata(gameId, gameSetMetadata)
 
@@ -52,6 +70,32 @@ class AndroidRetroAchievementsRepository(
             )
         }
         return Result.success(userAchievements)
+    }
+
+    private suspend fun getGameIdFromGameHash(gameHash: String): Result<RAGameId?> {
+        return if (sharedPreferences.getBoolean(IS_RA_HASH_LIBRARY_CACHED, false)) {
+            runCatching {
+                achievementsDao.getGameHashEntity(gameHash)
+            }.map {
+                it?.let {
+                    RAGameId(it.gameId)
+                }
+            }
+        } else {
+            raApi.getGameHashList()
+                .onSuccess {
+                    val gameHashEntities = it.map {
+                        RAGameHashEntity(it.key, it.value.id)
+                    }
+                    achievementsDao.updateGameHashLibrary(gameHashEntities)
+                    sharedPreferences.edit {
+                        putBoolean(IS_RA_HASH_LIBRARY_CACHED, true)
+                    }
+                }
+                .map {
+                    it[gameHash]
+                }
+        }
     }
 
     private suspend fun fetchGameAchievements(gameId: RAGameId, gameSetMetadata: CurrentGameSetMetadata): Result<List<RAAchievement>> {

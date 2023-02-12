@@ -1,9 +1,13 @@
-package me.magnum.melonds.domain.model
+package me.magnum.melonds.migrations.legacy
 
 import android.net.Uri
+import me.magnum.melonds.domain.model.RomConfig
 import java.util.*
 
-data class Rom(
+/**
+ * ROM model used from app version 22.
+ */
+data class Rom22(
     val name: String,
     val fileName: String,
     val uri: Uri,
@@ -11,10 +15,4 @@ data class Rom(
     var config: RomConfig,
     var lastPlayed: Date? = null,
     val isDsiWareTitle: Boolean,
-    val retroAchievementsHash: String,
-) {
-
-    fun hasSameFileAsRom(other: Rom): Boolean {
-        return uri == other.uri
-    }
-}
+)

@@ -3,6 +3,7 @@ package me.magnum.rcheevosapi
 import com.google.gson.Gson
 import me.magnum.rcheevosapi.dto.GameIdDto
 import me.magnum.rcheevosapi.dto.GamePatchDto
+import me.magnum.rcheevosapi.dto.HashLibraryDto
 import me.magnum.rcheevosapi.dto.UserLoginDto
 import me.magnum.rcheevosapi.dto.UserUnlocksDto
 import me.magnum.rcheevosapi.dto.mapper.mapToModel
@@ -43,6 +44,7 @@ class RAApi(
         private const val VALUE_HARDMODE_ENABLED = "1"
 
         private const val REQUEST_LOGIN = "login"
+        private const val REQUEST_HASH_LIBRARY = "hashlibrary"
         private const val REQUEST_GAME_ID = "gameid"
         private const val REQUEST_GAME_DATA = "patch"
         private const val REQUEST_USER_UNLOCKED_ACHIEVEMENTS = "unlocks"
@@ -63,6 +65,16 @@ class RAApi(
         ).onSuccess {
             userAuthStore.storeUserAuth(RAUserAuth(username, it.token))
         }.map { }
+    }
+
+    suspend fun getGameHashList(): Result<Map<String, RAGameId>> {
+        return get<HashLibraryDto>(
+            mapOf(PARAMETER_REQUEST to REQUEST_HASH_LIBRARY)
+        ).map { library ->
+            library.md5List.mapValues {
+                RAGameId(it.value)
+            }
+        }
     }
 
     suspend fun getUserUnlockedAchievements(gameId: RAGameId, forHardcoreMode: Boolean): Result<List<Long>> {

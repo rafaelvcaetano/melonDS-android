@@ -88,6 +88,7 @@ private fun PreviewRomScreen() {
                 config = RomConfig(),
                 lastPlayed = Date(),
                 isDsiWareTitle = false,
+                retroAchievementsHash = "",
             ),
             romConfigUiState = RomConfigUiState.Ready(
                 RomConfigUiModel(

@@ -15,6 +15,7 @@ import me.magnum.melonds.database.entities.CheatEntity
 import me.magnum.melonds.database.entities.CheatFolderEntity
 import me.magnum.melonds.database.entities.GameEntity
 import me.magnum.melonds.database.entities.retroachievements.RAAchievementEntity
+import me.magnum.melonds.database.entities.retroachievements.RAGameHashEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameSetMetadata
 import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEntity
 
@@ -29,6 +30,7 @@ import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEn
         RAAchievementEntity::class,
         RAUserAchievementEntity::class,
         RAGameSetMetadata::class,
+        RAGameHashEntity::class,
     ],
     autoMigrations = [
         AutoMigration(
