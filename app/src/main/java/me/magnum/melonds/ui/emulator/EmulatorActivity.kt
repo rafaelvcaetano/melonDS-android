@@ -7,6 +7,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.Window
@@ -29,6 +30,7 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
+import me.magnum.melonds.common.RetroAchievementsCallback
 import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.common.vibration.TouchVibrator
@@ -175,6 +177,19 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     private val rewindSaveStateAdapter = RewindSaveStateAdapter {
         MelonEmulator.loadRewindState(it)
         closeRewindWindow()
+    }
+    private val retroAchievementsCallback = object : RetroAchievementsCallback {
+        override fun onAchievementPrimed(achievementId: Long) {
+            Log.d("RetroAchievements", "Achievement primed: $achievementId")
+        }
+
+        override fun onAchievementTriggered(achievementId: Long) {
+            Log.d("RetroAchievements", "Achievement triggered: $achievementId")
+        }
+
+        override fun onAchievementUnprimed(achievementId: Long) {
+            Log.d("RetroAchievements", "Achievement unprimed: $achievementId")
+        }
     }
     private val microphonePermissionSubject = PublishSubject.create<Boolean>()
     private var emulatorSetupDisposable: Disposable? = null
@@ -513,6 +528,10 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         if (!result) {
             Toast.makeText(this, R.string.failed_reset_emulation, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    fun getRetroAchievementsCallback(): RetroAchievementsCallback {
+        return retroAchievementsCallback
     }
 
     fun getRendererTextureBuffer(): ByteBuffer {

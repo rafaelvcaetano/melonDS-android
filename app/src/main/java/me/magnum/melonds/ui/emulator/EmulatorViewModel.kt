@@ -5,17 +5,20 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.rxMaybe
 import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
 import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
@@ -30,6 +33,7 @@ class EmulatorViewModel @Inject constructor(
         private val settingsRepository: SettingsRepository,
         private val romsRepository: RomsRepository,
         private val cheatsRepository: CheatsRepository,
+        private val retroAchievementsRepository: RetroAchievementsRepository,
         private val romFileProcessorFactory: RomFileProcessorFactory,
         private val layoutsRepository: LayoutsRepository,
         private val backgroundsRepository: BackgroundRepository,
@@ -268,6 +272,23 @@ class EmulatorViewModel @Inject constructor(
             cheatsRepository.getRomEnabledCheats(romInfo).subscribe { cheats ->
                 liveData.postValue(cheats)
             }.addTo(disposables)
+        }
+
+        return liveData
+    }
+
+    fun getRomAchievements(rom: Rom): LiveData<List<RASimpleAchievement>> {
+        val liveData = MutableLiveData<List<RASimpleAchievement>>()
+
+        viewModelScope.launch {
+            if (retroAchievementsRepository.isUserAuthenticated()) {
+                val achievements = retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash).map { achievements ->
+                    achievements.map { RASimpleAchievement(it.achievement.id, it.achievement.memoryAddress) }
+                }
+                liveData.value = achievements.getOrElse { emptyList() }
+            } else {
+                liveData.value = emptyList()
+            }
         }
 
         return liveData

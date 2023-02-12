@@ -7,9 +7,12 @@
 #include <cstdlib>
 #include <MelonDS.h>
 #include <InputAndroid.h>
+#include "retroachievements/RAAchievement.h"
 #include <android/asset_manager_jni.h>
 #include "UriFileHandler.h"
 #include "JniEnvHandler.h"
+#include "AndroidRACallback.h"
+#include "MelonDSAndroidInterface.h"
 #include "MelonDSAndroidConfiguration.h"
 
 #define MAX_CHEAT_SIZE (2*64)
@@ -30,24 +33,29 @@ int targetFps;
 float fastForwardSpeedMultiplier;
 bool limitFps = true;
 bool isFastForwardEnabled = false;
+
 jobject globalAssetManager;
+jobject androidRaCallback;
+AndroidRACallback* raCallback;
 
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject textureBuffer)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject retroAchievementsCallback, jobject textureBuffer)
 {
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
     fastForwardSpeedMultiplier = finalEmulatorConfiguration.fastForwardSpeedMultiplier;
 
     globalAssetManager = env->NewGlobalRef(javaAssetManager);
+    androidRaCallback = env->NewGlobalRef(retroAchievementsCallback);
 
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
+    raCallback = new AndroidRACallback(jniEnvHandler, androidRaCallback);
 
     u32* textureBufferPointer = (u32*) env->GetDirectBufferAddress(textureBuffer);
 
     MelonDSAndroid::setConfiguration(finalEmulatorConfiguration);
-    MelonDSAndroid::setup(assetManager, textureBufferPointer, true);
+    MelonDSAndroid::setup(assetManager, raCallback, textureBufferPointer, true);
     paused = false;
 }
 
@@ -129,6 +137,41 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
     }
 
     MelonDSAndroid::setCodeList(internalCheats);
+}
+
+JNIEXPORT void JNICALL
+Java_me_magnum_melonds_MelonEmulator_setupAchievements(JNIEnv* env, jobject thiz, jobjectArray achievements)
+{
+    jsize achievementCount = env->GetArrayLength(achievements);
+    if (achievementCount < 1)
+        return;
+
+    std::list<RetroAchievements::RAAchievement> internalAchievements;
+
+    jclass cheatClass = env->GetObjectClass(env->GetObjectArrayElement(achievements, 0));
+    jfieldID idField = env->GetFieldID(cheatClass, "id", "J");
+    jfieldID memoryAddressField = env->GetFieldID(cheatClass, "memoryAddress", "Ljava/lang/String;");
+
+    for (int i = 0; i < achievementCount; ++i)
+    {
+        jobject achievement = env->GetObjectArrayElement(achievements, i);
+        jlong id = env->GetLongField(achievement, idField);
+        jstring memoryAddress = (jstring) env->GetObjectField(achievement, memoryAddressField);
+        jboolean isStringCopy;
+        const char* codeString = env->GetStringUTFChars(memoryAddress, &isStringCopy);
+
+        RetroAchievements::RAAchievement internalAchievement = {
+            .id = (long) id,
+            .memoryAddress = std::string(codeString),
+        };
+
+        if (isStringCopy)
+            env->ReleaseStringUTFChars(memoryAddress, codeString);
+
+        internalAchievements.push_back(internalAchievement);
+    }
+
+    MelonDSAndroid::setAchievementList(internalAchievements);
 }
 
 JNIEXPORT jint JNICALL
@@ -346,7 +389,12 @@ Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
     pthread_cond_destroy(&emuThreadCond);
 
     env->DeleteGlobalRef(globalAssetManager);
+    env->DeleteGlobalRef(androidRaCallback);
+
     globalAssetManager = nullptr;
+    androidRaCallback = nullptr;
+
+    delete raCallback;
 }
 
 JNIEXPORT void JNICALL

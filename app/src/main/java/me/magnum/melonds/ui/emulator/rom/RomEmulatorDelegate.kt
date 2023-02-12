@@ -19,6 +19,7 @@ import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.SaveStateSlot
+import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
 import me.magnum.melonds.extensions.parcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.emulator.EmulatorActivity
@@ -63,11 +64,16 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
         }.flatMap { romPair ->
             loadedRom = romPair.first
 
-            loadRomCheats(loadedRom).toSingle(emptyList()).zipWith(getEmulatorLaunchConfiguration(loadedRom)) { cheats, emulatorConfiguration ->
-                Pair(cheats, emulatorConfiguration)
-            }.flatMap { (cheats, emulatorConfiguration) ->
+            Single.zip(
+                loadRomCheats(loadedRom).toSingle(emptyList()),
+                loadRomAchievements(loadedRom).toSingle(emptyList()),
+                getEmulatorLaunchConfiguration(loadedRom),
+            ) { cheats, achievements, emulatorConfiguration ->
+                (cheats to achievements) to emulatorConfiguration
+            }.flatMap { (data, emulatorConfiguration) ->
+                val (cheats, achievements) = data
                 Single.create<MelonEmulator.LoadResult> { emitter ->
-                    MelonEmulator.setupEmulator(emulatorConfiguration, activity.assets, activity.getRendererTextureBuffer())
+                    MelonEmulator.setupEmulator(emulatorConfiguration, activity.assets, activity.getRetroAchievementsCallback(), activity.getRendererTextureBuffer())
 
                     val rom = romPair.first
                     val romPath = romPair.second
@@ -81,6 +87,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
                     }
 
                     MelonEmulator.setupCheats(cheats.toTypedArray())
+                    MelonEmulator.setupAchievements(achievements.toTypedArray())
                     emitter.onSuccess(loadResult)
                 }
             }
@@ -212,6 +219,28 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
 
             val liveData = activity.viewModel.getRomEnabledCheats(romInfo)
             var observer: Observer<List<Cheat>>? = null
+            observer = Observer {
+                if (it == null) {
+                    emitter.onComplete()
+                } else {
+                    emitter.onSuccess(it)
+                }
+                liveData.removeObserver(observer!!)
+            }
+            liveData.observeForever(observer)
+        }.subscribeOn(activity.schedulers.uiThreadScheduler).observeOn(activity.schedulers.backgroundThreadScheduler)
+    }
+
+    private fun loadRomAchievements(rom: Rom): Maybe<List<RASimpleAchievement>> {
+        return Maybe.create<List<RASimpleAchievement>> { emitter ->
+            val romInfo = activity.viewModel.getRomInfo(rom)
+            if (romInfo == null) {
+                emitter.onComplete()
+                return@create
+            }
+
+            val liveData = activity.viewModel.getRomAchievements(rom)
+            var observer: Observer<List<RASimpleAchievement>>? = null
             observer = Observer {
                 if (it == null) {
                     emitter.onComplete()

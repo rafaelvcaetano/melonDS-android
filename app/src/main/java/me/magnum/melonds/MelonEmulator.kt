@@ -5,7 +5,8 @@ import android.net.Uri
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.Input
-import me.magnum.melonds.common.UriFileHandler
+import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
+import me.magnum.melonds.common.RetroAchievementsCallback
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 import java.nio.ByteBuffer
@@ -35,9 +36,11 @@ object MelonEmulator {
         DSI_NAND_BAD
     }
 
-	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?, textureBuffer: ByteBuffer)
+	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?, retroAchievementsCallback: RetroAchievementsCallback, textureBuffer: ByteBuffer)
 
     external fun setupCheats(cheats: Array<Cheat>)
+
+    external fun setupAchievements(achievements: Array<RASimpleAchievement>)
 
 	fun loadRom(romUri: Uri, sramUri: Uri, loadGbaRom: Boolean, gbaRomUri: Uri?, gbaSramUri: Uri?): LoadResult {
         val loadResult = loadRomInternal(romUri.toString(), sramUri.toString(), loadGbaRom, gbaRomUri?.toString(), gbaSramUri?.toString())

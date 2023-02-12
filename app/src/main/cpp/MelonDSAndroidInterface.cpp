@@ -2,8 +2,9 @@
 #include "UriFileHandler.h"
 #include "MelonDS.h"
 
-JavaVM* vm;
 JniEnvHandler* jniEnvHandler;
+
+JavaVM* vm;
 jobject androidUriFileHandler;
 UriFileHandler* fileHandler;
 
