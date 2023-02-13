@@ -5,6 +5,7 @@ import androidx.core.content.edit
 import me.magnum.melonds.database.daos.RAAchievementsDao
 import me.magnum.melonds.database.entities.retroachievements.RAGameHashEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameSetMetadata
+import me.magnum.melonds.database.entities.retroachievements.RAPendingAchievementSubmissionEntity
 import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEntity
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.domain.repositories.RetroAchievementsRepository
@@ -72,6 +73,29 @@ class AndroidRetroAchievementsRepository(
         return Result.success(userAchievements)
     }
 
+    override suspend fun getAchievement(achievementId: Long): Result<RAAchievement?> {
+        return runCatching {
+            achievementsDao.getAchievement(achievementId)
+        }.map {
+            it?.mapToModel()
+        }
+    }
+
+    override suspend fun awardAchievement(achievement: RAAchievement) {
+        runCatching {
+            raApi.awardAchievement(achievement, false)
+        }.onSuccess {
+            val userAchievement = RAUserAchievementEntity(achievement.gameId.id, achievement.id, true)
+            achievementsDao.addUserAchievement(userAchievement)
+        }.onFailure {
+            val pendingAchievementSubmissionEntity = RAPendingAchievementSubmissionEntity(
+                achievementId = achievement.id,
+                forHardcoreMode = false,
+            )
+            achievementsDao.addPendingAchievementSubmission(pendingAchievementSubmissionEntity)
+        }
+    }
+
     private suspend fun getGameIdFromGameHash(gameHash: String): Result<RAGameId?> {
         return if (mustRefreshHashLibrary()) {
             raApi.getGameHashList()
@@ -104,7 +128,7 @@ class AndroidRetroAchievementsRepository(
                 game.achievements
             }.onSuccess { achievements ->
                 val achievementEntities = achievements.map {
-                    it.mapToEntity(gameId)
+                    it.mapToEntity()
                 }
 
                 val newMetadata = gameSetMetadata.withNewAchievementSetUpdate()

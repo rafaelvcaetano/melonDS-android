@@ -28,6 +28,7 @@ import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.ui.common.MelonPreviewSet
 import me.magnum.melonds.ui.theme.MelonTheme
 import me.magnum.rcheevosapi.model.RAAchievement
+import me.magnum.rcheevosapi.model.RAGameId
 import java.net.URL
 
 @Composable
@@ -115,6 +116,7 @@ fun PreviewRomAchievementUi() {
             userAchievement = RAUserAchievement(
                 achievement = RAAchievement(
                     id = 123,
+                    gameId = RAGameId(123),
                     totalAwardsCasual = 5435,
                     totalAwardsHardcore = 4532,
                     title = "Amazing Achievement",

@@ -3,11 +3,6 @@ package me.magnum.rcheevosapi
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import me.magnum.rcheevosapi.dto.*
-import me.magnum.rcheevosapi.dto.GameIdDto
-import me.magnum.rcheevosapi.dto.GamePatchDto
-import me.magnum.rcheevosapi.dto.HashLibraryDto
-import me.magnum.rcheevosapi.dto.UserLoginDto
-import me.magnum.rcheevosapi.dto.UserUnlocksDto
 import me.magnum.rcheevosapi.dto.mapper.mapToModel
 import me.magnum.rcheevosapi.exception.UnsuccessfulRequestException
 import me.magnum.rcheevosapi.exception.UserNotAuthenticatedException
@@ -48,7 +43,6 @@ class RAApi(
 
         private const val REQUEST_LOGIN = "login"
         private const val REQUEST_HASH_LIBRARY = "hashlibrary"
-        private const val REQUEST_GAME_ID = "gameid"
         private const val REQUEST_GAME_DATA = "patch"
         private const val REQUEST_USER_UNLOCKED_ACHIEVEMENTS = "unlocks"
         private const val REQUEST_POST_ACTIVITY = "postactivity"
@@ -88,26 +82,11 @@ class RAApi(
                 PARAMETER_REQUEST to REQUEST_USER_UNLOCKED_ACHIEVEMENTS,
                 PARAMETER_USER to userAuth.username,
                 PARAMETER_TOKEN to userAuth.token,
-                PARAMETER_GAME_ID to gameId.toString(),
+                PARAMETER_GAME_ID to gameId.id.toString(),
                 PARAMETER_IS_HARDMODE to if (forHardcoreMode) VALUE_HARDMODE_ENABLED else VALUE_HARDMODE_DISABLED,
             )
         ).map {
             it.userUnlocks
-        }
-    }
-
-    suspend fun getGameId(gameHash: String): Result<RAGameId> {
-        val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
-
-        return get<GameIdDto>(
-            mapOf(
-                PARAMETER_REQUEST to REQUEST_GAME_ID,
-                PARAMETER_USER to userAuth.username,
-                PARAMETER_TOKEN to userAuth.token,
-                PARAMETER_GAME_HASH to gameHash,
-            )
-        ).mapCatching {
-            RAGameId(it.gameId)
         }
     }
 
@@ -140,7 +119,7 @@ class RAApi(
         )
     }
 
-    suspend fun awardAchievement(achievement: RAAchievement, gameId: RAGameId, forHardcoreMode: Boolean): Result<Unit> {
+    suspend fun awardAchievement(achievement: RAAchievement, forHardcoreMode: Boolean): Result<Unit> {
         val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
 
         val signature = achievementSignatureProvider.provideAchievementSignature(achievement, userAuth, forHardcoreMode)

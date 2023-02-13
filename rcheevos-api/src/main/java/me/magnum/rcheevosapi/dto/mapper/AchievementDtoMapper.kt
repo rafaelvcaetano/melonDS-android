@@ -2,11 +2,13 @@ package me.magnum.rcheevosapi.dto.mapper
 
 import me.magnum.rcheevosapi.dto.AchievementDto
 import me.magnum.rcheevosapi.model.RAAchievement
+import me.magnum.rcheevosapi.model.RAGameId
 import java.net.URL
 
-internal fun AchievementDto.mapToModel(): RAAchievement {
+internal fun AchievementDto.mapToModel(gameId: RAGameId): RAAchievement {
     return RAAchievement(
         id = id.toLong(),
+        gameId = gameId,
         totalAwardsCasual = numAwarded,
         totalAwardsHardcore = numAwardedHardcore,
         title = title,

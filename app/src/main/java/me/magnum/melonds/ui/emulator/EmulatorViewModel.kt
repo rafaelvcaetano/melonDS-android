@@ -12,6 +12,10 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.rxMaybe
 import me.magnum.melonds.common.Schedulers
@@ -25,6 +29,7 @@ import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
 import me.magnum.melonds.ui.emulator.exceptions.SramLoadException
 import me.magnum.melonds.ui.emulator.firmware.FirmwarePauseMenuOption
 import me.magnum.melonds.ui.emulator.rom.RomPauseMenuOption
+import me.magnum.rcheevosapi.model.RAAchievement
 import java.util.*
 import javax.inject.Inject
 
@@ -47,6 +52,8 @@ class EmulatorViewModel @Inject constructor(
     private var backgroundLoadDisposable: Disposable? = null
     private val layoutLiveData = MutableLiveData<LayoutConfiguration>()
     private val backgroundLiveData = MutableLiveData<RuntimeBackground>()
+    private val _achievementTriggeredEvent = MutableSharedFlow<RAAchievement>(extraBufferCapacity = 5, onBufferOverflow = BufferOverflow.SUSPEND)
+    val achievementTriggeredEvent = _achievementTriggeredEvent.asSharedFlow()
 
     private var currentSystemOrientation: Orientation? = null
 
@@ -292,6 +299,18 @@ class EmulatorViewModel @Inject constructor(
         }
 
         return liveData
+    }
+
+    fun onAchievementTriggered(achievementId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            retroAchievementsRepository.getAchievement(achievementId)
+                .onSuccess {
+                    if (it != null) {
+                        _achievementTriggeredEvent.emit(it)
+                        retroAchievementsRepository.awardAchievement(it)
+                    }
+                }
+        }
     }
 
     private fun filterRomPauseMenuOption(option: RomPauseMenuOption): Boolean {

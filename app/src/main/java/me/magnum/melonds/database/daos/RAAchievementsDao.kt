@@ -1,10 +1,7 @@
 package me.magnum.melonds.database.daos
 
 import androidx.room.*
-import me.magnum.melonds.database.entities.retroachievements.RAAchievementEntity
-import me.magnum.melonds.database.entities.retroachievements.RAGameHashEntity
-import me.magnum.melonds.database.entities.retroachievements.RAGameSetMetadata
-import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEntity
+import me.magnum.melonds.database.entities.retroachievements.*
 
 @Dao
 interface RAAchievementsDao {
@@ -28,6 +25,9 @@ interface RAAchievementsDao {
     suspend fun deleteGameUserUnlockedAchievements(gameId: Long)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun addUserAchievement(userAchievement: RAUserAchievementEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGameUserUnlockedAchievements(userAchievements: List<RAUserAchievementEntity>)
 
     @Transaction
@@ -35,6 +35,12 @@ interface RAAchievementsDao {
         deleteGameUserUnlockedAchievements(gameId)
         insertGameUserUnlockedAchievements(userAchievements)
     }
+
+    @Query("SELECT * FROM ra_achievement WHERE id = :achievementId")
+    suspend fun getAchievement(achievementId: Long): RAAchievementEntity?
+
+    @Insert
+    suspend fun addPendingAchievementSubmission(pendingAchievementSubmission: RAPendingAchievementSubmissionEntity)
 
     @Query("DELETE FROM ra_game_hash_library")
     suspend fun deleteGameHashLibrary()

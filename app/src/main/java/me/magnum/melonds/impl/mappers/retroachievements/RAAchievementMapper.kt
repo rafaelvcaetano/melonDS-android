@@ -5,7 +5,7 @@ import me.magnum.rcheevosapi.model.RAAchievement
 import me.magnum.rcheevosapi.model.RAGameId
 import java.net.URL
 
-fun RAAchievement.mapToEntity(gameId: RAGameId): RAAchievementEntity {
+fun RAAchievement.mapToEntity(): RAAchievementEntity {
     return RAAchievementEntity(
         id,
         gameId.id,
@@ -18,13 +18,14 @@ fun RAAchievement.mapToEntity(gameId: RAGameId): RAAchievementEntity {
         badgeUrlUnlocked.toString(),
         badgeUrlLocked.toString(),
         memoryAddress,
-        type.ordinal,
+        type.toEntityType(),
     )
 }
 
 fun RAAchievementEntity.mapToModel(): RAAchievement {
     return RAAchievement(
         id,
+        RAGameId(gameId),
         totalAwardsCasual,
         totalAwardsHardcore,
         title,
@@ -34,6 +35,21 @@ fun RAAchievementEntity.mapToModel(): RAAchievement {
         URL(badgeUrlUnlocked),
         URL(badgeUrlLocked),
         memoryAddress,
-        RAAchievement.Type.values()[type],
+        parseAchievementType(type),
     )
+}
+
+private fun RAAchievement.Type.toEntityType(): Int {
+    return when (this) {
+        RAAchievement.Type.CORE -> 0
+        RAAchievement.Type.UNOFFICIAL -> 1
+    }
+}
+
+private fun parseAchievementType(type: Int): RAAchievement.Type {
+    return when (type) {
+        0 -> RAAchievement.Type.CORE
+        1 -> RAAchievement.Type.UNOFFICIAL
+        else -> throw UnsupportedOperationException("Unknown achievement type: $type")
+    }
 }
