@@ -15,8 +15,17 @@ interface RAAchievementsDao {
     @Query("SELECT * FROM ra_achievement WHERE game_id = :gameId")
     suspend fun getGameAchievements(gameId: Long): List<RAAchievementEntity>
 
+    @Query("DELETE FROM ra_achievement WHERE game_id = :gameId")
+    suspend fun deleteGameAchievements(gameId: Long)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun updateGameAchievements(achievements: List<RAAchievementEntity>)
+    suspend fun insertGameAchievements(achievements: List<RAAchievementEntity>)
+
+    @Transaction
+    suspend fun updateGameAchievements(gameId: Long, achievements: List<RAAchievementEntity>) {
+        deleteGameAchievements(gameId)
+        insertGameAchievements(achievements)
+    }
 
     @Query("SELECT * FROM ra_user_achievement WHERE game_id = :gameId AND is_unlocked = 1")
     suspend fun getGameUserUnlockedAchievements(gameId: Long): List<RAUserAchievementEntity>

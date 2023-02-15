@@ -160,7 +160,7 @@ class AndroidRetroAchievementsRepository(
                 }
 
                 val newMetadata = gameSetMetadata.withNewAchievementSetUpdate()
-                achievementsDao.updateGameAchievements(achievementEntities)
+                achievementsDao.updateGameAchievements(gameId.id, achievementEntities)
                 achievementsDao.updateGameSetMetadata(newMetadata)
             }
         } else {

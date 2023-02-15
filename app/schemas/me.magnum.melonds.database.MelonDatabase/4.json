@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 4,
-    "identityHash": "126974e0a60e85a99fb37f5719c8334f",
+    "identityHash": "40fd5c077ef0529f8ed3bc2647baefab",
     "entities": [
       {
         "tableName": "cheat_database",
@@ -339,7 +339,7 @@
       },
       {
         "tableName": "ra_user_achievement",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`game_id` INTEGER NOT NULL, `achievement_id` INTEGER NOT NULL, `is_unlocked` INTEGER NOT NULL, PRIMARY KEY(`game_id`, `achievement_id`), FOREIGN KEY(`achievement_id`) REFERENCES `ra_achievement`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`game_id` INTEGER NOT NULL, `achievement_id` INTEGER NOT NULL, `is_unlocked` INTEGER NOT NULL, PRIMARY KEY(`game_id`, `achievement_id`))",
         "fields": [
           {
             "fieldPath": "gameId",
@@ -368,19 +368,7 @@
           "autoGenerate": false
         },
         "indices": [],
-        "foreignKeys": [
-          {
-            "table": "ra_achievement",
-            "onDelete": "CASCADE",
-            "onUpdate": "NO ACTION",
-            "columns": [
-              "achievement_id"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
-          }
-        ]
+        "foreignKeys": []
       },
       {
         "tableName": "ra_game_set_metadata",
@@ -477,7 +465,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '126974e0a60e85a99fb37f5719c8334f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '40fd5c077ef0529f8ed3bc2647baefab')"
     ]
   }
 }
