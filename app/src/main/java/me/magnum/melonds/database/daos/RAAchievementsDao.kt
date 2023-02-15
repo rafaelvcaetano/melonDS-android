@@ -39,8 +39,14 @@ interface RAAchievementsDao {
     @Query("SELECT * FROM ra_achievement WHERE id = :achievementId")
     suspend fun getAchievement(achievementId: Long): RAAchievementEntity?
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addPendingAchievementSubmission(pendingAchievementSubmission: RAPendingAchievementSubmissionEntity)
+
+    @Query("SELECT * FROM ra_pending_achievement_award")
+    suspend fun getPendingAchievementSubmissions(): List<RAPendingAchievementSubmissionEntity>
+
+    @Delete
+    suspend fun removePendingAchievementSubmission(pendingAchievementSubmission: RAPendingAchievementSubmissionEntity)
 
     @Query("DELETE FROM ra_game_hash_library")
     suspend fun deleteGameHashLibrary()

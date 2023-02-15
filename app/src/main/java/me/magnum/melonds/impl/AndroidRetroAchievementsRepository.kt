@@ -1,7 +1,10 @@
 package me.magnum.melonds.impl
 
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import androidx.work.*
+import me.magnum.melonds.common.workers.RetroAchievementsSubmissionWorker
 import me.magnum.melonds.database.daos.RAAchievementsDao
 import me.magnum.melonds.database.entities.retroachievements.RAGameHashEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameSetMetadata
@@ -17,16 +20,19 @@ import me.magnum.rcheevosapi.model.RAAchievement
 import me.magnum.rcheevosapi.model.RAGameId
 import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 
 class AndroidRetroAchievementsRepository(
     private val raApi: RAApi,
     private val achievementsDao: RAAchievementsDao,
     private val raUserAuthStore: RAUserAuthStore,
     private val sharedPreferences: SharedPreferences,
+    private val context: Context,
 ) : RetroAchievementsRepository {
 
     private companion object {
         const val RA_HASH_LIBRARY_LAST_UPDATED = "ra_hash_library_last_updated"
+        const val PENDING_ACHIEVEMENT_SUBMISSION_WORKER_NAME = "ra_pending_achievement_submission_worker"
     }
 
     override suspend fun isUserAuthenticated(): Boolean {
@@ -82,17 +88,39 @@ class AndroidRetroAchievementsRepository(
     }
 
     override suspend fun awardAchievement(achievement: RAAchievement) {
-        runCatching {
-            raApi.awardAchievement(achievement, false)
-        }.onSuccess {
-            val userAchievement = RAUserAchievementEntity(achievement.gameId.id, achievement.id, true)
-            achievementsDao.addUserAchievement(userAchievement)
-        }.onFailure {
+        submitAchievementAward(achievement.id, achievement.gameId, false, true)
+    }
+
+    override suspend fun submitPendingAchievements(): Result<Unit> {
+        achievementsDao.getPendingAchievementSubmissions().forEach {
+            // Do not schedule resubmission if this fails. The current submission job should schedule another attempt
+            val submissionResult = submitAchievementAward(it.achievementId, RAGameId(it.gameId), it.forHardcoreMode, false)
+            if (submissionResult.isFailure) {
+                return submissionResult
+            }
+
+            achievementsDao.removePendingAchievementSubmission(it)
+        }
+
+        return Result.success(Unit)
+    }
+
+    private suspend fun submitAchievementAward(achievementId: Long, gameId: RAGameId, forHardcoreMode: Boolean, scheduleResubmissionOnFailure: Boolean): Result<Unit> {
+        // Award the achievement immediately locally
+        val userAchievement = RAUserAchievementEntity(gameId.id, achievementId, true)
+        achievementsDao.addUserAchievement(userAchievement)
+
+        return raApi.awardAchievement(achievementId, forHardcoreMode).onFailure {
+            // On failure, insert it into the pending achievements to be re-submitted later
             val pendingAchievementSubmissionEntity = RAPendingAchievementSubmissionEntity(
-                achievementId = achievement.id,
-                forHardcoreMode = false,
+                achievementId = achievementId,
+                gameId = gameId.id,
+                forHardcoreMode = forHardcoreMode,
             )
             achievementsDao.addPendingAchievementSubmission(pendingAchievementSubmissionEntity)
+            if (scheduleResubmissionOnFailure) {
+                scheduleAchievementSubmissionJob()
+            }
         }
     }
 
@@ -194,6 +222,20 @@ class AndroidRetroAchievementsRepository(
 
         // Sync user achievement data once a day
         return Duration.between(gameSetMetadata.lastUserDataUpdated, Instant.now()) >= Duration.ofDays(1)
+    }
+
+    private fun scheduleAchievementSubmissionJob() {
+        val workConstraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val workRequest = OneTimeWorkRequestBuilder<RetroAchievementsSubmissionWorker>()
+            .setConstraints(workConstraints)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 60, TimeUnit.SECONDS)
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(PENDING_ACHIEVEMENT_SUBMISSION_WORKER_NAME, ExistingWorkPolicy.APPEND_OR_REPLACE, workRequest)
     }
 
     private class CurrentGameSetMetadata(private val gameId: RAGameId, initialMetadata: RAGameSetMetadata?) {

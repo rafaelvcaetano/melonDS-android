@@ -6,7 +6,6 @@ import me.magnum.rcheevosapi.dto.*
 import me.magnum.rcheevosapi.dto.mapper.mapToModel
 import me.magnum.rcheevosapi.exception.UnsuccessfulRequestException
 import me.magnum.rcheevosapi.exception.UserNotAuthenticatedException
-import me.magnum.rcheevosapi.model.RAAchievement
 import me.magnum.rcheevosapi.model.RAGame
 import me.magnum.rcheevosapi.model.RAGameId
 import me.magnum.rcheevosapi.model.RAUserAuth
@@ -119,17 +118,17 @@ class RAApi(
         )
     }
 
-    suspend fun awardAchievement(achievement: RAAchievement, forHardcoreMode: Boolean): Result<Unit> {
+    suspend fun awardAchievement(achievementId: Long, forHardcoreMode: Boolean): Result<Unit> {
         val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
 
-        val signature = achievementSignatureProvider.provideAchievementSignature(achievement, userAuth, forHardcoreMode)
+        val signature = achievementSignatureProvider.provideAchievementSignature(achievementId, userAuth, forHardcoreMode)
 
         return get(
             mapOf(
                 PARAMETER_REQUEST to REQUEST_AWARD_ACHIEVEMENT,
                 PARAMETER_USER to userAuth.username,
                 PARAMETER_TOKEN to userAuth.token,
-                PARAMETER_ACHIEVEMENT_ID to achievement.id.toString(),
+                PARAMETER_ACHIEVEMENT_ID to achievementId.toString(),
                 // TODO: Maybe send game hash?
                 PARAMETER_IS_HARDMODE to if (forHardcoreMode) VALUE_HARDMODE_ENABLED else VALUE_HARDMODE_DISABLED,
                 PARAMETER_SIGNATURE to signature,

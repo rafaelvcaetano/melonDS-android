@@ -304,6 +304,7 @@
     <string name="points">Points</string>
     <string name="completed">Completed</string>
     <string name="completed_achievements"><b>%1$d</b> of <b>%2$d</b> (%3$d%%)</string>
+    <string name="submitting_achievements">Submitting RetroAchievements…</string>
 
     <string-array name="fast_forward_speed_multiplier_options">
         <item>Unlimited</item>
