@@ -185,6 +185,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
         override fun onAchievementTriggered(achievementId: Long) {
             Log.d("RetroAchievements", "Achievement triggered: $achievementId")
+            viewModel.onAchievementTriggered(achievementId)
         }
 
         override fun onAchievementUnprimed(achievementId: Long) {

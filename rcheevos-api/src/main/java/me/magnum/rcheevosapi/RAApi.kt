@@ -132,7 +132,13 @@ class RAApi(
                 // TODO: Maybe send game hash?
                 PARAMETER_IS_HARDMODE to if (forHardcoreMode) VALUE_HARDMODE_ENABLED else VALUE_HARDMODE_DISABLED,
                 PARAMETER_SIGNATURE to signature,
-            )
+            ),
+            errorHandler = {
+                // Ignore errors if the achievement has already been awarded to the user
+                if (it != "User already has") {
+                    throw UnsuccessfulRequestException(it ?: "Unknown reason")
+                }
+            }
         )
     }
 
@@ -152,7 +158,10 @@ class RAApi(
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    private suspend inline fun <reified T> get(parameters: Map<String, String>): Result<T> {
+    private suspend inline fun <reified T> get(
+        parameters: Map<String, String>,
+        errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") }
+    ): Result<T> {
         val request = buildGetRequest(parameters)
         return runCatching {
             executeRequest(request)
@@ -162,7 +171,8 @@ class RAApi(
                 val isSuccessful = json.asJsonObject["Success"].asBoolean
                 if (!isSuccessful) {
                     val reason = json.asJsonObject["Error"]?.asString
-                    throw UnsuccessfulRequestException(reason ?: "Unknown reason")
+                    // The error handler may choose to ignore the error
+                    errorHandler.invoke(reason)
                 }
 
                 if (T::class == Unit::class) {
