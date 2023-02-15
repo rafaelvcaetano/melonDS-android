@@ -34,7 +34,13 @@ class RomRetroAchievementsViewModel @Inject constructor(
         viewModelScope.launch {
             if (retroAchievementsRepository.isUserAuthenticated()) {
                 retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash).fold(
-                    onSuccess = { _uiState.value = RomRetroAchievementsUiState.Ready(it, buildAchievementsSummary(it)) },
+                    onSuccess = { achievements ->
+                        val sortedAchievements = achievements.sortedBy {
+                            // Display unlocked achievements first
+                            if (it.isUnlocked) 0 else 1
+                        }
+                        _uiState.value = RomRetroAchievementsUiState.Ready(sortedAchievements, buildAchievementsSummary(sortedAchievements))
+                    },
                     onFailure = { _uiState.value = RomRetroAchievementsUiState.AchievementLoadError },
                 )
             } else {
