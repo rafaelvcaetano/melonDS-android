@@ -139,11 +139,14 @@ class AndroidRetroAchievementsRepository(
                 .map {
                     it[gameHash]
                 }
+                .recoverCatching {
+                    achievementsDao.getGameHashEntity(gameHash)?.let {
+                        RAGameId(it.gameId)
+                    }
+                }
         } else {
             runCatching {
-                achievementsDao.getGameHashEntity(gameHash)
-            }.map {
-                it?.let {
+                achievementsDao.getGameHashEntity(gameHash)?.let {
                     RAGameId(it.gameId)
                 }
             }
