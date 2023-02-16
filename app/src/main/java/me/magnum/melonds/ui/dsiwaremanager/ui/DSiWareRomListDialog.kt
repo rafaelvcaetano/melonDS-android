@@ -258,9 +258,9 @@ private fun PreviewDSiWareRomListDialog() {
         DSiWareRomListDialogImpl(
             romsUiState = DSiWareMangerRomListUiState.Loaded(
                 listOf(
-                    Rom("Legit Game", "legit_game.nds", Uri.EMPTY, Uri.EMPTY, RomConfig(), null, true, ""),
-                    Rom("Legit Game: Snapped!", "legit_game_snapped.nds", Uri.EMPTY, Uri.EMPTY, RomConfig(), null, true, ""),
-                    Rom("Highway 4 - Mediocre Racing", "highway_4_mediocre_racing.nds", Uri.EMPTY, Uri.EMPTY, RomConfig(), null, true, ""),
+                    Rom("Legit Game", "Gamewicked", "legit_game.nds", Uri.EMPTY, Uri.EMPTY, RomConfig(), null, true, ""),
+                    Rom("Legit Game: Snapped!", "Nontendo", "legit_game_snapped.nds", Uri.EMPTY, Uri.EMPTY, RomConfig(), null, true, ""),
+                    Rom("Highway 4 - Mediocre Racing", "Someware", "highway_4_mediocre_racing.nds", Uri.EMPTY, Uri.EMPTY, RomConfig(), null, true, ""),
                 )
             ),
             onDismiss = {},

@@ -121,7 +121,7 @@ fun RomHeaderUi(
 
                         Column(Modifier.padding(top = 4.dp)) {
                             Text(
-                                text = "Producer",
+                                text = rom.developerName,
                                 style = MaterialTheme.typography.body1,
                             )
                         }
@@ -195,6 +195,7 @@ private fun PreviewRomHeaderUi() {
             modifier = Modifier.fillMaxWidth(),
             rom = Rom(
                 name = "Professor Layton and the Lost Future",
+                developerName = "Nontendo",
                 fileName = "layton.nds",
                 uri = Uri.EMPTY,
                 parentTreeUri = Uri.EMPTY,

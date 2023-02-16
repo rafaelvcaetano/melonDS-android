@@ -19,6 +19,7 @@ import kotlin.math.min
 object RomProcessor {
 	private val DSIWARE_CATEGORY = 0x00030004.toUInt()
 	private const val KEY_ROM_NAME = "name"
+	private const val KEY_DEVELOPER_NAME = "developer"
 	private const val KEY_ROM_IS_DSIWARE_TITLE = "isDsiWareTitle"
 	private const val KEY_ARM9_BOOTCODE = "arm9Bootcode"
 	private const val KEY_ARM7_BOOTCODE = "arm7Bootcode"
@@ -68,13 +69,13 @@ object RomProcessor {
 							save(KEY_BANNER, banner)
 
 							val titleData = banner.copyOfRange(0x340, 0x340 + 256)
+							val titleString = String(titleData, StandardCharsets.UTF_16LE).trim().replace("\u0000", "")
 
-							val title = String(titleData, StandardCharsets.UTF_16LE)
-								.trim()
-								.substringBeforeLast('\n')
-								.replace("\n", " ")
+							val title = titleString.substringBeforeLast('\n').replace("\n", " ")
+							val developer = titleString.substringAfterLast('\n')
 
 							save(KEY_ROM_NAME, title)
+							save(KEY_DEVELOPER_NAME, developer)
 						}
 
 						register(arm9Processor)
@@ -97,6 +98,7 @@ object RomProcessor {
 		}
 
 		val romName = romStreamProcessor.getValue<String>(KEY_ROM_NAME)
+		val developerName = romStreamProcessor.getValue<String>(KEY_DEVELOPER_NAME)
 		val isDsiWareTitle = romStreamProcessor.getValue<Boolean>(KEY_ROM_IS_DSIWARE_TITLE)
 
 		val header = romStreamProcessor.getValue<ByteArray>(KEY_HEADER)
@@ -117,6 +119,7 @@ object RomProcessor {
 
 		return RomMetadata(
 			romName,
+			developerName,
 			isDsiWareTitle,
 			retroAchievemetnsHash,
 		)

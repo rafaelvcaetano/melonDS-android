@@ -17,6 +17,7 @@ class RomParcelable : Parcelable {
 
     private constructor(parcel: Parcel) {
         val name = parcel.readString()
+        val developerName = parcel.readString()!!
         val fileName = parcel.readString()
         val uri = parcel.readString()!!.toUri()
         val parentTreeUri = parcel.readString()!!.toUri()
@@ -24,11 +25,12 @@ class RomParcelable : Parcelable {
         val romConfig = parcel.parcelable<RomConfigParcelable>()
         val isDsiWareTitle = parcel.readInt() == 1
         val retroAchievementsHash = parcel.readString()!!
-        rom = Rom(name!!, fileName!!, uri, parentTreeUri, romConfig!!.romConfig, lastPlayed, isDsiWareTitle, retroAchievementsHash)
+        rom = Rom(name!!, developerName, fileName!!, uri, parentTreeUri, romConfig!!.romConfig, lastPlayed, isDsiWareTitle, retroAchievementsHash)
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
         dest.writeString(rom.name)
+        dest.writeString(rom.developerName)
         dest.writeString(rom.fileName)
         dest.writeString(rom.uri.toString())
         dest.writeString(rom.parentTreeUri.toString())

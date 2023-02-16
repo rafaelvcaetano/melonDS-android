@@ -1,7 +1,6 @@
 package me.magnum.melonds.migrations.legacy
 
 import android.net.Uri
-import me.magnum.melonds.domain.model.RomConfig
 import java.util.*
 
 /**
@@ -12,7 +11,7 @@ data class Rom22(
     val fileName: String,
     val uri: Uri,
     val parentTreeUri: Uri,
-    var config: RomConfig,
+    var config: RomConfig1,
     var lastPlayed: Date? = null,
     val isDsiWareTitle: Boolean,
 )

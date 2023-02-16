@@ -38,6 +38,7 @@ object MigrationModule {
             registerMigration(Migration16to17(romsRepository))
             registerMigration(Migration20to21(settingsRepository, romsRepository, directoryAccessValidator))
             registerMigration(Migration21to22(context, gson, uriHandler))
+            registerMigration(Migration24to25(RomMigrationHelper(context, gson), context))
         }
     }
 }

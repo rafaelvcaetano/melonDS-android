@@ -19,6 +19,7 @@ import me.magnum.melonds.domain.model.RomScanningStatus
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.addTo
+import me.magnum.melonds.impl.dtos.RomDto
 import me.magnum.melonds.utils.FileUtils
 import me.magnum.melonds.utils.SubjectSharedFlow
 import java.io.File
@@ -208,7 +209,9 @@ class FileSystemRomsRepository(
         }
 
         return runCatching {
-            gson.fromJson<List<Rom>>(FileReader(cacheFile), romListType)
+            gson.fromJson<List<RomDto>>(FileReader(cacheFile), romListType).map {
+                it.toModel()
+            }
         }.getOrElse { emptyList() }
     }
 
@@ -216,7 +219,10 @@ class FileSystemRomsRepository(
         val cacheFile = File(context.filesDir, ROM_DATA_FILE)
 
         try {
-            val romsJson = gson.toJson(romData)
+            val romDtos = romData.map {
+                RomDto.fromModel(it)
+            }
+            val romsJson = gson.toJson(romDtos)
 
             val output = OutputStreamWriter(cacheFile.outputStream())
             output.write(romsJson)

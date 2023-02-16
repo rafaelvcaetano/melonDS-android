@@ -5,6 +5,7 @@ import java.util.*
 
 data class Rom(
     val name: String,
+    val developerName: String,
     val fileName: String,
     val uri: Uri,
     val parentTreeUri: Uri,

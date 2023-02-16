@@ -20,7 +20,17 @@ class NdsRomFileProcessor(private val context: Context, private val uriHandler: 
             getRomMetadata(romUri)?.let { metadata ->
                 val romDocument = uriHandler.getUriDocument(romUri)
                 val romName = metadata.romTitle.takeUnless { it.isBlank() } ?: romDocument?.nameWithoutExtension ?: ""
-                Rom(romName, romDocument?.name ?: "", romUri, parentUri, RomConfig(), null, metadata.isDSiWareTitle, metadata.retroAchievementsHash)
+                Rom(
+                    name = romName,
+                    developerName = metadata.developerName,
+                    fileName = romDocument?.name ?: "",
+                    uri = romUri,
+                    parentTreeUri = parentUri,
+                    config = RomConfig(),
+                    lastPlayed = null,
+                    isDsiWareTitle = metadata.isDSiWareTitle,
+                    retroAchievementsHash = metadata.retroAchievementsHash
+                )
             }
         } catch (e: Exception) {
             e.printStackTrace()

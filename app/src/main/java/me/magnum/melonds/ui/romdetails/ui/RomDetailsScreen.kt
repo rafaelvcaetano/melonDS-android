@@ -84,6 +84,7 @@ private fun PreviewRomScreen() {
             modifier = Modifier.fillMaxSize(),
             rom = Rom(
                 name = "Professor Layton and the Unwound Future",
+                developerName = "Nontendo",
                 fileName = "layton.nds",
                 uri = Uri.EMPTY,
                 parentTreeUri = Uri.EMPTY,

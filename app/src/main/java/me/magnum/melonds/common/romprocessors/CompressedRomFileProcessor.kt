@@ -27,7 +27,17 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
                     val romDocument = uriHandler.getUriDocument(romUri)
                     val romMetadata = getRomMetadataInZipEntry(romFileStream)
                     val romName = romMetadata.romTitle.takeUnless { it.isBlank() } ?: romDocument?.nameWithoutExtension ?: ""
-                    Rom(romName, romDocument?.name ?: "", romUri, parentUri, RomConfig(), null, romMetadata.isDSiWareTitle, romMetadata.retroAchievementsHash)
+                    Rom(
+                        name = romName,
+                        developerName = romMetadata.developerName,
+                        fileName = romDocument?.name ?: "",
+                        uri = romUri,
+                        parentTreeUri = parentUri,
+                        config = RomConfig(),
+                        lastPlayed = null,
+                        isDsiWareTitle = romMetadata.isDSiWareTitle,
+                        retroAchievementsHash = romMetadata.retroAchievementsHash
+                    )
                 }
             }
         } catch (e: Exception) {
