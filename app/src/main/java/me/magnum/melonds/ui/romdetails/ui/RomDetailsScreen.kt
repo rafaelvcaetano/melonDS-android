@@ -12,10 +12,8 @@ import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.launch
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
-import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.ui.common.MelonPreviewSet
 import me.magnum.melonds.ui.romdetails.model.*
-import me.magnum.melonds.ui.romlist.RomIcon
 import me.magnum.melonds.ui.theme.MelonTheme
 import java.util.*
 
@@ -26,7 +24,6 @@ fun RomScreen(
     rom: Rom,
     romConfigUiState: RomConfigUiState,
     retroAchievementsUiState: RomRetroAchievementsUiState,
-    loadRomIcon: suspend (Rom) -> RomIcon,
     onNavigateBack: () -> Unit,
     onLaunchRom: (Rom) -> Unit,
     onRomConfigUpdate: (RomConfigUpdateEvent) -> Unit,
@@ -40,16 +37,14 @@ fun RomScreen(
         RomHeaderUi(
             modifier = Modifier.fillMaxWidth(),
             rom = rom,
-            loadRomIcon = { loadRomIcon(rom) },
             pagerState = pagerState,
             onLaunchRom = { onLaunchRom(rom) },
-            onNavigateBack = onNavigateBack,
-            onTabClicked = {
-                coroutineScope.launch {
-                    pagerState.scrollToPage(it.tabIndex)
-                }
+            onNavigateBack = onNavigateBack
+        ) {
+            coroutineScope.launch {
+                pagerState.scrollToPage(it.tabIndex)
             }
-        )
+        }
         HorizontalPager(
             modifier = Modifier.fillMaxWidth().weight(1f),
             count = RomDetailsTab.values().size,
@@ -99,12 +94,10 @@ private fun PreviewRomScreen() {
                 ),
             ),
             retroAchievementsUiState = RomRetroAchievementsUiState.LoggedOut,
-            loadRomIcon = { RomIcon(null, RomIconFiltering.NONE) },
-            onLaunchRom = { },
             onNavigateBack = { },
+            onLaunchRom = { },
             onRomConfigUpdate = { },
             onRetroAchievementsLogin = { _, _ -> },
-            onRetroAchievementsRetryLoad = { },
-        )
+        ) { }
     }
 }

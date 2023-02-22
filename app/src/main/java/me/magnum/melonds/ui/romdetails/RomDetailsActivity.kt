@@ -42,22 +42,20 @@ class RomDetailsActivity : AppCompatActivity() {
                     rom = rom,
                     romConfigUiState = romConfig,
                     retroAchievementsUiState = retroAchievementsUiState,
-                    loadRomIcon = { romDetailsViewModel.getRomIcon(it) },
+                    onNavigateBack = { onNavigateUp() },
                     onLaunchRom = {
                         val intent = EmulatorActivity.getRomEmulatorActivityIntent(this, it)
                         startActivity(intent)
                     },
-                    onNavigateBack = { onNavigateUp() },
                     onRomConfigUpdate = {
                         romDetailsViewModel.onRomConfigUpdateEvent(it)
                     },
                     onRetroAchievementsLogin = { username, password ->
                         romRetroAchievementsViewModel.login(username, password)
-                    },
-                    onRetroAchievementsRetryLoad = {
-                        romRetroAchievementsViewModel.retryLoadAchievements()
                     }
-                )
+                ) {
+                    romRetroAchievementsViewModel.retryLoadAchievements()
+                }
             }
         }
     }

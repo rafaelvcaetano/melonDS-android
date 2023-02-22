@@ -1,27 +1,17 @@
 package me.magnum.melonds.ui.romdetails.ui
 
 import android.net.Uri
-import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.createBitmap
-import androidx.core.graphics.set
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.pagerTabIndicatorOffset
@@ -30,10 +20,8 @@ import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
-import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.ui.common.MelonPreviewSet
 import me.magnum.melonds.ui.romdetails.model.RomDetailsTab
-import me.magnum.melonds.ui.romlist.RomIcon
 import me.magnum.melonds.ui.theme.MelonTheme
 import java.util.*
 
@@ -43,7 +31,6 @@ fun RomHeaderUi(
     modifier: Modifier,
     rom: Rom,
     pagerState: PagerState,
-    loadRomIcon: suspend () -> RomIcon,
     onLaunchRom: () -> Unit,
     onNavigateBack: () -> Unit,
     onTabClicked: (RomDetailsTab) -> Unit,
@@ -58,90 +45,29 @@ fun RomHeaderUi(
                 TopAppBar(
                     backgroundColor = MaterialTheme.colors.surface,
                     elevation = 0.dp,
-                    title = { },
+                    title = {
+                        Text(
+                            text = rom.name,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(Icons.Filled.ArrowBack, null)
                         }
+                    },
+                    actions = {
+                        Button(
+                            modifier = Modifier.padding(8.dp),
+                            shape = RoundedCornerShape(50),
+                            onClick = onLaunchRom,
+                            colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary, contentColor = MaterialTheme.colors.onSecondary),
+                        ) {
+                            Text(text = stringResource(R.string.play).uppercase())
+                        }
                     }
                 )
-                Row(
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-
-                    var romIcon by remember {
-                        mutableStateOf<RomIcon?>(null)
-                    }
-                    LaunchedEffect(rom) {
-                        romIcon = loadRomIcon()
-                    }
-
-                    if (romIcon == null) {
-                        val infiniteAnimation = rememberInfiniteTransition()
-
-                        val animatedColor = infiniteAnimation.animateColor(
-                            initialValue = Color.DarkGray,
-                            targetValue = Color.LightGray,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(500, easing = LinearEasing),
-                                repeatMode = RepeatMode.Reverse,
-                            )
-                        )
-                        Box(
-                            Modifier
-                                .size(64.dp)
-                                .background(animatedColor.value))
-
-                        Spacer(Modifier.width(12.dp))
-                    } else {
-                        val currentRomIcon = romIcon
-                        currentRomIcon?.bitmap?.let {
-                            Image(
-                                modifier = Modifier.size(64.dp),
-                                bitmap = it.asImageBitmap(),
-                                contentDescription = null,
-                                filterQuality = when (currentRomIcon.filtering) {
-                                    RomIconFiltering.NONE -> FilterQuality.None
-                                    RomIconFiltering.LINEAR -> DrawScope.DefaultFilterQuality
-                                },
-                            )
-
-                            Spacer(Modifier.width(12.dp))
-                        }
-                    }
-
-                    Column {
-                        Text(
-                            text = rom.name,
-                            style = MaterialTheme.typography.h5,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-
-                        Column(Modifier.padding(top = 4.dp)) {
-                            Text(
-                                text = rom.developerName,
-                                style = MaterialTheme.typography.body1,
-                            )
-                        }
-                    }
-                }
-
-                Spacer(Modifier.height(4.dp))
-
-                Button(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(50),
-                    onClick = onLaunchRom,
-                    colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary, contentColor = MaterialTheme.colors.onSecondary),
-                ) {
-                    Text(text = stringResource(R.string.play).uppercase())
-                }
-
-                Spacer(Modifier.height(4.dp))
 
                 TabRow(
                     modifier = Modifier.fillMaxWidth(),
@@ -185,8 +111,6 @@ fun RomHeaderUi(
 @MelonPreviewSet
 @Composable
 private fun PreviewRomHeaderUi() {
-    val bitmap = createBitmap(1, 1).apply { this[0, 0] = 0xFF777777.toInt() }
-
     MelonTheme {
         val pagerState = rememberPagerState(RomDetailsTab.CONFIG.tabIndex)
         val coroutineScope = rememberCoroutineScope()
@@ -204,20 +128,13 @@ private fun PreviewRomHeaderUi() {
                 isDsiWareTitle = false,
                 retroAchievementsHash = "",
             ),
-            loadRomIcon = {
-                RomIcon(
-                    bitmap,
-                    RomIconFiltering.NONE,
-                )
-            },
             pagerState = pagerState,
             onLaunchRom = { },
-            onNavigateBack = { },
-            onTabClicked = {
-                coroutineScope.launch {
-                    pagerState.scrollToPage(it.tabIndex)
-                }
+            onNavigateBack = { }
+        ) {
+            coroutineScope.launch {
+                pagerState.scrollToPage(it.tabIndex)
             }
-        )
+        }
     }
 }
