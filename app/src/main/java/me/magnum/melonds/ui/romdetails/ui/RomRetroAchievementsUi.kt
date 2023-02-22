@@ -73,7 +73,7 @@ private fun LoggedOut(
     }
 
     Box(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier.padding(32.dp),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -213,7 +213,7 @@ private fun Loading(modifier: Modifier) {
 @Composable
 private fun NoAchievements(modifier: Modifier) {
     Box(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier.padding(32.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -317,7 +317,7 @@ private fun LoginError(
     }
 
     Box(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier.padding(32.dp),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -355,7 +355,7 @@ private fun LoadError(
     onRetry: () -> Unit,
 ) {
     Box(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier.padding(32.dp),
         contentAlignment = Alignment.Center,
     ) {
         Column(

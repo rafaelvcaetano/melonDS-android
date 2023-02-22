@@ -42,7 +42,7 @@ fun RomScreen(
             onNavigateBack = onNavigateBack
         ) {
             coroutineScope.launch {
-                pagerState.scrollToPage(it.tabIndex)
+                pagerState.animateScrollToPage(it.tabIndex)
             }
         }
         HorizontalPager(
