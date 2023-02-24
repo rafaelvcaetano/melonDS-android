@@ -43,7 +43,7 @@ class FileSystemRomsRepository(
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
     private val disposables = CompositeDisposable()
-    private val romListType: Type = object : TypeToken<List<Rom>>(){}.type
+    private val romListType: Type = object : TypeToken<List<RomDto>>(){}.type
     private val romsChannel = SubjectSharedFlow<List<Rom>>()
     private val scanningStatusSubject = MutableStateFlow(RomScanningStatus.NOT_SCANNING)
     private val roms: ArrayList<Rom> = ArrayList()
