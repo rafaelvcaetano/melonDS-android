@@ -4,7 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
@@ -12,6 +15,7 @@ import me.magnum.melonds.domain.repositories.RetroAchievementsRepository
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.romdetails.model.RomAchievementsSummary
 import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
+import me.magnum.rcheevosapi.model.RAAchievement
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,6 +33,9 @@ class RomRetroAchievementsViewModel @Inject constructor(
         loadAchievements()
         _uiState.asStateFlow()
     }
+
+    private val _viewAchievementEvent = MutableSharedFlow<String>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val viewAchievementEvent = _viewAchievementEvent.asSharedFlow()
 
     private fun loadAchievements() {
         viewModelScope.launch {
@@ -64,6 +71,11 @@ class RomRetroAchievementsViewModel @Inject constructor(
     fun retryLoadAchievements() {
         _uiState.value = RomRetroAchievementsUiState.Loading
         loadAchievements()
+    }
+
+    fun viewAchievement(achievement: RAAchievement) {
+        val achievementUrl = "https://retroachievements.org/achievement/${achievement.id}"
+        _viewAchievementEvent.tryEmit(achievementUrl)
     }
 
     private fun buildAchievementsSummary(userAchievements: List<RAUserAchievement>): RomAchievementsSummary {

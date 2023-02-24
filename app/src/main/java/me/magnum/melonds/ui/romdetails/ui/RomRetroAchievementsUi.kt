@@ -10,27 +10,21 @@ import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import me.magnum.melonds.R
 import me.magnum.melonds.ui.common.MelonPreviewSet
-import me.magnum.melonds.ui.common.autofill
 import me.magnum.melonds.ui.common.melonButtonColors
-import me.magnum.melonds.ui.common.melonOutlinedTextFieldColors
 import me.magnum.melonds.ui.romdetails.model.RomAchievementsSummary
 import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
 import me.magnum.melonds.ui.theme.MelonTheme
+import me.magnum.rcheevosapi.model.RAAchievement
 
 private const val HEADER_ITEM_TYPE = "header"
 private const val ACHIEVEMENT_ITEM_TYPE = "achievement"
@@ -41,6 +35,7 @@ fun RomRetroAchievementsUi(
     retroAchievementsUiState: RomRetroAchievementsUiState,
     onLogin: (username: String, password: String) -> Unit,
     onRetryLoad: () -> Unit,
+    onViewAchievement: (RAAchievement) -> Unit,
 ) {
     when (retroAchievementsUiState) {
         is RomRetroAchievementsUiState.LoggedOut -> LoggedOut(
@@ -55,6 +50,7 @@ fun RomRetroAchievementsUi(
                 Ready(
                     modifier = modifier,
                     content = retroAchievementsUiState,
+                    onViewAchievement = onViewAchievement,
                 )
             }
         }
@@ -95,108 +91,13 @@ private fun LoggedOut(
     }
 
     if (showLoginPopup) {
-        LoginPopup(
+        RetroAchievementsLoginDialog(
             onDismiss = { showLoginPopup = false },
             onLogin = { username, password ->
                 onLogin(username, password)
                 showLoginPopup = false
             },
         )
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-private fun LoginPopup(
-    onDismiss: () -> Unit,
-    onLogin: (username: String, password: String) -> Unit,
-) {
-    var username by remember {
-        mutableStateOf("")
-    }
-    var password by remember {
-        mutableStateOf("")
-    }
-
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(Modifier.fillMaxWidth()) {
-                Box(
-                    modifier = Modifier
-                        .heightIn(min = 64.dp)
-                        .padding(start = 24.dp, end = 24.dp),
-                    contentAlignment = Alignment.CenterStart,
-                ) {
-                    Text(
-                        modifier = Modifier,
-                        text = stringResource(id = R.string.login_with_retro_achievements),
-                        style = MaterialTheme.typography.h6,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-
-                Column(
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    OutlinedTextField(
-                        modifier = Modifier.autofill(
-                            autofillTypes = listOf(AutofillType.Username),
-                            onFill = { username = it },
-                        ),
-                        value = username,
-                        onValueChange = { username = it },
-                        colors = melonOutlinedTextFieldColors(),
-                        label = {
-                            Text(text = stringResource(id = R.string.username))
-                        }
-                    )
-
-                    OutlinedTextField(
-                        modifier = Modifier.autofill(
-                            autofillTypes = listOf(AutofillType.Password),
-                            onFill = { password = it },
-                        ),
-                        value = password,
-                        onValueChange = { password = it },
-                        visualTransformation = PasswordVisualTransformation(),
-                        colors = melonOutlinedTextFieldColors(),
-                        label = {
-                            Text(text = stringResource(id = R.string.password))
-                        }
-                    )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    TextButton(onClick = onDismiss) {
-                        Text(
-                            text = stringResource(id = R.string.cancel).uppercase(),
-                            style = MaterialTheme.typography.button,
-                            color = MaterialTheme.colors.secondary,
-                        )
-                    }
-
-                    TextButton(onClick = { onLogin(username, password) }) {
-                        Text(
-                            text = stringResource(id = R.string.login).uppercase(),
-                            style = MaterialTheme.typography.button,
-                            color = MaterialTheme.colors.secondary,
-                        )
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -227,6 +128,7 @@ private fun NoAchievements(modifier: Modifier) {
 private fun Ready(
     modifier: Modifier,
     content: RomRetroAchievementsUiState.Ready,
+    onViewAchievement: (RAAchievement) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier,
@@ -243,8 +145,12 @@ private fun Ready(
             items = content.achievements,
             key = { it.achievement.id },
             contentType = { ACHIEVEMENT_ITEM_TYPE },
-        ) {
-            RomAchievementUi(modifier = Modifier.fillMaxWidth(), userAchievement = it)
+        ) { userAchievement ->
+            RomAchievementUi(
+                modifier = Modifier.fillMaxWidth(),
+                userAchievement = userAchievement,
+                onViewAchievement = { onViewAchievement(userAchievement.achievement) },
+            )
         }
     }
 }
@@ -339,7 +245,7 @@ private fun LoginError(
     }
 
     if (showLoginPopup) {
-        LoginPopup(
+        RetroAchievementsLoginDialog(
             onDismiss = { showLoginPopup = false },
             onLogin = { username, password ->
                 onLogin(username, password)

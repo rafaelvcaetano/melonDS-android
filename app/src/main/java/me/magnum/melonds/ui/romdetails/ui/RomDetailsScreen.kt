@@ -15,6 +15,7 @@ import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.ui.common.MelonPreviewSet
 import me.magnum.melonds.ui.romdetails.model.*
 import me.magnum.melonds.ui.theme.MelonTheme
+import me.magnum.rcheevosapi.model.RAAchievement
 import java.util.*
 
 @OptIn(ExperimentalPagerApi::class)
@@ -29,6 +30,7 @@ fun RomScreen(
     onRomConfigUpdate: (RomConfigUpdateEvent) -> Unit,
     onRetroAchievementsLogin: (username: String, password: String) -> Unit,
     onRetroAchievementsRetryLoad: () -> Unit,
+    onViewAchievement: (RAAchievement) -> Unit,
 ) {
     val pagerState = rememberPagerState(RomDetailsTab.CONFIG.tabIndex)
     val coroutineScope = rememberCoroutineScope()
@@ -64,6 +66,7 @@ fun RomScreen(
                         retroAchievementsUiState = retroAchievementsUiState,
                         onLogin = onRetroAchievementsLogin,
                         onRetryLoad = onRetroAchievementsRetryLoad,
+                        onViewAchievement = onViewAchievement,
                     )
                 }
             }
@@ -98,6 +101,8 @@ private fun PreviewRomScreen() {
             onLaunchRom = { },
             onRomConfigUpdate = { },
             onRetroAchievementsLogin = { _, _ -> },
-        ) { }
+            onRetroAchievementsRetryLoad = { },
+            onViewAchievement = { },
+        )
     }
 }
