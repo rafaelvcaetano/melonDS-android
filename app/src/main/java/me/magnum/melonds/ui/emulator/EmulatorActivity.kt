@@ -19,6 +19,17 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.net.toUri
 import androidx.core.view.*
@@ -28,6 +39,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.delay
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.common.RetroAchievementsCallback
@@ -50,8 +62,10 @@ import me.magnum.melonds.ui.emulator.rewind.EdgeSpacingDecorator
 import me.magnum.melonds.ui.emulator.rewind.RewindSaveStateAdapter
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rom.RomEmulatorDelegate
+import me.magnum.melonds.ui.emulator.ui.AchievementPopupUi
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.utils.PackageManagerCompat
+import me.magnum.rcheevosapi.model.RAAchievement
 import java.net.URLEncoder
 import java.nio.ByteBuffer
 import javax.inject.Inject
@@ -243,6 +257,52 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
 
         setupInputHandling()
         launchEmulator()
+
+        binding.layoutAchievement.setContent {
+            var currentAchievement by remember {
+                mutableStateOf<RAAchievement?>(null)
+            }
+            var popupOffset by remember {
+                mutableStateOf(-1f)
+            }
+            var popupHeight by remember {
+                mutableStateOf<Int?>(null)
+            }
+
+            LaunchedEffect(null) {
+                viewModel.achievementTriggeredEvent.collect {
+                    currentAchievement = it
+                    animate(
+                        initialValue = -1f,
+                        targetValue = 0f,
+                        animationSpec = tween(easing = LinearEasing),
+                    ) { value, _ ->
+                        popupOffset = value
+                    }
+                    delay(5500)
+                    animate(
+                        initialValue = 0f,
+                        targetValue = -1f,
+                        animationSpec = tween(easing = LinearEasing),
+                    ) { value, _ ->
+                        popupOffset = value
+                    }
+                    currentAchievement = null
+                }
+            }
+
+            Box(Modifier.fillMaxWidth()) {
+                currentAchievement?.let { achievement ->
+                    AchievementPopupUi(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset(y = (popupOffset * (popupHeight ?: Int.MAX_VALUE)).dp)
+                            .onSizeChanged { popupHeight = it.height },
+                        achievement = achievement,
+                    )
+                }
+            }
+        }
     }
 
     private fun initializeDelegate() {
