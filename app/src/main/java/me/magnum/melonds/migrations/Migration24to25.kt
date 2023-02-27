@@ -15,7 +15,7 @@ class Migration24to25(
     override val to = 25
 
     override fun migrate() {
-        romMigrationHelper.migrateRoms<Rom22, RomDto25> { rom ->
+        romMigrationHelper.migrateRoms(Rom22::class.java) { rom ->
             runCatching {
                 context.contentResolver.openInputStream(rom.uri)?.use {
                     RomProcessor.getRomMetadata(it.buffered())
