@@ -303,7 +303,7 @@ private fun ActionLauncherItem(
             style = MaterialTheme.typography.caption,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.typography.caption.color.copy(alpha = if (enabled) ContentAlpha.high else ContentAlpha.disabled)
+            color = MaterialTheme.typography.caption.color.copy(alpha = if (enabled) ContentAlpha.medium else ContentAlpha.disabled)
         )
     }
 }
