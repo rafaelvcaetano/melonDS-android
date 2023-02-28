@@ -41,7 +41,7 @@ class SevenZRomFileProcessor(private val context: Context, uriHandler: UriHandle
     private fun getNdsEntryInFile(sevenZFile: SevenZFile): SevenZArchiveEntry? {
         do {
             val nextEntry = sevenZFile.nextEntry ?: break
-            if (!nextEntry.isDirectory && nextEntry.name.lowercase().endsWith(".nds")) {
+            if (!nextEntry.isDirectory && isSupportedRomFile(nextEntry.name)) {
                 return nextEntry
             }
         } while (true)

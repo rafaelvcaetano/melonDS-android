@@ -20,6 +20,10 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
     private class CouldNotFindNdsRomException : Exception("Failed to find an NDS ROM to extract")
     private class CouldNotFindExtractedFileException : Exception("Failed to find extracted NDS ROM file")
 
+    private companion object {
+        val SUPPORTED_ROM_EXTENSIONS = listOf("nds", "dsi", "ids")
+    }
+
     override fun getRomFromUri(romUri: Uri, parentUri: Uri): Rom? {
         return try {
             context.contentResolver.openInputStream(romUri)?.use { stream ->
@@ -75,6 +79,11 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
         } else {
             extractRomFile(rom)
         }
+    }
+
+    protected fun isSupportedRomFile(fileName: String): Boolean {
+        val extension = fileName.substringAfterLast('.').lowercase()
+        return SUPPORTED_ROM_EXTENSIONS.contains(extension)
     }
 
     private fun getBestRomInputStream(rom: Rom): InputStream? {

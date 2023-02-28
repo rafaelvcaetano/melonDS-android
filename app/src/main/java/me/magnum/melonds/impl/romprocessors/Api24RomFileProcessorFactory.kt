@@ -11,15 +11,27 @@ import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.impl.NdsRomCache
 
 @RequiresApi(Build.VERSION_CODES.N)
-class Api24RomFileProcessorFactory(context: Context, uriHandler: UriHandler, ndsRomCache: NdsRomCache) : BaseRomFileProcessorFactory(context) {
+class Api24RomFileProcessorFactory(private val context: Context, private val uriHandler: UriHandler, private val ndsRomCache: NdsRomCache) : BaseRomFileProcessorFactory(context) {
 
-    private val prefixProcessorMap = mapOf(
-        "nds" to NdsRomFileProcessor(context, uriHandler),
-        "zip" to ZipRomFileProcessor(context, uriHandler, ndsRomCache),
-        "7z" to SevenZRomFileProcessor(context, uriHandler, ndsRomCache)
-    )
+    private val prefixProcessorMap: Map<String, RomFileProcessor>
+
+    init {
+        val ndsRomFileProcessor = NdsRomFileProcessor(context, uriHandler)
+        prefixProcessorMap = mapOf(
+            "nds" to ndsRomFileProcessor,
+            "dsi" to ndsRomFileProcessor,
+            "ids" to ndsRomFileProcessor,
+            "zip" to ZipRomFileProcessor(context, uriHandler, ndsRomCache),
+            "7z" to SevenZRomFileProcessor(context, uriHandler, ndsRomCache)
+        )
+    }
 
     override fun getRomFileProcessorForFileExtension(extension: String): RomFileProcessor? {
-        return prefixProcessorMap[extension]
+        return when (extension) {
+            "nds" -> NdsRomFileProcessor(context, uriHandler)
+            "zip" -> ZipRomFileProcessor(context, uriHandler, ndsRomCache)
+            "7z" -> SevenZRomFileProcessor(context, uriHandler, ndsRomCache)
+            else -> null
+        }
     }
 }
