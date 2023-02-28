@@ -13,7 +13,7 @@ object Dependencies {
         const val DocumentFile = "1.0.1"
         const val Flexbox = "3.0.0"
         const val Fragment = "1.5.3"
-        const val Gradle = "7.2.2"
+        const val Gradle = "7.4.0"
         const val Gson = "2.8.6"
         const val HiltX = "1.0.0"
         const val Hilt = "2.42"
