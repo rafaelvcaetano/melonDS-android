@@ -165,11 +165,11 @@ class AndroidRetroAchievementsRepository(
                 val newMetadata = gameSetMetadata.withNewAchievementSetUpdate()
                 achievementsDao.updateGameAchievements(gameId.id, achievementEntities)
                 achievementsDao.updateGameSetMetadata(newMetadata)
-            }.recoverCatching {
+            }.recoverCatching { exception ->
                 // Load DB data anyway
-                achievementsDao.getGameAchievements(gameId.id).map {
+                achievementsDao.getGameAchievements(gameId.id).map { it ->
                     it.mapToModel()
-                }
+                }.takeUnless { it.isEmpty() } ?: throw exception
             }
         } else {
             runCatching {
@@ -196,11 +196,11 @@ class AndroidRetroAchievementsRepository(
                 val newMetadata = gameSetMetadata.withNewUserAchievementsUpdate()
                 achievementsDao.updateGameUserUnlockedAchievements(gameId.id, userAchievementEntities)
                 achievementsDao.updateGameSetMetadata(newMetadata)
-            }.recoverCatching {
+            }.recoverCatching { exception ->
                 // Load DB data anyway
                 achievementsDao.getGameUserUnlockedAchievements(gameId.id).map {
                     it.achievementId
-                }
+                }.takeUnless { it.isEmpty() } ?: throw exception
             }
         } else {
             runCatching {
