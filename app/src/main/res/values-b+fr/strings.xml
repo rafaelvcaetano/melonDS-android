@@ -222,6 +222,8 @@
     <string name="label_rom_config_load_gba_rom">Charger la ROM GBA</string>
     <string name="label_rom_config_gba_rom_path">Chemin de la ROM GBA</string>
     <string name="label_rom_config_gba_save_path">Chemin de la sauvegarde GBA</string>
+    <string name="rom_details_configuration_tab">Configuration</string>
+    <string name="retro_achievements_tab">Retro Achievements</string>
 
     <string name="theme_option_light">Clair</string>
     <string name="theme_option_dark">Sombre</string>
@@ -287,6 +289,23 @@
     <string name="background_deleted">Arrière-plan supprimé</string>
     <string name="background_add_wrong_orientation">L\'arrière-plan a été ajouté mais n\'est pas visible pour l\'orientation sélectionnée.</string>
     <string name="background_add_processing_failed">Le traitement de l\'image d\'arrière-plan sélectionnée a échoué. Vérifiez qu\'elle n\'est pas corrompue.</string>
+
+    <string name="retro_achievements_login_description">Connectez-vous à RetroAchievements pour consulter les succès que vous pouvez déverouiller en jouant à ce jeu !</string>
+    <string name="login_with_retro_achievements">Connexion à RetroAchievements</string>
+    <string name="login">Connexion</string>
+    <string name="retro_achievements_login_error">Un problème est survenu lors de la tentative de connexion. Assurez-vous que votre nom d\'utilisateur et votre mot de passe sont corrects et que vous êtes connecté à Internet</string>
+    <string name="retro_achievements_load_error">Un problème est survenu lors du chargement des succès de ce jeu. Assurez-vous que vous êtes connecté à Internet et réessayez plus tard</string>
+    <string name="retro_achievements_no_achievements">Aucun RetroAchievements n\'a été trouvé pour ce jeu</string>
+    <string name="username">Nom d\'utilisateur</string>
+    <string name="password">Mot de passe</string>
+    <string name="retry">Réessayer</string>
+    <string name="points_abbreviated">PTS</string>
+    <string name="points">Points</string>
+    <string name="completed">Terminé</string>
+    <string name="view_achievement">Consulter le succès</string>
+    <string name="completed_achievements"><b>%1$d</b> sur <b>%2$d</b> (%3$d %%)</string>
+    <string name="submitting_achievements">Envoi des RetroAchievements…</string>
+    <string name="achievement_unlocked">Succès déverouillé !</string>
 
     <string-array name="fast_forward_speed_multiplier_options">
         <item>Illimitée</item>
