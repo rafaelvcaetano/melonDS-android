@@ -92,7 +92,7 @@ fun AchievementPopupUi(
                                 maxLines = 1,
                             )
                             Text(
-                                text = achievement.title,
+                                text = achievement.getCleanTitle(),
                                 style = MaterialTheme.typography.body2,
                                 maxLines = 1,
                             )

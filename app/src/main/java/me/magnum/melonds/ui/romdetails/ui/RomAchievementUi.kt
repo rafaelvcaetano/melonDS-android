@@ -81,7 +81,23 @@ fun RomAchievementUi(
             Column(modifier = Modifier.weight(1f)) {
                 val nameMaxLines = if (expanded) Int.MAX_VALUE else 1
                 Text(
-                    text = userAchievement.achievement.title,
+                    text = buildAnnotatedString {
+                        append(userAchievement.achievement.getCleanTitle())
+                        if (userAchievement.achievement.isMissable()) {
+                            append(' ')
+                            appendInlineContent(id = "icon-missable", alternateText = stringResource(id = R.string.achievement_missable))
+                        }
+                    },
+                    inlineContent = mapOf(
+                        "icon-missable" to InlineTextContent(Placeholder(MaterialTheme.typography.body1.fontSize, MaterialTheme.typography.body1.fontSize, PlaceholderVerticalAlign.Center)) {
+                            Icon(
+                                modifier = Modifier.fillMaxSize(),
+                                painter = painterResource(id = R.drawable.ic_status_warn),
+                                tint = MaterialTheme.typography.body1.color,
+                                contentDescription = null,
+                            )
+                        }
+                    ),
                     style = MaterialTheme.typography.body1,
                     maxLines = nameMaxLines,
                     overflow = TextOverflow.Ellipsis,
@@ -123,8 +139,32 @@ fun RomAchievementUi(
         }
 
         if (expanded) {
+            Spacer(Modifier.height(8.dp))
+
+            if (userAchievement.achievement.isMissable()) {
+                Text(
+                    modifier = Modifier.align(Alignment.End),
+                    text = buildAnnotatedString {
+                        appendInlineContent(id = "icon-missable", alternateText = stringResource(id = R.string.achievement_missable))
+                        append(' ')
+                        append(stringResource(id = R.string.achievement_missable_description))
+                    },
+                    inlineContent = mapOf(
+                        "icon-missable" to InlineTextContent(Placeholder(MaterialTheme.typography.caption.fontSize, MaterialTheme.typography.caption.fontSize, PlaceholderVerticalAlign.Center)) {
+                            Icon(
+                                modifier = Modifier.fillMaxSize(),
+                                painter = painterResource(id = R.drawable.ic_status_warn),
+                                tint = MaterialTheme.typography.caption.color,
+                                contentDescription = null,
+                            )
+                        }
+                    ),
+                    style = MaterialTheme.typography.caption,
+                )
+            }
+
             TextButton(
-                modifier = Modifier.padding(top = 8.dp).align(Alignment.End),
+                modifier = Modifier.align(Alignment.End),
                 onClick = onViewAchievement,
             ) {
                 Icon(
@@ -156,7 +196,7 @@ fun PreviewRomAchievementUi() {
                     gameId = RAGameId(123),
                     totalAwardsCasual = 5435,
                     totalAwardsHardcore = 4532,
-                    title = "Amazing Achievement",
+                    title = "Amazing Achievement [m]",
                     description = "Do the definitely amazing stuff while back-flipping on top of a turtle.",
                     points = 10,
                     displayOrder = 0,

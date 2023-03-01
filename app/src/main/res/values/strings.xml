@@ -307,6 +307,8 @@
     <string name="completed_achievements"><b>%1$d</b> of <b>%2$d</b> (%3$d%%)</string>
     <string name="submitting_achievements">Submitting RetroAchievements…</string>
     <string name="achievement_unlocked">Achievement unlocked!</string>
+    <string name="achievement_missable">Missable</string>
+    <string name="achievement_missable_description">This achievement can be missed during a playthrough</string>
 
     <string-array name="fast_forward_speed_multiplier_options">
         <item>Unlimited</item>

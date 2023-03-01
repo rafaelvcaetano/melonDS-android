@@ -21,4 +21,12 @@ data class RAAchievement(
         CORE,
         UNOFFICIAL
     }
+
+    fun getCleanTitle(): String {
+        return title.removeSuffix("[m]").trim()
+    }
+
+    fun isMissable(): Boolean {
+        return title.endsWith("[m]")
+    }
 }
