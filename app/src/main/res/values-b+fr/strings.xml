@@ -17,6 +17,7 @@
     <string name="undo">Annuler</string>
     <string name="update">Mettre à jour</string>
     <string name="close">Fermer</string>
+    <string name="play">Jouer</string>
 
     <string name="version_alpha">Alpha</string>
     <string name="version_beta">Bêta</string>
