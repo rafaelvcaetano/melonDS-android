@@ -291,7 +291,7 @@ class EmulatorViewModel @Inject constructor(
         viewModelScope.launch {
             if (retroAchievementsRepository.isUserAuthenticated()) {
                 val achievementData = retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash).map { achievements ->
-                    achievements.map { RASimpleAchievement(it.achievement.id, it.achievement.memoryAddress) }
+                    achievements.filter { !it.isUnlocked }.map { RASimpleAchievement(it.achievement.id, it.achievement.memoryAddress) }
                 }.fold(
                     onSuccess = {
                         val richPresenceDescription = retroAchievementsRepository.getGameRichPresencePatch(rom.retroAchievementsHash)
