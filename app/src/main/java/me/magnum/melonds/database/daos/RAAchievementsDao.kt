@@ -21,11 +21,20 @@ interface RAAchievementsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGameAchievements(achievements: List<RAAchievementEntity>)
 
+    @Upsert
+    suspend fun updateGameData(gameData: RAGameEntity)
+
     @Transaction
-    suspend fun updateGameAchievements(gameId: Long, achievements: List<RAAchievementEntity>) {
+    suspend fun updateGameData(gameId: Long, achievements: List<RAAchievementEntity>, richPresencePatch: String?) {
         deleteGameAchievements(gameId)
         insertGameAchievements(achievements)
+
+        val gameEntity = RAGameEntity(gameId, richPresencePatch)
+        updateGameData(gameEntity)
     }
+
+    @Query("SELECT * FROM ra_game WHERE game_id = :gameId")
+    suspend fun getGame(gameId: Long): RAGameEntity?
 
     @Query("SELECT * FROM ra_user_achievement WHERE game_id = :gameId AND is_unlocked = 1")
     suspend fun getGameUserUnlockedAchievements(gameId: Long): List<RAUserAchievementEntity>

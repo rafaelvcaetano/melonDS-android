@@ -22,6 +22,7 @@ import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
 import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.extensions.addTo
@@ -284,17 +285,24 @@ class EmulatorViewModel @Inject constructor(
         return liveData
     }
 
-    fun getRomAchievements(rom: Rom): LiveData<List<RASimpleAchievement>> {
-        val liveData = MutableLiveData<List<RASimpleAchievement>>()
+    fun getRomAchievementData(rom: Rom): LiveData<GameAchievementData> {
+        val liveData = MutableLiveData<GameAchievementData>()
 
         viewModelScope.launch {
             if (retroAchievementsRepository.isUserAuthenticated()) {
-                val achievements = retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash).map { achievements ->
+                val achievementData = retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash).map { achievements ->
                     achievements.map { RASimpleAchievement(it.achievement.id, it.achievement.memoryAddress) }
-                }
-                liveData.value = achievements.getOrElse { emptyList() }
+                }.fold(
+                    onSuccess = {
+                        val richPresenceDescription = retroAchievementsRepository.getGameRichPresencePatch(rom.retroAchievementsHash)
+                        GameAchievementData(true, it, richPresenceDescription)
+                    },
+                    onFailure = { GameAchievementData.withDisabledRetroAchievementsIntegration() }
+                )
+
+                liveData.value = achievementData
             } else {
-                liveData.value = emptyList()
+                liveData.value = GameAchievementData.withDisabledRetroAchievementsIntegration()
             }
         }
 
@@ -310,6 +318,18 @@ class EmulatorViewModel @Inject constructor(
                         retroAchievementsRepository.awardAchievement(it)
                     }
                 }
+        }
+    }
+
+    fun onSessionStarted(rom: Rom) {
+        viewModelScope.launch {
+            retroAchievementsRepository.startSession(rom.retroAchievementsHash)
+        }
+    }
+
+    fun onSessionHeartbeat(rom: Rom, richPresenceDescription: String?) {
+        viewModelScope.launch {
+            retroAchievementsRepository.sendSessionHeartbeat(rom.retroAchievementsHash, richPresenceDescription)
         }
     }
 

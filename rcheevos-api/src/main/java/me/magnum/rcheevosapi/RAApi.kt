@@ -31,10 +31,11 @@ class RAApi(
         private const val PARAMETER_TOKEN = "t"
         private const val PARAMETER_REQUEST = "r"
         private const val PARAMETER_GAME_ID = "g"
+        private const val PARAMETER_SESSION_GAME_ID = "m"
         private const val PARAMETER_ACHIEVEMENT_ID = "a"
         private const val PARAMETER_IS_HARDMODE = "h"
         private const val PARAMETER_ACTIVITY_TYPE = "a"
-        private const val PARAMETER_GAME_HASH = "m"
+        private const val PARAMETER_RICH_PRESENCE = "m"
         private const val PARAMETER_SIGNATURE = "v"
 
         private const val VALUE_HARDMODE_DISABLED = "0"
@@ -113,7 +114,7 @@ class RAApi(
                 PARAMETER_USER to userAuth.username,
                 PARAMETER_TOKEN to userAuth.token,
                 PARAMETER_ACTIVITY_TYPE to ACTIVITY_TYPE_START_SESSION,
-                PARAMETER_GAME_ID to gameId.id.toString(),
+                PARAMETER_SESSION_GAME_ID to gameId.id.toString(),
             )
         )
     }
@@ -142,19 +143,22 @@ class RAApi(
         )
     }
 
-    suspend fun sendPing(gameId: RAGameId): Result<Unit> {
+    suspend fun sendPing(gameId: RAGameId, richPresenceDescription: String?): Result<Unit> {
         // NOTE: Call this every 2 minutes if rich presence is enabled or every 4 minutes if not
         val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
 
-        return get(
-            mapOf(
-                PARAMETER_REQUEST to REQUEST_PING,
-                PARAMETER_USER to userAuth.username,
-                PARAMETER_TOKEN to userAuth.token,
-                PARAMETER_GAME_ID to gameId.id.toString(),
-                // TODO: Support rich presence
-            )
+        val parameters = mutableMapOf(
+            PARAMETER_REQUEST to REQUEST_PING,
+            PARAMETER_USER to userAuth.username,
+            PARAMETER_TOKEN to userAuth.token,
+            PARAMETER_GAME_ID to gameId.id.toString(),
         )
+
+        if (richPresenceDescription != null) {
+            parameters[PARAMETER_RICH_PRESENCE] = richPresenceDescription
+        }
+
+        return get(parameters)
     }
 
     @OptIn(ExperimentalStdlibApi::class)

@@ -79,6 +79,11 @@ class AndroidRetroAchievementsRepository(
         return Result.success(userAchievements)
     }
 
+    override suspend fun getGameRichPresencePatch(gameHash: String): String? {
+        val gameId = getGameIdFromGameHash(gameHash).getOrNull() ?: return null
+        return achievementsDao.getGame(gameId.id)?.richPresencePatch
+    }
+
     override suspend fun getAchievement(achievementId: Long): Result<RAAchievement?> {
         return runCatching {
             achievementsDao.getAchievement(achievementId)
@@ -103,6 +108,16 @@ class AndroidRetroAchievementsRepository(
         }
 
         return Result.success(Unit)
+    }
+
+    override suspend fun startSession(gameHash: String) {
+        val gameId = getGameIdFromGameHash(gameHash).getOrNull() ?: return
+        raApi.startSession(gameId)
+    }
+
+    override suspend fun sendSessionHeartbeat(gameHash: String, richPresenceDescription: String?) {
+        val gameId = getGameIdFromGameHash(gameHash).getOrNull() ?: return
+        raApi.sendPing(gameId, richPresenceDescription)
     }
 
     private suspend fun submitAchievementAward(achievementId: Long, gameId: RAGameId, forHardcoreMode: Boolean, scheduleResubmissionOnFailure: Boolean): Result<Unit> {
@@ -155,16 +170,15 @@ class AndroidRetroAchievementsRepository(
 
     private suspend fun fetchGameAchievements(gameId: RAGameId, gameSetMetadata: CurrentGameSetMetadata): Result<List<RAAchievement>> {
         return if (mustRefreshAchievementSet(gameSetMetadata.currentMetadata)) {
-            raApi.getGameInfo(gameId).map { game ->
-                game.achievements
-            }.onSuccess { achievements ->
-                val achievementEntities = achievements.map {
+            raApi.getGameInfo(gameId).mapCatching { game ->
+                val achievementEntities = game.achievements.map {
                     it.mapToEntity()
                 }
 
                 val newMetadata = gameSetMetadata.withNewAchievementSetUpdate()
-                achievementsDao.updateGameAchievements(gameId.id, achievementEntities)
+                achievementsDao.updateGameData(gameId.id, achievementEntities, game.richPresencePatch)
                 achievementsDao.updateGameSetMetadata(newMetadata)
+                game.achievements
             }.recoverCatching { exception ->
                 // Load DB data anyway
                 achievementsDao.getGameAchievements(gameId.id).map { it ->

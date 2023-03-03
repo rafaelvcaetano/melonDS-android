@@ -15,6 +15,8 @@ internal data class GameDto(
     val numDistinctPlayersCasual: Int,
     @SerializedName("NumDistinctPlayersHardcore")
     val numDistinctPlayersHardcore: Int,
+    @SerializedName("RichPresencePatch")
+    val richPresencePatch: String?,
     @SerializedName("Achievements")
     val achievements: List<AchievementDto>,
 )

@@ -24,6 +24,7 @@ import me.magnum.melonds.database.entities.retroachievements.*
         GameEntity::class,
         CheatFolderEntity::class,
         CheatEntity::class,
+        RAGameEntity::class,
         RAAchievementEntity::class,
         RAUserAchievementEntity::class,
         RAGameSetMetadata::class,

@@ -40,7 +40,9 @@ object MelonEmulator {
 
     external fun setupCheats(cheats: Array<Cheat>)
 
-    external fun setupAchievements(achievements: Array<RASimpleAchievement>)
+    external fun setupAchievements(achievements: Array<RASimpleAchievement>, richPresenceScript: String?)
+
+    external fun getRichPresenceStatus(): String?
 
 	fun loadRom(romUri: Uri, sramUri: Uri, loadGbaRom: Boolean, gbaRomUri: Uri?, gbaSramUri: Uri?): LoadResult {
         val loadResult = loadRomInternal(romUri.toString(), sramUri.toString(), loadGbaRom, gbaRomUri?.toString(), gbaSramUri?.toString())

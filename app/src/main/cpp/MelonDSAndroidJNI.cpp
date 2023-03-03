@@ -140,7 +140,7 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
 }
 
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupAchievements(JNIEnv* env, jobject thiz, jobjectArray achievements)
+Java_me_magnum_melonds_MelonEmulator_setupAchievements(JNIEnv* env, jobject thiz, jobjectArray achievements, jstring richPresenceScript)
 {
     jsize achievementCount = env->GetArrayLength(achievements);
     if (achievementCount < 1)
@@ -171,7 +171,31 @@ Java_me_magnum_melonds_MelonEmulator_setupAchievements(JNIEnv* env, jobject thiz
         internalAchievements.push_back(internalAchievement);
     }
 
-    MelonDSAndroid::setAchievementList(internalAchievements);
+
+    std::string* richPresence = nullptr;
+
+    if (richPresenceScript != nullptr)
+    {
+        jboolean isStringCopy;
+        const char* richPresenceString = env->GetStringUTFChars(richPresenceScript, &isStringCopy);
+        richPresence = new std::string(richPresenceString);
+
+        if (isStringCopy)
+            env->ReleaseStringUTFChars(richPresenceScript, richPresenceString);
+    }
+
+    MelonDSAndroid::setupAchievements(internalAchievements, richPresence);
+    delete richPresence;
+}
+
+JNIEXPORT jstring JNICALL
+Java_me_magnum_melonds_MelonEmulator_getRichPresenceStatus(JNIEnv* env, jobject thiz)
+{
+    std::string richPresenceString = MelonDSAndroid::getRichPresenceStatus();
+    if (richPresenceString.empty())
+        return nullptr;
+    else
+        return env->NewStringUTF(richPresenceString.c_str());
 }
 
 JNIEXPORT jint JNICALL
