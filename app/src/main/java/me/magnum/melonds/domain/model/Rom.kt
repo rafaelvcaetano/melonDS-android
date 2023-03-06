@@ -5,26 +5,17 @@ import java.util.*
 
 data class Rom(
     val name: String,
+    val developerName: String,
     val fileName: String,
     val uri: Uri,
     val parentTreeUri: Uri,
     var config: RomConfig,
     var lastPlayed: Date? = null,
     val isDsiWareTitle: Boolean,
+    val retroAchievementsHash: String,
 ) {
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other)
-            return true
-
-        if (other == null || javaClass != other.javaClass)
-            return false
-
-        val rom = other as Rom
-        return uri == rom.uri
-    }
-
-    override fun hashCode(): Int {
-        return uri.hashCode()
+    fun hasSameFileAsRom(other: Rom): Boolean {
+        return uri == other.uri
     }
 }

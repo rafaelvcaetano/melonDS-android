@@ -25,6 +25,9 @@ import me.magnum.melonds.impl.AndroidDSiNandManager
 import me.magnum.melonds.impl.*
 import me.magnum.melonds.impl.romprocessors.Api24RomFileProcessorFactory
 import me.magnum.melonds.impl.romprocessors.OldRomFileProcessorFactory
+import me.magnum.melonds.ui.romdetails.RomDetailsUiMapper
+import me.magnum.rcheevosapi.RAApi
+import me.magnum.rcheevosapi.RAUserAuthStore
 import javax.inject.Singleton
 
 @Module
@@ -76,6 +79,12 @@ object MelonModule {
     @Singleton
     fun provideDSiWareMetadataRepository(): DSiWareMetadataRepository {
         return NusDSiWareMetadataRepository()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRetroAchievementsRepository(raApi: RAApi, melonDatabase: MelonDatabase, raUserAuthStore: RAUserAuthStore, sharedPreferences: SharedPreferences, @ApplicationContext context: Context): RetroAchievementsRepository {
+        return AndroidRetroAchievementsRepository(raApi, melonDatabase.achievementsDao(), raUserAuthStore, sharedPreferences, context)
     }
 
     @Provides
@@ -145,5 +154,11 @@ object MelonModule {
         configurationDirectoryVerifier: ConfigurationDirectoryVerifier
     ): DSiNandManager {
         return AndroidDSiNandManager(context, settingsRepository, dSiWareMetadataRepository, configurationDirectoryVerifier)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRomDetailsUiMapper(@ApplicationContext context: Context, layoutsRepository: LayoutsRepository): RomDetailsUiMapper {
+        return RomDetailsUiMapper(context, layoutsRepository)
     }
 }

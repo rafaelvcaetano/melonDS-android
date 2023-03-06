@@ -5,23 +5,32 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.rxMaybe
 import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
+import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
 import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
 import me.magnum.melonds.ui.emulator.exceptions.SramLoadException
 import me.magnum.melonds.ui.emulator.firmware.FirmwarePauseMenuOption
 import me.magnum.melonds.ui.emulator.rom.RomPauseMenuOption
+import me.magnum.rcheevosapi.model.RAAchievement
 import java.util.*
 import javax.inject.Inject
 
@@ -30,6 +39,7 @@ class EmulatorViewModel @Inject constructor(
         private val settingsRepository: SettingsRepository,
         private val romsRepository: RomsRepository,
         private val cheatsRepository: CheatsRepository,
+        private val retroAchievementsRepository: RetroAchievementsRepository,
         private val romFileProcessorFactory: RomFileProcessorFactory,
         private val layoutsRepository: LayoutsRepository,
         private val backgroundsRepository: BackgroundRepository,
@@ -43,6 +53,8 @@ class EmulatorViewModel @Inject constructor(
     private var backgroundLoadDisposable: Disposable? = null
     private val layoutLiveData = MutableLiveData<LayoutConfiguration>()
     private val backgroundLiveData = MutableLiveData<RuntimeBackground>()
+    private val _achievementTriggeredEvent = MutableSharedFlow<RAAchievement>(extraBufferCapacity = 5, onBufferOverflow = BufferOverflow.SUSPEND)
+    val achievementTriggeredEvent = _achievementTriggeredEvent.asSharedFlow()
 
     private var currentSystemOrientation: Orientation? = null
 
@@ -271,6 +283,54 @@ class EmulatorViewModel @Inject constructor(
         }
 
         return liveData
+    }
+
+    fun getRomAchievementData(rom: Rom): LiveData<GameAchievementData> {
+        val liveData = MutableLiveData<GameAchievementData>()
+
+        viewModelScope.launch {
+            if (retroAchievementsRepository.isUserAuthenticated()) {
+                val achievementData = retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash).map { achievements ->
+                    achievements.filter { !it.isUnlocked }.map { RASimpleAchievement(it.achievement.id, it.achievement.memoryAddress) }
+                }.fold(
+                    onSuccess = {
+                        val richPresenceDescription = retroAchievementsRepository.getGameRichPresencePatch(rom.retroAchievementsHash)
+                        GameAchievementData(true, it, richPresenceDescription)
+                    },
+                    onFailure = { GameAchievementData.withDisabledRetroAchievementsIntegration() }
+                )
+
+                liveData.value = achievementData
+            } else {
+                liveData.value = GameAchievementData.withDisabledRetroAchievementsIntegration()
+            }
+        }
+
+        return liveData
+    }
+
+    fun onAchievementTriggered(achievementId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            retroAchievementsRepository.getAchievement(achievementId)
+                .onSuccess {
+                    if (it != null) {
+                        _achievementTriggeredEvent.emit(it)
+                        retroAchievementsRepository.awardAchievement(it)
+                    }
+                }
+        }
+    }
+
+    fun onSessionStarted(rom: Rom) {
+        viewModelScope.launch {
+            retroAchievementsRepository.startSession(rom.retroAchievementsHash)
+        }
+    }
+
+    fun onSessionHeartbeat(rom: Rom, richPresenceDescription: String?) {
+        viewModelScope.launch {
+            retroAchievementsRepository.sendSessionHeartbeat(rom.retroAchievementsHash, richPresenceDescription)
+        }
     }
 
     private fun filterRomPauseMenuOption(option: RomPauseMenuOption): Boolean {

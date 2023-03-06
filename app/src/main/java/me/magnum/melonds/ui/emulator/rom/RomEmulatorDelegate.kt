@@ -6,19 +6,27 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.net.toUri
 import androidx.core.os.ConfigurationCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.squareup.picasso.Picasso
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.SaveStateSlot
+import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.extensions.parcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.emulator.EmulatorActivity
@@ -29,6 +37,7 @@ import java.text.SimpleDateFormat
 class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picasso) : EmulatorDelegate(activity) {
 
     private lateinit var loadedRom: Rom
+    private var gameSessionHeartbeatJob: Job? = null
     private var cheatsLoadDisposable: Disposable? = null
 
     override fun getEmulatorSetupObservable(extras: Bundle?): Completable {
@@ -63,11 +72,16 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
         }.flatMap { romPair ->
             loadedRom = romPair.first
 
-            loadRomCheats(loadedRom).toSingle(emptyList()).zipWith(getEmulatorLaunchConfiguration(loadedRom)) { cheats, emulatorConfiguration ->
-                Pair(cheats, emulatorConfiguration)
-            }.flatMap { (cheats, emulatorConfiguration) ->
+            Single.zip(
+                loadRomCheats(loadedRom).toSingle(emptyList()),
+                loadRomAchievementData(loadedRom).toSingle(GameAchievementData.withDisabledRetroAchievementsIntegration()),
+                getEmulatorLaunchConfiguration(loadedRom),
+            ) { cheats, achievements, emulatorConfiguration ->
+                (cheats to achievements) to emulatorConfiguration
+            }.flatMap { (data, emulatorConfiguration) ->
+                val (cheats, achievementData) = data
                 Single.create<MelonEmulator.LoadResult> { emitter ->
-                    MelonEmulator.setupEmulator(emulatorConfiguration, activity.assets, activity.getCameraManager(), activity.getRendererTextureBuffer())
+                    MelonEmulator.setupEmulator(emulatorConfiguration, activity.assets, activity.getCameraManager(), activity.getRetroAchievementsCallback(), activity.getRendererTextureBuffer())
 
                     val rom = romPair.first
                     val romPath = romPair.second
@@ -81,6 +95,11 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
                     }
 
                     MelonEmulator.setupCheats(cheats.toTypedArray())
+                    MelonEmulator.setupAchievements(achievementData.achievements.toTypedArray(), achievementData.richPresencePatch)
+                    if (achievementData.isRetroAchievementsIntegrationEnabled) {
+                        startGameSession(loadedRom)
+                    }
+
                     emitter.onSuccess(loadResult)
                 }
             }
@@ -172,6 +191,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
     }
 
     override fun dispose() {
+        gameSessionHeartbeatJob?.cancel()
         cheatsLoadDisposable?.dispose()
     }
 
@@ -222,6 +242,41 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
             }
             liveData.observeForever(observer)
         }.subscribeOn(activity.schedulers.uiThreadScheduler).observeOn(activity.schedulers.backgroundThreadScheduler)
+    }
+
+    private fun loadRomAchievementData(rom: Rom): Maybe<GameAchievementData> {
+        return Maybe.create<GameAchievementData> { emitter ->
+            val romInfo = activity.viewModel.getRomInfo(rom)
+            if (romInfo == null) {
+                emitter.onComplete()
+                return@create
+            }
+
+            val liveData = activity.viewModel.getRomAchievementData(rom)
+            var observer: Observer<GameAchievementData>? = null
+            observer = Observer {
+                if (it == null) {
+                    emitter.onComplete()
+                } else {
+                    emitter.onSuccess(it)
+                }
+                liveData.removeObserver(observer!!)
+            }
+            liveData.observeForever(observer)
+        }.subscribeOn(activity.schedulers.uiThreadScheduler).observeOn(activity.schedulers.backgroundThreadScheduler)
+    }
+
+    private fun startGameSession(rom: Rom) {
+        activity.viewModel.onSessionStarted(rom)
+        gameSessionHeartbeatJob = activity.lifecycleScope.launch {
+            activity.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                while (isActive) {
+                    delay(2 * 60 * 1000) // 2 minutes
+                    val richPresenceDescription = MelonEmulator.getRichPresenceStatus()
+                    activity.viewModel.onSessionHeartbeat(rom, richPresenceDescription)
+                }
+            }
+        }
     }
 
     private fun pickSaveStateSlot(onSlotPicked: (SaveStateSlot) -> Unit) {

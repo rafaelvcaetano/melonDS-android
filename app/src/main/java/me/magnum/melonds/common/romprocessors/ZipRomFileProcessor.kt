@@ -20,7 +20,7 @@ class ZipRomFileProcessor(context: Context, uriHandler: UriHandler, ndsRomCache:
     private fun getNdsEntryInZipStream(inputStream: ZipInputStream): ZipEntry? {
         do {
             val nextEntry = inputStream.nextEntry ?: break
-            if (!nextEntry.isDirectory && nextEntry.name.lowercase().endsWith(".nds")) {
+            if (!nextEntry.isDirectory && isSupportedRomFile(nextEntry.name)) {
                 return nextEntry
             }
         } while (true)

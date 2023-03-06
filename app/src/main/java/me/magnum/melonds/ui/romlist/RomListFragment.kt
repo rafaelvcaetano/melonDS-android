@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.romlist
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.drawable.BitmapDrawable
@@ -35,6 +36,8 @@ import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.domain.model.RomScanningStatus
 import me.magnum.melonds.extensions.setViewEnabledRecursive
+import me.magnum.melonds.parcelables.RomParcelable
+import me.magnum.melonds.ui.romdetails.RomDetailsActivity
 import me.magnum.melonds.ui.romlist.RomListFragment.RomEnabledFilter
 import me.magnum.melonds.ui.romlist.RomListFragment.RomListAdapter.RomViewHolder
 
@@ -89,7 +92,10 @@ class RomListFragment : Fragment() {
                 }
 
                 override fun onRomConfigClicked(rom: Rom) {
-                    RomConfigDialog.newInstance(rom.name, rom.copy()).show(parentFragmentManager, null)
+                    val intent = Intent(requireContext(), RomDetailsActivity::class.java).apply {
+                        putExtra(RomDetailsActivity.KEY_ROM, RomParcelable(rom))
+                    }
+                    startActivity(intent)
                 }
             },
             romEnabledFilter = buildRomEnabledFilter(romEnableCriteria),

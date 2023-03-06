@@ -32,9 +32,20 @@
 -keep class me.magnum.melonds.domain.model.MicSource { *; }
 -keep class me.magnum.melonds.domain.model.Cheat { *; }
 -keep class me.magnum.melonds.domain.model.DSiWareTitle { *; }
+-keep class me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement { *; }
 -keep class me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState { *; }
 -keep class me.magnum.melonds.ui.emulator.rewind.model.RewindWindow { *; }
 -keep class me.magnum.melonds.ui.settings.fragments.**
 -keep class me.magnum.melonds.common.UriFileHandler {
     public int open(java.lang.String, java.lang.String);
 }
+-keep interface me.magnum.melonds.common.RetroAchievementsCallback { *; }
+
+# Migration fields. These rules are required for migrations to work properly
+-keep class me.magnum.melonds.migrations.legacy.Rom22 {
+    private final me.magnum.melonds.migrations.legacy.RomConfig1 config;
+}
+-keep class me.magnum.melonds.migrations.legacy.RomConfig1 { *; }
+
+# Prevent DTOs from being removed
+-keep,allowobfuscation class me.magnum.rcheevosapi.dto.**

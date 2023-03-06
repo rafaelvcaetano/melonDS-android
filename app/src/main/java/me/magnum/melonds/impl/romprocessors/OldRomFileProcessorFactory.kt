@@ -8,10 +8,18 @@ import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.impl.NdsRomCache
 
 class OldRomFileProcessorFactory(context: Context, uriHandler: UriHandler, ndsRomCache: NdsRomCache) : BaseRomFileProcessorFactory(context) {
-    private val prefixProcessorMap = mapOf(
-        "nds" to NdsRomFileProcessor(context, uriHandler),
-        "zip" to ZipRomFileProcessor(context, uriHandler, ndsRomCache)
-    )
+
+    private val prefixProcessorMap: Map<String, RomFileProcessor>
+
+    init {
+        val ndsRomFileProcessor = NdsRomFileProcessor(context, uriHandler)
+        prefixProcessorMap = mapOf(
+            "nds" to ndsRomFileProcessor,
+            "dsi" to ndsRomFileProcessor,
+            "ids" to ndsRomFileProcessor,
+            "zip" to ZipRomFileProcessor(context, uriHandler, ndsRomCache),
+        )
+    }
 
     override fun getRomFileProcessorForFileExtension(extension: String): RomFileProcessor? {
         return prefixProcessorMap[extension]

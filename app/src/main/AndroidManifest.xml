@@ -29,6 +29,12 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".ui.romdetails.RomDetailsActivity"
+            android:theme="@style/AppTheme.NoToolbar"
+            android:parentActivityName=".ui.romlist.RomListActivity"
+            android:exported="false">
+        </activity>
+        <activity
             android:name=".ui.emulator.EmulatorActivity"
             android:theme="@style/EmulatorTheme"
             android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|keyboard|uiMode"

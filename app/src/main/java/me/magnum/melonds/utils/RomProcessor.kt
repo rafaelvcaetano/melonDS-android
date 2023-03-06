@@ -9,59 +9,119 @@ import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RomMetadata
 import java.io.BufferedInputStream
 import java.io.InputStream
+import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import kotlin.experimental.and
 import kotlin.math.min
 
 object RomProcessor {
 	private val DSIWARE_CATEGORY = 0x00030004.toUInt()
 	private const val KEY_ROM_NAME = "name"
+	private const val KEY_DEVELOPER_NAME = "developer"
 	private const val KEY_ROM_IS_DSIWARE_TITLE = "isDsiWareTitle"
+	private const val KEY_ARM9_BOOTCODE = "arm9Bootcode"
+	private const val KEY_ARM7_BOOTCODE = "arm7Bootcode"
+	private const val KEY_HEADER = "header"
+	private const val KEY_BANNER = "banner"
 
+	@Suppress("NAME_SHADOWING")
 	fun getRomMetadata(inputStream: BufferedInputStream): RomMetadata {
 		val romStreamProcessor = RomStreamDataProcessor().apply {
 			registerProcessor(
-				RomStreamDataProcessor.SectionProcessor.SubSectionProcessor(
-					KEY_ROM_NAME,
-					streamOffset = 0x68,
-					processor = {
-						val offsetData = ByteArray(4)
-						inputStream.read(offsetData)
-						val bannerOffset = byteArrayToInt(offsetData)
-						bannerOffset + (0x0340 - 4 * 2).toLong()
-					},
-					valueProcessor = {
-						val titleData = ByteArray(128)
-						inputStream.read(titleData)
-						String(titleData, StandardCharsets.UTF_16LE)
-							.trim()
-							.substringBeforeLast('\n')
-							.replace("\n", " ")
+				RomStreamDataProcessor.SectionProcessor.SequentialSectionProcessor(
+					streamOffset = 0x0,
+					then = { stream, register, save ->
+						val header = ByteArray(0x160)
+						stream.read(header)
+						save(KEY_HEADER, header)
+
+						val arm9Offset = byteArrayToInt(header, 0x20)
+						val arm9Size = byteArrayToInt(header, 0x2C)
+
+						val arm7Offset = byteArrayToInt(header, 0x30)
+						val arm7Size = byteArrayToInt(header, 0x3C)
+
+						val bannerOffset = byteArrayToInt(header, 0x68)
+
+						val arm9Processor = RomStreamDataProcessor.SectionProcessor.SectionValueProcessor(
+							streamOffset = arm9Offset.toLong()
+						) { stream, save ->
+							val arm9BootCode = ByteArray(arm9Size)
+							stream.read(arm9BootCode)
+							save(KEY_ARM9_BOOTCODE, arm9BootCode)
+						}
+
+						val arm7Processor = RomStreamDataProcessor.SectionProcessor.SectionValueProcessor(
+							streamOffset = arm7Offset.toLong()
+						) { stream, save ->
+							val arm7BootCode = ByteArray(arm7Size)
+							stream.read(arm7BootCode)
+							save(KEY_ARM7_BOOTCODE, arm7BootCode)
+						}
+
+						val bannerProcessor = RomStreamDataProcessor.SectionProcessor.SectionValueProcessor(
+							streamOffset = bannerOffset.toLong(),
+						) { stream, save ->
+							val banner = ByteArray(0xA00)
+							stream.read(banner)
+							save(KEY_BANNER, banner)
+
+							val titleData = banner.copyOfRange(0x340, 0x340 + 256)
+							val titleString = String(titleData, StandardCharsets.UTF_16LE).trim().replace("\u0000", "")
+
+							val title = titleString.substringBeforeLast('\n').replace("\n", " ")
+							val developer = titleString.substringAfterLast('\n')
+
+							save(KEY_ROM_NAME, title)
+							save(KEY_DEVELOPER_NAME, developer)
+						}
+
+						register(arm9Processor)
+						register(arm7Processor)
+						register(bannerProcessor)
 					}
 				)
 			)
 			registerProcessor(
 				RomStreamDataProcessor.SectionProcessor.SectionValueProcessor(
-					KEY_ROM_IS_DSIWARE_TITLE,
-					streamOffset = 0x230,
-					processor = {
-						val categoryData = ByteArray(4)
-						inputStream.read(categoryData)
-						val categoryId = byteArrayToInt(categoryData)
-						categoryId.toUInt() == DSIWARE_CATEGORY
-					}
-				)
+					streamOffset = 0x234
+				) { stream, save ->
+					val categoryData = ByteArray(4)
+					stream.read(categoryData)
+					val categoryId = byteArrayToInt(categoryData)
+					save(KEY_ROM_IS_DSIWARE_TITLE, categoryId.toUInt() == DSIWARE_CATEGORY)
+				}
 			)
 			process(inputStream)
 		}
 
 		val romName = romStreamProcessor.getValue<String>(KEY_ROM_NAME)
+		val developerName = romStreamProcessor.getValue<String>(KEY_DEVELOPER_NAME)
 		val isDsiWareTitle = romStreamProcessor.getValue<Boolean>(KEY_ROM_IS_DSIWARE_TITLE)
+
+		val header = romStreamProcessor.getValue<ByteArray>(KEY_HEADER)
+		val arm9Bootcode = romStreamProcessor.getValue<ByteArray>(KEY_ARM9_BOOTCODE)
+		val arm7Bootcode = romStreamProcessor.getValue<ByteArray>(KEY_ARM7_BOOTCODE)
+		val banner = romStreamProcessor.getValue<ByteArray>(KEY_BANNER)
+
+		val hashDataSize = header.size + arm9Bootcode.size + arm7Bootcode.size + banner.size
+		val retroAchievementsHashData = ByteArray(hashDataSize).apply {
+			header.copyInto(this)
+			arm9Bootcode.copyInto(this, header.size)
+			arm7Bootcode.copyInto(this, header.size + arm9Bootcode.size)
+			banner.copyInto(this, header.size + arm9Bootcode.size + arm7Bootcode.size)
+		}
+
+		val messageDigest = MessageDigest.getInstance("MD5")
+		val retroAchievemetnsHash = BigInteger(1, messageDigest.digest(retroAchievementsHashData)).toString(16).padStart(32, '0')
 
 		return RomMetadata(
 			romName,
+			developerName,
 			isDsiWareTitle,
+			retroAchievemetnsHash,
 		)
 	}
 
@@ -111,13 +171,13 @@ object RomProcessor {
 		return RomInfo(gameCode, headerChecksum.value, gameTitle)
 	}
 
-	private fun byteArrayToInt(intData: ByteArray): Int {
+	private fun byteArrayToInt(intData: ByteArray, offset: Int = 0): Int {
 		// NDS is little endian. Reorder bytes as needed
 		// Also make sure that every byte is treated as an unsigned integer
-		return  (intData[0].toInt() and 0xFF) or
-				(intData[1].toInt() and 0xFF).shl(8) or
-				(intData[2].toInt() and 0xFF).shl(16) or
-				(intData[3].toInt() and 0xFF).shl(24)
+		return  (intData[offset + 0].toInt() and 0xFF) or
+				(intData[offset + 1].toInt() and 0xFF).shl(8) or
+				(intData[offset + 2].toInt() and 0xFF).shl(16) or
+				(intData[offset + 3].toInt() and 0xFF).shl(24)
 	}
 
 	private fun paletteToArgb(palette: UShortArray): IntArray {
@@ -226,11 +286,16 @@ object RomProcessor {
 				trackedStream.skipStreamBytes(bytesToSkip)
 
 				if (processor is SectionProcessor.SectionValueProcessor) {
-					val value = processor.processor(trackedStream)
-					values[processor.key] = value
-				} else if (processor is SectionProcessor.SubSectionProcessor) {
-					val newOffset = processor.processor(trackedStream)
-					sortedProcessors.add(SectionProcessor.SectionValueProcessor(processor.key, newOffset, processor.valueProcessor))
+					processor.processor(trackedStream) { key, value ->
+						values[key] = value
+					}
+				} else if (processor is SectionProcessor.SequentialSectionProcessor) {
+					processor.then(
+						trackedStream,
+						{ sortedProcessors.add(it) },
+						{ key, value -> values[key] = value }
+					)
+
 					sortedProcessors.sortBy { it.streamOffset }
 				}
 			}
@@ -242,8 +307,8 @@ object RomProcessor {
 		}
 
 		sealed class SectionProcessor(val streamOffset: Long) {
-			class SectionValueProcessor(val key: String, streamOffset: Long, val processor: (InputStream) -> Any) : SectionProcessor(streamOffset)
-			class SubSectionProcessor(val key: String, streamOffset: Long, val processor: (InputStream) -> Long, val valueProcessor: (InputStream) -> Any) : SectionProcessor(streamOffset)
+			class SectionValueProcessor(streamOffset: Long, val processor: (InputStream, save: (String, Any) -> Unit) -> Unit) : SectionProcessor(streamOffset)
+			class SequentialSectionProcessor(streamOffset: Long, val then: (stream: InputStream, register: (SectionProcessor) -> Unit, save: (String, Any) -> Unit) -> Unit) : SectionProcessor(streamOffset)
 		}
 	}
 }

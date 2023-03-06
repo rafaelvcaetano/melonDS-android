@@ -19,6 +19,7 @@ import me.magnum.melonds.domain.model.RomScanningStatus
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.addTo
+import me.magnum.melonds.impl.dtos.RomDto
 import me.magnum.melonds.utils.FileUtils
 import me.magnum.melonds.utils.SubjectSharedFlow
 import java.io.File
@@ -42,7 +43,7 @@ class FileSystemRomsRepository(
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
     private val disposables = CompositeDisposable()
-    private val romListType: Type = object : TypeToken<List<Rom>>(){}.type
+    private val romListType: Type = object : TypeToken<List<RomDto>>(){}.type
     private val romsChannel = SubjectSharedFlow<List<Rom>>()
     private val scanningStatusSubject = MutableStateFlow(RomScanningStatus.NOT_SCANNING)
     private val roms: ArrayList<Rom> = ArrayList()
@@ -98,7 +99,7 @@ class FileSystemRomsRepository(
     }
 
     override fun updateRomConfig(rom: Rom, romConfig: RomConfig) {
-        val romIndex = roms.indexOf(rom)
+        val romIndex = roms.indexOfFirst { it.hasSameFileAsRom(rom) }
         if (romIndex < 0)
             return
 
@@ -107,7 +108,7 @@ class FileSystemRomsRepository(
     }
 
     override fun setRomLastPlayed(rom: Rom, lastPlayed: Date) {
-        val romIndex = roms.indexOf(rom)
+        val romIndex = roms.indexOfFirst { it.hasSameFileAsRom(rom) }
         if (romIndex < 0)
             return
 
@@ -140,7 +141,7 @@ class FileSystemRomsRepository(
     }
 
     private fun addRom(rom: Rom) {
-        if (roms.contains(rom))
+        if (roms.any { it.hasSameFileAsRom(rom) })
             return
 
         roms.add(rom)
@@ -148,7 +149,7 @@ class FileSystemRomsRepository(
     }
 
     private fun removeRom(rom: Rom, notifyChanged: Boolean = true) {
-        if (roms.remove(rom) && notifyChanged) {
+        if (roms.removeAll { it.hasSameFileAsRom(rom) } && notifyChanged) {
             onRomsChanged()
         }
     }
@@ -208,7 +209,9 @@ class FileSystemRomsRepository(
         }
 
         return runCatching {
-            gson.fromJson<List<Rom>>(FileReader(cacheFile), romListType)
+            gson.fromJson<List<RomDto>>(FileReader(cacheFile), romListType).map {
+                it.toModel()
+            }
         }.getOrElse { emptyList() }
     }
 
@@ -216,7 +219,10 @@ class FileSystemRomsRepository(
         val cacheFile = File(context.filesDir, ROM_DATA_FILE)
 
         try {
-            val romsJson = gson.toJson(romData)
+            val romDtos = romData.map {
+                RomDto.fromModel(it)
+            }
+            val romsJson = gson.toJson(romDtos)
 
             val output = OutputStreamWriter(cacheFile.outputStream())
             output.write(romsJson)

@@ -7,9 +7,12 @@
 #include <cstdlib>
 #include <MelonDS.h>
 #include <InputAndroid.h>
+#include "retroachievements/RAAchievement.h"
 #include <android/asset_manager_jni.h>
 #include "UriFileHandler.h"
 #include "JniEnvHandler.h"
+#include "AndroidRACallback.h"
+#include "MelonDSAndroidInterface.h"
 #include "MelonDSAndroidConfiguration.h"
 #include "MelonDSAndroidCameraHandler.h"
 
@@ -21,9 +24,6 @@ pthread_t emuThread;
 pthread_mutex_t emuThreadMutex;
 pthread_cond_t emuThreadCond;
 
-JavaVM* newVm;
-JniEnvHandler* newJniEnvHandler;
-
 bool started = false;
 bool stop;
 bool paused;
@@ -34,29 +34,33 @@ int targetFps;
 float fastForwardSpeedMultiplier;
 bool limitFps = true;
 bool isFastForwardEnabled = false;
+
 jobject globalAssetManager;
 jobject globalCameraManager;
+jobject androidRaCallback;
+MelonDSAndroidCameraHandler androidCameraHandler;
+AndroidRACallback* raCallback;
 
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject cameraManager, jobject textureBuffer)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject cameraManager, jobject retroAchievementsCallback, jobject textureBuffer)
 {
-    env->GetJavaVM(&newVm);
-    newJniEnvHandler = new JniEnvHandler(newVm);
-
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
     fastForwardSpeedMultiplier = finalEmulatorConfiguration.fastForwardSpeedMultiplier;
 
     globalAssetManager = env->NewGlobalRef(javaAssetManager);
     globalCameraManager = env->NewGlobalRef(cameraManager);
+    androidRaCallback = env->NewGlobalRef(retroAchievementsCallback);
 
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
+    androidCameraHandler = new MelonDSAndroidCameraHandler(jniEnvHandler, globalCameraManager);
+    raCallback = new AndroidRACallback(jniEnvHandler, androidRaCallback);
 
     u32* textureBufferPointer = (u32*) env->GetDirectBufferAddress(textureBuffer);
 
     MelonDSAndroid::setConfiguration(finalEmulatorConfiguration);
-    MelonDSAndroid::setup(assetManager, new MelonDSAndroidCameraHandler(newJniEnvHandler, globalCameraManager), textureBufferPointer, true);
+    MelonDSAndroid::setup(assetManager, androidCameraHandler, raCallback, textureBufferPointer, true);
     paused = false;
 }
 
@@ -138,6 +142,65 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
     }
 
     MelonDSAndroid::setCodeList(internalCheats);
+}
+
+JNIEXPORT void JNICALL
+Java_me_magnum_melonds_MelonEmulator_setupAchievements(JNIEnv* env, jobject thiz, jobjectArray achievements, jstring richPresenceScript)
+{
+    jsize achievementCount = env->GetArrayLength(achievements);
+    if (achievementCount < 1)
+        return;
+
+    std::list<RetroAchievements::RAAchievement> internalAchievements;
+
+    jclass cheatClass = env->GetObjectClass(env->GetObjectArrayElement(achievements, 0));
+    jfieldID idField = env->GetFieldID(cheatClass, "id", "J");
+    jfieldID memoryAddressField = env->GetFieldID(cheatClass, "memoryAddress", "Ljava/lang/String;");
+
+    for (int i = 0; i < achievementCount; ++i)
+    {
+        jobject achievement = env->GetObjectArrayElement(achievements, i);
+        jlong id = env->GetLongField(achievement, idField);
+        jstring memoryAddress = (jstring) env->GetObjectField(achievement, memoryAddressField);
+        jboolean isStringCopy;
+        const char* codeString = env->GetStringUTFChars(memoryAddress, &isStringCopy);
+
+        RetroAchievements::RAAchievement internalAchievement = {
+            .id = (long) id,
+            .memoryAddress = std::string(codeString),
+        };
+
+        if (isStringCopy)
+            env->ReleaseStringUTFChars(memoryAddress, codeString);
+
+        internalAchievements.push_back(internalAchievement);
+    }
+
+
+    std::string* richPresence = nullptr;
+
+    if (richPresenceScript != nullptr)
+    {
+        jboolean isStringCopy;
+        const char* richPresenceString = env->GetStringUTFChars(richPresenceScript, &isStringCopy);
+        richPresence = new std::string(richPresenceString);
+
+        if (isStringCopy)
+            env->ReleaseStringUTFChars(richPresenceScript, richPresenceString);
+    }
+
+    MelonDSAndroid::setupAchievements(internalAchievements, richPresence);
+    delete richPresence;
+}
+
+JNIEXPORT jstring JNICALL
+Java_me_magnum_melonds_MelonEmulator_getRichPresenceStatus(JNIEnv* env, jobject thiz)
+{
+    std::string richPresenceString = MelonDSAndroid::getRichPresenceStatus();
+    if (richPresenceString.empty())
+        return nullptr;
+    else
+        return env->NewStringUTF(richPresenceString.c_str());
 }
 
 JNIEXPORT jint JNICALL
@@ -355,13 +418,15 @@ Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
     pthread_cond_destroy(&emuThreadCond);
 
     env->DeleteGlobalRef(globalAssetManager);
-    globalAssetManager = nullptr;
-
     env->DeleteGlobalRef(globalCameraManager);
-    globalCameraManager = nullptr;
+    env->DeleteGlobalRef(androidRaCallback);
 
-    newVm = nullptr;
-    delete newJniEnvHandler;
+    globalAssetManager = nullptr;
+    globalCameraManager = nullptr;
+    androidRaCallback = nullptr;
+
+    delete androidCameraHandler;
+    delete raCallback;
 }
 
 JNIEXPORT void JNICALL

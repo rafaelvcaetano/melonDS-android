@@ -6,6 +6,7 @@ plugins {
     id("kotlin-parcelize")
     id("kotlin-kapt")
     id("dagger.hilt.android.plugin")
+    id("org.jetbrains.kotlin.android")
 }
 
 android {
@@ -45,7 +46,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
-        freeCompilerArgs += "-Xopt-in=kotlin.ExperimentalUnsignedTypes"
+        freeCompilerArgs += "-opt-in=kotlin.ExperimentalUnsignedTypes"
     }
     buildFeatures {
         viewBinding = true
@@ -62,7 +63,7 @@ android {
         }
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.3.2"
+        kotlinCompilerExtensionVersion = "1.4.3"
     }
 
     flavorDimensions.add("version")
@@ -83,6 +84,8 @@ android {
         }
     }
     compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
         isCoreLibraryDesugaringEnabled = true
     }
     configurations.all {
@@ -102,6 +105,11 @@ dependencies {
 
     with(Dependencies.Tools) {
         coreLibraryDesugaring(desugarJdkLibs)
+    }
+
+    with(Dependencies.Modules) {
+        implementation(project(masterSwitchPreference))
+        implementation(project(rcheevosApi))
     }
 
     with(Dependencies.Kotlin) {
@@ -126,6 +134,7 @@ dependencies {
         implementation(preference)
         implementation(recyclerView)
         implementation(room)
+        implementation(roomKtx)
         implementation(roomRxJava)
         implementation(splashscreen)
         implementation(swipeRefreshLayout)
@@ -135,6 +144,9 @@ dependencies {
     }
 
     with(Dependencies.Compose) {
+        implementation(accompanistPager)
+        implementation(accompanistPagerIndicators)
+        implementation(accompanistSystemUiController)
         implementation(foundation)
         implementation(material)
         implementation(ui)
@@ -145,7 +157,7 @@ dependencies {
 
     // Third-party
     with(Dependencies.ThirdParty) {
-        implementation(project(masterSwitchPreference))
+        implementation(coil)
         implementation(flexbox)
         implementation(gson)
         implementation(hilt)
