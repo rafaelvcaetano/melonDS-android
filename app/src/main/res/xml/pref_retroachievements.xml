@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <Preference
+        android:key="ra_login"
+        android:title="@string/login_with_retro_achievements"
+        app:iconSpaceReserved="false" />
+
+    <SwitchPreference
+        android:key="ra_rich_presence"
+        android:title="@string/enable_rich_presence"
+        android:summary="@string/rich_presence_summary"
+        app:iconSpaceReserved="false"
+        android:defaultValue="true" />
+</PreferenceScreen>

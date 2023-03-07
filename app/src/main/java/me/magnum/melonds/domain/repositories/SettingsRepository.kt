@@ -50,6 +50,8 @@ interface SettingsRepository {
     fun getTouchHapticFeedbackStrength(): Int
     fun getSoftInputOpacity(): Int
 
+    fun isRetroAchievementsRichPresenceEnabled(): Boolean
+
     fun areCheatsEnabled(): Boolean
 
     fun observeTheme(): Observable<Theme>

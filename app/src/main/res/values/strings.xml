@@ -17,6 +17,7 @@
     <string name="update">Update</string>
     <string name="close">Close</string>
     <string name="play">Play</string>
+    <string name="ellipsis">…</string>
 
     <string name="version_alpha">Alpha</string>
     <string name="version_beta">Beta</string>
@@ -191,6 +192,10 @@
     <string name="vibrate_on_touch">Vibrate on touch</string>
     <string name="vibration_strength">Vibration strength</string>
     <string name="soft_input_opacity">Soft input opacity</string>
+    <string name="retroachievements">RetroAchievements</string> <!-- Keep words together because this is the official name -->
+    <string name="retroachievements_summary">Login &amp; manage RetroAchievements integration</string> <!-- Keep words together because this is the official name -->
+    <string name="enable_rich_presence">Enable rich presence</string>
+    <string name="rich_presence_summary">Allows other RetroAchievement users to see what you are playing</string>
     <string name="cheats">Cheats</string>
     <string name="cheats_summary">Enable &amp; import cheat codes</string>
     <string name="enable_cheats">Enable cheats</string>
@@ -294,7 +299,12 @@
     <string name="retro_achievements_login_description">Login with RetroAchievements to view achievements that you can unlock while playing this game!</string>
     <string name="login_with_retro_achievements">Login with RetroAchievements</string>
     <string name="login">Login</string>
+    <string name="retroachievements_login_summary">Login with RetroAchievements to unlock achievements while playing!</string>
+    <string name="retroachievements_login_status">Logged in as %1$s</string>
+    <string name="retroachievements_logout">Logout</string>
+    <string name="retroachievements_logout_confirmation">Are you sure you want to logout from RetroAchievements? You won\'t be able to unlock achievements while playing.</string>
     <string name="retro_achievements_login_error">There was a problem when trying to login. Make sure that your username and password are correct, and that you are connected to the internet</string>
+    <string name="retro_achievements_login_error_short">There was a problem when trying to login</string>
     <string name="retro_achievements_load_error">There was a problem when trying to load the achievements for this game. Make sure you are connected to the internet and try again later</string>
     <string name="retro_achievements_no_achievements">No RetroAchievements were found for this game</string>
     <string name="username">Username</string>

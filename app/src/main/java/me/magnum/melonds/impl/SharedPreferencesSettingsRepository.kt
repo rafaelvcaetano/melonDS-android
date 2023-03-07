@@ -366,6 +366,10 @@ class SharedPreferencesSettingsRepository(
         return preferences.getInt("input_opacity", 50)
     }
 
+    override fun isRetroAchievementsRichPresenceEnabled(): Boolean {
+        return preferences.getBoolean("ra_rich_presence", true)
+    }
+
     override fun areCheatsEnabled(): Boolean {
         return preferences.getBoolean("cheats_enabled", false)
     }
