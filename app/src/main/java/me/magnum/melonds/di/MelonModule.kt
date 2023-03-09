@@ -83,8 +83,8 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideRetroAchievementsRepository(raApi: RAApi, melonDatabase: MelonDatabase, raUserAuthStore: RAUserAuthStore, sharedPreferences: SharedPreferences, @ApplicationContext context: Context): RetroAchievementsRepository {
-        return AndroidRetroAchievementsRepository(raApi, melonDatabase.achievementsDao(), raUserAuthStore, sharedPreferences, context)
+    fun provideRetroAchievementsRepository(raApi: RAApi, melonDatabase: MelonDatabase, raUserAuthStore: RAUserAuthStore, settingsRepository: SettingsRepository, sharedPreferences: SharedPreferences, @ApplicationContext context: Context): RetroAchievementsRepository {
+        return AndroidRetroAchievementsRepository(raApi, melonDatabase.achievementsDao(), raUserAuthStore, settingsRepository, sharedPreferences, context)
     }
 
     @Provides
