@@ -12,12 +12,14 @@ import me.magnum.melonds.database.entities.retroachievements.RAPendingAchievemen
 import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEntity
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.domain.repositories.RetroAchievementsRepository
+import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.impl.mappers.retroachievements.mapToEntity
 import me.magnum.melonds.impl.mappers.retroachievements.mapToModel
 import me.magnum.rcheevosapi.RAApi
 import me.magnum.rcheevosapi.RAUserAuthStore
 import me.magnum.rcheevosapi.model.RAAchievement
 import me.magnum.rcheevosapi.model.RAGameId
+import me.magnum.rcheevosapi.model.RAUserAuth
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit
@@ -26,6 +28,7 @@ class AndroidRetroAchievementsRepository(
     private val raApi: RAApi,
     private val achievementsDao: RAAchievementsDao,
     private val raUserAuthStore: RAUserAuthStore,
+    private val settingsRepository: SettingsRepository,
     private val sharedPreferences: SharedPreferences,
     private val context: Context,
 ) : RetroAchievementsRepository {
@@ -39,8 +42,17 @@ class AndroidRetroAchievementsRepository(
         return raUserAuthStore.getUserAuth() != null
     }
 
+    override suspend fun getUserAuthentication(): RAUserAuth? {
+        return raUserAuthStore.getUserAuth()
+    }
+
     override suspend fun login(username: String, password: String): Result<Unit> {
         return raApi.login(username, password)
+    }
+
+    override suspend fun logout() {
+        achievementsDao.deleteAllAchievementUserData()
+        raUserAuthStore.clearUserAuth()
     }
 
     override suspend fun getGameUserAchievements(gameHash: String): Result<List<RAUserAchievement>> {
@@ -80,6 +92,10 @@ class AndroidRetroAchievementsRepository(
     }
 
     override suspend fun getGameRichPresencePatch(gameHash: String): String? {
+        if (!settingsRepository.isRetroAchievementsRichPresenceEnabled()) {
+            return null
+        }
+
         val gameId = getGameIdFromGameHash(gameHash).getOrNull() ?: return null
         return achievementsDao.getGame(gameId.id)?.richPresencePatch
     }

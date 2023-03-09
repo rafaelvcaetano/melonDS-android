@@ -4,28 +4,34 @@ import androidx.room.*
 import me.magnum.melonds.database.entities.retroachievements.*
 
 @Dao
-interface RAAchievementsDao {
+abstract class RAAchievementsDao {
 
     @Query("SELECT * FROM ra_game_set_metadata WHERE game_id = :gameId")
-    suspend fun getGameSetMetadata(gameId: Long): RAGameSetMetadata?
+    abstract suspend fun getGameSetMetadata(gameId: Long): RAGameSetMetadata?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun updateGameSetMetadata(gameSetMetadata: RAGameSetMetadata)
+    abstract suspend fun updateGameSetMetadata(gameSetMetadata: RAGameSetMetadata)
+
+    @Query("UPDATE ra_game_set_metadata SET last_user_data_updated = NULL")
+    protected abstract suspend fun clearAllGameSetMetadataLastUserDataUpdate()
 
     @Query("SELECT * FROM ra_achievement WHERE game_id = :gameId")
-    suspend fun getGameAchievements(gameId: Long): List<RAAchievementEntity>
+    abstract suspend fun getGameAchievements(gameId: Long): List<RAAchievementEntity>
+
+    @Query("SELECT * FROM ra_achievement WHERE id = :achievementId")
+    abstract suspend fun getAchievement(achievementId: Long): RAAchievementEntity?
 
     @Query("DELETE FROM ra_achievement WHERE game_id = :gameId")
-    suspend fun deleteGameAchievements(gameId: Long)
+    protected abstract suspend fun deleteGameAchievements(gameId: Long)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertGameAchievements(achievements: List<RAAchievementEntity>)
+    protected abstract suspend fun insertGameAchievements(achievements: List<RAAchievementEntity>)
 
     @Upsert
-    suspend fun updateGameData(gameData: RAGameEntity)
+    protected abstract suspend fun updateGameData(gameData: RAGameEntity)
 
     @Transaction
-    suspend fun updateGameData(gameId: Long, achievements: List<RAAchievementEntity>, richPresencePatch: String?) {
+    open suspend fun updateGameData(gameId: Long, achievements: List<RAAchievementEntity>, richPresencePatch: String?) {
         deleteGameAchievements(gameId)
         insertGameAchievements(achievements)
 
@@ -34,50 +40,60 @@ interface RAAchievementsDao {
     }
 
     @Query("SELECT * FROM ra_game WHERE game_id = :gameId")
-    suspend fun getGame(gameId: Long): RAGameEntity?
+    abstract suspend fun getGame(gameId: Long): RAGameEntity?
 
     @Query("SELECT * FROM ra_user_achievement WHERE game_id = :gameId AND is_unlocked = 1")
-    suspend fun getGameUserUnlockedAchievements(gameId: Long): List<RAUserAchievementEntity>
+    abstract suspend fun getGameUserUnlockedAchievements(gameId: Long): List<RAUserAchievementEntity>
 
     @Query("DELETE FROM ra_user_achievement WHERE game_id = :gameId")
-    suspend fun deleteGameUserUnlockedAchievements(gameId: Long)
+    protected abstract suspend fun deleteGameUserUnlockedAchievements(gameId: Long)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun addUserAchievement(userAchievement: RAUserAchievementEntity)
+    abstract suspend fun addUserAchievement(userAchievement: RAUserAchievementEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertGameUserUnlockedAchievements(userAchievements: List<RAUserAchievementEntity>)
+    protected abstract suspend fun insertGameUserUnlockedAchievements(userAchievements: List<RAUserAchievementEntity>)
 
     @Transaction
-    suspend fun updateGameUserUnlockedAchievements(gameId: Long, userAchievements: List<RAUserAchievementEntity>) {
+    open suspend fun updateGameUserUnlockedAchievements(gameId: Long, userAchievements: List<RAUserAchievementEntity>) {
         deleteGameUserUnlockedAchievements(gameId)
         insertGameUserUnlockedAchievements(userAchievements)
     }
 
-    @Query("SELECT * FROM ra_achievement WHERE id = :achievementId")
-    suspend fun getAchievement(achievementId: Long): RAAchievementEntity?
+    @Query("DELETE FROM ra_user_achievement")
+    protected abstract suspend fun deleteAllUserUnlockedAchievements()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun addPendingAchievementSubmission(pendingAchievementSubmission: RAPendingAchievementSubmissionEntity)
+    abstract suspend fun addPendingAchievementSubmission(pendingAchievementSubmission: RAPendingAchievementSubmissionEntity)
 
     @Query("SELECT * FROM ra_pending_achievement_award")
-    suspend fun getPendingAchievementSubmissions(): List<RAPendingAchievementSubmissionEntity>
+    abstract suspend fun getPendingAchievementSubmissions(): List<RAPendingAchievementSubmissionEntity>
 
     @Delete
-    suspend fun removePendingAchievementSubmission(pendingAchievementSubmission: RAPendingAchievementSubmissionEntity)
+    abstract suspend fun removePendingAchievementSubmission(pendingAchievementSubmission: RAPendingAchievementSubmissionEntity)
+
+    @Query("DELETE FROM ra_pending_achievement_award")
+    protected abstract suspend fun deleteAllPendingAchievementSubmissions()
 
     @Query("DELETE FROM ra_game_hash_library")
-    suspend fun deleteGameHashLibrary()
+    abstract suspend fun deleteGameHashLibrary()
 
     @Insert
-    suspend fun insertGameHashLibrary(hashLibrary: List<RAGameHashEntity>)
+    abstract suspend fun insertGameHashLibrary(hashLibrary: List<RAGameHashEntity>)
 
     @Query("SELECT * FROM ra_game_hash_library WHERE game_hash = :gameHash")
-    suspend fun getGameHashEntity(gameHash: String): RAGameHashEntity?
+    abstract suspend fun getGameHashEntity(gameHash: String): RAGameHashEntity?
 
     @Transaction
-    suspend fun updateGameHashLibrary(hashLibrary: List<RAGameHashEntity>) {
+    open suspend fun updateGameHashLibrary(hashLibrary: List<RAGameHashEntity>) {
         deleteGameHashLibrary()
         insertGameHashLibrary(hashLibrary)
+    }
+
+    @Transaction
+    open suspend fun deleteAllAchievementUserData() {
+        clearAllGameSetMetadataLastUserDataUpdate()
+        deleteAllUserUnlockedAchievements()
+        deleteAllPendingAchievementSubmissions()
     }
 }
