@@ -38,7 +38,7 @@ bool isFastForwardEnabled = false;
 jobject globalAssetManager;
 jobject globalCameraManager;
 jobject androidRaCallback;
-MelonDSAndroidCameraHandler androidCameraHandler;
+MelonDSAndroidCameraHandler* androidCameraHandler;
 AndroidRACallback* raCallback;
 
 extern "C"
