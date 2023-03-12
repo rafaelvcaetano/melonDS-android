@@ -196,10 +196,15 @@ class AndroidRetroAchievementsRepository(
                 achievementsDao.updateGameSetMetadata(newMetadata)
                 game.achievements
             }.recoverCatching { exception ->
-                // Load DB data anyway
-                achievementsDao.getGameAchievements(gameId.id).map { it ->
-                    it.mapToModel()
-                }.takeUnless { it.isEmpty() } ?: throw exception
+                if (gameSetMetadata.isGameAchievementDataKnown()) {
+                    // Load DB data because we know that it was previously loaded
+                    achievementsDao.getGameAchievements(gameId.id).map { it ->
+                        it.mapToModel()
+                    }
+                } else {
+                    // The achievement data has never been downloaded for this game. Rethrow exception
+                    throw exception
+                }
             }
         } else {
             runCatching {
@@ -300,6 +305,10 @@ class AndroidRetroAchievementsRepository(
             return (currentMetadata?.copy(lastUserDataUpdated = Instant.now()) ?: RAGameSetMetadata(gameId.id, null, Instant.now())).also {
                 currentMetadata = it
             }
+        }
+
+        fun isGameAchievementDataKnown(): Boolean {
+            return currentMetadata?.lastAchievementSetUpdated != null
         }
 
         fun isUserAchievementDataKnown(): Boolean {
