@@ -17,6 +17,7 @@
     <string name="update">Обновить</string>
     <string name="close">Закрыть</string>
     <string name="play">Запуск</string>
+    <string name="ellipsis">…</string>
 
     <string name="version_alpha">Альфа</string>
     <string name="version_beta">Бета</string>
@@ -191,8 +192,12 @@
     <string name="vibrate_on_touch">Вибрация при касании</string>
     <string name="vibration_strength">Сила вибрации</string>
     <string name="soft_input_opacity">Видимость экранных кнопок</string>
+    <string name="retroachievements">RetroAchievements</string> <!-- Keep words together because this is the official name -->
+    <string name="retroachievements_summary">Вход и управление интеграцией с RetroAchievements</string> <!-- Keep words together because this is the official name -->
+    <string name="enable_rich_presence">Включить статус активности</string>
+    <string name="rich_presence_summary">Позволяет другим пользователям RetroAchievement видеть во что вы играете.</string>
     <string name="cheats">Чит-коды</string>
-    <string name="cheats_summary">Активация и импорт чит-кодов</string>
+    <string name="cheats_summary">Включение и импорт чит-кодов</string>
     <string name="enable_cheats">Включить чит-коды</string>
     <string name="cheats_database">База чит-кодов (в формате XML)</string>
     <string name="import_cheats">Импорт чит-кодов</string>
@@ -291,10 +296,15 @@
     <string name="background_add_wrong_orientation">Фон добавлен, но не отображается в выбранной ориентации.</string>
     <string name="background_add_processing_failed">Не удалось обработать выбранное изображение. Убедитесь, что файл не повреждён.</string>
     
-    <string name="retro_achievements_login_description">Выполните вход в RetroAchievements, чтобы увидеть список доступных достижений для данной игры.</string>
+    <string name="retro_achievements_login_description">Выполните вход в RetroAchievements, чтобы увидеть достижения, доступные для данной игры.</string>
     <string name="login_with_retro_achievements">Войти в RetroAchievements</string>
     <string name="login">Вход</string>
-    <string name="retro_achievements_login_error">Ошибка при входе. Проверьте соединение с Интернет и убедитесь, что имя пользователя и пароль введены верно.</string>
+    <string name="retroachievements_login_summary">Выполните вход в RetroAchievements для получения достижений во время игры!</string>
+    <string name="retroachievements_login_status">Выполнен вход для %1$s</string>
+    <string name="retroachievements_logout">Выход</string>
+    <string name="retroachievements_logout_confirmation">Вы действительно хотите выйти из RetroAchievements? Вы не сможете открывать достижения во время игры.</string>
+    <string name="retro_achievements_login_error">Ошибка при попытке входа. Проверьте соединение с Интернет и убедитесь, что имя пользователя и пароль введены верно.</string>
+    <string name="retro_achievements_login_error_short">Ошибка при попытке входа.</string>
     <string name="retro_achievements_load_error">Ошибка при загрузке достижений для данной игры. Проверьте соединение с Интернет и повторите попытку.</string>
     <string name="retro_achievements_no_achievements">Не найдены доступные достижения для данной игры.</string>
     <string name="username">Имя пользователя</string>
@@ -306,7 +316,7 @@
     <string name="view_achievement">Просмотр достижения</string>
     <string name="completed_achievements"><b>%1$d</b> из <b>%2$d</b> (%3$d%%)</string>
     <string name="submitting_achievements">Отправка RetroAchievements…</string>
-    <string name="achievement_unlocked">Получено достижение!</string>
+    <string name="achievement_unlocked">Открыто достижение!</string>
     <string name="achievement_missable">Безвозвратное</string>
     <string name="achievement_missable_description">Данное достижение может быть упущено при прохождении.</string>
 
