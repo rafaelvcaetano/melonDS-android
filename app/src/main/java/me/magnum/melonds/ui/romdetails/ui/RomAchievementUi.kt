@@ -32,10 +32,8 @@ import coil.request.ImageRequest
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.ui.common.MelonPreviewSet
+import me.magnum.melonds.ui.romdetails.ui.preview.mockRAAchievementPreview
 import me.magnum.melonds.ui.theme.MelonTheme
-import me.magnum.rcheevosapi.model.RAAchievement
-import me.magnum.rcheevosapi.model.RAGameId
-import java.net.URL
 
 @Composable
 fun RomAchievementUi(
@@ -191,20 +189,7 @@ fun PreviewRomAchievementUi() {
         RomAchievementUi(
             modifier = Modifier.fillMaxWidth(),
             userAchievement = RAUserAchievement(
-                achievement = RAAchievement(
-                    id = 123,
-                    gameId = RAGameId(123),
-                    totalAwardsCasual = 5435,
-                    totalAwardsHardcore = 4532,
-                    title = "Amazing Achievement [m]",
-                    description = "Do the definitely amazing stuff while back-flipping on top of a turtle.",
-                    points = 10,
-                    displayOrder = 0,
-                    badgeUrlUnlocked = URL("http://localhost:80"),
-                    badgeUrlLocked = URL("http://localhost:80"),
-                    memoryAddress = "",
-                    type = RAAchievement.Type.CORE,
-                ),
+                achievement = mockRAAchievementPreview(),
                 isUnlocked = true,
             ),
             onViewAchievement = {},

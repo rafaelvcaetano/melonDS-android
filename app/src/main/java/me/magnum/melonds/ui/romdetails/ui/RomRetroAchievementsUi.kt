@@ -19,10 +19,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import me.magnum.melonds.R
+import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.ui.common.MelonPreviewSet
 import me.magnum.melonds.ui.common.melonButtonColors
 import me.magnum.melonds.ui.romdetails.model.RomAchievementsSummary
 import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
+import me.magnum.melonds.ui.romdetails.ui.preview.mockRAAchievementPreview
 import me.magnum.melonds.ui.theme.MelonTheme
 import me.magnum.rcheevosapi.model.RAAchievement
 
@@ -280,6 +282,24 @@ private fun LoadError(
                 Text(text = stringResource(id = R.string.retry).uppercase())
             }
         }
+    }
+}
+
+@MelonPreviewSet
+@Composable
+private fun PreviewContent() {
+    MelonTheme {
+        Ready(
+            modifier = Modifier.fillMaxSize(),
+            content = RomRetroAchievementsUiState.Ready(
+                listOf(
+                    RAUserAchievement(mockRAAchievementPreview(id = 1), false),
+                    RAUserAchievement(mockRAAchievementPreview(id = 2, title = "This is another amazing achievement", description = "But this one cannot be missed."), false),
+                ),
+                RomAchievementsSummary(50, 20, 85),
+            ),
+            onViewAchievement = {},
+        )
     }
 }
 
