@@ -65,6 +65,7 @@
     <string name="dsiware_manager_import_title_error_not_dsiware_title">No es un título de DSiWare</string>
     <string name="dsiware_manager_import_title_error_title_already_imported">Título de DSiWare ya importado</string>
     <string name="dsiware_manager_import_title_error_insatll_failed">Error al instalar el título</string>
+    <string name="dsiware_manager_import_title_error_metadat_fetch_failed">No se pudo descargar los metadatos del título. Verifique su conexión a internet.</string>
     <string name="dsiware_manager_import_title_error_unknown">Se ha producido un error desconocido</string>
     <string name="dsiware_import_from_file">Desde el archivo</string>
     <string name="dsiware_import_from_rom_list">De la lista de ROM</string>
@@ -191,6 +192,10 @@
     <string name="vibrate_on_touch">Vibrar al tacto</string>
     <string name="vibration_strength">Fuerza de vibración</string>
     <string name="soft_input_opacity">Opacidad de entrada suave</string>
+    <string name="retroachievements">RetroAchievements</string> <!-- Unir las palabras porque este es el nombre oficial. -->
+    <string name="retroachievements_summary">Inicio de sesión &amp; Gestionar la conexión de RetroAchievements</string> <!-- Mantener las palabras juntas porque este es el nombre oficial -->
+    <string name="enable_rich_presence">Activar la opción para mostrar lo que estás haciendo</string>
+    <string name="rich_presence_summary">Permite que otros usuarios de RetroAchievement vean lo que estás jugando</string>
     <string name="cheats">Trucos</string>
     <string name="cheats_summary">Habilitar e importar códigos de trucos</string>
     <string name="enable_cheats">Habilitar trucos</string>
@@ -294,7 +299,12 @@
     <string name="retro_achievements_login_description">¡Inicia sesión con RetroAchievements para ver los logros que puedes desbloquear mientras juegas este juego!</string>
     <string name="login_with_retro_achievements">Inicia sesión con RetroAchievements</string>
     <string name="login">Iniciar sesión</string>
+    <string name="retroachievements_login_summary">¡Inicia sesión con RetroAchievements para desbloquear logros mientras juegas!</string>
+    <string name="retroachievements_login_status">Has iniciado sesión como %1$s</string>
+    <string name="retroachievements_logout">Cerrar sesión</string>
+    <string name="retroachievements_logout_confirmation">¿Estás seguro de que deseas cerrar sesión en RetroAchievements? No podrás desbloquear logros mientras juegas.</string>
     <string name="retro_achievements_login_error">Hubo un problema al intentar iniciar sesión. Asegúrate de que tu nombre de usuario y contraseña sean correctos y de que estés conectado a Internet</string>
+    <string name="retro_achievements_login_error_short">Se produjo un problema al intentar iniciar sesión</string>
     <string name="retro_achievements_load_error">Se produjo un problema al intentar cargar los logros de este juego. Asegúrate de estar conectado a Internet e intenta de nuevo más tarde</string>
     <string name="retro_achievements_no_achievements">No se encontraron RetroAchievements para este juego</string>
     <string name="username">Nombre de usuario</string>
