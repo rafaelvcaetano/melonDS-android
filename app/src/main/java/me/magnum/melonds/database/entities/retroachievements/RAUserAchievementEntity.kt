@@ -5,10 +5,11 @@ import androidx.room.Entity
 
 @Entity(
     tableName = "ra_user_achievement",
-    primaryKeys = ["game_id", "achievement_id"],
+    primaryKeys = ["game_id", "achievement_id", "is_hardcore"],
 )
 data class RAUserAchievementEntity(
     @ColumnInfo(name = "game_id") val gameId: Long,
     @ColumnInfo(name = "achievement_id") val achievementId: Long,
     @ColumnInfo(name = "is_unlocked") val isUnlocked: Boolean,
+    @ColumnInfo(name = "is_hardcore") val isHardcore: Boolean,
 )

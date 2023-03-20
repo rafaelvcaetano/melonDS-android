@@ -40,7 +40,7 @@ class RomRetroAchievementsViewModel @Inject constructor(
     private fun loadAchievements() {
         viewModelScope.launch {
             if (retroAchievementsRepository.isUserAuthenticated()) {
-                retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash).fold(
+                retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash, false).fold(
                     onSuccess = { achievements ->
                         val sortedAchievements = achievements.sortedBy {
                             // Display unlocked achievements first
@@ -82,7 +82,7 @@ class RomRetroAchievementsViewModel @Inject constructor(
         return RomAchievementsSummary(
             totalAchievements = userAchievements.size,
             completedAchievements = userAchievements.count { it.isUnlocked },
-            totalPoints = userAchievements.sumOf { if (it.isUnlocked) it.achievement.points else 0 },
+            totalPoints = userAchievements.sumOf { it.pointsWorth() },
         )
     }
 }

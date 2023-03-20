@@ -55,7 +55,7 @@ class AndroidRetroAchievementsRepository(
         raUserAuthStore.clearUserAuth()
     }
 
-    override suspend fun getGameUserAchievements(gameHash: String): Result<List<RAUserAchievement>> {
+    override suspend fun getGameUserAchievements(gameHash: String, forHardcoreMode: Boolean): Result<List<RAUserAchievement>> {
         val gameIdResult = getGameIdFromGameHash(gameHash)
         if (gameIdResult.isFailure) {
             return Result.failure(gameIdResult.exceptionOrNull()!!)
@@ -74,7 +74,7 @@ class AndroidRetroAchievementsRepository(
             return Result.failure(gameAchievementsResult.exceptionOrNull()!!)
         }
 
-        val userUnlocksResult = fetchGameUserUnlockedAchievements(gameId, currentMetadata)
+        val userUnlocksResult = fetchGameUserUnlockedAchievements(gameId, forHardcoreMode, currentMetadata)
         if (userUnlocksResult.isFailure) {
             return Result.failure(userUnlocksResult.exceptionOrNull()!!)
         }
@@ -86,6 +86,7 @@ class AndroidRetroAchievementsRepository(
             RAUserAchievement(
                 achievement = it,
                 isUnlocked = userUnlocks.contains(it.id),
+                forHardcoreMode = forHardcoreMode,
             )
         }
         return Result.success(userAchievements)
@@ -108,14 +109,16 @@ class AndroidRetroAchievementsRepository(
         }
     }
 
-    override suspend fun awardAchievement(achievement: RAAchievement) {
-        submitAchievementAward(achievement.id, achievement.gameId, false, true)
+    override suspend fun awardAchievement(achievement: RAAchievement, forHardcoreMode: Boolean) {
+        submitAchievementAward(achievement.id, achievement.gameId, forHardcoreMode).onFailure {
+            scheduleAchievementSubmissionJob()
+        }
     }
 
     override suspend fun submitPendingAchievements(): Result<Unit> {
         achievementsDao.getPendingAchievementSubmissions().forEach {
             // Do not schedule resubmission if this fails. The current submission job should schedule another attempt
-            val submissionResult = submitAchievementAward(it.achievementId, RAGameId(it.gameId), it.forHardcoreMode, false)
+            val submissionResult = submitAchievementAward(it.achievementId, RAGameId(it.gameId), it.forHardcoreMode)
             if (submissionResult.isFailure) {
                 return submissionResult
             }
@@ -136,9 +139,14 @@ class AndroidRetroAchievementsRepository(
         raApi.sendPing(gameId, richPresenceDescription)
     }
 
-    private suspend fun submitAchievementAward(achievementId: Long, gameId: RAGameId, forHardcoreMode: Boolean, scheduleResubmissionOnFailure: Boolean): Result<Unit> {
+    private suspend fun submitAchievementAward(achievementId: Long, gameId: RAGameId, forHardcoreMode: Boolean): Result<Unit> {
         // Award the achievement immediately locally
-        val userAchievement = RAUserAchievementEntity(gameId.id, achievementId, true)
+        val userAchievement = RAUserAchievementEntity(
+            gameId = gameId.id,
+            achievementId = achievementId,
+            isUnlocked = true,
+            isHardcore = forHardcoreMode,
+        )
         achievementsDao.addUserAchievement(userAchievement)
 
         return raApi.awardAchievement(achievementId, forHardcoreMode).onFailure {
@@ -149,9 +157,6 @@ class AndroidRetroAchievementsRepository(
                 forHardcoreMode = forHardcoreMode,
             )
             achievementsDao.addPendingAchievementSubmission(pendingAchievementSubmissionEntity)
-            if (scheduleResubmissionOnFailure) {
-                scheduleAchievementSubmissionJob()
-            }
         }
     }
 
@@ -217,24 +222,25 @@ class AndroidRetroAchievementsRepository(
         }
     }
 
-    private suspend fun fetchGameUserUnlockedAchievements(gameId: RAGameId, gameSetMetadata: CurrentGameSetMetadata): Result<List<Long>> {
-        return if (mustRefreshUserData(gameSetMetadata.currentMetadata)) {
-            raApi.getUserUnlockedAchievements(gameId, false).onSuccess { userUnlocks ->
+    private suspend fun fetchGameUserUnlockedAchievements(gameId: RAGameId, forHardcoreMode: Boolean, gameSetMetadata: CurrentGameSetMetadata): Result<List<Long>> {
+        return if (mustRefreshUserData(gameSetMetadata.currentMetadata, forHardcoreMode)) {
+            raApi.getUserUnlockedAchievements(gameId, forHardcoreMode).onSuccess { userUnlocks ->
                 val userAchievementEntities = userUnlocks.map {
                     RAUserAchievementEntity(
-                        gameId.id,
-                        it,
-                        true,
+                        gameId = gameId.id,
+                        achievementId = it,
+                        isUnlocked = true,
+                        isHardcore = forHardcoreMode,
                     )
                 }
 
-                val newMetadata = gameSetMetadata.withNewUserAchievementsUpdate()
+                val newMetadata = gameSetMetadata.withNewUserAchievementsUpdate(forHardcoreMode)
                 achievementsDao.updateGameUserUnlockedAchievements(gameId.id, userAchievementEntities)
                 achievementsDao.updateGameSetMetadata(newMetadata)
             }.recoverCatching { exception ->
-                if (gameSetMetadata.isUserAchievementDataKnown()) {
+                if (gameSetMetadata.isUserAchievementDataKnown(forHardcoreMode)) {
                     // Load DB data because we know that it was previously loaded
-                    achievementsDao.getGameUserUnlockedAchievements(gameId.id).map {
+                    achievementsDao.getGameUserUnlockedAchievements(gameId.id, forHardcoreMode).map {
                         it.achievementId
                     }
                 } else {
@@ -244,7 +250,7 @@ class AndroidRetroAchievementsRepository(
             }
         } else {
             runCatching {
-                achievementsDao.getGameUserUnlockedAchievements(gameId.id).map {
+                achievementsDao.getGameUserUnlockedAchievements(gameId.id, forHardcoreMode).map {
                     it.achievementId
                 }
             }
@@ -268,13 +274,19 @@ class AndroidRetroAchievementsRepository(
         return Duration.between(gameSetMetadata.lastAchievementSetUpdated, Instant.now()) >= Duration.ofDays(7)
     }
 
-    private fun mustRefreshUserData(gameSetMetadata: RAGameSetMetadata?): Boolean {
-        if (gameSetMetadata?.lastUserDataUpdated == null) {
+    private fun mustRefreshUserData(gameSetMetadata: RAGameSetMetadata?, forHardcoreMode: Boolean): Boolean {
+        val lastUserDataUpdateTimestamp = if (forHardcoreMode) {
+            gameSetMetadata?.lastHardcoreUserDataUpdated
+        } else {
+            gameSetMetadata?.lastSoftcoreUserDataUpdated
+        }
+
+        if (lastUserDataUpdateTimestamp == null) {
             return true
         }
 
         // Sync user achievement data once a day
-        return Duration.between(gameSetMetadata.lastUserDataUpdated, Instant.now()) >= Duration.ofDays(1)
+        return Duration.between(lastUserDataUpdateTimestamp, Instant.now()) >= Duration.ofDays(1)
     }
 
     private fun scheduleAchievementSubmissionJob() {
@@ -296,14 +308,20 @@ class AndroidRetroAchievementsRepository(
             private set
 
         fun withNewAchievementSetUpdate(): RAGameSetMetadata {
-            return (currentMetadata?.copy(lastAchievementSetUpdated = Instant.now()) ?: RAGameSetMetadata(gameId.id, Instant.now(), null)).also {
+            return (currentMetadata?.copy(lastAchievementSetUpdated = Instant.now()) ?: RAGameSetMetadata(gameId.id, Instant.now(), null, null)).also {
                 currentMetadata = it
             }
         }
 
-        fun withNewUserAchievementsUpdate(): RAGameSetMetadata {
-            return (currentMetadata?.copy(lastUserDataUpdated = Instant.now()) ?: RAGameSetMetadata(gameId.id, null, Instant.now())).also {
-                currentMetadata = it
+        fun withNewUserAchievementsUpdate(forHardcoreMode: Boolean): RAGameSetMetadata {
+            return if (forHardcoreMode) {
+                currentMetadata?.copy(lastHardcoreUserDataUpdated = Instant.now()) ?: RAGameSetMetadata(gameId.id, null, null, Instant.now()).also {
+                    currentMetadata = it
+                }
+            } else {
+                currentMetadata?.copy(lastSoftcoreUserDataUpdated = Instant.now()) ?: RAGameSetMetadata(gameId.id, null, Instant.now(), null).also {
+                    currentMetadata = it
+                }
             }
         }
 
@@ -311,8 +329,12 @@ class AndroidRetroAchievementsRepository(
             return currentMetadata?.lastAchievementSetUpdated != null
         }
 
-        fun isUserAchievementDataKnown(): Boolean {
-            return currentMetadata?.lastUserDataUpdated != null
+        fun isUserAchievementDataKnown(forHardcoreMode: Boolean): Boolean {
+            return if (forHardcoreMode) {
+                currentMetadata?.lastHardcoreUserDataUpdated != null
+            } else {
+                currentMetadata?.lastSoftcoreUserDataUpdated != null
+            }
         }
     }
 }

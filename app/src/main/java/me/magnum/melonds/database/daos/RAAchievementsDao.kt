@@ -42,8 +42,8 @@ abstract class RAAchievementsDao {
     @Query("SELECT * FROM ra_game WHERE game_id = :gameId")
     abstract suspend fun getGame(gameId: Long): RAGameEntity?
 
-    @Query("SELECT * FROM ra_user_achievement WHERE game_id = :gameId AND is_unlocked = 1")
-    abstract suspend fun getGameUserUnlockedAchievements(gameId: Long): List<RAUserAchievementEntity>
+    @Query("SELECT * FROM ra_user_achievement WHERE game_id = :gameId AND is_hardcore = :forHardcoreMode AND is_unlocked = 1")
+    abstract suspend fun getGameUserUnlockedAchievements(gameId: Long, forHardcoreMode: Boolean): List<RAUserAchievementEntity>
 
     @Query("DELETE FROM ra_user_achievement WHERE game_id = :gameId")
     protected abstract suspend fun deleteGameUserUnlockedAchievements(gameId: Long)

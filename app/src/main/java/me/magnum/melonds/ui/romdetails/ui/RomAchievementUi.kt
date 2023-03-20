@@ -191,6 +191,7 @@ fun PreviewRomAchievementUi() {
             userAchievement = RAUserAchievement(
                 achievement = mockRAAchievementPreview(),
                 isUnlocked = true,
+                forHardcoreMode = false,
             ),
             onViewAchievement = {},
         )

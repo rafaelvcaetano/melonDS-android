@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 4,
-    "identityHash": "31374048dc97dc955a845a6920edacaa",
+    "identityHash": "afbfe1a8a5ee33a9307efcca89acecbd",
     "entities": [
       {
         "tableName": "cheat_database",
@@ -365,7 +365,7 @@
       },
       {
         "tableName": "ra_user_achievement",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`game_id` INTEGER NOT NULL, `achievement_id` INTEGER NOT NULL, `is_unlocked` INTEGER NOT NULL, PRIMARY KEY(`game_id`, `achievement_id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`game_id` INTEGER NOT NULL, `achievement_id` INTEGER NOT NULL, `is_unlocked` INTEGER NOT NULL, `is_hardcore` INTEGER NOT NULL, PRIMARY KEY(`game_id`, `achievement_id`, `is_hardcore`))",
         "fields": [
           {
             "fieldPath": "gameId",
@@ -384,13 +384,20 @@
             "columnName": "is_unlocked",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "isHardcore",
+            "columnName": "is_hardcore",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
           "autoGenerate": false,
           "columnNames": [
             "game_id",
-            "achievement_id"
+            "achievement_id",
+            "is_hardcore"
           ]
         },
         "indices": [],
@@ -398,7 +405,7 @@
       },
       {
         "tableName": "ra_game_set_metadata",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`game_id` INTEGER NOT NULL, `last_achievement_set_updated` INTEGER, `last_user_data_updated` INTEGER, PRIMARY KEY(`game_id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`game_id` INTEGER NOT NULL, `last_achievement_set_updated` INTEGER, `last_user_data_updated` INTEGER, `last_hardcore_user_data_updated` INTEGER, PRIMARY KEY(`game_id`))",
         "fields": [
           {
             "fieldPath": "gameId",
@@ -413,8 +420,14 @@
             "notNull": false
           },
           {
-            "fieldPath": "lastUserDataUpdated",
+            "fieldPath": "lastSoftcoreUserDataUpdated",
             "columnName": "last_user_data_updated",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastHardcoreUserDataUpdated",
+            "columnName": "last_hardcore_user_data_updated",
             "affinity": "INTEGER",
             "notNull": false
           }
@@ -491,7 +504,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '31374048dc97dc955a845a6920edacaa')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'afbfe1a8a5ee33a9307efcca89acecbd')"
     ]
   }
 }

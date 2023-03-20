@@ -293,8 +293,8 @@ private fun PreviewContent() {
             modifier = Modifier.fillMaxSize(),
             content = RomRetroAchievementsUiState.Ready(
                 listOf(
-                    RAUserAchievement(mockRAAchievementPreview(id = 1), false),
-                    RAUserAchievement(mockRAAchievementPreview(id = 2, title = "This is another amazing achievement", description = "But this one cannot be missed."), false),
+                    RAUserAchievement(mockRAAchievementPreview(id = 1), false, false),
+                    RAUserAchievement(mockRAAchievementPreview(id = 2, title = "This is another amazing achievement", description = "But this one cannot be missed."), false, false),
                 ),
                 RomAchievementsSummary(50, 20, 85),
             ),

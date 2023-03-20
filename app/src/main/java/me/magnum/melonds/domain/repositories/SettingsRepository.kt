@@ -51,6 +51,7 @@ interface SettingsRepository {
     fun getSoftInputOpacity(): Int
 
     fun isRetroAchievementsRichPresenceEnabled(): Boolean
+    fun isRetroAchievementsHardcoreEnabled(): Boolean
 
     fun areCheatsEnabled(): Boolean
 

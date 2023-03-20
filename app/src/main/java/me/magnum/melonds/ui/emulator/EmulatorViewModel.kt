@@ -290,7 +290,7 @@ class EmulatorViewModel @Inject constructor(
 
         viewModelScope.launch {
             if (retroAchievementsRepository.isUserAuthenticated()) {
-                val achievementData = retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash).map { achievements ->
+                val achievementData = retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash, false).map { achievements ->
                     achievements.filter { !it.isUnlocked }.map { RASimpleAchievement(it.achievement.id, it.achievement.memoryAddress) }
                 }.fold(
                     onSuccess = {
@@ -315,7 +315,7 @@ class EmulatorViewModel @Inject constructor(
                 .onSuccess {
                     if (it != null) {
                         _achievementTriggeredEvent.emit(it)
-                        retroAchievementsRepository.awardAchievement(it)
+                        retroAchievementsRepository.awardAchievement(it, false)
                     }
                 }
         }

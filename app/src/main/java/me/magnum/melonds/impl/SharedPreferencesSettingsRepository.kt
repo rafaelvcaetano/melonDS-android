@@ -370,6 +370,10 @@ class SharedPreferencesSettingsRepository(
         return preferences.getBoolean("ra_rich_presence", true)
     }
 
+    override fun isRetroAchievementsHardcoreEnabled(): Boolean {
+        return preferences.getBoolean("ra_hardcore_enabled", false)
+    }
+
     override fun areCheatsEnabled(): Boolean {
         return preferences.getBoolean("cheats_enabled", false)
     }
