@@ -196,6 +196,9 @@
     <string name="retroachievements_summary">Login &amp; manage RetroAchievements integration</string> <!-- Keep words together because this is the official name -->
     <string name="enable_rich_presence">Enable rich presence</string>
     <string name="rich_presence_summary">Allows other RetroAchievement users to see what you are playing</string>
+    <string name="hardcore_mode">Hardcore mode</string>
+    <string name="hardcore_mode_summary">Earn double the amount of points but you cannot use save states, cheats or slow-motion while playing</string>
+
     <string name="cheats">Cheats</string>
     <string name="cheats_summary">Enable &amp; import cheat codes</string>
     <string name="enable_cheats">Enable cheats</string>

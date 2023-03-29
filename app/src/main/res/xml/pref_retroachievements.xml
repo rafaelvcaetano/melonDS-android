@@ -13,4 +13,11 @@
         android:summary="@string/rich_presence_summary"
         app:iconSpaceReserved="false"
         android:defaultValue="true" />
+
+    <SwitchPreference
+        android:key="ra_hardcore_enabled"
+        android:title="@string/hardcore_mode"
+        android:summary="@string/hardcore_mode_summary"
+        app:iconSpaceReserved="false"
+        android:defaultValue="false" />
 </PreferenceScreen>
