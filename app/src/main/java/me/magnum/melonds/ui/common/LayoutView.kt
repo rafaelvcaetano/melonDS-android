@@ -1,12 +1,10 @@
 package me.magnum.melonds.ui.common
 
 import android.content.Context
-import android.content.res.Configuration
 import android.util.AttributeSet
 import android.widget.FrameLayout
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.domain.model.LayoutComponent
-import me.magnum.melonds.domain.model.LayoutConfiguration
 import me.magnum.melonds.domain.model.PositionedLayoutComponent
 import me.magnum.melonds.domain.model.UILayout
 import me.magnum.melonds.impl.ScreenUnitsConverter
@@ -18,24 +16,17 @@ open class LayoutView(context: Context, attrs: AttributeSet?) : FrameLayout(cont
     lateinit var screenUnitsConverter: ScreenUnitsConverter
 
     protected lateinit var viewBuilderFactory: LayoutComponentViewBuilderFactory
-    protected var currentLayoutConfiguration: LayoutConfiguration? = null
-        private set
     protected val views = mutableMapOf<LayoutComponent, LayoutComponentView>()
 
     fun setLayoutComponentViewBuilderFactory(factory: LayoutComponentViewBuilderFactory) {
         viewBuilderFactory = factory
     }
 
-    fun instantiateLayout(layoutConfiguration: LayoutConfiguration) {
-        currentLayoutConfiguration = layoutConfiguration
+    fun instantiateLayout(layoutConfiguration: UILayout) {
         views.clear()
         removeAllViews()
 
-        if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            loadLayout(layoutConfiguration.portraitLayout)
-        } else {
-            loadLayout(layoutConfiguration.landscapeLayout)
-        }
+        loadLayout(layoutConfiguration)
     }
 
     fun getInstantiatedComponents(): List<LayoutComponent> {

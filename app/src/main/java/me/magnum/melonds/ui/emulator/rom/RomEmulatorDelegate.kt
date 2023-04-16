@@ -1,32 +1,16 @@
 package me.magnum.melonds.ui.emulator.rom
 
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.net.toUri
 import androidx.core.os.ConfigurationCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.squareup.picasso.Picasso
-import io.reactivex.Completable
-import io.reactivex.Maybe
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
-import me.magnum.melonds.domain.model.Cheat
-import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.SaveStateSlot
-import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.extensions.parcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.emulator.EmulatorActivity
@@ -37,108 +21,24 @@ import java.text.SimpleDateFormat
 class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picasso) : EmulatorDelegate(activity) {
 
     private lateinit var loadedRom: Rom
-    private var gameSessionHeartbeatJob: Job? = null
     private var cheatsLoadDisposable: Disposable? = null
 
-    override fun getEmulatorSetupObservable(extras: Bundle?): Completable {
+    override fun getEmulatorSetupObservable(extras: Bundle?) {
         val romParcelable = extras?.parcelable(EmulatorActivity.KEY_ROM) as RomParcelable?
 
-        val romLoader = if (romParcelable?.rom != null) {
-            Maybe.just(romParcelable.rom)
+        if (romParcelable?.rom != null) {
+            activity.viewModel.loadRom(romParcelable.rom)
         } else {
             if (extras?.containsKey(EmulatorActivity.KEY_PATH) == true) {
                 val romPath = extras.getString(EmulatorActivity.KEY_PATH) ?: throw NullPointerException("${EmulatorActivity.KEY_PATH} was null")
-                activity.viewModel.getRomAtPath(romPath)
+                activity.viewModel.loadRom(romPath)
             } else if (extras?.containsKey(EmulatorActivity.KEY_URI) == true) {
                 val romUri = extras.getString(EmulatorActivity.KEY_URI) ?: throw NullPointerException("${EmulatorActivity.KEY_URI} was null")
-                activity.viewModel.getRomAtUri(romUri.toUri())
+                activity.viewModel.loadRom(romUri.toUri())
             } else {
                 throw NullPointerException("No ROM was specified")
             }
         }
-
-        return romLoader.toSingle().onErrorResumeNext {
-            if (it is NoSuchElementException) {
-                showRomNotFoundDialog()
-                // Prevent the observable from completing
-                Single.never()
-            } else {
-                // Re-throw the error
-                Single.error(it)
-            }
-        }.flatMap { rom ->
-            activity.viewModel.loadLayoutForRom(rom)
-            activity.viewModel.getRomLoader(rom)
-        }.flatMap { romPair ->
-            loadedRom = romPair.first
-
-            Single.zip(
-                loadRomCheats(loadedRom).toSingle(emptyList()),
-                loadRomAchievementData(loadedRom).toSingle(GameAchievementData.withDisabledRetroAchievementsIntegration()),
-                getEmulatorLaunchConfiguration(loadedRom),
-            ) { cheats, achievements, emulatorConfiguration ->
-                (cheats to achievements) to emulatorConfiguration
-            }.flatMap { (data, emulatorConfiguration) ->
-                val (cheats, achievementData) = data
-                Single.create<MelonEmulator.LoadResult> { emitter ->
-                    MelonEmulator.setupEmulator(emulatorConfiguration, activity.assets, activity.getRetroAchievementsCallback(), activity.getRendererTextureBuffer())
-
-                    val rom = romPair.first
-                    val romPath = romPair.second
-                    val sramPath = activity.viewModel.getRomSramFile(rom)
-
-                    val gbaCartPath = rom.config.gbaCartPath
-                    val gbaSavePath = rom.config.gbaSavePath
-                    val loadResult = MelonEmulator.loadRom(romPath, sramPath, rom.config.mustLoadGbaCart(), gbaCartPath, gbaSavePath)
-                    if (loadResult.isTerminal) {
-                        throw EmulatorActivity.RomLoadFailedException(loadResult)
-                    }
-
-                    MelonEmulator.setupCheats(cheats.toTypedArray())
-                    MelonEmulator.setupAchievements(achievementData.achievements.toTypedArray(), achievementData.richPresencePatch)
-                    if (achievementData.isRetroAchievementsIntegrationEnabled) {
-                        startGameSession(loadedRom)
-                    }
-
-                    emitter.onSuccess(loadResult)
-                }
-            }
-        }.doAfterSuccess {
-            if (it == MelonEmulator.LoadResult.SUCCESS_GBA_FAILED) {
-                activity.runOnUiThread {
-                    Toast.makeText(activity, R.string.error_load_gba_rom, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }.ignoreElement()
-    }
-
-    private fun showRomNotFoundDialog() {
-        activity.runOnUiThread {
-            AlertDialog.Builder(activity)
-                    .setTitle(R.string.error_rom_not_found)
-                    .setMessage(R.string.error_rom_not_found_info)
-                    .setPositiveButton(R.string.ok) { _, _ ->
-                        activity.finish()
-                    }
-                    .setOnDismissListener {
-                        activity.finish()
-                    }
-                    .show()
-        }
-    }
-
-    private fun getEmulatorConfigurationForRom(rom: Rom): EmulatorConfiguration {
-        return activity.viewModel.getEmulatorConfigurationForRom(rom)
-    }
-
-    private fun getEmulatorLaunchConfiguration(rom: Rom): Single<EmulatorConfiguration> {
-        val baseEmulatorConfiguration = getEmulatorConfigurationForRom(rom)
-        return activity.adjustEmulatorConfigurationForPermissions(baseEmulatorConfiguration, true)
-    }
-
-    override fun getEmulatorConfiguration(): EmulatorConfiguration {
-        val baseEmulatorConfiguration = getEmulatorConfigurationForRom(loadedRom)
-        return activity.adjustEmulatorConfigurationForPermissions(baseEmulatorConfiguration, false).blockingGet()
     }
 
     override fun getPauseMenuOptions(): List<PauseMenuOption> {
@@ -181,17 +81,7 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
         MelonEmulator.resumeEmulation()
     }
 
-    override fun getCrashContext(): Any {
-        val sramUri = try {
-            activity.viewModel.getRomSramFile(loadedRom)
-        } catch (e: Exception) {
-            null
-        }
-        return RomCrashContext(getEmulatorConfiguration(), activity.viewModel.getRomSearchDirectory()?.toString(), loadedRom.uri, sramUri)
-    }
-
     override fun dispose() {
-        gameSessionHeartbeatJob?.cancel()
         cheatsLoadDisposable?.dispose()
     }
 
@@ -218,63 +108,6 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
                 false
             } else {
                 true
-            }
-        }
-    }
-
-    private fun loadRomCheats(rom: Rom): Maybe<List<Cheat>> {
-        return Maybe.create<List<Cheat>> { emitter ->
-            val romInfo = activity.viewModel.getRomInfo(rom)
-            if (romInfo == null) {
-                emitter.onComplete()
-                return@create
-            }
-
-            val liveData = activity.viewModel.getRomEnabledCheats(romInfo)
-            var observer: Observer<List<Cheat>>? = null
-            observer = Observer {
-                if (it == null) {
-                    emitter.onComplete()
-                } else {
-                    emitter.onSuccess(it)
-                }
-                liveData.removeObserver(observer!!)
-            }
-            liveData.observeForever(observer)
-        }.subscribeOn(activity.schedulers.uiThreadScheduler).observeOn(activity.schedulers.backgroundThreadScheduler)
-    }
-
-    private fun loadRomAchievementData(rom: Rom): Maybe<GameAchievementData> {
-        return Maybe.create<GameAchievementData> { emitter ->
-            val romInfo = activity.viewModel.getRomInfo(rom)
-            if (romInfo == null) {
-                emitter.onComplete()
-                return@create
-            }
-
-            val liveData = activity.viewModel.getRomAchievementData(rom)
-            var observer: Observer<GameAchievementData>? = null
-            observer = Observer {
-                if (it == null) {
-                    emitter.onComplete()
-                } else {
-                    emitter.onSuccess(it)
-                }
-                liveData.removeObserver(observer!!)
-            }
-            liveData.observeForever(observer)
-        }.subscribeOn(activity.schedulers.uiThreadScheduler).observeOn(activity.schedulers.backgroundThreadScheduler)
-    }
-
-    private fun startGameSession(rom: Rom) {
-        activity.viewModel.onSessionStarted(rom)
-        gameSessionHeartbeatJob = activity.lifecycleScope.launch {
-            activity.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                while (isActive) {
-                    delay(2 * 60 * 1000) // 2 minutes
-                    val richPresenceDescription = MelonEmulator.getRichPresenceStatus()
-                    activity.viewModel.onSessionHeartbeat(rom, richPresenceDescription)
-                }
             }
         }
     }
@@ -308,14 +141,8 @@ class RomEmulatorDelegate(activity: EmulatorActivity, private val picasso: Picas
 
     private fun openCheatsActivity() {
         activity.openCheats(loadedRom) {
-            cheatsLoadDisposable?.dispose()
-            cheatsLoadDisposable = loadRomCheats(loadedRom).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe {
-                        MelonEmulator.setupCheats(it.toTypedArray())
-                        activity.resumeEmulation()
-                    }
+            activity.viewModel.onCheatsChanged()
+            activity.resumeEmulation()
         }
     }
-
-    private data class RomCrashContext(val emulatorConfiguration: EmulatorConfiguration, val romSearchDirUri: String?, val romUri: Uri, val sramUri: Uri?)
 }

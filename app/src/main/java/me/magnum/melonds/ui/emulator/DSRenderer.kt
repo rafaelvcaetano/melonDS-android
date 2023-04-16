@@ -12,6 +12,7 @@ import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
 import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
 import me.magnum.melonds.utils.BitmapUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -20,7 +21,10 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.roundToInt
 
-class DSRenderer(private var rendererConfiguration: RendererConfiguration, private val context: Context) : GLSurfaceView.Renderer {
+class DSRenderer(
+    private val frameBuffer: ByteBuffer,
+    private val context: Context,
+) : GLSurfaceView.Renderer {
     companion object {
         private const val TAG = "DSRenderer"
         private const val SCREEN_WIDTH = 256
@@ -38,6 +42,7 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
         )
     }
 
+    private var rendererConfiguration: RuntimeRendererConfiguration? = null
     private var rendererListener: RendererListener? = null
     private var mustUpdateConfiguration = false
     private var isBackgroundPositionDirty = false
@@ -52,7 +57,6 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
     private lateinit var mvpMatrix: FloatArray
     private lateinit var posBuffer: FloatBuffer
     private lateinit var uvBuffer: FloatBuffer
-    val textureBuffer: ByteBuffer
 
     private lateinit var backgroundPosBuffer: FloatBuffer
     private lateinit var backgroundUvBuffer: FloatBuffer
@@ -72,16 +76,11 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
 
     var canRenderBackground = false
 
-    init {
-        textureBuffer = ByteBuffer.allocateDirect(SCREEN_WIDTH * SCREEN_HEIGHT * 4)
-            .order(ByteOrder.nativeOrder())
-    }
-
     fun setRendererListener(listener: RendererListener?) {
         rendererListener = listener
     }
 
-    fun updateRendererConfiguration(newRendererConfiguration: RendererConfiguration) {
+    fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
         rendererConfiguration = newRendererConfiguration
         mustUpdateConfiguration = true
     }
@@ -107,9 +106,9 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
             // Texture buffer is in BGR format. Convert to RGB
             for (x in 0 until SCREEN_WIDTH) {
                 for (y in 0 until SCREEN_HEIGHT) {
-                    val b = textureBuffer[(y * SCREEN_WIDTH + x) * 4 + 0].toInt() and 0xFF
-                    val g = textureBuffer[(y * SCREEN_WIDTH + x) * 4 + 1].toInt() and 0xFF
-                    val r = textureBuffer[(y * SCREEN_WIDTH + x) * 4 + 2].toInt() and 0xFF
+                    val b = frameBuffer[(y * SCREEN_WIDTH + x) * 4 + 0].toInt() and 0xFF
+                    val g = frameBuffer[(y * SCREEN_WIDTH + x) * 4 + 1].toInt() and 0xFF
+                    val r = frameBuffer[(y * SCREEN_WIDTH + x) * 4 + 2].toInt() and 0xFF
                     val argbPixel = 0xFF000000.toInt() or r.shl(16) or g.shl(8) or b
                     setPixel(x, y, argbPixel)
                 }
@@ -273,7 +272,7 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
         // Delete previous shader
         screenShader?.delete()
 
-        val shaderSource = FILTERING_SHADER_MAP[rendererConfiguration.videoFiltering] ?: throw Exception("Invalid video filtering")
+        val shaderSource = FILTERING_SHADER_MAP[rendererConfiguration?.videoFiltering ?: VideoFiltering.NONE] ?: throw Exception("Invalid video filtering")
         screenShader = ShaderFactory.createShaderProgram(shaderSource)
 
         val textureFilter = when (shaderSource.textureFiltering) {
@@ -311,14 +310,14 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
 
         posBuffer.position(0)
         uvBuffer.position(0)
-        textureBuffer.position(0)
+        frameBuffer.position(0)
 
         val indices = posBuffer.capacity() / 2
         screenShader?.let {
             it.use()
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mainTexture)
-            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, textureBuffer)
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, frameBuffer)
             GLES20.glUniformMatrix4fv(it.uniformMvp, 1, false, mvpMatrix, 0)
             GLES20.glVertexAttribPointer(it.attribPos, 2, GLES20.GL_FLOAT, false, 0, posBuffer)
             GLES20.glVertexAttribPointer(it.attribUv, 2, GLES20.GL_FLOAT, false, 0, uvBuffer)
