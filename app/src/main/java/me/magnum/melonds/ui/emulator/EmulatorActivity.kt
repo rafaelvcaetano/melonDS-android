@@ -3,7 +3,6 @@ package me.magnum.melonds.ui.emulator
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
@@ -23,13 +22,23 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
-import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.*
+import androidx.core.net.toUri
+import androidx.core.os.ConfigurationCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.isGone
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -44,31 +53,40 @@ import me.magnum.melonds.R
 import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.common.runtime.FrameBufferProvider
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
-import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.ConsoleType
+import me.magnum.melonds.domain.model.FpsCounterPosition
+import me.magnum.melonds.domain.model.LayoutComponent
+import me.magnum.melonds.domain.model.Orientation
+import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.insetsControllerCompat
+import me.magnum.melonds.extensions.parcelable
 import me.magnum.melonds.extensions.setLayoutOrientation
 import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
-import me.magnum.melonds.ui.emulator.DSRenderer.RendererListener
-import me.magnum.melonds.ui.emulator.firmware.FirmwareEmulatorDelegate
 import me.magnum.melonds.ui.emulator.input.FrontendInputHandler
 import me.magnum.melonds.ui.emulator.input.INativeInputListener
 import me.magnum.melonds.ui.emulator.input.InputProcessor
 import me.magnum.melonds.ui.emulator.input.MelonTouchHandler
 import me.magnum.melonds.ui.emulator.model.EmulatorState
+import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
+import me.magnum.melonds.ui.emulator.model.PauseMenu
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration
+import me.magnum.melonds.ui.emulator.model.ToastEvent
 import me.magnum.melonds.ui.emulator.rewind.EdgeSpacingDecorator
 import me.magnum.melonds.ui.emulator.rewind.RewindSaveStateAdapter
-import me.magnum.melonds.ui.emulator.rom.RomEmulatorDelegate
+import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
+import me.magnum.melonds.ui.emulator.rom.SaveStateListAdapter
 import me.magnum.melonds.ui.emulator.ui.AchievementPopupUi
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.rcheevosapi.model.RAAchievement
+import java.text.SimpleDateFormat
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class EmulatorActivity : AppCompatActivity(), RendererListener {
+class EmulatorActivity : AppCompatActivity() {
     companion object {
         const val KEY_ROM = "rom"
         const val KEY_PATH = "PATH"
@@ -105,8 +123,6 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     @Inject
     lateinit var permissionHandler: PermissionHandler
 
-    private lateinit var delegate: EmulatorDelegate
-
     private lateinit var dsRenderer: DSRenderer
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
@@ -118,9 +134,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
 
         override fun onPausePressed() {
-            if (emulatorReady) {
-                showPauseMenu()
-            }
+            viewModel.pauseEmulator(true)
         }
 
         override fun onFastForwardPressed() {
@@ -129,9 +143,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
 
         override fun onResetPressed() {
-            if (emulatorReady) {
-                resetEmulation()
-            }
+            viewModel.resetEmulator()
         }
 
         override fun onSwapScreens() {
@@ -139,20 +151,15 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
 
         override fun onQuickSave() {
-            performQuickSave()
+            viewModel.doQuickSave()
         }
 
         override fun onQuickLoad() {
-            performQuickLoad()
+            viewModel.doQuickLoad()
         }
 
         override fun onRewind() {
-            if (viewModel.isRewindEnabled()) {
-                pauseEmulation()
-                openRewindWindow()
-            } else {
-                Toast.makeText(this@EmulatorActivity, R.string.rewind_not_enabled, Toast.LENGTH_SHORT).show()
-            }
+            viewModel.onOpenRewind()
         }
     }
     private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -160,10 +167,11 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         setupInputHandling()
         setupSustainedPerformanceMode()
         setupFpsCounter()
+        viewModel.resumeEmulator()
     }
     private val cheatsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        cheatsClosedListener?.invoke()
-        cheatsClosedListener = null
+        viewModel.onCheatsChanged()
+        viewModel.resumeEmulator()
     }
     private val permissionRequestLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         lifecycleScope.launch {
@@ -179,12 +187,11 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     private val rewindSaveStateAdapter = RewindSaveStateAdapter {
-        MelonEmulator.loadRewindState(it)
+        viewModel.rewindToState(it)
         closeRewindWindow()
     }
-    private var cheatsClosedListener: (() -> Unit)? = null
+    private var resumeEmulatorOnActivityResume = true
     private var emulatorReady = false
-    private var emulatorPaused = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -192,13 +199,11 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
         setContentView(binding.root)
         setupFullscreen()
-        initializeDelegate()
 
         onBackPressedDispatcher.addCallback(backPressedCallback)
 
         melonTouchHandler = MelonTouchHandler()
         dsRenderer = DSRenderer(frameBufferProvider.frameBuffer(), this)
-        dsRenderer.setRendererListener(this)
         binding.surfaceMain.apply {
             setEGLContextClientVersion(2)
             preserveEGLContextOnPause = true
@@ -314,8 +319,61 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.gbaLoadFailedEvent.collectLatest {
-                    Toast.makeText(this@EmulatorActivity, R.string.error_load_gba_rom, Toast.LENGTH_SHORT).show()
+                viewModel.currentFps.collectLatest {
+                    if (it == null) {
+                        binding.textFps.text = ""
+                    } else {
+                        binding.textFps.text = getString(R.string.info_fps, it)
+                    }
+                }
+            }
+        }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.toastEvent.collectLatest {
+                    val (message, duration) = when (it) {
+                        ToastEvent.GbaLoadFailed -> R.string.error_load_gba_rom to Toast.LENGTH_SHORT
+                        ToastEvent.QuickSaveSuccessful -> R.string.saved to Toast.LENGTH_SHORT
+                        ToastEvent.QuickLoadSuccessful -> R.string.loaded to Toast.LENGTH_SHORT
+                        ToastEvent.ResetFailed -> R.string.failed_reset_emulation to Toast.LENGTH_SHORT
+                        ToastEvent.RewindNotEnabled -> R.string.rewind_not_enabled to Toast.LENGTH_SHORT
+                        ToastEvent.StateLoadFailed -> R.string.failed_load_state to Toast.LENGTH_SHORT
+                        ToastEvent.StateSaveFailed -> R.string.failed_save_state to Toast.LENGTH_SHORT
+                        ToastEvent.StateStateDoesNotExist -> R.string.cant_load_empty_slot to Toast.LENGTH_SHORT
+                        ToastEvent.CannotLoadStateWhenRunningFirmware,
+                        ToastEvent.CannotSaveStateWhenRunningFirmware -> R.string.save_states_not_supported to Toast.LENGTH_LONG
+                    }
+
+                    Toast.makeText(this@EmulatorActivity, message, duration).show()
+                }
+            }
+        }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.uiEvent.collectLatest {
+                    when (it) {
+                        EmulatorUiEvent.CloseEmulator -> finish()
+                        is EmulatorUiEvent.OpenScreen.CheatsScreen -> {
+                            val intent = Intent(this@EmulatorActivity, CheatsActivity::class.java)
+                            intent.putExtra(CheatsActivity.KEY_ROM_INFO, RomInfoParcelable.fromRomInfo(it.romInfo))
+                            cheatsLauncher.launch(intent)
+                        }
+                        EmulatorUiEvent.OpenScreen.SettingsScreen -> {
+                            val settingsIntent = Intent(this@EmulatorActivity, SettingsActivity::class.java)
+                            settingsLauncher.launch(settingsIntent)
+                        }
+                        is EmulatorUiEvent.ShowPauseMenu -> showPauseMenu(it.pauseMenu)
+                        is EmulatorUiEvent.ShowRewindWindow -> showRewindWindow(it.rewindWindow)
+                        is EmulatorUiEvent.ShowRomSaveStates -> {
+                            showSaveStateSlotsDialog(it.saveStates) { slot ->
+                                if (it.reason == EmulatorUiEvent.ShowRomSaveStates.Reason.SAVING) {
+                                    viewModel.saveStateToSlot(slot)
+                                } else {
+                                    viewModel.loadStateFromSlot(slot)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -368,39 +426,31 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         }
     }
 
-    private fun initializeDelegate() {
-        val bootFirmwareOnly = intent.extras?.getBoolean(KEY_BOOT_FIRMWARE_ONLY) ?: false
-        delegate = if (bootFirmwareOnly) FirmwareEmulatorDelegate(this) else RomEmulatorDelegate(this, picasso)
-    }
-
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
 
-        if (emulatorReady) {
+        if (viewModel.emulatorState.value.isRunning()) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            MelonEmulator.pauseEmulation()
-            emulatorPaused = true
-            emulatorReady = false
+            resumeEmulatorOnActivityResume = false
+            viewModel.pauseEmulator(false)
             backPressedCallback.isEnabled = false
 
             AlertDialog.Builder(this)
                     .setTitle(getString(R.string.title_emulator_running))
                     .setMessage(getString(R.string.message_stop_emulation))
                     .setPositiveButton(R.string.ok) { _, _ ->
-                        MelonEmulator.stopEmulation()
-                        emulatorPaused = false
+                        viewModel.stopEmulator()
+                        resumeEmulatorOnActivityResume = true
                         setIntent(intent)
-                        delegate.dispose()
-                        initializeDelegate()
                         launchEmulator()
                     }
                     .setNegativeButton(R.string.no) { dialog, _ ->
                         dialog.cancel()
                     }
                     .setOnCancelListener {
-                        emulatorReady = true
+                        resumeEmulatorOnActivityResume = true
                         backPressedCallback.isEnabled = true
-                        resumeEmulation()
+                        viewModel.resumeEmulator()
                     }
                     .show()
         }
@@ -410,13 +460,42 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         super.onResume()
         binding.surfaceMain.onResume()
 
-        if (emulatorReady && !emulatorPaused) {
-            MelonEmulator.resumeEmulation()
+        if (resumeEmulatorOnActivityResume) {
+            disableScreenTimeOut()
+            viewModel.resumeEmulator()
         }
     }
 
     private fun launchEmulator() {
-        delegate.getEmulatorSetupObservable(intent.extras)
+        val extras = intent?.extras
+        val bootFirmwareOnly = extras?.getBoolean(KEY_BOOT_FIRMWARE_ONLY) ?: false
+
+        disableScreenTimeOut()
+        if (bootFirmwareOnly) {
+            val consoleTypeParameter = extras?.getInt(KEY_BOOT_FIRMWARE_CONSOLE, -1)
+            if (consoleTypeParameter == null || consoleTypeParameter == -1) {
+                throw RuntimeException("No console type specified")
+            }
+
+            val firmwareConsoleType = ConsoleType.values()[consoleTypeParameter]
+            viewModel.loadFirmware(firmwareConsoleType)
+        } else {
+            val romParcelable = extras?.parcelable(KEY_ROM) as RomParcelable?
+
+            if (romParcelable?.rom != null) {
+                viewModel.loadRom(romParcelable.rom)
+            } else {
+                if (extras?.containsKey(KEY_PATH) == true) {
+                    val romPath = extras.getString(KEY_PATH)!!
+                    viewModel.loadRom(romPath)
+                } else if (extras?.containsKey(KEY_URI) == true) {
+                    val romUri = extras.getString(KEY_URI)!!
+                    viewModel.loadRom(romUri.toUri())
+                } else {
+                    throw RuntimeException("No ROM was specified")
+                }
+            }
+        }
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -489,14 +568,6 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         updateRendererScreenAreas()
     }
 
-    private fun performQuickSave() {
-        delegate.performQuickSave()
-    }
-
-    private fun performQuickLoad() {
-        delegate.performQuickLoad()
-    }
-
     private fun updateRendererScreenAreas() {
         val (topScreen, bottomScreen) = if (binding.viewLayoutControls.areScreensSwapped()) {
             LayoutComponent.BOTTOM_SCREEN to LayoutComponent.TOP_SCREEN
@@ -504,8 +575,8 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             LayoutComponent.TOP_SCREEN to LayoutComponent.BOTTOM_SCREEN
         }
         dsRenderer.updateScreenAreas(
-                binding.viewLayoutControls.getLayoutComponentView(topScreen)?.getRect(),
-                binding.viewLayoutControls.getLayoutComponentView(bottomScreen)?.getRect()
+            binding.viewLayoutControls.getLayoutComponentView(topScreen)?.getRect(),
+            binding.viewLayoutControls.getLayoutComponentView(bottomScreen)?.getRect()
         )
     }
 
@@ -517,43 +588,38 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         if (isRewindWindowOpen()) {
             closeRewindWindow()
         } else {
-            this.showPauseMenu()
+            viewModel.pauseEmulator(true)
         }
     }
 
-    private fun showPauseMenu() {
-        pauseEmulation()
-        val values = delegate.getPauseMenuOptions()
-        val options = Array(values.size) { i -> getString(values[i].textResource) }
+    private fun showPauseMenu(pauseMenu: PauseMenu) {
+        val options = Array(pauseMenu.options.size) {
+            getString(pauseMenu.options[it].textResource)
+        }
 
+        resumeEmulatorOnActivityResume = false
+        enableScreenTimeOut()
         AlertDialog.Builder(this)
                 .setTitle(R.string.pause)
-                .setItems(options) { _, which -> delegate.onPauseMenuOptionSelected(values[which]) }
-                .setOnCancelListener { resumeEmulation() }
+                .setItems(options) { _, which ->
+                    val selectedOption = pauseMenu.options[which]
+                    viewModel.onPauseMenuOptionSelected(selectedOption)
+                    disableScreenTimeOut()
+                }
+                .setOnCancelListener {
+                    viewModel.resumeEmulator()
+                    resumeEmulatorOnActivityResume = true
+                    disableScreenTimeOut()
+                }
                 .show()
     }
 
-    private fun pauseEmulation() {
-        emulatorPaused = true
-        MelonEmulator.pauseEmulation()
+    private fun disableScreenTimeOut() {
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
-    fun resumeEmulation() {
-        emulatorPaused = false
+    private fun enableScreenTimeOut() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        MelonEmulator.resumeEmulation()
-    }
-
-    fun resetEmulation() {
-        val result = MelonEmulator.resetEmulation()
-        if (!result) {
-            Toast.makeText(this, R.string.failed_reset_emulation, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    fun takeScreenshot(): Bitmap {
-        return dsRenderer.takeScreenshot()
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
@@ -563,35 +629,43 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
         return super.dispatchKeyEvent(event)
     }
 
-    override fun onFrameRendered() {
-        if (!emulatorReady)
-            return
-
-        val fps = MelonEmulator.getFPS()
-        runOnUiThread { binding.textFps.text = getString(R.string.info_fps, fps) }
-    }
-
-    fun openSettings() {
-        // Allow emulator to resume once the user returns from Settings
-        emulatorPaused = false
-        val settingsIntent = Intent(this, SettingsActivity::class.java)
-        settingsLauncher.launch(Intent(settingsIntent))
-    }
-
-    fun openCheats(rom: Rom, onCheatsClosed: () -> Unit) {
-        cheatsClosedListener = onCheatsClosed
-        val romInfo = viewModel.getRomInfo(rom) ?: return
-
-        val intent = Intent(this, CheatsActivity::class.java)
-        intent.putExtra(CheatsActivity.KEY_ROM_INFO, RomInfoParcelable.fromRomInfo(romInfo))
-        cheatsLauncher.launch(intent)
-    }
-
     private fun isRewindWindowOpen(): Boolean {
         return binding.root.currentState == R.id.rewind_visible
     }
 
+    private fun showSaveStateSlotsDialog(slots: List<SaveStateSlot>, onSlotPicked: (SaveStateSlot) -> Unit) {
+        val dateFormatter = SimpleDateFormat("EEE, dd MMM yyyy", ConfigurationCompat.getLocales(resources.configuration)[0])
+        val timeFormatter = SimpleDateFormat("kk:mm:ss", ConfigurationCompat.getLocales(resources.configuration)[0])
+        var dialog: AlertDialog? = null
+        var adapter: SaveStateListAdapter? = null
+
+        adapter = SaveStateListAdapter(slots, picasso, dateFormatter, timeFormatter, {
+            disableScreenTimeOut()
+            dialog?.cancel()
+            onSlotPicked(it)
+        }) {
+            viewModel.deleteSaveStateSlot(it)?.let { newSlots ->
+                adapter?.updateSaveStateSlots(newSlots)
+            }
+        }
+
+        enableScreenTimeOut()
+        dialog = AlertDialog.Builder(this)
+            .setTitle(getString(R.string.save_slot))
+            .setAdapter(adapter) { _, _ ->
+            }
+            .setNegativeButton(R.string.cancel) { _dialog, _ ->
+                _dialog.cancel()
+            }
+            .setOnCancelListener {
+                viewModel.resumeEmulator()
+                disableScreenTimeOut()
+            }
+            .show()
+    }
+
     private fun showRomLoadErrorDialog() {
+        enableScreenTimeOut()
         AlertDialog.Builder(this)
             .setCancelable(false)
             .setTitle(R.string.error_load_rom)
@@ -604,6 +678,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     private fun showRomNotFoundDialog() {
+        enableScreenTimeOut()
         AlertDialog.Builder(this)
             .setTitle(R.string.error_rom_not_found)
             .setMessage(R.string.error_rom_not_found_info)
@@ -617,6 +692,7 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
     }
 
     private fun showFirmwareLoadErrorDialog(error: EmulatorState.FirmwareLoadError) {
+        enableScreenTimeOut()
         AlertDialog.Builder(this)
             .setCancelable(false)
             .setTitle(R.string.error_load_firmware)
@@ -628,32 +704,22 @@ class EmulatorActivity : AppCompatActivity(), RendererListener {
             .show()
     }
 
-    fun openRewindWindow() {
+    private fun showRewindWindow(rewindWindow: RewindWindow) {
+        enableScreenTimeOut()
         binding.root.transitionToState(R.id.rewind_visible)
-        val rewindWindow = MelonEmulator.getRewindWindow()
         rewindSaveStateAdapter.setRewindWindow(rewindWindow)
     }
 
     private fun closeRewindWindow() {
+        disableScreenTimeOut()
         binding.root.transitionToState(R.id.rewind_hidden)
-        MelonEmulator.resumeEmulation()
+        viewModel.resumeEmulator()
     }
 
     override fun onPause() {
         super.onPause()
+        enableScreenTimeOut()
         binding.surfaceMain.onPause()
-
-        if (emulatorReady && !emulatorPaused) {
-            MelonEmulator.pauseEmulation()
-        }
-    }
-
-    override fun onDestroy() {
-        if (emulatorReady) {
-            MelonEmulator.stopEmulation()
-        }
-
-        delegate.dispose()
-        super.onDestroy()
+        viewModel.pauseEmulator(false)
     }
 }

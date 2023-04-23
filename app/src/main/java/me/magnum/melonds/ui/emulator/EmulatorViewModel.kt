@@ -1,15 +1,28 @@
 package me.magnum.melonds.ui.emulator
 
-import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Maybe
 import io.reactivex.Observable
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.rx2.awaitSingleOrNull
@@ -17,24 +30,46 @@ import kotlinx.coroutines.rx2.rxMaybe
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
-import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.common.runtime.FrameBufferProvider
+import me.magnum.melonds.domain.model.BackgroundMode
+import me.magnum.melonds.domain.model.Cheat
+import me.magnum.melonds.domain.model.ConsoleType
+import me.magnum.melonds.domain.model.FpsCounterPosition
+import me.magnum.melonds.domain.model.LayoutConfiguration
+import me.magnum.melonds.domain.model.Orientation
+import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.RomInfo
+import me.magnum.melonds.domain.model.RuntimeBackground
+import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
-import me.magnum.melonds.domain.repositories.*
+import me.magnum.melonds.domain.repositories.BackgroundRepository
+import me.magnum.melonds.domain.repositories.CheatsRepository
+import me.magnum.melonds.domain.repositories.LayoutsRepository
+import me.magnum.melonds.domain.repositories.RetroAchievementsRepository
+import me.magnum.melonds.domain.repositories.RomsRepository
+import me.magnum.melonds.domain.repositories.SaveStatesRepository
+import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.EmulatorManager
 import me.magnum.melonds.ui.emulator.firmware.FirmwarePauseMenuOption
 import me.magnum.melonds.ui.emulator.model.EmulatorState
+import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
+import me.magnum.melonds.ui.emulator.model.PauseMenu
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
+import me.magnum.melonds.ui.emulator.model.ToastEvent
+import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rom.RomPauseMenuOption
+import me.magnum.melonds.utils.EventSharedFlow
 import me.magnum.rcheevosapi.model.RAAchievement
-import java.util.*
+import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
 class EmulatorViewModel @Inject constructor(
@@ -46,6 +81,7 @@ class EmulatorViewModel @Inject constructor(
     private val layoutsRepository: LayoutsRepository,
     private val backgroundsRepository: BackgroundRepository,
     private val saveStatesRepository: SaveStatesRepository,
+    private val frameBufferProvider: FrameBufferProvider,
     private val emulatorManager: EmulatorManager,
     private val schedulers: Schedulers
 ) : ViewModel() {
@@ -71,11 +107,18 @@ class EmulatorViewModel @Inject constructor(
     private val _achievementTriggeredEvent = MutableSharedFlow<RAAchievement>(extraBufferCapacity = 5, onBufferOverflow = BufferOverflow.SUSPEND)
     val achievementTriggeredEvent = _achievementTriggeredEvent.asSharedFlow()
 
-    private val _gbaLoadFailedEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val gbaLoadFailedEvent = _gbaLoadFailedEvent.asSharedFlow()
+    private val _currentFps = MutableStateFlow<Int?>(null)
+    val currentFps = _currentFps.asStateFlow()
+
+    private val _toastEvent = EventSharedFlow<ToastEvent>()
+    val toastEvent = _toastEvent.asSharedFlow()
+
+    private val _uiEvent = EventSharedFlow<EmulatorUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
 
     fun loadRom(rom: Rom) {
         sessionCoroutineScope.notifyNewSessionStarted()
+        _currentFps.value = null
         _emulatorState.value = EmulatorState.LoadingRom
         sessionCoroutineScope.launch {
             launchRom(rom)
@@ -84,6 +127,7 @@ class EmulatorViewModel @Inject constructor(
 
     fun loadRom(romUri: Uri) {
         sessionCoroutineScope.notifyNewSessionStarted()
+        _currentFps.value = null
         _emulatorState.value = EmulatorState.LoadingRom
         sessionCoroutineScope.launch {
             val rom = getRomAtUri(romUri).awaitSingleOrNull()
@@ -97,6 +141,7 @@ class EmulatorViewModel @Inject constructor(
 
     fun loadRom(romPath: String) {
         sessionCoroutineScope.notifyNewSessionStarted()
+        _currentFps.value = null
         _emulatorState.value = EmulatorState.LoadingRom
         sessionCoroutineScope.launch {
             val rom = getRomAtPath(romPath).awaitSingleOrNull()
@@ -128,16 +173,18 @@ class EmulatorViewModel @Inject constructor(
             }
             is RomLaunchResult.LaunchSuccessful -> {
                 if (!result.isGbaLoadSuccessful) {
-                    _gbaLoadFailedEvent.tryEmit(Unit)
+                    _toastEvent.tryEmit(ToastEvent.GbaLoadFailed)
                 }
                 _emulatorState.value = EmulatorState.RunningRom(rom)
                 startSession(rom)
+                startTrackingFps()
             }
         }
     }
 
     fun loadFirmware(consoleType: ConsoleType) {
         sessionCoroutineScope.notifyNewSessionStarted()
+        _currentFps.value = null
         _emulatorState.value = EmulatorState.LoadingFirmware
         sessionCoroutineScope.launch {
             startObservingBackground()
@@ -152,6 +199,7 @@ class EmulatorViewModel @Inject constructor(
                 }
                 FirmwareLaunchResult.LaunchSuccessful -> {
                     _emulatorState.value = EmulatorState.RunningFirmware(consoleType)
+                    startTrackingFps()
                 }
             }
         }
@@ -183,6 +231,207 @@ class EmulatorViewModel @Inject constructor(
                 emulatorManager.updateCheats(cheats)
             }
         }
+    }
+
+    fun pauseEmulator(showPauseMenu: Boolean) {
+        sessionCoroutineScope.launch {
+            emulatorManager.pauseEmulator()
+            if (showPauseMenu) {
+                val pauseOptions = when (_emulatorState.value) {
+                    is EmulatorState.RunningRom -> {
+                        RomPauseMenuOption.values().filter {
+                            filterRomPauseMenuOption(it)
+                        }
+                    }
+                    is EmulatorState.RunningFirmware -> {
+                        FirmwarePauseMenuOption.values().toList()
+                    }
+                    else -> null
+                }
+
+                if (pauseOptions != null) {
+                    _uiEvent.emit(EmulatorUiEvent.ShowPauseMenu(PauseMenu(pauseOptions)))
+                }
+            }
+        }
+    }
+
+    fun resumeEmulator() {
+        sessionCoroutineScope.launch {
+            emulatorManager.resumeEmulator()
+        }
+    }
+
+    fun resetEmulator() {
+        if (_emulatorState.value.isRunning()) {
+            sessionCoroutineScope.launch {
+                emulatorManager.resetEmulator()
+                _toastEvent.emit(ToastEvent.ResetFailed)
+            }
+        }
+    }
+
+    fun stopEmulator() {
+        emulatorManager.stopEmulator()
+    }
+
+    fun onPauseMenuOptionSelected(option: PauseMenuOption) {
+        when (option) {
+            is RomPauseMenuOption -> {
+                when (option) {
+                    RomPauseMenuOption.SETTINGS -> _uiEvent.tryEmit(EmulatorUiEvent.OpenScreen.SettingsScreen)
+                    RomPauseMenuOption.SAVE_STATE -> {
+                        (_emulatorState.value as? EmulatorState.RunningRom)?.let {
+                            val saveStateSlots = getRomSaveStateSlots(it.rom)
+                            _uiEvent.tryEmit(EmulatorUiEvent.ShowRomSaveStates(saveStateSlots, EmulatorUiEvent.ShowRomSaveStates.Reason.SAVING))
+                        }
+                    }
+                    RomPauseMenuOption.LOAD_STATE -> {
+                        (_emulatorState.value as? EmulatorState.RunningRom)?.let {
+                            val saveStateSlots = getRomSaveStateSlots(it.rom)
+                            _uiEvent.tryEmit(EmulatorUiEvent.ShowRomSaveStates(saveStateSlots, EmulatorUiEvent.ShowRomSaveStates.Reason.LOADING))
+                        }
+                    }
+                    RomPauseMenuOption.REWIND -> {
+                        sessionCoroutineScope.launch {
+                            val rewindWindow = emulatorManager.getRewindWindow()
+                            _uiEvent.emit(EmulatorUiEvent.ShowRewindWindow(rewindWindow))
+                        }
+                    }
+                    RomPauseMenuOption.CHEATS -> {
+                        (_emulatorState.value as? EmulatorState.RunningRom)?.let {
+                            getRomInfo(it.rom)?.let { romInfo ->
+                                _uiEvent.tryEmit(EmulatorUiEvent.OpenScreen.CheatsScreen(romInfo))
+                            }
+                        }
+                    }
+                    RomPauseMenuOption.RESET -> resetEmulator()
+                    RomPauseMenuOption.EXIT -> _uiEvent.tryEmit(EmulatorUiEvent.CloseEmulator)
+                }
+            }
+            is FirmwarePauseMenuOption -> {
+                when (option) {
+                    FirmwarePauseMenuOption.SETTINGS -> _uiEvent.tryEmit(EmulatorUiEvent.OpenScreen.SettingsScreen)
+                    FirmwarePauseMenuOption.RESET -> resetEmulator()
+                    FirmwarePauseMenuOption.EXIT -> _uiEvent.tryEmit(EmulatorUiEvent.CloseEmulator)
+                }
+            }
+        }
+    }
+
+    fun onOpenRewind() {
+        if (settingsRepository.isRewindEnabled()) {
+            sessionCoroutineScope.launch {
+                emulatorManager.pauseEmulator()
+                val rewindWindow = emulatorManager.getRewindWindow()
+                _uiEvent.emit(EmulatorUiEvent.ShowRewindWindow(rewindWindow))
+            }
+        } else {
+            _toastEvent.tryEmit(ToastEvent.RewindNotEnabled)
+        }
+    }
+
+    fun rewindToState(rewindSaveState: RewindSaveState) {
+        sessionCoroutineScope.launch {
+            emulatorManager.loadRewindState(rewindSaveState)
+        }
+    }
+
+    fun saveStateToSlot(slot: SaveStateSlot) {
+        sessionCoroutineScope.launch(Dispatchers.IO) {
+            (_emulatorState.value as? EmulatorState.RunningRom)?.let {
+                if (!saveRomState(it.rom, slot)) {
+                    _toastEvent.emit(ToastEvent.StateSaveFailed)
+                }
+                emulatorManager.resumeEmulator()
+            }
+        }
+    }
+
+    fun loadStateFromSlot(slot: SaveStateSlot) {
+        if (!slot.exists) {
+            _toastEvent.tryEmit(ToastEvent.StateStateDoesNotExist)
+        } else {
+            sessionCoroutineScope.launch {
+                (_emulatorState.value as? EmulatorState.RunningRom)?.let {
+                    if (!loadRomState(it.rom, slot)) {
+                        _toastEvent.emit(ToastEvent.StateLoadFailed)
+                    }
+                    emulatorManager.resumeEmulator()
+                }
+            }
+        }
+    }
+
+    fun doQuickSave() {
+        val currentState = _emulatorState.value
+        when (currentState) {
+            is EmulatorState.RunningRom -> {
+                sessionCoroutineScope.launch {
+                    emulatorManager.pauseEmulator()
+                    val quickSlot = saveStatesRepository.getRomQuickSaveStateSlot(currentState.rom)
+                    if (saveRomState(currentState.rom, quickSlot)) {
+                        _toastEvent.emit(ToastEvent.QuickSaveSuccessful)
+                    }
+                    emulatorManager.resumeEmulator()
+                }
+            }
+            is EmulatorState.RunningFirmware -> {
+                _toastEvent.tryEmit(ToastEvent.CannotSaveStateWhenRunningFirmware)
+            }
+            else -> {
+                // Do nothing
+            }
+        }
+    }
+
+    fun doQuickLoad() {
+        val currentState = _emulatorState.value
+        when (currentState) {
+            is EmulatorState.RunningRom -> {
+                sessionCoroutineScope.launch {
+                    emulatorManager.pauseEmulator()
+                    val quickSlot = saveStatesRepository.getRomQuickSaveStateSlot(currentState.rom)
+                    if (loadRomState(currentState.rom, quickSlot)) {
+                        _toastEvent.emit(ToastEvent.QuickLoadSuccessful)
+                    }
+                    emulatorManager.resumeEmulator()
+                }
+            }
+            is EmulatorState.RunningFirmware -> {
+                _toastEvent.tryEmit(ToastEvent.CannotLoadStateWhenRunningFirmware)
+            }
+            else -> {
+                // Do nothing
+            }
+        }
+    }
+
+    fun deleteSaveStateSlot(slot: SaveStateSlot): List<SaveStateSlot>? {
+        return (_emulatorState.value as? EmulatorState.RunningRom)?.let {
+            saveStatesRepository.deleteRomSaveState(it.rom, slot)
+            getRomSaveStateSlots(it.rom)
+        }
+    }
+
+    private suspend fun saveRomState(rom: Rom, slot: SaveStateSlot): Boolean {
+        val slotUri = saveStatesRepository.getRomSaveStateUri(rom, slot)
+        return if (emulatorManager.saveState(slotUri)) {
+            val screenshot = frameBufferProvider.getScreenshot()
+            saveStatesRepository.setRomSaveStateScreenshot(rom, slot, screenshot)
+            true
+        } else {
+            false
+        }
+    }
+
+    private suspend fun loadRomState(rom: Rom, slot: SaveStateSlot): Boolean {
+        if (!slot.exists) {
+            return false
+        }
+
+        val slotUri = saveStatesRepository.getRomSaveStateUri(rom, slot)
+        return emulatorManager.loadState(slotUri)
     }
 
     private fun startObservingRuntimeInputLayoutConfiguration() {
@@ -314,53 +563,25 @@ class EmulatorViewModel @Inject constructor(
                 }
     }
 
-    fun isRewindEnabled(): Boolean {
-        return settingsRepository.isRewindEnabled()
-    }
-
-    fun getRomInfo(rom: Rom): RomInfo? {
+    private fun getRomInfo(rom: Rom): RomInfo? {
         val fileRomProcessor = romFileProcessorFactory.getFileRomProcessorForDocument(rom.uri)
         return fileRomProcessor?.getRomInfo(rom)
     }
 
-    fun getRomSaveStateSlots(rom: Rom): List<SaveStateSlot> {
+    private fun getRomSaveStateSlots(rom: Rom): List<SaveStateSlot> {
         return saveStatesRepository.getRomSaveStates(rom)
     }
 
-    fun getRomQuickSaveStateSlot(rom: Rom): SaveStateSlot {
-        return saveStatesRepository.getRomQuickSaveStateSlot(rom)
-    }
-
-    fun getRomSaveStateSlotUri(rom: Rom, saveState: SaveStateSlot): Uri {
-        return saveStatesRepository.getRomSaveStateUri(rom, saveState)
-    }
-
-    fun setRomSaveStateSlotScreenshot(rom: Rom, saveState: SaveStateSlot, screenshot: Bitmap) {
-        saveStatesRepository.setRomSaveStateScreenshot(rom, saveState, screenshot)
-    }
-
-    fun deleteRomSaveStateSlot(rom: Rom, saveState: SaveStateSlot) {
-        saveStatesRepository.deleteRomSaveState(rom, saveState)
-    }
-
-    fun getRomAtPath(path: String): Maybe<Rom> {
+    private fun getRomAtPath(path: String): Maybe<Rom> {
         return rxMaybe {
             romsRepository.getRomAtPath(path)
         }
     }
 
-    fun getRomAtUri(uri: Uri): Maybe<Rom> {
+    private fun getRomAtUri(uri: Uri): Maybe<Rom> {
         return rxMaybe {
             romsRepository.getRomAtUri(uri)
         }
-    }
-
-    fun getRomPauseMenuOptions(): List<PauseMenuOption> {
-        return RomPauseMenuOption.values().filter(this::filterRomPauseMenuOption)
-    }
-
-    fun getFirmwarePauseMenuOptions(): List<PauseMenuOption> {
-        return FirmwarePauseMenuOption.values().toList()
     }
 
     fun isSustainedPerformanceModeEnabled(): Boolean {
@@ -419,6 +640,15 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
+    private fun startTrackingFps() {
+        sessionCoroutineScope.launch {
+            while (isActive) {
+                delay(1.seconds)
+                _currentFps.value = emulatorManager.getFps()
+            }
+        }
+    }
+
     private fun filterRomPauseMenuOption(option: RomPauseMenuOption): Boolean {
         return when (option) {
             RomPauseMenuOption.REWIND -> settingsRepository.isRewindEnabled()
@@ -429,6 +659,9 @@ class EmulatorViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         sessionCoroutineScope.cancel()
+        if (_emulatorState.value.isRunning()) {
+            emulatorManager.stopEmulator()
+        }
     }
 
     private class EmulatorSessionCoroutineScope : CoroutineScope {

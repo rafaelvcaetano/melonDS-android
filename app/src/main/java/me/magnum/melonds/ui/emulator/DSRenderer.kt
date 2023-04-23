@@ -1,17 +1,18 @@
 package me.magnum.melonds.ui.emulator
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import android.opengl.Matrix
-import android.util.Log
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
-import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.BackgroundMode
+import me.magnum.melonds.domain.model.Rect
+import me.magnum.melonds.domain.model.RuntimeBackground
+import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
 import me.magnum.melonds.utils.BitmapUtils
 import java.nio.ByteBuffer
@@ -26,7 +27,6 @@ class DSRenderer(
     private val context: Context,
 ) : GLSurfaceView.Renderer {
     companion object {
-        private const val TAG = "DSRenderer"
         private const val SCREEN_WIDTH = 256
         private const val SCREEN_HEIGHT = 384
 
@@ -43,7 +43,6 @@ class DSRenderer(
     }
 
     private var rendererConfiguration: RuntimeRendererConfiguration? = null
-    private var rendererListener: RendererListener? = null
     private var mustUpdateConfiguration = false
     private var isBackgroundPositionDirty = false
     private var isBackgroundLoaded = false
@@ -76,10 +75,6 @@ class DSRenderer(
 
     var canRenderBackground = false
 
-    fun setRendererListener(listener: RendererListener?) {
-        rendererListener = listener
-    }
-
     fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
         rendererConfiguration = newRendererConfiguration
         mustUpdateConfiguration = true
@@ -101,21 +96,6 @@ class DSRenderer(
         }
     }
 
-    fun takeScreenshot(): Bitmap {
-        return Bitmap.createBitmap(SCREEN_WIDTH, SCREEN_HEIGHT, Bitmap.Config.ARGB_8888).apply {
-            // Texture buffer is in BGR format. Convert to RGB
-            for (x in 0 until SCREEN_WIDTH) {
-                for (y in 0 until SCREEN_HEIGHT) {
-                    val b = frameBuffer[(y * SCREEN_WIDTH + x) * 4 + 0].toInt() and 0xFF
-                    val g = frameBuffer[(y * SCREEN_WIDTH + x) * 4 + 1].toInt() and 0xFF
-                    val r = frameBuffer[(y * SCREEN_WIDTH + x) * 4 + 2].toInt() and 0xFF
-                    val argbPixel = 0xFF000000.toInt() or r.shl(16) or g.shl(8) or b
-                    setPixel(x, y, argbPixel)
-                }
-            }
-        }
-    }
-
     private fun screenXToViewportX(x: Int): Float {
         return (x / this.width) * 2f - 1f
     }
@@ -125,11 +105,6 @@ class DSRenderer(
     }
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
-        if (rendererListener == null) {
-            Log.w(TAG, "No frame buffer updater specified")
-            return
-        }
-
         GLES20.glClearColor(0f, 0f, 0f, 1f)
         GLES20.glDisable(GLES20.GL_CULL_FACE)
 
@@ -324,8 +299,6 @@ class DSRenderer(
             GLES20.glUniform1i(it.uniformTex, 0)
             GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, indices)
         }
-
-        rendererListener?.onFrameRendered()
     }
 
     private fun renderBackground() {
@@ -553,9 +526,5 @@ class DSRenderer(
                 }
             }
         }
-    }
-
-    interface RendererListener {
-        fun onFrameRendered()
     }
 }

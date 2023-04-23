@@ -1,6 +1,7 @@
 package me.magnum.melonds.impl.emulator
 
 import android.content.Context
+import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,6 +21,8 @@ import me.magnum.melonds.domain.model.retroachievements.RAEvent
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.EmulatorManager
 import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
+import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
+import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 
 class AndroidEmulatorManager(
     private val context: Context,
@@ -81,8 +84,44 @@ class AndroidEmulatorManager(
         MelonEmulator.updateEmulatorConfiguration(configuration)
     }
 
+    override suspend fun getRewindWindow(): RewindWindow {
+        return MelonEmulator.getRewindWindow()
+    }
+
+    override fun getFps(): Int {
+        return MelonEmulator.getFPS()
+    }
+
+    override suspend fun pauseEmulator() {
+        MelonEmulator.pauseEmulation()
+    }
+
+    override suspend fun resumeEmulator() {
+        MelonEmulator.resumeEmulation()
+    }
+
+    override suspend fun resetEmulator(): Boolean {
+        return MelonEmulator.resetEmulation()
+    }
+
     override suspend fun updateCheats(cheats: List<Cheat>) {
         MelonEmulator.setupCheats(cheats.toTypedArray())
+    }
+
+    override suspend fun loadRewindState(rewindSaveState: RewindSaveState): Boolean {
+        return MelonEmulator.loadRewindState(rewindSaveState)
+    }
+
+    override suspend fun saveState(saveStateFileUri: Uri): Boolean {
+        return MelonEmulator.saveState(saveStateFileUri)
+    }
+
+    override suspend fun loadState(saveStateFileUri: Uri): Boolean {
+        return MelonEmulator.loadState(saveStateFileUri)
+    }
+
+    override fun stopEmulator() {
+        MelonEmulator.stopEmulation()
     }
 
     override fun observeRetroAchievementEvents(): Flow<RAEvent> {
