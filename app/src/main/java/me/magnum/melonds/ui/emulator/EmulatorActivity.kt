@@ -398,7 +398,6 @@ class EmulatorActivity : AppCompatActivity() {
                             setupFpsCounter()
                             binding.textLoading.isGone = true
                             binding.viewLayoutControls.isVisible = true
-                            dsRenderer.canRenderBackground = true
                             emulatorReady = true
                             backPressedCallback.isEnabled = true
                         }

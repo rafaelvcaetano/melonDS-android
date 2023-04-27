@@ -15,12 +15,16 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
@@ -117,18 +121,14 @@ class EmulatorViewModel @Inject constructor(
     val uiEvent = _uiEvent.asSharedFlow()
 
     fun loadRom(rom: Rom) {
-        sessionCoroutineScope.notifyNewSessionStarted()
-        _currentFps.value = null
-        _emulatorState.value = EmulatorState.LoadingRom
+        resetEmulatorState(EmulatorState.LoadingRom)
         sessionCoroutineScope.launch {
             launchRom(rom)
         }
     }
 
     fun loadRom(romUri: Uri) {
-        sessionCoroutineScope.notifyNewSessionStarted()
-        _currentFps.value = null
-        _emulatorState.value = EmulatorState.LoadingRom
+        resetEmulatorState(EmulatorState.LoadingRom)
         sessionCoroutineScope.launch {
             val rom = getRomAtUri(romUri).awaitSingleOrNull()
             if (rom != null) {
@@ -140,9 +140,7 @@ class EmulatorViewModel @Inject constructor(
     }
 
     fun loadRom(romPath: String) {
-        sessionCoroutineScope.notifyNewSessionStarted()
-        _currentFps.value = null
-        _emulatorState.value = EmulatorState.LoadingRom
+        resetEmulatorState(EmulatorState.LoadingRom)
         sessionCoroutineScope.launch {
             val rom = getRomAtPath(romPath).awaitSingleOrNull()
             if (rom != null) {
@@ -183,9 +181,7 @@ class EmulatorViewModel @Inject constructor(
     }
 
     fun loadFirmware(consoleType: ConsoleType) {
-        sessionCoroutineScope.notifyNewSessionStarted()
-        _currentFps.value = null
-        _emulatorState.value = EmulatorState.LoadingFirmware
+        resetEmulatorState(EmulatorState.LoadingFirmware)
         sessionCoroutineScope.launch {
             startObservingBackground()
             startObservingRuntimeInputLayoutConfiguration()
@@ -273,6 +269,7 @@ class EmulatorViewModel @Inject constructor(
 
     fun stopEmulator() {
         emulatorManager.stopEmulator()
+        frameBufferProvider.clearFrameBuffer()
     }
 
     fun onPauseMenuOptionSelected(option: PauseMenuOption) {
@@ -469,6 +466,14 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
+    private fun resetEmulatorState(newState: EmulatorState) {
+        sessionCoroutineScope.notifyNewSessionStarted()
+        _currentFps.value = null
+        _emulatorState.value = newState
+        _background.value = RuntimeBackground.None
+        _layout.value = null
+    }
+
     private fun startObservingAchievementEvents() {
         sessionCoroutineScope.launch {
             emulatorManager.observeRetroAchievementEvents().collect {
@@ -483,7 +488,7 @@ class EmulatorViewModel @Inject constructor(
 
     private fun startObservingBackground() {
         sessionCoroutineScope.launch {
-            combine(_layout, _currentSystemOrientation) { layout, orientation ->
+            combine(_layout, _currentSystemOrientation, ensureEmulatorIsRunning()) { layout, orientation, _ ->
                 if (layout == null || orientation == null) {
                     RuntimeBackground.None
                 } else {
@@ -498,9 +503,6 @@ class EmulatorViewModel @Inject constructor(
     }
 
     private suspend fun startObservingLayoutForRom(rom: Rom) {
-        _layout.value = null
-        _background.value = RuntimeBackground.None
-
         val romLayoutId = rom.config.layoutId
         val layoutObservable = if (romLayoutId == null) {
             getGlobalLayoutObservable()
@@ -516,7 +518,9 @@ class EmulatorViewModel @Inject constructor(
         }
 
         sessionCoroutineScope.launch {
-            layoutObservable.subscribeOn(schedulers.backgroundThreadScheduler).asFlow().collect(_layout)
+            combine(layoutObservable.subscribeOn(schedulers.backgroundThreadScheduler).asFlow(), ensureEmulatorIsRunning()) { layout, _ ->
+                layout
+            }.collect(_layout)
         }
     }
 
@@ -530,13 +534,11 @@ class EmulatorViewModel @Inject constructor(
 
     private fun startObservingLayoutForFirmware() {
         _layout.value = null
-        _background.value = RuntimeBackground.None
 
         sessionCoroutineScope.launch {
-            getGlobalLayoutObservable()
-                .subscribeOn(schedulers.backgroundThreadScheduler)
-                .asFlow()
-                .collect(_layout)
+            combine(getGlobalLayoutObservable().subscribeOn(schedulers.backgroundThreadScheduler).asFlow(), ensureEmulatorIsRunning()) { layout, _ ->
+                layout
+            }.collect(_layout)
         }
     }
 
@@ -654,6 +656,10 @@ class EmulatorViewModel @Inject constructor(
             RomPauseMenuOption.REWIND -> settingsRepository.isRewindEnabled()
             else -> true
         }
+    }
+
+    private fun ensureEmulatorIsRunning(): Flow<Unit> {
+        return _emulatorState.filter { it.isRunning() }.take(1).map { }
     }
 
     override fun onCleared() {

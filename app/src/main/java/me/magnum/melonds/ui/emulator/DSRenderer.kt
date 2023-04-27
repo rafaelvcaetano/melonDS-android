@@ -73,8 +73,6 @@ class DSRenderer(
     private var backgroundWidth = 0
     private var backgroundHeight = 0
 
-    var canRenderBackground = false
-
     fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
         rendererConfiguration = newRendererConfiguration
         mustUpdateConfiguration = true
@@ -307,7 +305,7 @@ class DSRenderer(
             mustLoadBackground = false
         }
 
-        if (!isBackgroundLoaded || !canRenderBackground) {
+        if (!isBackgroundLoaded) {
             return
         }
 

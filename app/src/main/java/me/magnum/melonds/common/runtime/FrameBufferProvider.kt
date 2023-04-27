@@ -33,4 +33,11 @@ class FrameBufferProvider {
             }
         }
     }
+
+    fun clearFrameBuffer() {
+        frameBuffer.position(0)
+        repeat(frameBuffer.capacity() / 4) {
+            frameBuffer.putInt(0xFF000000.toInt())
+        }
+    }
 }
