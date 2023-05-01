@@ -49,7 +49,7 @@ class RomRetroAchievementsViewModel @Inject constructor(
                             // Display unlocked achievements first
                             if (it.isUnlocked) 0 else 1
                         }
-                        _uiState.value = RomRetroAchievementsUiState.Ready(sortedAchievements, buildAchievementsSummary(sortedAchievements))
+                        _uiState.value = RomRetroAchievementsUiState.Ready(sortedAchievements, buildAchievementsSummary(forHardcoreMode, sortedAchievements))
                     },
                     onFailure = { _uiState.value = RomRetroAchievementsUiState.AchievementLoadError },
                 )
@@ -81,8 +81,9 @@ class RomRetroAchievementsViewModel @Inject constructor(
         _viewAchievementEvent.tryEmit(achievementUrl)
     }
 
-    private fun buildAchievementsSummary(userAchievements: List<RAUserAchievement>): RomAchievementsSummary {
+    private fun buildAchievementsSummary(forHardcoreMode: Boolean, userAchievements: List<RAUserAchievement>): RomAchievementsSummary {
         return RomAchievementsSummary(
+            forHardcoreMode = forHardcoreMode,
             totalAchievements = userAchievements.size,
             completedAchievements = userAchievements.count { it.isUnlocked },
             totalPoints = userAchievements.sumOf { it.userPointsWorth() },

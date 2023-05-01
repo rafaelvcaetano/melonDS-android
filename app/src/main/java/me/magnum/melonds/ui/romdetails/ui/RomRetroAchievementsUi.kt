@@ -175,6 +175,13 @@ private fun Header(
                 }
                 append(' ')
                 append(stringResource(id = R.string.points_abbreviated))
+                append(" (")
+                if (achievementsSummary.forHardcoreMode) {
+                    append(stringResource(id = R.string.ra_mode_hardcore))
+                } else {
+                    append(stringResource(id = R.string.ra_mode_softcore))
+                }
+                append(')')
             },
             inlineContent = mapOf(
                 "icon-points" to InlineTextContent(Placeholder(MaterialTheme.typography.body1.fontSize, MaterialTheme.typography.body1.fontSize, PlaceholderVerticalAlign.Center)) {
@@ -296,7 +303,7 @@ private fun PreviewContent() {
                     RAUserAchievement(mockRAAchievementPreview(id = 1), false, false),
                     RAUserAchievement(mockRAAchievementPreview(id = 2, title = "This is another amazing achievement", description = "But this one cannot be missed."), false, false),
                 ),
-                RomAchievementsSummary(50, 20, 85),
+                RomAchievementsSummary(true, 50, 20, 85),
             ),
             onViewAchievement = {},
         )
