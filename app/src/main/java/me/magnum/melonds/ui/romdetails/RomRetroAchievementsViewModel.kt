@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.domain.repositories.RetroAchievementsRepository
+import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.romdetails.model.RomAchievementsSummary
 import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
@@ -21,6 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class RomRetroAchievementsViewModel @Inject constructor(
     private val retroAchievementsRepository: RetroAchievementsRepository,
+    private val settingsRepository: SettingsRepository,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -40,7 +42,8 @@ class RomRetroAchievementsViewModel @Inject constructor(
     private fun loadAchievements() {
         viewModelScope.launch {
             if (retroAchievementsRepository.isUserAuthenticated()) {
-                retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash, false).fold(
+                val forHardcoreMode = settingsRepository.isRetroAchievementsHardcoreEnabled()
+                retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash, forHardcoreMode).fold(
                     onSuccess = { achievements ->
                         val sortedAchievements = achievements.sortedBy {
                             // Display unlocked achievements first
@@ -82,7 +85,7 @@ class RomRetroAchievementsViewModel @Inject constructor(
         return RomAchievementsSummary(
             totalAchievements = userAchievements.size,
             completedAchievements = userAchievements.count { it.isUnlocked },
-            totalPoints = userAchievements.sumOf { it.pointsWorth() },
+            totalPoints = userAchievements.sumOf { it.userPointsWorth() },
         )
     }
 }

@@ -12,7 +12,7 @@ abstract class RAAchievementsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun updateGameSetMetadata(gameSetMetadata: RAGameSetMetadata)
 
-    @Query("UPDATE ra_game_set_metadata SET last_user_data_updated = NULL")
+    @Query("UPDATE ra_game_set_metadata SET last_user_data_updated = NULL, last_hardcore_user_data_updated = NULL")
     protected abstract suspend fun clearAllGameSetMetadataLastUserDataUpdate()
 
     @Query("SELECT * FROM ra_achievement WHERE game_id = :gameId")

@@ -337,9 +337,11 @@ class EmulatorActivity : AppCompatActivity() {
                         ToastEvent.QuickLoadSuccessful -> R.string.loaded to Toast.LENGTH_SHORT
                         ToastEvent.ResetFailed -> R.string.failed_reset_emulation to Toast.LENGTH_SHORT
                         ToastEvent.RewindNotEnabled -> R.string.rewind_not_enabled to Toast.LENGTH_SHORT
+                        ToastEvent.RewindNotAvailableWhileRAHardcoreModeEnabled -> R.string.rewind_unavailable_ra_hardcore_enabled to Toast.LENGTH_LONG
                         ToastEvent.StateLoadFailed -> R.string.failed_load_state to Toast.LENGTH_SHORT
                         ToastEvent.StateSaveFailed -> R.string.failed_save_state to Toast.LENGTH_SHORT
                         ToastEvent.StateStateDoesNotExist -> R.string.cant_load_empty_slot to Toast.LENGTH_SHORT
+                        ToastEvent.CannotUseSaveStatesWhenRAHardcoreIsEnabled -> R.string.save_states_unavailable_ra_hardcore_enabled to Toast.LENGTH_LONG
                         ToastEvent.CannotLoadStateWhenRunningFirmware,
                         ToastEvent.CannotSaveStateWhenRunningFirmware -> R.string.save_states_not_supported to Toast.LENGTH_LONG
                     }
