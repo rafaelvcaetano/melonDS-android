@@ -49,14 +49,17 @@ class RetroAchievementsPreferencesFragment : PreferenceFragmentCompat(), Prefere
                         is RetroAchievementsAccountState.LoggedIn -> {
                             accountPreference.title = getString(R.string.retroachievements_logout)
                             accountPreference.summary = getString(R.string.retroachievements_login_status, it.accountName)
+                            accountPreference.notifyDependencyChange(false)
                         }
                         RetroAchievementsAccountState.LoggedOut -> {
                             accountPreference.title = getString(R.string.login_with_retro_achievements)
                             accountPreference.summary = getString(R.string.retroachievements_login_summary)
+                            accountPreference.notifyDependencyChange(true)
                         }
                         RetroAchievementsAccountState.Unknown -> {
                             accountPreference.title = getString(R.string.ellipsis)
                             accountPreference.summary = getString(R.string.ellipsis)
+                            accountPreference.notifyDependencyChange(true)
                         }
                     }
                 }
