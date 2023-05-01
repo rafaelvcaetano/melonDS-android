@@ -13,7 +13,7 @@ import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 
 interface EmulatorManager {
-    suspend fun loadRom(rom: Rom, cheats: List<Cheat>, achievementData: GameAchievementData): RomLaunchResult
+    suspend fun loadRom(rom: Rom, cheats: List<Cheat>): RomLaunchResult
 
     suspend fun loadFirmware(consoleType: ConsoleType): FirmwareLaunchResult
 
@@ -32,6 +32,7 @@ interface EmulatorManager {
     suspend fun resetEmulator(): Boolean
 
     suspend fun updateCheats(cheats: List<Cheat>)
+    suspend fun setupAchievements(achievementData: GameAchievementData)
 
     suspend fun loadRewindState(rewindSaveState: RewindSaveState): Boolean
 

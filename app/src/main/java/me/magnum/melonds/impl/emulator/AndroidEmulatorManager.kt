@@ -35,7 +35,7 @@ class AndroidEmulatorManager(
 
     private val achievementsSharedFlow = MutableSharedFlow<RAEvent>(replay = 0, extraBufferCapacity = Int.MAX_VALUE)
 
-    override suspend fun loadRom(rom: Rom, cheats: List<Cheat>, achievementData: GameAchievementData): RomLaunchResult {
+    override suspend fun loadRom(rom: Rom, cheats: List<Cheat>): RomLaunchResult {
         return withContext(Dispatchers.IO) {
             val fileRomProcessor = romFileProcessorFactory.getFileRomProcessorForDocument(rom.uri)
             val romUri = fileRomProcessor?.getRealRomUri(rom)?.await() ?: throw RomLoadException("Unsupported ROM file extension")
@@ -53,7 +53,6 @@ class AndroidEmulatorManager(
                 RomLaunchResult.LaunchFailed(loadResult)
             } else {
                 MelonEmulator.setupCheats(cheats.toTypedArray())
-                MelonEmulator.setupAchievements(achievementData.achievements.toTypedArray(), achievementData.richPresencePatch)
                 MelonEmulator.startEmulation()
 
                 RomLaunchResult.LaunchSuccessful(loadResult != MelonEmulator.LoadResult.SUCCESS_GBA_FAILED)
@@ -106,6 +105,10 @@ class AndroidEmulatorManager(
 
     override suspend fun updateCheats(cheats: List<Cheat>) {
         MelonEmulator.setupCheats(cheats.toTypedArray())
+    }
+
+    override suspend fun setupAchievements(achievementData: GameAchievementData) {
+        MelonEmulator.setupAchievements(achievementData.lockedAchievements.toTypedArray(), achievementData.richPresencePatch)
     }
 
     override suspend fun loadRewindState(rewindSaveState: RewindSaveState): Boolean {

@@ -14,6 +14,6 @@ interface RetroAchievementsRepository {
     suspend fun getAchievement(achievementId: Long): Result<RAAchievement?>
     suspend fun awardAchievement(achievement: RAAchievement, forHardcoreMode: Boolean)
     suspend fun submitPendingAchievements(): Result<Unit>
-    suspend fun startSession(gameHash: String)
+    suspend fun startSession(gameHash: String): Result<Unit>
     suspend fun sendSessionHeartbeat(gameHash: String, richPresenceDescription: String?)
 }

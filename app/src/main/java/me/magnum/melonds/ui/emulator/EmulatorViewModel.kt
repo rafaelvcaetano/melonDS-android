@@ -9,8 +9,6 @@ import io.reactivex.Observable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.coroutineScope
@@ -23,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.isActive
@@ -63,6 +62,7 @@ import me.magnum.melonds.ui.emulator.firmware.FirmwarePauseMenuOption
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
 import me.magnum.melonds.ui.emulator.model.PauseMenu
+import me.magnum.melonds.ui.emulator.model.RAIntegrationEvent
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
 import me.magnum.melonds.ui.emulator.model.ToastEvent
@@ -74,6 +74,7 @@ import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
@@ -119,6 +120,9 @@ class EmulatorViewModel @Inject constructor(
     private val _toastEvent = EventSharedFlow<ToastEvent>()
     val toastEvent = _toastEvent.asSharedFlow()
 
+    private val _raIntegrationEvent = EventSharedFlow<RAIntegrationEvent>()
+    val integrationEvent = _raIntegrationEvent.asSharedFlow()
+
     private val _uiEvent = EventSharedFlow<EmulatorUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
@@ -160,18 +164,15 @@ class EmulatorViewModel @Inject constructor(
     }
 
     private suspend fun launchRom(rom: Rom) = coroutineScope {
-        val (cheats, achievementData) = awaitAll(
-            async { getRomInfo(rom)?.let { getRomEnabledCheats(it) } ?: emptyList() },
-            async { getRomAchievementData(rom) },
-        )
-
         startObservingBackground()
         startObservingRuntimeInputLayoutConfiguration()
         startObservingRendererConfiguration()
         startObservingAchievementEvents()
         startObservingLayoutForRom(rom)
+        startRetroAchievementsSession(rom)
 
-        val result = emulatorManager.loadRom(rom, cheats as List<Cheat>, achievementData as GameAchievementData)
+        val cheats = getRomInfo(rom)?.let { getRomEnabledCheats(it) } ?: emptyList()
+        val result = emulatorManager.loadRom(rom, cheats)
         when (result) {
             is RomLaunchResult.LaunchFailedSramProblem,
             is RomLaunchResult.LaunchFailed -> {
@@ -182,7 +183,6 @@ class EmulatorViewModel @Inject constructor(
                     _toastEvent.tryEmit(ToastEvent.GbaLoadFailed)
                 }
                 _emulatorState.value = EmulatorState.RunningRom(rom)
-                startSession(rom)
                 startTrackingFps()
             }
         }
@@ -637,12 +637,11 @@ class EmulatorViewModel @Inject constructor(
             return GameAchievementData.withDisabledRetroAchievementsIntegration()
         }
 
-        return retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash, session.isRetroAchievementsHardcoreModeEnabled).map { achievements ->
-            achievements.filter { !it.isUnlocked }.map { RASimpleAchievement(it.achievement.id, it.achievement.memoryAddress) }
-        }.fold(
-            onSuccess = {
+        return retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash, session.isRetroAchievementsHardcoreModeEnabled).fold(
+            onSuccess = { achievements ->
+                val lockedAchievements = achievements.filter { !it.isUnlocked }.map { RASimpleAchievement(it.achievement.id, it.achievement.memoryAddress) }
                 val richPresenceDescription = retroAchievementsRepository.getGameRichPresencePatch(rom.retroAchievementsHash)
-                GameAchievementData(true, it, richPresenceDescription)
+                GameAchievementData(true, lockedAchievements, achievements.size, richPresenceDescription)
             },
             onFailure = { GameAchievementData.withDisabledRetroAchievementsIntegration() }
         )
@@ -660,12 +659,27 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    private fun startSession(rom: Rom) {
+    private fun startRetroAchievementsSession(rom: Rom) {
         sessionCoroutineScope.launch {
-            retroAchievementsRepository.startSession(rom.retroAchievementsHash)
+            val achievementData = getRomAchievementData(rom)
+            if (!achievementData.isRetroAchievementsIntegrationEnabled) {
+                return@launch
+            }
+
+            // Wait until the emulator has actually started
+            ensureEmulatorIsRunning().firstOrNull()
+
+            val startResult = retroAchievementsRepository.startSession(rom.retroAchievementsHash)
+            if (!startResult.isSuccess) {
+                _raIntegrationEvent.tryEmit(RAIntegrationEvent.Failed)
+                return@launch
+            }
+
+            emulatorManager.setupAchievements(achievementData)
+            _raIntegrationEvent.tryEmit(RAIntegrationEvent.Loaded(achievementData.unlockedAchievementCount, achievementData.totalAchievementCount))
             while (isActive) {
                 // TODO: Should we pause the session if the app goes to background? If so, how?
-                delay(2 * 60 * 1000) // 2 minutes
+                delay(2.minutes)
                 val richPresenceDescription = MelonEmulator.getRichPresenceStatus()
                 retroAchievementsRepository.sendSessionHeartbeat(rom.retroAchievementsHash, richPresenceDescription)
             }

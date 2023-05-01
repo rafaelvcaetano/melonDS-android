@@ -11,6 +11,7 @@ import me.magnum.melonds.database.entities.retroachievements.RAGameSetMetadata
 import me.magnum.melonds.database.entities.retroachievements.RAPendingAchievementSubmissionEntity
 import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEntity
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
+import me.magnum.melonds.domain.model.retroachievements.exception.RAGameNotExist
 import me.magnum.melonds.domain.repositories.RetroAchievementsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.impl.mappers.retroachievements.mapToEntity
@@ -129,9 +130,9 @@ class AndroidRetroAchievementsRepository(
         return Result.success(Unit)
     }
 
-    override suspend fun startSession(gameHash: String) {
-        val gameId = getGameIdFromGameHash(gameHash).getOrNull() ?: return
-        raApi.startSession(gameId)
+    override suspend fun startSession(gameHash: String): Result<Unit> {
+        val gameId = getGameIdFromGameHash(gameHash).getOrNull() ?: return Result.failure(RAGameNotExist(gameHash))
+        return raApi.startSession(gameId)
     }
 
     override suspend fun sendSessionHeartbeat(gameHash: String, richPresenceDescription: String?) {
