@@ -108,7 +108,13 @@ class AndroidEmulatorManager(
     }
 
     override suspend fun setupAchievements(achievementData: GameAchievementData) {
-        MelonEmulator.setupAchievements(achievementData.lockedAchievements.toTypedArray(), achievementData.richPresencePatch)
+        val richPresencePath = if (settingsRepository.isRetroAchievementsRichPresenceEnabled()) {
+            achievementData.richPresencePatch
+        } else {
+            null
+        }
+
+        MelonEmulator.setupAchievements(achievementData.lockedAchievements.toTypedArray(), richPresencePath)
     }
 
     override suspend fun loadRewindState(rewindSaveState: RewindSaveState): Boolean {

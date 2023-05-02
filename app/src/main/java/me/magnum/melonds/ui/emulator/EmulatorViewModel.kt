@@ -640,8 +640,14 @@ class EmulatorViewModel @Inject constructor(
         return retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash, session.isRetroAchievementsHardcoreModeEnabled).fold(
             onSuccess = { achievements ->
                 val lockedAchievements = achievements.filter { !it.isUnlocked }.map { RASimpleAchievement(it.achievement.id, it.achievement.memoryAddress) }
-                val richPresenceDescription = retroAchievementsRepository.getGameRichPresencePatch(rom.retroAchievementsHash)
-                GameAchievementData(true, lockedAchievements, achievements.size, richPresenceDescription)
+                val gameSummary = retroAchievementsRepository.getGameSummary(rom.retroAchievementsHash)
+                GameAchievementData(
+                    isRetroAchievementsIntegrationEnabled = true,
+                    lockedAchievements = lockedAchievements,
+                    totalAchievementCount = achievements.size,
+                    richPresencePatch = gameSummary?.richPresencePatch,
+                    icon = gameSummary?.icon,
+                )
             },
             onFailure = { GameAchievementData.withDisabledRetroAchievementsIntegration() }
         )
@@ -671,12 +677,18 @@ class EmulatorViewModel @Inject constructor(
 
             val startResult = retroAchievementsRepository.startSession(rom.retroAchievementsHash)
             if (!startResult.isSuccess) {
-                _raIntegrationEvent.tryEmit(RAIntegrationEvent.Failed)
+                _raIntegrationEvent.tryEmit(RAIntegrationEvent.Failed(achievementData.icon))
                 return@launch
             }
 
             emulatorManager.setupAchievements(achievementData)
-            _raIntegrationEvent.tryEmit(RAIntegrationEvent.Loaded(achievementData.unlockedAchievementCount, achievementData.totalAchievementCount))
+            _raIntegrationEvent.tryEmit(
+                RAIntegrationEvent.Loaded(
+                    icon = achievementData.icon,
+                    unlockedAchievements = achievementData.unlockedAchievementCount,
+                    totalAchievements = achievementData.totalAchievementCount,
+                )
+            )
             while (isActive) {
                 // TODO: Should we pause the session if the app goes to background? If so, how?
                 delay(2.minutes)

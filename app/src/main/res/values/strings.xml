@@ -326,6 +326,9 @@
     <string name="view_achievement">View achievement</string>
     <string name="completed_achievements"><b>%1$d</b> of <b>%2$d</b> (%3$d%%)</string>
     <string name="submitting_achievements">Submitting RetroAchievements…</string>
+    <string name="achievements_loaded">Achievements loaded</string>
+    <string name="achievements_unlocked_compact">Unlocked: %1$d/%2$d</string>
+    <string name="achievements_failed_load">Failed to load achievements</string>
     <string name="achievement_unlocked">Achievement unlocked!</string>
     <string name="achievement_missable">Missable</string>
     <string name="achievement_missable_description">This achievement can be missed during a playthrough</string>

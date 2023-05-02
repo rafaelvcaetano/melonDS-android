@@ -47,6 +47,8 @@ import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
@@ -73,6 +75,7 @@ import me.magnum.melonds.ui.emulator.input.MelonTouchHandler
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
 import me.magnum.melonds.ui.emulator.model.PauseMenu
+import me.magnum.melonds.ui.emulator.model.PopupEvent
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration
 import me.magnum.melonds.ui.emulator.model.ToastEvent
 import me.magnum.melonds.ui.emulator.rewind.EdgeSpacingDecorator
@@ -80,8 +83,8 @@ import me.magnum.melonds.ui.emulator.rewind.RewindSaveStateAdapter
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 import me.magnum.melonds.ui.emulator.rom.SaveStateListAdapter
 import me.magnum.melonds.ui.emulator.ui.AchievementPopupUi
+import me.magnum.melonds.ui.emulator.ui.RAIntegrationEventUi
 import me.magnum.melonds.ui.settings.SettingsActivity
-import me.magnum.rcheevosapi.model.RAAchievement
 import java.text.SimpleDateFormat
 import javax.inject.Inject
 
@@ -243,8 +246,8 @@ class EmulatorActivity : AppCompatActivity() {
         launchEmulator()
 
         binding.layoutAchievement.setContent {
-            var currentAchievement by remember {
-                mutableStateOf<RAAchievement?>(null)
+            var popupEvent by remember {
+                mutableStateOf<PopupEvent?>(null)
             }
             var popupOffset by remember {
                 mutableStateOf(-1f)
@@ -254,8 +257,11 @@ class EmulatorActivity : AppCompatActivity() {
             }
 
             LaunchedEffect(null) {
-                viewModel.achievementTriggeredEvent.collect {
-                    currentAchievement = it
+                val achievementsFlow = viewModel.achievementTriggeredEvent.map { PopupEvent.AchievementUnlockPopup(it) }
+                val integrationFlow = viewModel.integrationEvent.map { PopupEvent.RAIntegrationPopup(it) }
+
+                merge(achievementsFlow, integrationFlow).collect {
+                    popupEvent = it
                     animate(
                         initialValue = -1f,
                         targetValue = 0f,
@@ -271,19 +277,34 @@ class EmulatorActivity : AppCompatActivity() {
                     ) { value, _ ->
                         popupOffset = value
                     }
-                    currentAchievement = null
+                    popupEvent = null
                 }
             }
 
             Box(Modifier.fillMaxWidth()) {
-                currentAchievement?.let { achievement ->
-                    AchievementPopupUi(
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .offset(y = (popupOffset * (popupHeight ?: Int.MAX_VALUE)).dp)
-                            .onSizeChanged { popupHeight = it.height },
-                        achievement = achievement,
-                    )
+                val currentPopupEvent = popupEvent
+                when (currentPopupEvent) {
+                    is PopupEvent.AchievementUnlockPopup -> {
+                        AchievementPopupUi(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .offset(y = (popupOffset * (popupHeight ?: Int.MAX_VALUE)).dp)
+                                .onSizeChanged { popupHeight = it.height },
+                            achievement = currentPopupEvent.achievement,
+                        )
+                    }
+                    is PopupEvent.RAIntegrationPopup -> {
+                        RAIntegrationEventUi(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .offset(y = (popupOffset * (popupHeight ?: Int.MAX_VALUE)).dp)
+                                .onSizeChanged { popupHeight = it.height },
+                            event = currentPopupEvent.event,
+                        )
+                    }
+                    null -> {
+                        // Do nothing
+                    }
                 }
             }
         }

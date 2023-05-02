@@ -3,17 +3,24 @@ package me.magnum.melonds.impl
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import androidx.work.*
+import androidx.work.BackoffPolicy
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
+import androidx.work.WorkManager
 import me.magnum.melonds.common.workers.RetroAchievementsSubmissionWorker
 import me.magnum.melonds.database.daos.RAAchievementsDao
+import me.magnum.melonds.database.entities.retroachievements.RAGameEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameHashEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameSetMetadata
 import me.magnum.melonds.database.entities.retroachievements.RAPendingAchievementSubmissionEntity
 import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEntity
+import me.magnum.melonds.domain.model.retroachievements.RAGameSummary
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.domain.model.retroachievements.exception.RAGameNotExist
 import me.magnum.melonds.domain.repositories.RetroAchievementsRepository
-import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.impl.mappers.retroachievements.mapToEntity
 import me.magnum.melonds.impl.mappers.retroachievements.mapToModel
 import me.magnum.rcheevosapi.RAApi
@@ -21,6 +28,7 @@ import me.magnum.rcheevosapi.RAUserAuthStore
 import me.magnum.rcheevosapi.model.RAAchievement
 import me.magnum.rcheevosapi.model.RAGameId
 import me.magnum.rcheevosapi.model.RAUserAuth
+import java.net.URL
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit
@@ -29,7 +37,6 @@ class AndroidRetroAchievementsRepository(
     private val raApi: RAApi,
     private val achievementsDao: RAAchievementsDao,
     private val raUserAuthStore: RAUserAuthStore,
-    private val settingsRepository: SettingsRepository,
     private val sharedPreferences: SharedPreferences,
     private val context: Context,
 ) : RetroAchievementsRepository {
@@ -93,13 +100,14 @@ class AndroidRetroAchievementsRepository(
         return Result.success(userAchievements)
     }
 
-    override suspend fun getGameRichPresencePatch(gameHash: String): String? {
-        if (!settingsRepository.isRetroAchievementsRichPresenceEnabled()) {
-            return null
-        }
-
+    override suspend fun getGameSummary(gameHash: String): RAGameSummary? {
         val gameId = getGameIdFromGameHash(gameHash).getOrNull() ?: return null
-        return achievementsDao.getGame(gameId.id)?.richPresencePatch
+        return achievementsDao.getGame(gameId.id)?.let {
+            RAGameSummary(
+                URL(it.icon),
+                it.richPresencePatch,
+            )
+        }
     }
 
     override suspend fun getAchievement(achievementId: Long): Result<RAAchievement?> {
@@ -197,8 +205,9 @@ class AndroidRetroAchievementsRepository(
                     it.mapToEntity()
                 }
 
+                val gameEntity = RAGameEntity(game.id.id, game.richPresencePatch, game.icon.toString())
                 val newMetadata = gameSetMetadata.withNewAchievementSetUpdate()
-                achievementsDao.updateGameData(gameId.id, achievementEntities, game.richPresencePatch)
+                achievementsDao.updateGameData(gameEntity, achievementEntities)
                 achievementsDao.updateGameSetMetadata(newMetadata)
                 game.achievements
             }.recoverCatching { exception ->

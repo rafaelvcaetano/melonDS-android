@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 4,
-    "identityHash": "afbfe1a8a5ee33a9307efcca89acecbd",
+    "identityHash": "45f04e1331ef83a6c709d254ad9e2cf0",
     "entities": [
       {
         "tableName": "cheat_database",
@@ -243,7 +243,7 @@
       },
       {
         "tableName": "ra_game",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`game_id` INTEGER NOT NULL, `rich_presence_patch` TEXT, PRIMARY KEY(`game_id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`game_id` INTEGER NOT NULL, `rich_presence_patch` TEXT, `icon` TEXT NOT NULL, PRIMARY KEY(`game_id`))",
         "fields": [
           {
             "fieldPath": "gameId",
@@ -256,6 +256,12 @@
             "columnName": "rich_presence_patch",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "icon",
+            "columnName": "icon",
+            "affinity": "TEXT",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -504,7 +510,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'afbfe1a8a5ee33a9307efcca89acecbd')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '45f04e1331ef83a6c709d254ad9e2cf0')"
     ]
   }
 }

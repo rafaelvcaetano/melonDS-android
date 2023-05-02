@@ -31,11 +31,10 @@ abstract class RAAchievementsDao {
     protected abstract suspend fun updateGameData(gameData: RAGameEntity)
 
     @Transaction
-    open suspend fun updateGameData(gameId: Long, achievements: List<RAAchievementEntity>, richPresencePatch: String?) {
-        deleteGameAchievements(gameId)
+    open suspend fun updateGameData(gameEntity: RAGameEntity, achievements: List<RAAchievementEntity>) {
+        deleteGameAchievements(gameEntity.gameId)
         insertGameAchievements(achievements)
 
-        val gameEntity = RAGameEntity(gameId, richPresencePatch)
         updateGameData(gameEntity)
     }
 

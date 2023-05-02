@@ -46,8 +46,8 @@ class NoCacheRAAchievementsDao(private val actualAchievementsDao: RAAchievements
     override suspend fun updateGameData(gameData: RAGameEntity) {
     }
 
-    override suspend fun updateGameData(gameId: Long, achievements: List<RAAchievementEntity>, richPresencePatch: String?) {
-        actualAchievementsDao.updateGameData(gameId, achievements, richPresencePatch)
+    override suspend fun updateGameData(gameEntity: RAGameEntity, achievements: List<RAAchievementEntity>) {
+        actualAchievementsDao.updateGameData(gameEntity, achievements)
     }
 
     override suspend fun getGame(gameId: Long): RAGameEntity? {
