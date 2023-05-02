@@ -659,13 +659,13 @@ class EmulatorViewModel @Inject constructor(
 
     private fun onAchievementTriggered(achievementId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            retroAchievementsRepository.getAchievement(achievementId)
-                .onSuccess {
-                    if (it != null) {
-                        _achievementTriggeredEvent.emit(it)
-                        retroAchievementsRepository.awardAchievement(it, session.isRetroAchievementsHardcoreModeEnabled)
+            retroAchievementsRepository.getAchievement(achievementId).onSuccess { achievement ->
+                if (achievement != null) {
+                    retroAchievementsRepository.awardAchievement(achievement, session.isRetroAchievementsHardcoreModeEnabled).onSuccess {
+                        _achievementTriggeredEvent.emit(achievement)
                     }
                 }
+            }
         }
     }
 

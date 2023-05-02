@@ -118,8 +118,8 @@ class AndroidRetroAchievementsRepository(
         }
     }
 
-    override suspend fun awardAchievement(achievement: RAAchievement, forHardcoreMode: Boolean) {
-        submitAchievementAward(achievement.id, achievement.gameId, forHardcoreMode).onFailure {
+    override suspend fun awardAchievement(achievement: RAAchievement, forHardcoreMode: Boolean): Result<Unit> {
+        return submitAchievementAward(achievement.id, achievement.gameId, forHardcoreMode).onFailure {
             scheduleAchievementSubmissionJob()
         }
     }
