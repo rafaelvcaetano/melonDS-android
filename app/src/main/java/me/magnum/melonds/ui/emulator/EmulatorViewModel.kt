@@ -639,15 +639,19 @@ class EmulatorViewModel @Inject constructor(
 
         return retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash, session.isRetroAchievementsHardcoreModeEnabled).fold(
             onSuccess = { achievements ->
-                val lockedAchievements = achievements.filter { !it.isUnlocked }.map { RASimpleAchievement(it.achievement.id, it.achievement.memoryAddress) }
-                val gameSummary = retroAchievementsRepository.getGameSummary(rom.retroAchievementsHash)
-                GameAchievementData(
-                    isRetroAchievementsIntegrationEnabled = true,
-                    lockedAchievements = lockedAchievements,
-                    totalAchievementCount = achievements.size,
-                    richPresencePatch = gameSummary?.richPresencePatch,
-                    icon = gameSummary?.icon,
-                )
+                if (achievements.isEmpty()) {
+                    GameAchievementData.withDisabledRetroAchievementsIntegration()
+                } else {
+                    val lockedAchievements = achievements.filter { !it.isUnlocked }.map { RASimpleAchievement(it.achievement.id, it.achievement.memoryAddress) }
+                    val gameSummary = retroAchievementsRepository.getGameSummary(rom.retroAchievementsHash)
+                    GameAchievementData(
+                        isRetroAchievementsIntegrationEnabled = true,
+                        lockedAchievements = lockedAchievements,
+                        totalAchievementCount = achievements.size,
+                        richPresencePatch = gameSummary?.richPresencePatch,
+                        icon = gameSummary?.icon,
+                    )
+                }
             },
             onFailure = { GameAchievementData.withDisabledRetroAchievementsIntegration() }
         )
