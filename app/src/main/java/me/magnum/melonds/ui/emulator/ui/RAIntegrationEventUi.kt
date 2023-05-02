@@ -47,12 +47,20 @@ fun RAIntegrationEventUi(modifier: Modifier, event: RAIntegrationEvent) {
 
             when (event) {
                 is RAIntegrationEvent.Failed -> {
-                    Text(
-                        text = stringResource(id = R.string.achievements_failed_load),
-                        style = MaterialTheme.typography.body1,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2,
-                    )
+                    Column {
+                        Text(
+                            text = stringResource(id = R.string.achievements_failed_load),
+                            style = MaterialTheme.typography.body2,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colors.error,
+                            maxLines = 1,
+                        )
+                        Text(
+                            text = stringResource(id = R.string.achievements_failed_load_tip),
+                            style = MaterialTheme.typography.body2,
+                            maxLines = 1,
+                        )
+                    }
                 }
                 is RAIntegrationEvent.Loaded -> {
                     Column {
