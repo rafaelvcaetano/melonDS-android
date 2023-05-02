@@ -12,8 +12,8 @@ import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEn
  * An [RAAchievementsDao] implementation that disables most functionality related to data caching that should not be stored to guarantee the best integration with the
  * RetroAchievements platform. This implementation allows the caching implementation to be maintained but not used. If in the future that implementation proves useful, this
  * DAO usage can be replaced with the actual DAO that interacts with the database.
- * The only data that is actually allowed to be cached is game information, which contains the rich presence patch. However, it should always be updated from the API and the
- * cached value should only be used while the session is ongoing.
+ * The only data that is actually not allowed to be cached is game set metadata and pending achievement submissions. All other data is maintained so that it can be used in an
+ * ongoing session.
  *
  * @param actualAchievementsDao The DAO that should be used for operations that are actually supported and actually stores and fetches the data
  */
@@ -30,11 +30,11 @@ class NoCacheRAAchievementsDao(private val actualAchievementsDao: RAAchievements
     }
 
     override suspend fun getGameAchievements(gameId: Long): List<RAAchievementEntity> {
-        return emptyList()
+        return actualAchievementsDao.getGameAchievements(gameId)
     }
 
     override suspend fun getAchievement(achievementId: Long): RAAchievementEntity? {
-        return null
+        return actualAchievementsDao.getAchievement(achievementId)
     }
 
     override suspend fun deleteGameAchievements(gameId: Long) {
@@ -47,7 +47,7 @@ class NoCacheRAAchievementsDao(private val actualAchievementsDao: RAAchievements
     }
 
     override suspend fun updateGameData(gameId: Long, achievements: List<RAAchievementEntity>, richPresencePatch: String?) {
-        actualAchievementsDao.updateGameData(gameId, emptyList(), richPresencePatch)
+        actualAchievementsDao.updateGameData(gameId, achievements, richPresencePatch)
     }
 
     override suspend fun getGame(gameId: Long): RAGameEntity? {
@@ -55,19 +55,28 @@ class NoCacheRAAchievementsDao(private val actualAchievementsDao: RAAchievements
     }
 
     override suspend fun getGameUserUnlockedAchievements(gameId: Long, forHardcoreMode: Boolean): List<RAUserAchievementEntity> {
-        return emptyList()
+        return actualAchievementsDao.getGameUserUnlockedAchievements(gameId, forHardcoreMode)
     }
 
-    override suspend fun deleteGameUserUnlockedAchievements(gameId: Long) {
+    override suspend fun updateGameUserUnlockedAchievements(gameId: Long, userAchievements: List<RAUserAchievementEntity>) {
+        actualAchievementsDao.updateGameUserUnlockedAchievements(gameId, userAchievements)
     }
 
     override suspend fun addUserAchievement(userAchievement: RAUserAchievementEntity) {
+        actualAchievementsDao.addUserAchievement(userAchievement)
     }
 
     override suspend fun insertGameUserUnlockedAchievements(userAchievements: List<RAUserAchievementEntity>) {
     }
 
+    override suspend fun deleteGameUserUnlockedAchievements(gameId: Long) {
+    }
+
     override suspend fun deleteAllUserUnlockedAchievements() {
+    }
+
+    override suspend fun deleteAllAchievementUserData() {
+        actualAchievementsDao.deleteAllAchievementUserData()
     }
 
     override suspend fun addPendingAchievementSubmission(pendingAchievementSubmission: RAPendingAchievementSubmissionEntity) {
@@ -88,10 +97,13 @@ class NoCacheRAAchievementsDao(private val actualAchievementsDao: RAAchievements
     }
 
     override suspend fun insertGameHashLibrary(hashLibrary: List<RAGameHashEntity>) {
-        actualAchievementsDao.insertGameHashLibrary(hashLibrary)
     }
 
     override suspend fun getGameHashEntity(gameHash: String): RAGameHashEntity? {
         return actualAchievementsDao.getGameHashEntity(gameHash)
+    }
+
+    override suspend fun updateGameHashLibrary(hashLibrary: List<RAGameHashEntity>) {
+        actualAchievementsDao.updateGameHashLibrary(hashLibrary)
     }
 }

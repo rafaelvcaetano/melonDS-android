@@ -79,7 +79,7 @@ abstract class RAAchievementsDao {
     abstract suspend fun deleteGameHashLibrary()
 
     @Insert
-    abstract suspend fun insertGameHashLibrary(hashLibrary: List<RAGameHashEntity>)
+    protected abstract suspend fun insertGameHashLibrary(hashLibrary: List<RAGameHashEntity>)
 
     @Query("SELECT * FROM ra_game_hash_library WHERE game_hash = :gameHash")
     abstract suspend fun getGameHashEntity(gameHash: String): RAGameHashEntity?
