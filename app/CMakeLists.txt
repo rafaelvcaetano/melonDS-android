@@ -47,6 +47,7 @@ add_library(
         src/main/cpp/MelonDSNandJNI.cpp
         src/main/cpp/UriFileHandler.cpp
         src/main/cpp/JniEnvHandler.cpp
+        src/main/cpp/MelonDSAndroidCameraHandler.cpp
         src/main/cpp/AndroidRACallback.cpp
 )
 

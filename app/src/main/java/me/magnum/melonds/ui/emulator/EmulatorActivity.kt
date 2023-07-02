@@ -52,6 +52,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
+import me.magnum.melonds.common.CameraManager
 import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.common.runtime.FrameBufferProvider
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
@@ -68,6 +69,7 @@ import me.magnum.melonds.extensions.setLayoutOrientation
 import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
+import me.magnum.melonds.ui.emulator.camera.AndroidCameraManager
 import me.magnum.melonds.ui.emulator.input.FrontendInputHandler
 import me.magnum.melonds.ui.emulator.input.INativeInputListener
 import me.magnum.melonds.ui.emulator.input.InputProcessor

@@ -14,6 +14,7 @@
 #include "AndroidRACallback.h"
 #include "MelonDSAndroidInterface.h"
 #include "MelonDSAndroidConfiguration.h"
+#include "MelonDSAndroidCameraHandler.h"
 
 #define MAX_CHEAT_SIZE (2*64)
 
@@ -35,27 +36,31 @@ bool limitFps = true;
 bool isFastForwardEnabled = false;
 
 jobject globalAssetManager;
+jobject globalCameraManager;
 jobject androidRaCallback;
+MelonDSAndroidCameraHandler* androidCameraHandler;
 AndroidRACallback* raCallback;
 
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject retroAchievementsCallback, jobject textureBuffer)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject cameraManager, jobject retroAchievementsCallback, jobject textureBuffer)
 {
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
     fastForwardSpeedMultiplier = finalEmulatorConfiguration.fastForwardSpeedMultiplier;
 
     globalAssetManager = env->NewGlobalRef(javaAssetManager);
+    globalCameraManager = env->NewGlobalRef(cameraManager);
     androidRaCallback = env->NewGlobalRef(retroAchievementsCallback);
 
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
+    androidCameraHandler = new MelonDSAndroidCameraHandler(jniEnvHandler, globalCameraManager);
     raCallback = new AndroidRACallback(jniEnvHandler, androidRaCallback);
 
     u32* textureBufferPointer = (u32*) env->GetDirectBufferAddress(textureBuffer);
 
     MelonDSAndroid::setConfiguration(finalEmulatorConfiguration);
-    MelonDSAndroid::setup(assetManager, raCallback, textureBufferPointer, true);
+    MelonDSAndroid::setup(assetManager, androidCameraHandler, raCallback, textureBufferPointer, true);
     paused = false;
 }
 
@@ -413,11 +418,14 @@ Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
     pthread_cond_destroy(&emuThreadCond);
 
     env->DeleteGlobalRef(globalAssetManager);
+    env->DeleteGlobalRef(globalCameraManager);
     env->DeleteGlobalRef(androidRaCallback);
 
     globalAssetManager = nullptr;
+    globalCameraManager = nullptr;
     androidRaCallback = nullptr;
 
+    delete androidCameraHandler;
     delete raCallback;
 }
 

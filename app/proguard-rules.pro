@@ -39,6 +39,7 @@
 -keep class me.magnum.melonds.common.UriFileHandler {
     public int open(java.lang.String, java.lang.String);
 }
+-keep interface me.magnum.melonds.common.CameraManager { *; }
 -keep interface me.magnum.melonds.common.RetroAchievementsCallback { *; }
 
 # Migration fields. These rules are required for migrations to work properly
