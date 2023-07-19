@@ -13,13 +13,21 @@ import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.common.RetroAchievementsCallback
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.runtime.FrameBufferProvider
-import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.Cheat
+import me.magnum.melonds.domain.model.ConsoleType
+import me.magnum.melonds.domain.model.EmulatorConfiguration
+import me.magnum.melonds.domain.model.MicSource
+import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.RuntimeConsoleType
+import me.magnum.melonds.domain.model.RuntimeEnum
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.EmulatorManager
+import me.magnum.melonds.ui.emulator.camera.AndroidCameraManager
+import me.magnum.melonds.ui.emulator.camera.LifecycleOwnerProvider
 import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
@@ -31,9 +39,11 @@ class AndroidEmulatorManager(
     private val frameBufferProvider: FrameBufferProvider,
     private val romFileProcessorFactory: RomFileProcessorFactory,
     private val permissionHandler: PermissionHandler,
+    private val emulatorLifecycleOwnerProvider: LifecycleOwnerProvider,
 ) : EmulatorManager {
 
     private val achievementsSharedFlow = MutableSharedFlow<RAEvent>(replay = 0, extraBufferCapacity = Int.MAX_VALUE)
+    private var cameraManager: AndroidCameraManager? = null
 
     override suspend fun loadRom(rom: Rom, cheats: List<Cheat>): RomLaunchResult {
         return withContext(Dispatchers.IO) {
@@ -50,6 +60,7 @@ class AndroidEmulatorManager(
 
             val loadResult = MelonEmulator.loadRom(romUri, sram, rom.config.mustLoadGbaCart(), rom.config.gbaCartPath, rom.config.gbaSavePath)
             if (loadResult.isTerminal) {
+                cameraManager?.destroy()
                 RomLaunchResult.LaunchFailed(loadResult)
             } else {
                 MelonEmulator.setupCheats(cheats.toTypedArray())
@@ -65,6 +76,7 @@ class AndroidEmulatorManager(
             setupEmulator(getFirmwareEmulatorConfiguration(consoleType))
             val result = MelonEmulator.bootFirmware()
             if (result != MelonEmulator.FirmwareLoadResult.SUCCESS) {
+                cameraManager?.destroy()
                 FirmwareLaunchResult.LaunchFailed(result)
             } else {
                 MelonEmulator.startEmulation()
@@ -131,6 +143,7 @@ class AndroidEmulatorManager(
 
     override fun stopEmulator() {
         MelonEmulator.stopEmulation()
+        cameraManager?.destroy()
     }
 
     override fun observeRetroAchievementEvents(): Flow<RAEvent> {
@@ -138,9 +151,13 @@ class AndroidEmulatorManager(
     }
 
     private fun setupEmulator(emulatorConfiguration: EmulatorConfiguration) {
+        cameraManager?.destroy()
+        cameraManager = AndroidCameraManager(context, emulatorLifecycleOwnerProvider, permissionHandler)
+
         MelonEmulator.setupEmulator(
             emulatorConfiguration,
             context.assets,
+            cameraManager,
             object : RetroAchievementsCallback {
                 override fun onAchievementPrimed(achievementId: Long) {
                     achievementsSharedFlow.tryEmit(RAEvent.OnAchievementPrimed(achievementId))

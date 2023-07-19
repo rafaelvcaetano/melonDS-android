@@ -15,6 +15,7 @@ import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.EmulatorManager
 import me.magnum.melonds.impl.emulator.AndroidEmulatorManager
 import me.magnum.melonds.impl.emulator.SramProvider
+import me.magnum.melonds.ui.emulator.camera.LifecycleOwnerProvider
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -34,6 +35,12 @@ object EmulatorRuntimeModule {
 
     @Provides
     @ActivityRetainedScoped
+    fun provideEmulatorLifecycleOwnerProvider(): LifecycleOwnerProvider {
+        return LifecycleOwnerProvider()
+    }
+
+    @Provides
+    @ActivityRetainedScoped
     fun provideEmulatorManager(
         @ApplicationContext context: Context,
         settingsRepository: SettingsRepository,
@@ -41,6 +48,7 @@ object EmulatorRuntimeModule {
         frameBufferProvider: FrameBufferProvider,
         romFileProcessorFactory: RomFileProcessorFactory,
         permissionHandler: PermissionHandler,
+        lifecycleOwnerProvider: LifecycleOwnerProvider,
     ): EmulatorManager {
         return AndroidEmulatorManager(
             context,
@@ -49,6 +57,7 @@ object EmulatorRuntimeModule {
             frameBufferProvider,
             romFileProcessorFactory,
             permissionHandler,
+            lifecycleOwnerProvider,
         )
     }
 }

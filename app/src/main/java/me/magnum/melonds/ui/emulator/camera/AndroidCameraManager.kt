@@ -12,19 +12,24 @@ import androidx.camera.core.ImageInfo
 import androidx.camera.core.ImageProxy.PlaneProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.LifecycleOwner
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import me.magnum.melonds.common.CameraManager
 import me.magnum.melonds.common.CameraType
+import me.magnum.melonds.common.PermissionHandler
 import java.nio.ByteBuffer
 import java.util.Arrays
 import java.util.concurrent.Executors
 
 class AndroidCameraManager(
     private val context: Context,
-    private val lifecycleOwner: LifecycleOwner,
-    private val onRequestCameraPermission: (callback: () -> Unit) -> Unit
+    private val emulatorLifecycleOwnerProvider: LifecycleOwnerProvider,
+    private val permissionHandler: PermissionHandler,
 ) : CameraManager {
 
+    private val coroutineScope = CoroutineScope(Dispatchers.Main.immediate)
     private var currentCameraProvider: ProcessCameraProvider? = null
     private val cameraBuffers = CameraBuffers()
     private val executor = Executors.newSingleThreadExecutor()
@@ -36,7 +41,8 @@ class AndroidCameraManager(
         initializeOriginalPoints()
         Arrays.fill(cameraBuffers.getFrontBuffer(), 0)
         if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            onRequestCameraPermission {
+            coroutineScope.launch {
+                permissionHandler.checkPermission(android.Manifest.permission.CAMERA)
                 initializeCamera(camera)
             }
         } else {
@@ -90,6 +96,12 @@ class AndroidCameraManager(
                 }
 
                 cameraProvider.unbindAll()
+
+                val lifecycleOwner = emulatorLifecycleOwnerProvider.getCurrentLifecycleOwner()
+                if (lifecycleOwner == null) {
+                    error("No current emulator lifecycle owner")
+                }
+
                 cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, analyzer)
                 currentCameraProvider = cameraProvider
             },
@@ -170,6 +182,7 @@ class AndroidCameraManager(
     }
 
     fun destroy() {
+        coroutineScope.cancel()
         currentCameraProvider?.unbindAll()
         currentCameraProvider = null
         executor.shutdownNow()
