@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui.emulator.camera
+package me.magnum.melonds.impl.emulator
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver

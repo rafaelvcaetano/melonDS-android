@@ -42,5 +42,7 @@ interface EmulatorManager {
 
     fun stopEmulator()
 
+    fun cleanEmulator()
+
     fun observeRetroAchievementEvents(): Flow<RAEvent>
 }

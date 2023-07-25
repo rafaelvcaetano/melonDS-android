@@ -174,6 +174,7 @@
     <string name="category_video">Video</string>
     <string name="category_video_summary">Filter, threaded rendering, FPS counter</string>
     <string name="filter">Filter</string>
+    <string name="dsi_camera_source">DSi camera source</string>
     <string name="category_audio">Audio</string>
     <string name="category_audio_summary">Volume, latency, microphone source</string>
     <string name="enable_sound">Enable sound</string>
@@ -393,6 +394,12 @@
         <item>HQ4X</item>
         <item>Quilez</item>
         <item>LCD</item>
+    </string-array>
+
+    <string-array name="dsi_camera_source_options">
+        <item>Black screen</item>
+        <item>Physical cameras</item>
+        <item>Static image</item>
     </string-array>
 
     <string-array name="audio_interpolation_options">

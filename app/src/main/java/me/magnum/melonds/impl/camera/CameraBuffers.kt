@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui.emulator.camera
+package me.magnum.melonds.impl.camera
 
 class CameraBuffers {
     private val cameraBuffers = Array(2) {

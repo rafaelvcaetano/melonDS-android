@@ -39,6 +39,12 @@
         <item>lcd</item>
     </string-array>
 
+    <string-array name="dsi_camera_source_values">
+        <item>black_screen</item>
+        <item>physical_cameras</item>
+        <item>static_image</item>
+    </string-array>
+
     <string-array name="audio_interpolation_values">
         <item>none</item>
         <item>linear</item>

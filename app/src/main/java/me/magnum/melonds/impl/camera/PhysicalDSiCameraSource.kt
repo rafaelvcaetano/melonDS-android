@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui.emulator.camera
+package me.magnum.melonds.impl.camera
 
 import android.content.Context
 import android.content.pm.PackageManager
@@ -16,18 +16,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import me.magnum.melonds.common.CameraManager
-import me.magnum.melonds.common.CameraType
 import me.magnum.melonds.common.PermissionHandler
+import me.magnum.melonds.common.camera.DSiCameraSource
+import me.magnum.melonds.common.camera.CameraType
+import me.magnum.melonds.impl.emulator.LifecycleOwnerProvider
 import java.nio.ByteBuffer
 import java.util.Arrays
 import java.util.concurrent.Executors
 
-class AndroidCameraManager(
+class PhysicalDSiCameraSource(
     private val context: Context,
     private val emulatorLifecycleOwnerProvider: LifecycleOwnerProvider,
     private val permissionHandler: PermissionHandler,
-) : CameraManager {
+) : DSiCameraSource {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main.immediate)
     private var currentCameraProvider: ProcessCameraProvider? = null
@@ -64,6 +65,13 @@ class AndroidCameraManager(
         System.arraycopy(currentFrontBuffer, 0, buffer, 0, currentFrontBuffer.size)
     }
 
+    override fun dispose() {
+        coroutineScope.cancel()
+        currentCameraProvider?.unbindAll()
+        currentCameraProvider = null
+        executor.shutdownNow()
+    }
+
     private fun initializeCamera(camera: CameraType) {
         val future = ProcessCameraProvider.getInstance(context)
         future.addListener(
@@ -90,8 +98,8 @@ class AndroidCameraManager(
                 }
 
                 val cameraSelector = when (camera) {
-                    CameraManager.FrontCamera -> CameraSelector.DEFAULT_FRONT_CAMERA
-                    CameraManager.BackCamera -> CameraSelector.DEFAULT_BACK_CAMERA
+                    DSiCameraSource.FrontCamera -> CameraSelector.DEFAULT_FRONT_CAMERA
+                    DSiCameraSource.BackCamera -> CameraSelector.DEFAULT_BACK_CAMERA
                     else -> throw UnsupportedOperationException("Unknown camera type $camera")
                 }
 
@@ -179,12 +187,5 @@ class AndroidCameraManager(
                 originalPoints[inlinePos + 1] = y.toFloat()
             }
         }
-    }
-
-    fun destroy() {
-        coroutineScope.cancel()
-        currentCameraProvider?.unbindAll()
-        currentCameraProvider = null
-        executor.shutdownNow()
     }
 }

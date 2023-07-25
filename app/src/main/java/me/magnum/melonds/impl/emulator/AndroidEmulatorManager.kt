@@ -26,8 +26,7 @@ import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.EmulatorManager
-import me.magnum.melonds.ui.emulator.camera.AndroidCameraManager
-import me.magnum.melonds.ui.emulator.camera.LifecycleOwnerProvider
+import me.magnum.melonds.impl.camera.DSiCameraSourceMultiplexer
 import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
@@ -39,11 +38,10 @@ class AndroidEmulatorManager(
     private val frameBufferProvider: FrameBufferProvider,
     private val romFileProcessorFactory: RomFileProcessorFactory,
     private val permissionHandler: PermissionHandler,
-    private val emulatorLifecycleOwnerProvider: LifecycleOwnerProvider,
+    private val cameraManager: DSiCameraSourceMultiplexer,
 ) : EmulatorManager {
 
     private val achievementsSharedFlow = MutableSharedFlow<RAEvent>(replay = 0, extraBufferCapacity = Int.MAX_VALUE)
-    private var cameraManager: AndroidCameraManager? = null
 
     override suspend fun loadRom(rom: Rom, cheats: List<Cheat>): RomLaunchResult {
         return withContext(Dispatchers.IO) {
@@ -60,7 +58,7 @@ class AndroidEmulatorManager(
 
             val loadResult = MelonEmulator.loadRom(romUri, sram, rom.config.mustLoadGbaCart(), rom.config.gbaCartPath, rom.config.gbaSavePath)
             if (loadResult.isTerminal) {
-                cameraManager?.destroy()
+                cameraManager.stopCurrentCameraSource()
                 RomLaunchResult.LaunchFailed(loadResult)
             } else {
                 MelonEmulator.setupCheats(cheats.toTypedArray())
@@ -76,7 +74,7 @@ class AndroidEmulatorManager(
             setupEmulator(getFirmwareEmulatorConfiguration(consoleType))
             val result = MelonEmulator.bootFirmware()
             if (result != MelonEmulator.FirmwareLoadResult.SUCCESS) {
-                cameraManager?.destroy()
+                cameraManager.stopCurrentCameraSource()
                 FirmwareLaunchResult.LaunchFailed(result)
             } else {
                 MelonEmulator.startEmulation()
@@ -143,7 +141,11 @@ class AndroidEmulatorManager(
 
     override fun stopEmulator() {
         MelonEmulator.stopEmulation()
-        cameraManager?.destroy()
+        cameraManager.stopCurrentCameraSource()
+    }
+
+    override fun cleanEmulator() {
+        cameraManager.dispose()
     }
 
     override fun observeRetroAchievementEvents(): Flow<RAEvent> {
@@ -151,9 +153,6 @@ class AndroidEmulatorManager(
     }
 
     private fun setupEmulator(emulatorConfiguration: EmulatorConfiguration) {
-        cameraManager?.destroy()
-        cameraManager = AndroidCameraManager(context, emulatorLifecycleOwnerProvider, permissionHandler)
-
         MelonEmulator.setupEmulator(
             emulatorConfiguration,
             context.assets,

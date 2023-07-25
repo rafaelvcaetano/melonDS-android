@@ -747,6 +747,7 @@ class EmulatorViewModel @Inject constructor(
         if (_emulatorState.value.isRunning()) {
             emulatorManager.stopEmulator()
         }
+        emulatorManager.cleanEmulator()
     }
 
     private class EmulatorSessionCoroutineScope : CoroutineScope {

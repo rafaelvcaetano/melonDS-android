@@ -27,4 +27,13 @@
             android:entries="@array/fps_counter_position_options"
             android:entryValues="@array/fps_counter_position_values"
             android:defaultValue="hidden" />
+
+    <ListPreference
+            android:key="dsi_camera_source"
+            android:title="@string/dsi_camera_source"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/dsi_camera_source_options"
+            android:entryValues="@array/dsi_camera_source_values"
+            android:defaultValue="physical_cameras" />
 </PreferenceScreen>

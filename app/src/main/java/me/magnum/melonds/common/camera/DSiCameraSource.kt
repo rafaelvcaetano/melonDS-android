@@ -1,8 +1,8 @@
-package me.magnum.melonds.common
+package me.magnum.melonds.common.camera
 
 typealias CameraType = Int
 
-interface CameraManager {
+interface DSiCameraSource {
 
     companion object {
         const val BackCamera: CameraType = 0
@@ -12,4 +12,5 @@ interface CameraManager {
     fun startCamera(camera: CameraType)
     fun stopCamera(camera: CameraType)
     fun captureFrame(camera: CameraType, buffer: ByteArray, width: Int, height: Int, isYuv: Boolean)
+    fun dispose()
 }

@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.isSustainedPerformanceModeAvailable
 import me.magnum.melonds.ui.Theme
@@ -247,6 +248,11 @@ class SharedPreferencesSettingsRepository(
         return FpsCounterPosition.valueOf(fpsCounterPreference.uppercase())
     }
 
+    override fun getDSiCameraSource(): DSiCameraSourceType {
+        val dsiCameraSource = preferences.getString("dsi_camera_source", "physical_cameras")!!
+        return DSiCameraSourceType.valueOf(dsiCameraSource.uppercase())
+    }
+
     override fun isSoundEnabled(): Boolean {
         return preferences.getBoolean("sound_enabled", true)
     }
@@ -404,6 +410,12 @@ class SharedPreferencesSettingsRepository(
     override fun observeSelectedLayoutId(): Observable<UUID> {
         return getOrCreatePreferenceObservable("input_layout_id") {
             getSelectedLayoutId()
+        }
+    }
+
+    override fun observeDSiCameraSource(): Flow<DSiCameraSourceType> {
+        return getOrCreatePreferenceSharedFlow("dsi_camera_source") {
+            getDSiCameraSource()
         }
     }
 
