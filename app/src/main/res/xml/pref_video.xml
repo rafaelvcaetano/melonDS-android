@@ -45,5 +45,5 @@
             app:type="file"
             app:permissions="read"
             app:persistPermissions="true"
-            app:mimeType="image/jpeg" />
+            app:mimeType="image/jpeg|image/png" />
 </PreferenceScreen>
