@@ -89,6 +89,8 @@
     <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string> <!-- Ex: 2m37.93s -->
     <string name="rewind_not_enabled">Rewind is not enabled</string>
     <string name="rewind_unavailable_ra_hardcore_enabled">Rewind is unavailable while Hardcore mode is enabled</string>
+    <string name="no_image_selected">No image selected</string>
+    <string name="failed_to_load_image">Failed to load image</string>
 
     <string name="action_sort_alphabetically">Alphabetically</string>
     <string name="action_sort_recently_played">Recently played</string>
@@ -175,6 +177,7 @@
     <string name="category_video_summary">Filter, threaded rendering, FPS counter</string>
     <string name="filter">Filter</string>
     <string name="dsi_camera_source">DSi camera source</string>
+    <string name="dsi_camera_image">DSi camera image</string>
     <string name="category_audio">Audio</string>
     <string name="category_audio_summary">Volume, latency, microphone source</string>
     <string name="enable_sound">Enable sound</string>

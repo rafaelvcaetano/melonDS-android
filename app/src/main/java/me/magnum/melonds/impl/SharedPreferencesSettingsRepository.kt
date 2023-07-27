@@ -253,6 +253,11 @@ class SharedPreferencesSettingsRepository(
         return DSiCameraSourceType.valueOf(dsiCameraSource.uppercase())
     }
 
+    override fun getDSiCameraStaticImage(): Uri? {
+        val staticImagePreference = preferences.getStringSet("dsi_camera_static_image", null)?.firstOrNull()
+        return staticImagePreference?.toUri()
+    }
+
     override fun isSoundEnabled(): Boolean {
         return preferences.getBoolean("sound_enabled", true)
     }
@@ -416,6 +421,12 @@ class SharedPreferencesSettingsRepository(
     override fun observeDSiCameraSource(): Flow<DSiCameraSourceType> {
         return getOrCreatePreferenceSharedFlow("dsi_camera_source") {
             getDSiCameraSource()
+        }
+    }
+
+    override fun observeDSiCameraStaticImage(): Flow<Uri?> {
+        return getOrCreatePreferenceSharedFlow("dsi_camera_static_image") {
+            getDSiCameraStaticImage()
         }
     }
 

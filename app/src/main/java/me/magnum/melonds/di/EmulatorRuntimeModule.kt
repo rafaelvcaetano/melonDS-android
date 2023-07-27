@@ -1,6 +1,7 @@
 package me.magnum.melonds.di
 
 import android.content.Context
+import android.os.Build
 import dagger.MapKey
 import dagger.Module
 import dagger.Provides
@@ -20,9 +21,13 @@ import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.EmulatorManager
 import me.magnum.melonds.impl.camera.DSiCameraSourceMultiplexer
 import me.magnum.melonds.impl.camera.PhysicalDSiCameraSource
+import me.magnum.melonds.impl.camera.StaticImageDSiCameraSource
 import me.magnum.melonds.impl.emulator.AndroidEmulatorManager
 import me.magnum.melonds.impl.emulator.LifecycleOwnerProvider
 import me.magnum.melonds.impl.emulator.SramProvider
+import me.magnum.melonds.impl.image.BitmapFactoryBitmapLoader
+import me.magnum.melonds.impl.image.BitmapLoader
+import me.magnum.melonds.impl.image.ImageDecoderBitmapLoader
 
 
 @Module
@@ -51,6 +56,16 @@ object EmulatorRuntimeModule {
     }
 
     @Provides
+    @ActivityRetainedScoped
+    fun provideBitmapLoader(@ApplicationContext context: Context): BitmapLoader {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            ImageDecoderBitmapLoader(context)
+        } else {
+            BitmapFactoryBitmapLoader(context)
+        }
+    }
+
+    @Provides
     @IntoMap
     @DSiCameraSourceKey(DSiCameraSourceType.BLACK_SCREEN)
     fun provideBlackDSiCameraSource(): DSiCameraSource {
@@ -66,6 +81,17 @@ object EmulatorRuntimeModule {
         permissionHandler: PermissionHandler,
     ): DSiCameraSource {
         return PhysicalDSiCameraSource(context, lifecycleOwnerProvider, permissionHandler)
+    }
+
+    @Provides
+    @IntoMap
+    @DSiCameraSourceKey(DSiCameraSourceType.STATIC_IMAGE)
+    fun provideStaticImageDSiCameraSource(
+        @ApplicationContext context: Context,
+        settingsRepository: SettingsRepository,
+        bitmapLoader: BitmapLoader,
+    ): DSiCameraSource {
+        return StaticImageDSiCameraSource(context, settingsRepository, bitmapLoader)
     }
 
     @Provides
