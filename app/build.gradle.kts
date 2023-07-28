@@ -44,10 +44,6 @@ android {
         }
         vectorDrawables.useSupportLibrary = true
     }
-    kotlinOptions {
-        jvmTarget = "11"
-        freeCompilerArgs += "-opt-in=kotlin.ExperimentalUnsignedTypes"
-    }
     buildFeatures {
         viewBinding = true
         compose = true
@@ -84,9 +80,16 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_15
+        targetCompatibility = JavaVersion.VERSION_15
         isCoreLibraryDesugaringEnabled = true
+
+        kotlin {
+            jvmToolchain(15)
+            kotlinOptions {
+                freeCompilerArgs += "-opt-in=kotlin.ExperimentalUnsignedTypes"
+            }
+        }
     }
     configurations.all {
         resolutionStrategy.eachDependency {
