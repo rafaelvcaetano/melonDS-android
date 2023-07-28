@@ -42,6 +42,8 @@ jobs:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
           COMMIT=$(git rev-parse --short HEAD)
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           git tag -m "Nightly Release" -f -a nightly-release
           git push -f origin refs/tags/nightly-release
           sed -i -e 's/\(versionName = "\)\(.*\)\("\)/\1\2 ('"$COMMIT"')\3/g' buildSrc/src/main/kotlin/AppConfig.kt
