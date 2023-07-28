@@ -42,6 +42,8 @@ jobs:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
           COMMIT=$(git rev-parse --short HEAD)
+          git tag -m "Nightly Release" -f -a nightly-release
+          git push -f origin refs/tags/nightly-release
           sed -i -e 's/\(versionName = "\)\(.*\)\("\)/\1\2 ('"$COMMIT"')\3/g' buildSrc/src/main/kotlin/AppConfig.kt
           echo "$MELONDS_KEYSTORE" | base64 -d > ${{runner.workspace}}/keystore.jks
           echo "MELONDS_KEYSTORE=${{runner.workspace}}/keystore.jks" >> local.properties
@@ -50,6 +52,19 @@ jobs:
           echo "MELONDS_KEY_PASSWORD=$MELONDS_KEYSTORE_PASSWORD" >> local.properties
           chmod +x ./gradlew
           ./gradlew :app:assembleGitHubRelease
+
+      - name: Update GitHub Nightly Release
+        id: update_release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          prerelease: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: nightly-release
+          name: 'Nightly Build'
+          body: 'The currently Nightly Build. Whenever new changes are pushed, you can find the latest build here.'
+          artifacts: app/build/outputs/apk/gitHub/release/app-gitHub-release.apk
+          artifactContentType: application/vnd.android.package-archive
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3

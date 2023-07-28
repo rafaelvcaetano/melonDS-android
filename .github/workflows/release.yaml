@@ -5,6 +5,7 @@ on:
   push:
     tags:
       - '*'
+      - '!nightly-release'
 
 jobs:
   github-release:
