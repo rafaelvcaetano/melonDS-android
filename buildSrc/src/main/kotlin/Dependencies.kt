@@ -82,7 +82,6 @@ object Dependencies {
 
     object Compose {
         const val bom = "androidx.compose:compose-bom:${Versions.ComposeBom}"
-        const val accompanistPager = "com.google.accompanist:accompanist-pager:${Versions.Accompanist}"
         const val accompanistPagerIndicators = "com.google.accompanist:accompanist-pager-indicators:${Versions.Accompanist}"
         const val accompanistSystemUiController = "com.google.accompanist:accompanist-systemuicontroller:${Versions.Accompanist}"
         const val foundation = "androidx.compose.foundation:foundation"

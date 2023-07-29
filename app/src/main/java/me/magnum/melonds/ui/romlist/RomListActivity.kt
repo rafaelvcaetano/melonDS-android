@@ -15,10 +15,13 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.content.getSystemService
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.commit
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import io.noties.markwon.Markwon
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.contracts.DirectoryPickerContract
@@ -74,19 +77,23 @@ class RomListActivity : AppCompatActivity() {
         val binding = ActivityRomListBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        lifecycleScope.launchWhenStarted {
-            viewModel.hasSearchDirectories.collectLatest { hasDirectories ->
-                if (hasDirectories) {
-                    addRomListFragment()
-                } else {
-                    addNoSearchDirectoriesFragment()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.hasSearchDirectories.collectLatest { hasDirectories ->
+                    if (hasDirectories) {
+                        addRomListFragment()
+                    } else {
+                        addNoSearchDirectoriesFragment()
+                    }
                 }
             }
         }
 
-        lifecycleScope.launchWhenStarted {
-            viewModel.invalidDirectoryAccessEvent.collectLatest {
-                showInvalidDirectoryAccessDialog()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.invalidDirectoryAccessEvent.collectLatest {
+                    showInvalidDirectoryAccessDialog()
+                }
             }
         }
 

@@ -60,7 +60,7 @@ interface SettingsRepository {
     fun areCheatsEnabled(): Boolean
 
     fun observeTheme(): Observable<Theme>
-    fun observeRomIconFiltering(): Observable<RomIconFiltering>
+    fun observeRomIconFiltering(): Flow<RomIconFiltering>
     fun observeRomSearchDirectories(): Observable<Array<Uri>>
     fun observeSelectedLayoutId(): Observable<UUID>
     fun observeDSiCameraSource(): Flow<DSiCameraSourceType>

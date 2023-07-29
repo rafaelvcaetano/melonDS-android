@@ -17,7 +17,9 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -108,23 +110,29 @@ class RomListFragment : Fragment() {
             adapter = romListAdapter
         }
 
-        lifecycleScope.launchWhenStarted {
-            romListViewModel.romScanningStatus.collectLatest { status ->
-                binding.swipeRefreshRoms.isRefreshing = status == RomScanningStatus.SCANNING
-                displayEmptyListViewIfRequired()
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                romListViewModel.romScanningStatus.collectLatest { status ->
+                    binding.swipeRefreshRoms.isRefreshing = status == RomScanningStatus.SCANNING
+                    displayEmptyListViewIfRequired()
+                }
             }
         }
 
-        lifecycleScope.launchWhenStarted {
-            romListViewModel.roms.filterNotNull().collectLatest { roms ->
-                romListAdapter.setRoms(roms)
-                displayEmptyListViewIfRequired()
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                romListViewModel.roms.filterNotNull().collectLatest { roms ->
+                    romListAdapter.setRoms(roms)
+                    displayEmptyListViewIfRequired()
+                }
             }
         }
 
-        lifecycleScope.launchWhenStarted {
-            romListViewModel.onRomIconFilteringChanged.collectLatest {
-                romListAdapter.updateIcons()
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                romListViewModel.onRomIconFilteringChanged.collectLatest {
+                    romListAdapter.updateIcons()
+                }
             }
         }
     }

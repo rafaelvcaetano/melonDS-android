@@ -486,8 +486,8 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
-    override fun observeRomIconFiltering(): Observable<RomIconFiltering> {
-        return getOrCreatePreferenceObservable("rom_icon_filtering") {
+    override fun observeRomIconFiltering(): Flow<RomIconFiltering> {
+        return getOrCreatePreferenceSharedFlow("rom_icon_filtering") {
             getRomIconFiltering()
         }
     }

@@ -148,7 +148,6 @@ dependencies {
 
     with(Dependencies.Compose) {
         implementation(platform(bom))
-        implementation(accompanistPager)
         implementation(accompanistPagerIndicators)
         implementation(accompanistSystemUiController)
         implementation(foundation)
