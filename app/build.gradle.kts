@@ -20,6 +20,7 @@ android {
         }
     }
 
+    namespace = "me.magnum.melonds"
     compileSdk = AppConfig.compileSdkVersion
     ndkVersion = AppConfig.ndkVersion
     defaultConfig {
