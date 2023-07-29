@@ -24,7 +24,7 @@ object Dependencies {
         const val Ksp = "1.9.0-1.0.12"
         const val LifecycleViewModel = "2.6.1"
         const val Material = "1.7.0"
-        const val OkHttp = "4.10.0"
+        const val OkHttp = "4.11.0"
         const val Picasso = "2.71828"
         const val Preference = "1.2.0"
         const val RecyclerView = "1.3.1"
