@@ -81,12 +81,12 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_15
-        targetCompatibility = JavaVersion.VERSION_15
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
 
         kotlin {
-            jvmToolchain(15)
+            jvmToolchain(17)
             kotlinOptions {
                 freeCompilerArgs += "-opt-in=kotlin.ExperimentalUnsignedTypes"
             }

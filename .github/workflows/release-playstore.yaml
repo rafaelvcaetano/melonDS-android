@@ -16,7 +16,7 @@ jobs:
 
       - uses: actions/setup-java@v3
         with:
-          java-version: '15'
+          java-version: '17'
           distribution: zulu
 
       - name: Setup Android SDK
