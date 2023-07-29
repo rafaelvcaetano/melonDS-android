@@ -18,6 +18,12 @@ buildscript {
     }
 }
 
+plugins {
+    with(Dependencies.GradlePlugins) {
+        id(ksp) version Dependencies.Versions.Ksp apply false
+    }
+}
+
 allprojects {
     repositories {
         google()

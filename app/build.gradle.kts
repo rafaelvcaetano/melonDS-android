@@ -5,6 +5,7 @@ plugins {
     id("kotlin-android")
     id("kotlin-parcelize")
     id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("dagger.hilt.android.plugin")
     id("org.jetbrains.kotlin.android")
 }
@@ -38,10 +39,8 @@ android {
                 cppFlags("-std=c++17 -Wno-write-strings")
             }
         }
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
-            }
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
         }
         vectorDrawables.useSupportLibrary = true
     }
@@ -60,7 +59,7 @@ android {
         }
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
+        kotlinCompilerExtensionVersion = "1.5.1"
     }
 
     flavorDimensions.add("version")
@@ -148,6 +147,7 @@ dependencies {
     }
 
     with(Dependencies.Compose) {
+        implementation(platform(bom))
         implementation(accompanistPager)
         implementation(accompanistPagerIndicators)
         implementation(accompanistSystemUiController)
@@ -187,7 +187,7 @@ dependencies {
     with(Dependencies.Kapt) {
         kapt(hiltCompiler)
         kapt(hiltCompilerAndroid)
-        kapt(roomCompiler)
+        ksp(roomCompiler)
     }
 
     // Testing
