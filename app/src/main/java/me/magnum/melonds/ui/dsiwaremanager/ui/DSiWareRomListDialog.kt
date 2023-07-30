@@ -161,7 +161,7 @@ private fun PopupDialog(
 
                 when (romsUiState) {
                     is DSiWareMangerRomListUiState.Loading -> {
-                        Loading()
+                        Loading(Modifier.fillMaxWidth())
                     }
                     is DSiWareMangerRomListUiState.Loaded -> {
                         DSiWareRomList(
@@ -173,7 +173,7 @@ private fun PopupDialog(
                         )
                     }
                     is DSiWareMangerRomListUiState.Empty -> {
-                        Empty()
+                        Empty(Modifier.fillMaxWidth())
                     }
                 }
             }
@@ -184,7 +184,7 @@ private fun PopupDialog(
 @Composable
 private fun Loading(modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier,
+        modifier = modifier.padding(16.dp),
         contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator()
@@ -241,7 +241,7 @@ private fun DSiWareRomList(
 
 @Composable
 private fun Empty(modifier: Modifier = Modifier) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+    Box(modifier = modifier.padding(16.dp), contentAlignment = Alignment.Center) {
         Text(text = stringResource(id = R.string.no_dsiware_roms_found))
     }
 }
@@ -266,6 +266,22 @@ private fun PreviewDSiWareRomListDialog() {
             onDismiss = {},
             onRomSelected = {},
             retrieveRomIcon = { RomIcon(bitmap, RomIconFiltering.NONE) },
+        )
+    }
+}
+
+@Composable
+@Preview
+@Preview(uiMode = UI_MODE_NIGHT_YES)
+@Preview(device = Devices.TABLET)
+@Preview(device = Devices.TABLET, uiMode = UI_MODE_NIGHT_YES)
+private fun PreviewDSiWareRomListDialogEmpty() {
+    MelonTheme {
+        DSiWareRomListDialogImpl(
+            romsUiState = DSiWareMangerRomListUiState.Empty,
+            onDismiss = {},
+            onRomSelected = {},
+            retrieveRomIcon = { RomIcon(null, RomIconFiltering.NONE) },
         )
     }
 }
