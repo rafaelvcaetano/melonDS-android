@@ -87,7 +87,10 @@ private fun LoggedOut(
                 onClick = { showLoginPopup = true },
                 colors = melonButtonColors(),
             ) {
-                Text(text = stringResource(id = R.string.login_with_retro_achievements).uppercase())
+                Text(
+                    text = stringResource(id = R.string.login_with_retro_achievements).uppercase(),
+                    textAlign = TextAlign.Center,
+                )
             }
         }
     }
