@@ -142,8 +142,7 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
                     it.toModel()
                 }
                 emitter.onSuccess(layouts ?: emptyList())
-            } catch (it: Exception) {
-                it.printStackTrace()
+            } catch (_: Exception) {
                 emitter.onSuccess(emptyList())
             }
         }

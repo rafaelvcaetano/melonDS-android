@@ -34,8 +34,6 @@ class LayoutMigrationHelper(
         val layoutListType = TypeToken.getParameterized(List::class.java, fromClass).type
         return runCatching {
             gson.fromJson<List<T>>(FileReader(cacheFile), layoutListType)
-        }.onFailure {
-            it.printStackTrace()
         }.getOrElse { emptyList() }
     }
 
