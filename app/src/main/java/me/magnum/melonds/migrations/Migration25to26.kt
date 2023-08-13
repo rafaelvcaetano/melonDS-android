@@ -4,19 +4,23 @@ import me.magnum.melonds.impl.dtos.layout.LayoutConfigurationDto
 import me.magnum.melonds.impl.dtos.layout.PositionedLayoutComponentDto
 import me.magnum.melonds.impl.dtos.layout.RectDto
 import me.magnum.melonds.impl.dtos.layout.UILayoutDto
-import me.magnum.melonds.migrations.helper.LayoutMigrationHelper
+import me.magnum.melonds.migrations.helper.GenericJsonArrayMigrationHelper
 import me.magnum.melonds.migrations.legacy.layout.LayoutConfiguration25
 import me.magnum.melonds.migrations.legacy.layout.UILayout25
 
 class Migration25to26(
-    private val layoutMigrationHelper: LayoutMigrationHelper,
+    private val layoutMigrationHelper: GenericJsonArrayMigrationHelper,
 ) : Migration {
+
+    companion object {
+        private const val LAYOUTS_DATA_FILE = "layouts.json"
+    }
 
     override val from = 25
     override val to = 26
 
     override fun migrate() {
-        layoutMigrationHelper.migrateLayouts(LayoutConfiguration25::class.java) {
+        layoutMigrationHelper.migrateJsonArrayData<LayoutConfiguration25, LayoutConfigurationDto>(LAYOUTS_DATA_FILE) {
             try {
                 LayoutConfigurationDto(
                     it.id,
