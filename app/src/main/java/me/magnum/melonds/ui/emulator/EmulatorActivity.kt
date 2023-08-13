@@ -645,11 +645,11 @@ class EmulatorActivity : AppCompatActivity() {
     }
 
     private fun disableScreenTimeOut() {
-        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     private fun enableScreenTimeOut() {
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
