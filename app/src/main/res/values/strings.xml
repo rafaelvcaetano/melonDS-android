@@ -38,7 +38,7 @@
     <string name="error_load_rom">Could not load ROM</string>
     <string name="error_load_rom_message">There was a problem loading the ROM. Make sure it\'s not corrupted and try again.</string>
     <string name="error_load_firmware">Could not load the firmware</string>
-    <string name="error_load_firmware_message">There was a problem loading the firmware (%1$s). Make sure the BIOS and firmware dump is corrupted, that the firmware is bootable and try again.</string>
+    <string name="error_load_firmware_message">There was a problem loading the firmware (%1$s). Make sure the BIOS and firmware dump is not corrupted, that the firmware is bootable and try again.</string>
     <string name="error_load_rom_report_issue">An error log was generated that can help fix this problem. Do you want to open an issue on GitHub with this log? You will need a GitHub account.</string>
     <string name="title_emulator_running">Emulator running</string>
     <string name="message_stop_emulation">Stop emulation and load new ROM?</string>
