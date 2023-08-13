@@ -1,6 +1,7 @@
 package me.magnum.melonds.migrations
 
 import android.content.Context
+import me.magnum.melonds.migrations.helper.RomMigrationHelper
 import me.magnum.melonds.migrations.legacy.Rom22
 import me.magnum.melonds.migrations.legacy.RomDto25
 import me.magnum.melonds.migrations.legacy.RomConfigDto25

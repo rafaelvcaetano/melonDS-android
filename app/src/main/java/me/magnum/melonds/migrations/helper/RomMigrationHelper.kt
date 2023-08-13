@@ -1,4 +1,4 @@
-package me.magnum.melonds.migrations
+package me.magnum.melonds.migrations.helper
 
 import android.content.Context
 import com.google.gson.Gson

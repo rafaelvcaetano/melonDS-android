@@ -1,16 +1,16 @@
 package me.magnum.melonds.domain.model
 
-import java.util.*
+import java.util.UUID
 
 data class LayoutConfiguration(
-        val id: UUID?,
-        val name: String?,
-        val type: LayoutType,
-        val orientation: LayoutOrientation,
-        val useCustomOpacity: Boolean,
-        val opacity: Int,
-        val portraitLayout: UILayout,
-        val landscapeLayout: UILayout
+    val id: UUID?,
+    val name: String?,
+    val type: LayoutType,
+    val orientation: LayoutOrientation,
+    val useCustomOpacity: Boolean,
+    val opacity: Int,
+    val portraitLayout: UILayout,
+    val landscapeLayout: UILayout
 ) {
 
     companion object {
