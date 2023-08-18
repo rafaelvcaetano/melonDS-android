@@ -32,6 +32,7 @@ import coil.request.ImageRequest
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.ui.common.MelonPreviewSet
+import me.magnum.melonds.ui.common.melonTextButtonColors
 import me.magnum.melonds.ui.romdetails.ui.preview.mockRAAchievementPreview
 import me.magnum.melonds.ui.theme.MelonTheme
 
@@ -164,18 +165,17 @@ fun RomAchievementUi(
             TextButton(
                 modifier = Modifier.align(Alignment.End),
                 onClick = onViewAchievement,
+                colors = melonTextButtonColors(),
             ) {
                 Icon(
                     modifier = Modifier.size(18.dp),
                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_link),
                     contentDescription = null,
-                    tint = MaterialTheme.colors.secondary,
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
                     text = stringResource(id = R.string.view_achievement).uppercase(),
                     style = MaterialTheme.typography.button,
-                    color = MaterialTheme.colors.secondary,
                 )
             }
         }

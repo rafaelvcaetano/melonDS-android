@@ -1,13 +1,13 @@
 package me.magnum.melonds.ui.emulator.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -25,12 +25,15 @@ import me.magnum.melonds.ui.emulator.model.RAIntegrationEvent
 
 @Composable
 fun RAIntegrationEventUi(modifier: Modifier, event: RAIntegrationEvent) {
-    Box(modifier.padding(16.dp)) {
+    Card(
+        modifier = modifier
+            .padding(16.dp)
+            .shadow(8.dp, RoundedCornerShape(8.dp))
+            .widthIn(max = 400.dp),
+        shape = RoundedCornerShape(8.dp),
+    ) {
         Row(
-            modifier = Modifier
-                .shadow(8.dp, RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colors.surface, RoundedCornerShape(8.dp))
-                .padding(8.dp),
+            modifier = Modifier.padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

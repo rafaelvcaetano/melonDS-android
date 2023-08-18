@@ -88,7 +88,7 @@ fun RomHeaderUi(
                     modifier = Modifier.fillMaxWidth(),
                     selectedTabIndex = pagerState.currentPage,
                     backgroundColor = MaterialTheme.colors.surface,
-                    contentColor = MaterialTheme.colors.primary,
+                    contentColor = MaterialTheme.colors.onSurface,
                     indicator = {
                         TabRowDefaults.Indicator(
                             modifier = Modifier.pagerTabIndicatorOffset(pagerState, it),
@@ -102,7 +102,7 @@ fun RomHeaderUi(
                         text = {
                             Text(
                                 text = stringResource(id = R.string.rom_details_configuration_tab).uppercase(),
-                                color = MaterialTheme.colors.onBackground,
+                                color = MaterialTheme.colors.onSurface,
                             )
                         }
                     )
@@ -112,7 +112,7 @@ fun RomHeaderUi(
                         text = {
                             Text(
                                 text = stringResource(id = R.string.retro_achievements_tab).uppercase(),
-                                color = MaterialTheme.colors.onBackground
+                                color = MaterialTheme.colors.onSurface
                             )
                         }
                     )

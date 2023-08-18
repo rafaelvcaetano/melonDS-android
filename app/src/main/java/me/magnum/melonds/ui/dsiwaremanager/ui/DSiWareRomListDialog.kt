@@ -2,16 +2,34 @@ package me.magnum.melonds.ui.dsiwaremanager.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Divider
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.LocalElevationOverlay
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -84,9 +102,9 @@ private fun FullScreenDialog(
     retrieveRomIcon: suspend (Rom) -> RomIcon
 ) {
     FullScreen(onDismiss = onDismiss) {
-        Column(Modifier.fillMaxSize().background(MaterialTheme.colors.background)) {
-            CompositionLocalProvider(LocalElevationOverlay provides null) {
-                Surface(elevation = 4.dp) {
+        Surface {
+            Column(Modifier.fillMaxSize()) {
+                CompositionLocalProvider(LocalElevationOverlay provides null) {
                     TopAppBar(
                         modifier = Modifier.fillMaxWidth(),
                         title = {
@@ -107,32 +125,32 @@ private fun FullScreenDialog(
                         backgroundColor = MaterialTheme.colors.toolbarBackground,
                     )
                 }
-            }
 
-            when (romsUiState) {
-                is DSiWareMangerRomListUiState.Loading -> {
-                    Loading(
-                        Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    )
-                }
-                is DSiWareMangerRomListUiState.Loaded -> {
-                    DSiWareRomList(
-                        Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        roms = romsUiState.roms,
-                        onRomSelected = onRomSelected,
-                        retrieveRomIcon = retrieveRomIcon,
-                    )
-                }
-                is DSiWareMangerRomListUiState.Empty -> {
-                    Empty(
-                        Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    )
+                when (romsUiState) {
+                    is DSiWareMangerRomListUiState.Loading -> {
+                        Loading(
+                            Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                        )
+                    }
+                    is DSiWareMangerRomListUiState.Loaded -> {
+                        DSiWareRomList(
+                            Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            roms = romsUiState.roms,
+                            onRomSelected = onRomSelected,
+                            retrieveRomIcon = retrieveRomIcon,
+                        )
+                    }
+                    is DSiWareMangerRomListUiState.Empty -> {
+                        Empty(
+                            Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                        )
+                    }
                 }
             }
         }

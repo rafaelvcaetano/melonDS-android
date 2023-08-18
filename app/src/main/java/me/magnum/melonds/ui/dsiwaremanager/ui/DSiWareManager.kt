@@ -34,6 +34,7 @@ import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.ui.common.FabActionItem
 import me.magnum.melonds.ui.common.MultiActionFloatingActionButton
+import me.magnum.melonds.ui.common.melonButtonColors
 import me.magnum.melonds.ui.dsiwaremanager.model.DSiWareManagerUiState
 import me.magnum.melonds.ui.romlist.RomIcon
 import me.magnum.melonds.ui.settings.SettingsActivity
@@ -103,7 +104,7 @@ private fun InvalidSetup(modifier: Modifier, configurationStatus: ConfigurationD
                         }
                         biosSetupLauncher.launch(intent)
                     },
-                    colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary, contentColor = MaterialTheme.colors.onSecondary),
+                    colors = melonButtonColors(),
                 ) {
                     Text(text = stringResource(R.string.dsiware_manager_setup).uppercase())
                 }
@@ -121,7 +122,7 @@ private fun InvalidSetup(modifier: Modifier, configurationStatus: ConfigurationD
                         }
                         biosSetupLauncher.launch(intent)
                     },
-                    colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary, contentColor = MaterialTheme.colors.onSecondary),
+                    colors = melonButtonColors(),
                 ) {
                     Text(text = stringResource(R.string.dsiware_manager_fix_setup).uppercase())
                 }
@@ -137,7 +138,7 @@ private fun Loading(modifier: Modifier) {
     Box(modifier) {
         CircularProgressIndicator(
             modifier = Modifier.align(Alignment.Center),
-            color = MaterialTheme.colors.onSurface,
+            color = MaterialTheme.colors.secondary,
         )
     }
 }
@@ -189,7 +190,6 @@ private fun Ready(
             Icon(
                 painter = painterResource(R.drawable.ic_add),
                 contentDescription = stringResource(R.string.import_dsiware_title),
-                tint = MaterialTheme.colors.onSecondary,
             )
         }
     }

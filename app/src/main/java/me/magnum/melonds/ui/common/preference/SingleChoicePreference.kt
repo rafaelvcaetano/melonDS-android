@@ -15,6 +15,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import me.magnum.melonds.R
+import me.magnum.melonds.ui.common.component.text.CaptionText
+import me.magnum.melonds.ui.common.melonTextButtonColors
 
 @Composable
 fun SingleChoiceItem(
@@ -43,9 +45,8 @@ fun SingleChoiceItem(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        Text(
+        CaptionText(
             text = value,
-            style = MaterialTheme.typography.caption,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -124,7 +125,10 @@ private fun SingleChoiceDialog(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TextButton(onClick = { onDismissRequest() }) {
+                    TextButton(
+                        onClick = { onDismissRequest() },
+                        colors = melonTextButtonColors(),
+                    ) {
                         Text(
                             text = stringResource(id = R.string.cancel).uppercase(),
                             style = MaterialTheme.typography.button,
