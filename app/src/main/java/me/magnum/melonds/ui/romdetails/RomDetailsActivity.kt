@@ -31,7 +31,7 @@ class RomDetailsActivity : AppCompatActivity() {
         setContent {
             val systemUiController = rememberSystemUiController()
             val romDetailsViewModel by viewModels<RomDetailsViewModel>()
-            val romRetroAchievementsViewModel by viewModels<RomRetroAchievementsViewModel>()
+            val romRetroAchievementsViewModel by viewModels<RomDetailsRetroAchievementsViewModel>()
 
             val rom by romDetailsViewModel.rom.collectAsState()
             val romConfig by romDetailsViewModel.romConfig.collectAsState()

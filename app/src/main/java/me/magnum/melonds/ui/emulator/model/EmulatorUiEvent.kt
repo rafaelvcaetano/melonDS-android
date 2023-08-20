@@ -6,7 +6,7 @@ import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 
 sealed class EmulatorUiEvent {
     sealed class OpenScreen : EmulatorUiEvent() {
-        object SettingsScreen : OpenScreen()
+        data object SettingsScreen : OpenScreen()
         data class CheatsScreen(val romInfo: RomInfo) : OpenScreen()
     }
     data class ShowPauseMenu(val pauseMenu: PauseMenu) : EmulatorUiEvent()
@@ -17,5 +17,6 @@ sealed class EmulatorUiEvent {
             LOADING,
         }
     }
-    object CloseEmulator : EmulatorUiEvent()
+    data object ShowAchievementList : EmulatorUiEvent()
+    data object CloseEmulator : EmulatorUiEvent()
 }

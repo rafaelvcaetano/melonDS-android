@@ -23,6 +23,7 @@ import me.magnum.melonds.impl.camera.DSiCameraSourceMultiplexer
 import me.magnum.melonds.impl.camera.PhysicalDSiCameraSource
 import me.magnum.melonds.impl.camera.StaticImageDSiCameraSource
 import me.magnum.melonds.impl.emulator.AndroidEmulatorManager
+import me.magnum.melonds.impl.emulator.EmulatorSession
 import me.magnum.melonds.impl.emulator.LifecycleOwnerProvider
 import me.magnum.melonds.impl.emulator.SramProvider
 import me.magnum.melonds.impl.image.BitmapFactoryBitmapLoader
@@ -126,5 +127,11 @@ object EmulatorRuntimeModule {
             permissionHandler,
             cameraManagerMultiplexer,
         )
+    }
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideEmulatorSession(): EmulatorSession {
+        return EmulatorSession()
     }
 }
