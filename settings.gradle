@@ -1,1 +1,1 @@
-include ':app', ':masterswitch', ':rcheevos-api'
+include ':app', ':masterswitch', ':rcheevos-api', ':common'

@@ -10,6 +10,9 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
+import me.magnum.melonds.common.suspendMapCatching
+import me.magnum.melonds.common.suspendRecoverCatching
+import me.magnum.melonds.common.suspendRunCatching
 import me.magnum.melonds.common.workers.RetroAchievementsSubmissionWorker
 import me.magnum.melonds.database.daos.RAAchievementsDao
 import me.magnum.melonds.database.entities.retroachievements.RAGameEntity
@@ -111,7 +114,7 @@ class AndroidRetroAchievementsRepository(
     }
 
     override suspend fun getAchievement(achievementId: Long): Result<RAAchievement?> {
-        return runCatching {
+        return suspendRunCatching {
             achievementsDao.getAchievement(achievementId)
         }.map {
             it?.mapToModel()
@@ -184,13 +187,13 @@ class AndroidRetroAchievementsRepository(
                 .map {
                     it[gameHash]
                 }
-                .recoverCatching {
+                .suspendRecoverCatching {
                     achievementsDao.getGameHashEntity(gameHash)?.let {
                         RAGameId(it.gameId)
                     }
                 }
         } else {
-            runCatching {
+            suspendRunCatching {
                 achievementsDao.getGameHashEntity(gameHash)?.let {
                     RAGameId(it.gameId)
                 }
@@ -200,7 +203,7 @@ class AndroidRetroAchievementsRepository(
 
     private suspend fun fetchGameAchievements(gameId: RAGameId, gameSetMetadata: CurrentGameSetMetadata): Result<List<RAAchievement>> {
         return if (mustRefreshAchievementSet(gameSetMetadata.currentMetadata)) {
-            raApi.getGameInfo(gameId).mapCatching { game ->
+            raApi.getGameInfo(gameId).suspendMapCatching { game ->
                 val achievementEntities = game.achievements.map {
                     it.mapToEntity()
                 }
@@ -210,7 +213,7 @@ class AndroidRetroAchievementsRepository(
                 achievementsDao.updateGameData(gameEntity, achievementEntities)
                 achievementsDao.updateGameSetMetadata(newMetadata)
                 game.achievements
-            }.recoverCatching { exception ->
+            }.suspendRecoverCatching { exception ->
                 if (gameSetMetadata.isGameAchievementDataKnown()) {
                     // Load DB data because we know that it was previously loaded
                     achievementsDao.getGameAchievements(gameId.id).map { it ->
@@ -222,7 +225,7 @@ class AndroidRetroAchievementsRepository(
                 }
             }
         } else {
-            runCatching {
+            suspendRunCatching {
                 achievementsDao.getGameAchievements(gameId.id).map {
                     it.mapToModel()
                 }
@@ -247,7 +250,7 @@ class AndroidRetroAchievementsRepository(
                 val newMetadata = gameSetMetadata.withNewUserAchievementsUpdate(forHardcoreMode)
                 achievementsDao.updateGameUserUnlockedAchievements(gameId.id, userAchievementEntities)
                 achievementsDao.updateGameSetMetadata(newMetadata)
-            }.recoverCatching { exception ->
+            }.suspendRecoverCatching { exception ->
                 if (gameSetMetadata.isUserAchievementDataKnown(forHardcoreMode)) {
                     // Load DB data because we know that it was previously loaded
                     achievementsDao.getGameUserUnlockedAchievements(gameId.id, forHardcoreMode).map {
@@ -259,7 +262,7 @@ class AndroidRetroAchievementsRepository(
                 }
             }
         } else {
-            runCatching {
+            suspendRunCatching {
                 achievementsDao.getGameUserUnlockedAchievements(gameId.id, forHardcoreMode).map {
                     it.achievementId
                 }

@@ -2,6 +2,8 @@ package me.magnum.rcheevosapi
 
 import com.google.gson.Gson
 import com.google.gson.JsonParser
+import me.magnum.melonds.common.suspendMapCatching
+import me.magnum.melonds.common.suspendRunCatching
 import me.magnum.rcheevosapi.dto.*
 import me.magnum.rcheevosapi.dto.mapper.mapToModel
 import me.magnum.rcheevosapi.exception.UnsuccessfulRequestException
@@ -104,7 +106,7 @@ class RAApi(
                 PARAMETER_TOKEN to userAuth.token,
                 PARAMETER_GAME_ID to gameId.id.toString(),
             )
-        ).mapCatching {
+        ).suspendMapCatching {
             it.game.mapToModel()
         }
     }
@@ -171,9 +173,9 @@ class RAApi(
         errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") }
     ): Result<T> {
         val request = buildGetRequest(parameters)
-        return runCatching {
+        return suspendRunCatching {
             executeRequest(request)
-        }.mapCatching { response ->
+        }.suspendMapCatching { response ->
             if (response.isSuccessful) {
                 val json = JsonParser.parseReader(response.body?.charStream())
                 val isSuccessful = json.asJsonObject["Success"].asBoolean
@@ -201,9 +203,9 @@ class RAApi(
         errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") }
     ): Result<T> {
         val request = buildPostRequest(parameters)
-        return runCatching {
+        return suspendRunCatching {
             executeRequest(request)
-        }.mapCatching { response ->
+        }.suspendMapCatching { response ->
             if (response.isSuccessful) {
                 val json = JsonParser.parseReader(response.body?.charStream())
                 val isSuccessful = json.asJsonObject["Success"].asBoolean

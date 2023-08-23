@@ -113,6 +113,7 @@ dependencies {
     with(Dependencies.Modules) {
         implementation(project(masterSwitchPreference))
         implementation(project(rcheevosApi))
+        implementation(project(common))
     }
 
     with(Dependencies.Kotlin) {

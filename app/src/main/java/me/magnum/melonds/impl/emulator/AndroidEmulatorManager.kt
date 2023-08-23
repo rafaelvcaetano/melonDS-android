@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.MelonEmulator
@@ -57,7 +58,7 @@ class AndroidEmulatorManager(
             }
 
             val loadResult = MelonEmulator.loadRom(romUri, sram, rom.config.mustLoadGbaCart(), rom.config.gbaCartPath, rom.config.gbaSavePath)
-            if (loadResult.isTerminal) {
+            if (loadResult.isTerminal || !isActive) {
                 cameraManager.stopCurrentCameraSource()
                 RomLaunchResult.LaunchFailed(loadResult)
             } else {

@@ -20,7 +20,7 @@ object Dependencies {
         const val Hilt = "2.47"
         const val Junit = "4.12"
         const val Kotlin = "1.9.0"
-        const val KotlinxCoroutinesRx = "1.6.4"
+        const val KotlinxCoroutines = "1.7.3"
         const val Ksp = "1.9.0-1.0.12"
         const val LifecycleViewModel = "2.6.1"
         const val Material = "1.7.0"
@@ -52,6 +52,7 @@ object Dependencies {
 
     object Kotlin {
         const val kotlinStdlib = "org.jetbrains.kotlin:kotlin-stdlib:${Versions.Kotlin}"
+        const val coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.KotlinxCoroutines}"
     }
 
     object AndroidX {
@@ -96,7 +97,7 @@ object Dependencies {
         const val flexbox = "com.google.android.flexbox:flexbox:${Versions.Flexbox}"
         const val gson = "com.google.code.gson:gson:${Versions.Gson}"
         const val hilt = "com.google.dagger:hilt-android:${Versions.Hilt}"
-        const val kotlinxCoroutinesRx = "org.jetbrains.kotlinx:kotlinx-coroutines-rx2:${Versions.KotlinxCoroutinesRx}"
+        const val kotlinxCoroutinesRx = "org.jetbrains.kotlinx:kotlinx-coroutines-rx2:${Versions.KotlinxCoroutines}"
         const val picasso = "com.squareup.picasso:picasso:${Versions.Picasso}"
         const val markwon = "io.noties.markwon:core:${Versions.Markwon}"
         const val markwonImagePicasso = "io.noties.markwon:image-picasso:${Versions.Markwon}"
@@ -123,6 +124,7 @@ object Dependencies {
     object Modules {
         const val masterSwitchPreference = ":masterswitch"
         const val rcheevosApi = ":rcheevos-api"
+        const val common = ":common"
     }
 
     object Testing {
