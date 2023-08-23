@@ -751,7 +751,7 @@ class EmulatorViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         sessionCoroutineScope.cancel()
-        if (_emulatorState.value.isRunning()) {
+        if (_emulatorState.value.isRunning() || _emulatorState.value.isLoading()) {
             emulatorManager.stopEmulator()
         }
         emulatorManager.cleanEmulator()

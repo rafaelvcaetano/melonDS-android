@@ -406,16 +406,19 @@ Java_me_magnum_melonds_MelonEmulator_getRewindWindow(JNIEnv* env, jobject thiz) 
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
 {
-    pthread_mutex_lock(&emuThreadMutex);
-    stop = true;
-    paused = false;
-    started = false;
-    pthread_cond_broadcast(&emuThreadCond);
-    pthread_mutex_unlock(&emuThreadMutex);
+    if (started)
+    {
+        pthread_mutex_lock(&emuThreadMutex);
+        stop = true;
+        paused = false;
+        started = false;
+        pthread_cond_broadcast(&emuThreadCond);
+        pthread_mutex_unlock(&emuThreadMutex);
 
-    pthread_join(emuThread, NULL);
-    pthread_mutex_destroy(&emuThreadMutex);
-    pthread_cond_destroy(&emuThreadCond);
+        pthread_join(emuThread, NULL);
+        pthread_mutex_destroy(&emuThreadMutex);
+        pthread_cond_destroy(&emuThreadCond);
+    }
 
     env->DeleteGlobalRef(globalAssetManager);
     env->DeleteGlobalRef(globalCameraManager);
