@@ -2,6 +2,7 @@ package me.magnum.melonds.impl.emulator
 
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.emulator.EmulatorSessionUpdateAction
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 
 class EmulatorSession {
@@ -15,7 +16,8 @@ class EmulatorSession {
 
     fun startSession(areRetroAchievementsEnabled: Boolean, isRetroAchievementsHardcoreModeEnabled: Boolean, sessionType: SessionType) {
         this.areRetroAchievementsEnabled = areRetroAchievementsEnabled
-        this.isRetroAchievementsHardcoreModeEnabled = isRetroAchievementsHardcoreModeEnabled
+        // Hardcore mode can only be enabled if RetroAchievements are available when the session starts
+        this.isRetroAchievementsHardcoreModeEnabled = areRetroAchievementsEnabled && isRetroAchievementsHardcoreModeEnabled
         this.sessionType = sessionType
     }
 
@@ -26,16 +28,25 @@ class EmulatorSession {
         sessionType = null
     }
 
-    fun updateRetroAchievementsSettings(areRetroAchievementsEnabled: Boolean, isHardcoreModeEnabled: Boolean): Boolean {
-        this.areRetroAchievementsEnabled = areRetroAchievementsEnabled
+    fun updateRetroAchievementsSettings(areRetroAchievementsEnabled: Boolean, isHardcoreModeEnabled: Boolean): List<EmulatorSessionUpdateAction> {
+        val updateActions = mutableListOf<EmulatorSessionUpdateAction>()
 
-        if (isHardcoreModeEnabled) {
-            // Cannot enable hardcore mode at runtime
-            return false
+        if (this.areRetroAchievementsEnabled != areRetroAchievementsEnabled) {
+            if (areRetroAchievementsEnabled) {
+                updateActions.add(EmulatorSessionUpdateAction.EnableRetroAchievements)
+            } else {
+                updateActions.add(EmulatorSessionUpdateAction.DisableRetroAchievements)
+            }
         }
 
-        isRetroAchievementsHardcoreModeEnabled = isHardcoreModeEnabled
-        return true
+        if (!isHardcoreModeEnabled) {
+            // Cannot enable hardcore mode at runtime
+            isRetroAchievementsHardcoreModeEnabled = false
+        }
+
+        this.areRetroAchievementsEnabled = areRetroAchievementsEnabled
+
+        return updateActions
     }
 
     fun updateRetroAchievementsIntegrationStatus(integrationStatus: GameAchievementData.IntegrationStatus) {

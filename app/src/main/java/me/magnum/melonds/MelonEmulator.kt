@@ -43,6 +43,8 @@ object MelonEmulator {
 
     external fun setupAchievements(achievements: Array<RASimpleAchievement>, richPresenceScript: String?)
 
+    external fun unloadAchievements(achievements: Array<RASimpleAchievement>)
+
     external fun getRichPresenceStatus(): String?
 
 	fun loadRom(romUri: Uri, sramUri: Uri, loadGbaRom: Boolean, gbaRomUri: Uri?, gbaSramUri: Uri?): LoadResult {

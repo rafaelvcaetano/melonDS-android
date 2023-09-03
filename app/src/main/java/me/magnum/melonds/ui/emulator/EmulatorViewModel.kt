@@ -8,6 +8,7 @@ import io.reactivex.Maybe
 import io.reactivex.Observable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
@@ -44,6 +45,7 @@ import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.SaveStateSlot
+import me.magnum.melonds.domain.model.emulator.EmulatorSessionUpdateAction
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
@@ -94,6 +96,7 @@ class EmulatorViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val sessionCoroutineScope = EmulatorSessionCoroutineScope()
+    private var raSessionJob: Job? = null
 
     private val _currentSystemOrientation = MutableStateFlow<Orientation?>(null)
 
@@ -220,7 +223,7 @@ class EmulatorViewModel @Inject constructor(
     fun onSettingsChanged() {
         val currentState = _emulatorState.value
         sessionCoroutineScope.launch {
-            emulatorSession.updateRetroAchievementsSettings(
+            val sessionUpdateActions = emulatorSession.updateRetroAchievementsSettings(
                 retroAchievementsRepository.isUserAuthenticated(),
                 settingsRepository.isRetroAchievementsHardcoreEnabled(),
             )
@@ -232,6 +235,8 @@ class EmulatorViewModel @Inject constructor(
                     // Do nothing
                 }
             }
+
+            dispatchSessionUpdateActions(sessionUpdateActions)
         }
     }
 
@@ -502,6 +507,7 @@ class EmulatorViewModel @Inject constructor(
     private fun resetEmulatorState(newState: EmulatorState) {
         sessionCoroutineScope.notifyNewSessionStarted()
         emulatorSession.reset()
+        raSessionJob = null
         _currentFps.value = null
         _emulatorState.value = newState
         _background.value = RuntimeBackground.None
@@ -688,28 +694,30 @@ class EmulatorViewModel @Inject constructor(
                 return@launch
             }
 
-            // Wait until the emulator has actually started
-            ensureEmulatorIsRunning().firstOrNull()
+            raSessionJob = launch {
+                // Wait until the emulator has actually started
+                ensureEmulatorIsRunning().firstOrNull()
 
-            val startResult = retroAchievementsRepository.startSession(rom.retroAchievementsHash)
-            if (!startResult.isSuccess) {
-                _raIntegrationEvent.tryEmit(RAIntegrationEvent.Failed(achievementData.icon))
-                return@launch
-            }
+                val startResult = retroAchievementsRepository.startSession(rom.retroAchievementsHash)
+                if (startResult.isFailure) {
+                    _raIntegrationEvent.tryEmit(RAIntegrationEvent.Failed(achievementData.icon))
+                } else {
+                    emulatorManager.setupAchievements(achievementData)
+                    _raIntegrationEvent.tryEmit(
+                        RAIntegrationEvent.Loaded(
+                            icon = achievementData.icon,
+                            unlockedAchievements = achievementData.unlockedAchievementCount,
+                            totalAchievements = achievementData.totalAchievementCount,
+                        )
+                    )
 
-            emulatorManager.setupAchievements(achievementData)
-            _raIntegrationEvent.tryEmit(
-                RAIntegrationEvent.Loaded(
-                    icon = achievementData.icon,
-                    unlockedAchievements = achievementData.unlockedAchievementCount,
-                    totalAchievements = achievementData.totalAchievementCount,
-                )
-            )
-            while (isActive) {
-                // TODO: Should we pause the session if the app goes to background? If so, how?
-                delay(2.minutes)
-                val richPresenceDescription = MelonEmulator.getRichPresenceStatus()
-                retroAchievementsRepository.sendSessionHeartbeat(rom.retroAchievementsHash, richPresenceDescription)
+                    while (isActive) {
+                        // TODO: Should we pause the session if the app goes to background? If so, how?
+                        delay(2.minutes)
+                        val richPresenceDescription = MelonEmulator.getRichPresenceStatus()
+                        retroAchievementsRepository.sendSessionHeartbeat(rom.retroAchievementsHash, richPresenceDescription)
+                    }
+                }
             }
         }
     }
@@ -746,6 +754,23 @@ class EmulatorViewModel @Inject constructor(
             isRetroAchievementsHardcoreModeEnabled = isRetroAchievementsHardcoreModeEnabled,
             sessionType = sessionType,
         )
+    }
+
+    private fun dispatchSessionUpdateActions(actions: List<EmulatorSessionUpdateAction>) {
+        actions.forEach {
+            when (it) {
+                EmulatorSessionUpdateAction.DisableRetroAchievements -> {
+                    emulatorManager.unloadAchievements()
+                    raSessionJob?.cancel()
+                    raSessionJob = null
+                }
+                EmulatorSessionUpdateAction.EnableRetroAchievements -> {
+                    (emulatorSession.currentSessionType() as? EmulatorSession.SessionType.RomSession)?.rom?.let { currentRom ->
+                        startRetroAchievementsSession(currentRom)
+                    }
+                }
+            }
+        }
     }
 
     override fun onCleared() {

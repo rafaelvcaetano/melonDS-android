@@ -25,6 +25,7 @@ import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
+import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.EmulatorManager
 import me.magnum.melonds.impl.camera.DSiCameraSourceMultiplexer
@@ -43,6 +44,8 @@ class AndroidEmulatorManager(
 ) : EmulatorManager {
 
     private val achievementsSharedFlow = MutableSharedFlow<RAEvent>(replay = 0, extraBufferCapacity = Int.MAX_VALUE)
+
+    private val loadedAchievements = mutableListOf<RASimpleAchievement>()
 
     override suspend fun loadRom(rom: Rom, cheats: List<Cheat>): RomLaunchResult {
         return withContext(Dispatchers.IO) {
@@ -125,7 +128,15 @@ class AndroidEmulatorManager(
             null
         }
 
+        loadedAchievements.addAll(achievementData.lockedAchievements)
         MelonEmulator.setupAchievements(achievementData.lockedAchievements.toTypedArray(), richPresencePath)
+    }
+
+    override fun unloadAchievements() {
+        if (loadedAchievements.isNotEmpty()) {
+            MelonEmulator.unloadAchievements(loadedAchievements.toTypedArray())
+            loadedAchievements.clear()
+        }
     }
 
     override suspend fun loadRewindState(rewindSaveState: RewindSaveState): Boolean {
@@ -143,6 +154,7 @@ class AndroidEmulatorManager(
     override fun stopEmulator() {
         MelonEmulator.stopEmulation()
         cameraManager.stopCurrentCameraSource()
+        loadedAchievements.clear()
     }
 
     override fun cleanEmulator() {
