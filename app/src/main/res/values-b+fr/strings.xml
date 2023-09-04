@@ -33,7 +33,7 @@
     <string name="size_gb">Go</string>
     
     <string name="error_rom_not_found">Impossible de trouver la ROM</string>
-    <string name="error_rom_not_found_info">La ROM que vous avez sélectionnée n\'a pas été trouvée. Assurez-vous que la ROM sélectionnée peut être trouvée dans le répertoire de recherche de ROMs actuel.</string>
+    <string name="error_rom_not_found_info">La ROM que vous avez sélectionnée n\'a pas été trouvée. Assurez-vous que la ROM sélectionnée peut être trouvée dans le répertoire de recherche de ROMs actuel.\n%1$s</string>
     <string name="error_load_rom">Impossible de charger la ROM</string>
     <string name="error_load_rom_report_issue">Un journal d\'erreur qui peut aider à résoudre ce problème a été généré. Voulez-vous ouvrir un problème sur GitHub avec ce journal ? Vous aurez besoin d\'un compte GitHub.</string>
     <string name="title_emulator_running">Émulateur en cours d\'exécution</string>

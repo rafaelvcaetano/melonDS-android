@@ -32,7 +32,7 @@
     <string name="size_gb">GB</string>
 
     <string name="error_rom_not_found">Não foi possível encontrar ROM(s)</string>
-    <string name="error_rom_not_found_info">A ROM que você selecionou não foi encontrada. Certifique-se de que a ROM selecionada possa ser encontrada no diretório de busca da ROM atual.</string>
+    <string name="error_rom_not_found_info">A ROM que você selecionou não foi encontrada. Certifique-se de que a ROM selecionada possa ser encontrada no diretório de busca da ROM atual.\n%1$s</string>
     <string name="error_load_rom">Não foi possível carregar a ROM</string>
     <string name="error_load_rom_report_issue">Foi gerado um log (registro de erros) que pode ajudar a resolver este problema. Você quer abrir um problema no GitHub com este log (registro)? Você precisará de uma conta no GitHub.</string>
     <string name="title_emulator_running">Emulador em execução</string>

@@ -12,7 +12,7 @@ sealed class EmulatorState {
     data class RunningFirmware(val console: ConsoleType) : EmulatorState()
     data object RomLoadError : EmulatorState()
     data class FirmwareLoadError(val reason: MelonEmulator.FirmwareLoadResult) : EmulatorState()
-    data object RomNotFoundError : EmulatorState()
+    data class RomNotFoundError(val romPath: String) : EmulatorState()
 
     fun isRunning() = this is RunningRom || this is RunningFirmware
 

@@ -146,7 +146,7 @@ class EmulatorViewModel @Inject constructor(
                 if (rom != null) {
                     launchRom(rom)
                 } else {
-                    _emulatorState.value = EmulatorState.RomNotFoundError
+                    _emulatorState.value = EmulatorState.RomNotFoundError(romUri.toString())
                 }
             }
         }
@@ -160,7 +160,7 @@ class EmulatorViewModel @Inject constructor(
                 if (rom != null) {
                     launchRom(rom)
                 } else {
-                    _emulatorState.value = EmulatorState.RomNotFoundError
+                    _emulatorState.value = EmulatorState.RomNotFoundError(romPath)
                 }
             }
         }

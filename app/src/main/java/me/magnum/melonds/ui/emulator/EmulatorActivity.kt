@@ -495,11 +495,11 @@ class EmulatorActivity : AppCompatActivity() {
                             binding.textLoading.isGone = true
                             showFirmwareLoadErrorDialog(it)
                         }
-                        EmulatorState.RomNotFoundError -> {
+                        is EmulatorState.RomNotFoundError -> {
                             binding.viewLayoutControls.isInvisible = true
                             binding.textFps.isGone = true
                             binding.textLoading.isGone = true
-                            showRomNotFoundDialog()
+                            showRomNotFoundDialog(it.romPath)
                         }
                     }
                 }
@@ -758,11 +758,11 @@ class EmulatorActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showRomNotFoundDialog() {
+    private fun showRomNotFoundDialog(romPath: String) {
         enableScreenTimeOut()
         AlertDialog.Builder(this)
             .setTitle(R.string.error_rom_not_found)
-            .setMessage(R.string.error_rom_not_found_info)
+            .setMessage(getString(R.string.error_rom_not_found_info, romPath))
             .setPositiveButton(R.string.ok) { _, _ ->
                 finish()
             }

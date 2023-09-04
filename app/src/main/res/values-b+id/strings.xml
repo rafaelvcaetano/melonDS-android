@@ -23,7 +23,7 @@
     <string name="console_dsi">DSi (Eksperimental)</string>
 
     <string name="error_rom_not_found">Tidak dapat menemukan ROM</string>
-    <string name="error_rom_not_found_info">ROM yang kamu pilih tidak dapat ditemukan. Pastikan ROM yang dipilih dapat ditemukan di direktori pencarian ROM saat ini.</string>
+    <string name="error_rom_not_found_info">ROM yang kamu pilih tidak dapat ditemukan. Pastikan ROM yang dipilih dapat ditemukan di direktori pencarian ROM saat ini.\n%1$s</string>
     <string name="error_load_rom">Tidak dapat memuat ROM</string>
     <string name="error_load_rom_report_issue">Catatan kesalahan dibuat menyelesaikan masalah ini. Maukah kamu menambahkan masalah ini ke GitHub dengan catatan ini? Kamu memerlukan akun GitHub.</string>
     <string name="title_emulator_running">Emulator berjalan</string>
