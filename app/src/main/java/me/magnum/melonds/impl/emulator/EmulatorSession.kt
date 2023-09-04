@@ -37,14 +37,13 @@ class EmulatorSession {
             } else {
                 updateActions.add(EmulatorSessionUpdateAction.DisableRetroAchievements)
             }
+            this.areRetroAchievementsEnabled = areRetroAchievementsEnabled
         }
 
-        if (!isHardcoreModeEnabled) {
-            // Cannot enable hardcore mode at runtime
-            isRetroAchievementsHardcoreModeEnabled = false
+        if (areRetroAchievementsEnabled && this.isRetroAchievementsHardcoreModeEnabled != isHardcoreModeEnabled) {
+            // It's not possible to change the hardcore mode setting while the emulator session is running
+            updateActions.add(EmulatorSessionUpdateAction.NotifyRetroAchievementsModeSwitch)
         }
-
-        this.areRetroAchievementsEnabled = areRetroAchievementsEnabled
 
         return updateActions
     }

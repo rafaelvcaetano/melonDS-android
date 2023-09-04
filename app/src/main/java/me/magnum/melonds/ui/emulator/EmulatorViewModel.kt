@@ -769,6 +769,9 @@ class EmulatorViewModel @Inject constructor(
                         startRetroAchievementsSession(currentRom)
                     }
                 }
+                EmulatorSessionUpdateAction.NotifyRetroAchievementsModeSwitch -> {
+                    _toastEvent.tryEmit(ToastEvent.CannotSwitchRetroAchievementsMode)
+                }
             }
         }
     }

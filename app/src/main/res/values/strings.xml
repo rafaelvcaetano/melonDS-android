@@ -320,6 +320,7 @@
     <string name="retro_achievements_login_error_short">There was a problem when trying to login</string>
     <string name="retro_achievements_load_error">There was a problem when trying to load the achievements for this game. Make sure you are connected to the internet and try again later</string>
     <string name="retro_achievements_no_achievements">No RetroAchievements were found for this game</string>
+    <string name="retro_achievements_relaunch_to_apply_settings">Relaunch the ROM to apply the new RetroAchievements settings</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="retry">Retry</string>

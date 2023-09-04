@@ -422,6 +422,7 @@ class EmulatorActivity : AppCompatActivity() {
                         ToastEvent.CannotUseSaveStatesWhenRAHardcoreIsEnabled -> R.string.save_states_unavailable_ra_hardcore_enabled to Toast.LENGTH_LONG
                         ToastEvent.CannotLoadStateWhenRunningFirmware,
                         ToastEvent.CannotSaveStateWhenRunningFirmware -> R.string.save_states_not_supported to Toast.LENGTH_LONG
+                        ToastEvent.CannotSwitchRetroAchievementsMode -> R.string.retro_achievements_relaunch_to_apply_settings to Toast.LENGTH_LONG
                     }
 
                     Toast.makeText(this@EmulatorActivity, message, duration).show()
