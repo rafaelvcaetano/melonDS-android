@@ -314,7 +314,7 @@
     <string name="points">Puntos</string>
     <string name="completed">Completado</string>
     <string name="view_achievement">Ver logro</string>
-    <string name="completed_achievements"><b>%1$d</b> of <b>%2$d</b> (%3$d%%)</string>
+    <string name="completed_achievements"><b>%1$d</b> de <b>%2$d</b> (%3$d%%)</string>
     <string name="submitting_achievements">Enviando RetroAchievements…</string>
     <string name="achievement_unlocked">¡Logro desbloqueado!</string>
     <string name="achievement_missable">Perdible</string>
