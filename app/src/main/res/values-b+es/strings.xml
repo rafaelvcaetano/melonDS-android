@@ -446,9 +446,9 @@
 
     <string-array name="background_portrait_mode_options">
         <item>Estirar</item>
-        <item>Ajuste al centro</item>
-        <item>Ajuste superior</item>
-        <item>Ajuste inferior</item>
+        <item>Ajustar al centro</item>
+        <item>Ajustar a la superior</item>
+        <item>Ajustar a la inferior</item>
     </string-array>
 
     <string-array name="background_landscape_mode_options">
