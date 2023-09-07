@@ -415,7 +415,7 @@
     </string-array>
 
     <string-array name="audio_bitrate_options">
-       <item>Automático</item>
+        <item>Automático</item>
         <item>10-bits</item>
         <item>16-bits</item>
     </string-array>
