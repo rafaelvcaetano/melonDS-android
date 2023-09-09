@@ -33,8 +33,8 @@
     <string name="size_mb">MB</string>
     <string name="size_gb">GB</string>
     
-    <string name="error_rom_not_found">No se pudo encontrar ROM</string>
-    <string name="error_rom_not_found_info">No se ha encontrado la ROM seleccionada. Asegúrese de que la ROM seleccionada se encuentre en el directorio de búsqueda de la ROM actual.</string>
+    <string name="error_rom_not_found">No se pudo encontrar la ROM</string>
+    <string name="error_rom_not_found_info">No se ha encontrado la ROM seleccionada. Asegúrate de que la ROM seleccionada se encuentre en el directorio de búsqueda de la ROM actual.\n%1$s</string>
     <string name="error_load_rom">No se pudo cargar la ROM</string>
     <string name="error_load_rom_message">Hubo un problema cargando la ROM. Asegúrate de que no esté dañada e inténtalo de nuevo.</string>
     <string name="error_load_firmware">No se pudo cargar el firmware.</string>
@@ -119,7 +119,7 @@
     <string name="choose_component">Elegir componente</string>
 
     <string name="pause">Pausar</string>
-    <string name="achievements">Achievements</string>
+    <string name="achievements">Logros</string>
     <string name="reset">Resetear</string>
     <string name="exit">Salir</string>
 
@@ -174,8 +174,8 @@
     <string name="threaded_rendering">Renderizar en subproceso</string>
     <string name="fps_counter_position">Posición del contador de FPS</string>
     <string name="threaded_rendering_summary">Mejora el rendimiento de los juegos en 3D cuando está habilitado, pero causará fallas gráficas.</string>
-    <string name="category_video">Video</string>
-    <string name="category_video_summary">Filtro, Renderizado de subprocesos, contador de FPS</string>
+    <string name="category_video">Vídeo/string>
+    <string name="category_video_summary">Filtro, renderizado de subprocesos, contador de FPS</string>
     <string name="filter">Filtro</string>
     <string name="dsi_camera_source">Fuente de cámara DSi</string>
     <string name="dsi_camera_image">Imagen de cámara DSi</string>
@@ -202,20 +202,20 @@
     <string name="vibrate_on_touch">Vibrar al tacto</string>
     <string name="vibration_strength">Fuerza de vibración</string>
     <string name="soft_input_opacity">Opacidad de entrada suave</string>
-    <string name="retroachievements">RetroAchievements</string> <!-- Unir las palabras porque este es el nombre oficial. -->
-    <string name="retroachievements_summary">Inicio de sesión &amp; Gestionar la conexión de RetroAchievements</string> <!-- Mantener las palabras juntas porque este es el nombre oficial -->
+    <string name="retroachievements">RetroAchievements</string> <!-- Mantén las palabras unidas porque este es el nombre oficial -->
+    <string name="retroachievements_summary">Inicio de sesión &amp; Gestionar la conexión de RetroAchievements</string> <!-- Mantén las palabras unidas porque este es el nombre oficial -->
     <string name="enable_rich_presence">Activar la opción para mostrar lo que estás haciendo</string>
     <string name="rich_presence_summary">Permite que otros usuarios de RetroAchievement vean lo que estás jugando</string>
     <string name="hardcore_mode">Modo Hardcore</string>
     <string name="hardcore_mode_summary">Gana el doble de puntos, pero no puedes usar estados de guardado, trucos ni cámara lenta mientras juegas</string>
 
-    <string nam e="cheats">Trucos</string>
+    <string name="cheats">Trucos</string>
     <string name="cheats_summary">Habilitar e importar trucos de &amp; trucos</string>
     <string name="enable_cheats">Habilitar trucos</string>
     <string name="cheats_database">Base de datos de trucos (formato XML)</string>
     <string name="import_cheats">Importar trucos</string>
     <string name="import_cheats_summary">Importar trucos desde archivos de base de datos para tenerlos disponibles. Por ahora, solo se admiten bases de datos en formato XML. Cualquier truco previamente importado se eliminará</string>
-    <string name="rom_shortcut">Acceso directo a ROM</string>
+    <string name="rom_shortcut">Acceso directo de la ROM</string>
     
     <string name="firmware_nickname">Apodo</string>
     <string name="firmware_message">Mensaje</string>
@@ -238,11 +238,11 @@
 
     <string name="rom_settings">Configuración de Rom</string> <!-- Cadena de accesibilidad. No debe usar acrónimos -->
     <string name="label_rom_config_console">Sistema de arranque</string>
-    <string name="label_rom_config_load_gba_rom">Cargar ROM GBA</string>
-    <string name="label_rom_config_gba_rom_path">Ruta de acceso ROM GBA</string>
+    <string name="label_rom_config_load_gba_rom">Cargar ROM de GBA</string>
+    <string name="label_rom_config_gba_rom_path">Ruta de acceso de la ROM de GBA</string>
     <string name="label_rom_config_gba_save_path">Ruta de guardado de GBA</string>
     <string name="rom_details_configuration_tab">Configuración</string>
-    <string name="retro_achievements_tab">Retro Achievements</string> <!-- Mantenga las palabras separadas para ayudar con el ajuste de palabras -->
+    <string name="retro_achievements_tab">Retro Achievements</string> <!-- Mantén las palabras separadas para ayudar con el ajuste de palabras -->
 
     <string name="theme_option_light">Claro</string>
     <string name="theme_option_dark">Oscuro</string>
@@ -315,12 +315,12 @@
     <string name="retroachievements_login_summary">¡Inicia sesión con RetroAchievements para desbloquear logros mientras juegas!</string>
     <string name="retroachievements_login_status">Has iniciado sesión como %1$s</string>
     <string name="retroachievements_logout">Cerrar sesión</string>
-    <string name="retroachievements_logout_confirmation">¿Estás seguro de que deseas cerrar sesión en RetroAchievements? No podrás desbloquear logros mientras juegas.</string>
+    <string name="retroachievements_logout_confirmation">¿Estás seguro de que quieres cerrar sesión en RetroAchievements? No podrás desbloquear logros mientras juegas.</string>
     <string name="retro_achievements_login_error">Hubo un problema al intentar iniciar sesión. Asegúrate de que tu nombre de usuario y contraseña sean correctos y de que estés conectado a Internet</string>
     <string name="retro_achievements_login_error_short">Se produjo un problema al intentar iniciar sesión</string>
     <string name="retro_achievements_load_error">Se produjo un problema al intentar cargar los logros de este juego. Asegúrate de estar conectado a Internet e intenta de nuevo más tarde</string>
     <string name="retro_achievements_no_achievements">No se encontraron RetroAchievements para este juego</string>
-    <string name="retro_achievements_relaunch_to_apply_settings">Reinicia el ROM para aplicar la nueva configuración de RetroAchievements</string>
+    <string name="retro_achievements_relaunch_to_apply_settings">Reinicia la ROM para aplicar la nueva configuración de RetroAchievements</string>
     <string name="username">Nombre de usuario</string>
     <string name="password">Contraseña</string>
     <string name="retry">Reintentar</string>
@@ -332,7 +332,7 @@
     <string name="view_achievement">Ver logro</string>
     <string name="completed_achievements"><b>%1$d</b> de <b>%2$d</b> (%3$d%%)</string>
     <string name="submitting_achievements">Enviando RetroAchievements…</string>
-    <string name="achievements_loaded">Achievements loaded</string>
+    <string name="achievements_loaded">Logros cargados</string>
     <string name="achievements_unlocked_compact">Desbloqueados: %1$d/%2$d</string>
     <<string name="achievements_failed_load">¡Error al cargar los logros!</string>
     <string name="achievements_failed_load_tip">Asegúrate de estar en línea</string>
