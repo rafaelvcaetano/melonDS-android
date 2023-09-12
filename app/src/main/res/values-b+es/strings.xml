@@ -330,7 +330,7 @@
     <string name="ra_mode_hardcore">Hardcore</string>
     <string name="ra_mode_softcore">Softcore</string>
     <string name="view_achievement">Ver logro</string>
-    <string name="completed_achievements"><b>%1$d</b> de <b>%2$d</b> (%3$d%%)</string>
+    <string name="completed_achievements"><b>%1$d</b> de <b>%2$d</b> (%3$d% %)</string>
     <string name="submitting_achievements">Enviando RetroAchievements…</string>
     <string name="achievements_loaded">Logros cargados</string>
     <string name="achievements_unlocked_compact">Desbloqueados: %1$d/%2$d</string>
