@@ -88,7 +88,7 @@
     <string name="rewind_time_seconds">%1$ss</string> 
     <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string> 
     <string name="rewind_not_enabled">El rebobinado no está habilitado</string>
-    <string name="rewind_unavailable_ra_hardcore_enabled">Rebobinado no disponible en modo Hardcore</string>
+    <string name="rewind_unavailable_ra_hardcore_enabled">El rebobinado no disponible en modo Hardcore</string>
     <string name="no_image_selected">Ninguna imagen seleccionada</string>
     <string name="failed_to_load_image">Error al cargar la imagen</string>
 
