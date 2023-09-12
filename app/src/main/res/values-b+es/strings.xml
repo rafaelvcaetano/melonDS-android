@@ -68,7 +68,7 @@
     <string name="dsiware_manager_import_title_error_not_dsiware_title">No es un título de DSiWare</string>
     <string name="dsiware_manager_import_title_error_title_already_imported">Título de DSiWare ya importado</string>
     <string name="dsiware_manager_import_title_error_insatll_failed">Error al instalar el título</string>
-    <string name="dsiware_manager_import_title_error_metadat_fetch_failed">No se pudo descargar los metadatos del título. Verifique su conexión a internet.</string>
+    <string name="dsiware_manager_import_title_error_metadat_fetch_failed">No se pudieton descargar los metadatos del título. Verifica tu conexión a Internet.</string>
     <string name="dsiware_manager_import_title_error_unknown">Se ha producido un error desconocido</string>
     <string name="dsiware_import_from_file">Desde el archivo</string>
     <string name="dsiware_import_from_rom_list">De la lista de ROM</string>
