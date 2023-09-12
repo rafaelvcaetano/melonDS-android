@@ -71,7 +71,7 @@
     <string name="dsiware_manager_import_title_error_metadat_fetch_failed">No se pudieton descargar los metadatos del título. Verifica tu conexión a Internet.</string>
     <string name="dsiware_manager_import_title_error_unknown">Se ha producido un error desconocido</string>
     <string name="dsiware_import_from_file">Desde el archivo</string>
-    <string name="dsiware_import_from_rom_list">De la lista de ROM</string>
+    <string name="dsiware_import_from_rom_list">Desde la lista de ROM</string>
 
     <string name="select_dsiware_title">Seleccione el título de DSiWare</string>
     <string name="no_dsiware_roms_found">Seleccione el título de DSiWare</string>
