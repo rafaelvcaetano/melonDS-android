@@ -313,7 +313,7 @@
     <string name="login_with_retro_achievements">Inicia sesión con RetroAchievements</string>
     <string name="login">Iniciar sesión</string>
     <string name="retroachievements_login_summary">¡Inicia sesión con RetroAchievements para desbloquear logros mientras juegas!</string>
-    <string name="retroachievements_login_status">Has iniciado sesión como %1$s</string>
+    <string name="retroachievements_login_status">Sesión iniciada como %1$s</string>
     <string name="retroachievements_logout">Cerrar sesión</string>
     <string name="retroachievements_logout_confirmation">¿Estás seguro de que quieres cerrar sesión en RetroAchievements? No podrás desbloquear logros mientras juegas.</string>
     <string name="retro_achievements_login_error">Hubo un problema al intentar iniciar sesión. Asegúrate de que tu nombre de usuario y contraseña sean correctos y de que estés conectado a Internet</string>
