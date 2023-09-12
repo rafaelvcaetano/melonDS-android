@@ -82,7 +82,7 @@
     <string name="failed_save_state">No se pudo guardar</string>
     <string name="failed_load_state">No se pudo cargar</string>
     <string name="cant_load_empty_slot">No se puede cargar un espacio vacío</string>
-    <string name="failed_reset_emulation">No se pudo restablecer</string>
+    <string name="failed_reset_emulation">No se pudo restablecer la emulación</string>
     <string name="save_states_not_supported">Los estados de guardado no son compatibles mientras se ejecuta el firmware</string>
     <string name="save_states_unavailable_ra_hardcore_enabled">Guardados no disponibles en modo Hardcore</string>
     <string name="rewind_time_seconds">%1$ss</string> 
