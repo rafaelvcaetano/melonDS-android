@@ -17,7 +17,7 @@
     <string name="update">Actualizar</string>
     <string name="close">Cerrar</string>
     <string name="play">Jugar</string>
-
+    <string name="ellipsis">…</string>
 
     <string name="version_alpha">Alfa</string>
     <string name="version_beta">Beta</string>
@@ -85,8 +85,8 @@
     <string name="failed_reset_emulation">No se pudo restablecer la emulación</string>
     <string name="save_states_not_supported">Los estados de guardado no son compatibles mientras se ejecuta el firmware</string>
     <string name="save_states_unavailable_ra_hardcore_enabled">Guardados no disponibles en modo Hardcore</string>
-    <string name="rewind_time_seconds">%1$ss</string> 
-    <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string> 
+    <string name="rewind_time_seconds">%1$s s</string> <!-- Ej: 43,56 s -->
+    <string name="rewind_time_minutes_seconds">%1$d min %2$s s</string> <!-- Ej: 2 min 37,93 s -->
     <string name="rewind_not_enabled">El rebobinado no está habilitado</string>
     <string name="rewind_unavailable_ra_hardcore_enabled">El rebobinado no disponible en modo Hardcore</string>
     <string name="no_image_selected">Ninguna imagen seleccionada</string>
@@ -342,7 +342,7 @@
        
        <string-array name="fast_forward_speed_multiplier_options">
         <item>Ilimitado</item>
-        <item>1.5x</item>
+        <item>1,5x</item>
         <item>2x</item>
         <item>3x</item>
         <item>4x</item>
