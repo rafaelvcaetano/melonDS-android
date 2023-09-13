@@ -68,7 +68,7 @@
     <string name="dsiware_manager_import_title_error_not_dsiware_title">No es un título de DSiWare</string>
     <string name="dsiware_manager_import_title_error_title_already_imported">Título de DSiWare ya importado</string>
     <string name="dsiware_manager_import_title_error_insatll_failed">Error al instalar el título</string>
-    <string name="dsiware_manager_import_title_error_metadat_fetch_failed">No se pudieton descargar los metadatos del título. Verifica tu conexión a Internet.</string>
+    <string name="dsiware_manager_import_title_error_metadat_fetch_failed">No se pudieron descargar los metadatos del título. Verifica tu conexión a Internet.</string>
     <string name="dsiware_manager_import_title_error_unknown">Se ha producido un error desconocido</string>
     <string name="dsiware_import_from_file">Desde el archivo</string>
     <string name="dsiware_import_from_rom_list">Desde la lista de ROM</string>
@@ -86,7 +86,7 @@
     <string name="save_states_not_supported">Los estados de guardado no son compatibles mientras se ejecuta el firmware</string>
     <string name="save_states_unavailable_ra_hardcore_enabled">Guardados no disponibles en modo Hardcore</string>
     <string name="rewind_time_seconds">%1$s s</string> <!-- Ej: 43,56 s -->
-    <string name="rewind_time_minutes_seconds">%1$d min %2$s s</string> <!-- Ej: 2 min 37,93 s -->
+    <string name="rewind_time_minutes_seconds">%1$d min %2$s s</string> <!-- Ej: 2 min 37,93 s -->
     <string name="rewind_not_enabled">El rebobinado no está habilitado</string>
     <string name="rewind_unavailable_ra_hardcore_enabled">El rebobinado no disponible en modo Hardcore</string>
     <string name="no_image_selected">Ninguna imagen seleccionada</string>
