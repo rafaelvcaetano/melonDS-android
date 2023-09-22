@@ -147,6 +147,7 @@ class EmulatorActivity : AppCompatActivity() {
     private lateinit var nativeInputListener: INativeInputListener
     private val frontendInputHandler = object : FrontendInputHandler() {
         private var fastForwardEnabled = false
+        private var microphoneEnabled = true
 
         override fun onSoftInputTogglePressed() {
             binding.viewLayoutControls.toggleSoftInputVisibility()
@@ -159,6 +160,11 @@ class EmulatorActivity : AppCompatActivity() {
         override fun onFastForwardPressed() {
             fastForwardEnabled = !fastForwardEnabled
             MelonEmulator.setFastForwardEnabled(fastForwardEnabled)
+        }
+
+        override fun onMicrophonePressed() {
+            microphoneEnabled = !microphoneEnabled
+            MelonEmulator.setMicrophoneEnabled(microphoneEnabled)
         }
 
         override fun onResetPressed() {

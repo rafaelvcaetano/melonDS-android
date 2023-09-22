@@ -267,6 +267,7 @@
     <string name="input_lid">Toggle Lid</string>
     <string name="input_pause">Pause</string>
     <string name="input_fast_forward">Fast Forward (Toggle)</string>
+    <string name="input_microphone">Toggle Microphone</string>
     <string name="input_toggle_soft_input">Toggle Soft Input</string>
     <string name="input_reset">@string/reset</string>
     <string name="input_dpad">DPAD</string>

@@ -20,6 +20,7 @@ class ControllerConfiguration(configList: List<InputConfig>) {
                 Input.HINGE,
                 Input.PAUSE,
                 Input.FAST_FORWARD,
+                Input.MICROPHONE,
                 Input.RESET,
                 Input.SWAP_SCREENS,
                 Input.QUICK_SAVE,
