@@ -29,8 +29,10 @@ interface SettingsRepository {
     fun showBootScreen(): Boolean
     fun isJitEnabled(): Boolean
 
+    fun getVideoRenderer(): Flow<VideoRenderer>
+    fun getVideoInternalResolutionScaling(): Flow<Int>
     fun getVideoFiltering(): Flow<VideoFiltering>
-    fun isThreadedRenderingEnabled(): Boolean
+    fun isThreadedRenderingEnabled(): Flow<Boolean>
     fun getFpsCounterPosition(): FpsCounterPosition
     fun getDSiCameraSource(): DSiCameraSourceType
     fun getDSiCameraStaticImage(): Uri?
@@ -73,4 +75,6 @@ interface SettingsRepository {
     fun setRomSortingMode(sortingMode: SortingMode)
     fun setRomSortingOrder(sortingOrder: SortingOrder)
     fun setSelectedLayoutId(layoutId: UUID)
+
+    fun observeRenderConfiguration(): Flow<RendererConfiguration>
 }

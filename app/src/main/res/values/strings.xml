@@ -177,6 +177,8 @@
     <string name="category_video">Video</string>
     <string name="category_video_summary">Filter, threaded rendering, FPS counter</string>
     <string name="filter">Filter</string>
+    <string name="internal_resolution">Internal resolution</string>
+    <string name="renderer">Renderer</string>
     <string name="dsi_camera_source">DSi camera source</string>
     <string name="dsi_camera_image">DSi camera image</string>
     <string name="category_audio">Audio</string>
@@ -389,6 +391,22 @@
         <item>Bottom left</item>
         <item>Bottom center</item>
         <item>Bottom right</item>
+    </string-array>
+
+    <string-array name="video_renderer_options">
+        <item>Software</item>
+        <item>OpenGL</item>
+    </string-array>
+
+    <string-array name="video_internal_resolution_options">
+        <item>1x native (256x192)</item>
+        <item>2x native (512x384)</item>
+        <item>3x native (768x576)</item>
+        <item>4x native (1024x768)</item>
+        <item>5x native (1280x960)</item>
+        <item>6x native (1536x1152)</item>
+        <item>7x native (1792x1344)</item>
+        <item>8x native (2048x1536)</item>
     </string-array>
 
     <string-array name="video_filtering_options">

@@ -10,9 +10,13 @@ MelonDSAndroid::EmulatorConfiguration MelonDSAndroidConfiguration::buildEmulator
     jclass audioInterpolationEnumClass = env->FindClass("me/magnum/melonds/domain/model/AudioInterpolation");
     jclass audioLatencyEnumClass = env->FindClass("me/magnum/melonds/domain/model/AudioLatency");
     jclass micSourceEnumClass = env->FindClass("me/magnum/melonds/domain/model/MicSource");
+    jclass videoRendererEnumClass = env->FindClass("me/magnum/melonds/domain/model/VideoRenderer");
+    jclass renderConfigurationClass = env->FindClass("me/magnum/melonds/domain/model/RendererConfiguration");
 
     jmethodID uriToStringMethod = env->GetMethodID(uriClass, "toString", "()Ljava/lang/String;");
 
+    jobject firmwareConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "firmwareConfiguration", "Lme/magnum/melonds/domain/model/FirmwareConfiguration;"));
+    jobject rendererConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "rendererConfiguration", "Lme/magnum/melonds/domain/model/RendererConfiguration;"));
     jboolean useCustomBios = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "useCustomBios", "Z"));
     jboolean showBootScreen = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "showBootScreen", "Z"));
     jobject dsBios7Uri = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsBios7Uri", "Landroid/net/Uri;"));
@@ -40,6 +44,8 @@ MelonDSAndroid::EmulatorConfiguration MelonDSAndroidConfiguration::buildEmulator
     jint audioLatency = env->GetIntField(audioLatencyEnum, env->GetFieldID(audioLatencyEnumClass, "latencyValue", "I"));
     jobject micSourceEnum = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "micSource", "Lme/magnum/melonds/domain/model/MicSource;"));
     jint micSource = env->GetIntField(micSourceEnum, env->GetFieldID(micSourceEnumClass, "sourceValue", "I"));
+    jobject videoRendererEnum = env->GetObjectField(rendererConfigurationObject, env->GetFieldID(renderConfigurationClass, "renderer", "Lme/magnum/melonds/domain/model/VideoRenderer;"));
+    jint videoRenderer = env->GetIntField(videoRendererEnum, env->GetFieldID(videoRendererEnumClass, "renderer", "I"));
     jboolean isCopy = JNI_FALSE;
     jstring dsBios7String = dsBios7Uri ? (jstring) env->CallObjectMethod(dsBios7Uri, uriToStringMethod) : nullptr;
     jstring dsBios9String = dsBios9Uri ? (jstring) env->CallObjectMethod(dsBios9Uri, uriToStringMethod) : nullptr;
@@ -56,8 +62,6 @@ MelonDSAndroid::EmulatorConfiguration MelonDSAndroidConfiguration::buildEmulator
     const char* dsiFirmwarePath = dsiFirmwareUri ? env->GetStringUTFChars(dsiFirmwareString, &isCopy) : nullptr;
     const char* dsiNandPath = dsiNandUri ? env->GetStringUTFChars(dsiNandString, &isCopy) : nullptr;
     const char* internalDir = env->GetStringUTFChars(internalFilesDir, nullptr);
-    jobject firmwareConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "firmwareConfiguration", "Lme/magnum/melonds/domain/model/FirmwareConfiguration;"));
-    jobject rendererConfigurationObject = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "rendererConfiguration", "Lme/magnum/melonds/domain/model/RendererConfiguration;"));
 
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration;
     finalEmulatorConfiguration.userInternalFirmwareAndBios = !useCustomBios;
@@ -84,6 +88,7 @@ MelonDSAndroid::EmulatorConfiguration MelonDSAndroidConfiguration::buildEmulator
     finalEmulatorConfiguration.rewindEnabled = enableRewind ? 1 : 0;
     finalEmulatorConfiguration.rewindCaptureSpacingSeconds = rewindPeriodSeconds;
     finalEmulatorConfiguration.rewindLengthSeconds = rewindWindowSeconds;
+    finalEmulatorConfiguration.renderer = videoRenderer;
     return finalEmulatorConfiguration;
 }
 
@@ -134,10 +139,12 @@ MelonDSAndroid::FirmwareConfiguration MelonDSAndroidConfiguration::buildFirmware
 
 GPU::RenderSettings MelonDSAndroidConfiguration::buildRenderSettings(JNIEnv* env, jobject renderSettings) {
     jclass renderSettingsClass = env->GetObjectClass(renderSettings);
+    jmethodID getResolutionScalingMethod = env->GetMethodID(renderSettingsClass, "getResolutionScaling", "()I");
     jboolean threadedRendering = env->GetBooleanField(renderSettings, env->GetFieldID(renderSettingsClass, "threadedRendering", "Z"));
+    jint internalResolutionScaling = env->CallIntMethod(renderSettings, getResolutionScalingMethod);
     return {
-            threadedRendering == JNI_TRUE,
-            1,
-            false
+        threadedRendering == JNI_TRUE,
+        internalResolutionScaling,
+        false
     };
 }

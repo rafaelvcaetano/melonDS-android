@@ -4,6 +4,24 @@
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <ListPreference
+            android:key="video_renderer"
+            android:title="@string/renderer"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/video_renderer_options"
+            android:entryValues="@array/video_renderer_values"
+            android:defaultValue="software"/>
+
+    <ListPreference
+            android:key="video_internal_resolution"
+            android:title="@string/internal_resolution"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/video_internal_resolution_options"
+            android:entryValues="@array/video_internal_resolution_values"
+            android:defaultValue="1"/>
+
+    <ListPreference
             android:key="video_filtering"
             android:title="@string/filter"
             android:summary="%s"

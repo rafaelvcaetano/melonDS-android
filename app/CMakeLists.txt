@@ -32,6 +32,7 @@ if (ENABLE_JIT)
     add_definitions(-DJIT_ENABLED)
 endif()
 
+add_definitions(-DENABLE_OGLRENDERER)
 set(CORE-LIB ../melonDS-android-lib)
 add_subdirectory(${CORE-LIB} ./melonDS-android-lib)
 include_directories(${CORE-LIB}/src/android)

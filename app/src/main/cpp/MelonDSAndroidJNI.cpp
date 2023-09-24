@@ -452,10 +452,12 @@ Java_me_magnum_melonds_MelonEmulator_setFastForwardEnabled(JNIEnv* env, jobject 
 }
 
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jobject thiz, jobject emulatorConfiguration)
+Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject frameBuffer)
 {
     MelonDSAndroid::EmulatorConfiguration newConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
-    MelonDSAndroid::updateEmulatorConfiguration(newConfiguration);
+    u32* frameBufferPointer = (u32*) env->GetDirectBufferAddress(frameBuffer);
+
+    MelonDSAndroid::updateEmulatorConfiguration(newConfiguration, frameBufferPointer);
     fastForwardSpeedMultiplier = newConfiguration.fastForwardSpeedMultiplier;
 
     if (isFastForwardEnabled) {
