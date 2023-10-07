@@ -512,7 +512,7 @@ class SharedPreferencesSettingsRepository(
         return preferenceFlow.map { mapper() }
     }
 
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
         val subject = preferenceObservers[key]
         subject?.onNext(Any())
 
