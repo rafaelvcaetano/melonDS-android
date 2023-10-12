@@ -346,7 +346,7 @@ class EmulatorViewModel @Inject constructor(
             return
         }
 
-        if (!emulatorSession.areSaveStatesAllowed()) {
+        if (!emulatorSession.areSaveStateLoadsAllowed()) {
             _toastEvent.tryEmit(ToastEvent.RewindNotAvailableWhileRAHardcoreModeEnabled)
             return
         }
@@ -394,17 +394,13 @@ class EmulatorViewModel @Inject constructor(
         val currentState = _emulatorState.value
         when (currentState) {
             is EmulatorState.RunningRom -> {
-                if (emulatorSession.areSaveStatesAllowed()) {
-                    sessionCoroutineScope.launch {
-                        emulatorManager.pauseEmulator()
-                        val quickSlot = saveStatesRepository.getRomQuickSaveStateSlot(currentState.rom)
-                        if (saveRomState(currentState.rom, quickSlot)) {
-                            _toastEvent.emit(ToastEvent.QuickSaveSuccessful)
-                        }
-                        emulatorManager.resumeEmulator()
+                sessionCoroutineScope.launch {
+                    emulatorManager.pauseEmulator()
+                    val quickSlot = saveStatesRepository.getRomQuickSaveStateSlot(currentState.rom)
+                    if (saveRomState(currentState.rom, quickSlot)) {
+                        _toastEvent.emit(ToastEvent.QuickSaveSuccessful)
                     }
-                } else {
-                    _toastEvent.tryEmit(ToastEvent.CannotUseSaveStatesWhenRAHardcoreIsEnabled)
+                    emulatorManager.resumeEmulator()
                 }
             }
             is EmulatorState.RunningFirmware -> {
@@ -420,7 +416,7 @@ class EmulatorViewModel @Inject constructor(
         val currentState = _emulatorState.value
         when (currentState) {
             is EmulatorState.RunningRom -> {
-                if (emulatorSession.areSaveStatesAllowed()) {
+                if (emulatorSession.areSaveStateLoadsAllowed()) {
                     sessionCoroutineScope.launch {
                         emulatorManager.pauseEmulator()
                         val quickSlot = saveStatesRepository.getRomQuickSaveStateSlot(currentState.rom)
@@ -733,9 +729,8 @@ class EmulatorViewModel @Inject constructor(
 
     private fun filterRomPauseMenuOption(option: RomPauseMenuOption): Boolean {
         return when (option) {
-            RomPauseMenuOption.REWIND -> settingsRepository.isRewindEnabled() && emulatorSession.areSaveStatesAllowed()
-            RomPauseMenuOption.SAVE_STATE -> emulatorSession.areSaveStatesAllowed()
-            RomPauseMenuOption.LOAD_STATE -> emulatorSession.areSaveStatesAllowed()
+            RomPauseMenuOption.REWIND -> settingsRepository.isRewindEnabled() && emulatorSession.areSaveStateLoadsAllowed()
+            RomPauseMenuOption.LOAD_STATE -> emulatorSession.areSaveStateLoadsAllowed()
             RomPauseMenuOption.CHEATS -> emulatorSession.areCheatsEnabled()
             RomPauseMenuOption.VIEW_ACHIEVEMENTS -> emulatorSession.areRetroAchievementsEnabled()
             else -> true
