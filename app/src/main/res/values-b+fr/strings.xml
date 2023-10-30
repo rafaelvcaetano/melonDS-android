@@ -17,6 +17,8 @@
     <string name="undo">Annuler</string>
     <string name="update">Mettre à jour</string>
     <string name="close">Fermer</string>
+    <string name="play">Jouer</string>
+    <string name="ellipsis">…</string>
 
     <string name="version_alpha">Alpha</string>
     <string name="version_beta">Bêta</string>
@@ -35,6 +37,9 @@
     <string name="error_rom_not_found">Impossible de trouver la ROM</string>
     <string name="error_rom_not_found_info">La ROM que vous avez sélectionnée n\'a pas été trouvée. Assurez-vous que la ROM sélectionnée peut être trouvée dans le répertoire de recherche de ROMs actuel.\n%1$s</string>
     <string name="error_load_rom">Impossible de charger la ROM</string>
+    <string name="error_load_rom_message">Un problème est survenu lors du chargement de la ROM. Veuillez vérifier qu\'elle n\'est pas corrompue et réessayez.</string>
+    <string name="error_load_firmware">Impossible de charger le firmware</string>
+    <string name="error_load_firmware_message">Un problème est survenu lors du chargement du firmware (%1$s). Veuillez vérifier que les dumps du BIOS et du firmware ne sont pas corrompus, que le firmare peut être démarré, et réessayez.</string>
     <string name="error_load_rom_report_issue">Un journal d\'erreur qui peut aider à résoudre ce problème a été généré. Voulez-vous ouvrir un problème sur GitHub avec ce journal ? Vous aurez besoin d\'un compte GitHub.</string>
     <string name="title_emulator_running">Émulateur en cours d\'exécution</string>
     <string name="message_stop_emulation">Arrêter l\'émulation et charger une nouvelle ROM ?</string>
@@ -58,12 +63,13 @@
     <string name="import_dsiware_title">Importer le titre DSiWare</string>
     <string name="dsiware_manager_setup">Configuration</string>
     <string name="dsiware_manager_fix_setup">Réparer la configuration</string>
-    <string name="dsiware_manager_load_error">Il y a eu un problème avec la liste de vos titres DSiWare. Veuillez vérifier votre configuration DSi</string>
+    <string name="dsiware_manager_load_error">Un problème est survenu lors du listage de vos titres DSiWare. Veuillez vérifier votre configuration DSi</string>
     <string name="dsiware_manager_import_title_error_open_nand_failed">La NAND n\'a pas pu être ouverte</string>
     <string name="dsiware_manager_import_title_error_open_file_failed">Erreur lors de l\'ouverture du fichier sélectionné</string>
     <string name="dsiware_manager_import_title_error_not_dsiware_title">Il ne s\'agit pas d\'un titre DSiWare</string>
     <string name="dsiware_manager_import_title_error_title_already_imported">Ce titre DSiWare a déjà été importé</string>
     <string name="dsiware_manager_import_title_error_insatll_failed">Impossible d\'installer le titre</string>
+    <string name="dsiware_manager_import_title_error_metadat_fetch_failed">Impossible de télécharger les métadonnées du titre. Veuillez vérifier votre connexion Internet</string>
     <string name="dsiware_manager_import_title_error_unknown">Une erreur inconnue est survenue</string>
     <string name="dsiware_import_from_file">Depuis le fichier</string>
     <string name="dsiware_import_from_rom_list">Depuis la liste des ROMs</string>
@@ -79,9 +85,13 @@
     <string name="cant_load_empty_slot">Impossible de charger un emplacement de sauvegarde d\'état vide</string>
     <string name="failed_reset_emulation">Impossible de réinitialiser l\'émulation</string>
     <string name="save_states_not_supported">Les sauvegardes d\'état ne sont pas prises en charge pendant l\'exécution du firmware</string>
+    <string name="save_states_unavailable_ra_hardcore_enabled">Les sauvegardes d\'état sont indisponibles lorsque le mode Hardcore est activé</string>
     <string name="rewind_time_seconds">%1$s s</string>
     <string name="rewind_time_minutes_seconds">%1$d min%2$s s</string>
     <string name="rewind_not_enabled">Le rembobinage n\'est pas activé</string>
+    <string name="rewind_unavailable_ra_hardcore_enabled">Le rembobinage n\'est pas disponible lorsque le mode Hardcore est activé</string>
+    <string name="no_image_selected">Aucune image sélectionnée</string>
+    <string name="failed_to_load_image">Impossible de charger l\'image</string>
 
     <string name="action_sort_alphabetically">Ordre alphabétique</string>
     <string name="action_sort_recently_played">Joué récemment</string>
@@ -110,6 +120,7 @@
     <string name="choose_component">Choisissez le composant</string>
 
     <string name="pause">Pause</string>
+    <string name="achievements">Succès</string>
     <string name="reset">Redémarrer</string>
     <string name="exit">Quitter</string>
 
@@ -167,6 +178,8 @@
     <string name="category_video">Vidéo</string>
     <string name="category_video_summary">Filtre, rendu fileté, compteur FPS</string>
     <string name="filter">Filtre</string>
+    <string name="dsi_camera_source">Source appareil photo DSi</string>
+    <string name="dsi_camera_image">Image appareil photo DSi</string>
     <string name="category_audio">Audio</string>
     <string name="category_audio_summary">Volume, latence, source du microphone</string>
     <string name="enable_sound">Activer le son</string>
@@ -190,6 +203,13 @@
     <string name="vibrate_on_touch">Vibrer au toucher</string>
     <string name="vibration_strength">Force de vibration</string>
     <string name="soft_input_opacity">Opacité des entrées logicielles</string>
+    <string name="retroachievements">RetroAchievements</string> <!-- Garder les deux mots collés car il s\'agit du nom officiel -->
+    <string name="retroachievements_summary">Se connecter et gérer l\'intégration de RetroAchievements</string> <!-- Garder les deux mots collés car il s\'agit du nom officiel -->
+    <string name="enable_rich_presence">Activer Rich Presence</string>
+    <string name="rich_presence_summary">Permet aux autres utilisateurs de RetroAchievement de voir ce à quoi vous jouez</string>
+    <string name="hardcore_mode">Mode Hardcore</string>
+    <string name="hardcore_mode_summary">Gagnez le double de points, mais vous ne pouvez pas utiliser les sauvegardes d\'état, ni les triches, ni le ralenti en jeu</string>
+    
     <string name="cheats">Triches</string>
     <string name="cheats_summary">Activer et importer des codes de triche</string>
     <string name="enable_cheats">Activer les triches</string>
@@ -222,6 +242,8 @@
     <string name="label_rom_config_load_gba_rom">Charger la ROM GBA</string>
     <string name="label_rom_config_gba_rom_path">Chemin de la ROM GBA</string>
     <string name="label_rom_config_gba_save_path">Chemin de la sauvegarde GBA</string>
+    <string name="rom_details_configuration_tab">Configuration</string>
+    <string name="retro_achievements_tab">Retro Achievements</string>
 
     <string name="theme_option_light">Clair</string>
     <string name="theme_option_dark">Sombre</string>
@@ -286,7 +308,38 @@
     <string name="background_name">Nom de l\'arrière-plan</string>
     <string name="background_deleted">Arrière-plan supprimé</string>
     <string name="background_add_wrong_orientation">L\'arrière-plan a été ajouté mais n\'est pas visible pour l\'orientation sélectionnée.</string>
-    <string name="background_add_processing_failed">Le traitement de l\'image d\'arrière-plan sélectionnée a échoué. Vérifiez qu\'elle n\'est pas corrompue.</string>
+    <string name="background_add_processing_failed">Le traitement de l\'image d\'arrière-plan sélectionnée a échoué. Veuillez vérifier qu\'elle n\'est pas corrompue.</string>
+
+    <string name="retro_achievements_login_description">Connectez-vous à RetroAchievements pour consulter les succès que vous pouvez déverouiller en jouant à ce jeu !</string>
+    <string name="login_with_retro_achievements">Connexion à RetroAchievements</string>
+    <string name="login">Connexion</string>
+    <string name="retroachievements_login_summary">Connectez-vous avec RetroAchievements pour débloquer des succès tout en jouant !</string>
+    <string name="retroachievements_login_status">Connecté en tant que %1$s</string>
+    <string name="retroachievements_logout">Déconnexion</string>
+    <string name="retroachievements_logout_confirmation">Are you sure you want to logout from RetroAchievements? You won\'t be able to unlock achievements while playing.</string>
+    <string name="retro_achievements_login_error">Un problème est survenu lors de la tentative de connexion. Assurez-vous que votre nom d\'utilisateur et votre mot de passe sont corrects et que vous êtes connecté à Internet</string>
+    <string name="retro_achievements_login_error_short">Un problème est survenu lors de la connexion</string>
+    <string name="retro_achievements_load_error">Un problème est survenu lors du chargement des succès de ce jeu. Assurez-vous que vous êtes connecté à Internet et réessayez plus tard</string>
+    <string name="retro_achievements_no_achievements">Aucun RetroAchievements n\'a été trouvé pour ce jeu</string>
+    <string name="retro_achievements_relaunch_to_apply_settings">Redémarrez la ROM pour appliquer les nouveaux paramètres de RetroAchievements</string>
+    <string name="username">Nom d\'utilisateur</string>
+    <string name="password">Mot de passe</string>
+    <string name="retry">Réessayer</string>
+    <string name="points_abbreviated">PTS</string>
+    <string name="points">Points</string>
+    <string name="completed">Terminé</string>
+    <string name="ra_mode_hardcore">Hardcore</string>
+    <string name="ra_mode_softcore">Softcore</string>
+    <string name="view_achievement">Consulter le succès</string>
+    <string name="completed_achievements"><b>%1$d</b> sur <b>%2$d</b> (%3$d %%)</string>
+    <string name="submitting_achievements">Envoi des RetroAchievements…</string>
+    <string name="achievements_loaded">Succès chargés</string>
+    <string name="achievements_unlocked_compact">Déverouillé : %1$d/%2$d</string>
+    <string name="achievements_failed_load">Impossible de charger les succès !</string>
+    <string name="achievements_failed_load_tip">Veuillez vérifier que vous êtes en ligne</string>
+    <string name="achievement_unlocked">Succès déverouillé !</string>
+    <string name="achievement_missable">Manquable</string>
+    <string name="achievement_missable_description">Ce succès peut être manqué pendant une session de jeu.</string>
 
     <string-array name="fast_forward_speed_multiplier_options">
         <item>Illimitée</item>
@@ -349,6 +402,12 @@
         <item>LCD</item>
     </string-array>
 
+    <string-array name="dsi_camera_source_options">
+        <item>Écran noir</item>
+        <item>Caméras physiques</item>
+        <item>Image statique</item>
+    </string-array>
+    
     <string-array name="audio_interpolation_options">
         <item>Aucune</item>
         <item>Linéaire</item>
