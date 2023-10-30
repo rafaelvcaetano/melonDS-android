@@ -174,7 +174,7 @@
     <string name="threaded_rendering">Renderizar en subproceso</string>
     <string name="fps_counter_position">Posición del contador de FPS</string>
     <string name="threaded_rendering_summary">Mejora el rendimiento de los juegos en 3D cuando está habilitado, pero causará fallas gráficas.</string>
-    <string name="category_video">Vídeo/string>
+    <string name="category_video">Vídeo</string>
     <string name="category_video_summary">Filtro, renderizado de subprocesos, contador de FPS</string>
     <string name="filter">Filtro</string>
     <string name="dsi_camera_source">Fuente de cámara DSi</string>
@@ -334,7 +334,7 @@
     <string name="submitting_achievements">Enviando RetroAchievements…</string>
     <string name="achievements_loaded">Logros cargados</string>
     <string name="achievements_unlocked_compact">Desbloqueados: %1$d/%2$d</string>
-    <<string name="achievements_failed_load">¡Error al cargar los logros!</string>
+    <string name="achievements_failed_load">¡Error al cargar los logros!</string>
     <string name="achievements_failed_load_tip">Asegúrate de estar en línea</string>
     <string name="achievement_unlocked">¡Logro desbloqueado!</string>
     <string name="achievement_missable">Logro perdible</string>
