@@ -1,14 +1,14 @@
 package me.magnum.melonds.ui.romdetails.ui
 
 import android.net.Uri
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.launch
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
@@ -18,7 +18,7 @@ import me.magnum.melonds.ui.theme.MelonTheme
 import me.magnum.rcheevosapi.model.RAAchievement
 import java.util.*
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RomScreen(
     modifier: Modifier,
@@ -49,7 +49,7 @@ fun RomScreen(
         }
         HorizontalPager(
             modifier = Modifier.fillMaxWidth().weight(1f),
-            count = RomDetailsTab.values().size,
+            pageCount = RomDetailsTab.values().size,
             state = pagerState,
         ) {
             when (it) {

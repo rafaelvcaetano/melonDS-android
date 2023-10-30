@@ -39,13 +39,17 @@
 -keep class me.magnum.melonds.common.UriFileHandler {
     public int open(java.lang.String, java.lang.String);
 }
+-keep interface me.magnum.melonds.common.camera.DSiCameraSource { *; }
 -keep interface me.magnum.melonds.common.RetroAchievementsCallback { *; }
 
 # Migration fields. These rules are required for migrations to work properly
--keep class me.magnum.melonds.migrations.legacy.Rom22 {
-    private final me.magnum.melonds.migrations.legacy.RomConfig1 config;
-}
--keep class me.magnum.melonds.migrations.legacy.RomConfig1 { *; }
+-keep,allowobfuscation class me.magnum.melonds.migrations.legacy.** { *; }
 
 # Prevent DTOs from being removed
+-keep,allowobfuscation class me.magnum.melonds.impl.dtos.**
 -keep,allowobfuscation class me.magnum.rcheevosapi.dto.**
+
+# Prevent Gson's TypeToken from being removed
+-keepattributes Signature
+-keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
+-keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken

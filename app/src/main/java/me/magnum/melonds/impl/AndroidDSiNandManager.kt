@@ -5,6 +5,7 @@ import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.MelonDSiNand
+import me.magnum.melonds.common.suspendRunCatching
 import me.magnum.melonds.domain.model.ConfigurationDirResult
 import me.magnum.melonds.domain.model.DSiWareTitle
 import me.magnum.melonds.domain.model.dsinand.ImportDSiWareTitleResult
@@ -69,7 +70,7 @@ class AndroidDSiNandManager(
             return@withContext ImportDSiWareTitleResult.NOT_DSIWARE_TITLE
         }
 
-        val tmdMetadataResult = runCatching {
+        val tmdMetadataResult = suspendRunCatching {
             dsiWareMetadataRepository.getDSiWareTitleMetadata(categoryId, titleId)
         }
 

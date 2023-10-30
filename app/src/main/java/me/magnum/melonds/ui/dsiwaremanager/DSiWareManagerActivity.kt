@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -30,30 +31,32 @@ class DSiWareManagerActivity : AppCompatActivity() {
 
         setContent {
             MelonTheme {
-                val state = viewModel.state.collectAsState()
-                val importingTitle = viewModel.importingTitle.collectAsState(false)
+                Surface {
+                    val state = viewModel.state.collectAsState()
+                    val importingTitle = viewModel.importingTitle.collectAsState(false)
 
-                DSiWareManager(
-                    modifier = Modifier.fillMaxSize(),
-                    state = state.value,
-                    onImportTitle = { viewModel.importTitleToNand(it) },
-                    onDeleteTitle = { viewModel.deleteTitle(it) },
-                    onBiosConfigurationFinished = { viewModel.revalidateBiosConfiguration() },
-                    retrieveTitleIcon = { viewModel.getTitleIcon(it) },
-                )
+                    DSiWareManager(
+                        modifier = Modifier.fillMaxSize(),
+                        state = state.value,
+                        onImportTitle = { viewModel.importTitleToNand(it) },
+                        onDeleteTitle = { viewModel.deleteTitle(it) },
+                        onBiosConfigurationFinished = { viewModel.revalidateBiosConfiguration() },
+                        retrieveTitleIcon = { viewModel.getTitleIcon(it) },
+                    )
 
-                if (importingTitle.value) {
-                    Dialog(
-                        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
-                        onDismissRequest = { },
-                    ) {
-                        CircularProgressIndicator(color = MaterialTheme.colors.secondary)
+                    if (importingTitle.value) {
+                        Dialog(
+                            properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+                            onDismissRequest = { },
+                        ) {
+                            CircularProgressIndicator(color = MaterialTheme.colors.secondary)
+                        }
                     }
-                }
 
-                LaunchedEffect(null) {
-                    viewModel.importTitleError.collectLatest {
-                        Toast.makeText(this@DSiWareManagerActivity, getImportTitleResultMessage(it), Toast.LENGTH_LONG).show()
+                    LaunchedEffect(null) {
+                        viewModel.importTitleError.collectLatest {
+                            Toast.makeText(this@DSiWareManagerActivity, getImportTitleResultMessage(it), Toast.LENGTH_LONG).show()
+                        }
                     }
                 }
             }

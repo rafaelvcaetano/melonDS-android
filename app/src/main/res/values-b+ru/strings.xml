@@ -34,7 +34,7 @@
     <string name="size_gb">ГБ</string>
 
     <string name="error_rom_not_found">Игра не найдена</string>
-    <string name="error_rom_not_found_info">Выбранный образ игры не найден. Убедитесь, что файл присутствует в текущем каталоге поиска.</string>
+    <string name="error_rom_not_found_info">Выбранный образ игры не найден. Убедитесь, что файл присутствует в текущем каталоге поиска.\n%1$s</string>
     <string name="error_load_rom">Не удалось загрузить игру</string>
     <string name="error_load_rom_message">Ошибка при загрузке игры. Убедитесь, что образ не повреждён и повторите попытку.</string>
     <string name="error_load_firmware">Не удалось загрузить прошивку</string>

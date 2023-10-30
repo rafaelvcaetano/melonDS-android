@@ -32,10 +32,9 @@ import coil.request.ImageRequest
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.ui.common.MelonPreviewSet
+import me.magnum.melonds.ui.common.melonTextButtonColors
+import me.magnum.melonds.ui.romdetails.ui.preview.mockRAAchievementPreview
 import me.magnum.melonds.ui.theme.MelonTheme
-import me.magnum.rcheevosapi.model.RAAchievement
-import me.magnum.rcheevosapi.model.RAGameId
-import java.net.URL
 
 @Composable
 fun RomAchievementUi(
@@ -166,18 +165,17 @@ fun RomAchievementUi(
             TextButton(
                 modifier = Modifier.align(Alignment.End),
                 onClick = onViewAchievement,
+                colors = melonTextButtonColors(),
             ) {
                 Icon(
                     modifier = Modifier.size(18.dp),
                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_link),
                     contentDescription = null,
-                    tint = MaterialTheme.colors.secondary,
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
                     text = stringResource(id = R.string.view_achievement).uppercase(),
                     style = MaterialTheme.typography.button,
-                    color = MaterialTheme.colors.secondary,
                 )
             }
         }
@@ -191,21 +189,9 @@ fun PreviewRomAchievementUi() {
         RomAchievementUi(
             modifier = Modifier.fillMaxWidth(),
             userAchievement = RAUserAchievement(
-                achievement = RAAchievement(
-                    id = 123,
-                    gameId = RAGameId(123),
-                    totalAwardsCasual = 5435,
-                    totalAwardsHardcore = 4532,
-                    title = "Amazing Achievement [m]",
-                    description = "Do the definitely amazing stuff while back-flipping on top of a turtle.",
-                    points = 10,
-                    displayOrder = 0,
-                    badgeUrlUnlocked = URL("http://localhost:80"),
-                    badgeUrlLocked = URL("http://localhost:80"),
-                    memoryAddress = "",
-                    type = RAAchievement.Type.CORE,
-                ),
+                achievement = mockRAAchievementPreview(),
                 isUnlocked = true,
+                forHardcoreMode = false,
             ),
             onViewAchievement = {},
         )

@@ -25,8 +25,10 @@ open class StoragePickerPreference(context: Context, attrs: AttributeSet?) : Pre
     var persistPermissions: Boolean
         protected set
 
-    var mimeType: String?
-        protected set
+    val mimeTypes: List<String>?
+        get() = mimeType?.split("|")
+
+    private var mimeType: String?
 
     init {
         multiSelection = false

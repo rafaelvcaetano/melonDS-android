@@ -17,6 +17,11 @@ fun melonButtonColors(): ButtonColors {
     return ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary, contentColor = MaterialTheme.colors.onSecondary)
 }
 
+@Composable
+fun melonTextButtonColors(): ButtonColors {
+    return ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colors.secondary)
+}
+
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun melonOutlinedTextFieldColors(): TextFieldColors {

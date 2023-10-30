@@ -1,39 +1,39 @@
 object Dependencies {
     object Versions {
-        const val Accompanist = "0.28.0"
-        const val Activity = "1.6.0"
+        const val Accompanist = "0.30.1"
+        const val Activity = "1.7.2"
         const val AppCompat = "1.6.1"
+        const val CameraX = "1.2.3"
         const val CardView = "1.0.0"
         const val Coil = "2.2.2"
         const val CommonsCompress = "1.21"
-        const val Compose = "1.3.3"
-        const val ComposeFoundation = "1.3.1"
-        const val ComposeMaterial = "1.3.1"
+        const val ComposeBom = "2023.06.01"
         const val ConstraintLayout = "2.1.4"
-        const val Core = "1.9.0"
+        const val Core = "1.10.1"
         const val Desugar = "2.0.2"
         const val DocumentFile = "1.0.1"
         const val Flexbox = "3.0.0"
-        const val Fragment = "1.5.5"
-        const val Gradle = "7.4.0"
+        const val Fragment = "1.5.7"
+        const val Gradle = "8.1.0"
         const val Gson = "2.8.6"
         const val HiltX = "1.0.0"
-        const val Hilt = "2.45"
+        const val Hilt = "2.47"
         const val Junit = "4.12"
-        const val Kotlin = "1.8.10"
-        const val KotlinxCoroutinesRx = "1.6.4"
-        const val LifecycleViewModel = "2.5.1"
+        const val Kotlin = "1.9.0"
+        const val KotlinxCoroutines = "1.7.3"
+        const val Ksp = "1.9.0-1.0.12"
+        const val LifecycleViewModel = "2.6.1"
         const val Material = "1.7.0"
-        const val OkHttp = "4.10.0"
+        const val OkHttp = "4.11.0"
         const val Picasso = "2.71828"
         const val Preference = "1.2.0"
-        const val RecyclerView = "1.2.1"
-        const val Room = "2.5.0"
+        const val RecyclerView = "1.3.1"
+        const val Room = "2.5.2"
         const val RxAndroid = "2.1.1"
         const val RxJava = "2.2.10"
         const val Splashscreen = "1.0.0"
         const val SwipeRefreshLayout = "1.1.0"
-        const val Work = "2.8.0"
+        const val Work = "2.8.1"
         const val Markwon = "4.6.2"
         const val Retrofit = "2.9.0"
         const val Xz = "1.9"
@@ -43,6 +43,7 @@ object Dependencies {
         const val gradle = "com.android.tools.build:gradle:${Versions.Gradle}"
         const val hiltAndroid = "com.google.dagger:hilt-android-gradle-plugin:${Versions.Hilt}"
         const val kotlin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.Kotlin}"
+        const val ksp = "com.google.devtools.ksp"
     }
 
     object Tools {
@@ -51,12 +52,15 @@ object Dependencies {
 
     object Kotlin {
         const val kotlinStdlib = "org.jetbrains.kotlin:kotlin-stdlib:${Versions.Kotlin}"
+        const val coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.KotlinxCoroutines}"
     }
 
     object AndroidX {
         const val activity = "androidx.activity:activity-ktx:${Versions.Activity}"
         const val activityCompose = "androidx.activity:activity-compose:${Versions.Activity}"
         const val appCompat = "androidx.appcompat:appcompat:${Versions.AppCompat}"
+        const val camera2 = "androidx.camera:camera-camera2:${Versions.CameraX}"
+        const val cameraLifecycle = "androidx.camera:camera-lifecycle:${Versions.CameraX}"
         const val cardView = "androidx.cardview:cardview:${Versions.CardView}"
         const val constraintLayout = "androidx.constraintlayout:constraintlayout:${Versions.ConstraintLayout}"
         const val core = "androidx.core:core-ktx:${Versions.Core}"
@@ -78,14 +82,14 @@ object Dependencies {
     }
 
     object Compose {
-        const val accompanistPager = "com.google.accompanist:accompanist-pager:${Versions.Accompanist}"
+        const val bom = "androidx.compose:compose-bom:${Versions.ComposeBom}"
         const val accompanistPagerIndicators = "com.google.accompanist:accompanist-pager-indicators:${Versions.Accompanist}"
         const val accompanistSystemUiController = "com.google.accompanist:accompanist-systemuicontroller:${Versions.Accompanist}"
-        const val foundation = "androidx.compose.foundation:foundation:${Versions.ComposeFoundation}"
-        const val material = "androidx.compose.material:material:${Versions.ComposeMaterial}"
-        const val ui = "androidx.compose.ui:ui:${Versions.Compose}"
-        const val uiTooling = "androidx.compose.ui:ui-tooling:${Versions.Compose}"
-        const val uiToolingPreview = "androidx.compose.ui:ui-tooling-preview:${Versions.Compose}"
+        const val foundation = "androidx.compose.foundation:foundation"
+        const val material = "androidx.compose.material:material"
+        const val ui = "androidx.compose.ui:ui"
+        const val uiTooling = "androidx.compose.ui:ui-tooling"
+        const val uiToolingPreview = "androidx.compose.ui:ui-tooling-preview"
     }
 
     object ThirdParty {
@@ -93,7 +97,7 @@ object Dependencies {
         const val flexbox = "com.google.android.flexbox:flexbox:${Versions.Flexbox}"
         const val gson = "com.google.code.gson:gson:${Versions.Gson}"
         const val hilt = "com.google.dagger:hilt-android:${Versions.Hilt}"
-        const val kotlinxCoroutinesRx = "org.jetbrains.kotlinx:kotlinx-coroutines-rx2:${Versions.KotlinxCoroutinesRx}"
+        const val kotlinxCoroutinesRx = "org.jetbrains.kotlinx:kotlinx-coroutines-rx2:${Versions.KotlinxCoroutines}"
         const val picasso = "com.squareup.picasso:picasso:${Versions.Picasso}"
         const val markwon = "io.noties.markwon:core:${Versions.Markwon}"
         const val markwonImagePicasso = "io.noties.markwon:image-picasso:${Versions.Markwon}"
@@ -120,6 +124,7 @@ object Dependencies {
     object Modules {
         const val masterSwitchPreference = ":masterswitch"
         const val rcheevosApi = ":rcheevos-api"
+        const val common = ":common"
     }
 
     object Testing {

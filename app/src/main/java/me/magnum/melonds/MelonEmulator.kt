@@ -2,6 +2,7 @@ package me.magnum.melonds
 
 import android.content.res.AssetManager
 import android.net.Uri
+import me.magnum.melonds.common.camera.DSiCameraSource
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.Input
@@ -36,11 +37,13 @@ object MelonEmulator {
         DSI_NAND_BAD
     }
 
-	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?, retroAchievementsCallback: RetroAchievementsCallback, textureBuffer: ByteBuffer)
+	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?, dsiCameraSource: DSiCameraSource?, retroAchievementsCallback: RetroAchievementsCallback, textureBuffer: ByteBuffer)
 
     external fun setupCheats(cheats: Array<Cheat>)
 
     external fun setupAchievements(achievements: Array<RASimpleAchievement>, richPresenceScript: String?)
+
+    external fun unloadAchievements(achievements: Array<RASimpleAchievement>)
 
     external fun getRichPresenceStatus(): String?
 

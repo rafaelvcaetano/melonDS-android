@@ -47,7 +47,9 @@ add_library(
         src/main/cpp/MelonDSNandJNI.cpp
         src/main/cpp/UriFileHandler.cpp
         src/main/cpp/JniEnvHandler.cpp
+        src/main/cpp/MelonDSAndroidCameraHandler.cpp
         src/main/cpp/AndroidRACallback.cpp
+        src/main/cpp/RAAchievementMapper.cpp
 )
 
 target_link_libraries(melonDS-android-frontend melonDS-lib)

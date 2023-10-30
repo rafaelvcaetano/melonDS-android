@@ -27,6 +27,7 @@ import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomConfig
 import me.magnum.melonds.domain.model.RomIconFiltering
+import me.magnum.melonds.ui.common.component.text.CaptionText
 import me.magnum.melonds.ui.romlist.RomIcon
 import me.magnum.melonds.ui.theme.MelonTheme
 
@@ -92,7 +93,7 @@ fun RomItem(
                         maxLines = 1,
                     )
                 }
-                Text(
+                CaptionText(
                     text = item.fileName,
                     style = MaterialTheme.typography.body2,
                     maxLines = 1,

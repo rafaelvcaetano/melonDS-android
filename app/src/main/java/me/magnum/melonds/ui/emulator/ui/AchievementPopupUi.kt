@@ -1,9 +1,9 @@
 package me.magnum.melonds.ui.emulator.ui
 
 import androidx.compose.animation.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -48,15 +48,15 @@ fun AchievementPopupUi(
         popupState = PopupState.SHOW_DESCRIPTION
     }
 
-    Box(
-        modifier
+    Card(
+        modifier = modifier
             .padding(16.dp)
-            .widthIn(max = 400.dp)) {
+            .shadow(8.dp, RoundedCornerShape(8.dp))
+            .widthIn(max = 400.dp),
+        shape = RoundedCornerShape(8.dp),
+    ) {
         Row(
-            modifier = Modifier
-                .shadow(8.dp, RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colors.surface, RoundedCornerShape(8.dp))
-                .padding(8.dp),
+            modifier = Modifier.padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

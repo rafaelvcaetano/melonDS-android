@@ -16,6 +16,7 @@ import androidx.compose.ui.window.Dialog
 import me.magnum.melonds.R
 import me.magnum.melonds.ui.common.autofill
 import me.magnum.melonds.ui.common.melonOutlinedTextFieldColors
+import me.magnum.melonds.ui.common.melonTextButtonColors
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -91,19 +92,23 @@ fun RetroAchievementsLoginDialog(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TextButton(onClick = onDismiss) {
+                    TextButton(
+                        onClick = onDismiss,
+                        colors = melonTextButtonColors(),
+                    ) {
                         Text(
                             text = stringResource(id = R.string.cancel).uppercase(),
                             style = MaterialTheme.typography.button,
-                            color = MaterialTheme.colors.secondary,
                         )
                     }
 
-                    TextButton(onClick = { onLogin(username, password) }) {
+                    TextButton(
+                        onClick = { onLogin(username, password) },
+                        colors = melonTextButtonColors(),
+                    ) {
                         Text(
                             text = stringResource(id = R.string.login).uppercase(),
                             style = MaterialTheme.typography.button,
-                            color = MaterialTheme.colors.secondary,
                         )
                     }
                 }

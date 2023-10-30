@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.layouteditor
 
 import android.content.Context
+import android.content.res.Configuration
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -35,6 +36,14 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
             } else {
                 otherClickListener?.onClick(it)
             }
+        }
+    }
+
+    fun instantiateLayout(layoutConfiguration: LayoutConfiguration) {
+        if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            instantiateLayout(layoutConfiguration.portraitLayout)
+        } else {
+            instantiateLayout(layoutConfiguration.landscapeLayout)
         }
     }
 
