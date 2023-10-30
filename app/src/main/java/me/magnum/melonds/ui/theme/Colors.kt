@@ -14,25 +14,27 @@ val Colors.toolbarBackground: Color @Composable get() = colorResource(id = R.col
 val uncheckedThumbColor: Color @Composable get() = colorResource(id = R.color.switchThumbUnselected)
 
 val LightMelonColors @Composable get() = lightColors(
-    primary = colorResource(id = R.color.colorPrimary),
-    primaryVariant = colorResource(id = R.color.colorPrimaryDark),
-    secondary = colorResource(id = R.color.colorAccent),
-    secondaryVariant = colorResource(id = R.color.colorAccent),
-    background = colorResource(id = R.color.colorBackground),
-    surface = colorResource(id = R.color.colorSurface),
-    onPrimary = colorResource(id = R.color.colorOnSecondary),
-    onSecondary = colorResource(id = R.color.colorOnSecondary),
-    onSurface = colorResource(id = R.color.textColorPrimary),
+    primary = Color(0xFFF44336),          // R.color.colorPrimary
+    primaryVariant = Color(0xFFD32F2F),   // R.color.colorPrimaryDark
+    secondary = Color(0xFF5C913B),        // R.color.colorAccent
+    secondaryVariant = Color(0xFF5C913B), // R.color.colorAccent
+    background = Color(0xFFFFFFFF),       // R.color.colorBackground
+    surface = Color(0xFFFAFAFA),          // R.color.colorSurface
+    onPrimary = Color(0xFFFFFFFF),        // R.color.colorOnSecondary
+    onSecondary = Color(0xFFFFFFFF),      // R.color.colorOnSecondary
+    onSurface = Color(0xFF222222),        // R.color.textColorPrimary
+    onBackground = Color(0xFF767676),     // R.color.textColorSecondary
 )
 
 val DarkMelonColors @Composable get() = darkColors(
-    primary = colorResource(id = R.color.colorPrimary),
-    primaryVariant = colorResource(id = R.color.colorPrimaryDark),
-    secondary = colorResource(id = R.color.colorAccent),
-    secondaryVariant = colorResource(id = R.color.colorAccent),
-    background = colorResource(id = R.color.colorBackground),
-    surface = colorResource(id = R.color.colorSurface),
-    onPrimary = colorResource(id = R.color.colorOnSecondary),
-    onSecondary = colorResource(id = R.color.colorOnSecondary),
-    onSurface = colorResource(id = R.color.textColorPrimary),
+    primary = Color(0xFF333333),          // R.color.colorPrimary,
+    primaryVariant = Color(0xFF222222),   // R.color.colorPrimaryDark,
+    secondary = Color(0xFFF44336),        // R.color.colorAccent,
+    secondaryVariant = Color(0xFFF44336), // R.color.colorAccent,
+    background = Color(0xFF000000),       // R.color.colorBackground,
+    surface = Color(0xFF303030),          // R.color.colorSurface,
+    onPrimary = Color(0xFFFFFFFF),        // R.color.colorOnSecondary,
+    onSecondary = Color(0xFFFFFFFF),      // R.color.colorOnSecondary,
+    onSurface = Color(0xFFFFFFFF),        // R.color.textColorPrimary,
+    onBackground = Color(0xFFC1C1C1),     // R.color.textColorSecondary,
 )

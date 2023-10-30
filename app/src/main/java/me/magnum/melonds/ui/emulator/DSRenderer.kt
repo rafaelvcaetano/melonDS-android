@@ -1,17 +1,19 @@
 package me.magnum.melonds.ui.emulator
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import android.opengl.Matrix
-import android.util.Log
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
-import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.BackgroundMode
+import me.magnum.melonds.domain.model.Rect
+import me.magnum.melonds.domain.model.RuntimeBackground
+import me.magnum.melonds.domain.model.VideoFiltering
+import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
 import me.magnum.melonds.utils.BitmapUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -20,9 +22,11 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.roundToInt
 
-class DSRenderer(private var rendererConfiguration: RendererConfiguration, private val context: Context) : GLSurfaceView.Renderer {
+class DSRenderer(
+    private val frameBuffer: ByteBuffer,
+    private val context: Context,
+) : GLSurfaceView.Renderer {
     companion object {
-        private const val TAG = "DSRenderer"
         private const val SCREEN_WIDTH = 256
         private const val SCREEN_HEIGHT = 384
 
@@ -38,7 +42,7 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
         )
     }
 
-    private var rendererListener: RendererListener? = null
+    private var rendererConfiguration: RuntimeRendererConfiguration? = null
     private var mustUpdateConfiguration = false
     private var isBackgroundPositionDirty = false
     private var isBackgroundLoaded = false
@@ -52,7 +56,6 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
     private lateinit var mvpMatrix: FloatArray
     private lateinit var posBuffer: FloatBuffer
     private lateinit var uvBuffer: FloatBuffer
-    val textureBuffer: ByteBuffer
 
     private lateinit var backgroundPosBuffer: FloatBuffer
     private lateinit var backgroundUvBuffer: FloatBuffer
@@ -70,18 +73,7 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
     private var backgroundWidth = 0
     private var backgroundHeight = 0
 
-    var canRenderBackground = false
-
-    init {
-        textureBuffer = ByteBuffer.allocateDirect(SCREEN_WIDTH * SCREEN_HEIGHT * 4)
-            .order(ByteOrder.nativeOrder())
-    }
-
-    fun setRendererListener(listener: RendererListener?) {
-        rendererListener = listener
-    }
-
-    fun updateRendererConfiguration(newRendererConfiguration: RendererConfiguration) {
+    fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
         rendererConfiguration = newRendererConfiguration
         mustUpdateConfiguration = true
     }
@@ -102,21 +94,6 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
         }
     }
 
-    fun takeScreenshot(): Bitmap {
-        return Bitmap.createBitmap(SCREEN_WIDTH, SCREEN_HEIGHT, Bitmap.Config.ARGB_8888).apply {
-            // Texture buffer is in BGR format. Convert to RGB
-            for (x in 0 until SCREEN_WIDTH) {
-                for (y in 0 until SCREEN_HEIGHT) {
-                    val b = textureBuffer[(y * SCREEN_WIDTH + x) * 4 + 0].toInt() and 0xFF
-                    val g = textureBuffer[(y * SCREEN_WIDTH + x) * 4 + 1].toInt() and 0xFF
-                    val r = textureBuffer[(y * SCREEN_WIDTH + x) * 4 + 2].toInt() and 0xFF
-                    val argbPixel = 0xFF000000.toInt() or r.shl(16) or g.shl(8) or b
-                    setPixel(x, y, argbPixel)
-                }
-            }
-        }
-    }
-
     private fun screenXToViewportX(x: Int): Float {
         return (x / this.width) * 2f - 1f
     }
@@ -126,11 +103,6 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
     }
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
-        if (rendererListener == null) {
-            Log.w(TAG, "No frame buffer updater specified")
-            return
-        }
-
         GLES20.glClearColor(0f, 0f, 0f, 1f)
         GLES20.glDisable(GLES20.GL_CULL_FACE)
 
@@ -273,7 +245,7 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
         // Delete previous shader
         screenShader?.delete()
 
-        val shaderSource = FILTERING_SHADER_MAP[rendererConfiguration.videoFiltering] ?: throw Exception("Invalid video filtering")
+        val shaderSource = FILTERING_SHADER_MAP[rendererConfiguration?.videoFiltering ?: VideoFiltering.NONE] ?: throw Exception("Invalid video filtering")
         screenShader = ShaderFactory.createShaderProgram(shaderSource)
 
         val textureFilter = when (shaderSource.textureFiltering) {
@@ -311,22 +283,20 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
 
         posBuffer.position(0)
         uvBuffer.position(0)
-        textureBuffer.position(0)
+        frameBuffer.position(0)
 
         val indices = posBuffer.capacity() / 2
         screenShader?.let {
             it.use()
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mainTexture)
-            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, textureBuffer)
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, frameBuffer)
             GLES20.glUniformMatrix4fv(it.uniformMvp, 1, false, mvpMatrix, 0)
             GLES20.glVertexAttribPointer(it.attribPos, 2, GLES20.GL_FLOAT, false, 0, posBuffer)
             GLES20.glVertexAttribPointer(it.attribUv, 2, GLES20.GL_FLOAT, false, 0, uvBuffer)
             GLES20.glUniform1i(it.uniformTex, 0)
             GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, indices)
         }
-
-        rendererListener?.onFrameRendered()
     }
 
     private fun renderBackground() {
@@ -335,7 +305,7 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
             mustLoadBackground = false
         }
 
-        if (!isBackgroundLoaded || !canRenderBackground) {
+        if (!isBackgroundLoaded) {
             return
         }
 
@@ -554,9 +524,5 @@ class DSRenderer(private var rendererConfiguration: RendererConfiguration, priva
                 }
             }
         }
-    }
-
-    interface RendererListener {
-        fun onFrameRendered()
     }
 }

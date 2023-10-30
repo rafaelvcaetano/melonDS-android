@@ -5,6 +5,7 @@ plugins {
     id("kotlin-android")
     id("kotlin-parcelize")
     id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("dagger.hilt.android.plugin")
     id("org.jetbrains.kotlin.android")
 }
@@ -20,6 +21,7 @@ android {
         }
     }
 
+    namespace = "me.magnum.melonds"
     compileSdk = AppConfig.compileSdkVersion
     ndkVersion = AppConfig.ndkVersion
     defaultConfig {
@@ -37,16 +39,10 @@ android {
                 cppFlags("-std=c++17 -Wno-write-strings")
             }
         }
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
-            }
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
         }
         vectorDrawables.useSupportLibrary = true
-    }
-    kotlinOptions {
-        jvmTarget = "11"
-        freeCompilerArgs += "-opt-in=kotlin.ExperimentalUnsignedTypes"
     }
     buildFeatures {
         viewBinding = true
@@ -63,7 +59,7 @@ android {
         }
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
+        kotlinCompilerExtensionVersion = "1.5.1"
     }
 
     flavorDimensions.add("version")
@@ -84,9 +80,16 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
+
+        kotlin {
+            jvmToolchain(17)
+            kotlinOptions {
+                freeCompilerArgs += "-opt-in=kotlin.ExperimentalUnsignedTypes"
+            }
+        }
     }
     configurations.all {
         resolutionStrategy.eachDependency {
@@ -110,6 +113,7 @@ dependencies {
     with(Dependencies.Modules) {
         implementation(project(masterSwitchPreference))
         implementation(project(rcheevosApi))
+        implementation(project(common))
     }
 
     with(Dependencies.Kotlin) {
@@ -121,6 +125,8 @@ dependencies {
         implementation(activity)
         implementation(activityCompose)
         implementation(appCompat)
+        implementation(camera2)
+        implementation(cameraLifecycle)
         implementation(cardView)
         implementation(constraintLayout)
         implementation(core)
@@ -142,7 +148,7 @@ dependencies {
     }
 
     with(Dependencies.Compose) {
-        implementation(accompanistPager)
+        implementation(platform(bom))
         implementation(accompanistPagerIndicators)
         implementation(accompanistSystemUiController)
         implementation(foundation)
@@ -181,7 +187,7 @@ dependencies {
     with(Dependencies.Kapt) {
         kapt(hiltCompiler)
         kapt(hiltCompilerAndroid)
-        kapt(roomCompiler)
+        ksp(roomCompiler)
     }
 
     // Testing

@@ -1,32 +1,27 @@
-package me.magnum.melonds.ui.romdetails
+package me.magnum.melonds.ui.common.viewmodel
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.domain.repositories.RetroAchievementsRepository
-import me.magnum.melonds.parcelables.RomParcelable
+import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.ui.romdetails.model.RomAchievementsSummary
 import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
 import me.magnum.rcheevosapi.model.RAAchievement
-import javax.inject.Inject
 
-@HiltViewModel
-class RomRetroAchievementsViewModel @Inject constructor(
+abstract class RetroAchievementsViewModel (
     private val retroAchievementsRepository: RetroAchievementsRepository,
-    private val savedStateHandle: SavedStateHandle,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
-
-    private val rom by lazy {
-        savedStateHandle.get<RomParcelable>(RomDetailsActivity.KEY_ROM)!!.rom
-    }
 
     private val _uiState = MutableStateFlow<RomRetroAchievementsUiState>(RomRetroAchievementsUiState.Loading)
     val uiState by lazy {
@@ -37,18 +32,27 @@ class RomRetroAchievementsViewModel @Inject constructor(
     private val _viewAchievementEvent = MutableSharedFlow<String>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     val viewAchievementEvent = _viewAchievementEvent.asSharedFlow()
 
+    private var achievementLoadJob: Job? = null
+
+    protected abstract fun getRom(): Rom
+
     private fun loadAchievements() {
-        viewModelScope.launch {
+        achievementLoadJob?.cancel()
+        achievementLoadJob = viewModelScope.launch {
             if (retroAchievementsRepository.isUserAuthenticated()) {
-                retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash).fold(
+                val forHardcoreMode = settingsRepository.isRetroAchievementsHardcoreEnabled()
+                retroAchievementsRepository.getGameUserAchievements(getRom().retroAchievementsHash, forHardcoreMode).fold(
                     onSuccess = { achievements ->
                         val sortedAchievements = achievements.sortedBy {
                             // Display unlocked achievements first
                             if (it.isUnlocked) 0 else 1
                         }
-                        _uiState.value = RomRetroAchievementsUiState.Ready(sortedAchievements, buildAchievementsSummary(sortedAchievements))
+                        _uiState.value = RomRetroAchievementsUiState.Ready(sortedAchievements, buildAchievementsSummary(forHardcoreMode, sortedAchievements))
                     },
-                    onFailure = { _uiState.value = RomRetroAchievementsUiState.AchievementLoadError },
+                    onFailure = {
+                        ensureActive()
+                        _uiState.value = RomRetroAchievementsUiState.AchievementLoadError
+                    },
                 )
             } else {
                 _uiState.value = RomRetroAchievementsUiState.LoggedOut
@@ -78,11 +82,12 @@ class RomRetroAchievementsViewModel @Inject constructor(
         _viewAchievementEvent.tryEmit(achievementUrl)
     }
 
-    private fun buildAchievementsSummary(userAchievements: List<RAUserAchievement>): RomAchievementsSummary {
+    private fun buildAchievementsSummary(forHardcoreMode: Boolean, userAchievements: List<RAUserAchievement>): RomAchievementsSummary {
         return RomAchievementsSummary(
+            forHardcoreMode = forHardcoreMode,
             totalAchievements = userAchievements.size,
             completedAchievements = userAchievements.count { it.isUnlocked },
-            totalPoints = userAchievements.sumOf { if (it.isUnlocked) it.achievement.points else 0 },
+            totalPoints = userAchievements.sumOf { it.userPointsWorth() },
         )
     }
 }

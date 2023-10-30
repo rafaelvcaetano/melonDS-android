@@ -13,8 +13,10 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.LocalView
-import androidx.lifecycle.ViewTreeLifecycleOwner
-import androidx.lifecycle.ViewTreeViewModelStoreOwner
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.findViewTreeViewModelStoreOwner
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import java.util.*
@@ -61,8 +63,8 @@ private class FullScreenLayout(
 
     init {
         id = android.R.id.content
-        ViewTreeLifecycleOwner.set(this, ViewTreeLifecycleOwner.get(composeView))
-        ViewTreeViewModelStoreOwner.set(this, ViewTreeViewModelStoreOwner.get(composeView))
+        setViewTreeLifecycleOwner(composeView.findViewTreeLifecycleOwner())
+        setViewTreeViewModelStoreOwner(composeView.findViewTreeViewModelStoreOwner())
         setViewTreeSavedStateRegistryOwner(composeView.findViewTreeSavedStateRegistryOwner())
 
         setTag(androidx.compose.ui.R.id.compose_view_saveable_id_tag, "CustomLayout:$uniqueId")
@@ -126,7 +128,7 @@ private class FullScreenLayout(
     private fun destroy() {
         Log.d("FullScreen", "destroy()")
         disposeComposition()
-        ViewTreeLifecycleOwner.set(this, null)
+        setViewTreeLifecycleOwner(null)
         windowManager.removeViewImmediate(this)
     }
 }

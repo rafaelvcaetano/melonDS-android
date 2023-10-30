@@ -9,7 +9,6 @@ import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.Permission
@@ -55,7 +54,7 @@ class RomListViewModel @Inject constructor(
     private val _roms = MutableStateFlow<List<Rom>?>(null)
     val roms = _roms.asStateFlow()
 
-    val onRomIconFilteringChanged = settingsRepository.observeRomIconFiltering().asFlow()
+    val onRomIconFilteringChanged = settingsRepository.observeRomIconFiltering()
 
     val romScanningStatus = romsRepository.getRomScanningStatus()
 

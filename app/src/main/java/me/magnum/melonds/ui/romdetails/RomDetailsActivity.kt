@@ -8,6 +8,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,7 +31,7 @@ class RomDetailsActivity : AppCompatActivity() {
         setContent {
             val systemUiController = rememberSystemUiController()
             val romDetailsViewModel by viewModels<RomDetailsViewModel>()
-            val romRetroAchievementsViewModel by viewModels<RomRetroAchievementsViewModel>()
+            val romRetroAchievementsViewModel by viewModels<RomDetailsRetroAchievementsViewModel>()
 
             val rom by romDetailsViewModel.rom.collectAsState()
             val romConfig by romDetailsViewModel.romConfig.collectAsState()
@@ -46,29 +47,31 @@ class RomDetailsActivity : AppCompatActivity() {
             MelonTheme {
                 systemUiController.setStatusBarColor(MaterialTheme.colors.surface)
 
-                RomScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    rom = rom,
-                    romConfigUiState = romConfig,
-                    retroAchievementsUiState = retroAchievementsUiState,
-                    onNavigateBack = { onNavigateUp() },
-                    onLaunchRom = {
-                        val intent = EmulatorActivity.getRomEmulatorActivityIntent(this, it)
-                        startActivity(intent)
-                    },
-                    onRomConfigUpdate = {
-                        romDetailsViewModel.onRomConfigUpdateEvent(it)
-                    },
-                    onRetroAchievementsLogin = { username, password ->
-                        romRetroAchievementsViewModel.login(username, password)
-                    },
-                    onRetroAchievementsRetryLoad = {
-                        romRetroAchievementsViewModel.retryLoadAchievements()
-                    },
-                    onViewAchievement = {
-                        romRetroAchievementsViewModel.viewAchievement(it)
-                    }
-                )
+                Surface {
+                    RomScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        rom = rom,
+                        romConfigUiState = romConfig,
+                        retroAchievementsUiState = retroAchievementsUiState,
+                        onNavigateBack = { onNavigateUp() },
+                        onLaunchRom = {
+                            val intent = EmulatorActivity.getRomEmulatorActivityIntent(this, it)
+                            startActivity(intent)
+                        },
+                        onRomConfigUpdate = {
+                            romDetailsViewModel.onRomConfigUpdateEvent(it)
+                        },
+                        onRetroAchievementsLogin = { username, password ->
+                            romRetroAchievementsViewModel.login(username, password)
+                        },
+                        onRetroAchievementsRetryLoad = {
+                            romRetroAchievementsViewModel.retryLoadAchievements()
+                        },
+                        onViewAchievement = {
+                            romRetroAchievementsViewModel.viewAchievement(it)
+                        }
+                    )
+                }
             }
         }
     }

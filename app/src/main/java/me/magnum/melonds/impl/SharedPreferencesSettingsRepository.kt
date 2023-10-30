@@ -12,13 +12,22 @@ import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.isSustainedPerformanceModeAvailable
 import me.magnum.melonds.ui.Theme
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
-import java.io.*
+import java.io.File
+import java.io.FileReader
+import java.io.IOException
+import java.io.OutputStreamWriter
 import java.util.*
 import kotlin.math.pow
 
@@ -36,6 +45,7 @@ class SharedPreferencesSettingsRepository(
 
     private var controllerConfiguration: ControllerConfiguration? = null
     private val preferenceObservers: HashMap<String, PublishSubject<Any>> = HashMap()
+    private val preferenceSharedFlows = mutableMapOf<String, MutableSharedFlow<Unit>>()
 
     init {
         preferences.registerOnSharedPreferenceChangeListener(this)
@@ -64,7 +74,7 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
-    override fun getEmulatorConfiguration(): EmulatorConfiguration {
+    override suspend fun getEmulatorConfiguration(): EmulatorConfiguration {
         val consoleType = getDefaultConsoleType()
         val useCustomBios = useCustomBios()
         val dsBiosDirUri = getDsBiosDirectory()
@@ -106,7 +116,7 @@ class SharedPreferencesSettingsRepository(
             getMicSource(),
             getFirmwareConfiguration(),
             RendererConfiguration(
-                getVideoFiltering(),
+                getVideoFiltering().first(),
                 isThreadedRenderingEnabled()
             )
         )
@@ -222,9 +232,11 @@ class SharedPreferencesSettingsRepository(
         return preferences.getBoolean("enable_jit", defaultJitEnabled)
     }
 
-    override fun getVideoFiltering(): VideoFiltering {
-        val filteringPreference = preferences.getString("video_filtering", "linear")!!
-        return VideoFiltering.valueOf(filteringPreference.uppercase())
+    override fun getVideoFiltering(): Flow<VideoFiltering> {
+        return getOrCreatePreferenceSharedFlow("video_filtering") {
+            val filteringPreference = preferences.getString("video_filtering", "linear")!!
+            VideoFiltering.valueOf(filteringPreference.uppercase())
+        }
     }
 
     override fun isThreadedRenderingEnabled(): Boolean {
@@ -234,6 +246,16 @@ class SharedPreferencesSettingsRepository(
     override fun getFpsCounterPosition(): FpsCounterPosition {
         val fpsCounterPreference = preferences.getString("fps_counter_position", "hidden")!!
         return FpsCounterPosition.valueOf(fpsCounterPreference.uppercase())
+    }
+
+    override fun getDSiCameraSource(): DSiCameraSourceType {
+        val dsiCameraSource = preferences.getString("dsi_camera_source", "physical_cameras")!!
+        return DSiCameraSourceType.valueOf(dsiCameraSource.uppercase())
+    }
+
+    override fun getDSiCameraStaticImage(): Uri? {
+        val staticImagePreference = preferences.getStringSet("dsi_camera_static_image", null)?.firstOrNull()
+        return staticImagePreference?.toUri()
     }
 
     override fun isSoundEnabled(): Boolean {
@@ -349,12 +371,16 @@ class SharedPreferencesSettingsRepository(
         return id?.let { UUID.fromString(it) } ?: LayoutConfiguration.DEFAULT_ID
     }
 
-    override fun showSoftInput(): Boolean {
-        return preferences.getBoolean("input_show_soft", true)
+    override fun showSoftInput(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow("input_show_soft") {
+            preferences.getBoolean("input_show_soft", true)
+        }
     }
 
-    override fun isTouchHapticFeedbackEnabled(): Boolean {
-        return preferences.getBoolean("input_touch_haptic_feedback_enabled", true)
+    override fun isTouchHapticFeedbackEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow("input_touch_haptic_feedback_enabled") {
+            preferences.getBoolean("input_touch_haptic_feedback_enabled", true)
+        }
     }
 
     override fun getTouchHapticFeedbackStrength(): Int {
@@ -362,8 +388,18 @@ class SharedPreferencesSettingsRepository(
         return strength.coerceIn(1, 100)
     }
 
-    override fun getSoftInputOpacity(): Int {
-        return preferences.getInt("input_opacity", 50)
+    override fun getSoftInputOpacity(): Flow<Int> {
+        return getOrCreatePreferenceSharedFlow("input_opacity") {
+            preferences.getInt("input_opacity", 50)
+        }
+    }
+
+    override fun isRetroAchievementsRichPresenceEnabled(): Boolean {
+        return preferences.getBoolean("ra_rich_presence", true)
+    }
+
+    override fun isRetroAchievementsHardcoreEnabled(): Boolean {
+        return preferences.getBoolean("ra_hardcore_enabled", false)
     }
 
     override fun areCheatsEnabled(): Boolean {
@@ -379,6 +415,18 @@ class SharedPreferencesSettingsRepository(
     override fun observeSelectedLayoutId(): Observable<UUID> {
         return getOrCreatePreferenceObservable("input_layout_id") {
             getSelectedLayoutId()
+        }
+    }
+
+    override fun observeDSiCameraSource(): Flow<DSiCameraSourceType> {
+        return getOrCreatePreferenceSharedFlow("dsi_camera_source") {
+            getDSiCameraSource()
+        }
+    }
+
+    override fun observeDSiCameraStaticImage(): Flow<Uri?> {
+        return getOrCreatePreferenceSharedFlow("dsi_camera_static_image") {
+            getDSiCameraStaticImage()
         }
     }
 
@@ -438,8 +486,8 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
-    override fun observeRomIconFiltering(): Observable<RomIconFiltering> {
-        return getOrCreatePreferenceObservable("rom_icon_filtering") {
+    override fun observeRomIconFiltering(): Flow<RomIconFiltering> {
+        return getOrCreatePreferenceSharedFlow("rom_icon_filtering") {
             getRomIconFiltering()
         }
     }
@@ -453,8 +501,21 @@ class SharedPreferencesSettingsRepository(
         return preferenceSubject.map(mapper)
     }
 
+    private fun <T> getOrCreatePreferenceSharedFlow(preference: String, mapper: () -> T): Flow<T> {
+        val preferenceFlow = preferenceSharedFlows.getOrPut(preference) {
+            MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST).apply {
+                // Immediately trigger an event to load the initial value
+                tryEmit(Unit)
+            }
+        }
+
+        return preferenceFlow.map { mapper() }
+    }
+
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {
         val subject = preferenceObservers[key]
         subject?.onNext(Any())
+
+        preferenceSharedFlows[key]?.tryEmit(Unit)
     }
 }

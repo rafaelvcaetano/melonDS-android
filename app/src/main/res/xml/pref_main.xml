@@ -44,6 +44,12 @@
             android:fragment="me.magnum.melonds.ui.settings.fragments.InputPreferencesFragment" />
 
     <Preference
+            android:title="@string/retroachievements"
+            android:summary="@string/retroachievements_summary"
+            app:icon="@drawable/ic_trophy"
+            android:fragment="me.magnum.melonds.ui.settings.fragments.RetroAchievementsPreferencesFragment" />
+
+    <Preference
             android:title="@string/cheats"
             android:summary="@string/cheats_summary"
             app:icon="@drawable/ic_cheat"

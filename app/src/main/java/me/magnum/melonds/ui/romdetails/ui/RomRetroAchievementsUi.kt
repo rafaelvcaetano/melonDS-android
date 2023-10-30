@@ -19,10 +19,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import me.magnum.melonds.R
+import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.ui.common.MelonPreviewSet
 import me.magnum.melonds.ui.common.melonButtonColors
 import me.magnum.melonds.ui.romdetails.model.RomAchievementsSummary
 import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
+import me.magnum.melonds.ui.romdetails.ui.preview.mockRAAchievementPreview
 import me.magnum.melonds.ui.theme.MelonTheme
 import me.magnum.rcheevosapi.model.RAAchievement
 
@@ -85,7 +87,10 @@ private fun LoggedOut(
                 onClick = { showLoginPopup = true },
                 colors = melonButtonColors(),
             ) {
-                Text(text = stringResource(id = R.string.login_with_retro_achievements).uppercase())
+                Text(
+                    text = stringResource(id = R.string.login_with_retro_achievements).uppercase(),
+                    textAlign = TextAlign.Center,
+                )
             }
         }
     }
@@ -173,6 +178,13 @@ private fun Header(
                 }
                 append(' ')
                 append(stringResource(id = R.string.points_abbreviated))
+                append(" (")
+                if (achievementsSummary.forHardcoreMode) {
+                    append(stringResource(id = R.string.ra_mode_hardcore))
+                } else {
+                    append(stringResource(id = R.string.ra_mode_softcore))
+                }
+                append(')')
             },
             inlineContent = mapOf(
                 "icon-points" to InlineTextContent(Placeholder(MaterialTheme.typography.body1.fontSize, MaterialTheme.typography.body1.fontSize, PlaceholderVerticalAlign.Center)) {
@@ -280,6 +292,24 @@ private fun LoadError(
                 Text(text = stringResource(id = R.string.retry).uppercase())
             }
         }
+    }
+}
+
+@MelonPreviewSet
+@Composable
+private fun PreviewContent() {
+    MelonTheme {
+        Ready(
+            modifier = Modifier.fillMaxSize(),
+            content = RomRetroAchievementsUiState.Ready(
+                listOf(
+                    RAUserAchievement(mockRAAchievementPreview(id = 1), false, false),
+                    RAUserAchievement(mockRAAchievementPreview(id = 2, title = "This is another amazing achievement", description = "But this one cannot be missed."), false, false),
+                ),
+                RomAchievementsSummary(true, 50, 20, 85),
+            ),
+            onViewAchievement = {},
+        )
     }
 }
 

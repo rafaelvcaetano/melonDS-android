@@ -14,10 +14,16 @@ import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.impl.RomIconProvider
 import me.magnum.melonds.migrations.*
+import me.magnum.melonds.migrations.helper.GenericJsonArrayMigrationHelper
 
 @Module
 @InstallIn(SingletonComponent::class)
 object MigrationModule {
+
+    @Provides
+    fun provideJsonArrayMigrationHelper(@ApplicationContext context: Context, gson: Gson): GenericJsonArrayMigrationHelper {
+        return GenericJsonArrayMigrationHelper(context, gson)
+    }
 
     @Provides
     fun provideMigration(
@@ -28,7 +34,8 @@ object MigrationModule {
         settingsRepository: SettingsRepository,
         directoryAccessValidator: DirectoryAccessValidator,
         uriHandler: UriHandler,
-        gson: Gson
+        gson: Gson,
+        genericJsonArrayMigrationHelper: GenericJsonArrayMigrationHelper,
     ): Migrator {
 
         return Migrator(context, sharedPreferences).apply {
@@ -38,7 +45,8 @@ object MigrationModule {
             registerMigration(Migration16to17(romsRepository))
             registerMigration(Migration20to21(settingsRepository, romsRepository, directoryAccessValidator))
             registerMigration(Migration21to22(context, gson, uriHandler))
-            registerMigration(Migration24to25(RomMigrationHelper(context, gson), context))
+            registerMigration(Migration24to25(genericJsonArrayMigrationHelper, context))
+            registerMigration(Migration25to26(genericJsonArrayMigrationHelper))
         }
     }
 }

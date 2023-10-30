@@ -18,6 +18,7 @@ import me.magnum.melonds.common.vibration.Api26VibratorDelegate
 import me.magnum.melonds.common.vibration.OldVibratorDelegate
 import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.database.MelonDatabase
+import me.magnum.melonds.database.daos.RAAchievementsDao
 import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.domain.services.DSiNandManager
@@ -83,8 +84,14 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideRetroAchievementsRepository(raApi: RAApi, melonDatabase: MelonDatabase, raUserAuthStore: RAUserAuthStore, sharedPreferences: SharedPreferences, @ApplicationContext context: Context): RetroAchievementsRepository {
-        return AndroidRetroAchievementsRepository(raApi, melonDatabase.achievementsDao(), raUserAuthStore, sharedPreferences, context)
+    fun provideRetroAchievementsRepository(
+        raApi: RAApi,
+        raAchievementsDao: RAAchievementsDao,
+        raUserAuthStore: RAUserAuthStore,
+        sharedPreferences: SharedPreferences,
+        @ApplicationContext context: Context,
+    ): RetroAchievementsRepository {
+        return AndroidRetroAchievementsRepository(raApi, raAchievementsDao, raUserAuthStore, sharedPreferences, context)
     }
 
     @Provides

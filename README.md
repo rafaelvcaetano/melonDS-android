@@ -7,25 +7,10 @@ This is a WIP Android frontend for the melonDS Android port. For the Android por
 |---|---|---|---|
 |![Screenshot 1](./.github/images/screenshot_mobile0.png)|![Screenshot 2](./.github/images/screenshot_mobile1.png)|![Screenshot 3](./.github/images/screenshot_mobile2.png)|![Screenshot 4](./.github/images/screenshot_mobile3.png)|
 
-# What is working
-*  Device scanning for ROMS
-*  Games can boot and run
-*  Sound
-*  Input
-*  Mic input
-*  Game saves
-*  Save states
-*  Rewind
-*  AR cheats
-*  GBA ROM support
-*  DSi support (experimental)
-*  Controller support
-*  Customizable layouts
-*  Settings
-
-# What is missing
-*  Wi-Fi
+# Missing Features
+*  Local Multiplayer
 *  OpenGL renderer
+*  DSi SD card support
 *  Customizable button skins
 *  More display filters
 
@@ -33,11 +18,13 @@ This is a WIP Android frontend for the melonDS Android port. For the Android por
 Performance is solid on 64 bit devices with thread rendering and JIT enabled, and should run at full speed on flagship devices. Performance on older devices, specially
 32 bit devices, is very poor due to the lack of JIT support.
 
-# Integration with third party frontends
-It's possible to launch melonDS from third part frontends. For that, you simply need to call the emulation activity with the absolute path to the ROM file. The parameters are the following:
+# Integration with third-party frontends
+It's possible to launch melonDS from third part frontends. For that, you will need to have the ROMs you want to launch already scanned by melonDS. Then, you can configure your
+third-party frontend with the following configuration:
 *  Package name: `me.magnum.melonds`
 *  Activity name: `me.magnum.melonds.ui.emulator.EmulatorActivity`
-*  Parameters:
+*  Parameters (choose one):
+    * `uri` (preferred) - a string with the [SAF](https://developer.android.com/guide/topics/providers/create-document-provider) URI of the NDS ROM (ZIP files are supported)
     * `PATH` - a string with the absolute path to the NDS ROM (ZIP files are supported)
 
 # Building
@@ -49,6 +36,12 @@ To build the project you will need Android SDK, NDK and CMake.
     `git clone --recurse-submodules https://github.com/rafaelvcaetano/melonDS-android.git`
 2.  Install the Android SDK, NDK and CMake
 3.  Build with:
-    1.  Unix: `./gradlew :app:assembleGitHubRelease`
-    2.  Windows: `gradlew.bat :app:assembleGitHubRelease`
-4.  The generated APK can be found at `app/gitHub/release`
+    1.  Unix: `./gradlew :app:assembleGitHubDebug`
+    2.  Windows: `gradlew.bat :app:assembleGitHubDebug`
+4.  The generated APK can be found at `app/gitHub/debug`
+
+If you want to create a release build, you will need to modify your `local.properties` file to include the following fields:  
+*  `MELONDS_KEYSTORE=<path_to_your_keystore>`
+*  `MELONDS_KEYSTORE_PASSWORD=<keystore_password>`
+*  `MELONDS_KEY_ALIAS=<name_of_your_key_alias>`
+*  `MELONDS_KEY_PASSWORD=<key_alias_password>`

@@ -2,6 +2,8 @@ package me.magnum.rcheevosapi
 
 import com.google.gson.Gson
 import com.google.gson.JsonParser
+import me.magnum.melonds.common.suspendMapCatching
+import me.magnum.melonds.common.suspendRunCatching
 import me.magnum.rcheevosapi.dto.*
 import me.magnum.rcheevosapi.dto.mapper.mapToModel
 import me.magnum.rcheevosapi.exception.UnsuccessfulRequestException
@@ -10,6 +12,8 @@ import me.magnum.rcheevosapi.model.RAGame
 import me.magnum.rcheevosapi.model.RAGameId
 import me.magnum.rcheevosapi.model.RAUserAuth
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.net.URLEncoder
 import kotlin.coroutines.resume
@@ -26,6 +30,8 @@ class RAApi(
 ) {
 
     companion object {
+        private const val BASE_URL = "https://retroachievements.org/dorequest.php"
+
         private const val PARAMETER_USER = "u"
         private const val PARAMETER_PASSWORD = "p"
         private const val PARAMETER_TOKEN = "t"
@@ -100,7 +106,7 @@ class RAApi(
                 PARAMETER_TOKEN to userAuth.token,
                 PARAMETER_GAME_ID to gameId.id.toString(),
             )
-        ).mapCatching {
+        ).suspendMapCatching {
             it.game.mapToModel()
         }
     }
@@ -108,7 +114,7 @@ class RAApi(
     suspend fun startSession(gameId: RAGameId): Result<Unit> {
         val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
 
-        return get(
+        return post(
             mapOf(
                 PARAMETER_REQUEST to REQUEST_POST_ACTIVITY,
                 PARAMETER_USER to userAuth.username,
@@ -158,7 +164,7 @@ class RAApi(
             parameters[PARAMETER_RICH_PRESENCE] = richPresenceDescription
         }
 
-        return get(parameters)
+        return post(parameters)
     }
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -167,9 +173,39 @@ class RAApi(
         errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") }
     ): Result<T> {
         val request = buildGetRequest(parameters)
-        return runCatching {
+        return suspendRunCatching {
             executeRequest(request)
-        }.mapCatching { response ->
+        }.suspendMapCatching { response ->
+            if (response.isSuccessful) {
+                val json = JsonParser.parseReader(response.body?.charStream())
+                val isSuccessful = json.asJsonObject["Success"].asBoolean
+                if (!isSuccessful) {
+                    val reason = json.asJsonObject["Error"]?.asString
+                    // The error handler may choose to ignore the error
+                    errorHandler.invoke(reason)
+                }
+
+                if (T::class == Unit::class) {
+                    // Ignore response. Don't parse anything
+                    Unit as T
+                } else {
+                    gson.fromJson(json, typeOf<T>().javaType)
+                }
+            } else {
+                throw Exception(response.message)
+            }
+        }
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    private suspend inline fun <reified T> post(
+        parameters: Map<String, String>,
+        errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") }
+    ): Result<T> {
+        val request = buildPostRequest(parameters)
+        return suspendRunCatching {
+            executeRequest(request)
+        }.suspendMapCatching { response ->
             if (response.isSuccessful) {
                 val json = JsonParser.parseReader(response.body?.charStream())
                 val isSuccessful = json.asJsonObject["Success"].asBoolean
@@ -196,11 +232,22 @@ class RAApi(
             "${URLEncoder.encode(it.key, "utf-8")}=${URLEncoder.encode(it.value, "utf-8")}"
         }.joinToString(separator = "&")
 
-        val url ="https://retroachievements.org/dorequest.php?$query"
+        val url = "$BASE_URL?$query"
 
         return Request.Builder()
             .get()
             .url(url)
+            .build()
+    }
+
+    private fun buildPostRequest(parameters: Map<String, String>): Request {
+        val data = parameters.map {
+            "${URLEncoder.encode(it.key, "utf-8")}=${URLEncoder.encode(it.value, "utf-8")}"
+        }.joinToString(separator = "&")
+
+        return Request.Builder()
+            .post(data.toRequestBody("application/x-www-form-urlencoded".toMediaType()))
+            .url(BASE_URL)
             .build()
     }
 

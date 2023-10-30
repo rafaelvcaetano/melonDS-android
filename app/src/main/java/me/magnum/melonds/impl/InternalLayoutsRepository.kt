@@ -13,6 +13,7 @@ import me.magnum.melonds.common.Deletable
 import me.magnum.melonds.domain.model.LayoutConfiguration
 import me.magnum.melonds.domain.model.UILayout
 import me.magnum.melonds.domain.repositories.LayoutsRepository
+import me.magnum.melonds.impl.dtos.layout.LayoutConfigurationDto
 import java.io.File
 import java.io.FileReader
 import java.io.OutputStreamWriter
@@ -22,7 +23,7 @@ import java.util.*
 class InternalLayoutsRepository(private val context: Context, private val gson: Gson, private val defaultLayoutProvider: DefaultLayoutProvider) : LayoutsRepository {
     companion object {
         private const val DATA_FILE = "layouts.json"
-        private val layoutListType: Type = object : TypeToken<List<LayoutConfiguration>>(){}.type
+        private val layoutListType: Type = object : TypeToken<List<LayoutConfigurationDto>>(){}.type
     }
 
     private var areLayoutsLoaded = false
@@ -137,7 +138,9 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
             }
 
             try {
-                val layouts = gson.fromJson<List<LayoutConfiguration>>(FileReader(dataFile), layoutListType)
+                val layouts = gson.fromJson<List<LayoutConfigurationDto>>(FileReader(dataFile), layoutListType)?.map {
+                    it.toModel()
+                }
                 emitter.onSuccess(layouts ?: emptyList())
             } catch (_: Exception) {
                 emitter.onSuccess(emptyList())
@@ -149,15 +152,15 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
         val dataFile = File(context.filesDir, DATA_FILE)
 
         try {
-            val customLayouts = layouts.mapNotNull {
+            val customLayoutsDtos = layouts.mapNotNull {
                 // Exclude deleted and default layouts. They shouldn't be saved
                 if (it.isDeleted || it.data.type == LayoutConfiguration.LayoutType.DEFAULT) {
                     null
                 } else {
-                    it.data
+                    LayoutConfigurationDto.fromModel(it.data)
                 }
             }
-            val layoutsJson = gson.toJson(customLayouts)
+            val layoutsJson = gson.toJson(customLayoutsDtos)
 
             OutputStreamWriter(dataFile.outputStream()).use {
                 it.write(layoutsJson)

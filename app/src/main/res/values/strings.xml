@@ -17,6 +17,7 @@
     <string name="update">Update</string>
     <string name="close">Close</string>
     <string name="play">Play</string>
+    <string name="ellipsis">…</string>
 
     <string name="version_alpha">Alpha</string>
     <string name="version_beta">Beta</string>
@@ -33,8 +34,11 @@
     <string name="size_gb">GB</string>
 
     <string name="error_rom_not_found">Could not find ROM</string>
-    <string name="error_rom_not_found_info">The ROM you have selected has not been found. Make sure the selected ROM can be found in the current ROM search directory.</string>
+    <string name="error_rom_not_found_info">The ROM you have selected has not been found. Make sure the selected ROM can be found in the current ROM search directory.\n%1$s</string>
     <string name="error_load_rom">Could not load ROM</string>
+    <string name="error_load_rom_message">There was a problem loading the ROM. Make sure it\'s not corrupted and try again.</string>
+    <string name="error_load_firmware">Could not load the firmware</string>
+    <string name="error_load_firmware_message">There was a problem loading the firmware (%1$s). Make sure the BIOS and firmware dump is not corrupted, that the firmware is bootable and try again.</string>
     <string name="error_load_rom_report_issue">An error log was generated that can help fix this problem. Do you want to open an issue on GitHub with this log? You will need a GitHub account.</string>
     <string name="title_emulator_running">Emulator running</string>
     <string name="message_stop_emulation">Stop emulation and load new ROM?</string>
@@ -80,9 +84,13 @@
     <string name="cant_load_empty_slot">Can\'t load an empty save state slot</string>
     <string name="failed_reset_emulation">Failed to reset emulation</string>
     <string name="save_states_not_supported">Save states are not supported while running the firmware</string>
+    <string name="save_states_unavailable_ra_hardcore_enabled">Save states are unavailable while Hardcore mode is enabled</string>
     <string name="rewind_time_seconds">%1$ss</string> <!-- Ex: 43.56s -->
     <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string> <!-- Ex: 2m37.93s -->
     <string name="rewind_not_enabled">Rewind is not enabled</string>
+    <string name="rewind_unavailable_ra_hardcore_enabled">Rewind is unavailable while Hardcore mode is enabled</string>
+    <string name="no_image_selected">No image selected</string>
+    <string name="failed_to_load_image">Failed to load image</string>
 
     <string name="action_sort_alphabetically">Alphabetically</string>
     <string name="action_sort_recently_played">Recently played</string>
@@ -111,6 +119,7 @@
     <string name="choose_component">Choose component</string>
 
     <string name="pause">Pause</string>
+    <string name="achievements">Achievements</string>
     <string name="reset">Reset</string>
     <string name="exit">Exit</string>
 
@@ -168,6 +177,8 @@
     <string name="category_video">Video</string>
     <string name="category_video_summary">Filter, threaded rendering, FPS counter</string>
     <string name="filter">Filter</string>
+    <string name="dsi_camera_source">DSi camera source</string>
+    <string name="dsi_camera_image">DSi camera image</string>
     <string name="category_audio">Audio</string>
     <string name="category_audio_summary">Volume, latency, microphone source</string>
     <string name="enable_sound">Enable sound</string>
@@ -191,6 +202,13 @@
     <string name="vibrate_on_touch">Vibrate on touch</string>
     <string name="vibration_strength">Vibration strength</string>
     <string name="soft_input_opacity">Soft input opacity</string>
+    <string name="retroachievements">RetroAchievements</string> <!-- Keep words together because this is the official name -->
+    <string name="retroachievements_summary">Login &amp; manage RetroAchievements integration</string> <!-- Keep words together because this is the official name -->
+    <string name="enable_rich_presence">Enable rich presence</string>
+    <string name="rich_presence_summary">Allows other RetroAchievement users to see what you are playing</string>
+    <string name="hardcore_mode">Hardcore mode</string>
+    <string name="hardcore_mode_summary">Earn double the amount of points but you cannot use save states, cheats or slow-motion while playing</string>
+
     <string name="cheats">Cheats</string>
     <string name="cheats_summary">Enable &amp; import cheat codes</string>
     <string name="enable_cheats">Enable cheats</string>
@@ -294,18 +312,30 @@
     <string name="retro_achievements_login_description">Login with RetroAchievements to view achievements that you can unlock while playing this game!</string>
     <string name="login_with_retro_achievements">Login with RetroAchievements</string>
     <string name="login">Login</string>
+    <string name="retroachievements_login_summary">Login with RetroAchievements to unlock achievements while playing!</string>
+    <string name="retroachievements_login_status">Logged in as %1$s</string>
+    <string name="retroachievements_logout">Logout</string>
+    <string name="retroachievements_logout_confirmation">Are you sure you want to logout from RetroAchievements? You won\'t be able to unlock achievements while playing.</string>
     <string name="retro_achievements_login_error">There was a problem when trying to login. Make sure that your username and password are correct, and that you are connected to the internet</string>
+    <string name="retro_achievements_login_error_short">There was a problem when trying to login</string>
     <string name="retro_achievements_load_error">There was a problem when trying to load the achievements for this game. Make sure you are connected to the internet and try again later</string>
     <string name="retro_achievements_no_achievements">No RetroAchievements were found for this game</string>
+    <string name="retro_achievements_relaunch_to_apply_settings">Relaunch the ROM to apply the new RetroAchievements settings</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="retry">Retry</string>
     <string name="points_abbreviated">PTS</string>
     <string name="points">Points</string>
     <string name="completed">Completed</string>
+    <string name="ra_mode_hardcore">Hardcore</string>
+    <string name="ra_mode_softcore">Softcore</string>
     <string name="view_achievement">View achievement</string>
     <string name="completed_achievements"><b>%1$d</b> of <b>%2$d</b> (%3$d%%)</string>
     <string name="submitting_achievements">Submitting RetroAchievements…</string>
+    <string name="achievements_loaded">Achievements loaded</string>
+    <string name="achievements_unlocked_compact">Unlocked: %1$d/%2$d</string>
+    <string name="achievements_failed_load">Failed to load achievements!</string>
+    <string name="achievements_failed_load_tip">Make sure you are Online</string>
     <string name="achievement_unlocked">Achievement unlocked!</string>
     <string name="achievement_missable">Missable</string>
     <string name="achievement_missable_description">This achievement can be missed during a playthrough</string>
@@ -369,6 +399,12 @@
         <item>HQ4X</item>
         <item>Quilez</item>
         <item>LCD</item>
+    </string-array>
+
+    <string-array name="dsi_camera_source_options">
+        <item>Black screen</item>
+        <item>Physical cameras</item>
+        <item>Static image</item>
     </string-array>
 
     <string-array name="audio_interpolation_options">

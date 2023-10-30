@@ -40,8 +40,8 @@ class DefaultLayoutProvider(private val context: Context, private val screenUnit
         var screenHeight = (width / DS_ASPECT_RATIO).toInt()
         var screenMargin = 0
         if (screenHeight * 2 > height) {
-            screenWidth = (height * DS_ASPECT_RATIO).toInt()
-            screenHeight = height
+            screenWidth = (height / 2 * DS_ASPECT_RATIO).toInt()
+            screenHeight = height / 2
             screenMargin = (width - screenWidth) / 2
         }
 

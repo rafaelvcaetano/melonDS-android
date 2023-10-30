@@ -5,6 +5,7 @@ on:
   push:
     tags:
       - '*'
+      - '!nightly-release'
 
 jobs:
   github-release:
@@ -17,7 +18,7 @@ jobs:
 
       - uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: zulu
 
       - name: Setup Android SDK

@@ -29,6 +29,7 @@ import androidx.core.graphics.set
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.DSiWareTitle
 import me.magnum.melonds.domain.model.RomIconFiltering
+import me.magnum.melonds.ui.common.component.text.CaptionText
 import me.magnum.melonds.ui.romlist.RomIcon
 import me.magnum.melonds.ui.theme.MelonTheme
 
@@ -65,7 +66,7 @@ fun DSiWareItem(
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
                 )
-                Text(
+                CaptionText(
                     text = item.producer,
                     style = MaterialTheme.typography.body2,
                 )
