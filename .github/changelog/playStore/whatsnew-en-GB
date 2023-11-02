@@ -1,9 +1,8 @@
-<b>IMPORTANT</b>: This update brings the changes from melonDS 0.9.5, which has incompatible saves-states with the previous version. If you rely on save-states to keep your progress, be aware that you will lose it!
-
-• Update to melonDS 0.9.5
-• You can now install DSiWare titles to the NAND
-• Add home shortcuts for DS and DSi firmwares
-• Improve search performance
-• Add option to quickly view enabled cheats
-• Monochrome icon
-• Add Indonesian, French, Spanish and Portuguese (Brazil) translations
+• Add support for RetroAchievements (leaderboards are not yet supported)
+• Add support for DSi camera
+• Add proper support for Wi-Fi connectivity (huge thanks to Jesse from the melonDS team!)
+• Fix DS firmware not being able to boot under certain scenarios
+• Fix some crashes when JIT was enabled
+• Fix some issues on startup when save files could not be created
+• Updated French, Russian and Spanish translations
+• Other minor fixes and improvements
