@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
 
@@ -112,6 +112,7 @@ jobs:
           changesNotSentForReview: true
           whatsNewDirectory: ./.github/changelog/playStore
           mappingFile: app/build/outputs/mapping/playStoreRelease/mapping.txt
+          debugSymbols: app/build/outputs/native-debug-symbols/playStoreRelease/native-debug-symbols.zip
 
       - name: Upload APK, Mapping and Debug Symbols
         uses: actions/upload-artifact@v3
