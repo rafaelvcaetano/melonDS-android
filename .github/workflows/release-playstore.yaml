@@ -51,7 +51,6 @@ jobs:
           track: beta
           inAppUpdatePriority: 2
           status: draft
-          changesNotSentForReview: true
           whatsNewDirectory: ./.github/changelog/playStore
           mappingFile: app/build/outputs/mapping/playStoreRelease/mapping.txt
           debugSymbols: app/build/outputs/native-debug-symbols/playStoreRelease/native-debug-symbols.zip
