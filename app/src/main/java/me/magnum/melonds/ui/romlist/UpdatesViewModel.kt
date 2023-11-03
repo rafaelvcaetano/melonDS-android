@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.disposables.CompositeDisposable
 import me.magnum.melonds.common.Schedulers
-import me.magnum.melonds.domain.model.AppUpdate
+import me.magnum.melonds.domain.model.appupdate.AppUpdate
 import me.magnum.melonds.domain.model.DownloadProgress
 import me.magnum.melonds.domain.repositories.UpdatesRepository
 import me.magnum.melonds.domain.services.UpdateInstallManager
@@ -47,6 +47,9 @@ class UpdatesViewModel @Inject constructor(
             .subscribeOn(schedulers.backgroundThreadScheduler)
             .subscribe {
                 updateDownloadProgressLiveData.postValue(it)
+                if (it is DownloadProgress.DownloadComplete) {
+                    updatesRepository.notifyUpdateDownloaded(update)
+                }
             }
             .addTo(disposables)
     }

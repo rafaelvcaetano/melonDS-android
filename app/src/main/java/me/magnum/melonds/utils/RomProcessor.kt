@@ -37,6 +37,8 @@ object RomProcessor {
 						stream.read(header)
 						save(KEY_HEADER, header)
 
+						val gameCode = String(header, 0x0C, 4)
+
 						val arm9Offset = byteArrayToInt(header, 0x20)
 						val arm9Size = byteArrayToInt(header, 0x2C)
 
@@ -78,22 +80,30 @@ object RomProcessor {
 							save(KEY_DEVELOPER_NAME, developer)
 						}
 
+						val cartCategory = gameCode[0]
+						if (cartCategory == 'H' || cartCategory == 'K') {
+							// This is probably a DSi Ware game. But confirm in a later value processor
+							register(
+								RomStreamDataProcessor.SectionProcessor.SectionValueProcessor(
+									streamOffset = 0x234
+								) { stream, save ->
+									val categoryData = ByteArray(4)
+									stream.read(categoryData)
+									val categoryId = byteArrayToInt(categoryData)
+									save(KEY_ROM_IS_DSIWARE_TITLE, categoryId.toUInt() == DSIWARE_CATEGORY)
+								}
+							)
+						} else {
+							save(KEY_ROM_IS_DSIWARE_TITLE, false)
+						}
+
 						register(arm9Processor)
 						register(arm7Processor)
 						register(bannerProcessor)
 					}
 				)
 			)
-			registerProcessor(
-				RomStreamDataProcessor.SectionProcessor.SectionValueProcessor(
-					streamOffset = 0x234
-				) { stream, save ->
-					val categoryData = ByteArray(4)
-					stream.read(categoryData)
-					val categoryId = byteArrayToInt(categoryData)
-					save(KEY_ROM_IS_DSIWARE_TITLE, categoryId.toUInt() == DSIWARE_CATEGORY)
-				}
-			)
+
 			process(inputStream)
 		}
 

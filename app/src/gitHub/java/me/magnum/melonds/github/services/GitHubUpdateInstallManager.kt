@@ -10,7 +10,7 @@ import android.net.Uri
 import androidx.core.content.getSystemService
 import io.reactivex.Observable
 import me.magnum.melonds.common.providers.UpdateContentProvider
-import me.magnum.melonds.domain.model.AppUpdate
+import me.magnum.melonds.domain.model.appupdate.AppUpdate
 import me.magnum.melonds.domain.model.DownloadProgress
 import me.magnum.melonds.domain.services.UpdateInstallManager
 import java.io.File

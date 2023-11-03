@@ -49,7 +49,10 @@
     <string name="action_refresh_rom_list">Refresh ROM list</string>
     <string name="hint_search_roms">Search ROMs…</string>
     <string name="update_available">Update available: %1$s</string>
+    <string name="nightly_update_available">Nightly update available</string>
+    <string name="nightly_update_available_message">Do you want to download it now?</string>
     <string name="skip_update">Skip</string>
+    <string name="remind_later_update">Later</string>
     <string name="downloading_update">Downloading update…</string>
     <string name="starting_download">Starting download…</string>
     <string name="download_progress_sizes">%1$.1fMB/%2$.1fMB</string>
@@ -148,6 +151,8 @@
     <string name="rewind_memory_usage_above_recommended_limit">Memory usage above recommended limit</string>
     <string name="sustained_performance_mode">Sustained performance mode</string>
     <string name="sustained_performance_mode_summary">When enabled, peak performance will be lower but thermal throttling will be less pronounced.</string>
+    <string name="check_for_updates">Check for updates</string>
+    <string name="check_for_updates_summary">When enabled, the app will periodically check for available updates</string>
     <string name="rom_icon_filtering">Icon filtering</string>
     <string name="max_rom_cache_size">Max. ROM cache size</string>
     <string name="clear_extracted_rom_cache">Clear extracted ROM cache</string>

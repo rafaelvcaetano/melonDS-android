@@ -79,10 +79,12 @@ import me.magnum.melonds.impl.emulator.LifecycleOwnerProvider
 import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
+import me.magnum.melonds.ui.emulator.component.EmulatorOverlayTracker
 import me.magnum.melonds.ui.emulator.input.FrontendInputHandler
 import me.magnum.melonds.ui.emulator.input.INativeInputListener
 import me.magnum.melonds.ui.emulator.input.InputProcessor
 import me.magnum.melonds.ui.emulator.input.MelonTouchHandler
+import me.magnum.melonds.ui.emulator.model.EmulatorOverlay
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
 import me.magnum.melonds.ui.emulator.model.PauseMenu
@@ -210,8 +212,16 @@ class EmulatorActivity : AppCompatActivity() {
         closeRewindWindow()
     }
     private val showAchievementList = mutableStateOf(false)
-    private var resumeEmulatorOnActivityResume = true
     private var emulatorReady = false
+
+    private val activeOverlays = EmulatorOverlayTracker(
+        onOverlaysCleared = {
+            disableScreenTimeOut()
+        },
+        onOverlaysPresent = {
+            enableScreenTimeOut()
+        }
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -512,24 +522,25 @@ class EmulatorActivity : AppCompatActivity() {
 
         if (viewModel.emulatorState.value.isRunning()) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            resumeEmulatorOnActivityResume = false
             viewModel.pauseEmulator(false)
             backPressedCallback.isEnabled = false
 
+            activeOverlays.addActiveOverlay(EmulatorOverlay.SWITCH_NEW_ROM_DIALOG)
             AlertDialog.Builder(this)
                     .setTitle(getString(R.string.title_emulator_running))
                     .setMessage(getString(R.string.message_stop_emulation))
                     .setPositiveButton(R.string.ok) { _, _ ->
                         viewModel.stopEmulator()
-                        resumeEmulatorOnActivityResume = true
                         setIntent(intent)
                         launchEmulator()
                     }
                     .setNegativeButton(R.string.no) { dialog, _ ->
                         dialog.cancel()
                     }
+                    .setOnDismissListener {
+                        activeOverlays.removeActiveOverlay(EmulatorOverlay.SWITCH_NEW_ROM_DIALOG)
+                    }
                     .setOnCancelListener {
-                        resumeEmulatorOnActivityResume = true
                         backPressedCallback.isEnabled = true
                         viewModel.resumeEmulator()
                     }
@@ -541,7 +552,7 @@ class EmulatorActivity : AppCompatActivity() {
         super.onResume()
         binding.surfaceMain.onResume()
 
-        if (resumeEmulatorOnActivityResume) {
+        if (!activeOverlays.hasActiveOverlays()) {
             disableScreenTimeOut()
             viewModel.resumeEmulator()
         }
@@ -678,19 +689,18 @@ class EmulatorActivity : AppCompatActivity() {
             getString(pauseMenu.options[it].textResource)
         }
 
-        resumeEmulatorOnActivityResume = false
-        enableScreenTimeOut()
+        activeOverlays.addActiveOverlay(EmulatorOverlay.PAUSE_MENU)
         AlertDialog.Builder(this)
                 .setTitle(R.string.pause)
                 .setItems(options) { _, which ->
                     val selectedOption = pauseMenu.options[which]
                     viewModel.onPauseMenuOptionSelected(selectedOption)
-                    disableScreenTimeOut()
+                }
+                .setOnDismissListener {
+                    activeOverlays.removeActiveOverlay(EmulatorOverlay.PAUSE_MENU)
                 }
                 .setOnCancelListener {
                     viewModel.resumeEmulator()
-                    resumeEmulatorOnActivityResume = true
-                    disableScreenTimeOut()
                 }
                 .show()
     }
@@ -721,7 +731,6 @@ class EmulatorActivity : AppCompatActivity() {
         var adapter: SaveStateListAdapter? = null
 
         adapter = SaveStateListAdapter(slots, picasso, dateFormatter, timeFormatter, {
-            disableScreenTimeOut()
             dialog?.cancel()
             onSlotPicked(it)
         }) {
@@ -730,7 +739,7 @@ class EmulatorActivity : AppCompatActivity() {
             }
         }
 
-        enableScreenTimeOut()
+        activeOverlays.addActiveOverlay(EmulatorOverlay.SAVE_STATES_DIALOG)
         dialog = AlertDialog.Builder(this)
             .setTitle(getString(R.string.save_slot))
             .setAdapter(adapter) { _, _ ->
@@ -738,15 +747,17 @@ class EmulatorActivity : AppCompatActivity() {
             .setNegativeButton(R.string.cancel) { _dialog, _ ->
                 _dialog.cancel()
             }
+            .setOnDismissListener {
+                activeOverlays.removeActiveOverlay(EmulatorOverlay.SAVE_STATES_DIALOG)
+            }
             .setOnCancelListener {
                 viewModel.resumeEmulator()
-                disableScreenTimeOut()
             }
             .show()
     }
 
     private fun showRomLoadErrorDialog() {
-        enableScreenTimeOut()
+        activeOverlays.addActiveOverlay(EmulatorOverlay.ROM_LOAD_ERROR_DIALOG)
         AlertDialog.Builder(this)
             .setCancelable(false)
             .setTitle(R.string.error_load_rom)
@@ -759,7 +770,7 @@ class EmulatorActivity : AppCompatActivity() {
     }
 
     private fun showRomNotFoundDialog(romPath: String) {
-        enableScreenTimeOut()
+        activeOverlays.addActiveOverlay(EmulatorOverlay.ROM_NOT_FOUND_DIALOG)
         AlertDialog.Builder(this)
             .setTitle(R.string.error_rom_not_found)
             .setMessage(getString(R.string.error_rom_not_found_info, romPath))
@@ -773,7 +784,7 @@ class EmulatorActivity : AppCompatActivity() {
     }
 
     private fun showFirmwareLoadErrorDialog(error: EmulatorState.FirmwareLoadError) {
-        enableScreenTimeOut()
+        activeOverlays.addActiveOverlay(EmulatorOverlay.FIRMWARE_LOAD_ERROR_DIALOG)
         AlertDialog.Builder(this)
             .setCancelable(false)
             .setTitle(R.string.error_load_firmware)
@@ -786,13 +797,13 @@ class EmulatorActivity : AppCompatActivity() {
     }
 
     private fun showRewindWindow(rewindWindow: RewindWindow) {
-        enableScreenTimeOut()
+        activeOverlays.addActiveOverlay(EmulatorOverlay.REWIND_WINDOW)
         binding.root.transitionToState(R.id.rewind_visible)
         rewindSaveStateAdapter.setRewindWindow(rewindWindow)
     }
 
     private fun closeRewindWindow() {
-        disableScreenTimeOut()
+        activeOverlays.removeActiveOverlay(EmulatorOverlay.REWIND_WINDOW)
         binding.root.transitionToState(R.id.rewind_hidden)
         viewModel.resumeEmulator()
     }
