@@ -1,10 +1,10 @@
 package me.magnum.melonds.domain.repositories
 
 import io.reactivex.Maybe
-import io.reactivex.Observable
-import me.magnum.melonds.domain.model.AppUpdate
+import me.magnum.melonds.domain.model.appupdate.AppUpdate
 
 interface UpdatesRepository {
     fun checkNewUpdate(): Maybe<AppUpdate>
     fun skipUpdate(update: AppUpdate)
+    fun notifyUpdateDownloaded(update: AppUpdate)
 }

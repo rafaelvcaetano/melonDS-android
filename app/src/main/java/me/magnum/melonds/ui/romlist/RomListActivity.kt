@@ -27,6 +27,7 @@ import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.contracts.DirectoryPickerContract
 import me.magnum.melonds.databinding.ActivityRomListBinding
 import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.appupdate.AppUpdate
 import me.magnum.melonds.ui.dsiwaremanager.DSiWareManagerActivity
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.ui.settings.SettingsActivity
@@ -98,7 +99,10 @@ class RomListActivity : AppCompatActivity() {
         }
 
         updatesViewModel.getAppUpdate().observe(this) {
-            showUpdateAvailableDialog(it)
+            when (it.type) {
+                AppUpdate.Type.PRODUCTION -> showProdUpdateAvailableDialog(it)
+                AppUpdate.Type.NIGHTLY -> showNightlyUpdateAvailableDialog(it)
+            }
         }
         updatesViewModel.getDownloadProgress().observe(this) {
             onDownloadProgressUpdated(it)
@@ -199,7 +203,7 @@ class RomListActivity : AppCompatActivity() {
         romListFragment.setRomSelectedListener { rom -> loadRom(rom) }
     }
 
-    private fun showUpdateAvailableDialog(update: AppUpdate) {
+    private fun showProdUpdateAvailableDialog(update: AppUpdate) {
         val message = markwon.toMarkdown(update.description)
 
         AlertDialog.Builder(this)
@@ -210,6 +214,19 @@ class RomListActivity : AppCompatActivity() {
             }
             .setNegativeButton(R.string.cancel, null)
             .setNeutralButton(R.string.skip_update) { _, _ ->
+                updatesViewModel.skipUpdate(update)
+            }
+            .show()
+    }
+
+    private fun showNightlyUpdateAvailableDialog(update: AppUpdate) {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.nightly_update_available))
+            .setMessage(getString(R.string.nightly_update_available_message))
+            .setPositiveButton(R.string.update) { _, _ ->
+                startUpdateDownload(update)
+            }
+            .setNegativeButton(R.string.remind_later_update) { _, _ ->
                 updatesViewModel.skipUpdate(update)
             }
             .show()

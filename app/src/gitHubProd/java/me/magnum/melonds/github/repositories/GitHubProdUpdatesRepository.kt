@@ -6,17 +6,19 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import io.reactivex.Maybe
 import io.reactivex.Single
-import me.magnum.melonds.domain.model.AppUpdate
+import me.magnum.melonds.domain.model.appupdate.AppUpdate
 import me.magnum.melonds.domain.model.Version
 import me.magnum.melonds.domain.repositories.UpdatesRepository
 import me.magnum.melonds.github.GitHubApi
+import me.magnum.melonds.github.PREF_KEY_GITHUB_CHECK_FOR_UPDATES
 import me.magnum.melonds.github.dtos.ReleaseDto
 import me.magnum.melonds.utils.PackageManagerCompat
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
+import java.time.Instant
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class GitHubUpdatesRepository(private val context: Context, private val api: GitHubApi, private val preferences: SharedPreferences) : UpdatesRepository {
+class GitHubProdUpdatesRepository(private val context: Context, private val api: GitHubApi, private val preferences: SharedPreferences) : UpdatesRepository {
     companion object {
         private const val APK_CONTENT_TYPE = "application/vnd.android.package-archive"
         private const val KEY_SKIP_VERSION = "github_updates_skip_version"
@@ -35,11 +37,13 @@ class GitHubUpdatesRepository(private val context: Context, private val api: Git
                             val apkBinary = release.assets.firstOrNull { it.contentType == APK_CONTENT_TYPE }
                             if (apkBinary != null) {
                                 val update = AppUpdate(
+                                    AppUpdate.Type.PRODUCTION,
                                     apkBinary.id,
                                     apkBinary.url.toUri(),
                                     Version.fromString(release.tagName),
                                     release.body,
-                                    apkBinary.size
+                                    apkBinary.size,
+                                    Instant.parse(release.createdAt),
                                 )
                                 Maybe.just(update)
                             } else {
@@ -61,8 +65,18 @@ class GitHubUpdatesRepository(private val context: Context, private val api: Git
         }
     }
 
+    override fun notifyUpdateDownloaded(update: AppUpdate) {
+        // Do nothing
+    }
+
     private fun shouldCheckUpdates(): Single<Boolean> {
         return Single.create { emitter ->
+            val updateCheckEnabled = preferences.getBoolean(PREF_KEY_GITHUB_CHECK_FOR_UPDATES, true)
+            if (!updateCheckEnabled) {
+                emitter.onSuccess(false)
+                return@create
+            }
+
             val lastCheckUpdateTimestamp = preferences.getLong(KEY_LAST_UPDATE_CHECK, -1)
             if (lastCheckUpdateTimestamp == (-1).toLong()) {
                 emitter.onSuccess(true)

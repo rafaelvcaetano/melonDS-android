@@ -1,8 +1,8 @@
 package me.magnum.melonds.services
 
 import io.reactivex.Observable
-import me.magnum.melonds.domain.model.AppUpdate
 import me.magnum.melonds.domain.model.DownloadProgress
+import me.magnum.melonds.domain.model.appupdate.AppUpdate
 import me.magnum.melonds.domain.services.UpdateInstallManager
 
 class PlayStoreUpdateInstallManager : UpdateInstallManager {

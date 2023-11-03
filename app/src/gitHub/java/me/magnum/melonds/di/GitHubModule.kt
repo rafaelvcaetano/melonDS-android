@@ -7,10 +7,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import me.magnum.melonds.domain.repositories.UpdatesRepository
 import me.magnum.melonds.domain.services.UpdateInstallManager
 import me.magnum.melonds.github.GitHubApi
-import me.magnum.melonds.github.repositories.GitHubUpdatesRepository
 import me.magnum.melonds.github.services.GitHubUpdateInstallManager
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -30,13 +28,6 @@ object GitHubModule {
             .build()
 
         return retrofit.create(GitHubApi::class.java)
-    }
-
-    @Provides
-    @Singleton
-    fun provideUpdatesRepository(@ApplicationContext context: Context, gitHubApi: GitHubApi): UpdatesRepository {
-        val gitHubPreferences = context.getSharedPreferences("preferences-github", Context.MODE_PRIVATE)
-        return GitHubUpdatesRepository(context, gitHubApi, gitHubPreferences)
     }
 
     @Provides
