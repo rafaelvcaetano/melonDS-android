@@ -730,14 +730,21 @@ class EmulatorActivity : AppCompatActivity() {
         var dialog: AlertDialog? = null
         var adapter: SaveStateListAdapter? = null
 
-        adapter = SaveStateListAdapter(slots, picasso, dateFormatter, timeFormatter, {
-            dialog?.cancel()
-            onSlotPicked(it)
-        }) {
-            viewModel.deleteSaveStateSlot(it)?.let { newSlots ->
-                adapter?.updateSaveStateSlots(newSlots)
-            }
-        }
+        adapter = SaveStateListAdapter(
+            slots = slots,
+            picasso = picasso,
+            dateFormat = dateFormatter,
+            timeFormat = timeFormatter,
+            onSlotSelected = {
+                dialog?.dismiss()
+                onSlotPicked(it)
+            },
+            onDeletedSlot = {
+                viewModel.deleteSaveStateSlot(it)?.let { newSlots ->
+                    adapter?.updateSaveStateSlots(newSlots)
+                }
+            },
+        )
 
         activeOverlays.addActiveOverlay(EmulatorOverlay.SAVE_STATES_DIALOG)
         dialog = AlertDialog.Builder(this)
