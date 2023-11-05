@@ -4,10 +4,14 @@ data class Version(val type: ReleaseType, val major: Int, val minor: Int, val pa
     enum class ReleaseType {
         ALPHA,
         BETA,
-        FINAL
+        FINAL,
+        NIGHTLY,
     }
 
     companion object {
+
+        val Nightly = Version(ReleaseType.NIGHTLY, -1, -1, -1)
+
         /**
          * Converts a version string in the format of `[alpha|beta-]major.minor.patch` to a [Version]. If a string with an invalid format is provided, an exception will be
          * thrown.
@@ -19,8 +23,12 @@ data class Version(val type: ReleaseType, val major: Int, val minor: Int, val pa
                 Version(ReleaseType.FINAL, intParts[0], intParts[1], intParts[2])
             } else if (parts.size == 2) {
                 val versionType = releaseTypeStringToValue(parts[0])
-                val intParts = ensureMinimumVersionParts(parts[1].split('.').map { it.toInt() })
-                Version(versionType, intParts[0], intParts[1], intParts[2])
+                if (versionType == ReleaseType.NIGHTLY) {
+                    Nightly
+                } else {
+                    val intParts = ensureMinimumVersionParts(parts[1].split('.').map { it.toInt() })
+                    Version(versionType, intParts[0], intParts[1], intParts[2])
+                }
             } else {
                 throw Exception("Invalid version string format")
             }
@@ -77,6 +85,7 @@ data class Version(val type: ReleaseType, val major: Int, val minor: Int, val pa
             ReleaseType.ALPHA -> "alpha"
             ReleaseType.BETA -> "beta"
             ReleaseType.FINAL -> ""
+            ReleaseType.NIGHTLY -> return "nightly"
         }
         return "$typeString${if (typeString.isEmpty()) "" else "-"}$major.$minor.$patch"
     }

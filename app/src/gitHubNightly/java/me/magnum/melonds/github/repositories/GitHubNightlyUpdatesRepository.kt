@@ -3,8 +3,8 @@ package me.magnum.melonds.github.repositories
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import io.reactivex.Maybe
-import io.reactivex.Single
+import me.magnum.melonds.common.suspendMapCatching
+import me.magnum.melonds.common.suspendRunCatching
 import me.magnum.melonds.domain.model.Version
 import me.magnum.melonds.domain.model.appupdate.AppUpdate
 import me.magnum.melonds.domain.repositories.UpdatesRepository
@@ -21,35 +21,33 @@ class GitHubNightlyUpdatesRepository(private val api: GitHubApi, private val pre
         private const val KEY_LAST_RELEASE_DATE = "github_updates_nightly_last_release_date"
     }
 
-    override fun checkNewUpdate(): Maybe<AppUpdate> {
-        return shouldCheckUpdates()
-            .flatMapMaybe { checkUpdates ->
-                if (checkUpdates) {
-                    api.getLatestNightlyRelease().flatMapMaybe { release ->
-                        if (shouldUpdate(release)) {
-                            val apkBinary = release.assets.firstOrNull { it.contentType == APK_CONTENT_TYPE }
-                            if (apkBinary != null) {
-                                val update = AppUpdate(
-                                    AppUpdate.Type.NIGHTLY,
-                                    apkBinary.id,
-                                    apkBinary.url.toUri(),
-                                    Version.fromString(release.tagName),
-                                    release.body,
-                                    apkBinary.size,
-                                    Instant.parse(release.createdAt),
-                                )
-                                Maybe.just(update)
-                            } else {
-                                Maybe.empty()
-                            }
-                        } else {
-                            Maybe.empty()
-                        }
-                    }
+    override suspend fun checkNewUpdate(): Result<AppUpdate?> {
+        if (!shouldCheckUpdates()) {
+            return Result.success(null)
+        }
+
+        return suspendRunCatching {
+            api.getLatestNightlyRelease()
+        }.suspendMapCatching { release ->
+            if (shouldUpdate(release)) {
+                val apkBinary = release.assets.firstOrNull { it.contentType == APK_CONTENT_TYPE }
+                if (apkBinary != null) {
+                    AppUpdate(
+                        AppUpdate.Type.NIGHTLY,
+                        apkBinary.id,
+                        apkBinary.url.toUri(),
+                        Version.fromString(release.tagName),
+                        release.body,
+                        apkBinary.size,
+                        Instant.parse(release.createdAt),
+                    )
                 } else {
-                    Maybe.empty()
+                    null
                 }
+            } else {
+                null
             }
+        }
     }
 
     override fun skipUpdate(update: AppUpdate) {
@@ -64,25 +62,19 @@ class GitHubNightlyUpdatesRepository(private val api: GitHubApi, private val pre
         }
     }
 
-    private fun shouldCheckUpdates(): Single<Boolean> {
-        return Single.create { emitter ->
-            val updateCheckEnabled = preferences.getBoolean(PREF_KEY_GITHUB_CHECK_FOR_UPDATES, true)
-            if (!updateCheckEnabled) {
-                emitter.onSuccess(false)
-                return@create
-            }
-
-            val nextUpdateCheckTime = preferences.getLong(KEY_NEXT_CHECK_DATE, -1)
-            if (nextUpdateCheckTime == (-1).toLong()) {
-                emitter.onSuccess(true)
-                return@create
-            }
-
-            val now = Instant.now()
-            val shouldCheckUpdates = now.toEpochMilli() > nextUpdateCheckTime
-
-            emitter.onSuccess(shouldCheckUpdates)
+    private fun shouldCheckUpdates(): Boolean {
+        val updateCheckEnabled = preferences.getBoolean(PREF_KEY_GITHUB_CHECK_FOR_UPDATES, true)
+        if (!updateCheckEnabled) {
+            return false
         }
+
+        val nextUpdateCheckTime = preferences.getLong(KEY_NEXT_CHECK_DATE, -1)
+        if (nextUpdateCheckTime == (-1).toLong()) {
+            return true
+        }
+
+        val now = Instant.now()
+        return now.toEpochMilli() > nextUpdateCheckTime
     }
 
     private fun scheduleNextUpdate() {

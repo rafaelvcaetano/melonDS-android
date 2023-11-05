@@ -26,7 +26,12 @@ import me.magnum.melonds.R
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.contracts.DirectoryPickerContract
 import me.magnum.melonds.databinding.ActivityRomListBinding
-import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.ConfigurationDirResult
+import me.magnum.melonds.domain.model.ConsoleType
+import me.magnum.melonds.domain.model.DownloadProgress
+import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.SortingMode
+import me.magnum.melonds.domain.model.Version
 import me.magnum.melonds.domain.model.appupdate.AppUpdate
 import me.magnum.melonds.ui.dsiwaremanager.DSiWareManagerActivity
 import me.magnum.melonds.ui.emulator.EmulatorActivity
@@ -98,14 +103,22 @@ class RomListActivity : AppCompatActivity() {
             }
         }
 
-        updatesViewModel.getAppUpdate().observe(this) {
-            when (it.type) {
-                AppUpdate.Type.PRODUCTION -> showProdUpdateAvailableDialog(it)
-                AppUpdate.Type.NIGHTLY -> showNightlyUpdateAvailableDialog(it)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                updatesViewModel.appUpdate.collectLatest {
+                    when (it.type) {
+                        AppUpdate.Type.PRODUCTION -> showProdUpdateAvailableDialog(it)
+                        AppUpdate.Type.NIGHTLY -> showNightlyUpdateAvailableDialog(it)
+                    }
+                }
             }
         }
-        updatesViewModel.getDownloadProgress().observe(this) {
-            onDownloadProgressUpdated(it)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                updatesViewModel.updateDownloadProgressEvent.collectLatest {
+                    onDownloadProgressUpdated(it)
+                }
+            }
         }
     }
 
@@ -282,6 +295,7 @@ class RomListActivity : AppCompatActivity() {
             Version.ReleaseType.ALPHA -> getString(R.string.version_alpha)
             Version.ReleaseType.BETA -> getString(R.string.version_beta)
             Version.ReleaseType.FINAL -> ""
+            Version.ReleaseType.NIGHTLY -> return getString(R.string.version_nightly)
         }
         return "$typeString${if (typeString.isEmpty()) "" else " "}${version.major}.${version.minor}.${version.patch}"
     }

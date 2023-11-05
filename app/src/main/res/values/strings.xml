@@ -21,6 +21,7 @@
 
     <string name="version_alpha">Alpha</string>
     <string name="version_beta">Beta</string>
+    <string name="version_nightly">Nightly</string>
 
     <string name="console_ds">DS</string>
     <string name="console_dsi">DSi (Experimental)</string>

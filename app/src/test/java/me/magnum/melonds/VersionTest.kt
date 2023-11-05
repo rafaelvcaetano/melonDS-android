@@ -100,6 +100,13 @@ class VersionTest {
     }
 
     @Test
+    fun testNightlyFromString() {
+        val version = Version.fromString("nightly-release")
+
+        assertEquals(Version.Nightly, version)
+    }
+
+    @Test
     fun testInvalidFromString() {
         try {
             Version.fromString("wrong-1.2.3")
