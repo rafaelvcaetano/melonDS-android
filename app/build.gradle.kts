@@ -4,7 +4,6 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("kotlin-parcelize")
-    id("kotlin-kapt")
     id("com.google.devtools.ksp")
     id("dagger.hilt.android.plugin")
     id("org.jetbrains.kotlin.android")
@@ -195,10 +194,9 @@ dependencies {
         gitHubImplementation(retrofitConverterGson)
     }
 
-    // KAPT
-    with(Dependencies.Kapt) {
-        kapt(hiltCompiler)
-        kapt(hiltCompilerAndroid)
+    with(Dependencies.Ksp) {
+        ksp(hiltCompiler)
+        ksp(hiltCompilerAndroid)
         ksp(roomCompiler)
     }
 

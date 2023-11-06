@@ -16,8 +16,8 @@ object Dependencies {
         const val Fragment = "1.5.7"
         const val Gradle = "8.1.0"
         const val Gson = "2.8.6"
-        const val HiltX = "1.0.0"
-        const val Hilt = "2.47"
+        const val HiltX = "1.1.0"
+        const val Hilt = "2.48"
         const val Junit = "4.12"
         const val Kotlin = "1.9.0"
         const val KotlinxCoroutines = "1.7.3"
@@ -28,7 +28,7 @@ object Dependencies {
         const val Picasso = "2.71828"
         const val Preference = "1.2.0"
         const val RecyclerView = "1.3.1"
-        const val Room = "2.5.2"
+        const val Room = "2.6.0"
         const val RxAndroid = "2.1.1"
         const val RxJava = "2.2.10"
         const val Splashscreen = "1.0.0"
@@ -115,7 +115,7 @@ object Dependencies {
         const val retrofitConverterGson = "com.squareup.retrofit2:converter-gson:${Versions.Retrofit}"
     }
 
-    object Kapt {
+    object Ksp {
         const val hiltCompiler = "androidx.hilt:hilt-compiler:${Versions.HiltX}"
         const val hiltCompilerAndroid = "com.google.dagger:hilt-android-compiler:${Versions.Hilt}"
         const val roomCompiler = "androidx.room:room-compiler:${Versions.Room}"
