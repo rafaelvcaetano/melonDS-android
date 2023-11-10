@@ -11,7 +11,7 @@ import me.magnum.melonds.extensions.setViewEnabledRecursive
 class FolderCheatsScreenFragment : SubScreenFragment() {
 
     override fun getScreenName(): String? {
-        return viewModel.getSelectedFolder().value?.name
+        return viewModel.selectedCheatFolder.value?.name
     }
 
     override fun getSubScreenAdapter(): RecyclerView.Adapter<*> {

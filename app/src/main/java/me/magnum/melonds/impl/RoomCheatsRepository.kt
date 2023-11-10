@@ -3,16 +3,29 @@ package me.magnum.melonds.impl
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.Observer
-import androidx.work.*
-import io.reactivex.Completable
-import io.reactivex.Maybe
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import me.magnum.melonds.common.workers.CheatImportWorker
 import me.magnum.melonds.database.MelonDatabase
-import me.magnum.melonds.database.entities.*
-import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.database.entities.CheatDatabaseEntity
+import me.magnum.melonds.database.entities.CheatEntity
+import me.magnum.melonds.database.entities.CheatFolderEntity
+import me.magnum.melonds.database.entities.CheatStatusUpdate
+import me.magnum.melonds.database.entities.GameEntity
+import me.magnum.melonds.domain.model.Cheat
+import me.magnum.melonds.domain.model.CheatDatabase
+import me.magnum.melonds.domain.model.CheatFolder
+import me.magnum.melonds.domain.model.CheatImportProgress
+import me.magnum.melonds.domain.model.Game
+import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.repositories.CheatsRepository
 
 class RoomCheatsRepository(private val context: Context, private val database: MelonDatabase) : CheatsRepository {
@@ -20,32 +33,50 @@ class RoomCheatsRepository(private val context: Context, private val database: M
         private const val IMPORT_WORKER_NAME = "cheat_import_worker"
     }
 
-    override fun getAllRomCheats(romInfo: RomInfo): Maybe<List<Game>> {
-        return database.gameDao().findGameWithCheats(romInfo.gameCode, romInfo.headerChecksumString()).map {
+    override suspend fun observeGames(): Flow<List<Game>> {
+        return database.gameDao().getGames().map {
             it.map { game ->
                 Game(
-                        game.game.id,
-                        game.game.name,
-                        game.game.gameCode,
-                        game.game.gameChecksum,
-                        game.cheatFolders.map { category ->
-                            CheatFolder(
-                                    category.cheatFolder.id,
-                                    category.cheatFolder.name,
-                                    category.cheats.map { cheat ->
-                                        Cheat(
-                                                cheat.id,
-                                                cheat.name,
-                                                cheat.description,
-                                                cheat.code,
-                                                cheat.enabled
-                                        )
-                                    }
-                            )
-                        }
+                    game.id,
+                    game.name,
+                    game.gameCode,
+                    game.gameChecksum,
+                    emptyList(),
                 )
             }
-        }.subscribeOn(Schedulers.io())
+        }
+    }
+
+    override suspend fun findGamesForRom(romInfo: RomInfo): List<Game> {
+        return database.gameDao().findGames(romInfo.gameCode, romInfo.headerChecksumString()).map {
+            Game(
+                it.id,
+                it.name,
+                it.gameCode,
+                it.gameChecksum,
+                emptyList(),
+            )
+        }
+    }
+
+    override suspend fun getAllGameCheats(game: Game): List<CheatFolder> {
+        val gameId = game.id ?: return emptyList()
+
+        return database.gameDao().getGameCheats(gameId).map {
+            CheatFolder(
+                it.cheatFolder.id,
+                it.cheatFolder.name,
+                it.cheats.map { cheat ->
+                    Cheat(
+                        cheat.id,
+                        cheat.name,
+                        cheat.description,
+                        cheat.code,
+                        cheat.enabled
+                    )
+                }
+            )
+        }
     }
 
     override fun getRomEnabledCheats(romInfo: RomInfo): Single<List<Cheat>> {
@@ -62,15 +93,12 @@ class RoomCheatsRepository(private val context: Context, private val database: M
         }.subscribeOn(Schedulers.io())
     }
 
-    override fun updateCheatsStatus(cheats: List<Cheat>): Completable {
+    override suspend fun updateCheatsStatus(cheats: List<Cheat>) {
         val cheatEntities = cheats.map {
             CheatStatusUpdate(it.id!!, it.enabled)
         }
 
-        return Completable.create {
-            database.cheatDao().updateCheatsStatus(cheatEntities)
-            it.onComplete()
-        }.subscribeOn(Schedulers.io())
+        database.cheatDao().updateCheatsStatus(cheatEntities)
     }
 
     override fun deleteCheatDatabaseIfExists(databaseName: String) {

@@ -20,5 +20,5 @@ interface CheatDao {
     fun getEnabledRomCheats(gameCode: String, gameChecksum: String): Single<List<CheatEntity>>
 
     @Update(entity = CheatEntity::class)
-    fun updateCheatsStatus(cheats: List<CheatStatusUpdate>)
+    suspend fun updateCheatsStatus(cheats: List<CheatStatusUpdate>)
 }
