@@ -75,17 +75,18 @@ open class MasterSwitchPreference : Preference {
             dest.writeParcelable(attrs, 0)
         }
 
-        companion object {
-            val CREATOR: Parcelable.Creator<SavedState?> =
-                object : Parcelable.Creator<SavedState?> {
-                    override fun createFromParcel(`in`: Parcel): SavedState? {
-                        return SavedState(`in`)
-                    }
+        override fun describeContents(): Int {
+            return 0
+        }
 
-                    override fun newArray(size: Int): Array<SavedState?> {
-                        return arrayOfNulls(size)
-                    }
-                }
+        companion object CREATOR : Parcelable.Creator<SavedState> {
+            override fun createFromParcel(parcel: Parcel): SavedState {
+                return SavedState(parcel)
+            }
+
+            override fun newArray(size: Int): Array<SavedState?> {
+                return arrayOfNulls(size)
+            }
         }
     }
 
