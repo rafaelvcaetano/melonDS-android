@@ -27,11 +27,6 @@ class Api24RomFileProcessorFactory(private val context: Context, private val uri
     }
 
     override fun getRomFileProcessorForFileExtension(extension: String): RomFileProcessor? {
-        return when (extension) {
-            "nds" -> NdsRomFileProcessor(context, uriHandler)
-            "zip" -> ZipRomFileProcessor(context, uriHandler, ndsRomCache)
-            "7z" -> SevenZRomFileProcessor(context, uriHandler, ndsRomCache)
-            else -> null
-        }
+        return prefixProcessorMap[extension]
     }
 }
