@@ -85,8 +85,8 @@
     <string name="failed_reset_emulation">No se pudo restablecer la emulación</string>
     <string name="save_states_not_supported">Los estados de guardado no son compatibles mientras se ejecuta el firmware</string>
     <string name="save_states_unavailable_ra_hardcore_enabled">Guardados no disponibles en modo Hardcore</string>
-    <string name="rewind_time_seconds">%1$s s</string> <!-- Ej: 43,56 s -->
-    <string name="rewind_time_minutes_seconds">%1$d min %2$s s</string> <!-- Ej: 2 min 37,93 s -->
+    <string name="rewind_time_seconds">%1$ss</string> <!-- Ej: 43,56s -->
+    <string name="rewind_time_minutes_seconds">%1$dmin2$ss</string> <!-- Ej: 2min37,93s -->
     <string name="rewind_not_enabled">El rebobinado no está habilitado</string>
     <string name="rewind_unavailable_ra_hardcore_enabled">El rebobinado no disponible en modo Hardcore</string>
     <string name="no_image_selected">Ninguna imagen seleccionada</string>
@@ -330,7 +330,7 @@
     <string name="ra_mode_hardcore">Hardcore</string>
     <string name="ra_mode_softcore">Softcore</string>
     <string name="view_achievement">Ver logro</string>
-    <string name="completed_achievements"><b>%1$d</b> de <b>%2$d</b> (%3$d% %)</string>
+    <string name="completed_achievements"><b>%1$d</b> de <b>%2$d</b> (%3$d%%)</string>
     <string name="submitting_achievements">Enviando RetroAchievements…</string>
     <string name="achievements_loaded">Logros cargados</string>
     <string name="achievements_unlocked_compact">Desbloqueados: %1$d/%2$d</string>
