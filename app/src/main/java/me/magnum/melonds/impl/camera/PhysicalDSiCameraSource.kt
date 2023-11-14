@@ -30,6 +30,8 @@ class PhysicalDSiCameraSource(
     private val permissionHandler: PermissionHandler,
 ) : DSiCameraSource {
 
+    private class DSiCameraException(message: String) : Exception(message)
+
     private val coroutineScope = CoroutineScope(Dispatchers.Main.immediate)
     private var currentCameraProvider: ProcessCameraProvider? = null
     private val cameraBuffers = CameraBuffers()
@@ -80,6 +82,7 @@ class PhysicalDSiCameraSource(
 
                 val analyzer = ImageAnalysis.Builder()
                     .setTargetResolution(Size(640, 480))
+                    .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
 
@@ -118,6 +121,16 @@ class PhysicalDSiCameraSource(
     }
 
     private fun captureFrameSample(yBuffer: ByteBuffer, uPlane: PlaneProxy, vPlane: PlaneProxy, sourceWidth: Int, sourceHeight: Int, imageInfo: ImageInfo) {
+        if (sourceWidth == 0) throw DSiCameraException("Image width is 0")
+        if (sourceHeight == 0) throw DSiCameraException("Image height is 0")
+        if (yBuffer.remaining() == 0) throw DSiCameraException("Y buffer is empty")
+        if (uPlane.buffer.remaining() == 0) throw DSiCameraException("U buffer is empty")
+        if (uPlane.rowStride == 0) throw DSiCameraException("U plane row stride is 0")
+        if (uPlane.pixelStride == 0) throw DSiCameraException("U plane pixel stride is 0")
+        if (vPlane.buffer.remaining() == 0) throw DSiCameraException("V buffer is empty")
+        if (vPlane.rowStride == 0) throw DSiCameraException("V plane row stride is 0")
+        if (vPlane.pixelStride == 0) throw DSiCameraException("V plane pixel stride is 0")
+
         val (realWidth, realHeight) = if (imageInfo.rotationDegrees == 90 || imageInfo.rotationDegrees == 270) {
             sourceHeight to sourceWidth
         } else {
@@ -130,11 +143,7 @@ class PhysicalDSiCameraSource(
         } else {
             realWidth / 640f
         }
-        /*val scaleToFit = if (sourceAspectRatio > targetAspectRatio) {
-            realWidth / 640f
-        } else {
-            realHeight / 480f
-        }*/
+
         val transformationMatrix = Matrix().apply {
             setTranslate(-319.5f, -239.5f)
             postRotate(-imageInfo.rotationDegrees.toFloat())
