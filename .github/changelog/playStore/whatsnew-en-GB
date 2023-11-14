@@ -1,1 +1,7 @@
+Beta 1.9.2
+• Fix startup crash on devices running Android 14
+• Fix crash on spanish devices when opening the RetroAchievements screen
+• Other minor fixes
+
+Beta 1.9.1
 • Fix saves states not saving/loading properly

@@ -1,2 +1,4 @@
 **Changelog:**
-* Fix saves states not saving/loading properly
+* Fix startup crash on devices running Android 14
+* Fix crash on spanish devices when opening the RetroAchievements screen
+* Other minor fixes

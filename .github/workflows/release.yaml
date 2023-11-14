@@ -108,7 +108,6 @@ jobs:
           releaseFiles: app/build/outputs/apk/playStoreProd/release/app-playStore-prod-release.apk
           track: beta
           inAppUpdatePriority: 2
-          status: draft
           whatsNewDirectory: ./.github/changelog/playStore
           mappingFile: app/build/outputs/mapping/playStoreProdRelease/mapping.txt
           debugSymbols: app/build/outputs/native-debug-symbols/playStoreProdRelease/native-debug-symbols.zip
