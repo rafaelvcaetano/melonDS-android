@@ -23,12 +23,6 @@
                 android:layout_height="wrap_content" />
     </LinearLayout>
 
-    <ProgressBar
-            android:id="@+id/progress_bar_cheats"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"/>
-
     <TextView
             android:id="@+id/text_cheats_not_found"
             android:layout_width="wrap_content"
