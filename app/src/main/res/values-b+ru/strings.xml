@@ -21,6 +21,7 @@
 
     <string name="version_alpha">Альфа</string>
     <string name="version_beta">Бета</string>
+    <string name="version_nightly">Ночнушка</string>
 
     <string name="console_ds">DS</string>
     <string name="console_dsi">DSi (экспериментально)</string>
@@ -34,12 +35,12 @@
     <string name="size_gb">ГБ</string>
 
     <string name="error_rom_not_found">Игра не найдена</string>
-    <string name="error_rom_not_found_info">Выбранный образ игры не найден. Убедитесь, что файл присутствует в текущем каталоге поиска.\n%1$s</string>
+    <string name="error_rom_not_found_info">Не найден выбранный образ игры. Убедитесь, что файл присутствует в текущем каталоге поиска.\n%1$s</string>
     <string name="error_load_rom">Не удалось загрузить игру</string>
-    <string name="error_load_rom_message">Ошибка при загрузке игры. Убедитесь, что образ не повреждён и повторите попытку.</string>
+    <string name="error_load_rom_message">Ошибка загрузки игры. Убедитесь, что образ не повреждён и повторите попытку.</string>
     <string name="error_load_firmware">Не удалось загрузить прошивку</string>
-    <string name="error_load_firmware_message">Ошибка при загрузке прошивки (%1$s). Убедитесь, что образы прошивки и BIOS не повреждены, прошивка является загрузочной и повторите попытку.</string>
-    <string name="error_load_rom_report_issue">Сгенерирован лог об ошибке, который может помочь устранить проблему. Создать на GitHub обращение с содержимым лога? Требуется аккаунт GitHub.</string>
+    <string name="error_load_firmware_message">Ошибка загрузки прошивки (%1$s). Убедитесь, что образы прошивки и BIOS не повреждены, прошивка является загрузочной и повторите попытку.</string>
+    <string name="error_load_rom_report_issue">Сгенерирован лог об ошибке, который может помочь устранить проблему. Создать на GitHub запрос с содержимым лога? Требуется аккаунт GitHub.</string>
     <string name="title_emulator_running">Эмулятор запущен</string>
     <string name="message_stop_emulation">Остановить эмуляцию и загрузить новый файл?</string>
     <string name="error_load_gba_rom">Не удалось загрузить образ GBA</string>
@@ -49,7 +50,10 @@
     <string name="action_refresh_rom_list">Обновить список игр</string>
     <string name="hint_search_roms">Поиск игр…</string>
     <string name="update_available">Доступно обновление: %1$s</string>
+    <string name="nightly_update_available">Доступно ночное обновление</string>
+    <string name="nightly_update_available_message">Загрузить сейчас?</string>
     <string name="skip_update">Пропустить</string>
+    <string name="remind_later_update">Позже</string>
     <string name="downloading_update">Загрузка обновления…</string>
     <string name="starting_download">Запуск загрузки…</string>
     <string name="download_progress_sizes">%1$.1fMB/%2$.1fMB</string>
@@ -84,11 +88,11 @@
     <string name="cant_load_empty_slot">Невозможно загрузить пустой слот сохранения</string>
     <string name="failed_reset_emulation">Не удалось перезапустить эмуляцию</string>
     <string name="save_states_not_supported">Сохранения недоступны во время запуска прошивки</string>
-    <string name="save_states_unavailable_ra_hardcore_enabled">Сохранения недоступны пока включен режим хардкора</string>
+    <string name="save_states_unavailable_ra_hardcore_enabled">Сохранения недоступны в режиме хардкора</string>
     <string name="rewind_time_seconds">%1$ss</string>
     <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string>
     <string name="rewind_not_enabled">Обратная перемотка не включена</string>
-    <string name="rewind_unavailable_ra_hardcore_enabled">Обратная перемотка недоступна пока включен режим хардкора</string>
+    <string name="rewind_unavailable_ra_hardcore_enabled">Обратная перемотка недоступна в режиме хардкора</string>
     <string name="no_image_selected">Образ не выбран</string>
     <string name="failed_to_load_image">Не удалось загрузить образ</string>
 
@@ -141,13 +145,15 @@
     <string name="category_system_summary">Настройки прошивки, выбор BIOS, JIT</string>
     <string name="theme">Тема</string>
     <string name="fast_forward_max_speed">Максимальное ускорение</string>
-    <string name="rewind_description">При включении активирует автоматическое сохранение через заданный период времени. Для того, чтобы отмотать прогресс откройте меню обратной перемотки и выберите сохранение, с которого хотите продолжить.\n\nПри включении обратной перемотки возможно падение скорости, если устройство недостаточно мощное. В зависимости от выбранных параметров может потребоваться значительный объём свободной памяти.</string>
+    <string name="rewind_description">Включает автоматическое сохранение через заданный период времени. Для возврата к любой точке прогресса откройте меню обратной перемотки и выберите сохранение, с которого хотите продолжить.\n\nВозможно снижение производительности при недостаточной мощности устройства. В зависимости от выбранных параметров может потребоваться значительный объём свободной памяти.</string>
     <string name="rewind_save_period">Частота сохранений</string>
     <string name="rewind_length">Буфер перемотки</string>
     <string name="rewind_max_memory_usage">Максимальный объём памяти: %1$s</string>
     <string name="rewind_memory_usage_above_recommended_limit">Превышен рекомендуемый объём памяти</string>
     <string name="sustained_performance_mode">Режим устойчивой производительности</string>
-    <string name="sustained_performance_mode_summary">При включении снижает пиковую производительность и уменьшает троттлинг.</string>
+    <string name="sustained_performance_mode_summary">При включении ограничивает пиковую производительность и уменьшает троттлинг.</string>
+    <string name="check_for_updates">Проверять обновления</string>
+    <string name="check_for_updates_summary">Если включено, приложение будет периодически проверять наличие обновлений</string>
     <string name="rom_icon_filtering">Сглаживание иконок</string>
     <string name="max_rom_cache_size">Максимальный размер кэша игр</string>
     <string name="clear_extracted_rom_cache">Очистить кэш извлечённых игр</string>
@@ -165,7 +171,7 @@
     <string name="show_boot_screen">Показывать экран загрузки</string>
     <string name="mac_address">MAC-адрес</string>
     <string name="randomize_mac_address">Случайный MAC-адрес</string>
-    <string name="randomize_mac_address_summary">Если включено, при каждой загрузке будет сгенерирован случайный MAC-адрес. Это может привести к тому, что некоторые игры будут определять, что они запущены на другой системе и к сбоям событий с привязкой ко времени.</string>
+    <string name="randomize_mac_address_summary">Если включено, при каждой загрузке будет генерироваться случайный MAC-адрес. Возможны сбои событий с привязкой ко времени, т.к. некоторые игры могут определять, что они запущены на другой системе.</string>
     <string name="generate_new_mac_address">Сгенерировать новый</string>
     <string name="generate_new_mac_address_description">Создание нового MAC-адреса может привести к тому, что игры будут определять, что они запущены на другой системе.</string>
     <string name="enable_jit">Включить JIT</string>
@@ -173,7 +179,7 @@
     <string name="jit_not_supported">JIT доступен только для 64-битных устройств.</string>
     <string name="threaded_rendering">Рендеринг в отдельном потоке</string>
     <string name="fps_counter_position">Отображение счётчика FPS</string>
-    <string name="threaded_rendering_summary">Повышает производительность в 3D-играх, но может вызывать проблемы с графикой.</string>
+    <string name="threaded_rendering_summary">Повышает производительность для игр в 3D, но может вызывать проблемы с графикой.</string>
     <string name="category_video">Видео</string>
     <string name="category_video_summary">Сглаживание, рендеринг в отдельном потоке, счётчик FPS</string>
     <string name="filter">Сглаживание</string>
@@ -194,7 +200,7 @@
     <string name="save_next_rom">Сохранять в каталог с игрой</string>
     <string name="save_file_directory">Каталог сохранений</string>
     <string name="save_state_location">Расположение быстрых сохранений</string>
-    <string name="input">Ввод</string>
+    <string name="input">Управление</string>
     <string name="input_summary">Привязки кнопок, раскладки, тактильная отдача</string>
     <string name="key_mapping">Привязки кнопок</string>
     <string name="key_mapping_summary">Назначить кнопки контроллера</string>
@@ -204,10 +210,10 @@
     <string name="soft_input_opacity">Видимость экранных кнопок</string>
     <string name="retroachievements">RetroAchievements</string> <!-- Keep words together because this is the official name -->
     <string name="retroachievements_summary">Вход и управление интеграцией с RetroAchievements</string> <!-- Keep words together because this is the official name -->
-    <string name="enable_rich_presence">Включить статус активности</string>
+    <string name="enable_rich_presence">Статус активности</string>
     <string name="rich_presence_summary">Позволяет другим пользователям RetroAchievements видеть запущенную вами игру.</string>
     <string name="hardcore_mode">Режим хардкора</string>
-    <string name="hardcore_mode_summary">Удваивает количество очков, но отключает быстрые сохранения, читы и замедление во время игры</string>
+    <string name="hardcore_mode_summary">Удваивает количество очков, но отключает возможность использовать быстрые сохранения, чит-коды или замедление во время игры</string>
 
     <string name="cheats">Чит-коды</string>
     <string name="cheats_summary">Включение и импорт чит-кодов</string>
@@ -227,7 +233,7 @@
     <string name="importing_cheats">Импортирование чит-кодов…</string>
     <string name="starting">Запуск…</string>
     <string name="move_to_background">Переместить на задний план</string>
-    <string name="failed_save_cheat_changes">Не удалось сохранить изменения чит-кода</string>
+    <string name="failed_save_cheat_changes">Не удалось сохранить изменения для чит-кода</string>
     <string name="no_cheats_found">Не найдены чит-коды для данной игры. Попробуйте импортировать другую базу.</string>
     <string name="enabled_cheats">Активные чит-коды</string>
     <string name="no_enabled_cheats_for_rom">Нет активных чит-кодов для данной игры</string>
@@ -290,11 +296,11 @@
     <string name="properties">Свойства</string>
     <string name="revert_changes">Отменить изменения</string>
     <string name="reset_default">Сброс к стандартным</string>
-    <string name="exit_without_saving">Закрыть без сохранения</string>
-    <string name="portrait_background">Фон в портрете</string>
-    <string name="portrait_background_mode">Режим фона в портрете</string>
-    <string name="landscape_background">Фон в ландшафте</string>
-    <string name="landscape_background_mode">Режим фона в ландшафте</string>
+    <string name="exit_without_saving">Выйти без сохранения</string>
+    <string name="portrait_background">Фон в портретной ориентации</string>
+    <string name="portrait_background_mode">Режим фона в порт. ориентации</string>
+    <string name="landscape_background">Фон в ландшафтной ориентации</string>
+    <string name="landscape_background_mode">Режим фона в ланд. ориентации</string>
     <string name="save_and_exit">Сохранить и выйти</string>
     <string name="layout_name">Имя раскладки</string>
     <string name="layout_orientation">Ориентация раскладки</string>
@@ -309,10 +315,10 @@
     <string name="background_add_wrong_orientation">Фон добавлен, но не отображается в выбранной ориентации.</string>
     <string name="background_add_processing_failed">Не удалось обработать выбранное изображение. Убедитесь, что файл не повреждён.</string>
     
-    <string name="retro_achievements_login_description">Выполните вход в RetroAchievements для просмотра достижений, доступных для данной игры.</string>
+    <string name="retro_achievements_login_description">Выполните вход в RetroAchievements для просмотра доступных достижений для данной игры.</string>
     <string name="login_with_retro_achievements">Войти в RetroAchievements</string>
     <string name="login">Вход</string>
-    <string name="retroachievements_login_summary">Выполните вход в RetroAchievements для получения достижений во время игры!</string>
+    <string name="retroachievements_login_summary">Выполните вход в RetroAchievements для получения достижений во время игры.</string>
     <string name="retroachievements_login_status">Выполнен вход для %1$s</string>
     <string name="retroachievements_logout">Выход</string>
     <string name="retroachievements_logout_confirmation">Вы подтверждаете выход из RetroAchievements? Получение достижений во время игры будет недоступно.</string>
