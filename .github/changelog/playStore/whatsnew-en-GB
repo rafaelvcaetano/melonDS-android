@@ -1,3 +1,7 @@
+Beta 1.9.3
+• Fix issues with RetroAchievements
+• Fix loading indicator in cheats screen
+
 Beta 1.9.2
 • Fix startup crash on devices running Android 14
 • Fix crash on spanish devices when opening the RetroAchievements screen
