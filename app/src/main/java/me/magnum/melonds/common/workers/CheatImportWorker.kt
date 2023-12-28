@@ -1,7 +1,9 @@
 package me.magnum.melonds.common.workers
 
 import android.content.Context
+import android.content.pm.ServiceInfo
 import android.content.res.AssetFileDescriptor
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -122,7 +124,10 @@ class CheatImportWorker @AssistedInject constructor(
                 .setProgress(100, progress, indeterminate)
                 .build()
 
-        return ForegroundInfo(NOTIFICATION_ID_CHEATS_IMPORT, notification)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            ForegroundInfo(NOTIFICATION_ID_CHEATS_IMPORT, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            ForegroundInfo(NOTIFICATION_ID_CHEATS_IMPORT, notification)
+        }
     }
-
 }
