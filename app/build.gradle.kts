@@ -154,7 +154,6 @@ dependencies {
         implementation(splashscreen)
         implementation(swipeRefreshLayout)
         implementation(work)
-        implementation(workRxJava)
         implementation(material)
     }
 

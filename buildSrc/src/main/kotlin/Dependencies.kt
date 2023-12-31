@@ -77,7 +77,6 @@ object Dependencies {
         const val splashscreen = "androidx.core:core-splashscreen:${Versions.Splashscreen}"
         const val swipeRefreshLayout = "androidx.swiperefreshlayout:swiperefreshlayout:${Versions.SwipeRefreshLayout}"
         const val work = "androidx.work:work-runtime-ktx:${Versions.Work}"
-        const val workRxJava = "androidx.work:work-rxjava2:${Versions.Work}"
         const val material = "com.google.android.material:material:${Versions.Material}"
     }
 
