@@ -12,13 +12,38 @@ import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import me.magnum.melonds.common.uridelegates.UriHandler
-import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.AudioBitrate
+import me.magnum.melonds.domain.model.AudioInterpolation
+import me.magnum.melonds.domain.model.AudioLatency
+import me.magnum.melonds.domain.model.ConsoleType
+import me.magnum.melonds.domain.model.ControllerConfiguration
+import me.magnum.melonds.domain.model.EmulatorConfiguration
+import me.magnum.melonds.domain.model.FirmwareConfiguration
+import me.magnum.melonds.domain.model.FpsCounterPosition
+import me.magnum.melonds.domain.model.LayoutConfiguration
+import me.magnum.melonds.domain.model.MacAddress
+import me.magnum.melonds.domain.model.MicSource
+import me.magnum.melonds.domain.model.RendererConfiguration
+import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.RomIconFiltering
+import me.magnum.melonds.domain.model.SaveStateLocation
+import me.magnum.melonds.domain.model.SizeUnit
+import me.magnum.melonds.domain.model.SortingMode
+import me.magnum.melonds.domain.model.SortingOrder
+import me.magnum.melonds.domain.model.VideoFiltering
+import me.magnum.melonds.domain.model.VideoRenderer
 import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.isSustainedPerformanceModeAvailable
@@ -28,14 +53,15 @@ import java.io.File
 import java.io.FileReader
 import java.io.IOException
 import java.io.OutputStreamWriter
-import java.util.*
+import java.util.UUID
 import kotlin.math.pow
 
 class SharedPreferencesSettingsRepository(
         private val context: Context,
         private val preferences: SharedPreferences,
         private val gson: Gson,
-        private val uriHandler: UriHandler
+        private val uriHandler: UriHandler,
+        preferencesCoroutineScope: CoroutineScope,
 ) : SettingsRepository, OnSharedPreferenceChangeListener {
 
     companion object {
@@ -46,11 +72,21 @@ class SharedPreferencesSettingsRepository(
     private var controllerConfiguration: ControllerConfiguration? = null
     private val preferenceObservers: HashMap<String, PublishSubject<Any>> = HashMap()
     private val preferenceSharedFlows = mutableMapOf<String, MutableSharedFlow<Unit>>()
+    private val renderConfigurationFlow: SharedFlow<RendererConfiguration>
 
     init {
         preferences.registerOnSharedPreferenceChangeListener(this)
         setDefaultThemeIfRequired()
         setDefaultMacAddressIfRequired()
+
+        renderConfigurationFlow = combine(
+            getVideoRenderer(),
+            getVideoFiltering(),
+            isThreadedRenderingEnabled(),
+            getVideoInternalResolutionScaling(),
+        ) { renderer, filtering, threadedRenderingEnabled, resolutionScaling ->
+            RendererConfiguration(renderer, filtering, threadedRenderingEnabled, resolutionScaling)
+        }.conflate().shareIn(preferencesCoroutineScope, SharingStarted.Lazily, replay = 1)
     }
 
     private fun setDefaultThemeIfRequired() {
@@ -115,10 +151,7 @@ class SharedPreferencesSettingsRepository(
             getAudioLatency(),
             getMicSource(),
             getFirmwareConfiguration(),
-            RendererConfiguration(
-                getVideoFiltering().first(),
-                isThreadedRenderingEnabled()
-            )
+            renderConfigurationFlow.first(),
         )
     }
 
@@ -232,6 +265,20 @@ class SharedPreferencesSettingsRepository(
         return preferences.getBoolean("enable_jit", defaultJitEnabled)
     }
 
+    override fun getVideoRenderer(): Flow<VideoRenderer> {
+        return getOrCreatePreferenceSharedFlow("video_renderer") {
+            val videoRendererPreference = preferences.getString("video_renderer", "software")!!
+            VideoRenderer.valueOf(videoRendererPreference.uppercase())
+        }
+    }
+
+    override fun getVideoInternalResolutionScaling(): Flow<Int> {
+        return getOrCreatePreferenceSharedFlow("video_internal_resolution") {
+            val internalResolutionPreference = preferences.getString("video_internal_resolution", "1")!!
+            internalResolutionPreference.toIntOrNull() ?: 1
+        }
+    }
+
     override fun getVideoFiltering(): Flow<VideoFiltering> {
         return getOrCreatePreferenceSharedFlow("video_filtering") {
             val filteringPreference = preferences.getString("video_filtering", "linear")!!
@@ -239,8 +286,10 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
-    override fun isThreadedRenderingEnabled(): Boolean {
-        return preferences.getBoolean("enable_threaded_rendering", true)
+    override fun isThreadedRenderingEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow("enable_threaded_rendering") {
+            preferences.getBoolean("enable_threaded_rendering", true)
+        }
     }
 
     override fun getFpsCounterPosition(): FpsCounterPosition {
@@ -517,5 +566,9 @@ class SharedPreferencesSettingsRepository(
         subject?.onNext(Any())
 
         preferenceSharedFlows[key]?.tryEmit(Unit)
+    }
+
+    override fun observeRenderConfiguration(): Flow<RendererConfiguration> {
+        return renderConfigurationFlow
     }
 }

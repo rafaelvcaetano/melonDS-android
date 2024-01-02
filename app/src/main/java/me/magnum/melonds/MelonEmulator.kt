@@ -113,5 +113,5 @@ object MelonEmulator {
 
     external fun setFastForwardEnabled(enabled: Boolean)
 
-    external fun updateEmulatorConfiguration(emulatorConfiguration: EmulatorConfiguration)
+    external fun updateEmulatorConfiguration(emulatorConfiguration: EmulatorConfiguration, frameBuffer: ByteBuffer)
 }

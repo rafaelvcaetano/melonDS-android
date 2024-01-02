@@ -2,11 +2,13 @@ package me.magnum.melonds.ui.settings.fragments
 
 import android.os.Bundle
 import androidx.preference.ListPreference
+import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
 import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.UriPermissionManager
+import me.magnum.melonds.domain.model.VideoRenderer
 import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
 import me.magnum.melonds.ui.settings.PreferenceFragmentHelper
 import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
@@ -21,12 +23,29 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
     @Inject lateinit var uriPermissionManager: UriPermissionManager
     @Inject lateinit var directoryAccessValidator: DirectoryAccessValidator
 
+    private val softwareRendererPreferences = mutableListOf<Preference>()
+    private val openGlRendererPreferences = mutableListOf<Preference>()
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.pref_video, rootKey)
 
+        softwareRendererPreferences.apply {
+            add(findPreference("video_filtering")!!)
+            add(findPreference("enable_threaded_rendering")!!)
+        }
+
+        openGlRendererPreferences.apply {
+            add(findPreference("video_internal_resolution")!!)
+        }
+
+        val rendererPreference = findPreference<ListPreference>("video_renderer")!!
         val dsiCameraSourcePreference = findPreference<ListPreference>("dsi_camera_source")!!
         val dsiCameraImagePreference = findPreference<StoragePickerPreference>("dsi_camera_static_image")!!
 
+        rendererPreference.setOnPreferenceChangeListener { _, newValue ->
+            onRendererPreferenceChanged(newValue as String)
+            true
+        }
         dsiCameraSourcePreference.setOnPreferenceChangeListener { _, newValue ->
             updateDsiCameraImagePreference(dsiCameraImagePreference, newValue as String)
             true
@@ -34,7 +53,30 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
 
         helper.setupStoragePickerPreference(dsiCameraImagePreference)
 
+        onRendererPreferenceChanged(rendererPreference.value)
         updateDsiCameraImagePreference(dsiCameraImagePreference, dsiCameraSourcePreference.value)
+    }
+
+    private fun onRendererPreferenceChanged(rendererValue: String) {
+        val newRenderer = enumValueOfIgnoreCase<VideoRenderer>(rendererValue)
+        when (newRenderer) {
+            VideoRenderer.SOFTWARE -> {
+                softwareRendererPreferences.forEach {
+                    it.isVisible = true
+                }
+                openGlRendererPreferences.forEach {
+                    it.isVisible = false
+                }
+            }
+            VideoRenderer.OPENGL -> {
+                softwareRendererPreferences.forEach {
+                    it.isVisible = false
+                }
+                openGlRendererPreferences.forEach {
+                    it.isVisible = true
+                }
+            }
+        }
     }
 
     private fun updateDsiCameraImagePreference(preference: StoragePickerPreference, dsiCameraSourceValue: String) {

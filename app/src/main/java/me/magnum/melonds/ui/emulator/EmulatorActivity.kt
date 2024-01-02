@@ -234,7 +234,7 @@ class EmulatorActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(backPressedCallback)
 
         melonTouchHandler = MelonTouchHandler()
-        dsRenderer = DSRenderer(frameBufferProvider.frameBuffer(), this)
+        dsRenderer = DSRenderer(frameBufferProvider, this)
         binding.surfaceMain.apply {
             setEGLContextClientVersion(2)
             preserveEGLContextOnPause = true

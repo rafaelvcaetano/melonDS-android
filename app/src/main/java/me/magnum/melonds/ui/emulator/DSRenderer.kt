@@ -9,6 +9,7 @@ import android.opengl.Matrix
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
+import me.magnum.melonds.common.runtime.FrameBufferProvider
 import me.magnum.melonds.domain.model.BackgroundMode
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
@@ -23,7 +24,7 @@ import javax.microedition.khronos.opengles.GL10
 import kotlin.math.roundToInt
 
 class DSRenderer(
-    private val frameBuffer: ByteBuffer,
+    private val frameBufferProvider: FrameBufferProvider,
     private val context: Context,
 ) : GLSurfaceView.Renderer {
     companion object {
@@ -69,6 +70,9 @@ class DSRenderer(
 
     private var width = 0f
     private var height = 0f
+
+    private var internalWidth = 0
+    private var internalHeight = 0
 
     private var backgroundWidth = 0
     private var backgroundHeight = 0
@@ -136,6 +140,9 @@ class DSRenderer(
     }
 
     private fun applyRendererConfiguration() {
+        internalWidth = SCREEN_WIDTH * (rendererConfiguration?.resolutionScaling ?: 1)
+        internalHeight = SCREEN_HEIGHT * (rendererConfiguration?.resolutionScaling ?: 1)
+
         updateScreenCoordinates()
         updateShader()
     }
@@ -275,6 +282,12 @@ class DSRenderer(
             mustUpdateConfiguration = false
         }
 
+        if (!frameBufferProvider.isFrameBufferReady()) {
+            return
+        }
+
+        val frameBuffer = frameBufferProvider.frameBuffer()
+
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
 
         synchronized(backgroundLock) {
@@ -290,7 +303,7 @@ class DSRenderer(
             it.use()
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mainTexture)
-            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, frameBuffer)
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, internalWidth, internalHeight, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, frameBuffer)
             GLES20.glUniformMatrix4fv(it.uniformMvp, 1, false, mvpMatrix, 0)
             GLES20.glVertexAttribPointer(it.attribPos, 2, GLES20.GL_FLOAT, false, 0, posBuffer)
             GLES20.glVertexAttribPointer(it.attribUv, 2, GLES20.GL_FLOAT, false, 0, uvBuffer)
