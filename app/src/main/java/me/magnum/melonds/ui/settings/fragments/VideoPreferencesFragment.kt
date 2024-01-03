@@ -1,6 +1,8 @@
 package me.magnum.melonds.ui.settings.fragments
 
+import android.app.ActivityManager
 import android.os.Bundle
+import androidx.core.content.getSystemService
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -18,6 +20,10 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
+
+    private companion object {
+        const val GLES_3_2 = 0x30002
+    }
 
     private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager, directoryAccessValidator) }
     @Inject lateinit var uriPermissionManager: UriPermissionManager
@@ -42,10 +48,21 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         val dsiCameraSourcePreference = findPreference<ListPreference>("dsi_camera_source")!!
         val dsiCameraImagePreference = findPreference<StoragePickerPreference>("dsi_camera_static_image")!!
 
-        rendererPreference.setOnPreferenceChangeListener { _, newValue ->
-            onRendererPreferenceChanged(newValue as String)
-            true
+        val activityManager = requireContext().getSystemService<ActivityManager>()
+
+        rendererPreference.apply {
+            val deviceGlesVersion = activityManager?.deviceConfigurationInfo?.reqGlEsVersion ?: 0
+            if (deviceGlesVersion >= GLES_3_2) {
+                setOnPreferenceChangeListener { _, newValue ->
+                    onRendererPreferenceChanged(newValue as String)
+                    true
+                }
+            } else {
+                // GLES 3.2 is not supported. Remove the preference
+                isVisible = false
+            }
         }
+
         dsiCameraSourcePreference.setOnPreferenceChangeListener { _, newValue ->
             updateDsiCameraImagePreference(dsiCameraImagePreference, newValue as String)
             true
