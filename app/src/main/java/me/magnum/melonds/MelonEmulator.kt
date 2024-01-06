@@ -60,7 +60,7 @@ object MelonEmulator {
 
     fun bootFirmware(): FirmwareLoadResult {
         val loadResult = bootFirmwareInternal()
-        return FirmwareLoadResult.values()[loadResult]
+        return FirmwareLoadResult.entries[loadResult]
     }
 
     private external fun loadRomInternal(romPath: String, sramPath: String, loadGbaRom: Boolean, gbaRomPath: String?, gbaSramPath: String?): Int

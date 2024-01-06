@@ -10,6 +10,9 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageInfo
 import androidx.camera.core.ImageProxy.PlaneProxy
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
@@ -17,8 +20,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import me.magnum.melonds.common.PermissionHandler
-import me.magnum.melonds.common.camera.DSiCameraSource
 import me.magnum.melonds.common.camera.CameraType
+import me.magnum.melonds.common.camera.DSiCameraSource
 import me.magnum.melonds.impl.emulator.LifecycleOwnerProvider
 import java.nio.ByteBuffer
 import java.util.Arrays
@@ -81,7 +84,12 @@ class PhysicalDSiCameraSource(
                 val cameraProvider = future.get()
 
                 val analyzer = ImageAnalysis.Builder()
-                    .setTargetResolution(Size(640, 480))
+                    .setResolutionSelector(
+                        ResolutionSelector.Builder()
+                            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+                            .setResolutionStrategy(ResolutionStrategy(Size(640, 480), ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER))
+                            .build()
+                    )
                     .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()

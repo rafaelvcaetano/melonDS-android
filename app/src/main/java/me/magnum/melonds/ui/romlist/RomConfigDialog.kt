@@ -106,7 +106,7 @@ class RomConfigDialog : DialogFragment() {
             AlertDialog.Builder(requireContext())
                     .setTitle(R.string.label_rom_config_console)
                     .setSingleChoiceItems(R.array.game_runtime_console_type_options, romConfig.runtimeConsoleType.ordinal) { dialog, which ->
-                        val newConsoleType = RuntimeConsoleType.values()[which]
+                        val newConsoleType = RuntimeConsoleType.entries[which]
                         onRuntimeConsoleTypeSelected(newConsoleType)
                         dialog.dismiss()
                     }
@@ -119,7 +119,7 @@ class RomConfigDialog : DialogFragment() {
             AlertDialog.Builder(requireContext())
                     .setTitle(R.string.microphone_source)
                     .setSingleChoiceItems(R.array.game_runtime_mic_source_options, romConfig.runtimeMicSource.ordinal) { dialog, which ->
-                        val newMicSource = RuntimeMicSource.values()[which]
+                        val newMicSource = RuntimeMicSource.entries[which]
                         // Request mic permission if required
                         if (newMicSource == RuntimeMicSource.DEVICE && !requireContext().isMicrophonePermissionGranted()) {
                             microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)

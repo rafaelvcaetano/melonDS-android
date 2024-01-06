@@ -127,7 +127,10 @@ fun RomHeaderUi(
 @Composable
 private fun PreviewRomHeaderUi() {
     MelonTheme {
-        val pagerState = rememberPagerState(RomDetailsTab.CONFIG.tabIndex)
+        val pagerState = rememberPagerState(
+            initialPage = RomDetailsTab.CONFIG.tabIndex,
+            pageCount = { RomDetailsTab.entries.size },
+        )
         val coroutineScope = rememberCoroutineScope()
 
         RomHeaderUi(

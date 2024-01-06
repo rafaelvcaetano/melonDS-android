@@ -17,8 +17,8 @@ class RomConfigParcelable : Parcelable {
 
     private constructor(parcel: Parcel) {
         romConfig = RomConfig()
-        romConfig.runtimeConsoleType = RuntimeConsoleType.values()[parcel.readInt()]
-        romConfig.runtimeMicSource = RuntimeMicSource.values()[parcel.readInt()]
+        romConfig.runtimeConsoleType = RuntimeConsoleType.entries[parcel.readInt()]
+        romConfig.runtimeMicSource = RuntimeMicSource.entries[parcel.readInt()]
         romConfig.layoutId = parcel.readString()?.let { UUID.fromString(it) }
         romConfig.loadGbaCart = parcel.readInt() == 1
         romConfig.gbaCartPath = parcel.readString()?.toUri()

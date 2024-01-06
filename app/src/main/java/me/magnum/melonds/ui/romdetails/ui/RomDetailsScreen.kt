@@ -32,7 +32,10 @@ fun RomScreen(
     onRetroAchievementsRetryLoad: () -> Unit,
     onViewAchievement: (RAAchievement) -> Unit,
 ) {
-    val pagerState = rememberPagerState(RomDetailsTab.CONFIG.tabIndex)
+    val pagerState = rememberPagerState(
+        initialPage = RomDetailsTab.CONFIG.tabIndex,
+        pageCount = { RomDetailsTab.entries.size },
+    )
     val coroutineScope = rememberCoroutineScope()
 
     Column(modifier) {
@@ -49,7 +52,6 @@ fun RomScreen(
         }
         HorizontalPager(
             modifier = Modifier.fillMaxWidth().weight(1f),
-            pageCount = RomDetailsTab.values().size,
             state = pagerState,
         ) {
             when (it) {

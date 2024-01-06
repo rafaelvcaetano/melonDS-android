@@ -257,12 +257,12 @@ class EmulatorViewModel @Inject constructor(
             if (showPauseMenu) {
                 val pauseOptions = when (_emulatorState.value) {
                     is EmulatorState.RunningRom -> {
-                        RomPauseMenuOption.values().filter {
+                        RomPauseMenuOption.entries.filter {
                             filterRomPauseMenuOption(it)
                         }
                     }
                     is EmulatorState.RunningFirmware -> {
-                        FirmwarePauseMenuOption.values().toList()
+                        FirmwarePauseMenuOption.entries
                     }
                     else -> null
                 }

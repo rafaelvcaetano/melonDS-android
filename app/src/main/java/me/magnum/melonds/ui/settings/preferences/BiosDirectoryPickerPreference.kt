@@ -72,7 +72,7 @@ class BiosDirectoryPickerPreference(context: Context, attrs: AttributeSet?) : St
             return
 
         val attrArray = context.theme.obtainStyledAttributes(attrs, R.styleable.BiosDirectoryPickerPreference, 0, 0)
-        consoleType = ConsoleType.values()[attrArray.getIntOrThrow(R.styleable.BiosDirectoryPickerPreference_consoleType)]
+        consoleType = ConsoleType.entries[attrArray.getIntOrThrow(R.styleable.BiosDirectoryPickerPreference_consoleType)]
 
         attrArray.recycle()
     }

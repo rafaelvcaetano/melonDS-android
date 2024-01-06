@@ -67,7 +67,7 @@ class FirmwareColourPickerPreference(context: Context, attrs: AttributeSet?) : P
     }
 
     private fun updateSelectedColour(selectedColour: Int) {
-        val firmwareColour = FirmwareColour.values()[selectedColour]
+        val firmwareColour = FirmwareColour.entries[selectedColour]
         colorMapper[firmwareColour]?.let {
             val colourWithAlpha = (0xFF000000 or it.toLong())
             viewSelectedColour.setBackgroundColor(colourWithAlpha.toInt())

@@ -33,7 +33,7 @@ class BackgroundsViewModel @Inject constructor(
     init {
         val initialBackgroundId = savedStateHandle.get<String?>(BackgroundsActivity.KEY_INITIAL_BACKGROUND_ID)?.let { UUID.fromString(it) }
         currentSelectedBackground = MutableLiveData(initialBackgroundId)
-        backgroundOrientationFilter = savedStateHandle.get<Int>(BackgroundsActivity.KEY_ORIENTATION_FILTER).let { Orientation.values()[it ?: throw NullPointerException()] }
+        backgroundOrientationFilter = savedStateHandle.get<Int>(BackgroundsActivity.KEY_ORIENTATION_FILTER).let { Orientation.entries[it ?: throw NullPointerException()] }
 
         backgroundsRepository.getBackgrounds()
                 .subscribeOn(schedulers.backgroundThreadScheduler)
