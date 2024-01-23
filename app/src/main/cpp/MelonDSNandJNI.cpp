@@ -21,6 +21,8 @@
 #define TITLE_IMPORT_TITLE_ALREADY_IMPORTED 4
 #define TITLE_IMPORT_INSATLL_FAILED 5
 
+const u32 DSI_NAND_FILE_CATEGORY = 0x00030004;
+
 bool isNandOpen = false;
 
 jobject getTitleData(JNIEnv* env, u32 category, u32 titleId);
@@ -61,7 +63,7 @@ Java_me_magnum_melonds_MelonDSiNand_openNand(JNIEnv* env, jobject thiz, jobject 
 JNIEXPORT jobject JNICALL
 Java_me_magnum_melonds_MelonDSiNand_listTitles(JNIEnv* env, jobject thiz)
 {
-    const u32 category = 0x00030004;
+    const u32 category = DSI_NAND_FILE_CATEGORY;
     std::vector<u32> titleList;
     DSi_NAND::ListTitles(category, titleList);
 
@@ -104,7 +106,7 @@ Java_me_magnum_melonds_MelonDSiNand_importTitle(JNIEnv* env, jobject thiz, jstri
     fread(titleId, 8, 1, titleFile);
     fclose(titleFile);
 
-    if (titleId[1] != 0x00030004)
+    if (titleId[1] != DSI_NAND_FILE_CATEGORY)
     {
         // Not a DSiWare title
         env->ReleaseStringUTFChars(titleUri, titlePath);
@@ -136,7 +138,39 @@ Java_me_magnum_melonds_MelonDSiNand_importTitle(JNIEnv* env, jobject thiz, jstri
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonDSiNand_deleteTitle(JNIEnv* env, jobject thiz, jint titleId)
 {
-    DSi_NAND::DeleteTitle(0x00030004, (u32) titleId);
+    DSi_NAND::DeleteTitle(DSI_NAND_FILE_CATEGORY, (u32) titleId);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_me_magnum_melonds_MelonDSiNand_importTitleFile(JNIEnv* env, jobject thiz, jint titleId, jint fileType, jstring fileUri)
+{
+    jboolean isFilePathCopy;
+    const char* filePath = env->GetStringUTFChars(fileUri, &isFilePathCopy);
+
+    bool result = DSi_NAND::ImportTitleData(DSI_NAND_FILE_CATEGORY, (u32) titleId, fileType, filePath);
+
+    if (isFilePathCopy)
+    {
+        env->ReleaseStringUTFChars(fileUri, filePath);
+    }
+
+    return result;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_me_magnum_melonds_MelonDSiNand_exportTitleFile(JNIEnv* env, jobject thiz, jint titleId, jint fileType, jstring fileUri)
+{
+    jboolean isFilePathCopy;
+    const char* filePath = env->GetStringUTFChars(fileUri, &isFilePathCopy);
+
+    bool result = DSi_NAND::ExportTitleData(DSI_NAND_FILE_CATEGORY, (u32) titleId, fileType, filePath);
+
+    if (isFilePathCopy)
+    {
+        env->ReleaseStringUTFChars(fileUri, filePath);
+    }
+
+    return result;
 }
 
 JNIEXPORT void JNICALL
@@ -168,7 +202,7 @@ jobject getTitleData(JNIEnv* env, u32 category, u32 titleId)
     env->ReleaseByteArrayElements(iconBytes, iconArrayElements, 0);
 
     jclass dsiWareTitleClass = env->FindClass("me/magnum/melonds/domain/model/DSiWareTitle");
-    jmethodID dsiWareTitleConstructor = env->GetMethodID(dsiWareTitleClass, "<init>", "(Ljava/lang/String;Ljava/lang/String;J[B)V");
+    jmethodID dsiWareTitleConstructor = env->GetMethodID(dsiWareTitleClass, "<init>", "(Ljava/lang/String;Ljava/lang/String;J[BJJI)V");
 
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
     std::string englishTitle = convert.to_bytes(banner.EnglishTitle);
@@ -177,6 +211,16 @@ jobject getTitleData(JNIEnv* env, u32 category, u32 titleId)
     std::string title = englishTitle.substr(0, pos);
     std::string producer = englishTitle.substr(pos + 1);
 
-    jobject titleObject = env->NewObject(dsiWareTitleClass, dsiWareTitleConstructor, env->NewStringUTF(title.c_str()), env->NewStringUTF(producer.c_str()), (jlong) titleId, iconBytes);
+    jobject titleObject = env->NewObject(
+        dsiWareTitleClass,
+        dsiWareTitleConstructor,
+        env->NewStringUTF(title.c_str()),
+        env->NewStringUTF(producer.c_str()),
+        (jlong) titleId,
+        iconBytes,
+        (jlong) header.DSiPublicSavSize,
+        (jlong) header.DSiPrivateSavSize,
+        header.AppFlags
+    );
     return titleObject;
 }

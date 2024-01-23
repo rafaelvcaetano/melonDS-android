@@ -18,7 +18,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.dsinand.ImportDSiWareTitleResult
+import me.magnum.melonds.ui.dsiwaremanager.model.ImportExportDSiWareTitleFileEvent
 import me.magnum.melonds.ui.dsiwaremanager.ui.DSiWareManager
+import me.magnum.melonds.ui.dsiwaremanager.ui.rememberDSiWareTitleExportFilePicker
+import me.magnum.melonds.ui.dsiwaremanager.ui.rememberDSiWareTitleImportFilePicker
 import me.magnum.melonds.ui.theme.MelonTheme
 
 @AndroidEntryPoint
@@ -35,13 +38,22 @@ class DSiWareManagerActivity : AppCompatActivity() {
                     val state = viewModel.state.collectAsState()
                     val importingTitle = viewModel.importingTitle.collectAsState(false)
 
+                    val importTitleFilePickLauncher = rememberDSiWareTitleImportFilePicker(
+                        onFilePicked = viewModel::importDSiWareTitleFile,
+                    )
+                    val exportTitleFilePickLauncher = rememberDSiWareTitleExportFilePicker(
+                        onFilePicked = viewModel::exportDSiWareTitleFile,
+                    )
+
                     DSiWareManager(
                         modifier = Modifier.fillMaxSize(),
                         state = state.value,
-                        onImportTitle = { viewModel.importTitleToNand(it) },
-                        onDeleteTitle = { viewModel.deleteTitle(it) },
-                        onBiosConfigurationFinished = { viewModel.revalidateBiosConfiguration() },
-                        retrieveTitleIcon = { viewModel.getTitleIcon(it) },
+                        onImportTitle = viewModel::importTitleToNand,
+                        onDeleteTitle = viewModel::deleteTitle,
+                        onImportTitleFile = { title, fileType -> importTitleFilePickLauncher.launch(title, fileType) },
+                        onExportTitleFile = { title, fileType -> exportTitleFilePickLauncher.launch(title, fileType) },
+                        onBiosConfigurationFinished = viewModel::revalidateBiosConfiguration,
+                        retrieveTitleIcon = viewModel::getTitleIcon,
                     )
 
                     if (importingTitle.value) {
@@ -56,6 +68,12 @@ class DSiWareManagerActivity : AppCompatActivity() {
                     LaunchedEffect(null) {
                         viewModel.importTitleError.collectLatest {
                             Toast.makeText(this@DSiWareManagerActivity, getImportTitleResultMessage(it), Toast.LENGTH_LONG).show()
+                        }
+                    }
+
+                    LaunchedEffect(null) {
+                        viewModel.importExportFileEvent.collectLatest {
+                            Toast.makeText(this@DSiWareManagerActivity, getImportExportFileErrorMessage(it), Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -73,6 +91,15 @@ class DSiWareManagerActivity : AppCompatActivity() {
             ImportDSiWareTitleResult.INSATLL_FAILED -> getString(R.string.dsiware_manager_import_title_error_insatll_failed)
             ImportDSiWareTitleResult.METADATA_FETCH_FAILED -> getString(R.string.dsiware_manager_import_title_error_metadat_fetch_failed)
             ImportDSiWareTitleResult.UNKNOWN -> getString(R.string.dsiware_manager_import_title_error_unknown)
+        }
+    }
+
+    private fun getImportExportFileErrorMessage(result: ImportExportDSiWareTitleFileEvent): String {
+        return when (result) {
+            is ImportExportDSiWareTitleFileEvent.ImportSuccess -> getString(R.string.dsiware_manager_import_file_success, result.fileName)
+            is ImportExportDSiWareTitleFileEvent.ImportError -> getString(R.string.dsiware_manager_import_file_error)
+            is ImportExportDSiWareTitleFileEvent.ExportSuccess -> getString(R.string.dsiware_manager_export_file_success, result.fileName)
+            is ImportExportDSiWareTitleFileEvent.ExportError -> getString(R.string.dsiware_manager_export_file_error)
         }
     }
 }

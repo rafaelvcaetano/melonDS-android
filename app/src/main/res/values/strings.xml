@@ -74,6 +74,12 @@
     <string name="dsiware_manager_import_title_error_insatll_failed">Failed to install title</string>
     <string name="dsiware_manager_import_title_error_metadat_fetch_failed">Failed to download title metadata. Check your internet connection</string>
     <string name="dsiware_manager_import_title_error_unknown">An unknown error occurred</string>
+    <string name="dsiware_manager_import_data">Import data…</string>
+    <string name="dsiware_manager_export_data">Export data…</string>
+    <string name="dsiware_manager_import_file_success">%1$s imported successfully</string>
+    <string name="dsiware_manager_import_file_error">Failed to import file</string>
+    <string name="dsiware_manager_export_file_success">%1$s exported successfully</string>
+    <string name="dsiware_manager_export_file_error">Failed to export file</string>
     <string name="dsiware_import_from_file">From file</string>
     <string name="dsiware_import_from_rom_list">From ROM list</string>
 

@@ -18,6 +18,8 @@ import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.domain.services.DSiNandManager
 import me.magnum.melonds.ui.dsiwaremanager.model.DSiWareManagerUiState
+import me.magnum.melonds.domain.model.dsinand.DSiWareTitleFileType
+import me.magnum.melonds.ui.dsiwaremanager.model.ImportExportDSiWareTitleFileEvent
 import me.magnum.melonds.ui.romlist.RomIcon
 import java.nio.ByteBuffer
 import javax.inject.Inject
@@ -37,6 +39,9 @@ class DSiWareManagerViewModel @Inject constructor(
 
     private val _importTitleError = MutableSharedFlow<ImportDSiWareTitleResult>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     val importTitleError: SharedFlow<ImportDSiWareTitleResult> = _importTitleError.asSharedFlow()
+
+    private val _importExportFileEvent = MutableSharedFlow<ImportExportDSiWareTitleFileEvent>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val importExportFileEvent: SharedFlow<ImportExportDSiWareTitleFileEvent> = _importExportFileEvent.asSharedFlow()
 
     init {
         loadDSiWareData()
@@ -65,6 +70,38 @@ class DSiWareManagerViewModel @Inject constructor(
                 dsiNandManager.deleteTitle(title)
                 val titles = dsiNandManager.listTitles()
                 _state.value = DSiWareManagerUiState.Ready(titles)
+            }
+        }
+    }
+
+    fun importDSiWareTitleFile(title: DSiWareTitle, fileType: DSiWareTitleFileType, fileUri: Uri) {
+        _importingTitle.value = true
+
+        viewModelScope.launch {
+            withContext(Dispatchers.Default) {
+                val success = dsiNandManager.importTitleFile(title, fileType, fileUri)
+                if (success) {
+                    _importExportFileEvent.tryEmit(ImportExportDSiWareTitleFileEvent.ImportSuccess(fileType.fileName))
+                } else {
+                    _importExportFileEvent.tryEmit(ImportExportDSiWareTitleFileEvent.ImportError)
+                }
+                _importingTitle.value = false
+            }
+        }
+    }
+
+    fun exportDSiWareTitleFile(title: DSiWareTitle, fileType: DSiWareTitleFileType, fileUri: Uri) {
+        _importingTitle.value = true
+
+        viewModelScope.launch {
+            withContext(Dispatchers.Default) {
+                val success = dsiNandManager.exportTitleFile(title, fileType, fileUri)
+                if (success) {
+                    _importExportFileEvent.tryEmit(ImportExportDSiWareTitleFileEvent.ExportSuccess(fileType.fileName))
+                } else {
+                    _importExportFileEvent.tryEmit(ImportExportDSiWareTitleFileEvent.ExportError)
+                }
+                _importingTitle.value = false
             }
         }
     }
