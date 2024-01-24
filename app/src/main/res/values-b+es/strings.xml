@@ -16,6 +16,8 @@
     <string name="undo">Deshacer</string>
     <string name="update">Actualizar</string>
     <string name="close">Cerrar</string>
+    <string name="play">Jugar</string>
+    <string name="ellipsis">…</string>
 
     <string name="version_alpha">Alfa</string>
     <string name="version_beta">Beta</string>
@@ -31,10 +33,13 @@
     <string name="size_mb">MB</string>
     <string name="size_gb">GB</string>
     
-    <string name="error_rom_not_found">No se pudo encontrar ROM</string>
-    <string name="error_rom_not_found_info">No se ha encontrado la ROM seleccionada. Asegúrese de que la ROM seleccionada se encuentre en el directorio de búsqueda de la ROM actual.\n%1$s</string>
+    <string name="error_rom_not_found">No se pudo encontrar la ROM</string>
+    <string name="error_rom_not_found_info">No se ha encontrado la ROM seleccionada. Asegúrate de que la ROM seleccionada se encuentre en el directorio de búsqueda de la ROM actual.\n%1$s</string>
     <string name="error_load_rom">No se pudo cargar la ROM</string>
-    <string name="error_load_rom_report_issue">Se generó un registro de errores que puede ayudar a solucionar este problema. ¿Quieres abrir un problema en GitHub con este registro? Necesitarás una cuenta de GitHub.</string>
+    <string name="error_load_rom_message">Hubo un problema cargando la ROM. Asegúrate de que no esté dañada e inténtalo de nuevo.</string>
+    <string name="error_load_firmware">No se pudo cargar el firmware.</string>
+    <string name="error_load_firmware_message">Hubo un problema al cargar el firmware (%1$s). Asegúrate de que la BIOS y el archivo de firmware no estén dañados, de que el firmware sea arrancable e inténtalo de nuevo.</string>
+    <string name="error_load_rom_report_issue">Se generó un registro de errores que puede ayudar a solucionar este problema. ¿Deseas abrir un problema en GitHub con este registro? Necesitarás una cuenta de GitHub.</string>
     <string name="title_emulator_running">Emulador ejecutándose</string>
     <string name="message_stop_emulation">¿Detener la emulación y cargar una nueva ROM?</string>
     <string name="error_load_gba_rom">No se pudo cargar la ROM de GBA</string>
@@ -63,9 +68,10 @@
     <string name="dsiware_manager_import_title_error_not_dsiware_title">No es un título de DSiWare</string>
     <string name="dsiware_manager_import_title_error_title_already_imported">Título de DSiWare ya importado</string>
     <string name="dsiware_manager_import_title_error_insatll_failed">Error al instalar el título</string>
+    <string name="dsiware_manager_import_title_error_metadat_fetch_failed">No se pudieron descargar los metadatos del título. Verifica tu conexión a Internet.</string>
     <string name="dsiware_manager_import_title_error_unknown">Se ha producido un error desconocido</string>
     <string name="dsiware_import_from_file">Desde el archivo</string>
-    <string name="dsiware_import_from_rom_list">De la lista de ROM</string>
+    <string name="dsiware_import_from_rom_list">Desde la lista de ROM</string>
 
     <string name="select_dsiware_title">Seleccione el título de DSiWare</string>
     <string name="no_dsiware_roms_found">Seleccione el título de DSiWare</string>
@@ -76,11 +82,15 @@
     <string name="failed_save_state">No se pudo guardar</string>
     <string name="failed_load_state">No se pudo cargar</string>
     <string name="cant_load_empty_slot">No se puede cargar un espacio vacío</string>
-    <string name="failed_reset_emulation">No se pudo restablecer</string>
+    <string name="failed_reset_emulation">No se pudo restablecer la emulación</string>
     <string name="save_states_not_supported">Los estados de guardado no son compatibles mientras se ejecuta el firmware</string>
-    <string name="rewind_time_seconds">%1$ss</string> <!-- Ex: 43.56s -->
-    <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string> <!-- Ex: 2m37.93s -->
+    <string name="save_states_unavailable_ra_hardcore_enabled">Guardados no disponibles en modo Hardcore</string>
+    <string name="rewind_time_seconds">%1$ss</string> <!-- Ej: 43,56s -->
+    <string name="rewind_time_minutes_seconds">%1$dmin2$ss</string> <!-- Ej: 2min37,93s -->
     <string name="rewind_not_enabled">El rebobinado no está habilitado</string>
+    <string name="rewind_unavailable_ra_hardcore_enabled">El rebobinado no disponible en modo Hardcore</string>
+    <string name="no_image_selected">Ninguna imagen seleccionada</string>
+    <string name="failed_to_load_image">Error al cargar la imagen</string>
 
     <string name="action_sort_alphabetically">Alfabéticamente</string>
     <string name="action_sort_recently_played">Recientemente</string>
@@ -109,7 +119,8 @@
     <string name="choose_component">Elegir componente</string>
 
     <string name="pause">Pausar</string>
-    <string name="reset">Resetear</string>
+    <string name="achievements">Logros</string>
+    <string name="reset">Reestablecer</string>
     <string name="exit">Salir</string>
 
     <string name="settings">Configuración</string>
@@ -163,9 +174,11 @@
     <string name="threaded_rendering">Renderizar en subproceso</string>
     <string name="fps_counter_position">Posición del contador de FPS</string>
     <string name="threaded_rendering_summary">Mejora el rendimiento de los juegos en 3D cuando está habilitado, pero causará fallas gráficas.</string>
-    <string name="category_video">Video</string>
-    <string name="category_video_summary">Filtro, Renderizado de subprocesos, contador de FPS</string>
+    <string name="category_video">Vídeo</string>
+    <string name="category_video_summary">Filtro, renderizado de subprocesos, contador de FPS</string>
     <string name="filter">Filtro</string>
+    <string name="dsi_camera_source">Fuente de cámara DSi</string>
+    <string name="dsi_camera_image">Imagen de cámara DSi</string>
     <string name="category_audio">Audio</string>
     <string name="category_audio_summary">Volumen, latencia, fuente de micrófono</string>
     <string name="enable_sound">Activar sonido</string>
@@ -189,13 +202,20 @@
     <string name="vibrate_on_touch">Vibrar al tacto</string>
     <string name="vibration_strength">Fuerza de vibración</string>
     <string name="soft_input_opacity">Opacidad de entrada suave</string>
+    <string name="retroachievements">RetroAchievements</string> <!-- Mantén las palabras unidas porque este es el nombre oficial -->
+    <string name="retroachievements_summary">Inicio de sesión &amp; Gestionar la conexión de RetroAchievements</string> <!-- Mantén las palabras unidas porque este es el nombre oficial -->
+    <string name="enable_rich_presence">Activar la opción para mostrar lo que estás haciendo</string>
+    <string name="rich_presence_summary">Permite que otros usuarios de RetroAchievement vean lo que estás jugando</string>
+    <string name="hardcore_mode">Modo Hardcore</string>
+    <string name="hardcore_mode_summary">Gana el doble de puntos, pero no puedes usar estados de guardado, trucos ni cámara lenta mientras juegas</string>
+
     <string name="cheats">Trucos</string>
-    <string name="cheats_summary">Habilitar e importar códigos de trucos</string>
+    <string name="cheats_summary">Habilitar e importar trucos de &amp; trucos</string>
     <string name="enable_cheats">Habilitar trucos</string>
     <string name="cheats_database">Base de datos de trucos (formato XML)</string>
     <string name="import_cheats">Importar trucos</string>
-    <string name="import_cheats_summary">Importar trucos de archivos base disponibles. Por ahora, solo se admite XML. Se eliminará cualquier truco importado anteriormente</string>
-    <string name="rom_shortcut">Acceso directo de ROM</string>
+    <string name="import_cheats_summary">Importar trucos desde archivos de base de datos para tenerlos disponibles. Por ahora, solo se admiten bases de datos en formato XML. Cualquier truco previamente importado se eliminará</string>
+    <string name="rom_shortcut">Acceso directo de la ROM</string>
     
     <string name="firmware_nickname">Apodo</string>
     <string name="firmware_message">Mensaje</string>
@@ -218,9 +238,11 @@
 
     <string name="rom_settings">Configuración de Rom</string> <!-- Cadena de accesibilidad. No debe usar acrónimos -->
     <string name="label_rom_config_console">Sistema de arranque</string>
-    <string name="label_rom_config_load_gba_rom">Cargar ROM GBA</string>
-    <string name="label_rom_config_gba_rom_path">Ruta de acceso ROM GBA</string>
+    <string name="label_rom_config_load_gba_rom">Cargar ROM de GBA</string>
+    <string name="label_rom_config_gba_rom_path">Ruta de acceso de la ROM de GBA</string>
     <string name="label_rom_config_gba_save_path">Ruta de guardado de GBA</string>
+    <string name="rom_details_configuration_tab">Configuración</string>
+    <string name="retro_achievements_tab">Retro Achievements</string> <!-- Mantén las palabras separadas para ayudar con el ajuste de palabras -->
 
     <string name="theme_option_light">Claro</string>
     <string name="theme_option_dark">Oscuro</string>
@@ -285,11 +307,42 @@
     <string name="background_name">Nombre de fondo</string>
     <string name="background_deleted">Fondo eliminado</string>
     <string name="background_add_wrong_orientation">Se agregó fondo pero no es visible para la orientación seleccionada.</string>
-    <string name="background_add_processing_failed">Error al procesar la imagen de fondo seleccionada. Asegúrese de que no esté dañado.</string>
-   
-    <string-array name="fast_forward_speed_multiplier_options">
+    <string name="background_add_processing_failed">Error al procesar la imagen de fondo seleccionada. Asegúrate de que no esté dañada.</string>
+    
+    <string name="retro_achievements_login_description">¡Inicia sesión con RetroAchievements para ver los logros que puedes desbloquear mientras juegas este juego!</string>
+    <string name="login_with_retro_achievements">Inicia sesión con RetroAchievements</string>
+    <string name="login">Iniciar sesión</string>
+    <string name="retroachievements_login_summary">¡Inicia sesión con RetroAchievements para desbloquear logros mientras juegas!</string>
+    <string name="retroachievements_login_status">Sesión iniciada como %1$s</string>
+    <string name="retroachievements_logout">Cerrar sesión</string>
+    <string name="retroachievements_logout_confirmation">¿Estás seguro de que quieres cerrar sesión en RetroAchievements? No podrás desbloquear logros mientras juegas.</string>
+    <string name="retro_achievements_login_error">Hubo un problema al intentar iniciar sesión. Asegúrate de que tu nombre de usuario y contraseña sean correctos y de que estés conectado a Internet</string>
+    <string name="retro_achievements_login_error_short">Se produjo un problema al intentar iniciar sesión</string>
+    <string name="retro_achievements_load_error">Se produjo un problema al intentar cargar los logros de este juego. Asegúrate de estar conectado a Internet e intenta de nuevo más tarde</string>
+    <string name="retro_achievements_no_achievements">No se encontraron RetroAchievements para este juego</string>
+    <string name="retro_achievements_relaunch_to_apply_settings">Reinicia la ROM para aplicar la nueva configuración de RetroAchievements</string>
+    <string name="username">Nombre de usuario</string>
+    <string name="password">Contraseña</string>
+    <string name="retry">Reintentar</string>
+    <string name="points_abbreviated">PTS</string>
+    <string name="points">Puntos</string>
+    <string name="completed">Completado</string>
+    <string name="ra_mode_hardcore">Hardcore</string>
+    <string name="ra_mode_softcore">Softcore</string>
+    <string name="view_achievement">Ver logro</string>
+    <string name="completed_achievements"><b>%1$d</b> de <b>%2$d</b> (%3$d%%)</string>
+    <string name="submitting_achievements">Enviando RetroAchievements…</string>
+    <string name="achievements_loaded">Logros cargados</string>
+    <string name="achievements_unlocked_compact">Desbloqueados: %1$d/%2$d</string>
+    <string name="achievements_failed_load">¡Error al cargar los logros!</string>
+    <string name="achievements_failed_load_tip">Asegúrate de estar en línea</string>
+    <string name="achievement_unlocked">¡Logro desbloqueado!</string>
+    <string name="achievement_missable">Logro perdible</string>
+    <string name="achievement_missable_description">Este logro se puede perder durante una partida</string>
+       
+       <string-array name="fast_forward_speed_multiplier_options">
         <item>Ilimitado</item>
-        <item>1.5x</item>
+        <item>1,5x</item>
         <item>2x</item>
         <item>3x</item>
         <item>4x</item>
@@ -297,12 +350,12 @@
     </string-array>
 
     <string-array name="rom_icon_filtering_options">
-        <item>Ninguno (pixelado)</item>
-        <item>Lineal (suave)</item>
+        <item>Ninguno (Pixelado)</item>
+        <item>Lineal (Suave)</item>
     </string-array>
 
     <string-array name="game_runtime_console_type_options">
-        <item>Predeterminado</item>
+        <item>Por defecto</item>
         <item>@string/console_ds</item>
         <item>@string/console_dsi</item>
     </string-array>
@@ -317,7 +370,7 @@
     </string-array>
 
     <string-array name="game_runtime_mic_source_options">
-        <item>Predeterminado</item>
+        <item>Por defecto</item>
         <item>Ninguno</item>
         <item>Soplar</item>
         <item>Micrófono del dispositivo</item>
@@ -337,7 +390,7 @@
         <item>Inferior-central</item>
         <item>Abajo-derecha</item>
     </string-array>
-    
+
     <string-array name="video_filtering_options">
         <item>Ninguno</item>
         <item>Lineal</item>
@@ -346,6 +399,12 @@
         <item>HQ4X</item>
         <item>Quilez</item>
         <item>LCD</item>
+    </string-array>
+
+    <string-array name="dsi_camera_source_options">
+        <item>Pantalla negra</item>
+        <item>Cámaras físicas</item>
+        <item>Imagen estática</item>
     </string-array>
 
     <string-array name="audio_interpolation_options">
@@ -386,16 +445,16 @@
     </string-array>
 
     <string-array name="background_portrait_mode_options">
-        <item>Elasticidad</item>
-        <item>Ajuste al centro</item>
-        <item>Ajuste superior</item>
-        <item>Ajuste inferior</item>
+        <item>Estirar</item>
+        <item>Ajustar al centro</item>
+        <item>Ajustar a la parte superior</item>
+        <item>Ajustar a la parte inferior</item>
     </string-array>
 
     <string-array name="background_landscape_mode_options">
-        <item>Elasticidad</item>
-        <item>Centro de ajuste</item>
-        <item>Ajuste a la izquierda</item>
-        <item>Ajuste a la derecha</item>
+        <item>Estirar</item>
+        <item>Ajustar al centro</item>
+        <item>Ajustar a la izquierda</item>
+        <item>Ajustar a la derecha</item>
     </string-array>
 </resources>

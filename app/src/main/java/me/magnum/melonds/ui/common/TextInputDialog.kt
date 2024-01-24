@@ -121,8 +121,8 @@ class TextInputDialog : DialogFragment() {
                 this@Builder.onConfirmListener?.let { setOnConfirmListener(it) }
                 this@Builder.onCancelListener?.let { setOnCancelListener(it) }
                 arguments = bundleOf(
-                    KEY_TITLE to title,
-                    KEY_TEXT to text
+                    KEY_TITLE to this@Builder.title,
+                    KEY_TEXT to this@Builder.text
                 )
             }
         }

@@ -21,6 +21,7 @@
 
     <string name="version_alpha">Alpha</string>
     <string name="version_beta">Beta</string>
+    <string name="version_nightly">Nightly</string>
 
     <string name="console_ds">DS</string>
     <string name="console_dsi">DSi (Experimental)</string>
@@ -49,7 +50,10 @@
     <string name="action_refresh_rom_list">Refresh ROM list</string>
     <string name="hint_search_roms">Search ROMs…</string>
     <string name="update_available">Update available: %1$s</string>
+    <string name="nightly_update_available">Nightly update available</string>
+    <string name="nightly_update_available_message">Do you want to download it now?</string>
     <string name="skip_update">Skip</string>
+    <string name="remind_later_update">Later</string>
     <string name="downloading_update">Downloading update…</string>
     <string name="starting_download">Starting download…</string>
     <string name="download_progress_sizes">%1$.1fMB/%2$.1fMB</string>
@@ -70,6 +74,12 @@
     <string name="dsiware_manager_import_title_error_insatll_failed">Failed to install title</string>
     <string name="dsiware_manager_import_title_error_metadat_fetch_failed">Failed to download title metadata. Check your internet connection</string>
     <string name="dsiware_manager_import_title_error_unknown">An unknown error occurred</string>
+    <string name="dsiware_manager_import_data">Import data…</string>
+    <string name="dsiware_manager_export_data">Export data…</string>
+    <string name="dsiware_manager_import_file_success">%1$s imported successfully</string>
+    <string name="dsiware_manager_import_file_error">Failed to import file</string>
+    <string name="dsiware_manager_export_file_success">%1$s exported successfully</string>
+    <string name="dsiware_manager_export_file_error">Failed to export file</string>
     <string name="dsiware_import_from_file">From file</string>
     <string name="dsiware_import_from_rom_list">From ROM list</string>
 
@@ -148,6 +158,8 @@
     <string name="rewind_memory_usage_above_recommended_limit">Memory usage above recommended limit</string>
     <string name="sustained_performance_mode">Sustained performance mode</string>
     <string name="sustained_performance_mode_summary">When enabled, peak performance will be lower but thermal throttling will be less pronounced.</string>
+    <string name="check_for_updates">Check for updates</string>
+    <string name="check_for_updates_summary">When enabled, the app will periodically check for available updates</string>
     <string name="rom_icon_filtering">Icon filtering</string>
     <string name="max_rom_cache_size">Max. ROM cache size</string>
     <string name="clear_extracted_rom_cache">Clear extracted ROM cache</string>
@@ -177,6 +189,8 @@
     <string name="category_video">Video</string>
     <string name="category_video_summary">Filter, threaded rendering, FPS counter</string>
     <string name="filter">Filter</string>
+    <string name="internal_resolution">Internal resolution</string>
+    <string name="renderer">Renderer</string>
     <string name="dsi_camera_source">DSi camera source</string>
     <string name="dsi_camera_image">DSi camera image</string>
     <string name="category_audio">Audio</string>
@@ -390,6 +404,22 @@
         <item>Bottom left</item>
         <item>Bottom center</item>
         <item>Bottom right</item>
+    </string-array>
+
+    <string-array name="video_renderer_options">
+        <item>Software</item>
+        <item>OpenGL</item>
+    </string-array>
+
+    <string-array name="video_internal_resolution_options">
+        <item>1x native (256x192)</item>
+        <item>2x native (512x384)</item>
+        <item>3x native (768x576)</item>
+        <item>4x native (1024x768)</item>
+        <item>5x native (1280x960)</item>
+        <item>6x native (1536x1152)</item>
+        <item>7x native (1792x1344)</item>
+        <item>8x native (2048x1536)</item>
     </string-array>
 
     <string-array name="video_filtering_options">

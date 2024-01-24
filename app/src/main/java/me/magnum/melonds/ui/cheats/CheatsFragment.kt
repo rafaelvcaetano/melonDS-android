@@ -10,7 +10,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.FragmentCheatsBinding
 import me.magnum.melonds.extensions.viewBinding
@@ -50,21 +55,34 @@ class CheatsFragment : Fragment(R.layout.fragment_cheats) {
 
         requireActivity().addMenuProvider(cheatsMenuProvider, viewLifecycleOwner)
 
-        if (isLaunchingForFirstTime) {
-            val hasMultipleGames = (viewModel.getRomCheats().value?.size ?: 0) > 1
-            if (hasMultipleGames) {
-                openSubScreenFragment<GamesSubScreenFragment>(isRootFragment = true)
-            } else {
-                openSubScreenFragment<FoldersSubScreenFragment>(isRootFragment = true)
+        if (isLaunchingForFirstTime || !viewModel.initialContentReady.value) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.initialContentReady.collectLatest { ready ->
+                    if (ready) {
+                        val hasSelectedGame = viewModel.selectedGame.value != null
+                        if (hasSelectedGame) {
+                            openSubScreenFragment<FoldersSubScreenFragment>(isRootFragment = true)
+                        } else {
+                            openSubScreenFragment<GamesSubScreenFragment>(isRootFragment = true)
+                        }
+                    }
+                }
             }
         }
 
-        viewModel.openFoldersEvent.observe(viewLifecycleOwner) {
-            openSubScreenFragment<FoldersSubScreenFragment>()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.openFoldersEvent.collectLatest {
+                    openSubScreenFragment<FoldersSubScreenFragment>()
+                }
+            }
         }
-
-        viewModel.openCheatsEvent.observe(viewLifecycleOwner) {
-            openSubScreenFragment<FolderCheatsScreenFragment>()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.openCheatsEvent.collectLatest {
+                    openSubScreenFragment<FolderCheatsScreenFragment>()
+                }
+            }
         }
 
         isLaunchingForFirstTime = false

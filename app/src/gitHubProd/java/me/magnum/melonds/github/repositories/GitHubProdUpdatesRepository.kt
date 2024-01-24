@@ -4,19 +4,21 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import io.reactivex.Maybe
-import io.reactivex.Single
-import me.magnum.melonds.domain.model.AppUpdate
+import me.magnum.melonds.common.suspendMapCatching
+import me.magnum.melonds.common.suspendRunCatching
 import me.magnum.melonds.domain.model.Version
+import me.magnum.melonds.domain.model.appupdate.AppUpdate
 import me.magnum.melonds.domain.repositories.UpdatesRepository
 import me.magnum.melonds.github.GitHubApi
+import me.magnum.melonds.github.PREF_KEY_GITHUB_CHECK_FOR_UPDATES
 import me.magnum.melonds.github.dtos.ReleaseDto
 import me.magnum.melonds.utils.PackageManagerCompat
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
-import java.util.*
+import java.time.Instant
+import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
-class GitHubUpdatesRepository(private val context: Context, private val api: GitHubApi, private val preferences: SharedPreferences) : UpdatesRepository {
+class GitHubProdUpdatesRepository(private val context: Context, private val api: GitHubApi, private val preferences: SharedPreferences) : UpdatesRepository {
     companion object {
         private const val APK_CONTENT_TYPE = "application/vnd.android.package-archive"
         private const val KEY_SKIP_VERSION = "github_updates_skip_version"
@@ -25,34 +27,35 @@ class GitHubUpdatesRepository(private val context: Context, private val api: Git
         private const val UPDATE_CHECK_DELAY_HOURS = 22
     }
 
-    override fun checkNewUpdate(): Maybe<AppUpdate> {
-        return shouldCheckUpdates()
-            .flatMapMaybe { checkUpdates ->
-                if (checkUpdates) {
-                    api.getLatestRelease().flatMapMaybe { release ->
-                        updateLastUpdateCheckTime()
-                        if (isReleaseNewUpdate(release) && !shouldSkipUpdate(release)) {
-                            val apkBinary = release.assets.firstOrNull { it.contentType == APK_CONTENT_TYPE }
-                            if (apkBinary != null) {
-                                val update = AppUpdate(
-                                    apkBinary.id,
-                                    apkBinary.url.toUri(),
-                                    Version.fromString(release.tagName),
-                                    release.body,
-                                    apkBinary.size
-                                )
-                                Maybe.just(update)
-                            } else {
-                                Maybe.empty()
-                            }
-                        } else {
-                            Maybe.empty()
-                        }
-                    }
+    override suspend fun checkNewUpdate(): Result<AppUpdate?> {
+        if (!shouldCheckUpdates()) {
+            return Result.success(null)
+        }
+
+        return suspendRunCatching {
+            api.getLatestRelease()
+        }.suspendMapCatching { release ->
+            updateLastUpdateCheckTime()
+
+            if (isReleaseNewUpdate(release) && !shouldSkipUpdate(release)) {
+                val apkBinary = release.assets.firstOrNull { it.contentType == APK_CONTENT_TYPE }
+                if (apkBinary != null) {
+                    AppUpdate(
+                        AppUpdate.Type.PRODUCTION,
+                        apkBinary.id,
+                        apkBinary.url.toUri(),
+                        Version.fromString(release.tagName),
+                        release.body,
+                        apkBinary.size,
+                        Instant.parse(release.createdAt),
+                    )
                 } else {
-                    Maybe.empty()
+                    null
                 }
+            } else {
+                 null
             }
+        }
     }
 
     override fun skipUpdate(update: AppUpdate) {
@@ -61,22 +64,27 @@ class GitHubUpdatesRepository(private val context: Context, private val api: Git
         }
     }
 
-    private fun shouldCheckUpdates(): Single<Boolean> {
-        return Single.create { emitter ->
-            val lastCheckUpdateTimestamp = preferences.getLong(KEY_LAST_UPDATE_CHECK, -1)
-            if (lastCheckUpdateTimestamp == (-1).toLong()) {
-                emitter.onSuccess(true)
-                return@create
-            }
+    override fun notifyUpdateDownloaded(update: AppUpdate) {
+        // Do nothing
+    }
 
-            val currentDate = Calendar.getInstance().time
-
-            val difference = currentDate.time - lastCheckUpdateTimestamp
-            val hoursDifference = TimeUnit.HOURS.convert(difference, TimeUnit.MILLISECONDS)
-
-            val shouldCheckUpdates = hoursDifference >= UPDATE_CHECK_DELAY_HOURS
-            emitter.onSuccess(shouldCheckUpdates)
+    private fun shouldCheckUpdates(): Boolean {
+        val updateCheckEnabled = preferences.getBoolean(PREF_KEY_GITHUB_CHECK_FOR_UPDATES, true)
+        if (!updateCheckEnabled) {
+            return true
         }
+
+        val lastCheckUpdateTimestamp = preferences.getLong(KEY_LAST_UPDATE_CHECK, -1)
+        if (lastCheckUpdateTimestamp == (-1).toLong()) {
+            return true
+        }
+
+        val currentDate = Calendar.getInstance().time
+
+        val difference = currentDate.time - lastCheckUpdateTimestamp
+        val hoursDifference = TimeUnit.HOURS.convert(difference, TimeUnit.MILLISECONDS)
+
+        return hoursDifference >= UPDATE_CHECK_DELAY_HOURS
     }
 
     private fun updateLastUpdateCheckTime() {

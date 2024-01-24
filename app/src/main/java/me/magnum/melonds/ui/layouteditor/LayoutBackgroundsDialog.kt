@@ -72,14 +72,14 @@ class LayoutBackgroundsDialog : DialogFragment() {
 
         if (savedInstanceState != null) {
             currentPortraitBackgroundId = savedInstanceState.getString(KEY_PORTRAIT_BACKGROUND_ID, null)?.let { UUID.fromString(it) }
-            currentPortraitBackgroundMode = BackgroundMode.values()[savedInstanceState.getInt(KEY_PORTRAIT_BACKGROUND_MODE, 0)]
+            currentPortraitBackgroundMode = BackgroundMode.entries[savedInstanceState.getInt(KEY_PORTRAIT_BACKGROUND_MODE, 0)]
             currentLandscapeBackgroundId = savedInstanceState.getString(KEY_LANDSCAPE_BACKGROUND_ID, null)?.let { UUID.fromString(it) }
-            currentLandscapeBackgroundMode = BackgroundMode.values()[savedInstanceState.getInt(KEY_LANDSCAPE_BACKGROUND_MODE, 0)]
+            currentLandscapeBackgroundMode = BackgroundMode.entries[savedInstanceState.getInt(KEY_LANDSCAPE_BACKGROUND_MODE, 0)]
         } else {
             currentPortraitBackgroundId = arguments?.getString(KEY_PORTRAIT_BACKGROUND_ID, null)?.let { UUID.fromString(it) }
-            currentPortraitBackgroundMode = BackgroundMode.values()[arguments?.getInt(KEY_PORTRAIT_BACKGROUND_MODE, 0) ?: 0]
+            currentPortraitBackgroundMode = BackgroundMode.entries[arguments?.getInt(KEY_PORTRAIT_BACKGROUND_MODE, 0) ?: 0]
             currentLandscapeBackgroundId = arguments?.getString(KEY_LANDSCAPE_BACKGROUND_ID, null)?.let { UUID.fromString(it) }
-            currentLandscapeBackgroundMode = BackgroundMode.values()[arguments?.getInt(KEY_LANDSCAPE_BACKGROUND_MODE, 0) ?: 0]
+            currentLandscapeBackgroundMode = BackgroundMode.entries[arguments?.getInt(KEY_LANDSCAPE_BACKGROUND_MODE, 0) ?: 0]
         }
     }
 

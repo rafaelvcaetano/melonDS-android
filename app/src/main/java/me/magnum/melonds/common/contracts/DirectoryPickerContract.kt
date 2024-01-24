@@ -31,10 +31,6 @@ class DirectoryPickerContract(private val permissions: Permission) : ActivityRes
         return intent
     }
 
-    override fun getSynchronousResult(context: Context, input: Uri?): SynchronousResult<Uri?>? {
-        return null
-    }
-
     override fun parseResult(resultCode: Int, intent: Intent?): Uri? {
         return if (intent == null || resultCode != Activity.RESULT_OK) {
             null

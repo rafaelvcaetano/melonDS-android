@@ -60,7 +60,7 @@ object MelonEmulator {
 
     fun bootFirmware(): FirmwareLoadResult {
         val loadResult = bootFirmwareInternal()
-        return FirmwareLoadResult.values()[loadResult]
+        return FirmwareLoadResult.entries[loadResult]
     }
 
     private external fun loadRomInternal(romPath: String, sramPath: String, loadGbaRom: Boolean, gbaRomPath: String?, gbaSramPath: String?): Int
@@ -115,5 +115,5 @@ object MelonEmulator {
 
     external fun setMicrophoneEnabled(enabled: Boolean)
 
-    external fun updateEmulatorConfiguration(emulatorConfiguration: EmulatorConfiguration)
+    external fun updateEmulatorConfiguration(emulatorConfiguration: EmulatorConfiguration, frameBuffer: ByteBuffer)
 }

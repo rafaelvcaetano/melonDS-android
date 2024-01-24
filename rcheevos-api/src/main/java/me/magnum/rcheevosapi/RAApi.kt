@@ -47,7 +47,7 @@ class RAApi(
         private const val VALUE_HARDMODE_DISABLED = "0"
         private const val VALUE_HARDMODE_ENABLED = "1"
 
-        private const val REQUEST_LOGIN = "login"
+        private const val REQUEST_LOGIN = "login2"
         private const val REQUEST_HASH_LIBRARY = "hashlibrary"
         private const val REQUEST_GAME_DATA = "patch"
         private const val REQUEST_USER_UNLOCKED_ACHIEVEMENTS = "unlocks"

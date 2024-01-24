@@ -1,12 +1,28 @@
 package me.magnum.melonds.ui.emulator.ui
 
-import androidx.compose.animation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -31,7 +47,6 @@ private enum class PopupState {
     SHOW_DESCRIPTION,
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun AchievementPopupUi(
     modifier: Modifier,
@@ -73,11 +88,12 @@ fun AchievementPopupUi(
                 targetState = popupState,
                 transitionSpec = {
                     if (targetState == PopupState.SHOW_TITLE) {
-                        expandIn { IntSize(0, it.height) } with fadeOut()
+                        expandIn { IntSize(0, it.height) } togetherWith fadeOut()
                     } else {
-                        slideInVertically { it } + fadeIn() with slideOutVertically { -it } + fadeOut()
+                        slideInVertically { it } + fadeIn() togetherWith slideOutVertically { -it } + fadeOut()
                     }
-                }
+                },
+                label = "content-animation",
             ) {
                 when (it) {
                     PopupState.SHOW_ICON -> {

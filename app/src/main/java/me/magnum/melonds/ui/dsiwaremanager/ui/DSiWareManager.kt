@@ -36,6 +36,7 @@ import me.magnum.melonds.ui.common.FabActionItem
 import me.magnum.melonds.ui.common.MultiActionFloatingActionButton
 import me.magnum.melonds.ui.common.melonButtonColors
 import me.magnum.melonds.ui.dsiwaremanager.model.DSiWareManagerUiState
+import me.magnum.melonds.domain.model.dsinand.DSiWareTitleFileType
 import me.magnum.melonds.ui.romlist.RomIcon
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.theme.MelonTheme
@@ -49,6 +50,8 @@ fun DSiWareManager(
     state: DSiWareManagerUiState,
     onImportTitle: (Uri) -> Unit,
     onDeleteTitle: (DSiWareTitle) -> Unit,
+    onImportTitleFile: (DSiWareTitle, DSiWareTitleFileType) -> Unit,
+    onExportTitleFile: (DSiWareTitle, DSiWareTitleFileType) -> Unit,
     onBiosConfigurationFinished: () -> Unit,
     retrieveTitleIcon: (DSiWareTitle) -> RomIcon,
 ) {
@@ -74,6 +77,8 @@ fun DSiWareManager(
                 onImportTitleFromFile = { importTitleLauncher.launch(null to arrayOf("*/*")) },
                 onImportTitleFromRomList = { onImportTitle(it.uri) },
                 onDeleteTitle = onDeleteTitle,
+                onImportTitleFile = onImportTitleFile,
+                onExportTitleFile = onExportTitleFile,
                 retrieveTitleIcon = retrieveTitleIcon,
             )
         }
@@ -150,6 +155,8 @@ private fun Ready(
     onImportTitleFromFile: () -> Unit,
     onImportTitleFromRomList: (Rom) -> Unit,
     onDeleteTitle: (DSiWareTitle) -> Unit,
+    onImportTitleFile: (DSiWareTitle, DSiWareTitleFileType) -> Unit,
+    onExportTitleFile: (DSiWareTitle, DSiWareTitleFileType) -> Unit,
     retrieveTitleIcon: (DSiWareTitle) -> RomIcon,
 ) {
     val showingRomList = rememberSaveable(null) { mutableStateOf(false) }
@@ -167,6 +174,8 @@ private fun Ready(
                 modifier = Modifier.fillMaxSize(),
                 titles = titles,
                 onDeleteTitle = onDeleteTitle,
+                onImportTitleFile = onImportTitleFile,
+                onExportTitleFile = onExportTitleFile,
                 retrieveTitleIcon = retrieveTitleIcon,
             )
         }
@@ -223,18 +232,22 @@ private fun DSiWareTitleList(
     modifier: Modifier,
     titles: List<DSiWareTitle>,
     onDeleteTitle: (DSiWareTitle) -> Unit,
+    onImportTitleFile: (DSiWareTitle, DSiWareTitleFileType) -> Unit,
+    onExportTitleFile: (DSiWareTitle, DSiWareTitleFileType) -> Unit,
     retrieveTitleIcon: (DSiWareTitle) -> RomIcon,
 ) {
     LazyColumn(modifier) {
         items(
             items = titles,
             key = { it.titleId },
-        ) {
+        ) { dSiWareTitle ->
             DSiWareItem(
                 modifier = Modifier.fillMaxWidth(),
-                item = it,
-                onDeleteClicked = { onDeleteTitle(it) },
-                retrieveTitleIcon = { retrieveTitleIcon(it) },
+                item = dSiWareTitle,
+                onDeleteClicked = { onDeleteTitle(dSiWareTitle) },
+                onImportFile = { onImportTitleFile(dSiWareTitle, it) },
+                onExportFile = { onExportTitleFile(dSiWareTitle, it) },
+                retrieveTitleIcon = { retrieveTitleIcon(dSiWareTitle) },
             )
         }
     }
@@ -250,13 +263,15 @@ private fun PreviewDSiWareManagerReady() {
         Ready(
             modifier = Modifier.fillMaxSize(),
             titles = listOf(
-                DSiWareTitle("Legit Game", "Notendo", 0, ByteArray(0)),
-                DSiWareTitle("Legit Game: Snapped!", "Upasuft", 1, ByteArray(0)),
-                DSiWareTitle("Highway 4 - Mediocre Racing", "Microware", 2, ByteArray(0)),
+                DSiWareTitle("Legit Game", "Notendo", 0, ByteArray(0), 0, 0, 0),
+                DSiWareTitle("Legit Game: Snapped!", "Upasuft", 1, ByteArray(0), 0, 0, 0),
+                DSiWareTitle("Highway 4 - Mediocre Racing", "Microware", 2, ByteArray(0), 0, 0, 0),
             ),
             onImportTitleFromFile = {},
             onImportTitleFromRomList = {},
             onDeleteTitle = {},
+            onImportTitleFile = { _, _ -> },
+            onExportTitleFile = { _, _ -> },
             retrieveTitleIcon = { RomIcon(bitmap, RomIconFiltering.NONE) },
         )
     }

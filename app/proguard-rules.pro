@@ -32,6 +32,7 @@
 -keep class me.magnum.melonds.domain.model.MicSource { *; }
 -keep class me.magnum.melonds.domain.model.Cheat { *; }
 -keep class me.magnum.melonds.domain.model.DSiWareTitle { *; }
+-keep class me.magnum.melonds.domain.model.VideoRenderer { *; }
 -keep class me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement { *; }
 -keep class me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState { *; }
 -keep class me.magnum.melonds.ui.emulator.rewind.model.RewindWindow { *; }

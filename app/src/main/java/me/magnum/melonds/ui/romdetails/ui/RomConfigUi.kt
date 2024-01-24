@@ -72,7 +72,7 @@ private fun Content(
             items = consoleOptions.toList(),
             selectedItemIndex = romConfig.runtimeConsoleType.ordinal,
             onItemSelected = {
-                onConfigUpdate(RomConfigUpdateEvent.RuntimeConsoleUpdate(RuntimeConsoleType.values()[it]))
+                onConfigUpdate(RomConfigUpdateEvent.RuntimeConsoleUpdate(RuntimeConsoleType.entries[it]))
             }
         )
 
@@ -83,7 +83,7 @@ private fun Content(
             items = micSourceOptions.toList(),
             selectedItemIndex = romConfig.runtimeMicSource.ordinal,
             onItemSelected = {
-                onConfigUpdate(RomConfigUpdateEvent.RuntimeMicSourceUpdate(RuntimeMicSource.values()[it]))
+                onConfigUpdate(RomConfigUpdateEvent.RuntimeMicSourceUpdate(RuntimeMicSource.entries[it]))
             }
         )
 

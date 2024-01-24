@@ -4,7 +4,6 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("kotlin-parcelize")
-    id("kotlin-kapt")
     id("com.google.devtools.ksp")
     id("dagger.hilt.android.plugin")
     id("org.jetbrains.kotlin.android")
@@ -59,10 +58,11 @@ android {
         }
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.7"
     }
 
     flavorDimensions.add("version")
+    flavorDimensions.add("build")
     productFlavors {
         create("playStore") {
             dimension = "version"
@@ -70,7 +70,18 @@ android {
         }
         create("gitHub") {
             dimension = "version"
+            isDefault = true
             versionNameSuffix = " GH"
+        }
+
+        create("prod") {
+            dimension = "build"
+            isDefault = true
+        }
+        create("nightly") {
+            dimension = "build"
+            applicationIdSuffix = ".nightly"
+            versionNameSuffix = " (NIGHTLY)"
         }
     }
     externalNativeBuild {
@@ -143,7 +154,6 @@ dependencies {
         implementation(splashscreen)
         implementation(swipeRefreshLayout)
         implementation(work)
-        implementation(workRxJava)
         implementation(material)
     }
 
@@ -183,10 +193,9 @@ dependencies {
         gitHubImplementation(retrofitConverterGson)
     }
 
-    // KAPT
-    with(Dependencies.Kapt) {
-        kapt(hiltCompiler)
-        kapt(hiltCompilerAndroid)
+    with(Dependencies.Ksp) {
+        ksp(hiltCompiler)
+        ksp(hiltCompilerAndroid)
         ksp(roomCompiler)
     }
 

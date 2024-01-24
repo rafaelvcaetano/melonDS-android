@@ -21,6 +21,7 @@ class FilePickerContract(private val permission: Permission) : ActivityResultCon
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
                 .putExtra(Intent.EXTRA_MIME_TYPES, input.second ?: arrayOf("*/*"))
                 .setType("*/*")
+                .addCategory(Intent.CATEGORY_OPENABLE)
                 .addFlags(permission.toFlags())
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && input.first != null) {
@@ -28,10 +29,6 @@ class FilePickerContract(private val permission: Permission) : ActivityResultCon
         }
 
         return intent
-    }
-
-    override fun getSynchronousResult(context: Context, input: Pair<Uri?, Array<String>?>): SynchronousResult<Uri?>? {
-        return null
     }
 
     override fun parseResult(resultCode: Int, intent: Intent?): Uri? {

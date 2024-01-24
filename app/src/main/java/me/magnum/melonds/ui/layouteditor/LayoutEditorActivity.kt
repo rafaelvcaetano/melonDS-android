@@ -301,7 +301,7 @@ class LayoutEditorActivity : AppCompatActivity() {
     private fun openButtonsMenu() {
         hideBottomControls()
         val instantiatedComponents = binding.viewLayoutEditor.getInstantiatedComponents()
-        val componentsToShow = LayoutComponent.values().filterNot { instantiatedComponents.contains(it) }
+        val componentsToShow = LayoutComponent.entries.filterNot { instantiatedComponents.contains(it) }
 
         val dialogBuilder = AlertDialog.Builder(this)
                 .setTitle(R.string.choose_component)
@@ -322,7 +322,7 @@ class LayoutEditorActivity : AppCompatActivity() {
     }
 
     private fun openMenu() {
-        val values = MenuOption.values()
+        val values = MenuOption.entries
         val options = Array(values.size) { i -> getString(values[i].stringRes) }
 
         AlertDialog.Builder(this)

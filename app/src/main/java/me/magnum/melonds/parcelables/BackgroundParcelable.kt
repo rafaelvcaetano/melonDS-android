@@ -18,7 +18,7 @@ class BackgroundParcelable : Parcelable {
     private constructor(parcel: Parcel) {
         val id = parcel.readString()?.let { UUID.fromString(it) }
         val name = parcel.readString() ?: throw NullPointerException("Missing name string")
-        val orientation = Orientation.values()[parcel.readInt()]
+        val orientation = Orientation.entries[parcel.readInt()]
         val uri = parcel.readString()!!.toUri()
         background = Background(id, name, orientation, uri)
     }

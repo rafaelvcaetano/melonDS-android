@@ -60,8 +60,8 @@ open class StoragePickerPreference(context: Context, attrs: AttributeSet?) : Pre
             val attr = attrArray.getIndex(i)
             when (attr) {
                 R.styleable.DirectoryPickerPreference_selection -> multiSelection = attrArray.getInt(R.styleable.DirectoryPickerPreference_selection, 0) == 1
-                R.styleable.DirectoryPickerPreference_type -> selectionType = SelectionType.values()[attrArray.getInt(R.styleable.DirectoryPickerPreference_type, 0)]
-                R.styleable.DirectoryPickerPreference_permissions -> permissions = Permission.values()[attrArray.getInt(R.styleable.DirectoryPickerPreference_permissions, 0)]
+                R.styleable.DirectoryPickerPreference_type -> selectionType = SelectionType.entries[attrArray.getInt(R.styleable.DirectoryPickerPreference_type, 0)]
+                R.styleable.DirectoryPickerPreference_permissions -> permissions = Permission.entries[attrArray.getInt(R.styleable.DirectoryPickerPreference_permissions, 0)]
                 R.styleable.DirectoryPickerPreference_persistPermissions -> persistPermissions = attrArray.getBoolean(R.styleable.DirectoryPickerPreference_persistPermissions, false)
                 R.styleable.DirectoryPickerPreference_mimeType -> mimeType = attrArray.getString(R.styleable.DirectoryPickerPreference_mimeType)
             }

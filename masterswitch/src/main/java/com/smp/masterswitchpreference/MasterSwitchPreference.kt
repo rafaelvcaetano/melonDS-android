@@ -5,6 +5,8 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
 import androidx.annotation.Keep
+import androidx.core.os.BundleCompat
+import androidx.core.os.ParcelCompat
 import androidx.preference.Preference
 import java.io.File
 
@@ -58,14 +60,14 @@ open class MasterSwitchPreference : Preference {
     }
 
     private val attrs: MasterSwitchPreferenceAttrs
-        get() = extras.getParcelable(ATTRS_KEY_NAME)!!
+        get() = BundleCompat.getParcelable(extras, ATTRS_KEY_NAME, MasterSwitchPreferenceAttrs::class.java)!!
 
 
     internal class SavedState : BaseSavedState {
         var attrs: MasterSwitchPreferenceAttrs? = null
 
         constructor(source: Parcel) : super(source) {
-            attrs = source.readParcelable(javaClass.classLoader)
+            attrs = ParcelCompat.readParcelable(source, javaClass.classLoader, MasterSwitchPreferenceAttrs::class.java)
         }
 
         constructor(superState: Parcelable?) : super(superState) {}
@@ -75,17 +77,18 @@ open class MasterSwitchPreference : Preference {
             dest.writeParcelable(attrs, 0)
         }
 
-        companion object {
-            val CREATOR: Parcelable.Creator<SavedState?> =
-                object : Parcelable.Creator<SavedState?> {
-                    override fun createFromParcel(`in`: Parcel): SavedState? {
-                        return SavedState(`in`)
-                    }
+        override fun describeContents(): Int {
+            return 0
+        }
 
-                    override fun newArray(size: Int): Array<SavedState?> {
-                        return arrayOfNulls(size)
-                    }
-                }
+        companion object CREATOR : Parcelable.Creator<SavedState> {
+            override fun createFromParcel(parcel: Parcel): SavedState {
+                return SavedState(parcel)
+            }
+
+            override fun newArray(size: Int): Array<SavedState?> {
+                return arrayOfNulls(size)
+            }
         }
     }
 
@@ -95,7 +98,7 @@ open class MasterSwitchPreference : Preference {
             R.styleable.MasterSwitchPreference,
             0,
             0
-        ) ?: return
+        )
 
         with(resAttrs) {
             val libraryAttrs =
@@ -115,7 +118,7 @@ open class MasterSwitchPreference : Preference {
 
             val def = MasterSwitchPreferenceAttrs()
 
-            val attrs = MasterSwitchPreferenceAttrs(
+            val prefAttrs = MasterSwitchPreferenceAttrs(
                 switchThumbColor = getColor(
                     R.styleable.MasterSwitchPreference_ms_switchThumbColor,
                     def.switchThumbColor
@@ -182,10 +185,10 @@ open class MasterSwitchPreference : Preference {
                     MasterSwitchPreferenceFragment::class.qualifiedName
                 }
             }
-            setDefaultValue(attrs.defaultValue)
-            key = attrs.key
+            setDefaultValue(prefAttrs.defaultValue)
+            key = prefAttrs.key
             fragment = fragName
-            extras.putParcelable(ATTRS_KEY_NAME, attrs)
+            extras.putParcelable(ATTRS_KEY_NAME, prefAttrs)
 
             recycle()
             libraryAttrs.recycle()

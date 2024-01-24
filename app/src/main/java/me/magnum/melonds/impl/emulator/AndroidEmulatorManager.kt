@@ -89,12 +89,14 @@ class AndroidEmulatorManager(
 
     override suspend fun updateRomEmulatorConfiguration(rom: Rom) {
         val configuration = getRomEmulatorConfiguration(rom)
-        MelonEmulator.updateEmulatorConfiguration(configuration)
+        frameBufferProvider.setRendererConfiguration(configuration.rendererConfiguration)
+        MelonEmulator.updateEmulatorConfiguration(configuration, frameBufferProvider.frameBuffer())
     }
 
     override suspend fun updateFirmwareEmulatorConfiguration(consoleType: ConsoleType) {
         val configuration = getFirmwareEmulatorConfiguration(consoleType)
-        MelonEmulator.updateEmulatorConfiguration(configuration)
+        frameBufferProvider.setRendererConfiguration(configuration.rendererConfiguration)
+        MelonEmulator.updateEmulatorConfiguration(configuration, frameBufferProvider.frameBuffer())
     }
 
     override suspend fun getRewindWindow(): RewindWindow {
@@ -166,6 +168,8 @@ class AndroidEmulatorManager(
     }
 
     private fun setupEmulator(emulatorConfiguration: EmulatorConfiguration) {
+        frameBufferProvider.setRendererConfiguration(emulatorConfiguration.rendererConfiguration)
+
         MelonEmulator.setupEmulator(
             emulatorConfiguration,
             context.assets,

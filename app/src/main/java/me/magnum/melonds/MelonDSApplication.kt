@@ -59,15 +59,15 @@ class MelonDSApplication : Application(), Configuration.Provider {
         migrator.performMigrations()
     }
 
-    override fun getWorkManagerConfiguration(): Configuration {
-        return Configuration.Builder()
-                .setWorkerFactory(workerFactory)
-                .build()
-    }
-
     override fun onTerminate() {
         super.onTerminate()
         themeObserverDisposable?.dispose()
         MelonDSAndroidInterface.cleanup()
+    }
+
+    override val workManagerConfiguration: Configuration get() {
+        return Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
     }
 }

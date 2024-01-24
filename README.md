@@ -27,6 +27,12 @@ third-party frontend with the following configuration:
     * `uri` (preferred) - a string with the [SAF](https://developer.android.com/guide/topics/providers/create-document-provider) URI of the NDS ROM (ZIP files are supported)
     * `PATH` - a string with the absolute path to the NDS ROM (ZIP files are supported)
 
+# Nightly Builds
+
+To have access to the latest changes, you can install nightly builds that you can find [here](https://github.com/rafaelvcaetano/melonDS-android/releases/tag/nightly-release).
+
+Be aware that these builds can contain more bugs than usual and you may need to clear your app data to get it to work properly.
+
 # Building
 To build the project you will need Android SDK, NDK and CMake.
 
@@ -36,9 +42,9 @@ To build the project you will need Android SDK, NDK and CMake.
     `git clone --recurse-submodules https://github.com/rafaelvcaetano/melonDS-android.git`
 2.  Install the Android SDK, NDK and CMake
 3.  Build with:
-    1.  Unix: `./gradlew :app:assembleGitHubDebug`
-    2.  Windows: `gradlew.bat :app:assembleGitHubDebug`
-4.  The generated APK can be found at `app/gitHub/debug`
+    1.  Unix: `./gradlew :app:assembleGitHubProdDebug`
+    2.  Windows: `gradlew.bat :app:assembleGitHubProdDebug`
+4.  The generated APK can be found at `app/gitHubProd/debug`
 
 If you want to create a release build, you will need to modify your `local.properties` file to include the following fields:  
 *  `MELONDS_KEYSTORE=<path_to_your_keystore>`

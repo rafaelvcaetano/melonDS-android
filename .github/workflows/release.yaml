@@ -36,7 +36,7 @@ jobs:
           echo "MELONDS_KEY_ALIAS=melonds" >> local.properties
           echo "MELONDS_KEY_PASSWORD=$MELONDS_KEYSTORE_PASSWORD" >> local.properties
           chmod +x ./gradlew
-          ./gradlew :app:assembleGitHubRelease
+          ./gradlew :app:assembleGitHubProdRelease
 
       - name: Get Tag and Version
         id: release_params
@@ -52,7 +52,7 @@ jobs:
           tag: ${{ steps.release_params.outputs.TAG }}
           name: ${{ steps.release_params.outputs.VERSION }}
           bodyFile: ./.github/changelog/gitHub.md
-          artifacts: app/build/outputs/apk/gitHub/release/app-gitHub-release.apk
+          artifacts: app/build/outputs/apk/gitHubProd/release/app-gitHub-prod-release.apk
           artifactContentType: application/vnd.android.package-archive
 
       - name: Upload APK, Mapping and Debug Symbols
@@ -60,21 +60,21 @@ jobs:
         with:
           name: github-release
           path: |
-            app/build/outputs/apk/gitHub/release/app-gitHub-release.apk
-            app/build/outputs/mapping/gitHubRelease/mapping.txt
-            app/build/outputs/native-debug-symbols/gitHubRelease/native-debug-symbols.zip
+            app/build/outputs/apk/gitHubProd/release/app-gitHub-prod-release.apk
+            app/build/outputs/mapping/gitHubProdRelease/mapping.txt
+            app/build/outputs/native-debug-symbols/gitHubProdRelease/native-debug-symbols.zip
 
   playstore-release:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
 
       - uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: zulu
 
       - name: Setup Android SDK
@@ -93,31 +93,30 @@ jobs:
           echo "MELONDS_KEY_ALIAS=melonds-playstore" >> local.properties
           echo "MELONDS_KEY_PASSWORD=$MELONDS_KEY_PASSWORD" >> local.properties
           chmod +x ./gradlew
-          ./gradlew :app:assemblePlayStoreRelease
+          ./gradlew :app:assemblePlayStoreProdRelease
 
       - name: Get Version
         id: release_params
         run: echo VERSION=$(grep -oP 'versionName = "\K(.*?)(?=")' buildSrc/src/main/kotlin/AppConfig.kt) >> $GITHUB_OUTPUT
 
       - name: Create Play Store Release
-        uses: r0adkll/upload-google-play@v1.0.19
+        uses: r0adkll/upload-google-play@v1.1.2
         with:
           serviceAccountJsonPlainText: ${{ secrets.MELONDS_PLAYSTORE_ACCOUNT_JSON }}
           packageName: me.magnum.melonds
           releaseName: ${{ steps.release_params.outputs.VERSION }}
-          releaseFiles: app/build/outputs/apk/playStore/release/app-playStore-release.apk
+          releaseFiles: app/build/outputs/apk/playStoreProd/release/app-playStore-prod-release.apk
           track: beta
           inAppUpdatePriority: 2
-          status: draft
-          changesNotSentForReview: true
           whatsNewDirectory: ./.github/changelog/playStore
-          mappingFile: app/build/outputs/mapping/playStoreRelease/mapping.txt
+          mappingFile: app/build/outputs/mapping/playStoreProdRelease/mapping.txt
+          debugSymbols: app/build/outputs/native-debug-symbols/playStoreProdRelease/native-debug-symbols.zip
 
       - name: Upload APK, Mapping and Debug Symbols
         uses: actions/upload-artifact@v3
         with:
           name: playstore-release
           path: |
-            app/build/outputs/apk/playStore/release/app-playStore-release.apk
-            app/build/outputs/mapping/playStoreRelease/mapping.txt
-            app/build/outputs/native-debug-symbols/playStoreRelease/native-debug-symbols.zip
+            app/build/outputs/apk/playStoreProd/release/app-playStore-prod-release.apk
+            app/build/outputs/mapping/playStoreProdRelease/mapping.txt
+            app/build/outputs/native-debug-symbols/playStoreProdRelease/native-debug-symbols.zip

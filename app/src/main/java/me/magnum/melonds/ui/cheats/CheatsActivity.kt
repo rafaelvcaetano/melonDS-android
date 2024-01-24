@@ -7,9 +7,13 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
-import androidx.core.view.isVisible
 import androidx.fragment.app.commit
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityCheatsBinding
 
@@ -38,26 +42,33 @@ class CheatsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         onBackPressedDispatcher.addCallback(backHandler)
 
-        viewModel.getRomCheats().observe(this) {
-            binding.progressBarCheats.isGone = true
+        if (savedInstanceState == null) {
+            openCheatsFragment()
+        }
 
-            if (it.isEmpty()) {
-                binding.textCheatsNotFound.isVisible = true
-            } else if (savedInstanceState == null) {
-                openCheatsFragment()
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.openEnabledCheatsEvent.collectLatest {
+                    openEnabledCheatsFragment()
+                }
             }
         }
-
-        viewModel.openEnabledCheatsEvent.observe(this) {
-            openEnabledCheatsFragment()
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.committingCheatsChangesState.collectLatest {
+                    binding.viewBlock.isGone = !it
+                }
+            }
         }
-
-        viewModel.committingCheatsChangesStatus().observe(this) {
-            binding.viewBlock.isGone = !it
-        }
-
-        viewModel.onCheatChangesCommitted().observe(this) {
-            finish()
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.cheatChangesCommittedEvent.collectLatest {
+                    if (!it) {
+                        Toast.makeText(this@CheatsActivity, R.string.failed_save_cheat_changes, Toast.LENGTH_LONG).show()
+                    }
+                    finish()
+                }
+            }
         }
     }
 
@@ -99,14 +110,10 @@ class CheatsActivity : AppCompatActivity() {
 
     private fun commitCheatChangesAndFinish() {
         // If changes are already being committed, do nothing
-        if (viewModel.committingCheatsChangesStatus().value == true) {
+        if (viewModel.committingCheatsChangesState.value) {
             return
         }
 
-        viewModel.commitCheatChanges().observe(this) {
-            if (!it) {
-                Toast.makeText(this, R.string.failed_save_cheat_changes, Toast.LENGTH_LONG).show()
-            }
-        }
+        viewModel.commitCheatChanges()
     }
 }

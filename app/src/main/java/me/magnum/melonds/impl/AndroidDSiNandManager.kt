@@ -8,6 +8,7 @@ import me.magnum.melonds.MelonDSiNand
 import me.magnum.melonds.common.suspendRunCatching
 import me.magnum.melonds.domain.model.ConfigurationDirResult
 import me.magnum.melonds.domain.model.DSiWareTitle
+import me.magnum.melonds.domain.model.dsinand.DSiWareTitleFileType
 import me.magnum.melonds.domain.model.dsinand.ImportDSiWareTitleResult
 import me.magnum.melonds.domain.model.dsinand.OpenDSiNandResult
 import me.magnum.melonds.domain.repositories.DSiWareMetadataRepository
@@ -88,6 +89,22 @@ class AndroidDSiNandManager(
         }
 
         MelonDSiNand.deleteTitle((title.titleId and 0xFFFFFFFF).toInt())
+    }
+
+    override suspend fun importTitleFile(title: DSiWareTitle, fileType: DSiWareTitleFileType, fileUri: Uri): Boolean {
+        if (!isNandOpen.get()) {
+            return false
+        }
+
+        return MelonDSiNand.importTitleFile((title.titleId and 0xFFFFFFFF).toInt(), fileType.ordinal, fileUri.toString())
+    }
+
+    override suspend fun exportTitleFile(title: DSiWareTitle, fileType: DSiWareTitleFileType, fileUri: Uri): Boolean {
+        if (!isNandOpen.get()) {
+            return false
+        }
+
+        return MelonDSiNand.exportTitleFile((title.titleId and 0xFFFFFFFF).toInt(), fileType.ordinal, fileUri.toString())
     }
 
     override fun closeNand() {

@@ -53,12 +53,12 @@ class LayoutPropertiesDialog : DialogFragment() {
 
         if (savedInstanceState != null) {
             layoutName = savedInstanceState.getString(KEY_LAYOUT_NAME)
-            layoutOrientation = LayoutConfiguration.LayoutOrientation.values()[savedInstanceState.getInt(KEY_LAYOUT_ORIENTATION)]
+            layoutOrientation = LayoutConfiguration.LayoutOrientation.entries[savedInstanceState.getInt(KEY_LAYOUT_ORIENTATION)]
             useCustomOpacity = savedInstanceState.getBoolean(KEY_CUSTOM_OPACITY)
             layoutOpacity = savedInstanceState.getInt(KEY_LAYOUT_OPACITY)
         } else {
             layoutName = arguments?.getString(KEY_LAYOUT_NAME)
-            layoutOrientation = LayoutConfiguration.LayoutOrientation.values()[arguments?.getInt(KEY_LAYOUT_ORIENTATION) ?: 0]
+            layoutOrientation = LayoutConfiguration.LayoutOrientation.entries[arguments?.getInt(KEY_LAYOUT_ORIENTATION) ?: 0]
             useCustomOpacity = arguments?.getBoolean(KEY_CUSTOM_OPACITY) ?: true
             layoutOpacity = arguments?.getInt(KEY_LAYOUT_OPACITY) ?: 0
         }
@@ -82,8 +82,8 @@ class LayoutPropertiesDialog : DialogFragment() {
         binding.layoutOrientation.setOnClickListener {
             AlertDialog.Builder(requireContext())
                 .setTitle(R.string.layout_orientation)
-                .setSingleChoiceItems(R.array.layout_orientation_options, LayoutConfiguration.LayoutOrientation.values().indexOf(layoutOrientation)) { dialog, which ->
-                    val newOrientation = LayoutConfiguration.LayoutOrientation.values()[which]
+                .setSingleChoiceItems(R.array.layout_orientation_options, LayoutConfiguration.LayoutOrientation.entries.indexOf(layoutOrientation)) { dialog, which ->
+                    val newOrientation = LayoutConfiguration.LayoutOrientation.entries[which]
                     setLayoutOrientation(newOrientation)
                     dialog.dismiss()
                 }
@@ -136,7 +136,7 @@ class LayoutPropertiesDialog : DialogFragment() {
 
     private fun setLayoutOrientation(orientation: LayoutConfiguration.LayoutOrientation) {
         val orientationNames = requireContext().resources.getStringArray(R.array.layout_orientation_options)
-        binding.textOrientation.text = orientationNames[LayoutConfiguration.LayoutOrientation.values().indexOf(orientation)]
+        binding.textOrientation.text = orientationNames[LayoutConfiguration.LayoutOrientation.entries.indexOf(orientation)]
         layoutOrientation = orientation
     }
 
