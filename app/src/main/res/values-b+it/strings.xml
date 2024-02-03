@@ -1,0 +1,490 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">melonDS</string>
+
+    <string name="ok">Ok</string>
+    <string name="yes">Sì</string>
+    <string name="no">No</string>
+    <string name="on">Attivato</string>
+    <string name="off">Disattivato</string>
+    <string name="cancel">Annulla</string>
+    <string name="not_set">Non impostato</string>
+    <string name="delete">Elimina</string>
+    <string name="edit">Modifica</string>
+    <string name="none">Nessuno</string>
+    <string name="options">Opzioni</string>
+    <string name="preview">Anteprima</string>
+    <string name="undo">Annulla</string>
+    <string name="update">Aggiorna</string>
+    <string name="close">Chiudi</string>
+    <string name="play">Gioca</string>
+    <string name="ellipsis">…</string>
+
+    <string name="version_alpha">Alfa</string>
+    <string name="version_beta">Beta</string>
+    <string name="version_nightly">Nightly</string>
+
+    <string name="console_ds">DS</string>
+    <string name="console_dsi">DSi (Sperimentale)</string>
+
+    <string name="console_ds_full">Nintendo DS</string>
+    <string name="console_dsi_full">Nintendo DSi</string>
+
+    <string name="size_bytes">B</string>
+    <string name="size_kb">KB</string>
+    <string name="size_mb">MB</string>
+    <string name="size_gb">GB</string>
+
+    <string name="error_rom_not_found">Impossibile trovare la ROM</string>
+    <string name="error_rom_not_found_info">La ROM che hai selezionato non è stata trovata. Assicurati che la ROM selezionata sia presente nella cartella di ricerca delle ROM.\n%1$s</string>
+    <string name="error_load_rom">Impossibile caricare la ROM</string>
+    <string name="error_load_rom_message">Si è verificato un problema durante il caricamento della ROM. Assicurati che non sia corrotta e riprova.</string>
+    <string name="error_load_firmware">Impossibile caricare il firmware</string>
+    <string name="error_load_firmware_message">Si è verificato un problema durante il caricamento del firmware (%1$s). Accertati che il BIOS e il dump del firmware non siano corrotti, che il firmware sia avviabile e riprova.</string>
+    <string name="error_load_rom_report_issue">È stato generato un log di errore che potrebbe aiutare a risolvere questo problema. Vuoi aprire una segnalazione su GitHub con questo log? Avrai bisogno di un account GitHub.</string>
+    <string name="title_emulator_running">Emulatore in esecuzione</string>
+    <string name="message_stop_emulation">Interrompere l\'emulazione e caricare una nuova ROM?</string>
+    <string name="error_load_gba_rom">Impossibile caricare la ROM GBA</string>
+    <string name="action_search_roms">Cerca ROM</string>
+    <string name="action_sort_roms">Ordina ROM</string>
+    <string name="action_boot_firmware">Avvia il firmware</string>
+    <string name="action_refresh_rom_list">Aggiorna lista ROM</string>
+    <string name="hint_search_roms">Cerca ROM…</string>
+    <string name="update_available">Aggiornamento disponibile: %1$s</string>
+    <string name="nightly_update_available">Aggiornamento Nightly disponibile</string>
+    <string name="nightly_update_available_message">Vuoi scaricarlo adesso?</string>
+    <string name="skip_update">Salta</string>
+    <string name="remind_later_update">Più tardi</string>
+    <string name="downloading_update">Download dell\'aggiornamento in corso…</string>
+    <string name="starting_download">Avvio del download…</string>
+    <string name="download_progress_sizes">%1$.1fMB/%2$.1fMB</string>
+    <string name="update_download_failed">Impossibile scaricare l\'aggiornamento</string>
+
+    <string name="dsiware_manager">Gestione DSiWare</string>
+    <string name="no_dsiware_titles_installed">Non ci sono titoli DSiWare installati</string>
+    <string name="dsiware_manager_no_dsi_setup">Non hai configurato il DSi</string>
+    <string name="dsiware_manager_invalid_dsi_setup">Configurazione DSi non valida</string>
+    <string name="import_dsiware_title">Importa titolo DSiWare</string>
+    <string name="dsiware_manager_setup">Configurazione</string>
+    <string name="dsiware_manager_fix_setup">Correggi configurazione</string>
+    <string name="dsiware_manager_load_error">Si è verificato un problema relativo all\'elenco dei titoli DSiWare. Controlla la tua configurazione DSi</string>
+    <string name="dsiware_manager_import_title_error_open_nand_failed">Impossibile aprire la NAND</string>
+    <string name="dsiware_manager_import_title_error_open_file_failed">Errore durante l\'apertura del file selezionato</string>
+    <string name="dsiware_manager_import_title_error_not_dsiware_title">Non è un titolo DSiWare</string>
+    <string name="dsiware_manager_import_title_error_title_already_imported">Titolo DSiWare già importato</string>
+    <string name="dsiware_manager_import_title_error_insatll_failed">Impossibile installare il titolo</string>
+    <string name="dsiware_manager_import_title_error_metadat_fetch_failed">Impossibile scaricare i metadati del titolo. Controlla la tua connessione internet</string>
+    <string name="dsiware_manager_import_title_error_unknown">Si è verificato un errore sconosciuto</string>
+    <string name="dsiware_manager_import_data">Importa dati…</string>
+    <string name="dsiware_manager_export_data">Esporta dati…</string>
+    <string name="dsiware_manager_import_file_success">%1$s importato con successo</string>
+    <string name="dsiware_manager_import_file_error">Impossibile importare il file</string>
+    <string name="dsiware_manager_export_file_success">%1$s esportato con successo</string>
+    <string name="dsiware_manager_export_file_error">Impossibile esportare il file</string>
+    <string name="dsiware_import_from_file">Da file</string>
+    <string name="dsiware_import_from_rom_list">Dalla lista ROM</string>
+
+    <string name="select_dsiware_title">Seleziona il titolo DSiWare</string>
+    <string name="no_dsiware_roms_found">Nessuna ROM DSiWare trovata</string>
+
+    <string name="info_fps">FPS: %1$d</string>
+    <string name="info_loading">CARICAMENTO…</string>
+    <string name="save_state_slot">%1$s.</string>
+    <string name="failed_save_state">Salvataggio dello stato fallito</string>
+    <string name="failed_load_state">Caricamento dello stato fallito</string>
+    <string name="cant_load_empty_slot">Impossibile caricare uno stato vuoto</string>
+    <string name="failed_reset_emulation">Reset dell\'emulazione fallito</string>
+    <string name="save_states_not_supported">Il salvataggio dello stato non è supportato mentre è in esecuzione il firmware</string>
+    <string name="save_states_unavailable_ra_hardcore_enabled">Il salvataggio dello stato non è disponibile in modalità Hardcore</string>
+    <string name="rewind_time_seconds">%1$ss</string> <!-- Ex: 43.56s -->
+    <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string> <!-- Ex: 2m37.93s -->
+    <string name="rewind_not_enabled">Il riavvolgimento è disattivato</string>
+    <string name="rewind_unavailable_ra_hardcore_enabled">Il riavvolgimento non è disponibile in modalità Hardcore</string>
+    <string name="no_image_selected">Nessuna immagine selezionata</string>
+    <string name="failed_to_load_image">Caricamento dell\'immagine fallito</string>
+
+    <string name="action_sort_alphabetically">Ordine alfabetico</string>
+    <string name="action_sort_recently_played">Avviati di recente</string>
+
+    <string name="ds_bios_dir_not_set">Cartella BIOS DS non impostata</string>
+    <string name="ds_bios_dir_not_set_info">La cartella del BIOS del DS non è impostata. Seleziona la cartella che contiene i seguenti file:\n• bios7.bin\n• bios9.bin\n• firmware.bin</string>
+    <string name="dsi_bios_dir_not_set">Cartella BIOS DSi non impostata</string>
+    <string name="dsi_bios_dir_not_set_info">La cartella del BIOS del DSi non è impostata. Seleziona la cartella che contiene i seguenti file:\n• bios7.bin\n• bios9.bin\n• firmware.bin\n• nand.bin</string>
+    <string name="incorrect_bios_dir">Cartella BIOS errata</string>
+    <string name="ds_incorrect_bios_dir_info">La cartella del BIOS del DS non è corretta. Assicurati che la cartella contenga i seguenti file:\n• bios7.bin\n• bios9.bin\n• firmware.bin</string>
+    <string name="dsi_incorrect_bios_dir_info">La cartella del BIOS del DSi non è corretta. Assicurati che la cartella contenga i seguenti file:\n• bios7.bin\n• bios9.bin\n• firmware.bin\n• nand.bin</string>
+    <string name="storage_permission_required">Accesso all\'archiviazione richiesto</string>
+    <string name="storage_permission_required_info">È necessario autorizzare l\'accesso all\'archiviazione per caricare le ROM dal dispositivo. Nella finestra di dialogo successiva, concedi l\'accesso all\'archiviazione.</string>
+    <string name="microphone_permission_required">Autorizzazione alla registrazione audio richiesta</string>
+    <string name="microphone_permission_required_info">È richiesta l\'autorizzazione alla registrazione dell\'audio per poter utilizzare il microfono nell\'emulatore. Autorizza la registrazione dell\'audio nella finestra di dialogo successiva.</string>
+    <string name="no_rom_search_directory_specified">Nessuna cartella di ricerca delle ROM specificata</string>
+    <string name="set_rom_directory">Imposta cartella ROM</string>
+    <string name="error_invalid_directory">Cartella non valida</string>
+    <string name="error_invalid_directory_description">Non è possibile scrivere nella cartella selezionata. Selezionane un\'altra. Se stai selezionando un file compresso, prova a estrarne il contenuto.</string>
+    <string name="no_roms_found">Nessuna ROM trovata</string>
+    <string name="dsiware_title_cannot_be_launched_directly_title">Impossibile avviare i titoli DSiWare</string>
+    <string name="dsiware_title_cannot_be_launched_directly_message">I titoli DSiWare non possono essere avviati direttamente. Devono essere installati su NAND (attraverso la Gestione DSiWare) e avviati dal firmware DSi.</string>
+
+    <string name="press_any_button">Premi un pulsante qualsiasi…</string>
+
+    <string name="choose_component">Scegli componente</string>
+
+    <string name="pause">Pausa</string>
+    <string name="achievements">Obiettivi</string>
+    <string name="reset">Reset</string>
+    <string name="exit">Esci</string>
+
+    <string name="settings">Impostazioni</string>
+    <string name="save_state">Salva stato</string>
+    <string name="load_state">Carica stato</string>
+    <string name="rewind">Riavvolgi</string>
+    <string name="save_slot">Slot salvataggio</string>
+    <string name="empty_slot">%1$s. &lt;Vuoto></string>
+    <string name="quick_slot">Slot rapido</string>
+    <string name="saved">Salvato</string>
+    <string name="loaded">Caricato</string>
+    <string name="title_activity_settings">Impostazioni</string>
+    <string name="category_general">Generale</string>
+    <string name="category_general_summary">Tema, impostazioni generiche</string>
+    <string name="category_roms">ROM</string>
+    <string name="category_roms_summary">Cartella di ricerca, filtro icone, impostazioni cache</string>
+    <string name="category_system">Sistema</string>
+    <string name="category_system_summary">Impostazioni firmware, BIOS personalizzato, JIT</string>
+    <string name="theme">Tema</string>
+    <string name="fast_forward_max_speed">Velocità massima dell\'avanzamento rapido</string>
+    <string name="rewind_description">Se abilitato, lo stato viene periodicamente salvato in maniera automatica. Ogni volta che si desidera tornare indietro di un breve lasso di tempo, è sufficiente aprire la schermata di riavvolgimento e selezionare lo stato da cui si desidera ripartire.\n\nAttenzione: attivando questa funzionalità, si potrebbero verificare dei rallentamenti se il dispositivo non è sufficientemente potente. Viene inoltre utilizzata una quantità considerevole di memoria, a seconda della frequenza con cui si desidera salvare lo stato e di quanto a lungo deve essere conservato.</string>
+    <string name="rewind_save_period">Periodo di salvataggio</string>
+    <string name="rewind_length">Durata riavvolgimento</string>
+    <string name="rewind_max_memory_usage">Utilizzo massimo della memoria: %1$s</string>
+    <string name="rewind_memory_usage_above_recommended_limit">Utilizzo della memoria superiore ai limiti consigliati</string>
+    <string name="sustained_performance_mode">Modalità performance costante</string>
+    <string name="sustained_performance_mode_summary">Se abilitato, le prestazioni massime saranno inferiori ma il thermal throttling sarà meno pronunciato.</string>
+    <string name="check_for_updates">Cerca aggiornamenti</string>
+    <string name="check_for_updates_summary">Se abilitato, l\'applicazione controllerà regolarmente la presenza di nuovi aggiornamenti</string>
+    <string name="rom_icon_filtering">Filtro icone</string>
+    <string name="max_rom_cache_size">Massima dimensione della cache ROM</string>
+    <string name="clear_extracted_rom_cache">Pulisci la cache ROM</string>
+    <string name="cache_size">Dimensione cache: %s</string>
+    <string name="cache_size_calculating">Dimensione cache: sto calcolando…</string>
+    <string name="rom_search_directory">Cartella di ricerca</string>
+    <string name="use_custom_bios">Utilizza BIOS e firmware personalizzati</string>
+    <string name="console_type">Console predefinita</string>
+    <string name="internal_firmware_settings">Impostazioni firmware interno</string>
+    <string name="internal_firmware_settings_summary">Modifica le impostazioni del firmware interno.</string>
+    <string name="custom_bios_firmware">BIOS e firmware personalizzati</string>
+    <string name="custom_bios_firmware_description">Utilizzare BIOS e firmware personalizzati ti permette di avviare e navigare nel firmware del DS senza caricare una ROM, proprio come avviene in una console reale</string>
+    <string name="bios_directory">Cartella BIOS DS</string>
+    <string name="dsi_bios_directory">Cartella BIOS DSi</string>
+    <string name="show_boot_screen">Mostra schermata di avvio</string>
+    <string name="mac_address">Indirizzo MAC</string>
+    <string name="randomize_mac_address">Indirizzo MAC casuale</string>
+    <string name="randomize_mac_address_summary">Se abilitato, un indirizzo MAC casuale viene utilizzato ad ogni avvio. Questo può far sì che alcuni giochi pensino di essere in esecuzione su una console diversa e ciò può rompere gli eventi a tempo.</string>
+    <string name="generate_new_mac_address">Genera nuovo</string>
+    <string name="generate_new_mac_address_description">Generare un nuovo indirizzo MAC farà credere ai giochi di essere in esecuzione su una console diversa.</string>
+    <string name="enable_jit">Abilita JIT</string>
+    <string name="enable_jit_summary">Aumenta le prestazioni ma potrebbe causare rallentamenti e crash.</string>
+    <string name="jit_not_supported">JIT è supportato esclusivamente su dispositivi a 64 bit.</string>
+    <string name="threaded_rendering">Threaded rendering</string>
+    <string name="fps_counter_position">Posizione contatore FPS</string>
+    <string name="threaded_rendering_summary">Se abilitato, migliora le prestazioni nei giochi 3D ma potrebbe causare errori grafici.</string>
+    <string name="category_video">Video</string>
+    <string name="category_video_summary">Filtri, threaded rendering, contatore FPS</string>
+    <string name="filter">Filtri</string>
+    <string name="internal_resolution">Risoluzione interna</string>
+    <string name="renderer">Renderer</string>
+    <string name="dsi_camera_source">Sorgente fotocamera DSi</string>
+    <string name="dsi_camera_image">Immagine fotocamera DSi</string>
+    <string name="category_audio">Audio</string>
+    <string name="category_audio_summary">Volume, ritardo audio, sorgente microfono</string>
+    <string name="enable_sound">Abilita audio</string>
+    <string name="interpolation">Interpolazione</string>
+    <string name="bitrate">Bitrate</string>
+    <string name="volume">Volume</string>
+    <string name="volume_percentage">%1$d%%</string>
+    <string name="audio_latency">Ritardo audio</string>
+    <string name="microphone_source">Sorgente microfono</string>
+    <string name="controller_layout">Disposizione dei comandi</string>
+    <string name="category_save_files">File di salvataggio</string>
+    <string name="category_save_files_summary">Percorsi file di salvataggio e stati</string>
+    <string name="save_next_rom">Salva nello stesso percorso della ROM</string>
+    <string name="save_file_directory">Cartella dei file di salvataggio</string>
+    <string name="save_state_location">Percorso salvataggi dello stato</string>
+    <string name="input">Comandi</string>
+    <string name="input_summary">Assegnazione dei tasti, disposizione comandi, feedback tattile</string>
+    <string name="key_mapping">Assegnazione dei tasti</string>
+    <string name="key_mapping_summary">Assegna tasti agli input del controller</string>
+    <string name="show_soft_input">Mostra pulsanti a schermo</string>
+    <string name="vibrate_on_touch">Vibra al tocco</string>
+    <string name="vibration_strength">Intensità vibrazione</string>
+    <string name="soft_input_opacity">Opacità tasti a schermo</string>
+    <string name="retroachievements">RetroAchievements</string> <!-- Keep words together because this is the official name -->
+    <string name="retroachievements_summary">Accesso e gestione dell\'integrazione RetroAchievements</string> <!-- Keep words together because this is the official name -->
+    <string name="enable_rich_presence">Attiva rich presence</string>
+    <string name="rich_presence_summary">Permette agli altri utenti di RetroAchievement di vedere a cosa stai giocando</string>
+    <string name="hardcore_mode">Modalità Hardcore</string>
+    <string name="hardcore_mode_summary">Guadagna il doppio dei punti, ma non puoi usare i salvataggi dello stato, i trucchi o il rallentatore durante il gioco</string>
+
+    <string name="cheats">Trucchi</string>
+    <string name="cheats_summary">Abilita e importa trucchi</string>
+    <string name="enable_cheats">Abilita trucchi</string>
+    <string name="cheats_database">Database trucchi (formato XML)</string>
+    <string name="import_cheats">Importa trucchi</string>
+    <string name="import_cheats_summary">Importa trucchi da un database in modo da renderli disponibili. Al momento sono supportati solo i database XML. Tutti i trucchi importati in precedenza verranno cancellati.</string>
+    <string name="rom_shortcut">Scorciatoia ROM</string>
+
+    <string name="firmware_nickname">Soprannome</string>
+    <string name="firmware_message">Messaggio</string>
+    <string name="firmware_language">Lingua</string>
+    <string name="firmware_favourite_colour">Colore preferito</string>
+    <string name="firmware_birthday">Compleanno</string>
+
+    <string name="error_clear_rom_cache">Pulizia cache ROM fallita</string>
+    <string name="importing_cheats">Importazione trucchi in corso…</string>
+    <string name="starting">Avvio in corso…</string>
+    <string name="move_to_background">Sposta in secondo piano</string>
+    <string name="failed_save_cheat_changes">Impossibile salvare le modifiche ai trucchi</string>
+    <string name="no_cheats_found">Impossibile trovare trucchi per la ROM attuale. Prova a importare un database dei trucchi diverso.</string>
+    <string name="enabled_cheats">Abilita trucchi</string>
+    <string name="no_enabled_cheats_for_rom">Non hai abilitato trucchi per questa ROM</string>
+    <string name="day">Giorno</string>
+    <string name="month">Mese</string>
+    <string name="symbol_increase">+</string>
+    <string name="symbol_decrease">-</string>
+
+    <string name="rom_settings">Impostazioni rom</string> <!-- Accessibility string. Should not use acronyms -->
+    <string name="label_rom_config_console">Console di avvio</string>
+    <string name="label_rom_config_load_gba_rom">Carica ROM GBA</string>
+    <string name="label_rom_config_gba_rom_path">Cartella ROM GBA</string>
+    <string name="label_rom_config_gba_save_path">Cartella salvataggi GBA</string>
+    <string name="rom_details_configuration_tab">Impostazioni</string>
+    <string name="retro_achievements_tab">Retro Achievements</string> <!-- Keep words separated to help with word wrapping -->
+
+    <string name="theme_option_light">Chiaro</string>
+    <string name="theme_option_dark">Scuro</string>
+    <string name="theme_option_system_default">Predefinito di sistema</string>
+
+    <string name="notification_channel_background_tasks">Processi in background</string>
+
+    <string name="top_screen">Schermo superiore</string>
+    <string name="bottom_screen">Schermo inferiore</string>
+    <string name="input_a">A</string>
+    <string name="input_b">B</string>
+    <string name="input_x">X</string>
+    <string name="input_y">Y</string>
+    <string name="input_left">Sinistra</string>
+    <string name="input_right">Destra</string>
+    <string name="input_up">Su</string>
+    <string name="input_down">Giù</string>
+    <string name="input_l">L</string>
+    <string name="input_r">R</string>
+    <string name="input_start">Start</string>
+    <string name="input_select">Select</string>
+    <string name="input_lid">Apri/Chiudi console</string>
+    <string name="input_pause">Pausa</string>
+    <string name="input_fast_forward">Avanzamento rapido (attiva/disattiva)</string>
+    <string name="input_toggle_soft_input">Mostra/nascondi tasti a schermo</string>
+    <string name="input_reset">@string/reset</string>
+    <string name="input_dpad">Tasti direzionali</string>
+    <string name="input_abxy_buttons">Pulsanti ABXY</string>
+    <string name="input_swap_screens">Inverti schermi</string>
+    <string name="input_quick_save">Salvataggio rapido</string>
+    <string name="input_quick_load">Caricamento rapido</string>
+
+    <string name="layouts">Disposizione dei comandi</string>
+    <string name="layouts_summary">Gestisci disposizioni personalizzate</string>
+    <string name="action_layouts_new">Nuova disposizione</string>
+    <string name="default_layout_name">Predefinita</string>
+    <string name="use_global_layout">Utilizza disposizione globale</string>
+    <string name="layout_deleted">Disposizione eliminata</string>
+
+    <string name="layout_editor">Editor disposizione</string>
+    <string name="add_component">Aggiungi componente</string>
+    <string name="no_more_components">Non ci sono altri componenti da aggiungere</string>
+    <string name="label_size">Dimensione:</string>
+    <string name="menu">Menu</string>
+    <string name="properties">Proprietà</string>
+    <string name="revert_changes">Annulla cambiamenti</string>
+    <string name="reset_default">Ripristina le impostazioni predefinite</string>
+    <string name="exit_without_saving">Esci senza salvare</string>
+    <string name="portrait_background">Sfondo verticale</string>
+    <string name="portrait_background_mode">Modalità sfondo verticale</string>
+    <string name="landscape_background">Sfondo orizzontale</string>
+    <string name="landscape_background_mode">Modalità sfondo orizzontale</string>
+    <string name="save_and_exit">Salva ed esci</string>
+    <string name="layout_name">Nome disposizione</string>
+    <string name="layout_orientation">Orientamento disposizione</string>
+    <string name="layout_use_default_opacity">Usa opacità predefinita</string>
+    <string name="layout_opacity">Opacità disposizione</string>
+    <string name="layout_background_load_failed">Impossibile caricare lo sfondo</string>
+
+    <string name="backgrounds">Sfondi</string>
+    <string name="action_backgrounds_new">Nuovo sfondo</string>
+    <string name="background_name">Nome sfondo</string>
+    <string name="background_deleted">Sfondo eliminato</string>
+    <string name="background_add_wrong_orientation">Sfondo aggiunto, ma non visible per l\'orientamento selezionato.</string>
+    <string name="background_add_processing_failed">Si è verificato un errore durante l\'elaborazione dell\'immagine di sfondo selezionata. Assicurati che non sia corrotta.</string>
+
+    <string name="retro_achievements_login_description">Accedi con RetroAchievements per vedere gli obiettivi che puoi sbloccare giocando a questo gioco!</string>
+    <string name="login_with_retro_achievements">Accedi con RetroAchievements</string>
+    <string name="login">Accedi</string>
+    <string name="retroachievements_login_summary">Effettua il login con RetroAchievements per sbloccare gli obiettivi mentre giochi!</string>
+    <string name="retroachievements_login_status">Collegato come %1$s</string>
+    <string name="retroachievements_logout">Esci</string>
+    <string name="retroachievements_logout_confirmation">Sei sicuro di volerti disconnettere da RetroAchievements? Non sarai in grado di sbloccare gli obiettivi mentre giochi.</string>
+    <string name="retro_achievements_login_error">Si è verificato un errore durante il tentativo di accesso. Assicurati che nome utente e password siano corretti, e di essere connesso ad internet</string>
+    <string name="retro_achievements_login_error_short">Si è verificato un errore durante il tentativo di accesso</string>
+    <string name="retro_achievements_load_error">Si è verificato un errore durante il caricamento degli obiettivi per questo gioco. Assicurati di essere connesso a internet e riprova più tardi</string>
+    <string name="retro_achievements_no_achievements">Non sono stati trovati RetroAchievements per questo gioco</string>
+    <string name="retro_achievements_relaunch_to_apply_settings">Riavvia la ROM per applicare le nuove impostazioni di RetroAchievements</string>
+    <string name="username">Utente</string>
+    <string name="password">Password</string>
+    <string name="retry">Riprova</string>
+    <string name="points_abbreviated">Pt</string>
+    <string name="points">Punti</string>
+    <string name="completed">Completato</string>
+    <string name="ra_mode_hardcore">Hardcore</string>
+    <string name="ra_mode_softcore">Softcore</string>
+    <string name="view_achievement">Vedi obiettivo</string>
+    <string name="completed_achievements">&lt;b>%1$d&lt;/b> di &lt;b>%2$d&lt;/b> (%3$d%%)</string>
+    <string name="submitting_achievements">Invio RetroAchievements in corso…</string>
+    <string name="achievements_loaded">Obiettivi caricati</string>
+    <string name="achievements_unlocked_compact">Hai sbloccato: %1$d/%2$d</string>
+    <string name="achievements_failed_load">Impossibile caricare gli obiettivi!</string>
+    <string name="achievements_failed_load_tip">Assicurati di essere connesso ad internet</string>
+    <string name="achievement_unlocked">Obiettivo sbloccato!</string>
+    <string name="achievement_missable">Mancabile</string>
+    <string name="achievement_missable_description">Questo obiettivo può essere mancato durante una partita</string>
+
+    <string-array name="fast_forward_speed_multiplier_options">
+        <item>Illimitata</item>
+        <item>1.5x</item>
+        <item>2x</item>
+        <item>3x</item>
+        <item>4x</item>
+        <item>8x</item>
+    </string-array>
+
+    <string-array name="rom_icon_filtering_options">
+        <item>Nessuno (Pixelato)</item>
+        <item>Lineare (Smussato)</item>
+    </string-array>
+
+    <string-array name="game_runtime_console_type_options">
+        <item>Predefinita</item>
+        <item>@string/console_ds</item>
+        <item>@string/console_dsi</item>
+    </string-array>
+
+    <string-array name="firmware_settings_language_options">
+        <item>Inglese</item>
+        <item>Francese</item>
+        <item>Tedesco</item>
+        <item>Italiano</item>
+        <item>Spagnolo</item>
+        <item>Giapponese</item>
+    </string-array>
+
+    <string-array name="game_runtime_mic_source_options">
+        <item>Predefinita</item>
+        <item>Nessuna</item>
+        <item>Soffio</item>
+        <item>Microfono del dispositivo</item>
+    </string-array>
+
+    <string-array name="console_type_options">
+        <item>@string/console_ds</item>
+        <item>@string/console_dsi</item>
+    </string-array>
+
+    <string-array name="fps_counter_position_options">
+        <item>Nascosto</item>
+        <item>In alto a sinistra</item>
+        <item>In alto al centro</item>
+        <item>In alto a destra</item>
+        <item>In basso a sinistra</item>
+        <item>In basso al centro</item>
+        <item>In basso a destra</item>
+    </string-array>
+
+    <string-array name="video_renderer_options">
+        <item>Software</item>
+        <item>OpenGL</item>
+    </string-array>
+
+    <string-array name="video_internal_resolution_options">
+        <item>Nativa x1 (256x192)</item>
+        <item>Nativa x2 (512x384)</item>
+        <item>Nativa x3 (768x576)</item>
+        <item>Nativa x4 (1024x768)</item>
+        <item>Nativa x5 (1280x960)</item>
+        <item>Nativa x6 (1536x1152)</item>
+        <item>Nativa x7 (1792x1344)</item>
+        <item>Nativa x8 (2048x1536)</item>
+    </string-array>
+
+    <string-array name="video_filtering_options">
+        <item>Nessuno</item>
+        <item>Lineare</item>
+        <item>2xBR</item>
+        <item>HQ2X</item>
+        <item>HQ4X</item>
+        <item>Quilez</item>
+        <item>LCD</item>
+    </string-array>
+
+    <string-array name="dsi_camera_source_options">
+        <item>Schermo nero</item>
+        <item>Fotocamera fisica</item>
+        <item>Immagine statica</item>
+    </string-array>
+
+    <string-array name="audio_interpolation_options">
+        <item>Nessuna</item>
+        <item>Lineare</item>
+        <item>Cosinusoidale</item>
+        <item>Cubica</item>
+    </string-array>
+
+    <string-array name="audio_bitrate_options">
+        <item>Automatico</item>
+        <item>10-bit</item>
+        <item>16-bit</item>
+    </string-array>
+
+    <string-array name="audio_latency_options">
+        <item>Basso (Più lento)</item>
+        <item>Medio</item>
+        <item>Alto (Più veloce)</item>
+    </string-array>
+
+    <string-array name="mic_source_options">
+        <item>Nessuna</item>
+        <item>Soffio</item>
+        <item>Microfono del dispositivo</item>
+    </string-array>
+
+    <string-array name="save_state_locations">
+        <item>Save file directory</item>
+        <item>ROM directory</item>
+        <item>Internal directory</item>
+    </string-array>
+
+    <string-array name="layout_orientation_options">
+        <item>Segui il sistema</item>
+        <item>Verticale</item>
+        <item>Orizzontale</item>
+    </string-array>
+
+    <string-array name="background_portrait_mode_options">
+        <item>Estendi</item>
+        <item>Adatta al centro</item>
+        <item>Adatta in alto</item>
+        <item>Adatta in basso</item>
+    </string-array>
+
+    <string-array name="background_landscape_mode_options">
+        <item>Estendi</item>
+        <item>Adatta al centro</item>
+        <item>Adatta a sinistra</item>
+        <item>Adatta a destra</item>
+    </string-array>
+</resources>
