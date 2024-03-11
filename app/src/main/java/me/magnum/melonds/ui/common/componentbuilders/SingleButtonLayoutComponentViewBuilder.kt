@@ -31,6 +31,7 @@ class SingleButtonLayoutComponentViewBuilder(private val layoutComponent: Layout
             LayoutComponent.BUTTON_QUICK_SAVE -> R.drawable.button_quick_save
             LayoutComponent.BUTTON_QUICK_LOAD -> R.drawable.button_quick_load
             LayoutComponent.BUTTON_REWIND -> R.drawable.button_rewind
+            LayoutComponent.BUTTON_MICROPHONE_TOGGLE -> R.drawable.button_microphone
             else -> -1
         }
     }

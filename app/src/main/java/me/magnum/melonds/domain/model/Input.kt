@@ -26,6 +26,7 @@ enum class Input(val keyCode: Int) {
     HINGE(16 + 7),
     PAUSE(-1),
     FAST_FORWARD(-1),
+    MICROPHONE(-1),
     RESET(-1),
     TOGGLE_SOFT_INPUT(-1),
     SWAP_SCREENS(-1),

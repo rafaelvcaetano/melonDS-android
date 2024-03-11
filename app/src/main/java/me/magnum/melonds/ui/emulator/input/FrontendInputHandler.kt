@@ -8,6 +8,7 @@ abstract class FrontendInputHandler : IInputListener {
         when (key) {
             Input.PAUSE -> onPausePressed()
             Input.FAST_FORWARD -> onFastForwardPressed()
+            Input.MICROPHONE -> onMicrophonePressed()
             Input.TOGGLE_SOFT_INPUT -> onSoftInputTogglePressed()
             Input.RESET -> onResetPressed()
             Input.SWAP_SCREENS -> onSwapScreens()
@@ -26,6 +27,7 @@ abstract class FrontendInputHandler : IInputListener {
 
     abstract fun onPausePressed()
     abstract fun onFastForwardPressed()
+    abstract fun onMicrophonePressed()
     abstract fun onSoftInputTogglePressed()
     abstract fun onResetPressed()
     abstract fun onSwapScreens()
