@@ -1,5 +1,5 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm")
+    alias(libs.plugins.kotlin.jvm)
 }
 
 kotlin {
@@ -7,12 +7,8 @@ kotlin {
 }
 
 dependencies {
-    with(Dependencies.Modules) {
-        implementation(project(common))
-    }
+    implementation(projects.common)
 
-    with(Dependencies.ThirdParty) {
-        implementation(gson)
-        implementation(okHttp)
-    }
+    implementation(libs.gson)
+    implementation(libs.okhttp)
 }

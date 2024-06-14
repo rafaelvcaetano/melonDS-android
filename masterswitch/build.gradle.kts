@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.library")
+    alias(libs.plugins.android.library)
     id("kotlin-android")
 }
 
@@ -28,13 +28,7 @@ android {
 }
 
 dependencies {
-    with(Dependencies.Kotlin) {
-        implementation(kotlinStdlib)
-    }
-
-    with(Dependencies.AndroidX) {
-        implementation(appCompat)
-        implementation(core)
-        implementation(preference)
-    }
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.preference)
 }

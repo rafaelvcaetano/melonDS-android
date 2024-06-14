@@ -1,5 +1,5 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm")
+    alias(libs.plugins.kotlin.jvm)
 }
 
 kotlin {
@@ -7,7 +7,5 @@ kotlin {
 }
 
 dependencies {
-    with(Dependencies.Kotlin) {
-        implementation(coroutines)
-    }
+    implementation(libs.kotlin.coroutines)
 }

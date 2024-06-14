@@ -1,18 +1,17 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("kotlin-parcelize")
-    id("com.google.devtools.ksp")
-    id("dagger.hilt.android.plugin")
-    id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.ksp)
 }
 
 android {
     signingConfigs {
         create("release") {
-            val props = gradleLocalProperties(rootDir)
+            val props = gradleLocalProperties(rootDir, providers)
             storeFile = file(props["MELONDS_KEYSTORE"] as String)
             storePassword = props["MELONDS_KEYSTORE_PASSWORD"] as String
             keyAlias = props["MELONDS_KEY_ALIAS"] as String
@@ -58,7 +57,7 @@ android {
         }
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.7"
+        kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }
 
     flavorDimensions.add("version")
@@ -93,7 +92,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-        isCoreLibraryDesugaringEnabled = true
 
         kotlin {
             jvmToolchain(17)
@@ -102,109 +100,69 @@ android {
             }
         }
     }
-    configurations.all {
-        resolutionStrategy.eachDependency {
-            val requested = requested
-            if (requested.group == "com.android.support") {
-                if (!requested.name.startsWith("multidex")) {
-                    useVersion("26.+")
-                }
-            }
-        }
-    }
 }
 
 dependencies {
     val gitHubImplementation by configurations
 
-    with(Dependencies.Tools) {
-        coreLibraryDesugaring(desugarJdkLibs)
-    }
+    implementation(projects.masterswitch)
+    implementation(projects.rcheevosApi)
+    implementation(projects.common)
 
-    with(Dependencies.Modules) {
-        implementation(project(masterSwitchPreference))
-        implementation(project(rcheevosApi))
-        implementation(project(common))
-    }
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.cardview)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.documentfile)
+    implementation(libs.androidx.fragment)
+    implementation(libs.androidx.hilt.work)
+    implementation(libs.androidx.lifecycle.viewmodel)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.preference)
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.room)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.rxjava)
+    implementation(libs.androidx.splashscreen)
+    implementation(libs.androidx.swiperefreshlayout)
+    implementation(libs.androidx.work)
+    implementation(libs.android.material)
 
-    with(Dependencies.Kotlin) {
-        implementation(kotlinStdlib)
-    }
+    implementation(platform(libs.compose.bom))
+    implementation(libs.accompanist.pagerindicators)
+    implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.material)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.tooling.preview)
 
-    // AndroidX
-    with(Dependencies.AndroidX) {
-        implementation(activity)
-        implementation(activityCompose)
-        implementation(appCompat)
-        implementation(camera2)
-        implementation(cameraLifecycle)
-        implementation(cardView)
-        implementation(constraintLayout)
-        implementation(core)
-        implementation(documentFile)
-        implementation(fragment)
-        implementation(hiltWork)
-        implementation(lifecycleViewModel)
-        implementation(lifecycleViewModelCompose)
-        implementation(preference)
-        implementation(recyclerView)
-        implementation(room)
-        implementation(roomKtx)
-        implementation(roomRxJava)
-        implementation(splashscreen)
-        implementation(swipeRefreshLayout)
-        implementation(work)
-        implementation(material)
-    }
+    debugImplementation(libs.compose.ui.tooling)
 
-    with(Dependencies.Compose) {
-        implementation(platform(bom))
-        implementation(accompanistPagerIndicators)
-        implementation(accompanistSystemUiController)
-        implementation(foundation)
-        implementation(material)
-        implementation(ui)
-        implementation(uiToolingPreview)
+    implementation(libs.coil)
+    implementation(libs.flexbox)
+    implementation(libs.gson)
+    implementation(libs.hilt)
+    implementation(libs.kotlinx.coroutines.rx)
+    implementation(libs.picasso)
+    implementation(libs.markwon)
+    implementation(libs.markwon.imagepicasso)
+    implementation(libs.markwon.linkify)
+    implementation(libs.rxjava)
+    implementation(libs.rxjava.android)
+    implementation(libs.commons.compress)
+    implementation(libs.xz)
 
-        debugImplementation(uiTooling)
-    }
+    gitHubImplementation(libs.retrofit)
+    gitHubImplementation(libs.retrofit.adapter.rxjava)
+    gitHubImplementation(libs.retrofit.converter.gson)
 
-    // Third-party
-    with(Dependencies.ThirdParty) {
-        implementation(coil)
-        implementation(flexbox)
-        implementation(gson)
-        implementation(hilt)
-        implementation(kotlinxCoroutinesRx)
-        implementation(picasso)
-        implementation(markwon)
-        implementation(markwonImagePicasso)
-        implementation(markwonLinkify)
-        implementation(rxJava)
-        implementation(rxJavaAndroid)
-        implementation(commonsCompress)
-        implementation(xz)
-    }
+    ksp(libs.hilt.compiler)
+    ksp(libs.hilt.compiler.android)
+    ksp(libs.room.compiler)
 
-    // GitHub
-    with(Dependencies.GitHub) {
-        gitHubImplementation(retrofit)
-        gitHubImplementation(retrofitAdapterRxJava)
-        gitHubImplementation(retrofitConverterGson)
-    }
-
-    with(Dependencies.Ksp) {
-        ksp(hiltCompiler)
-        ksp(hiltCompilerAndroid)
-        ksp(roomCompiler)
-    }
-
-    // Testing
-    with(Dependencies.Testing) {
-        testImplementation(junit)
-    }
-}
-
-repositories {
-    mavenCentral()
+    testImplementation(libs.junit)
 }
