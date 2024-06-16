@@ -5,12 +5,23 @@ import android.content.res.Configuration
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,11 +43,11 @@ import me.magnum.melonds.domain.model.ConfigurationDirResult
 import me.magnum.melonds.domain.model.DSiWareTitle
 import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomIconFiltering
+import me.magnum.melonds.domain.model.dsinand.DSiWareTitleFileType
 import me.magnum.melonds.ui.common.FabActionItem
 import me.magnum.melonds.ui.common.MultiActionFloatingActionButton
 import me.magnum.melonds.ui.common.melonButtonColors
 import me.magnum.melonds.ui.dsiwaremanager.model.DSiWareManagerUiState
-import me.magnum.melonds.domain.model.dsinand.DSiWareTitleFileType
 import me.magnum.melonds.ui.romlist.RomIcon
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.theme.MelonTheme
@@ -186,7 +197,7 @@ private fun Ready(
                 .padding(end = 16.dp, bottom = 16.dp),
             actions = listOf(
                 FabActionItem(FAB_ITEM_FROM_FILE, stringResource(id = R.string.dsiware_import_from_file), painterResource(id = R.drawable.ic_file)),
-                FabActionItem(FAB_ITEM_FROM_ROM_LIST, stringResource(id = R.string.dsiware_import_from_rom_list), rememberVectorPainter(image = Icons.Filled.List)),
+                FabActionItem(FAB_ITEM_FROM_ROM_LIST, stringResource(id = R.string.dsiware_import_from_rom_list), rememberVectorPainter(image = Icons.AutoMirrored.Filled.List)),
             ),
             onActionClicked = {
                 when (it.id) {
