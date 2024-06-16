@@ -409,7 +409,7 @@ class EmulatorActivity : AppCompatActivity() {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.currentFps.collectLatest {
                     if (it == null) {
-                        binding.textFps.text = ""
+                        binding.textFps.text = null
                     } else {
                         binding.textFps.text = getString(R.string.info_fps, it)
                     }
@@ -517,7 +517,7 @@ class EmulatorActivity : AppCompatActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
         if (viewModel.emulatorState.value.isRunning()) {
@@ -569,7 +569,7 @@ class EmulatorActivity : AppCompatActivity() {
                 throw RuntimeException("No console type specified")
             }
 
-            val firmwareConsoleType = ConsoleType.values()[consoleTypeParameter]
+            val firmwareConsoleType = ConsoleType.entries[consoleTypeParameter]
             viewModel.loadFirmware(firmwareConsoleType)
         } else {
             val romParcelable = extras?.parcelable(KEY_ROM) as RomParcelable?
