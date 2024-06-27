@@ -479,11 +479,11 @@ Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jo
 
 MelonDSAndroid::RomGbaSlotConfig* buildGbaSlotConfig(GbaSlotType slotType, const char* romPath, const char* savePath)
 {
-    if (slotType == GbaSlotType::GBA_ROM)
+    if (slotType == GbaSlotType::GBA_ROM && romPath != nullptr)
     {
         MelonDSAndroid::RomGbaSlotConfigGbaRom* gbaSlotConfigGbaRom = new MelonDSAndroid::RomGbaSlotConfigGbaRom {
             .romPath = std::string(romPath),
-            .savePath = std::string(savePath)
+            .savePath = savePath ? std::string(savePath) : "",
         };
         return (MelonDSAndroid::RomGbaSlotConfig*) gbaSlotConfigGbaRom;
     }
