@@ -43,8 +43,8 @@ import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
 import androidx.lifecycle.viewmodel.compose.viewModel
 import me.magnum.melonds.R
-import me.magnum.melonds.domain.model.Rom
-import me.magnum.melonds.domain.model.RomConfig
+import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.ui.common.FullScreen
 import me.magnum.melonds.ui.dsiwaremanager.DSiWareRomListViewModel

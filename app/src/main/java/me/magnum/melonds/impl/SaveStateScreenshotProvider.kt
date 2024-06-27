@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.squareup.picasso.Picasso
-import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.SaveStateSlot
 import java.io.File
 

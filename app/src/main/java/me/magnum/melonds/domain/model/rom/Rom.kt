@@ -1,6 +1,7 @@
-package me.magnum.melonds.domain.model
+package me.magnum.melonds.domain.model.rom
 
 import android.net.Uri
+import me.magnum.melonds.domain.model.rom.config.RomConfig
 import java.util.*
 
 data class Rom(

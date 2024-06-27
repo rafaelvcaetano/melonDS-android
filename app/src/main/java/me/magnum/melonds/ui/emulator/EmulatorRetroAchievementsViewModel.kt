@@ -1,7 +1,7 @@
 package me.magnum.melonds.ui.emulator
 
 import dagger.hilt.android.lifecycle.HiltViewModel
-import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.repositories.RetroAchievementsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.impl.emulator.EmulatorSession

@@ -1,7 +1,7 @@
 package me.magnum.melonds.impl.emulator
 
 import me.magnum.melonds.domain.model.ConsoleType
-import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.emulator.EmulatorSessionUpdateAction
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 

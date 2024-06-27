@@ -218,7 +218,6 @@
 
     <string name="rom_settings">Configurações da ROM</string> <!-- Cadeia de caracteres de acessibilidade. Não se deve usar acrônimos (siglas) -->
     <string name="label_rom_config_console">Sistema Inicializador</string>
-    <string name="label_rom_config_load_gba_rom">Carregar ROM de GBA</string>
     <string name="label_rom_config_gba_rom_path">Caminho da ROM de GBA</string>
     <string name="label_rom_config_gba_save_path">Caminho do arquivo de salvamento GBA</string>
 

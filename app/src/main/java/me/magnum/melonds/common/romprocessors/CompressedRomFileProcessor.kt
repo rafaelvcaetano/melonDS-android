@@ -6,6 +6,8 @@ import android.net.Uri
 import io.reactivex.Single
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.extensions.isBlank
 import me.magnum.melonds.extensions.nameWithoutExtension
 import me.magnum.melonds.impl.NdsRomCache

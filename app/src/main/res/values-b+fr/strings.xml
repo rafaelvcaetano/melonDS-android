@@ -239,7 +239,6 @@
 
     <string name="rom_settings">Paramètres de la ROM</string>
     <string name="label_rom_config_console">Démarrer le système</string>
-    <string name="label_rom_config_load_gba_rom">Charger la ROM GBA</string>
     <string name="label_rom_config_gba_rom_path">Chemin de la ROM GBA</string>
     <string name="label_rom_config_gba_save_path">Chemin de la sauvegarde GBA</string>
     <string name="rom_details_configuration_tab">Configuration</string>

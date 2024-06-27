@@ -37,6 +37,12 @@ object MelonEmulator {
         DSI_NAND_BAD
     }
 
+    enum class GbaSlotType {
+        NONE,
+        GBA_ROM,
+        MEMORY_EXPANSION,
+    }
+
 	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?, dsiCameraSource: DSiCameraSource?, retroAchievementsCallback: RetroAchievementsCallback, textureBuffer: ByteBuffer)
 
     external fun setupCheats(cheats: Array<Cheat>)
@@ -47,8 +53,8 @@ object MelonEmulator {
 
     external fun getRichPresenceStatus(): String?
 
-	fun loadRom(romUri: Uri, sramUri: Uri, loadGbaRom: Boolean, gbaRomUri: Uri?, gbaSramUri: Uri?): LoadResult {
-        val loadResult = loadRomInternal(romUri.toString(), sramUri.toString(), loadGbaRom, gbaRomUri?.toString(), gbaSramUri?.toString())
+	fun loadRom(romUri: Uri, sramUri: Uri, gbaSlotType: GbaSlotType, gbaRomUri: Uri?, gbaSramUri: Uri?): LoadResult {
+        val loadResult = loadRomInternal(romUri.toString(), sramUri.toString(), gbaSlotType.ordinal, gbaRomUri?.toString(), gbaSramUri?.toString())
         return when (loadResult) {
             0 -> LoadResult.SUCCESS
             1 -> LoadResult.SUCCESS_GBA_FAILED
@@ -63,7 +69,7 @@ object MelonEmulator {
         return FirmwareLoadResult.entries[loadResult]
     }
 
-    private external fun loadRomInternal(romPath: String, sramPath: String, loadGbaRom: Boolean, gbaRomPath: String?, gbaSramPath: String?): Int
+    private external fun loadRomInternal(romPath: String, sramPath: String, gbaSlotType: Int, gbaRomPath: String?, gbaSramPath: String?): Int
 
     private external fun bootFirmwareInternal(): Int
 

@@ -36,7 +36,7 @@ import me.magnum.melonds.domain.model.LayoutConfiguration
 import me.magnum.melonds.domain.model.MacAddress
 import me.magnum.melonds.domain.model.MicSource
 import me.magnum.melonds.domain.model.RendererConfiguration
-import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.domain.model.SaveStateLocation
 import me.magnum.melonds.domain.model.SizeUnit

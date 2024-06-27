@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <cstdlib>
 #include <MelonDS.h>
+#include <RomGbaSlotConfig.h>
 #include <InputAndroid.h>
 #include <android/asset_manager_jni.h>
 #include "UriFileHandler.h"
@@ -18,7 +19,14 @@
 
 #define MAX_CHEAT_SIZE (2*64)
 
+enum GbaSlotType {
+    NONE = 0,
+    GBA_ROM = 1,
+    MEMORY_EXPANSION = 2,
+};
+
 void* emulate(void*);
+MelonDSAndroid::RomGbaSlotConfig* buildGbaSlotConfig(GbaSlotType slotType, const char* romPath, const char* savePath);
 
 pthread_t emuThread;
 pthread_mutex_t emuThreadMutex;
@@ -186,7 +194,7 @@ Java_me_magnum_melonds_MelonEmulator_getRichPresenceStatus(JNIEnv* env, jobject 
 }
 
 JNIEXPORT jint JNICALL
-Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jobject thiz, jstring romPath, jstring sramPath, jboolean loadGbaRom, jstring gbaRomPath, jstring gbaSramPath)
+Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jobject thiz, jstring romPath, jstring sramPath, jint gbaSlotType, jstring gbaRomPath, jstring gbaSramPath)
 {
     jboolean isCopy = JNI_FALSE;
     const char* rom = romPath == nullptr ? nullptr : env->GetStringUTFChars(romPath, &isCopy);
@@ -194,7 +202,9 @@ Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jobject thiz, 
     const char* gbaRom = gbaRomPath == nullptr ? nullptr : env->GetStringUTFChars(gbaRomPath, &isCopy);
     const char* gbaSram = gbaSramPath == nullptr ? nullptr : env->GetStringUTFChars(gbaSramPath, &isCopy);
 
-    int result = MelonDSAndroid::loadRom(const_cast<char*>(rom), const_cast<char*>(sram), loadGbaRom, const_cast<char*>(gbaRom), const_cast<char*>(gbaSram));
+    MelonDSAndroid::RomGbaSlotConfig* gbaSlotConfig = buildGbaSlotConfig((GbaSlotType) gbaSlotType, gbaRom, gbaSram);
+    int result = MelonDSAndroid::loadRom(const_cast<char*>(rom), const_cast<char*>(sram), gbaSlotConfig);
+    delete gbaSlotConfig;
 
     if (isCopy == JNI_TRUE) {
         if (romPath) env->ReleaseStringUTFChars(romPath, rom);
@@ -465,6 +475,26 @@ Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jo
         targetFps = 60 * fastForwardSpeedMultiplier;
     }
 }
+}
+
+MelonDSAndroid::RomGbaSlotConfig* buildGbaSlotConfig(GbaSlotType slotType, const char* romPath, const char* savePath)
+{
+    if (slotType == GbaSlotType::GBA_ROM)
+    {
+        MelonDSAndroid::RomGbaSlotConfigGbaRom* gbaSlotConfigGbaRom = new MelonDSAndroid::RomGbaSlotConfigGbaRom {
+            .romPath = std::string(romPath),
+            .savePath = std::string(savePath)
+        };
+        return (MelonDSAndroid::RomGbaSlotConfig*) gbaSlotConfigGbaRom;
+    }
+    else if (slotType == GbaSlotType::MEMORY_EXPANSION)
+    {
+        return (MelonDSAndroid::RomGbaSlotConfig*) new MelonDSAndroid::RomGbaSlotConfigMemoryExpansion;
+    }
+    else
+    {
+        return (MelonDSAndroid::RomGbaSlotConfig*) new MelonDSAndroid::RomGbaSlotConfigNone;
+    }
 }
 
 double getCurrentMillis() {

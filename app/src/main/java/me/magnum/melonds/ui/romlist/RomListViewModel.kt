@@ -7,14 +7,24 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.common.uridelegates.UriHandler
-import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.ConfigurationDirResult
+import me.magnum.melonds.domain.model.ConsoleType
+import me.magnum.melonds.domain.model.LayoutConfiguration
+import me.magnum.melonds.domain.model.SortingMode
+import me.magnum.melonds.domain.model.SortingOrder
+import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
 import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
@@ -24,7 +34,8 @@ import me.magnum.melonds.impl.RomIconProvider
 import me.magnum.melonds.utils.EventSharedFlow
 import me.magnum.melonds.utils.SubjectSharedFlow
 import java.text.Normalizer
-import java.util.*
+import java.util.Calendar
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -99,12 +110,6 @@ class RomListViewModel @Inject constructor(
 
     fun refreshRoms() {
         romsRepository.rescanRoms()
-    }
-
-    fun updateRomConfig(rom: Rom, newConfig: RomConfig) {
-        newConfig.gbaCartPath?.let { uriPermissionManager.persistFilePermissions(it, Permission.READ) }
-        newConfig.gbaSavePath?.let { uriPermissionManager.persistFilePermissions(it, Permission.READ_WRITE) }
-        romsRepository.updateRomConfig(rom, newConfig)
     }
 
     fun getLayout(layoutId: UUID?): Single<LayoutConfiguration> {

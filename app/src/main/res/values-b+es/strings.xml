@@ -238,7 +238,6 @@
 
     <string name="rom_settings">Configuración de Rom</string> <!-- Cadena de accesibilidad. No debe usar acrónimos -->
     <string name="label_rom_config_console">Sistema de arranque</string>
-    <string name="label_rom_config_load_gba_rom">Cargar ROM de GBA</string>
     <string name="label_rom_config_gba_rom_path">Ruta de acceso de la ROM de GBA</string>
     <string name="label_rom_config_gba_save_path">Ruta de guardado de GBA</string>
     <string name="rom_details_configuration_tab">Configuración</string>

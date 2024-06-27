@@ -252,7 +252,7 @@
 
     <string name="rom_settings">Rom settings</string> <!-- Accessibility string. Should not use acronyms -->
     <string name="label_rom_config_console">Boot system</string>
-    <string name="label_rom_config_load_gba_rom">Load GBA ROM</string>
+    <string name="label_rom_config_gba_slot">GBA slot</string>
     <string name="label_rom_config_gba_rom_path">GBA ROM path</string>
     <string name="label_rom_config_gba_save_path">GBA save path</string>
     <string name="rom_details_configuration_tab">Configuration</string>
@@ -388,6 +388,12 @@
         <item>None</item>
         <item>Blow</item>
         <item>Device microphone</item>
+    </string-array>
+
+    <string-array name="gba_slot_options">
+        <item>None</item>
+        <item>GBA ROM</item>
+        <item>Memory expansion</item>
     </string-array>
 
     <string-array name="console_type_options">

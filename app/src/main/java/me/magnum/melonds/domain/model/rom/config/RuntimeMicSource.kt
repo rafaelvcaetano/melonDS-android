@@ -1,4 +1,6 @@
-package me.magnum.melonds.domain.model
+package me.magnum.melonds.domain.model.rom.config
+
+import me.magnum.melonds.domain.model.MicSource
 
 enum class RuntimeMicSource(val micSource: MicSource?) : RuntimeEnum<RuntimeMicSource, MicSource> {
     DEFAULT(null),

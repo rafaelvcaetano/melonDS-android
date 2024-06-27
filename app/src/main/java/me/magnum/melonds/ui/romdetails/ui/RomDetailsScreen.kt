@@ -10,8 +10,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
-import me.magnum.melonds.domain.model.Rom
-import me.magnum.melonds.domain.model.RomConfig
+import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.ui.common.MelonPreviewSet
 import me.magnum.melonds.ui.romdetails.model.*
 import me.magnum.melonds.ui.theme.MelonTheme

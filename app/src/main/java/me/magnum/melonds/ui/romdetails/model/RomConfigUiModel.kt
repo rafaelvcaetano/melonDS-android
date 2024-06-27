@@ -1,18 +1,13 @@
 package me.magnum.melonds.ui.romdetails.model
 
-import android.net.Uri
-import me.magnum.melonds.domain.model.RuntimeConsoleType
-import me.magnum.melonds.domain.model.RuntimeMicSource
-import java.util.*
+import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
+import me.magnum.melonds.domain.model.rom.config.RuntimeMicSource
+import java.util.UUID
 
 data class RomConfigUiModel(
     val runtimeConsoleType: RuntimeConsoleType = RuntimeConsoleType.DEFAULT,
     val runtimeMicSource: RuntimeMicSource = RuntimeMicSource.DEFAULT,
     val layoutId: UUID? = null,
     val layoutName: String? = null,
-    val loadGbaCart: Boolean = false,
-    val gbaCartPath: String? = null,
-    val gbaCartUri: Uri? = null,
-    val gbaSavePath: String? = null,
-    val gbaSaveUri: Uri? = null,
+    val gbaSlotConfig: RomGbaSlotConfigUiModel = RomGbaSlotConfigUiModel()
 )

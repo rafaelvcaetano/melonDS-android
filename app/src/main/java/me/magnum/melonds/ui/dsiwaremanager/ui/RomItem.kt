@@ -24,8 +24,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
 import me.magnum.melonds.R
-import me.magnum.melonds.domain.model.Rom
-import me.magnum.melonds.domain.model.RomConfig
+import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.ui.common.component.text.CaptionText
 import me.magnum.melonds.ui.romlist.RomIcon

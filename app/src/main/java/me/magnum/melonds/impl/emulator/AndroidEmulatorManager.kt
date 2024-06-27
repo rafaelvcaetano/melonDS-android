@@ -18,14 +18,15 @@ import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.MicSource
-import me.magnum.melonds.domain.model.Rom
-import me.magnum.melonds.domain.model.RuntimeConsoleType
-import me.magnum.melonds.domain.model.RuntimeEnum
+import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
+import me.magnum.melonds.domain.model.rom.config.RuntimeEnum
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
+import me.magnum.melonds.domain.model.rom.config.RomGbaSlotConfig
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.EmulatorManager
 import me.magnum.melonds.impl.camera.DSiCameraSourceMultiplexer
@@ -60,7 +61,20 @@ class AndroidEmulatorManager(
                 return@withContext RomLaunchResult.LaunchFailedSramProblem(exception)
             }
 
-            val loadResult = MelonEmulator.loadRom(romUri, sram, rom.config.mustLoadGbaCart(), rom.config.gbaCartPath, rom.config.gbaSavePath)
+            val gbaSlotRomConfig = rom.config.gbaSlotConfig
+            val gbaSlotType = when (gbaSlotRomConfig) {
+                RomGbaSlotConfig.None -> MelonEmulator.GbaSlotType.NONE
+                is RomGbaSlotConfig.GbaRom -> MelonEmulator.GbaSlotType.GBA_ROM
+                RomGbaSlotConfig.MemoryExpansion -> MelonEmulator.GbaSlotType.MEMORY_EXPANSION
+            }
+
+            val loadResult = MelonEmulator.loadRom(
+                romUri = romUri,
+                sramUri = sram,
+                gbaSlotType = gbaSlotType,
+                gbaRomUri = (gbaSlotRomConfig as? RomGbaSlotConfig.GbaRom)?.romPath,
+                gbaSramUri = (gbaSlotRomConfig as? RomGbaSlotConfig.GbaRom)?.savePath
+            )
             if (loadResult.isTerminal || !isActive) {
                 cameraManager.stopCurrentCameraSource()
                 RomLaunchResult.LaunchFailed(loadResult)

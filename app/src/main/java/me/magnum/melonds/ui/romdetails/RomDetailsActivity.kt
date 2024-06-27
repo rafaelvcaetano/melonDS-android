@@ -34,7 +34,7 @@ class RomDetailsActivity : AppCompatActivity() {
             val romRetroAchievementsViewModel by viewModels<RomDetailsRetroAchievementsViewModel>()
 
             val rom by romDetailsViewModel.rom.collectAsState()
-            val romConfig by romDetailsViewModel.romConfig.collectAsState()
+            val romConfig by romDetailsViewModel.romConfigUiState.collectAsState()
 
             val retroAchievementsUiState by romRetroAchievementsViewModel.uiState.collectAsState()
 

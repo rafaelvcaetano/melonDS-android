@@ -1,11 +1,10 @@
-package me.magnum.melonds.impl.dtos
+package me.magnum.melonds.impl.dtos.rom
 
-import android.net.Uri
 import com.google.gson.annotations.SerializedName
-import me.magnum.melonds.domain.model.RomConfig
-import me.magnum.melonds.domain.model.RuntimeConsoleType
-import me.magnum.melonds.domain.model.RuntimeMicSource
-import java.util.*
+import me.magnum.melonds.domain.model.rom.config.RomConfig
+import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
+import me.magnum.melonds.domain.model.rom.config.RuntimeMicSource
+import java.util.UUID
 
 data class RomConfigDto(
     @SerializedName("runtimeConsoleType")
@@ -14,12 +13,8 @@ data class RomConfigDto(
     val runtimeMicSource: RuntimeMicSource,
     @SerializedName("layoutId")
     val layoutId: String?,
-    @SerializedName("loadGbaCart")
-    val loadGbaCart: Boolean,
-    @SerializedName("gbaCartPath")
-    val gbaCartPath: String?,
-    @SerializedName("gbaSavePath")
-    val gbaSavePath: String?,
+    @SerializedName("gbaSlotConfig")
+    val gbaSlotConfig: RomGbaSlotConfigDto,
 ) {
 
     companion object {
@@ -28,9 +23,7 @@ data class RomConfigDto(
                 romConfig.runtimeConsoleType,
                 romConfig.runtimeMicSource,
                 romConfig.layoutId?.toString(),
-                romConfig.loadGbaCart,
-                romConfig.gbaCartPath?.toString(),
-                romConfig.gbaSavePath?.toString(),
+                RomGbaSlotConfigDto.fromModel(romConfig.gbaSlotConfig),
             )
         }
     }
@@ -40,9 +33,7 @@ data class RomConfigDto(
             runtimeConsoleType,
             runtimeMicSource,
             layoutId?.let { UUID.fromString(it) },
-            loadGbaCart,
-            gbaCartPath?.let { Uri.parse(it) },
-            gbaSavePath?.let { Uri.parse(it) },
+            gbaSlotConfig.toModel(),
         )
     }
 }

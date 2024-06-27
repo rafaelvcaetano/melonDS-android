@@ -5,8 +5,8 @@ import android.graphics.Bitmap
 import android.net.Uri
 import io.reactivex.Single
 import me.magnum.melonds.common.uridelegates.UriHandler
-import me.magnum.melonds.domain.model.Rom
-import me.magnum.melonds.domain.model.RomConfig
+import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RomMetadata
 import me.magnum.melonds.extensions.isBlank

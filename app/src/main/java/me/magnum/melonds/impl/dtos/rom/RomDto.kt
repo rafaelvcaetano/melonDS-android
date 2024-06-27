@@ -1,8 +1,8 @@
-package me.magnum.melonds.impl.dtos
+package me.magnum.melonds.impl.dtos.rom
 
 import android.net.Uri
 import com.google.gson.annotations.SerializedName
-import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.rom.Rom
 import java.util.*
 
 data class RomDto(

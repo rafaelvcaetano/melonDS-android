@@ -1,4 +1,6 @@
-package me.magnum.melonds.domain.model
+package me.magnum.melonds.domain.model.rom.config
+
+import me.magnum.melonds.domain.model.ConsoleType
 
 enum class RuntimeConsoleType(val targetConsoleType: ConsoleType?) : RuntimeEnum<RuntimeConsoleType, ConsoleType> {
     DEFAULT(null),

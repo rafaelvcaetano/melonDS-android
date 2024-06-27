@@ -184,7 +184,6 @@
 
     <string name="rom_settings">Pengaturan rom</string> <!-- Accessibility string. Should not use acronyms -->
     <string name="label_rom_config_console">Boot sistem</string>
-    <string name="label_rom_config_load_gba_rom">Muat ROM GBA</string>
     <string name="label_rom_config_gba_rom_path">Direktori ROM GBA</string>
     <string name="label_rom_config_gba_save_path">Direktori simpanan GBA</string>
 
