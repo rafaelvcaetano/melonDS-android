@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.ui.romdetails.ui.RomScreen
 import me.magnum.melonds.ui.theme.MelonTheme
@@ -26,12 +27,13 @@ class RomDetailsActivity : AppCompatActivity() {
         const val KEY_ROM = "rom"
     }
 
+    private val romDetailsViewModel by viewModels<RomDetailsViewModel>()
+    private val romRetroAchievementsViewModel by viewModels<RomDetailsRetroAchievementsViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val systemUiController = rememberSystemUiController()
-            val romDetailsViewModel by viewModels<RomDetailsViewModel>()
-            val romRetroAchievementsViewModel by viewModels<RomDetailsRetroAchievementsViewModel>()
 
             val rom by romDetailsViewModel.rom.collectAsState()
             val romConfig by romDetailsViewModel.romConfigUiState.collectAsState()
@@ -55,8 +57,7 @@ class RomDetailsActivity : AppCompatActivity() {
                         retroAchievementsUiState = retroAchievementsUiState,
                         onNavigateBack = { onNavigateUp() },
                         onLaunchRom = {
-                            val intent = EmulatorActivity.getRomEmulatorActivityIntent(this, it)
-                            startActivity(intent)
+                            launchPlayRomIntent(it)
                         },
                         onRomConfigUpdate = {
                             romDetailsViewModel.onRomConfigUpdateEvent(it)
@@ -74,6 +75,11 @@ class RomDetailsActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun launchPlayRomIntent(rom: Rom) {
+        val intent = EmulatorActivity.getRomEmulatorActivityIntent(this, rom)
+        startActivity(intent)
     }
 
     private fun launchViewAchievementIntent(achievementUrl: String) {

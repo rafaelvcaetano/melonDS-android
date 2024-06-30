@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.UriPermissionManager
@@ -53,7 +54,7 @@ class RomDetailsViewModel @Inject constructor(
 
     fun onRomConfigUpdateEvent(event: RomConfigUpdateEvent) {
         val currentRomConfig = _romConfig.value
-        val newRomConfigUiModel = when(event) {
+        val newRomConfig = when(event) {
             is RomConfigUpdateEvent.RuntimeConsoleUpdate -> currentRomConfig.copy(runtimeConsoleType = event.newRuntimeConsole)
             is RomConfigUpdateEvent.RuntimeMicSourceUpdate -> currentRomConfig.copy(runtimeMicSource = event.newRuntimeMicSource)
             is RomConfigUpdateEvent.LayoutUpdate -> currentRomConfig.copy(layoutId = event.newLayoutId)
@@ -77,9 +78,10 @@ class RomDetailsViewModel @Inject constructor(
             }
         }
 
-        newRomConfigUiModel?.let {
-            _romConfig.value = it
-            saveRomConfig(it)
+        newRomConfig?.let { newConfig ->
+            _romConfig.value = newConfig
+            _rom.update { it.copy(config = newConfig) }
+            saveRomConfig(newConfig)
         }
     }
 
