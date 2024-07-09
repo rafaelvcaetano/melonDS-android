@@ -27,12 +27,12 @@ val LightMelonColors @Composable get() = lightColors(
 )
 
 val DarkMelonColors @Composable get() = darkColors(
-    primary = Color(0xFF333333),          // R.color.colorPrimary,
+    primary = Color(0xFF000000),          // R.color.colorPrimary,
     primaryVariant = Color(0xFF222222),   // R.color.colorPrimaryDark,
     secondary = Color(0xFFF44336),        // R.color.colorAccent,
     secondaryVariant = Color(0xFFF44336), // R.color.colorAccent,
     background = Color(0xFF000000),       // R.color.colorBackground,
-    surface = Color(0xFF303030),          // R.color.colorSurface,
+    surface = Color(0xFF000000),          // R.color.colorSurface,
     onPrimary = Color(0xFFFFFFFF),        // R.color.colorOnSecondary,
     onSecondary = Color(0xFFFFFFFF),      // R.color.colorOnSecondary,
     onSurface = Color(0xFFFFFFFF),        // R.color.textColorPrimary,
