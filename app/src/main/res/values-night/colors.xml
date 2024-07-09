@@ -3,13 +3,13 @@
     <color name="colorPrimary">#333</color>
     <color name="colorPrimaryDark">#222</color>
     <color name="colorAccent">#f44336</color>
-    <color name="colorSurface">#303030</color>
-    <color name="colorBackground">#303030</color>
+    <color name="colorSurface">#000000</color>
+    <color name="colorBackground">#000000</color>
 
     <color name="textColorPrimary">#FFFFFF</color>
     <color name="textColorSecondary">#B3FFFFFF</color>
 
-    <color name="toolbarBackground">#333333</color>
+    <color name="toolbarBackground">#000000</color>
     <color name="switchThumbUnselected">#b9b9b9</color>
 
     <color name="romConfigButtonDefault">#AAA</color>
