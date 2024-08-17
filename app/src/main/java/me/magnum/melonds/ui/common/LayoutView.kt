@@ -18,6 +18,10 @@ open class LayoutView(context: Context, attrs: AttributeSet?) : FrameLayout(cont
     protected lateinit var viewBuilderFactory: LayoutComponentViewBuilderFactory
     protected val views = mutableMapOf<LayoutComponent, LayoutComponentView>()
 
+    init {
+        layoutDirection = LAYOUT_DIRECTION_LTR
+    }
+
     fun setLayoutComponentViewBuilderFactory(factory: LayoutComponentViewBuilderFactory) {
         viewBuilderFactory = factory
     }
