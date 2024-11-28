@@ -1,7 +1,7 @@
 package me.magnum.melonds.utils
 
 import me.magnum.melonds.R
-import me.magnum.melonds.domain.model.LayoutComponent
+import me.magnum.melonds.domain.model.layout.LayoutComponent
 
 fun getLayoutComponentName(layoutComponent: LayoutComponent): Int {
     return when (layoutComponent) {

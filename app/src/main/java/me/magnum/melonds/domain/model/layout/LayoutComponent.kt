@@ -1,4 +1,4 @@
-package me.magnum.melonds.domain.model
+package me.magnum.melonds.domain.model.layout
 
 enum class LayoutComponent {
     TOP_SCREEN,

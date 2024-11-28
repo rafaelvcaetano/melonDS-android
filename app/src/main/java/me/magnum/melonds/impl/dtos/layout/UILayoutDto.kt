@@ -1,7 +1,7 @@
 package me.magnum.melonds.impl.dtos.layout
 
 import com.google.gson.annotations.SerializedName
-import me.magnum.melonds.domain.model.UILayout
+import me.magnum.melonds.domain.model.layout.UILayout
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import java.util.UUID
 
@@ -11,7 +11,7 @@ data class UILayoutDto(
     @SerializedName("backgroundMode")
     val backgroundMode: String,
     @SerializedName("components")
-    val components: List<PositionedLayoutComponentDto>,
+    val components: List<PositionedLayoutComponentDto>?,
 ) {
 
     companion object {
@@ -19,7 +19,7 @@ data class UILayoutDto(
             return UILayoutDto(
                 uiLayout.backgroundId?.toString(),
                 uiLayout.backgroundMode.name,
-                uiLayout.components.map {
+                uiLayout.components?.map {
                     PositionedLayoutComponentDto.fromModel(it)
                 },
             )
@@ -30,7 +30,7 @@ data class UILayoutDto(
         return UILayout(
             backgroundId?.let { UUID.fromString(it) },
             enumValueOfIgnoreCase(backgroundMode),
-            components.map {
+            components?.map {
                 it.toModel()
             },
         )

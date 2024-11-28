@@ -10,8 +10,7 @@ import io.reactivex.Single
 import io.reactivex.subjects.PublishSubject
 import me.magnum.melonds.R
 import me.magnum.melonds.common.Deletable
-import me.magnum.melonds.domain.model.LayoutConfiguration
-import me.magnum.melonds.domain.model.UILayout
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.impl.dtos.layout.LayoutConfigurationDto
 import java.io.File
@@ -32,14 +31,13 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
     private val layoutsChangedSubject = PublishSubject.create<Unit>()
     private val mGlobalLayoutPlaceholder by lazy {
         LayoutConfiguration(
-                null,
-                context.getString(R.string.use_global_layout),
-                LayoutConfiguration.LayoutType.DEFAULT,
-                LayoutConfiguration.LayoutOrientation.FOLLOW_SYSTEM,
-                false,
-                0,
-                UILayout(emptyList()),
-                UILayout(emptyList())
+            null,
+            context.getString(R.string.use_global_layout),
+            LayoutConfiguration.LayoutType.DEFAULT,
+            LayoutConfiguration.LayoutOrientation.FOLLOW_SYSTEM,
+            false,
+            0,
+            emptyMap(),
         )
     }
 
@@ -100,7 +98,7 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
     override fun saveLayout(layout: LayoutConfiguration) {
         if (layout.id == null) {
             val newLayout = layout.copy(
-                    id = UUID.randomUUID()
+                id = UUID.randomUUID()
             )
             layouts.add(Deletable(newLayout, false))
         } else {
@@ -171,10 +169,14 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
     }
 
     private fun buildDefaultLayout(): LayoutConfiguration {
-        return defaultLayoutProvider.defaultLayout.copy(
-                id = LayoutConfiguration.DEFAULT_ID,
-                name = context.getString(R.string.default_layout_name),
-                type = LayoutConfiguration.LayoutType.DEFAULT
+        return LayoutConfiguration(
+            id = LayoutConfiguration.DEFAULT_ID,
+            name = context.getString(R.string.default_layout_name),
+            type = LayoutConfiguration.LayoutType.DEFAULT,
+            orientation = LayoutConfiguration.LayoutOrientation.FOLLOW_SYSTEM,
+            useCustomOpacity = false,
+            opacity = 50,
+            layoutVariants = emptyMap(),
         )
     }
 }

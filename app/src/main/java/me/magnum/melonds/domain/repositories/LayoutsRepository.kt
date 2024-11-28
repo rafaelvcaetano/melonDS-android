@@ -3,7 +3,7 @@ package me.magnum.melonds.domain.repositories
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Observable
-import me.magnum.melonds.domain.model.LayoutConfiguration
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import java.util.*
 
 interface LayoutsRepository {

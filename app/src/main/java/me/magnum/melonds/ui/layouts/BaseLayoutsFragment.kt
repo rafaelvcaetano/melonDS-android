@@ -15,7 +15,7 @@ import com.google.android.material.snackbar.Snackbar
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.FragmentLayoutListBinding
 import me.magnum.melonds.databinding.ItemLayoutBinding
-import me.magnum.melonds.domain.model.LayoutConfiguration
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.ui.layouteditor.LayoutEditorActivity
 import java.util.*
 

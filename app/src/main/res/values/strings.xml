@@ -293,6 +293,7 @@
     <string name="layouts_summary">Manage custom layout configurations</string>
     <string name="action_layouts_new">New layout</string>
     <string name="default_layout_name">Default</string>
+    <string name="custom_layout_default_name">My Layout</string>
     <string name="use_global_layout">Use global layout</string>
     <string name="layout_deleted">Layout deleted</string>
 
@@ -305,10 +306,6 @@
     <string name="revert_changes">Revert changes</string>
     <string name="reset_default">Reset to default</string>
     <string name="exit_without_saving">Exit without saving</string>
-    <string name="portrait_background">Portrait background</string>
-    <string name="portrait_background_mode">Portrait background mode</string>
-    <string name="landscape_background">Landscape background</string>
-    <string name="landscape_background_mode">Landscape background mode</string>
     <string name="save_and_exit">Save and exit</string>
     <string name="layout_name">Layout name</string>
     <string name="layout_orientation">Layout orientation</string>
@@ -316,7 +313,10 @@
     <string name="layout_opacity">Layout opacity</string>
     <string name="layout_background_load_failed">Failed to load the background</string>
 
+    <string name="layout_background_title">Layout Background</string>
+    <string name="background">Background</string>
     <string name="backgrounds">Backgrounds</string>
+    <string name="background_mode">Background mode</string>
     <string name="action_backgrounds_new">New background</string>
     <string name="background_name">Background name</string>
     <string name="background_deleted">Background deleted</string>
@@ -484,13 +484,8 @@
         <item>Stretch</item>
         <item>Fit center</item>
         <item>Fit top</item>
-        <item>Fit bottom</item>
-    </string-array>
-
-    <string-array name="background_landscape_mode_options">
-        <item>Stretch</item>
-        <item>Fit center</item>
         <item>Fit left</item>
+        <item>Fit bottom</item>
         <item>Fit right</item>
     </string-array>
 </resources>

@@ -2,7 +2,7 @@ package me.magnum.melonds.extensions
 
 import android.app.Activity
 import android.content.pm.ActivityInfo
-import me.magnum.melonds.domain.model.LayoutConfiguration
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 
 /**
  * Requests the best activity orientation that satisfies the given [layoutOrientation].

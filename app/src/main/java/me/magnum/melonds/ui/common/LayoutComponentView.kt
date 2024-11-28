@@ -3,7 +3,7 @@ package me.magnum.melonds.ui.common
 import android.view.View
 import android.widget.FrameLayout
 import androidx.core.view.updateLayoutParams
-import me.magnum.melonds.domain.model.LayoutComponent
+import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.Point
 import me.magnum.melonds.domain.model.Rect
 

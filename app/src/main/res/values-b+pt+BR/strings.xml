@@ -387,14 +387,9 @@
     <string-array name="background_portrait_mode_options">
         <item>Esticar</item>
         <item>Ajustar ao centro</item>
-        <item>Ajustar para cima</item>
-        <item>Ajustar para baixo</item>
-    </string-array>
-
-    <string-array name="background_landscape_mode_options">
-        <item>Esticar</item>
-        <item>Ajustar ao centro</item>
+        <item>Ajustar em cima</item>
         <item>Ajustar à esquerda</item>
+        <item>Ajustar em baixo</item>
         <item>Ajustar à direita</item>
     </string-array>
 </resources>

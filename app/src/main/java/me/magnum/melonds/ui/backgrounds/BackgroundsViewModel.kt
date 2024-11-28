@@ -10,7 +10,7 @@ import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.domain.model.Background
-import me.magnum.melonds.domain.model.Orientation
+import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.repositories.BackgroundRepository
 import me.magnum.melonds.extensions.addTo
 import java.util.*

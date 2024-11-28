@@ -448,13 +448,8 @@
         <item>Étirer</item>
         <item>Ajuster au centre</item>
         <item>Ajuster en haut</item>
-        <item>Ajuster en bas</item>
-    </string-array>
-
-    <string-array name="background_landscape_mode_options">
-        <item>Étirer</item>
-        <item>Ajuster au centre</item>
         <item>Ajuster à gauche</item>
+        <item>Ajuster en bas</item>
         <item>Ajuster à droite</item>
     </string-array>
 </resources>

@@ -453,13 +453,8 @@
         <item>Растянуть</item>
         <item>По центру</item>
         <item>По верху</item>
-        <item>По низу</item>
-    </string-array>
-
-    <string-array name="background_landscape_mode_options">
-        <item>Растянуть</item>
-        <item>По центру</item>
         <item>По левой стороне</item>
+        <item>По низу</item>
         <item>По правой стороне</item>
     </string-array>
 </resources>

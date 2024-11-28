@@ -1,7 +1,7 @@
 package me.magnum.melonds.impl.dtos.layout
 
 import com.google.gson.annotations.SerializedName
-import me.magnum.melonds.domain.model.PositionedLayoutComponent
+import me.magnum.melonds.domain.model.layout.PositionedLayoutComponent
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 
 data class PositionedLayoutComponentDto(

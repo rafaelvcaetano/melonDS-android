@@ -354,13 +354,8 @@
         <item>Diregangkan</item>
         <item>Pas tengah</item>
         <item>Pas atas</item>
-        <item>Pas bawah</item>
-    </string-array>
-
-    <string-array name="background_landscape_mode_options">
-        <item>Diregangkan</item>
-        <item>Pas tengah</item>
         <item>Pas kiri</item>
+        <item>Pas bawah</item>
         <item>Pas kanan</item>
     </string-array>
 </resources>

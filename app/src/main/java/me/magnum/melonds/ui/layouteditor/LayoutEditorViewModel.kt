@@ -1,167 +1,207 @@
 package me.magnum.melonds.ui.layouteditor
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Maybe
 import io.reactivex.disposables.CompositeDisposable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import me.magnum.melonds.common.Schedulers
-import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.RuntimeBackground
+import me.magnum.melonds.domain.model.layout.BackgroundMode
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration.LayoutOrientation
+import me.magnum.melonds.domain.model.layout.PositionedLayoutComponent
+import me.magnum.melonds.domain.model.layout.ScreenFold
+import me.magnum.melonds.domain.model.layout.UILayout
+import me.magnum.melonds.domain.model.layout.UILayoutVariant
+import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.repositories.BackgroundRepository
 import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.extensions.addTo
-import me.magnum.melonds.impl.DefaultLayoutProvider
-import me.magnum.melonds.utils.SingleLiveEvent
-import java.util.*
+import me.magnum.melonds.impl.layout.UILayoutProvider
+import me.magnum.melonds.ui.layouteditor.model.CurrentLayoutState
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class LayoutEditorViewModel @Inject constructor(
-        private val layoutsRepository: LayoutsRepository,
-        private val backgroundsRepository: BackgroundRepository,
-        private val defaultLayoutProvider: DefaultLayoutProvider,
-        private val schedulers: Schedulers,
-        savedStateHandle: SavedStateHandle
+    private val layoutsRepository: LayoutsRepository,
+    private val backgroundsRepository: BackgroundRepository,
+    private val uiLayoutProvider: UILayoutProvider,
+    private val schedulers: Schedulers,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private var currentSystemOrientation: Orientation? = null
-    private var currentLayoutConfiguration: LayoutConfiguration? = null
+    private val _currentLayoutConfiguration = MutableStateFlow<LayoutConfiguration?>(null)
+
     private var initialLayoutConfiguration: LayoutConfiguration? = null
-    private val backgroundLiveData = MutableLiveData<RuntimeBackground>()
-    private val layoutPropertiesUpdateEvent = SingleLiveEvent<Unit>()
+    private var currentLayoutVariant: UILayoutVariant? = null
     private val disposables = CompositeDisposable()
+
+    private val _background = MutableStateFlow<RuntimeBackground?>(null)
+    val background = _background.asStateFlow()
+
+    private val _currentLayout = MutableStateFlow<CurrentLayoutState?>(null)
+    val currentLayout = _currentLayout.asStateFlow()
 
     init {
         val layoutId = savedStateHandle.get<String?>(LayoutEditorActivity.KEY_LAYOUT_ID)?.let { UUID.fromString(it) }
-        if (layoutId != null) {
-            // Good? No. Does it work? Hell yeah!
-            val layout = layoutsRepository.getLayout(layoutId).blockingGet()
-            initialLayoutConfiguration = layout
-            currentLayoutConfiguration = layout
+        val layoutConfigurationObservable = if (layoutId != null) {
+             layoutsRepository.getLayout(layoutId)
+        } else {
+            Maybe.just(LayoutConfiguration.newCustom())
+        }
+
+        layoutConfigurationObservable.subscribe {
+            initialLayoutConfiguration = it
+            _currentLayoutConfiguration.value = it
+        }.addTo(disposables)
+
+        viewModelScope.launch {
+            _currentLayoutConfiguration.filterNotNull().collect {
+                uiLayoutProvider.setCurrentLayoutConfiguration(it)
+            }
+        }
+
+        viewModelScope.launch {
+            uiLayoutProvider.currentLayout.collect {
+                if (it == null) {
+                    _currentLayout.value = null
+                } else {
+                    val (variant, layout) = it
+                    val currentLayoutConfig = _currentLayoutConfiguration.value ?: return@collect
+                    currentLayoutVariant = variant
+                    _currentLayout.value = CurrentLayoutState(layout, currentLayoutConfig.orientation)
+                }
+            }
+        }
+        viewModelScope.launch {
+            _currentLayout.distinctUntilChangedBy { it?.layout?.backgroundId to it?.layout?.backgroundMode }.collect {
+                if (it != null) {
+                    loadBackground(it.layout.backgroundId, it.layout.backgroundMode)
+                } else {
+                    // Unload the background. The background mode doesn't matter
+                    loadBackground(null, BackgroundMode.FIT_CENTER)
+                }
+            }
         }
     }
 
     fun setCurrentSystemOrientation(orientation: Orientation) {
-        currentSystemOrientation = orientation
-        loadBackgroundForCurrentLayoutConfiguration()
+        uiLayoutProvider.updateCurrentOrientation(orientation)
+    }
+
+    fun setCurrentUiSize(width: Int, height: Int) {
+        uiLayoutProvider.updateUiSize(width, height)
+    }
+
+    fun setScreenFolds(folds: List<ScreenFold>) {
+        uiLayoutProvider.updateFolds(folds)
     }
 
     fun getCurrentLayoutConfiguration(): LayoutConfiguration? {
-        return currentLayoutConfiguration
-    }
-
-    fun setCurrentLayoutConfiguration(layoutConfiguration: LayoutConfiguration) {
-        currentLayoutConfiguration = layoutConfiguration
-        initialLayoutConfiguration = layoutConfiguration.copy()
-        loadBackgroundForCurrentLayoutConfiguration()
-    }
-
-    fun getBackground(): LiveData<RuntimeBackground> {
-        return backgroundLiveData
-    }
-
-    fun onLayoutPropertiesUpdate(): LiveData<Unit> {
-        return layoutPropertiesUpdateEvent
+        return _currentLayoutConfiguration.value
     }
 
     fun getBackgroundName(backgroundId: UUID): Maybe<String> {
         return backgroundsRepository.getBackground(backgroundId).map { it.name }
     }
 
-    private fun loadBackgroundForCurrentLayoutConfiguration() {
-        val layoutConfiguration = currentLayoutConfiguration ?: return
-        currentSystemOrientation?.let { systemOrientation ->
-            when (systemOrientation) {
-                Orientation.PORTRAIT -> loadBackground(layoutConfiguration.portraitLayout.backgroundId, layoutConfiguration.portraitLayout.backgroundMode)
-                Orientation.LANDSCAPE -> loadBackground(layoutConfiguration.landscapeLayout.backgroundId, layoutConfiguration.landscapeLayout.backgroundMode)
-            }
-        }
-    }
-
     private fun loadBackground(backgroundId: UUID?, mode: BackgroundMode) {
         if (backgroundId == null) {
-            backgroundLiveData.value = RuntimeBackground(null, mode)
+            _background.value = RuntimeBackground(null, mode)
         } else {
             backgroundsRepository.getBackground(backgroundId)
-                    .subscribeOn(schedulers.backgroundThreadScheduler)
-                    .materialize()
-                    .subscribe { message ->
-                        backgroundLiveData.postValue(RuntimeBackground(message.value, mode))
-                    }
-                    .addTo(disposables)
+                .subscribeOn(schedulers.backgroundThreadScheduler)
+                .materialize()
+                .subscribe { message ->
+                    _background.value = RuntimeBackground(message.value, mode)
+                }
+                .addTo(disposables)
         }
     }
 
     fun setCurrentLayoutName(name: String) {
-        currentLayoutConfiguration = currentLayoutConfiguration?.copy(
+        _currentLayoutConfiguration.update {
+            it?.copy(
                 name = name
-        )
+            )
+        }
     }
 
     fun saveCurrentLayout() {
-        currentLayoutConfiguration?.let {
+        _currentLayoutConfiguration.value?.let {
             layoutsRepository.saveLayout(it)
         }
     }
 
-    fun getInitialLayoutConfiguration(): LayoutConfiguration? {
-        return initialLayoutConfiguration
+    fun revertLayoutChanges() {
+        _currentLayoutConfiguration.value = initialLayoutConfiguration
     }
 
-    fun saveLayoutToCurrentConfiguration(layout: UILayout) {
-        currentLayoutConfiguration?.let {
-            val layoutOrientation = currentSystemOrientation ?: return
-            currentLayoutConfiguration = when (layoutOrientation) {
-                Orientation.PORTRAIT -> it.copy(portraitLayout = it.portraitLayout.copy(components = layout.components))
-                Orientation.LANDSCAPE -> it.copy(landscapeLayout = it.landscapeLayout.copy(components = layout.components))
-            }
-        }
-    }
-
-    fun savePropertiesToCurrentConfiguration(name: String?, orientation: LayoutConfiguration.LayoutOrientation, useCustomOpacity: Boolean, layoutOpacity: Int) {
-        currentLayoutConfiguration?.let {
-            val hasLayoutOrientationChanged = it.orientation != orientation
-
-            currentLayoutConfiguration = it.copy(
-                    name = name,
-                    orientation = orientation,
-                    useCustomOpacity = useCustomOpacity,
-                    opacity = layoutOpacity
+    fun resetLayout() {
+        _currentLayoutConfiguration.update {
+            it?.copy(
+                orientation = LayoutOrientation.FOLLOW_SYSTEM,
+                useCustomOpacity = false,
+                opacity = 50,
+                layoutVariants = emptyMap(),
             )
-
-            if (hasLayoutOrientationChanged) {
-                loadBackgroundForCurrentLayoutConfiguration()
-            }
-
-            layoutPropertiesUpdateEvent.call()
         }
     }
 
-    fun saveBackgroundsToCurrentConfiguration(portraitBackground: UUID?, portraitBackgroundMode: BackgroundMode, landscapeBackground: UUID?, landscapeBackgroundMode: BackgroundMode) {
-        currentLayoutConfiguration?.let {
-            currentLayoutConfiguration = it.copy(
-                    portraitLayout = it.portraitLayout.copy(
-                            backgroundId = portraitBackground,
-                            backgroundMode = portraitBackgroundMode
-                    ),
-                    landscapeLayout = it.landscapeLayout.copy(
-                            backgroundId = landscapeBackground,
-                            backgroundMode = landscapeBackgroundMode
-                    )
+    fun saveLayoutToCurrentConfiguration(layoutComponents: List<PositionedLayoutComponent>) {
+        val currentVariant = currentLayoutVariant ?: return
+
+        _currentLayoutConfiguration.update {
+            it?.copy(
+                layoutVariants = it.layoutVariants.toMutableMap().apply {
+                    val updatedLayout = this[currentVariant]?.copy(components = layoutComponents) ?: UILayout(layoutComponents)
+                    this[currentVariant] = updatedLayout
+                }
             )
-
-            loadBackgroundForCurrentLayoutConfiguration()
         }
     }
 
-    fun getDefaultLayoutConfiguration(): LayoutConfiguration {
-        return defaultLayoutProvider.defaultLayout
+    fun savePropertiesToCurrentConfiguration(name: String?, orientation: LayoutOrientation, useCustomOpacity: Boolean, layoutOpacity: Int) {
+        _currentLayoutConfiguration.value?.let {
+            _currentLayoutConfiguration.value = it.copy(
+                name = name,
+                orientation = orientation,
+                useCustomOpacity = useCustomOpacity,
+                opacity = layoutOpacity
+            )
+        }
     }
 
-    fun isCurrentLayoutNew(): Boolean {
-        return currentLayoutConfiguration?.id == null
+    fun saveBackgroundToCurrentConfiguration(background: UUID?, backgroundMode: BackgroundMode) {
+        val currentVariant = currentLayoutVariant ?: return
+
+        _currentLayoutConfiguration.update { layoutConfiguration ->
+            layoutConfiguration?.copy(
+                layoutVariants = layoutConfiguration.layoutVariants.toMutableMap().apply {
+                    val updatedLayout = if (containsKey(currentVariant)) {
+                        this[currentVariant]?.copy(backgroundId = background, backgroundMode = backgroundMode)
+                    } else {
+                        UILayout(backgroundId = background, backgroundMode = backgroundMode, components = null)
+                    }
+                    updatedLayout?.let {
+                        this[currentVariant] = it
+                    }
+                }
+            )
+        }
+    }
+
+    fun currentLayoutHasName(): Boolean {
+        return !_currentLayoutConfiguration.value?.name.isNullOrEmpty()
     }
 
     override fun onCleared() {

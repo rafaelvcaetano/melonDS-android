@@ -35,7 +35,7 @@ import me.magnum.melonds.databinding.ActivityBackgroundsBinding
 import me.magnum.melonds.databinding.DialogTextInputBinding
 import me.magnum.melonds.databinding.ItemBackgroundBinding
 import me.magnum.melonds.domain.model.Background
-import me.magnum.melonds.domain.model.Orientation
+import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.extensions.nameWithoutExtension
 import me.magnum.melonds.impl.BackgroundThumbnailProvider
 import me.magnum.melonds.parcelables.BackgroundParcelable

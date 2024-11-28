@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.take
@@ -35,22 +36,23 @@ import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.runtime.FrameBufferProvider
-import me.magnum.melonds.domain.model.BackgroundMode
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.FpsCounterPosition
-import me.magnum.melonds.domain.model.LayoutConfiguration
-import me.magnum.melonds.domain.model.Orientation
-import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.domain.model.emulator.EmulatorSessionUpdateAction
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
+import me.magnum.melonds.domain.model.layout.BackgroundMode
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration
+import me.magnum.melonds.domain.model.layout.ScreenFold
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
+import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.repositories.BackgroundRepository
 import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.domain.repositories.LayoutsRepository
@@ -60,6 +62,7 @@ import me.magnum.melonds.domain.repositories.SaveStatesRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.EmulatorManager
 import me.magnum.melonds.impl.emulator.EmulatorSession
+import me.magnum.melonds.impl.layout.UILayoutProvider
 import me.magnum.melonds.ui.emulator.firmware.FirmwarePauseMenuOption
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
@@ -90,6 +93,7 @@ class EmulatorViewModel @Inject constructor(
     private val backgroundsRepository: BackgroundRepository,
     private val saveStatesRepository: SaveStatesRepository,
     private val frameBufferProvider: FrameBufferProvider,
+    private val uiLayoutProvider: UILayoutProvider,
     private val emulatorManager: EmulatorManager,
     private val emulatorSession: EmulatorSession,
     private val schedulers: Schedulers
@@ -97,8 +101,6 @@ class EmulatorViewModel @Inject constructor(
 
     private val sessionCoroutineScope = EmulatorSessionCoroutineScope()
     private var raSessionJob: Job? = null
-
-    private val _currentSystemOrientation = MutableStateFlow<Orientation?>(null)
 
     private val _emulatorState = MutableStateFlow<EmulatorState>(EmulatorState.Uninitialized)
     val emulatorState = _emulatorState.asStateFlow()
@@ -128,6 +130,14 @@ class EmulatorViewModel @Inject constructor(
 
     private val _uiEvent = EventSharedFlow<EmulatorUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
+
+    init {
+        viewModelScope.launch {
+            _layout.filterNotNull().collect {
+                uiLayoutProvider.setCurrentLayoutConfiguration(it)
+            }
+        }
+    }
 
     fun loadRom(rom: Rom) {
         viewModelScope.launch {
@@ -217,7 +227,15 @@ class EmulatorViewModel @Inject constructor(
     }
 
     fun setSystemOrientation(orientation: Orientation) {
-        _currentSystemOrientation.value = orientation
+        uiLayoutProvider.updateCurrentOrientation(orientation)
+    }
+
+    fun setUiSize(width: Int, height: Int) {
+        uiLayoutProvider.updateUiSize(width, height)
+    }
+
+    fun setScreenFolds(folds: List<ScreenFold>) {
+        uiLayoutProvider.updateFolds(folds)
     }
 
     fun onSettingsChanged() {
@@ -469,21 +487,17 @@ class EmulatorViewModel @Inject constructor(
         sessionCoroutineScope.launch {
             combine(
                 _layout,
-                _currentSystemOrientation,
+                uiLayoutProvider.currentLayout,
                 settingsRepository.showSoftInput(),
                 settingsRepository.isTouchHapticFeedbackEnabled(),
                 settingsRepository.getSoftInputOpacity(),
-            ) { layout, orientation, showSoftInput, isHapticFeedbackEnabled, inputOpacity ->
-                if (layout == null || orientation == null) {
+            ) { layoutConfiguration, variant, showSoftInput, isHapticFeedbackEnabled, inputOpacity ->
+                val layout = variant?.second
+                if (layoutConfiguration == null || layout == null) {
                     null
                 } else {
-                    val layoutToUse = when (orientation) {
-                        Orientation.PORTRAIT -> layout.portraitLayout
-                        Orientation.LANDSCAPE -> layout.landscapeLayout
-                    }
-
-                    val opacity = if (layout.useCustomOpacity) {
-                        layout.opacity
+                    val opacity = if (layoutConfiguration.useCustomOpacity) {
+                        layoutConfiguration.opacity
                     } else {
                         inputOpacity
                     }
@@ -492,8 +506,8 @@ class EmulatorViewModel @Inject constructor(
                         showSoftInput = showSoftInput,
                         softInputOpacity = opacity,
                         isHapticFeedbackEnabled = isHapticFeedbackEnabled,
-                        layoutOrientation = layout.orientation,
-                        layout = layoutToUse,
+                        layoutOrientation = layoutConfiguration.orientation,
+                        layout = layout,
                     )
                 }
             }.collect(_runtimeLayout)
@@ -524,21 +538,18 @@ class EmulatorViewModel @Inject constructor(
 
     private fun startObservingBackground() {
         sessionCoroutineScope.launch {
-            combine(_layout, _currentSystemOrientation, ensureEmulatorIsRunning()) { layout, orientation, _ ->
-                if (layout == null || orientation == null) {
+            combine(uiLayoutProvider.currentLayout, ensureEmulatorIsRunning()) { variant, _ ->
+                val layout = variant?.second
+                if (layout == null) {
                     RuntimeBackground.None
                 } else {
-                    if (orientation == Orientation.PORTRAIT) {
-                        loadBackground(layout.portraitLayout.backgroundId, layout.portraitLayout.backgroundMode)
-                    } else {
-                        loadBackground(layout.landscapeLayout.backgroundId, layout.landscapeLayout.backgroundMode)
-                    }
+                    loadBackground(layout.backgroundId, layout.backgroundMode)
                 }
             }.collect(_background)
         }
     }
 
-    private suspend fun startObservingLayoutForRom(rom: Rom) {
+    private fun startObservingLayoutForRom(rom: Rom) {
         val romLayoutId = rom.config.layoutId
         val layoutObservable = if (romLayoutId == null) {
             getGlobalLayoutObservable()

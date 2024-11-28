@@ -10,7 +10,7 @@ import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
 import me.magnum.melonds.common.runtime.FrameBufferProvider
-import me.magnum.melonds.domain.model.BackgroundMode
+import me.magnum.melonds.domain.model.layout.BackgroundMode
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.VideoFiltering

@@ -1,7 +1,7 @@
 package me.magnum.melonds.ui.emulator.model
 
-import me.magnum.melonds.domain.model.LayoutConfiguration
-import me.magnum.melonds.domain.model.UILayout
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration
+import me.magnum.melonds.domain.model.layout.UILayout
 
 data class RuntimeInputLayoutConfiguration(
     val showSoftInput: Boolean,

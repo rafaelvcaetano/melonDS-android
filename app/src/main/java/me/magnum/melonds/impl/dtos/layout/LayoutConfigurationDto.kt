@@ -1,7 +1,7 @@
 package me.magnum.melonds.impl.dtos.layout
 
 import com.google.gson.annotations.SerializedName
-import me.magnum.melonds.domain.model.LayoutConfiguration
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import java.util.UUID
 
@@ -18,10 +18,8 @@ data class LayoutConfigurationDto(
     val useCustomOpacity: Boolean,
     @SerializedName("opacity")
     val opacity: Int,
-    @SerializedName("portraitLayout")
-    val portraitLayout: UILayoutDto,
-    @SerializedName("landscapeLayout")
-    val landscapeLayout: UILayoutDto
+    @SerializedName("layoutVariants")
+    val layoutVariants: List<LayoutEntryDto>,
 ) {
 
     companion object {
@@ -33,8 +31,9 @@ data class LayoutConfigurationDto(
                 layoutConfiguration.orientation.name,
                 layoutConfiguration.useCustomOpacity,
                 layoutConfiguration.opacity,
-                UILayoutDto.fromModel(layoutConfiguration.portraitLayout),
-                UILayoutDto.fromModel(layoutConfiguration.landscapeLayout),
+                layoutConfiguration.layoutVariants.map {
+                    LayoutEntryDto(UILayoutVariantDto.fromModel(it.key), UILayoutDto.fromModel(it.value))
+                },
             )
         }
     }
@@ -47,8 +46,16 @@ data class LayoutConfigurationDto(
             enumValueOfIgnoreCase(orientation),
             useCustomOpacity,
             opacity,
-            portraitLayout.toModel(),
-            landscapeLayout.toModel(),
+            layoutVariants.associate {
+                it.variant.toModel() to it.layout.toModel()
+            },
         )
     }
+
+    data class LayoutEntryDto(
+        @SerializedName("variant")
+        val variant: UILayoutVariantDto,
+        @SerializedName("layout")
+        val layout: UILayoutDto,
+    )
 }

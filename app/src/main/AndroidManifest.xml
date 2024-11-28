@@ -117,7 +117,8 @@
         <activity
             android:name=".ui.layouteditor.LayoutEditorActivity"
             android:theme="@style/EmulatorTheme"
-            android:label="@string/layout_editor">
+            android:label="@string/layout_editor"
+            android:configChanges="orientation|screenSize|screenSize">
         </activity>
         <activity
             android:name=".ui.backgrounds.BackgroundsActivity"

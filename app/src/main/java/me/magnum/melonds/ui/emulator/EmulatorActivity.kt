@@ -53,6 +53,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.window.layout.FoldingFeature
+import androidx.window.layout.WindowInfoTracker
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -67,10 +69,12 @@ import me.magnum.melonds.common.runtime.FrameBufferProvider
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.FpsCounterPosition
-import me.magnum.melonds.domain.model.LayoutComponent
-import me.magnum.melonds.domain.model.Orientation
+import me.magnum.melonds.domain.model.layout.LayoutComponent
+import me.magnum.melonds.domain.model.Rect
+import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.SaveStateSlot
+import me.magnum.melonds.domain.model.layout.ScreenFold
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.insetsControllerCompat
 import me.magnum.melonds.extensions.parcelable
@@ -259,18 +263,23 @@ class EmulatorActivity : AppCompatActivity() {
             setSystemInputHandler(melonTouchHandler)
         }
 
-        val layoutChangeListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+        val layoutChangeListener = View.OnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
             updateRendererScreenAreas()
 
-            if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                viewModel.setSystemOrientation(Orientation.PORTRAIT)
-            } else {
-                viewModel.setSystemOrientation(Orientation.LANDSCAPE)
+            val oldWith = oldRight - oldLeft
+            val oldHeight = oldBottom - oldTop
+
+            val newWidth = right - left
+            val newHeight = bottom - top
+
+            if (newWidth != oldWith || newHeight != oldHeight) {
+                viewModel.setUiSize(newWidth, newHeight)
             }
         }
         binding.root.addOnLayoutChangeListener(layoutChangeListener)
 
         setupInputHandling()
+        updateOrientation(resources.configuration)
         launchEmulator()
 
         binding.layoutAchievement.setContent {
@@ -515,6 +524,24 @@ class EmulatorActivity : AppCompatActivity() {
                 }
             }
         }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                WindowInfoTracker.getOrCreate(this@EmulatorActivity).windowLayoutInfo(this@EmulatorActivity).collect {
+                    val folds = it.displayFeatures.mapNotNull {
+                        if (it is FoldingFeature) {
+                            ScreenFold(
+                                orientation = if (it.orientation == FoldingFeature.Orientation.HORIZONTAL) Orientation.LANDSCAPE else Orientation.PORTRAIT,
+                                type = if (it.isSeparating) ScreenFold.FoldType.SEAMLESS else ScreenFold.FoldType.GAP,
+                                foldBounds = Rect(it.bounds.left, it.bounds.top, it.bounds.width(), it.bounds.height())
+                            )
+                        } else {
+                            null
+                        }
+                    }
+                    viewModel.setScreenFolds(folds)
+                }
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -652,6 +679,8 @@ class EmulatorActivity : AppCompatActivity() {
         if (layoutConfiguration != null) {
             setLayoutOrientation(layoutConfiguration.layoutOrientation)
             binding.viewLayoutControls.instantiateLayout(layoutConfiguration)
+        } else {
+            binding.viewLayoutControls.destroyLayout()
         }
     }
 
@@ -815,10 +844,24 @@ class EmulatorActivity : AppCompatActivity() {
         viewModel.resumeEmulator()
     }
 
+    private fun updateOrientation(configuration: Configuration) {
+        val orientation = if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            Orientation.PORTRAIT
+        } else {
+            Orientation.LANDSCAPE
+        }
+        viewModel.setSystemOrientation(orientation)
+    }
+
     override fun onPause() {
         super.onPause()
         enableScreenTimeOut()
         binding.surfaceMain.onPause()
         viewModel.pauseEmulator(false)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        updateOrientation(newConfig)
     }
 }

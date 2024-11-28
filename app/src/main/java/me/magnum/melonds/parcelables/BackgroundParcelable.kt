@@ -4,7 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import androidx.core.net.toUri
 import me.magnum.melonds.domain.model.Background
-import me.magnum.melonds.domain.model.Orientation
+import me.magnum.melonds.domain.model.ui.Orientation
 import java.util.*
 
 class BackgroundParcelable : Parcelable {

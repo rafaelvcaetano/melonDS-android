@@ -24,7 +24,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:text="@string/backgrounds" />
+                android:text="@string/layout_background_title" />
     </LinearLayout>
 
     <ScrollView
@@ -41,7 +41,7 @@
                 android:orientation="vertical">
 
             <LinearLayout
-                    android:id="@+id/layout_portrait_background"
+                    android:id="@+id/layout_background_name"
                     style="@style/Layout.RomSetting">
 
                 <LinearLayout
@@ -51,10 +51,10 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             style="@style/Text.RomSetting.Title"
-                            android:text="@string/portrait_background"/>
+                            android:text="@string/background"/>
 
                     <TextView
-                            android:id="@+id/text_background_portrait"
+                            android:id="@+id/text_background_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             style="@style/Text.RomSetting.Summary"
@@ -64,7 +64,7 @@
             </LinearLayout>
 
             <LinearLayout
-                    android:id="@+id/layout_portrait_background_mode"
+                    android:id="@+id/layout_background_mode"
                     style="@style/Layout.RomSetting">
 
                 <LinearLayout
@@ -74,62 +74,15 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             style="@style/Text.RomSetting.Title"
-                            android:text="@string/portrait_background_mode"/>
+                            android:text="@string/background_mode"/>
 
                     <TextView
-                            android:id="@+id/text_background_portrait_mode"
+                            android:id="@+id/text_background_mode"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             style="@style/Text.RomSetting.Summary"
                             android:singleLine="true"
                             tools:text="Fit center" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                    android:id="@+id/layout_landscape_background"
-                    style="@style/Layout.RomSetting">
-
-                <LinearLayout
-                        style="@style/Layout.RomSettingContent">
-
-                    <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            style="@style/Text.RomSetting.Title"
-                            android:text="@string/landscape_background" />
-
-                    <TextView
-                            android:id="@+id/text_landscape_background"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            style="@style/Text.RomSetting.Summary"
-                            android:singleLine="true"
-                            tools:text="None" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                    android:id="@+id/layout_landscape_background_mode"
-                    style="@style/Layout.RomSetting" >
-
-                <LinearLayout
-                        style="@style/Layout.RomSettingContent">
-
-                    <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            style="@style/Text.RomSetting.Title"
-                            android:text="@string/landscape_background_mode"/>
-
-                    <TextView
-                            android:id="@+id/text_background_landscape_mode"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            style="@style/Text.RomSetting.Summary"
-                            android:singleLine="true"
-                            android:ellipsize="start"
-                            tools:text="Stretch" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
