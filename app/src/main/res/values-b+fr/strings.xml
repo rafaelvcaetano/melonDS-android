@@ -291,10 +291,6 @@
     <string name="revert_changes">Annuler les changements</string>
     <string name="reset_default">Revenir aux paramètres par défaut</string>
     <string name="exit_without_saving">Quitter sans enregistrer</string>
-    <string name="portrait_background">Arrière-plan en portrait</string>
-    <string name="portrait_background_mode">Arrière-plan en mode portrait</string>
-    <string name="landscape_background">Arrière-plan en paysage</string>
-    <string name="landscape_background_mode">Arrière-plan en mode paysage</string>
     <string name="save_and_exit">Enregistrer et quitter</string>
     <string name="layout_name">Nom de la disposition</string>
     <string name="layout_orientation">Orientation de la disposition</string>

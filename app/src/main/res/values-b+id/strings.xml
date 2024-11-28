@@ -234,10 +234,6 @@
     <string name="revert_changes">Kembalikan perubahan</string>
     <string name="reset_default">Setel ulang ke default</string>
     <string name="exit_without_saving">Keluar tanpa menyimpan</string>
-    <string name="portrait_background">Latar belakang potret</string>
-    <string name="portrait_background_mode">Mode latar belakang potret</string>
-    <string name="landscape_background">Latar belakang lanskap</string>
-    <string name="landscape_background_mode">Mode latar belakang lanskap</string>
     <string name="save_and_exit">Simpan dan keluar</string>
     <string name="layout_name">Nama tata letak</string>
     <string name="layout_orientation">Orientasi tata letak</string>

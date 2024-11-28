@@ -296,10 +296,6 @@
     <string name="revert_changes">Отменить изменения</string>
     <string name="reset_default">Сброс к стандартным</string>
     <string name="exit_without_saving">Выйти без сохранения</string>
-    <string name="portrait_background">Фон в портретной ориентации</string>
-    <string name="portrait_background_mode">Режим фона в порт. ориентации</string>
-    <string name="landscape_background">Фон в ландшафтной ориентации</string>
-    <string name="landscape_background_mode">Режим фона в ланд. ориентации</string>
     <string name="save_and_exit">Сохранить и выйти</string>
     <string name="layout_name">Имя раскладки</string>
     <string name="layout_orientation">Ориентация раскладки</string>
