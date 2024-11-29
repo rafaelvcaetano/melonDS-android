@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.layout.BackgroundMode
 import me.magnum.melonds.domain.model.layout.LayoutConfiguration
@@ -35,7 +34,6 @@ class LayoutEditorViewModel @Inject constructor(
     private val layoutsRepository: LayoutsRepository,
     private val backgroundsRepository: BackgroundRepository,
     private val uiLayoutProvider: UILayoutProvider,
-    private val schedulers: Schedulers,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -110,21 +108,18 @@ class LayoutEditorViewModel @Inject constructor(
         return _currentLayoutConfiguration.value
     }
 
-    fun getBackgroundName(backgroundId: UUID): Maybe<String> {
-        return backgroundsRepository.getBackground(backgroundId).map { it.name }
+    suspend fun getBackgroundName(backgroundId: UUID): String? {
+        return backgroundsRepository.getBackground(backgroundId)?.name
     }
 
     private fun loadBackground(backgroundId: UUID?, mode: BackgroundMode) {
         if (backgroundId == null) {
             _background.value = RuntimeBackground(null, mode)
         } else {
-            backgroundsRepository.getBackground(backgroundId)
-                .subscribeOn(schedulers.backgroundThreadScheduler)
-                .materialize()
-                .subscribe { message ->
-                    _background.value = RuntimeBackground(message.value, mode)
-                }
-                .addTo(disposables)
+            viewModelScope.launch {
+                val background = backgroundsRepository.getBackground(backgroundId)
+                _background.value = RuntimeBackground(background, mode)
+            }
         }
     }
 

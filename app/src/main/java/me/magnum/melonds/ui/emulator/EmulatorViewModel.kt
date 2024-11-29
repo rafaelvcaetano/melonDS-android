@@ -593,12 +593,8 @@ class EmulatorViewModel @Inject constructor(
         return if (backgroundId == null) {
             RuntimeBackground(null, mode)
         } else {
-            val message = backgroundsRepository.getBackground(backgroundId)
-                    .subscribeOn(schedulers.backgroundThreadScheduler)
-                    .materialize()
-                    .await()
-
-            RuntimeBackground(message.value, mode)
+            val background = backgroundsRepository.getBackground(backgroundId)
+            RuntimeBackground(background, mode)
         }
     }
 

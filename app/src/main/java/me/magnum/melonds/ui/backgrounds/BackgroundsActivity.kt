@@ -19,6 +19,9 @@ import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.flexbox.AlignItems
@@ -28,6 +31,7 @@ import com.google.android.flexbox.JustifyContent
 import com.google.android.material.snackbar.Snackbar
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.contracts.FilePickerContract
@@ -43,7 +47,6 @@ import me.magnum.melonds.ui.backgroundpreview.BackgroundPreviewActivity
 import me.magnum.melonds.utils.BitmapRegionDecoderCompat
 import java.util.*
 import javax.inject.Inject
-
 
 @AndroidEntryPoint
 class BackgroundsActivity : AppCompatActivity() {
@@ -96,12 +99,24 @@ class BackgroundsActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.getBackgrounds().observe(this) {
-            binding.progressBarCheats.isGone = true
-            backgroundListAdapter.setBackgrounds(it)
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.backgrounds.collect {
+                    if (it == null) {
+                        binding.progressBarCheats.isGone = false
+                    } else {
+                        binding.progressBarCheats.isGone = true
+                        backgroundListAdapter.setBackgrounds(it)
+                    }
+                }
+            }
         }
-        viewModel.getSelectedBackgroundId().observe(this) {
-            backgroundListAdapter.setSelectedBackgroundId(it)
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.currentSelectedBackground.collect {
+                    backgroundListAdapter.setSelectedBackgroundId(it)
+                }
+            }
         }
     }
 
@@ -183,7 +198,7 @@ class BackgroundsActivity : AppCompatActivity() {
     }
 
     private fun onBackgroundDelete(background: Background) {
-        if (background.id == viewModel.getSelectedBackgroundId().value) {
+        if (background.id == viewModel.currentSelectedBackground.value) {
             fallbackToDefaultBackground()
         }
 

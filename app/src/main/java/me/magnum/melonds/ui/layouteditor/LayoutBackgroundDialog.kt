@@ -12,17 +12,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import io.reactivex.disposables.Disposable
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import me.magnum.melonds.R
-import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.databinding.DialogLayoutBackgroundsBinding
 import me.magnum.melonds.domain.model.layout.BackgroundMode
 import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.ui.backgrounds.BackgroundsActivity
 import java.util.UUID
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class LayoutBackgroundDialog : DialogFragment() {
@@ -32,15 +30,13 @@ class LayoutBackgroundDialog : DialogFragment() {
         }
     }
 
-    @Inject
-    lateinit var schedulers: Schedulers
     private lateinit var binding: DialogLayoutBackgroundsBinding
     private val viewModel: LayoutEditorViewModel by activityViewModels()
 
     private var currentBackgroundId: UUID? = null
     private lateinit var currentBackgroundMode: BackgroundMode
 
-    private var backgroundNameDisposable: Disposable? = null
+    private var backgroundNameJob: Job? = null
 
     private val portraitBackgroundSelector = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == AppCompatActivity.RESULT_OK) {
@@ -109,25 +105,20 @@ class LayoutBackgroundDialog : DialogFragment() {
 
     private fun onBackgroundSelected(backgroundId: UUID?) {
         currentBackgroundId = backgroundId
-        backgroundNameDisposable?.dispose()
+        backgroundNameJob?.cancel()
 
         if (backgroundId == null) {
             binding.textBackgroundName.setText(R.string.none)
         } else {
-            backgroundNameDisposable = viewModel.getBackgroundName(backgroundId)
-                .subscribeOn(schedulers.backgroundThreadScheduler)
-                .observeOn(schedulers.uiThreadScheduler)
-                .materialize()
-                .subscribe { message ->
-                    if (!message.isOnError) {
-                        if (message.value != null) {
-                            binding.textBackgroundName.text = message.value
-                        } else {
-                            // If no background was found, the it was probably deleted. Revert to None
-                            onBackgroundSelected(null)
-                        }
-                    }
+            backgroundNameJob = lifecycleScope.launch {
+                val backgroundName = viewModel.getBackgroundName(backgroundId)
+                if (backgroundName != null) {
+                    binding.textBackgroundName.text = backgroundName
+                } else {
+                    // If no background was found, the it was probably deleted. Revert to None
+                    onBackgroundSelected(null)
                 }
+            }
         }
     }
 

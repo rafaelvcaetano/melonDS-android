@@ -1,79 +1,64 @@
 package me.magnum.melonds.ui.backgrounds
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.reactivex.disposables.CompositeDisposable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import me.magnum.melonds.common.Permission
-import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.domain.model.Background
 import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.repositories.BackgroundRepository
-import me.magnum.melonds.extensions.addTo
-import java.util.*
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class BackgroundsViewModel @Inject constructor(
-        private val backgroundsRepository: BackgroundRepository,
-        private val uriPermissionManager: UriPermissionManager,
-        private val schedulers: Schedulers,
-        savedStateHandle: SavedStateHandle
+    private val backgroundsRepository: BackgroundRepository,
+    private val uriPermissionManager: UriPermissionManager,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val backgroundsLiveData = MutableLiveData<List<Background>>()
-    private val currentSelectedBackground: MutableLiveData<UUID?>
-    private val backgroundOrientationFilter: Orientation
+    private val _backgrounds = MutableStateFlow<List<Background>?>(null)
+    val backgrounds = _backgrounds.asStateFlow()
 
-    private val disposables = CompositeDisposable()
+    private val _currentSelectedBackground = MutableStateFlow<UUID?>(null)
+    val currentSelectedBackground = _currentSelectedBackground.asStateFlow()
+
+    private val backgroundOrientationFilter: Orientation
 
     init {
         val initialBackgroundId = savedStateHandle.get<String?>(BackgroundsActivity.KEY_INITIAL_BACKGROUND_ID)?.let { UUID.fromString(it) }
-        currentSelectedBackground = MutableLiveData(initialBackgroundId)
+        _currentSelectedBackground.value = initialBackgroundId
         backgroundOrientationFilter = savedStateHandle.get<Int>(BackgroundsActivity.KEY_ORIENTATION_FILTER).let { Orientation.entries[it ?: throw NullPointerException()] }
 
-        backgroundsRepository.getBackgrounds()
-                .subscribeOn(schedulers.backgroundThreadScheduler)
-                .subscribe { backgrounds ->
-                    backgroundsLiveData.postValue(backgrounds.filter { it.orientation == backgroundOrientationFilter })
-                }.addTo(disposables)
-    }
-
-    fun getSelectedBackgroundId(): LiveData<UUID?> {
-        return currentSelectedBackground
+        viewModelScope.launch {
+            backgroundsRepository.getBackgrounds().collect { backgrounds ->
+                _backgrounds.value = backgrounds.filter { it.orientation == backgroundOrientationFilter }
+            }
+        }
     }
 
     fun getCurrentOrientationFilter(): Orientation {
         return backgroundOrientationFilter
     }
 
-    fun getBackgrounds(): LiveData<List<Background>> {
-        return backgroundsLiveData
-    }
-
     fun addBackground(background: Background) {
         uriPermissionManager.persistFilePermissions(background.uri, Permission.READ)
-        backgroundsRepository.addBackground(background)
+        viewModelScope.launch {
+            backgroundsRepository.addBackground(background)
+        }
     }
 
     fun deleteBackground(background: Background) {
-        backgroundsRepository.deleteBackground(background)
-                .subscribeOn(schedulers.backgroundThreadScheduler)
-                .observeOn(schedulers.uiThreadScheduler)
-                .subscribe {
-                    if (background.id == currentSelectedBackground.value) {
-                        // The selected background was deleted. Set current to None
-                        currentSelectedBackground.value = null
-                    }
-                }
-                .addTo(disposables)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        disposables.clear()
+        viewModelScope.launch {
+            backgroundsRepository.deleteBackground(background)
+            if (background.id == _currentSelectedBackground.value) {
+                _currentSelectedBackground.value = null
+            }
+        }
     }
 }
