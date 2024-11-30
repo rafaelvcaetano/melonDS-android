@@ -17,9 +17,9 @@ import java.io.File
 import java.io.FileReader
 import java.io.OutputStreamWriter
 import java.lang.reflect.Type
-import java.util.*
+import java.util.UUID
 
-class InternalLayoutsRepository(private val context: Context, private val gson: Gson, private val defaultLayoutProvider: DefaultLayoutProvider) : LayoutsRepository {
+class InternalLayoutsRepository(private val context: Context, private val gson: Gson) : LayoutsRepository {
     companion object {
         private const val DATA_FILE = "layouts.json"
         private val layoutListType: Type = object : TypeToken<List<LayoutConfigurationDto>>(){}.type

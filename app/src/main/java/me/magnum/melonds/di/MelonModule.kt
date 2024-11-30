@@ -63,8 +63,8 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideLayoutsRepository(@ApplicationContext context: Context, gson: Gson, defaultLayoutProvider: DefaultLayoutProvider): LayoutsRepository {
-        return InternalLayoutsRepository(context, gson, defaultLayoutProvider)
+    fun provideLayoutsRepository(@ApplicationContext context: Context, gson: Gson): LayoutsRepository {
+        return InternalLayoutsRepository(context, gson)
     }
 
     @Provides
