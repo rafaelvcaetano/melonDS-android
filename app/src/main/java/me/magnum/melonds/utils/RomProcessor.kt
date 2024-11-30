@@ -177,8 +177,8 @@ object RomProcessor {
 
 		val gameTitle = romHeader.decodeToString(endIndex = 12)
 		val gameCode = romHeader.decodeToString(startIndex = 12, endIndex = 12 + 4)
-		val headerChecksum = Crc32(romHeader)
-		return RomInfo(gameCode, headerChecksum.value, gameTitle)
+		val headerChecksum = Crc32.compute(romHeader)
+		return RomInfo(gameCode, headerChecksum, gameTitle)
 	}
 
 	private fun byteArrayToInt(intData: ByteArray, offset: Int = 0): Int {
