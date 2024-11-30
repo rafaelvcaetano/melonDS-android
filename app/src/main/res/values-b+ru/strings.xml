@@ -307,7 +307,6 @@
     <string name="action_backgrounds_new">Новый фон</string>
     <string name="background_name">Имя фона</string>
     <string name="background_deleted">Фон удалён</string>
-    <string name="background_add_wrong_orientation">Фон добавлен, но не отображается в выбранной ориентации.</string>
     <string name="background_add_processing_failed">Не удалось обработать выбранное изображение. Убедитесь, что файл не повреждён.</string>
     
     <string name="retro_achievements_login_description">Выполните вход в RetroAchievements для просмотра доступных достижений для данной игры.</string>

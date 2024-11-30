@@ -5,7 +5,10 @@ import android.content.Intent
 import android.graphics.PorterDuff
 import android.net.Uri
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
@@ -39,20 +42,18 @@ import me.magnum.melonds.databinding.ActivityBackgroundsBinding
 import me.magnum.melonds.databinding.DialogTextInputBinding
 import me.magnum.melonds.databinding.ItemBackgroundBinding
 import me.magnum.melonds.domain.model.Background
-import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.extensions.nameWithoutExtension
 import me.magnum.melonds.impl.BackgroundThumbnailProvider
 import me.magnum.melonds.parcelables.BackgroundParcelable
 import me.magnum.melonds.ui.backgroundpreview.BackgroundPreviewActivity
 import me.magnum.melonds.utils.BitmapRegionDecoderCompat
-import java.util.*
+import java.util.UUID
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class BackgroundsActivity : AppCompatActivity() {
     companion object {
         const val KEY_INITIAL_BACKGROUND_ID = "initial_background_id"
-        const val KEY_ORIENTATION_FILTER = "orientation_filter"
         const val KEY_SELECTED_BACKGROUND_ID = "selected_background_id"
     }
 
@@ -143,8 +144,7 @@ class BackgroundsActivity : AppCompatActivity() {
         val binding = DialogTextInputBinding.inflate(layoutInflater)
         binding.editText.setText(documentName, TextView.BufferType.NORMAL)
 
-        val orientation = getBackgroundOrientation(uri).getOrNull()
-        if (orientation == null) {
+        if (!isBackgroundValid(uri)) {
             Toast.makeText(this, R.string.background_add_processing_failed, Toast.LENGTH_LONG).show()
             return
         }
@@ -154,34 +154,19 @@ class BackgroundsActivity : AppCompatActivity() {
                 .setView(binding.root)
                 .setPositiveButton(R.string.ok) { _, _ ->
                     val backgroundName = binding.editText.text.toString()
-                    val background = Background(null, backgroundName, orientation, uri)
+                    val background = Background(null, backgroundName, uri)
                     viewModel.addBackground(background)
-
-                    if (orientation != viewModel.getCurrentOrientationFilter()) {
-                        Toast.makeText(this, R.string.background_add_wrong_orientation, Toast.LENGTH_LONG).show()
-                    }
                 }
                 .setNegativeButton(R.string.cancel, null)
                 .show()
     }
 
-    private fun getBackgroundOrientation(backgroundUri: Uri): Result<Orientation> {
+    private fun isBackgroundValid(backgroundUri: Uri): Boolean {
         return runCatching {
             contentResolver.openInputStream(backgroundUri)?.use {
-                BitmapRegionDecoderCompat.newInstance(it)?.let { decoder ->
-                    val width = decoder.width
-                    val height = decoder.height
-
-                    decoder.recycle()
-
-                    if (width > height) {
-                        Orientation.LANDSCAPE
-                    } else {
-                        Orientation.PORTRAIT
-                    }
-                }
+                BitmapRegionDecoderCompat.newInstance(it)?.recycle()
             } ?: throw Exception("Failed to open stream")
-        }
+        }.isSuccess
     }
 
     private fun onBackgroundSelected(background: Background?) {

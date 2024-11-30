@@ -245,7 +245,6 @@
     <string name="action_backgrounds_new">Latar belakang baru</string>
     <string name="background_name">Nama latar belakang</string>
     <string name="background_deleted">Latar belakang dihapus</string>
-    <string name="background_add_wrong_orientation">Latar belakang ditambahkan tetapi tidak terlihat untuk orientasi yang dipilih.</string>
     <string name="background_add_processing_failed">Gagal memproses gambar latar yang dipilih. Pastikan tidak rusak.</string>
 
     <string-array name="fast_forward_speed_multiplier_options">

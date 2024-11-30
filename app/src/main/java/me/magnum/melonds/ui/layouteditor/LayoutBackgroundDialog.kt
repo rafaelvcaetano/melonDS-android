@@ -75,7 +75,6 @@ class LayoutBackgroundDialog : DialogFragment() {
         binding.layoutBackgroundName.setOnClickListener {
             val intent = Intent(requireContext(), BackgroundsActivity::class.java).apply {
                 putExtra(BackgroundsActivity.KEY_INITIAL_BACKGROUND_ID, currentBackgroundId?.toString())
-                putExtra(BackgroundsActivity.KEY_ORIENTATION_FILTER, Orientation.PORTRAIT.ordinal)
             }
             portraitBackgroundSelector.launch(intent)
         }

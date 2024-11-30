@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.domain.model.Background
-import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.repositories.BackgroundRepository
 import java.util.UUID
 import javax.inject.Inject
@@ -28,22 +27,15 @@ class BackgroundsViewModel @Inject constructor(
     private val _currentSelectedBackground = MutableStateFlow<UUID?>(null)
     val currentSelectedBackground = _currentSelectedBackground.asStateFlow()
 
-    private val backgroundOrientationFilter: Orientation
-
     init {
         val initialBackgroundId = savedStateHandle.get<String?>(BackgroundsActivity.KEY_INITIAL_BACKGROUND_ID)?.let { UUID.fromString(it) }
         _currentSelectedBackground.value = initialBackgroundId
-        backgroundOrientationFilter = savedStateHandle.get<Int>(BackgroundsActivity.KEY_ORIENTATION_FILTER).let { Orientation.entries[it ?: throw NullPointerException()] }
 
         viewModelScope.launch {
-            backgroundsRepository.getBackgrounds().collect { backgrounds ->
-                _backgrounds.value = backgrounds.filter { it.orientation == backgroundOrientationFilter }
+            backgroundsRepository.getBackgrounds().collect {
+                _backgrounds.value = it
             }
         }
-    }
-
-    fun getCurrentOrientationFilter(): Orientation {
-        return backgroundOrientationFilter
     }
 
     fun addBackground(background: Background) {

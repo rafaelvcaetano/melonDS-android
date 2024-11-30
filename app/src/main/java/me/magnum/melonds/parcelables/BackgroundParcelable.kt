@@ -18,15 +18,13 @@ class BackgroundParcelable : Parcelable {
     private constructor(parcel: Parcel) {
         val id = parcel.readString()?.let { UUID.fromString(it) }
         val name = parcel.readString() ?: throw NullPointerException("Missing name string")
-        val orientation = Orientation.entries[parcel.readInt()]
         val uri = parcel.readString()!!.toUri()
-        background = Background(id, name, orientation, uri)
+        background = Background(id, name, uri)
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(background.id?.toString())
         parcel.writeString(background.name)
-        parcel.writeInt(background.orientation.ordinal)
         parcel.writeString(background.uri.toString())
     }
 

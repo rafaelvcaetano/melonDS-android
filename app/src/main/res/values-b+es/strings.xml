@@ -301,7 +301,6 @@
     <string name="action_backgrounds_new">Nuevo fondo</string>
     <string name="background_name">Nombre de fondo</string>
     <string name="background_deleted">Fondo eliminado</string>
-    <string name="background_add_wrong_orientation">Se agregó fondo pero no es visible para la orientación seleccionada.</string>
     <string name="background_add_processing_failed">Error al procesar la imagen de fondo seleccionada. Asegúrate de que no esté dañada.</string>
     
     <string name="retro_achievements_login_description">¡Inicia sesión con RetroAchievements para ver los logros que puedes desbloquear mientras juegas este juego!</string>

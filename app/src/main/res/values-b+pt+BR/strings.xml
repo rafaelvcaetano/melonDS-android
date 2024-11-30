@@ -281,7 +281,6 @@
     <string name="action_backgrounds_new">Novo plano de fundo</string>
     <string name="background_name">Nome do plano de fundo</string>
     <string name="background_deleted">Plano de fundo deletado</string>
-    <string name="background_add_wrong_orientation">Plano de fundo adicionado, mas não visível com a orientação selecionada.</string>
     <string name="background_add_processing_failed">Falha ao processar a imagem de plano de fundo selecionada. Certifique-se de que não está corrompida.</string>
 
     <string-array name="fast_forward_speed_multiplier_options">
