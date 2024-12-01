@@ -17,10 +17,8 @@ import dagger.hilt.components.SingletonComponent
 import io.noties.markwon.Markwon
 import io.noties.markwon.image.picasso.PicassoImagesPlugin
 import io.noties.markwon.linkify.LinkifyPlugin
-import io.reactivex.android.schedulers.AndroidSchedulers
 import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.PermissionHandler
-import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.common.uridelegates.CompositeUriHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
@@ -83,12 +81,6 @@ object AppModule {
             .usePlugin(PicassoImagesPlugin.create(picasso))
             .usePlugin(LinkifyPlugin.create(Linkify.WEB_URLS, true))
             .build()
-    }
-
-    @Provides
-    @Singleton
-    fun provideSchedulers(): Schedulers {
-        return Schedulers(io.reactivex.schedulers.Schedulers.io(), AndroidSchedulers.mainThread())
     }
 
     @Provides
