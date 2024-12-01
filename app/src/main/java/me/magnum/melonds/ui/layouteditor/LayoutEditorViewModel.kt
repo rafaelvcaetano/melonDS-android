@@ -4,8 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.reactivex.Maybe
-import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChangedBy
@@ -23,7 +21,6 @@ import me.magnum.melonds.domain.model.layout.UILayoutVariant
 import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.repositories.BackgroundRepository
 import me.magnum.melonds.domain.repositories.LayoutsRepository
-import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.impl.layout.UILayoutProvider
 import me.magnum.melonds.ui.layouteditor.model.CurrentLayoutState
 import java.util.UUID
@@ -41,7 +38,6 @@ class LayoutEditorViewModel @Inject constructor(
 
     private var initialLayoutConfiguration: LayoutConfiguration? = null
     private var currentLayoutVariant: UILayoutVariant? = null
-    private val disposables = CompositeDisposable()
 
     private val _background = MutableStateFlow<RuntimeBackground?>(null)
     val background = _background.asStateFlow()
@@ -51,16 +47,17 @@ class LayoutEditorViewModel @Inject constructor(
 
     init {
         val layoutId = savedStateHandle.get<String?>(LayoutEditorActivity.KEY_LAYOUT_ID)?.let { UUID.fromString(it) }
-        val layoutConfigurationObservable = if (layoutId != null) {
-             layoutsRepository.getLayout(layoutId)
+        if (layoutId != null) {
+            viewModelScope.launch {
+                val initialLayout = layoutsRepository.getLayout(layoutId)
+                initialLayoutConfiguration = initialLayout
+                _currentLayoutConfiguration.value = initialLayout
+            }
         } else {
-            Maybe.just(LayoutConfiguration.newCustom())
+            val newLayout = LayoutConfiguration.newCustom()
+            initialLayoutConfiguration = newLayout
+            _currentLayoutConfiguration.value = newLayout
         }
-
-        layoutConfigurationObservable.subscribe {
-            initialLayoutConfiguration = it
-            _currentLayoutConfiguration.value = it
-        }.addTo(disposables)
 
         viewModelScope.launch {
             _currentLayoutConfiguration.filterNotNull().collect {
@@ -133,7 +130,9 @@ class LayoutEditorViewModel @Inject constructor(
 
     fun saveCurrentLayout() {
         _currentLayoutConfiguration.value?.let {
-            layoutsRepository.saveLayout(it)
+            viewModelScope.launch {
+                layoutsRepository.saveLayout(it)
+            }
         }
     }
 
@@ -197,10 +196,5 @@ class LayoutEditorViewModel @Inject constructor(
 
     fun currentLayoutHasName(): Boolean {
         return !_currentLayoutConfiguration.value?.name.isNullOrEmpty()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        disposables.clear()
     }
 }

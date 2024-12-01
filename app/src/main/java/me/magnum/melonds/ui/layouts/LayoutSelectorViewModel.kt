@@ -1,11 +1,11 @@
 package me.magnum.melonds.ui.layouts
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.launch
 import me.magnum.melonds.domain.repositories.LayoutsRepository
-import me.magnum.melonds.extensions.addTo
-import java.util.*
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -15,13 +15,13 @@ class LayoutSelectorViewModel @Inject constructor(layoutsRepository: LayoutsRepo
     init {
         currentSelectedLayout = savedStateHandle.get<String?>(LayoutSelectorActivity.KEY_SELECTED_LAYOUT_ID)?.let { UUID.fromString(it) }
 
-        layoutsRepository.getLayouts()
-                .subscribeOn(Schedulers.io())
-                .subscribe {
-                    val layoutList = it.toMutableList()
-                    layoutList.add(0, layoutsRepository.getGlobalLayoutPlaceholder())
-                    layoutsLiveData.postValue(layoutList)
-                }.addTo(disposables)
+        viewModelScope.launch {
+            layoutsRepository.getLayouts().collect {
+                val layoutList = it.toMutableList()
+                layoutList.add(0, layoutsRepository.getGlobalLayoutPlaceholder())
+                _layouts.value = layoutList
+            }
+        }
     }
 
     override fun getSelectedLayoutId(): UUID? {

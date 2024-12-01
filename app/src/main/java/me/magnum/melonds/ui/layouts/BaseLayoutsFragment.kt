@@ -2,22 +2,31 @@ package me.magnum.melonds.ui.layouts
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.core.view.MenuProvider
 import androidx.core.view.isInvisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.FragmentLayoutListBinding
 import me.magnum.melonds.databinding.ItemLayoutBinding
 import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.ui.layouteditor.LayoutEditorActivity
-import java.util.*
+import java.util.UUID
 
 abstract class BaseLayoutsFragment : Fragment() {
     enum class LayoutSelectionReason {
@@ -79,13 +88,20 @@ abstract class BaseLayoutsFragment : Fragment() {
         }
 
         layoutsAdapter.setSelectedLayoutId(viewModel.getSelectedLayoutId())
-        viewModel.getLayouts().observe(viewLifecycleOwner) {
-            // If the currently selected layout is not found in the layout list, select fallback layout
-            if (it.find { layout -> layout.id == viewModel.getSelectedLayoutId() } == null) {
-                selectFallbackLayout()
-            }
 
-            layoutsAdapter.setLayouts(it)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.layouts.collect {
+                    if (it != null) {
+                        // If the currently selected layout is not found in the layout list, select fallback layout
+                        if (it.find { layout -> layout.id == viewModel.getSelectedLayoutId() } == null) {
+                            selectFallbackLayout()
+                        }
+
+                        layoutsAdapter.setLayouts(it)
+                    }
+                }
+            }
         }
     }
 

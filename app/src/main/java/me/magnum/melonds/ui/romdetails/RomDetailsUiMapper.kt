@@ -2,7 +2,6 @@ package me.magnum.melonds.ui.romdetails
 
 import android.content.Context
 import androidx.documentfile.provider.DocumentFile
-import kotlinx.coroutines.rx2.awaitSingleOrNull
 import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.domain.model.rom.config.RomGbaSlotConfig
 import me.magnum.melonds.domain.repositories.LayoutsRepository
@@ -19,7 +18,7 @@ class RomDetailsUiMapper(
             runtimeConsoleType = romConfig.runtimeConsoleType,
             runtimeMicSource = romConfig.runtimeMicSource,
             layoutId = romConfig.layoutId,
-            layoutName = romConfig.layoutId?.let { layoutsRepository.getLayout(it).awaitSingleOrNull()?.name } ?: layoutsRepository.getGlobalLayoutPlaceholder().name,
+            layoutName = romConfig.layoutId?.let { layoutsRepository.getLayout(it)?.name } ?: layoutsRepository.getGlobalLayoutPlaceholder().name,
             gbaSlotConfig = mapGbaSlotConfigToUi(romConfig.gbaSlotConfig),
         )
     }

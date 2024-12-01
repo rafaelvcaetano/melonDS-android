@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Maybe
-import io.reactivex.Observable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -21,10 +21,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -33,7 +37,6 @@ import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.rx2.awaitSingleOrNull
 import kotlinx.coroutines.rx2.rxMaybe
 import me.magnum.melonds.MelonEmulator
-import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.runtime.FrameBufferProvider
 import me.magnum.melonds.domain.model.Cheat
@@ -82,6 +85,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class EmulatorViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
@@ -96,7 +100,6 @@ class EmulatorViewModel @Inject constructor(
     private val uiLayoutProvider: UILayoutProvider,
     private val emulatorManager: EmulatorManager,
     private val emulatorSession: EmulatorSession,
-    private val schedulers: Schedulers
 ) : ViewModel() {
 
     private val sessionCoroutineScope = EmulatorSessionCoroutineScope()
@@ -551,21 +554,18 @@ class EmulatorViewModel @Inject constructor(
 
     private fun startObservingLayoutForRom(rom: Rom) {
         val romLayoutId = rom.config.layoutId
-        val layoutObservable = if (romLayoutId == null) {
-            getGlobalLayoutObservable()
+        val layoutFlow = if (romLayoutId == null) {
+            getGlobalLayoutFlow()
         } else {
-            // Load and observe ROM layout but switch to global layout if not found
-            layoutsRepository.getLayout(romLayoutId)
-                    .flatMapObservable {
-                        // Continue observing the ROM layout but if the observable completes, this means that it is no
-                        // longer available. From that point on, start observing the global layout
-                        layoutsRepository.observeLayout(romLayoutId).concatWith(getGlobalLayoutObservable())
-                    }
-                    .switchIfEmpty(getGlobalLayoutObservable())
+            // Load and observe ROM layout but switch to global layout if the ROM layout stops existing
+            layoutsRepository.observeLayout(romLayoutId)
+                .onCompletion {
+                    emitAll(getGlobalLayoutFlow())
+                }
         }
 
         sessionCoroutineScope.launch {
-            combine(layoutObservable.subscribeOn(schedulers.backgroundThreadScheduler).asFlow(), ensureEmulatorIsRunning()) { layout, _ ->
+            combine(layoutFlow, ensureEmulatorIsRunning()) { layout, _ ->
                 layout
             }.collect(_layout)
         }
@@ -583,7 +583,7 @@ class EmulatorViewModel @Inject constructor(
         _layout.value = null
 
         sessionCoroutineScope.launch {
-            combine(getGlobalLayoutObservable().subscribeOn(schedulers.backgroundThreadScheduler).asFlow(), ensureEmulatorIsRunning()) { layout, _ ->
+            combine(getGlobalLayoutFlow(), ensureEmulatorIsRunning()) { layout, _ ->
                 layout
             }.collect(_layout)
         }
@@ -598,14 +598,15 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    private fun getGlobalLayoutObservable(): Observable<LayoutConfiguration> {
-        return settingsRepository.observeSelectedLayoutId()
-                .startWith(settingsRepository.getSelectedLayoutId())
-                .switchMap { layoutId ->
-                    layoutsRepository.getLayout(layoutId)
-                            .flatMapObservable { layoutsRepository.observeLayout(layoutId).startWith(it) }
-                            .switchIfEmpty(layoutsRepository.observeLayout(LayoutConfiguration.DEFAULT_ID))
-                }
+    private fun getGlobalLayoutFlow(): Flow<LayoutConfiguration> {
+        return settingsRepository.observeSelectedLayoutId().asFlow()
+            .onStart { emit(settingsRepository.getSelectedLayoutId()) }
+            .flatMapLatest {
+                layoutsRepository.observeLayout(it)
+                    .onCompletion {
+                        emitAll(layoutsRepository.observeLayout(LayoutConfiguration.DEFAULT_ID))
+                    }
+            }
     }
 
     private fun getRomInfo(rom: Rom): RomInfo? {
