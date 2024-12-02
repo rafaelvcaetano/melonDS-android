@@ -4,7 +4,6 @@ import me.magnum.rcheevosapi.dto.AchievementDto
 import me.magnum.rcheevosapi.model.RAAchievement
 import me.magnum.rcheevosapi.model.RAGameId
 import java.net.URI
-import java.net.URL
 
 internal fun AchievementDto.mapToModel(gameId: RAGameId): RAAchievement {
     return RAAchievement(

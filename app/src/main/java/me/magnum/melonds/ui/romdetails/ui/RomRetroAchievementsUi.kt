@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,7 +67,7 @@ private fun LoggedOut(
     modifier: Modifier,
     onLogin: (username: String, password: String) -> Unit,
 ) {
-    var showLoginPopup by remember {
+    var showLoginPopup by rememberSaveable {
         mutableStateOf(false)
     }
 
