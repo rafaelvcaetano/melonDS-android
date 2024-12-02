@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.core.view.updatePadding
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
+import androidx.preference.R
 
 internal class MasterSwitchExplanationText : Preference {
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
