@@ -90,6 +90,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
 
         kotlin {
             jvmToolchain(17)
@@ -102,6 +103,8 @@ android {
 
 dependencies {
     val gitHubImplementation by configurations
+
+    coreLibraryDesugaring(libs.android.desugaring)
 
     implementation(projects.masterswitch)
     implementation(projects.rcheevosApi)
@@ -136,6 +139,7 @@ dependencies {
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.compose.foundation)
     implementation(libs.compose.material)
+    implementation(libs.compose.material.icons)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
 
