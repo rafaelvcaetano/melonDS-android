@@ -8,6 +8,7 @@ import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
 import me.magnum.melonds.common.RetroAchievementsCallback
+import me.magnum.melonds.ui.emulator.EmulatorFrameRenderedListener
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 import java.nio.ByteBuffer
@@ -43,7 +44,15 @@ object MelonEmulator {
         MEMORY_EXPANSION,
     }
 
-	external fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, assetManager: AssetManager?, dsiCameraSource: DSiCameraSource?, retroAchievementsCallback: RetroAchievementsCallback, textureBuffer: ByteBuffer)
+	external fun setupEmulator(
+        emulatorConfiguration: EmulatorConfiguration,
+        assetManager: AssetManager?,
+        dsiCameraSource: DSiCameraSource?,
+        retroAchievementsCallback: RetroAchievementsCallback,
+        frameRenderedListener: EmulatorFrameRenderedListener,
+        screenshotBuffer: ByteBuffer,
+        glContext: Long,
+    )
 
     external fun setupCheats(cheats: Array<Cheat>)
 
@@ -119,5 +128,5 @@ object MelonEmulator {
 
     external fun setFastForwardEnabled(enabled: Boolean)
 
-    external fun updateEmulatorConfiguration(emulatorConfiguration: EmulatorConfiguration, frameBuffer: ByteBuffer)
+    external fun updateEmulatorConfiguration(emulatorConfiguration: EmulatorConfiguration)
 }

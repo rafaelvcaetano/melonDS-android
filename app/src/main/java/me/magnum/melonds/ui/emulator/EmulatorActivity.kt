@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
+import android.opengl.GLSurfaceView
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
@@ -58,23 +59,25 @@ import androidx.window.layout.WindowInfoTracker
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.common.PermissionHandler
-import me.magnum.melonds.common.runtime.FrameBufferProvider
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.FpsCounterPosition
-import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.Rect
-import me.magnum.melonds.domain.model.ui.Orientation
-import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.SaveStateSlot
+import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.layout.ScreenFold
+import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.insetsControllerCompat
 import me.magnum.melonds.extensions.parcelable
@@ -140,14 +143,12 @@ class EmulatorActivity : AppCompatActivity() {
     lateinit var picasso: Picasso
 
     @Inject
-    lateinit var frameBufferProvider: FrameBufferProvider
-
-    @Inject
     lateinit var permissionHandler: PermissionHandler
 
     @Inject
     lateinit var lifecycleOwnerProvider: LifecycleOwnerProvider
 
+    private val currentOpenGlContext = MutableStateFlow<Long?>(null)
     private lateinit var dsRenderer: DSRenderer
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
@@ -238,13 +239,17 @@ class EmulatorActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(backPressedCallback)
 
         melonTouchHandler = MelonTouchHandler()
-        dsRenderer = DSRenderer(frameBufferProvider, this)
+        dsRenderer = DSRenderer(
+            context = this,
+            onGlContextReady = {
+                currentOpenGlContext.value = it
+            }
+        )
         binding.surfaceMain.apply {
             setEGLContextClientVersion(2)
             preserveEGLContextOnPause = true
-            /*setEGLConfigChooser(8, 8, 8, 8, 0, 0)
-            holder.setFormat(PixelFormat.RGBA_8888)*/
             setRenderer(dsRenderer)
+            renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
         }
 
         binding.textFps.visibility = View.INVISIBLE
@@ -393,6 +398,14 @@ class EmulatorActivity : AppCompatActivity() {
             }
         }
 
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.frameRenderEvent.collect {
+                    dsRenderer.prepareNextFrame(it)
+                    binding.surfaceMain.requestRender()
+                }
+            }
+        }
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.runtimeLayout.collectLatest {
@@ -589,29 +602,33 @@ class EmulatorActivity : AppCompatActivity() {
         val extras = intent?.extras
         val bootFirmwareOnly = extras?.getBoolean(KEY_BOOT_FIRMWARE_ONLY) ?: false
 
-        disableScreenTimeOut()
-        if (bootFirmwareOnly) {
-            val consoleTypeParameter = extras?.getInt(KEY_BOOT_FIRMWARE_CONSOLE, -1)
-            if (consoleTypeParameter == null || consoleTypeParameter == -1) {
-                throw RuntimeException("No console type specified")
-            }
+        lifecycleScope.launch {
+            val glContext = currentOpenGlContext.filterNotNull().first()
 
-            val firmwareConsoleType = ConsoleType.entries[consoleTypeParameter]
-            viewModel.loadFirmware(firmwareConsoleType)
-        } else {
-            val romParcelable = extras?.parcelable(KEY_ROM) as RomParcelable?
+            disableScreenTimeOut()
+            if (bootFirmwareOnly) {
+                val consoleTypeParameter = extras?.getInt(KEY_BOOT_FIRMWARE_CONSOLE, -1)
+                if (consoleTypeParameter == null || consoleTypeParameter == -1) {
+                    throw RuntimeException("No console type specified")
+                }
 
-            if (romParcelable?.rom != null) {
-                viewModel.loadRom(romParcelable.rom)
+                val firmwareConsoleType = ConsoleType.entries[consoleTypeParameter]
+                viewModel.loadFirmware(firmwareConsoleType, glContext)
             } else {
-                if (extras?.containsKey(KEY_PATH) == true) {
-                    val romPath = extras.getString(KEY_PATH)!!
-                    viewModel.loadRom(romPath)
-                } else if (extras?.containsKey(KEY_URI) == true) {
-                    val romUri = extras.getString(KEY_URI)!!
-                    viewModel.loadRom(romUri.toUri())
+                val romParcelable = extras?.parcelable(KEY_ROM) as RomParcelable?
+
+                if (romParcelable?.rom != null) {
+                    viewModel.loadRom(romParcelable.rom, glContext)
                 } else {
-                    throw RuntimeException("No ROM was specified")
+                    if (extras?.containsKey(KEY_PATH) == true) {
+                        val romPath = extras.getString(KEY_PATH)!!
+                        viewModel.loadRom(romPath, glContext)
+                    } else if (extras?.containsKey(KEY_URI) == true) {
+                        val romUri = extras.getString(KEY_URI)!!
+                        viewModel.loadRom(romUri.toUri(), glContext)
+                    } else {
+                        throw RuntimeException("No ROM was specified")
+                    }
                 }
             }
         }

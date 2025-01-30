@@ -12,6 +12,7 @@
 #include "UriFileHandler.h"
 #include "JniEnvHandler.h"
 #include "AndroidRACallback.h"
+#include "AndroidFrameRenderedCallback.h"
 #include "MelonDSAndroidInterface.h"
 #include "MelonDSAndroidConfiguration.h"
 #include "MelonDSAndroidCameraHandler.h"
@@ -46,13 +47,15 @@ bool isFastForwardEnabled = false;
 jobject globalAssetManager;
 jobject globalCameraManager;
 jobject androidRaCallback;
+jobject androidFrameRenderListener;
 MelonDSAndroidCameraHandler* androidCameraHandler;
 AndroidRACallback* raCallback;
+AndroidFrameRenderedCallback* frameRenderedCallback;
 
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject cameraManager, jobject retroAchievementsCallback, jobject textureBuffer)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject cameraManager, jobject retroAchievementsCallback, jobject frameRenderListener, jobject screenshotBuffer, jlong glContext)
 {
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
     fastForwardSpeedMultiplier = finalEmulatorConfiguration.fastForwardSpeedMultiplier;
@@ -60,15 +63,16 @@ Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jo
     globalAssetManager = env->NewGlobalRef(javaAssetManager);
     globalCameraManager = env->NewGlobalRef(cameraManager);
     androidRaCallback = env->NewGlobalRef(retroAchievementsCallback);
+    androidFrameRenderListener = env->NewGlobalRef(frameRenderListener);
 
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
     androidCameraHandler = new MelonDSAndroidCameraHandler(jniEnvHandler, globalCameraManager);
     raCallback = new AndroidRACallback(jniEnvHandler, androidRaCallback);
-
-    u32* textureBufferPointer = (u32*) env->GetDirectBufferAddress(textureBuffer);
+    frameRenderedCallback = new AndroidFrameRenderedCallback(jniEnvHandler, androidFrameRenderListener);
+    u32* screenshotBufferPointer = (u32*) env->GetDirectBufferAddress(screenshotBuffer);
 
     MelonDSAndroid::setConfiguration(finalEmulatorConfiguration);
-    MelonDSAndroid::setup(assetManager, androidCameraHandler, raCallback, textureBufferPointer, true);
+    MelonDSAndroid::setup(assetManager, androidCameraHandler, raCallback, frameRenderedCallback, screenshotBufferPointer, glContext, true);
     paused = false;
 }
 
@@ -415,13 +419,16 @@ Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
     env->DeleteGlobalRef(globalAssetManager);
     env->DeleteGlobalRef(globalCameraManager);
     env->DeleteGlobalRef(androidRaCallback);
+    env->DeleteGlobalRef(androidFrameRenderListener);
 
     globalAssetManager = nullptr;
     globalCameraManager = nullptr;
     androidRaCallback = nullptr;
+    androidFrameRenderListener = nullptr;
 
     delete androidCameraHandler;
     delete raCallback;
+    delete frameRenderedCallback;
 }
 
 JNIEXPORT void JNICALL
@@ -462,12 +469,11 @@ Java_me_magnum_melonds_MelonEmulator_setFastForwardEnabled(JNIEnv* env, jobject 
 }
 
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject frameBuffer)
+Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jobject thiz, jobject emulatorConfiguration)
 {
     MelonDSAndroid::EmulatorConfiguration newConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
-    u32* frameBufferPointer = (u32*) env->GetDirectBufferAddress(frameBuffer);
 
-    MelonDSAndroid::updateEmulatorConfiguration(newConfiguration, frameBufferPointer);
+    MelonDSAndroid::updateEmulatorConfiguration(newConfiguration);
     fastForwardSpeedMultiplier = newConfiguration.fastForwardSpeedMultiplier;
 
     if (isFastForwardEnabled) {

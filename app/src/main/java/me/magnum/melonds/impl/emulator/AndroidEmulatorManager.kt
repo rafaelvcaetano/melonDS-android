@@ -13,20 +13,21 @@ import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.common.RetroAchievementsCallback
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
-import me.magnum.melonds.common.runtime.FrameBufferProvider
+import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.MicSource
-import me.magnum.melonds.domain.model.rom.Rom
-import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
-import me.magnum.melonds.domain.model.rom.config.RuntimeEnum
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
+import me.magnum.melonds.domain.model.render.FrameRenderEvent
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.rom.config.RomGbaSlotConfig
+import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
+import me.magnum.melonds.domain.model.rom.config.RuntimeEnum
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.EmulatorManager
 import me.magnum.melonds.impl.camera.DSiCameraSourceMultiplexer
@@ -38,7 +39,7 @@ class AndroidEmulatorManager(
     private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val sramProvider: SramProvider,
-    private val frameBufferProvider: FrameBufferProvider,
+    private val screenshotFrameBufferProvider: ScreenshotFrameBufferProvider,
     private val romFileProcessorFactory: RomFileProcessorFactory,
     private val permissionHandler: PermissionHandler,
     private val cameraManager: DSiCameraSourceMultiplexer,
@@ -46,14 +47,17 @@ class AndroidEmulatorManager(
 
     private val achievementsSharedFlow = MutableSharedFlow<RAEvent>(replay = 0, extraBufferCapacity = Int.MAX_VALUE)
 
+    private val _frameRenderedEvent = MutableSharedFlow<FrameRenderEvent>(replay = 0, extraBufferCapacity = 1)
+    override val frameRenderedEvent = _frameRenderedEvent.asSharedFlow()
+
     private val loadedAchievements = mutableListOf<RASimpleAchievement>()
 
-    override suspend fun loadRom(rom: Rom, cheats: List<Cheat>): RomLaunchResult {
+    override suspend fun loadRom(rom: Rom, cheats: List<Cheat>, glContext: Long): RomLaunchResult {
         return withContext(Dispatchers.IO) {
             val fileRomProcessor = romFileProcessorFactory.getFileRomProcessorForDocument(rom.uri)
             val romUri = fileRomProcessor?.getRealRomUri(rom)?.await() ?: throw RomLoadException("Unsupported ROM file extension")
 
-            setupEmulator(getRomEmulatorConfiguration(rom))
+            setupEmulator(getRomEmulatorConfiguration(rom), glContext)
 
             val sram = try {
                 sramProvider.getSramForRom(rom)
@@ -87,9 +91,9 @@ class AndroidEmulatorManager(
         }
     }
 
-    override suspend fun loadFirmware(consoleType: ConsoleType): FirmwareLaunchResult {
+    override suspend fun loadFirmware(consoleType: ConsoleType, glContext: Long): FirmwareLaunchResult {
         return withContext(Dispatchers.IO) {
-            setupEmulator(getFirmwareEmulatorConfiguration(consoleType))
+            setupEmulator(getFirmwareEmulatorConfiguration(consoleType), glContext)
             val result = MelonEmulator.bootFirmware()
             if (result != MelonEmulator.FirmwareLoadResult.SUCCESS) {
                 cameraManager.stopCurrentCameraSource()
@@ -103,14 +107,12 @@ class AndroidEmulatorManager(
 
     override suspend fun updateRomEmulatorConfiguration(rom: Rom) {
         val configuration = getRomEmulatorConfiguration(rom)
-        frameBufferProvider.setRendererConfiguration(configuration.rendererConfiguration)
-        MelonEmulator.updateEmulatorConfiguration(configuration, frameBufferProvider.frameBuffer())
+        MelonEmulator.updateEmulatorConfiguration(configuration)
     }
 
     override suspend fun updateFirmwareEmulatorConfiguration(consoleType: ConsoleType) {
         val configuration = getFirmwareEmulatorConfiguration(consoleType)
-        frameBufferProvider.setRendererConfiguration(configuration.rendererConfiguration)
-        MelonEmulator.updateEmulatorConfiguration(configuration, frameBufferProvider.frameBuffer())
+        MelonEmulator.updateEmulatorConfiguration(configuration)
     }
 
     override suspend fun getRewindWindow(): RewindWindow {
@@ -181,14 +183,12 @@ class AndroidEmulatorManager(
         return achievementsSharedFlow.asSharedFlow()
     }
 
-    private fun setupEmulator(emulatorConfiguration: EmulatorConfiguration) {
-        frameBufferProvider.setRendererConfiguration(emulatorConfiguration.rendererConfiguration)
-
+    private fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, glContext: Long) {
         MelonEmulator.setupEmulator(
-            emulatorConfiguration,
-            context.assets,
-            cameraManager,
-            object : RetroAchievementsCallback {
+            emulatorConfiguration = emulatorConfiguration,
+            assetManager = context.assets,
+            dsiCameraSource = cameraManager,
+            retroAchievementsCallback = object : RetroAchievementsCallback {
                 override fun onAchievementPrimed(achievementId: Long) {
                     achievementsSharedFlow.tryEmit(RAEvent.OnAchievementPrimed(achievementId))
                 }
@@ -201,7 +201,11 @@ class AndroidEmulatorManager(
                     achievementsSharedFlow.tryEmit(RAEvent.OnAchievementUnPrimed(achievementId))
                 }
             },
-            frameBufferProvider.frameBuffer()
+            frameRenderedListener = { glFenceSync, textureId ->
+                _frameRenderedEvent.tryEmit(FrameRenderEvent(glFenceSync, textureId))
+            },
+            screenshotBuffer = screenshotFrameBufferProvider.frameBuffer(),
+            glContext = glContext,
         )
     }
 

@@ -2,7 +2,10 @@ package me.magnum.melonds.common.opengl
 
 import android.opengl.GLES20
 
-class Shader(private val programId: Int) {
+class Shader(
+    private val programId: Int,
+    val textureFiltering: Int,
+) {
     val uniformMvp: Int
     val attribUv: Int
     val attribPos: Int

@@ -38,7 +38,7 @@ import kotlinx.coroutines.rx2.awaitSingleOrNull
 import kotlinx.coroutines.rx2.rxMaybe
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
-import me.magnum.melonds.common.runtime.FrameBufferProvider
+import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.FpsCounterPosition
@@ -96,7 +96,7 @@ class EmulatorViewModel @Inject constructor(
     private val layoutsRepository: LayoutsRepository,
     private val backgroundsRepository: BackgroundRepository,
     private val saveStatesRepository: SaveStatesRepository,
-    private val frameBufferProvider: FrameBufferProvider,
+    private val screenshotFrameBufferProvider: ScreenshotFrameBufferProvider,
     private val uiLayoutProvider: UILayoutProvider,
     private val emulatorManager: EmulatorManager,
     private val emulatorSession: EmulatorSession,
@@ -109,6 +109,8 @@ class EmulatorViewModel @Inject constructor(
     val emulatorState = _emulatorState.asStateFlow()
 
     private val _layout = MutableStateFlow<LayoutConfiguration?>(null)
+
+    val frameRenderEvent = emulatorManager.frameRenderedEvent
 
     private val _runtimeLayout = MutableStateFlow<RuntimeInputLayoutConfiguration?>(null)
     val runtimeLayout = _runtimeLayout.asStateFlow()
@@ -142,22 +144,22 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    fun loadRom(rom: Rom) {
+    fun loadRom(rom: Rom, glContext: Long) {
         viewModelScope.launch {
             resetEmulatorState(EmulatorState.LoadingRom)
             sessionCoroutineScope.launch {
-                launchRom(rom)
+                launchRom(rom, glContext)
             }
         }
     }
 
-    fun loadRom(romUri: Uri) {
+    fun loadRom(romUri: Uri, glContext: Long) {
         viewModelScope.launch {
             resetEmulatorState(EmulatorState.LoadingRom)
             sessionCoroutineScope.launch {
                 val rom = getRomAtUri(romUri).awaitSingleOrNull()
                 if (rom != null) {
-                    launchRom(rom)
+                    launchRom(rom, glContext)
                 } else {
                     _emulatorState.value = EmulatorState.RomNotFoundError(romUri.toString())
                 }
@@ -165,13 +167,13 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    fun loadRom(romPath: String) {
+    fun loadRom(romPath: String, glContext: Long) {
         viewModelScope.launch {
             resetEmulatorState(EmulatorState.LoadingRom)
             sessionCoroutineScope.launch {
                 val rom = getRomAtPath(romPath).awaitSingleOrNull()
                 if (rom != null) {
-                    launchRom(rom)
+                    launchRom(rom, glContext)
                 } else {
                     _emulatorState.value = EmulatorState.RomNotFoundError(romPath)
                 }
@@ -179,7 +181,7 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    private suspend fun launchRom(rom: Rom) = coroutineScope {
+    private suspend fun launchRom(rom: Rom, glContext: Long) = coroutineScope {
         startEmulatorSession(EmulatorSession.SessionType.RomSession(rom))
         startObservingBackground()
         startObservingRuntimeInputLayoutConfiguration()
@@ -189,7 +191,7 @@ class EmulatorViewModel @Inject constructor(
         startRetroAchievementsSession(rom)
 
         val cheats = getRomInfo(rom)?.let { getRomEnabledCheats(it) } ?: emptyList()
-        val result = emulatorManager.loadRom(rom, cheats)
+        val result = emulatorManager.loadRom(rom, cheats, glContext)
         when (result) {
             is RomLaunchResult.LaunchFailedSramProblem,
             is RomLaunchResult.LaunchFailed -> {
@@ -205,7 +207,7 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    fun loadFirmware(consoleType: ConsoleType) {
+    fun loadFirmware(consoleType: ConsoleType, glContext: Long) {
         viewModelScope.launch {
             resetEmulatorState(EmulatorState.LoadingFirmware)
             startEmulatorSession(EmulatorSession.SessionType.FirmwareSession(consoleType))
@@ -215,7 +217,7 @@ class EmulatorViewModel @Inject constructor(
                 startObservingRendererConfiguration()
                 startObservingLayoutForFirmware()
 
-                val result = emulatorManager.loadFirmware(consoleType)
+                val result = emulatorManager.loadFirmware(consoleType, glContext)
                 when (result) {
                     is FirmwareLaunchResult.LaunchFailed -> {
                         _emulatorState.value = EmulatorState.FirmwareLoadError(result.reason)
@@ -313,7 +315,7 @@ class EmulatorViewModel @Inject constructor(
 
     fun stopEmulator() {
         emulatorManager.stopEmulator()
-        frameBufferProvider.clearFrameBuffer()
+        screenshotFrameBufferProvider.clearBuffer()
     }
 
     fun onPauseMenuOptionSelected(option: PauseMenuOption) {
@@ -469,7 +471,7 @@ class EmulatorViewModel @Inject constructor(
     private suspend fun saveRomState(rom: Rom, slot: SaveStateSlot): Boolean {
         val slotUri = saveStatesRepository.getRomSaveStateUri(rom, slot)
         return if (emulatorManager.saveState(slotUri)) {
-            val screenshot = frameBufferProvider.getScreenshot()
+            val screenshot = screenshotFrameBufferProvider.getScreenshot()
             saveStatesRepository.setRomSaveStateScreenshot(rom, slot, screenshot)
             true
         } else {
