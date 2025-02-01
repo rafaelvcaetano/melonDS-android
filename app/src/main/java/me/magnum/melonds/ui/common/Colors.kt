@@ -27,6 +27,7 @@ fun melonTextButtonColors(): ButtonColors {
 fun melonOutlinedTextFieldColors(): TextFieldColors {
     return outlinedTextFieldColors(
         cursorColor = MaterialTheme.colors.secondary,
+        unfocusedBorderColor = MaterialTheme.colors.onBackground,
         focusedBorderColor = MaterialTheme.colors.secondary.copy(alpha = ContentAlpha.high),
         focusedLabelColor = MaterialTheme.colors.secondary.copy(alpha = ContentAlpha.high),
         focusedTrailingIconColor = MaterialTheme.colors.secondary.copy(alpha = ContentAlpha.high),
