@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory
 import me.magnum.melonds.domain.model.Background
 import me.magnum.melonds.utils.BitmapUtils
 import java.io.File
-import java.util.*
 
 class BackgroundThumbnailProvider(private val context: Context) {
     companion object {
@@ -14,22 +13,8 @@ class BackgroundThumbnailProvider(private val context: Context) {
         private const val THUMBNAIL_CACHE_DIR = "background_thumbnails"
     }
 
-    private val memoryThumbnailCache = mutableMapOf<UUID, Bitmap>()
-
     fun getBackgroundThumbnail(background: Background): Bitmap? {
-        return loadThumbnailFromMemory(background)
-    }
-
-    private fun loadThumbnailFromMemory(background: Background): Bitmap? {
-        val id = background.id ?: return null
-        return memoryThumbnailCache.getOrElse(id) {
-            val thumbnail = loadThumbnailFromDisk(background)
-            if (thumbnail != null) {
-                memoryThumbnailCache[id] = thumbnail
-            }
-
-            thumbnail
-        }
+        return loadThumbnailFromDisk(background)
     }
 
     private fun loadThumbnailFromDisk(background: Background): Bitmap? {
