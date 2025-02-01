@@ -21,7 +21,7 @@ class BackgroundsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _backgrounds = MutableStateFlow<List<Background>?>(null)
+    private val _backgrounds = MutableStateFlow<List<Background?>?>(null)
     val backgrounds = _backgrounds.asStateFlow()
 
     private val _currentSelectedBackground = MutableStateFlow<UUID?>(null)
@@ -33,9 +33,16 @@ class BackgroundsViewModel @Inject constructor(
 
         viewModelScope.launch {
             backgroundsRepository.getBackgrounds().collect {
-                _backgrounds.value = it
+                _backgrounds.value = buildList {
+                    add(null)
+                    addAll(it)
+                }
             }
         }
+    }
+
+    fun selectBackground(background: Background?) {
+        _currentSelectedBackground.value = background?.id
     }
 
     fun addBackground(background: Background) {
