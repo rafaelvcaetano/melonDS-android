@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.magnum.melonds.domain.model.RuntimeBackground
@@ -23,6 +24,7 @@ import me.magnum.melonds.domain.repositories.BackgroundRepository
 import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.impl.layout.UILayoutProvider
 import me.magnum.melonds.ui.layouteditor.model.CurrentLayoutState
+import me.magnum.melonds.ui.layouteditor.model.LayoutBackgroundProperties
 import java.util.UUID
 import javax.inject.Inject
 
@@ -44,6 +46,16 @@ class LayoutEditorViewModel @Inject constructor(
 
     private val _currentLayout = MutableStateFlow<CurrentLayoutState?>(null)
     val currentLayout = _currentLayout.asStateFlow()
+
+    private val _layoutBackgroundProperties = MutableStateFlow<LayoutBackgroundProperties?>(null)
+    val layoutBackgroundProperties by lazy {
+        viewModelScope.launch {
+            currentLayout.filterNotNull().map {
+                LayoutBackgroundProperties(it.layout.backgroundId, it.layout.backgroundMode)
+            }.collect(_layoutBackgroundProperties)
+        }
+        _layoutBackgroundProperties.asStateFlow()
+    }
 
     init {
         val layoutId = savedStateHandle.get<String?>(LayoutEditorActivity.KEY_LAYOUT_ID)?.let { UUID.fromString(it) }
@@ -175,22 +187,46 @@ class LayoutEditorViewModel @Inject constructor(
         }
     }
 
-    fun saveBackgroundToCurrentConfiguration(background: UUID?, backgroundMode: BackgroundMode) {
+    fun setBackgroundPropertiesBackgroundId(backgroundId: UUID?) {
+        _layoutBackgroundProperties.update {
+            it?.copy(backgroundId = backgroundId)
+        }
+    }
+
+    fun setBackgroundPropertiesBackgroundMode(backgroundMode: BackgroundMode) {
+        _layoutBackgroundProperties.update {
+            it?.copy(backgroundMode = backgroundMode)
+        }
+    }
+
+    fun saveBackgroundToCurrentConfiguration() {
         val currentVariant = currentLayoutVariant ?: return
+        val currentBackgroundProperties = _layoutBackgroundProperties.value ?: return
 
         _currentLayoutConfiguration.update { layoutConfiguration ->
             layoutConfiguration?.copy(
                 layoutVariants = layoutConfiguration.layoutVariants.toMutableMap().apply {
                     val updatedLayout = if (containsKey(currentVariant)) {
-                        this[currentVariant]?.copy(backgroundId = background, backgroundMode = backgroundMode)
+                        this[currentVariant]?.copy(backgroundId = currentBackgroundProperties.backgroundId, backgroundMode = currentBackgroundProperties.backgroundMode)
                     } else {
-                        UILayout(backgroundId = background, backgroundMode = backgroundMode, components = null)
+                        UILayout(
+                            backgroundId = currentBackgroundProperties.backgroundId,
+                            backgroundMode = currentBackgroundProperties.backgroundMode,
+                            components = null,
+                        )
                     }
                     updatedLayout?.let {
                         this[currentVariant] = it
                     }
                 }
             )
+        }
+    }
+
+    fun resetBackgroundProperties() {
+        val currentLayout = currentLayout.value?.layout
+        _layoutBackgroundProperties.value = currentLayout?.let {
+            LayoutBackgroundProperties(currentLayout.backgroundId, currentLayout.backgroundMode)
         }
     }
 
