@@ -3,11 +3,11 @@ package me.magnum.melonds.ui.emulator
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.opengl.EGL14
-import android.opengl.GLES20
 import android.opengl.GLES30
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import android.opengl.Matrix
+import android.util.Log
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
@@ -25,6 +25,7 @@ import java.util.LinkedList
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 class DSRenderer(
     private val context: Context,
@@ -116,20 +117,20 @@ class DSRenderer(
     }
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
-        GLES20.glClearColor(0f, 0f, 0f, 1f)
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-        GLES20.glDisable(GLES20.GL_CULL_FACE)
+        GLES30.glClearColor(0f, 0f, 0f, 1f)
+        GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
+        GLES30.glDisable(GLES30.GL_CULL_FACE)
 
         // Setup textures
         val textures = IntArray(1)
-        GLES20.glGenTextures(1, textures, 0)
+        GLES30.glGenTextures(1, textures, 0)
         backgroundTexture = textures[0]
 
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, backgroundTexture)
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE.toFloat())
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE.toFloat())
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, backgroundTexture)
+        GLES30.glTexParameterf(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_CLAMP_TO_EDGE.toFloat())
+        GLES30.glTexParameterf(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE.toFloat())
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_LINEAR)
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_LINEAR)
 
         // Create background shader
         backgroundShader = ShaderFactory.createShaderProgram(ShaderProgramSource.BackgroundShader)
@@ -268,7 +269,7 @@ class DSRenderer(
     override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) {
         this.width = width.toFloat()
         this.height = height.toFloat()
-        GLES20.glViewport(0, 0, width, height)
+        GLES30.glViewport(0, 0, width, height)
         mustUpdateConfiguration = true
 
         synchronized(backgroundLock) {
@@ -296,7 +297,7 @@ class DSRenderer(
             }
         }
 
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
+        GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
 
         posBuffer.position(0)
         uvBuffer.position(0)
@@ -305,21 +306,21 @@ class DSRenderer(
         screenShader?.let { shader ->
             shader.use()
 
-            GLES30.glWaitSync(currentGlFenceSync, GLES30.GL_SYNC_FLUSH_COMMANDS_BIT, 100_000_000)
+            GLES30.glWaitSync(currentGlFenceSync, 0, GLES30.GL_TIMEOUT_IGNORED)
             GLES30.glDeleteSync(currentGlFenceSync)
 
-            GLES20.glEnable(GLES20.GL_DEPTH_TEST)
-            GLES20.glDepthFunc(GLES20.GL_NOTEQUAL)
-            GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, currentTextureId)
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, shader.textureFiltering)
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, shader.textureFiltering)
+            GLES30.glEnable(GLES30.GL_DEPTH_TEST)
+            GLES30.glDepthFunc(GLES30.GL_NOTEQUAL)
+            GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, currentTextureId)
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, shader.textureFiltering)
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, shader.textureFiltering)
 
-            GLES20.glUniformMatrix4fv(shader.uniformMvp, 1, false, mvpMatrix, 0)
-            GLES20.glVertexAttribPointer(shader.attribPos, 2, GLES20.GL_FLOAT, false, 0, posBuffer)
-            GLES20.glVertexAttribPointer(shader.attribUv, 2, GLES20.GL_FLOAT, false, 0, uvBuffer)
-            GLES20.glUniform1i(shader.uniformTex, 0)
-            GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, indices)
+            GLES30.glUniformMatrix4fv(shader.uniformMvp, 1, false, mvpMatrix, 0)
+            GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, posBuffer)
+            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBuffer)
+            GLES30.glUniform1i(shader.uniformTex, 0)
+            GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, indices)
         }
 
         synchronized(backgroundLock) {
@@ -346,13 +347,13 @@ class DSRenderer(
 
         val indices = backgroundPosBuffer.capacity() / 2
         backgroundShader.use()
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, backgroundTexture)
-        GLES20.glUniformMatrix4fv(backgroundShader.uniformMvp, 1, false, mvpMatrix, 0)
-        GLES20.glVertexAttribPointer(backgroundShader.attribPos, 2, GLES20.GL_FLOAT, false, 0, backgroundPosBuffer)
-        GLES20.glVertexAttribPointer(backgroundShader.attribUv, 2, GLES20.GL_FLOAT, false, 0, backgroundUvBuffer)
-        GLES20.glUniform1i(backgroundShader.uniformTex, 0)
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, indices)
+        GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, backgroundTexture)
+        GLES30.glUniformMatrix4fv(backgroundShader.uniformMvp, 1, false, mvpMatrix, 0)
+        GLES30.glVertexAttribPointer(backgroundShader.attribPos, 2, GLES30.GL_FLOAT, false, 0, backgroundPosBuffer)
+        GLES30.glVertexAttribPointer(backgroundShader.attribUv, 2, GLES30.GL_FLOAT, false, 0, backgroundUvBuffer)
+        GLES30.glUniform1i(backgroundShader.uniformTex, 0)
+        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, indices)
     }
 
     private fun loadBackground() {
@@ -373,8 +374,8 @@ class DSRenderer(
 
             val bitmap = bitmapResult.getOrNull() ?: return
 
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, backgroundTexture)
-            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, backgroundTexture)
+            GLUtils.texImage2D(GLES30.GL_TEXTURE_2D, 0, bitmap, 0)
             bitmap.recycle()
 
             backgroundWidth = bitmap.width

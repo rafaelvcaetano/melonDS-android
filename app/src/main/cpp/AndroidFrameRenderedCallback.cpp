@@ -12,5 +12,5 @@ void AndroidFrameRenderedCallback::onFrameRendered(long syncFence, int textureId
 
     jclass listenerClass = env->GetObjectClass(this->androidFrameRenderedListener);
     jmethodID onFrameRenderedMethod = env->GetMethodID(listenerClass, "onFrameRendered", "(JI)V");
-    env->CallVoidMethod(this->androidFrameRenderedListener, onFrameRenderedMethod, syncFence, textureId);
+    env->CallVoidMethod(this->androidFrameRenderedListener, onFrameRenderedMethod, (jlong) syncFence, textureId);
 }

@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
+    <uses-feature android:glEsVersion="0x00030000" android:required="true" />
     <uses-feature android:glEsVersion="0x00030002" android:required="false" />
 
     <application
@@ -129,6 +130,7 @@
         </activity>
         <activity
             android:name=".ui.backgrounds.BackgroundsActivity"
+            android:theme="@style/AppTheme.NoToolbar"
             android:label="@string/backgrounds">
         </activity>
         <activity

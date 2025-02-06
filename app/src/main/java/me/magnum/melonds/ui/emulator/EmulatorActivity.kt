@@ -246,7 +246,7 @@ class EmulatorActivity : AppCompatActivity() {
             }
         )
         binding.surfaceMain.apply {
-            setEGLContextClientVersion(2)
+            setEGLContextClientVersion(3)
             preserveEGLContextOnPause = true
             setRenderer(dsRenderer)
             renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
