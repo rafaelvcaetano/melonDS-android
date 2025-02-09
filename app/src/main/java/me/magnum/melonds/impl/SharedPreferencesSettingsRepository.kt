@@ -186,7 +186,7 @@ class SharedPreferencesSettingsRepository(
     }
 
     override fun getRomIconFiltering(): RomIconFiltering {
-        val romIconFilteringPreference = preferences.getString("rom_icon_filtering", "linear")!!
+        val romIconFilteringPreference = preferences.getString("rom_icon_filtering", "none")!!
         return enumValueOfIgnoreCase(romIconFilteringPreference)
     }
 
@@ -281,7 +281,7 @@ class SharedPreferencesSettingsRepository(
 
     override fun getVideoFiltering(): Flow<VideoFiltering> {
         return getOrCreatePreferenceSharedFlow("video_filtering") {
-            val filteringPreference = preferences.getString("video_filtering", "linear")!!
+            val filteringPreference = preferences.getString("video_filtering", "none")!!
             VideoFiltering.valueOf(filteringPreference.uppercase())
         }
     }

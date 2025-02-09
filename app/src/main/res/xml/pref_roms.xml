@@ -19,7 +19,7 @@
             app:iconSpaceReserved="false"
             android:entries="@array/rom_icon_filtering_options"
             android:entryValues="@array/rom_icon_filtering_values"
-            android:defaultValue="linear" />
+            android:defaultValue="none" />
 
     <!-- 7 steps of cache size. Real cache size is equal to 128MB * (2 ^ rom_cache_max_size) -->
     <SeekBarPreference
