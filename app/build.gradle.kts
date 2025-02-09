@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
 }
 
@@ -141,6 +142,7 @@ dependencies {
     implementation(libs.compose.foundation)
     implementation(libs.compose.material)
     implementation(libs.compose.material.icons)
+    implementation(libs.compose.navigation)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
 
@@ -150,6 +152,7 @@ dependencies {
     implementation(libs.flexbox)
     implementation(libs.gson)
     implementation(libs.hilt)
+    implementation(libs.kotlin.serialization)
     implementation(libs.kotlinx.coroutines.rx)
     implementation(libs.picasso)
     implementation(libs.markwon)

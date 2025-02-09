@@ -4,12 +4,23 @@ import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
@@ -42,7 +53,6 @@ import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.contracts.FilePickerContract
-import me.magnum.melonds.common.contracts.PreviewBackgroundContract
 import me.magnum.melonds.domain.model.Background
 import me.magnum.melonds.extensions.nameWithoutExtension
 import me.magnum.melonds.ui.backgrounds.BackgroundsViewModel
@@ -51,10 +61,14 @@ import me.magnum.melonds.ui.common.component.dialog.rememberTextInputDialogState
 import me.magnum.melonds.utils.BitmapRegionDecoderCompat
 import java.util.UUID
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun BackgroundsScreen(
+fun BackgroundListScreen(
     viewModel: BackgroundsViewModel,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     onBackgroundSelected: (Background?) -> Unit,
+    onPreviewBackgroundClick: (Background) -> Unit,
     onBackClick: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -79,9 +93,7 @@ fun BackgroundsScreen(
             )
         }
     }
-    val backgroundPreviewLauncher = rememberLauncherForActivityResult(PreviewBackgroundContract()) {
-        /* no-op */
-    }
+
     val backgroundDeletedMessage = stringResource(R.string.background_deleted)
     val undoMessage = stringResource(R.string.undo)
     val scaffoldState = rememberScaffoldState()
@@ -91,37 +103,42 @@ fun BackgroundsScreen(
     systemUiController.setStatusBarColor(MaterialTheme.colors.primaryVariant)
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
         scaffoldState = scaffoldState,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.backgrounds)) },
-                backgroundColor = MaterialTheme.colors.primary,
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            painter = rememberVectorPainter(Icons.AutoMirrored.Filled.ArrowBack),
-                            contentDescription = null,
-                        )
+            Box(Modifier.background(MaterialTheme.colors.primaryVariant).statusBarsPadding()) {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.backgrounds)) },
+                    backgroundColor = MaterialTheme.colors.primary,
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                painter = rememberVectorPainter(Icons.AutoMirrored.Filled.ArrowBack),
+                                contentDescription = null,
+                            )
+                        }
                     }
-                }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    addBackgroundLauncher.launch(Pair(null, arrayOf("image/png", "image/jpeg")))
-                },
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_add),
-                    contentDescription = stringResource(R.string.action_backgrounds_new),
                 )
             }
-        }
+        },
+        floatingActionButton = {
+            Box(Modifier.navigationBarsPadding()) {
+                FloatingActionButton(
+                    onClick = {
+                        addBackgroundLauncher.launch(Pair(null, arrayOf("image/png", "image/jpeg")))
+                    },
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_add),
+                        contentDescription = stringResource(R.string.action_backgrounds_new),
+                    )
+                }
+            }
+        },
+        backgroundColor = MaterialTheme.colors.surface,
     ) { padding ->
         if (backgrounds == null) {
             Loading(Modifier
+                .systemBarsPadding()
                 .padding(padding)
                 .fillMaxSize())
         } else {
@@ -131,12 +148,14 @@ fun BackgroundsScreen(
                     .fillMaxSize(),
                 backgrounds = backgrounds.orEmpty(),
                 selectedBackgroundId = selectedBackgroundId,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedContentScope = animatedContentScope,
                 onBackgroundClick = {
                     viewModel.selectBackground(it)
                     onBackgroundSelected(it)
                 },
                 onPreviewBackgroundClick = {
-                    backgroundPreviewLauncher.launch(it)
+                    onPreviewBackgroundClick(it)
                 },
                 onDeleteBackgroundClick = {
                     viewModel.deleteBackground(it)
@@ -172,12 +191,14 @@ private fun Loading(modifier: Modifier) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun BackgroundList(
     modifier: Modifier,
     backgrounds: List<Background?>,
     selectedBackgroundId: UUID?,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     onBackgroundClick: (Background?) -> Unit,
     onPreviewBackgroundClick: (Background) -> Unit,
     onDeleteBackgroundClick: (Background) -> Unit,
@@ -185,7 +206,13 @@ private fun BackgroundList(
     FlowRow(
         modifier = modifier
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(
+                start = 16.dp,
+                top = 16.dp,
+                end = 16.dp,
+                bottom = 16.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
+            )
+            .consumeWindowInsets(WindowInsets.navigationBars.asPaddingValues()),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -199,6 +226,8 @@ private fun BackgroundList(
                 BackgroundItem(
                     background = it,
                     isSelected = selectedBackgroundId == it.id,
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedContentScope = animatedContentScope,
                     onClick = { onBackgroundClick(it) },
                     onPreviewClick = { onPreviewBackgroundClick(it) },
                     onDeleteClick = { onDeleteBackgroundClick(it) },

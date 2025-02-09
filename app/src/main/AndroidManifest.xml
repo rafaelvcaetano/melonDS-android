@@ -133,10 +133,6 @@
             android:theme="@style/AppTheme.NoToolbar"
             android:label="@string/backgrounds">
         </activity>
-        <activity
-            android:name=".ui.backgroundpreview.BackgroundPreviewActivity"
-            android:theme="@style/FullScreenTheme">
-        </activity>
 
         <provider
             android:name="androidx.startup.InitializationProvider"

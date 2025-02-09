@@ -1,24 +1,27 @@
 package me.magnum.melonds.ui.romdetails.ui
 
 import android.net.Uri
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.ui.common.MelonPreviewSet
-import me.magnum.melonds.ui.romdetails.model.*
+import me.magnum.melonds.ui.romdetails.model.RomConfigUiModel
+import me.magnum.melonds.ui.romdetails.model.RomConfigUiState
+import me.magnum.melonds.ui.romdetails.model.RomConfigUpdateEvent
+import me.magnum.melonds.ui.romdetails.model.RomDetailsTab
+import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
 import me.magnum.melonds.ui.theme.MelonTheme
 import me.magnum.rcheevosapi.model.RAAchievement
-import java.util.*
+import java.util.Date
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RomScreen(
     modifier: Modifier,

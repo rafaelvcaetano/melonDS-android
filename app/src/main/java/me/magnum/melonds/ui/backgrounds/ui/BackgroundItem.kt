@@ -1,6 +1,9 @@
 package me.magnum.melonds.ui.backgrounds.ui
 
 import android.net.Uri
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -43,48 +46,61 @@ import me.magnum.melonds.domain.model.Background
 import me.magnum.melonds.ui.common.MelonPreviewSet
 import me.magnum.melonds.ui.theme.MelonTheme
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun BackgroundItem(
     background: Background,
     isSelected: Boolean,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     onClick: () -> Unit,
     onPreviewClick: () -> Unit,
     onDeleteClick: () -> Unit,
 ) {
     BackgroundItemBase(
+        backgroundId = background.id?.toString(),
         backgroundName = background.name,
         backgroundImage = rememberAsyncImagePainter(background),
         isSelected = isSelected,
         showOptions = true,
+        sharedTransitionScope = sharedTransitionScope,
+        animatedContentScope = animatedContentScope,
         onClick = onClick,
         onPreviewClick = onPreviewClick,
         onDeleteClick = onDeleteClick,
     )
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun NoneBackgroundItem(
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
     BackgroundItemBase(
+        backgroundId = null,
         backgroundName = stringResource(R.string.none),
         backgroundImage = painterResource(R.drawable.ic_block),
         isSelected = isSelected,
         showOptions = false,
+        sharedTransitionScope = null,
+        animatedContentScope = null,
         onClick = onClick,
         onPreviewClick = { },
         onDeleteClick = { },
     )
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun BackgroundItemBase(
+    backgroundId: String?,
     backgroundName: String,
     backgroundImage: Painter,
     isSelected: Boolean,
     showOptions: Boolean,
+    sharedTransitionScope: SharedTransitionScope?,
+    animatedContentScope: AnimatedContentScope?,
     onClick: () -> Unit,
     onPreviewClick: () -> Unit,
     onDeleteClick: () -> Unit,
@@ -108,20 +124,28 @@ private fun BackgroundItemBase(
             modifier = Modifier.padding(4.dp).width(IntrinsicSize.Min),
         ) {
             if (LocalInspectionMode.current) {
-                Box(Modifier.size(180.dp).background(Color.Gray))
+                Box(Modifier.size(160.dp).background(Color.Gray))
             } else {
-                Image(
-                    modifier = Modifier.size(180.dp),
-                    painter = backgroundImage,
-                    contentDescription = null,
-                )
-                /*AsyncImage(
-                    modifier = Modifier.size(180.dp),
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(background)
-                        .build(),
-                    contentDescription = null,
-                )*/
+                if (sharedTransitionScope != null && animatedContentScope != null) {
+                    with(sharedTransitionScope) {
+                        Image(
+                            modifier = Modifier
+                                .sharedElement(
+                                    state = sharedTransitionScope.rememberSharedContentState(backgroundId.orEmpty()),
+                                    animatedVisibilityScope = animatedContentScope,
+                                )
+                                .size(180.dp),
+                            painter = backgroundImage,
+                            contentDescription = null,
+                        )
+                    }
+                } else {
+                    Image(
+                        modifier = Modifier.size(180.dp),
+                        painter = backgroundImage,
+                        contentDescription = null,
+                    )
+                }
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -170,17 +194,19 @@ private fun BackgroundItemBase(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @MelonPreviewSet
 @Composable
 private fun BackgroundItemPreview() {
     MelonTheme {
-        BackgroundItem(
-            background = Background(
-                id = null,
-                name = "Background",
-                uri = Uri.EMPTY,
-            ),
+        BackgroundItemBase(
+            backgroundId = "",
+            backgroundName = "Background",
+            backgroundImage = rememberAsyncImagePainter(Uri.EMPTY),
             isSelected = false,
+            showOptions = true,
+            sharedTransitionScope = null,
+            animatedContentScope = null,
             onClick = { },
             onPreviewClick = { },
             onDeleteClick = { },
@@ -188,17 +214,19 @@ private fun BackgroundItemPreview() {
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @MelonPreviewSet
 @Composable
 private fun BackgroundItemSelectedPreview() {
     MelonTheme {
-        BackgroundItem(
-            background = Background(
-                id = null,
-                name = "Background",
-                uri = Uri.EMPTY,
-            ),
+        BackgroundItemBase(
+            backgroundId = "",
+            backgroundName = "Background",
+            backgroundImage = rememberAsyncImagePainter(Uri.EMPTY),
             isSelected = true,
+            showOptions = true,
+            sharedTransitionScope = null,
+            animatedContentScope = null,
             onClick = { },
             onPreviewClick = { },
             onDeleteClick = { },
