@@ -359,6 +359,7 @@ class LayoutEditorActivity : AppCompatActivity() {
     }
 
     private fun openMenu() {
+        storeLayoutChanges()
         val values = MenuOption.entries
         val options = Array(values.size) { i -> getString(values[i].stringRes) }
 
