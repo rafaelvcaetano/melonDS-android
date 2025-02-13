@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -124,31 +125,32 @@ private fun BackgroundItemBase(
             modifier = Modifier.padding(4.dp).width(IntrinsicSize.Min),
         ) {
             if (LocalInspectionMode.current) {
-                Box(Modifier.size(160.dp).background(Color.Gray))
+                Box(Modifier.fillMaxWidth().aspectRatio(1.0f).padding(start = 4.dp, top = 4.dp, end = 4.dp).background(Color.Gray))
             } else {
                 if (sharedTransitionScope != null && animatedContentScope != null) {
                     with(sharedTransitionScope) {
                         Image(
                             modifier = Modifier
+                                .padding(start = 4.dp, top = 4.dp, end = 4.dp)
                                 .sharedElement(
                                     state = sharedTransitionScope.rememberSharedContentState(backgroundId.orEmpty()),
                                     animatedVisibilityScope = animatedContentScope,
                                 )
-                                .size(180.dp),
+                                .fillMaxWidth().aspectRatio(1.0f),
                             painter = backgroundImage,
                             contentDescription = null,
                         )
                     }
                 } else {
                     Image(
-                        modifier = Modifier.size(180.dp),
+                        modifier = Modifier.padding(start = 4.dp, top = 4.dp, end = 4.dp).fillMaxWidth().aspectRatio(1.0f),
                         painter = backgroundImage,
                         contentDescription = null,
                     )
                 }
             }
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(start = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(

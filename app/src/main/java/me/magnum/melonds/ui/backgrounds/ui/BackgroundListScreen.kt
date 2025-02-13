@@ -7,22 +7,23 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
@@ -43,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -105,36 +107,36 @@ fun BackgroundListScreen(
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            Box(Modifier.background(MaterialTheme.colors.primaryVariant).statusBarsPadding()) {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.backgrounds)) },
-                    backgroundColor = MaterialTheme.colors.primary,
-                    navigationIcon = {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                painter = rememberVectorPainter(Icons.AutoMirrored.Filled.ArrowBack),
-                                contentDescription = null,
-                            )
-                        }
+            TopAppBar(
+                title = { Text(stringResource(R.string.backgrounds)) },
+                backgroundColor = MaterialTheme.colors.primary,
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            painter = rememberVectorPainter(Icons.AutoMirrored.Filled.ArrowBack),
+                            contentDescription = null,
+                        )
                     }
+                },
+                windowInsets = WindowInsets.safeDrawing.exclude(WindowInsets(bottom = Int.MAX_VALUE)),
+            )
+        },
+        floatingActionButton = {
+            // Manually apply navigation bar insets due to a bug in Scaffold. Scaffold does not apply horizontal insets to FABs
+            FloatingActionButton(
+                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars.exclude(WindowInsets(top = Int.MAX_VALUE, bottom = Int.MAX_VALUE))),
+                onClick = {
+                    addBackgroundLauncher.launch(Pair(null, arrayOf("image/png", "image/jpeg")))
+                },
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_add),
+                    contentDescription = stringResource(R.string.action_backgrounds_new),
                 )
             }
         },
-        floatingActionButton = {
-            Box(Modifier.navigationBarsPadding()) {
-                FloatingActionButton(
-                    onClick = {
-                        addBackgroundLauncher.launch(Pair(null, arrayOf("image/png", "image/jpeg")))
-                    },
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_add),
-                        contentDescription = stringResource(R.string.action_backgrounds_new),
-                    )
-                }
-            }
-        },
         backgroundColor = MaterialTheme.colors.surface,
+        contentWindowInsets = WindowInsets.safeDrawing,
     ) { padding ->
         if (backgrounds == null) {
             Loading(Modifier
@@ -143,9 +145,8 @@ fun BackgroundListScreen(
                 .fillMaxSize())
         } else {
             BackgroundList(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = padding,
                 backgrounds = backgrounds.orEmpty(),
                 selectedBackgroundId = selectedBackgroundId,
                 sharedTransitionScope = sharedTransitionScope,
@@ -191,10 +192,11 @@ private fun Loading(modifier: Modifier) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun BackgroundList(
     modifier: Modifier,
+    contentPadding: PaddingValues,
     backgrounds: List<Background?>,
     selectedBackgroundId: UUID?,
     sharedTransitionScope: SharedTransitionScope,
@@ -203,20 +205,19 @@ private fun BackgroundList(
     onPreviewBackgroundClick: (Background) -> Unit,
     onDeleteBackgroundClick: (Background) -> Unit,
 ) {
-    FlowRow(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(
-                start = 16.dp,
-                top = 16.dp,
-                end = 16.dp,
-                bottom = 16.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
-            )
-            .consumeWindowInsets(WindowInsets.navigationBars.asPaddingValues()),
+    LazyVerticalGrid(
+        modifier = modifier.consumeWindowInsets(contentPadding),
+        columns = GridCells.Adaptive(minSize = 140.dp),
+        contentPadding = PaddingValues(
+            start = contentPadding.calculateStartPadding(LocalLayoutDirection.current) + 16.dp,
+            top = contentPadding.calculateTopPadding() + 16.dp,
+            end = contentPadding.calculateEndPadding(LocalLayoutDirection.current) + 16.dp,
+            bottom = contentPadding.calculateBottomPadding() + 16.dp + 56.dp + 16.dp, // Add FAB size and FAB padding
+        ),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        backgrounds.forEach {
+        items(backgrounds) {
             if (it == null) {
                 NoneBackgroundItem(
                     isSelected = selectedBackgroundId == null,
