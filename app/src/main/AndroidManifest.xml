@@ -110,6 +110,8 @@
         <activity
             android:name=".ui.cheats.CheatsActivity"
             android:label="@string/cheats"
+            android:theme="@style/AppTheme.NoToolbar"
+            android:enableOnBackInvokedCallback="true"
             android:exported="false" >
         </activity>
         <activity
