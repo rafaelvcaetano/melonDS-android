@@ -17,7 +17,7 @@ import me.magnum.melonds.database.entities.GameEntity
 import me.magnum.melonds.database.entities.retroachievements.*
 
 @Database(
-    version = 4,
+    version = 5,
     exportSchema = true,
     entities = [
         CheatDatabaseEntity::class,
@@ -40,7 +40,11 @@ import me.magnum.melonds.database.entities.retroachievements.*
         AutoMigration(
             from = 3,
             to = 4,
-        )
+        ),
+        AutoMigration(
+            from = 4,
+            to = 5,
+        ),
     ]
 )
 @TypeConverters(InstantConverter::class)

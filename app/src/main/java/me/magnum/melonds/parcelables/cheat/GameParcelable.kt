@@ -9,7 +9,7 @@ class GameParcelable(
     val id: Long?,
     val name: String,
     val gameCode: String,
-    val gameChecksum: String?,
+    val gameChecksum: String,
     val cheats: List<CheatFolderParcelable>,
 ) : Parcelable {
 

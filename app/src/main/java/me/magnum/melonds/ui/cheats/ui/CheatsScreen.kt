@@ -1,15 +1,12 @@
 package me.magnum.melonds.ui.cheats.ui
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Icon
@@ -47,7 +44,10 @@ import me.magnum.melonds.ui.cheats.model.CheatsScreenUiState
 
 @OptIn(ExperimentalSerializationApi::class)
 @Composable
-fun CheatsScreen(viewModel: CheatsViewModel) {
+fun CheatsScreen(
+    viewModel: CheatsViewModel,
+    initialScreen: CheatsNavigation,
+) {
     val enabledCheatsTitle = stringResource(R.string.enabled_cheats)
     val navController = rememberNavController()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -79,6 +79,27 @@ fun CheatsScreen(viewModel: CheatsViewModel) {
     }
 
     systemUiController.setStatusBarColor(MaterialTheme.colors.primaryVariant)
+
+    LaunchedEffect(Unit) {
+        viewModel.openGamesEvent.collect {
+            navController.navigate(CheatsNavigation.GameList)
+        }
+    }
+    LaunchedEffect(Unit) {
+        viewModel.openFoldersEvent.collect {
+            navController.navigate(CheatsNavigation.GameFolders(it.newTitle))
+        }
+    }
+    LaunchedEffect(Unit) {
+        viewModel.openCheatsEvent.collect {
+            navController.navigate(CheatsNavigation.FolderCheats(it.newTitle))
+        }
+    }
+    LaunchedEffect(Unit) {
+        viewModel.openEnabledCheatsEvent.collect {
+            navController.navigate(CheatsNavigation.EnabledCheats)
+        }
+    }
 
     BackHandler {
         navigateBack()
@@ -122,57 +143,14 @@ fun CheatsScreen(viewModel: CheatsViewModel) {
         backgroundColor = MaterialTheme.colors.surface,
         contentWindowInsets = WindowInsets.safeDrawing,
     ) { padding ->
-        LaunchedEffect(Unit) {
-            viewModel.openGamesEvent.collect {
-                navController.navigate(CheatsNavigation.GameList) {
-                    popUpTo<CheatsNavigation.Loading> {
-                        inclusive = true
-                    }
-                }
-            }
-        }
-        LaunchedEffect(Unit) {
-            viewModel.openFoldersEvent.collect {
-                navController.navigate(CheatsNavigation.GameFolders(it.newTitle)) {
-                    popUpTo<CheatsNavigation.Loading> {
-                        inclusive = true
-                    }
-                }
-            }
-        }
-        LaunchedEffect(Unit) {
-            viewModel.openCheatsEvent.collect {
-                navController.navigate(CheatsNavigation.FolderCheats(it.newTitle)) {
-                    popUpTo<CheatsNavigation.Loading> {
-                        inclusive = true
-                    }
-                }
-            }
-        }
-        LaunchedEffect(Unit) {
-            viewModel.openEnabledCheatsEvent.collect {
-                navController.navigate(CheatsNavigation.EnabledCheats) {
-                    popUpTo<CheatsNavigation.Loading> {
-                        inclusive = true
-                    }
-                }
-            }
-        }
-
         NavHost(
             navController = navController,
-            startDestination = CheatsNavigation.Loading,
+            startDestination = initialScreen,
             enterTransition = { slideInHorizontally { it } },
             exitTransition = { slideOutHorizontally { -it } },
             popEnterTransition = { slideInHorizontally { -it } },
             popExitTransition = { slideOutHorizontally { it } },
         ) {
-            composable<CheatsNavigation.Loading>(
-                exitTransition = { ExitTransition.None },
-                popExitTransition = { ExitTransition.None },
-            ) {
-                LoadingScreen(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding))
-            }
             composable<CheatsNavigation.GameList> {
                 val games by viewModel.games.collectAsStateWithLifecycle(CheatsScreenUiState.Loading())
 

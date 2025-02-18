@@ -21,5 +21,5 @@ data class GameEntity(
     @ColumnInfo(name = "database_id") val databaseId: Long?,
     @ColumnInfo(name = "name") val name: String,
     @ColumnInfo(name = "game_code", index = true) val gameCode: String,
-    @ColumnInfo(name = "game_checksum", index = true) val gameChecksum: String?
+    @ColumnInfo(name = "game_checksum", index = true) val gameChecksum: String,
 )

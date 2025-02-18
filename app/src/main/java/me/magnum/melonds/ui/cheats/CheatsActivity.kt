@@ -15,6 +15,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import me.magnum.melonds.R
+import me.magnum.melonds.extensions.parcelable
+import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.ui.cheats.ui.CheatsScreen
 import me.magnum.melonds.ui.theme.MelonTheme
 
@@ -32,9 +34,15 @@ class CheatsActivity : AppCompatActivity() {
         )
         super.onCreate(savedInstanceState)
 
+        val romInfo = intent.parcelable<RomInfoParcelable>(KEY_ROM_INFO)
+        val initialScreen = if (romInfo == null) CheatsNavigation.GameList else CheatsNavigation.GameFolders(null)
+
         setContent {
             MelonTheme {
-                CheatsScreen(viewModel = viewModel)
+                CheatsScreen(
+                    viewModel = viewModel,
+                    initialScreen = initialScreen,
+                )
             }
         }
 

@@ -12,8 +12,8 @@ interface GameDao {
     @Query("SELECT * FROM game")
     suspend fun getGames(): List<GameEntity>
 
-    @Query("SELECT * FROM game WHERE game_code = :gameCode AND (game_checksum IS NULL OR game_checksum = :gameChecksum)")
-    suspend fun findGames(gameCode: String, gameChecksum: String): List<GameEntity>
+    @Query("SELECT * FROM game WHERE game_code = :gameCode AND game_checksum = :gameChecksum")
+    suspend fun findGame(gameCode: String, gameChecksum: String): GameEntity?
 
     @Transaction
     @Query("SELECT * FROM cheat_folder WHERE game_id = :gameId")
@@ -21,7 +21,4 @@ interface GameDao {
 
     @Insert
     fun insertGame(game: GameEntity): Long
-
-    @Query("DELETE FROM game")
-    fun deleteAll()
 }

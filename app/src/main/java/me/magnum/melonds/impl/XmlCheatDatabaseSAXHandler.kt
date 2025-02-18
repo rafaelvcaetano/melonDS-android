@@ -185,7 +185,7 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
             parsingGameName = false
 
             if (currentGameFolders.isNotEmpty()) {
-                emitGame(Game(null, gameName!!, gameCode!!, gameChecksum, ArrayList(currentGameFolders)))
+                emitGame(Game(null, gameName!!, gameCode!!, gameChecksum!!, ArrayList(currentGameFolders)))
             }
             currentGameFolders.clear()
             gameName = null

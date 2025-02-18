@@ -52,7 +52,7 @@ private fun PreviewGameItem() {
     MelonTheme {
         GameItem(
             modifier = Modifier.fillMaxWidth(),
-            game = Game(0, "Super Cool Game", "", null, emptyList()),
+            game = Game(0, "Super Cool Game", "", "", emptyList()),
             onClick = { },
         )
     }

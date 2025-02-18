@@ -28,6 +28,7 @@ import me.magnum.melonds.domain.model.Game
 import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.cheat.CheatFolderParcelable
+import me.magnum.melonds.parcelables.cheat.CheatParcelable
 import me.magnum.melonds.parcelables.cheat.GameParcelable
 import me.magnum.melonds.ui.cheats.model.CheatsScreenUiState
 import me.magnum.melonds.ui.cheats.model.OpenScreenEvent
@@ -41,12 +42,12 @@ class CheatsViewModel @Inject constructor(
 ) : ViewModel() {
 
     companion object {
-        const val KEY_INITIAL_LOAD_DONE = "initial_load_done"
+        const val KEY_MODIFIED_CHEATS = "modified_cheats"
         const val KEY_SELECTED_GAME = "selected_game"
         const val KEY_SELECTED_FOLDER = "selected_folder"
     }
 
-    private val modifiedCheatSet = MutableStateFlow<List<Cheat>>(emptyList())
+    private val modifiedCheatSet = MutableStateFlow(savedStateHandle.get<List<CheatParcelable>>(KEY_MODIFIED_CHEATS).orEmpty().map { it.toCheat() })
 
     private val selectedGame = savedStateHandle.getStateFlow<GameParcelable?>(KEY_SELECTED_GAME, null).map { it?.toGame() }
     private val selectedCheatFolder = savedStateHandle.getStateFlow<CheatFolderParcelable?>(KEY_SELECTED_FOLDER, null).map { it?.toCheatFolder() }
@@ -60,11 +61,25 @@ class CheatsViewModel @Inject constructor(
     }
 
     val folders by lazy {
-        selectedGame.filterNotNull().flatMapLatest {
+        selectedGame.flatMapLatest {
             flow {
-                emit(CheatsScreenUiState.Loading())
-                val folders = cheatsRepository.getAllGameCheats(it)
-                emit(CheatsScreenUiState.Ready(folders))
+                if (it == null) {
+                    // No game is selected. Try to load it based on the ROM info
+                    val romInfo = savedStateHandle.get<RomInfoParcelable>(CheatsActivity.KEY_ROM_INFO)
+                    if (romInfo == null) {
+                        // Should never happen
+                        emit(CheatsScreenUiState.Ready(emptyList()))
+                    } else {
+                        emit(CheatsScreenUiState.Loading())
+                        val game = cheatsRepository.findGameForRom(romInfo.toRomInfo())
+                        // This will reset the flow and will load the folders for this game
+                        savedStateHandle[KEY_SELECTED_GAME] = game?.let { GameParcelable.fromGame(it) }
+                    }
+                } else {
+                    emit(CheatsScreenUiState.Loading())
+                    val folders = cheatsRepository.getAllGameCheats(it)
+                    emit(CheatsScreenUiState.Ready(folders))
+                }
             }
         }.shareIn(viewModelScope, started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 1000L), replay = 1)
     }
@@ -141,27 +156,6 @@ class CheatsViewModel @Inject constructor(
     private val _cheatChangesCommittedEvent = Channel<Boolean>(Channel.CONFLATED)
     val cheatChangesCommittedEvent = _cheatChangesCommittedEvent.receiveAsFlow()
 
-    init {
-        val romInfo = savedStateHandle.get<RomInfoParcelable>(CheatsActivity.KEY_ROM_INFO)
-
-        if (!savedStateHandle.contains(KEY_INITIAL_LOAD_DONE)) {
-            viewModelScope.launch {
-                if (romInfo != null) {
-                    val games = cheatsRepository.findGamesForRom(romInfo.toRomInfo())
-                    if (games.size == 1) {
-                        savedStateHandle[KEY_SELECTED_GAME] = GameParcelable.fromGame(games.first())
-                        _openFoldersEvent.trySend(OpenScreenEvent(null))
-                    } else {
-                        _openGamesEvent.trySend(OpenScreenEvent(null))
-                    }
-                } else {
-                    _openGamesEvent.trySend(OpenScreenEvent(null))
-                }
-                savedStateHandle[KEY_INITIAL_LOAD_DONE] = true
-            }
-        }
-    }
-
     fun setSelectedGame(game: Game) {
         savedStateHandle[KEY_SELECTED_GAME] = GameParcelable.fromGame(game)
         _openFoldersEvent.trySend(OpenScreenEvent(game.name))
@@ -188,6 +182,8 @@ class CheatsViewModel @Inject constructor(
                 } else {
                     add(updatedCheat)
                 }
+            }.also {
+                savedStateHandle[KEY_MODIFIED_CHEATS] = it.map { CheatParcelable.fromCheat(it) }
             }
         }
     }

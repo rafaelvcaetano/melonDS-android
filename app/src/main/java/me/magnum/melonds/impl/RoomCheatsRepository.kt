@@ -41,8 +41,8 @@ class RoomCheatsRepository(private val context: Context, private val database: M
         }
     }
 
-    override suspend fun findGamesForRom(romInfo: RomInfo): List<Game> {
-        return database.gameDao().findGames(romInfo.gameCode, romInfo.headerChecksumString()).map {
+    override suspend fun findGameForRom(romInfo: RomInfo): Game? {
+        return database.gameDao().findGame(romInfo.gameCode, romInfo.headerChecksumString())?.let {
             Game(
                 it.id,
                 it.name,
@@ -139,10 +139,6 @@ class RoomCheatsRepository(private val context: Context, private val database: M
             }
         }
         database.cheatDao().insertCheats(cheatEntities)
-    }
-
-    override fun deleteAllCheats() {
-        database.gameDao().deleteAll()
     }
 
     override fun importCheats(uri: Uri) {
