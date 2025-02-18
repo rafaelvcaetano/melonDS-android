@@ -10,10 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -56,7 +54,7 @@ class CheatsViewModel @Inject constructor(
     val games by lazy {
         flow {
             emit(CheatsScreenUiState.Loading())
-            val games = cheatsRepository.observeGames().first()
+            val games = cheatsRepository.getGames()
             emit(CheatsScreenUiState.Ready(games))
         }.shareIn(viewModelScope, started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 1000L), replay = 1)
     }
@@ -157,9 +155,7 @@ class CheatsViewModel @Inject constructor(
                         _openGamesEvent.trySend(OpenScreenEvent(null))
                     }
                 } else {
-                    cheatsRepository.observeGames().collectLatest {
-                        _openGamesEvent.trySend(OpenScreenEvent(null))
-                    }
+                    _openGamesEvent.trySend(OpenScreenEvent(null))
                 }
                 savedStateHandle[KEY_INITIAL_LOAD_DONE] = true
             }

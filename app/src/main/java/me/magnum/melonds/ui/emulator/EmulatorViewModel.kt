@@ -33,7 +33,6 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
-import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.rx2.awaitSingleOrNull
 import kotlinx.coroutines.rx2.rxMaybe
 import me.magnum.melonds.MelonEmulator
@@ -645,7 +644,7 @@ class EmulatorViewModel @Inject constructor(
             return emptyList()
         }
 
-        return cheatsRepository.getRomEnabledCheats(romInfo).await()
+        return cheatsRepository.getRomEnabledCheats(romInfo)
     }
 
     private suspend fun getRomAchievementData(rom: Rom): GameAchievementData {

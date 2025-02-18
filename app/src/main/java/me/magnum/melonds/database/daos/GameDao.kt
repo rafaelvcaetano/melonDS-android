@@ -4,14 +4,13 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
-import kotlinx.coroutines.flow.Flow
 import me.magnum.melonds.database.entities.CheatFolderWithCheats
 import me.magnum.melonds.database.entities.GameEntity
 
 @Dao
 interface GameDao {
     @Query("SELECT * FROM game")
-    fun getGames(): Flow<List<GameEntity>>
+    suspend fun getGames(): List<GameEntity>
 
     @Query("SELECT * FROM game WHERE game_code = :gameCode AND (game_checksum IS NULL OR game_checksum = :gameChecksum)")
     suspend fun findGames(gameCode: String, gameChecksum: String): List<GameEntity>

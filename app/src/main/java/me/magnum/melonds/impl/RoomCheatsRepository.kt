@@ -9,10 +9,6 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import me.magnum.melonds.common.workers.CheatImportWorker
 import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.database.entities.CheatDatabaseEntity
@@ -33,17 +29,15 @@ class RoomCheatsRepository(private val context: Context, private val database: M
         private const val IMPORT_WORKER_NAME = "cheat_import_worker"
     }
 
-    override suspend fun observeGames(): Flow<List<Game>> {
-        return database.gameDao().getGames().map {
-            it.map { game ->
-                Game(
-                    game.id,
-                    game.name,
-                    game.gameCode,
-                    game.gameChecksum,
-                    emptyList(),
-                )
-            }
+    override suspend fun getGames(): List<Game> {
+        return database.gameDao().getGames().map { game ->
+            Game(
+                game.id,
+                game.name,
+                game.gameCode,
+                game.gameChecksum,
+                emptyList(),
+            )
         }
     }
 
@@ -79,18 +73,16 @@ class RoomCheatsRepository(private val context: Context, private val database: M
         }
     }
 
-    override fun getRomEnabledCheats(romInfo: RomInfo): Single<List<Cheat>> {
-        return database.cheatDao().getEnabledRomCheats(romInfo.gameCode, romInfo.headerChecksumString()).map {
-            it.map { cheat ->
-                Cheat(
-                        cheat.id,
-                        cheat.name,
-                        cheat.description,
-                        cheat.code,
-                        cheat.enabled
-                )
-            }
-        }.subscribeOn(Schedulers.io())
+    override suspend fun getRomEnabledCheats(romInfo: RomInfo): List<Cheat> {
+        return database.cheatDao().getEnabledRomCheats(romInfo.gameCode, romInfo.headerChecksumString()).map { cheat ->
+            Cheat(
+                cheat.id,
+                cheat.name,
+                cheat.description,
+                cheat.code,
+                cheat.enabled
+            )
+        }
     }
 
     override suspend fun updateCheatsStatus(cheats: List<Cheat>) {
