@@ -3,7 +3,6 @@ package me.magnum.melonds.ui.cheats.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,19 +13,24 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
+import androidx.compose.material.SnackbarHostState
+import androidx.compose.material.SnackbarResult
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.CheckBox
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -36,6 +40,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import me.magnum.melonds.R
 import me.magnum.melonds.ui.cheats.CheatsNavigation
@@ -68,6 +73,10 @@ fun CheatsScreen(
             }
         }
     }
+    val resources = LocalContext.current.resources
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState)
+    val coroutineScope = rememberCoroutineScope()
     val systemUiController = rememberSystemUiController()
     val navigateBack = {
         if (navController.previousBackStackEntry == null) {
@@ -107,6 +116,7 @@ fun CheatsScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        scaffoldState = scaffoldState,
         topBar = {
             TopAppBar(
                 title = {
@@ -155,7 +165,7 @@ fun CheatsScreen(
                 val games by viewModel.games.collectAsStateWithLifecycle(CheatsScreenUiState.Loading())
 
                 GameListScreen(
-                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background),
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = padding,
                     games = games,
                     onGameClick = { viewModel.setSelectedGame(it) },
@@ -165,27 +175,42 @@ fun CheatsScreen(
                 val folders by viewModel.folders.collectAsStateWithLifecycle(CheatsScreenUiState.Loading())
 
                 FolderListScreen(
-                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background),
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = padding,
                     folders = folders,
                     onFolderClick = { viewModel.setSelectedFolder(it) },
+                    onAddFolder = { viewModel.addFolder(it) },
                 )
             }
             composable<CheatsNavigation.FolderCheats> {
                 val cheats by viewModel.folderCheats.collectAsStateWithLifecycle(CheatsScreenUiState.Loading())
 
                 CheatListScreen(
-                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background),
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = padding,
                     cheats = cheats,
                     onCheatClick = { viewModel.toggleCheat(it) },
+                    onAddNewCheat = viewModel::addNewCheat,
+                    onUpdateCheat = viewModel::updateCheat,
+                    onDeleteCheatClick = {
+                        coroutineScope.launch {
+                            val result = snackbarHostState.showSnackbar(
+                                message = resources.getString(R.string.cheat_deleted, it.name),
+                                actionLabel = resources.getString(R.string.undo)
+                            )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                viewModel.undoCheatDeletion(it)
+                            }
+                        }
+                        viewModel.deleteCheat(it)
+                    },
                 )
             }
             composable<CheatsNavigation.EnabledCheats> {
                 val cheats by viewModel.selectedGameCheats.collectAsStateWithLifecycle(CheatsScreenUiState.Loading())
 
                 EnabledCheatsListScreen(
-                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background),
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = padding,
                     cheats = cheats,
                     onCheatClick = { viewModel.toggleCheat(it.cheat) }

@@ -16,6 +16,7 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.runBlocking
 import me.magnum.melonds.MelonDSApplication
 import me.magnum.melonds.R
 import me.magnum.melonds.common.cheats.CheatDatabaseParser
@@ -81,11 +82,9 @@ class CheatImportWorker @AssistedInject constructor(
         applicationContext.contentResolver.openInputStream(uri)?.use {
             val progressTrackerStream = ProgressTrackerInputStream(it)
             parser.parseCheatDatabase(progressTrackerStream, object : CheatDatabaseParserListener {
-                private var cheatDatabase: CheatDatabase? = null
-
-                override fun onDatabaseParseStart(databaseName: String) {
+                override fun onDatabaseParseStart(databaseName: String): CheatDatabase = runBlocking {
                     cheatsRepository.deleteCheatDatabaseIfExists(databaseName)
-                    cheatDatabase = cheatsRepository.addCheatDatabase(databaseName)
+                    cheatsRepository.addCheatDatabase(databaseName)
                 }
 
                 override fun onGameParseStart(gameName: String) {
@@ -102,10 +101,8 @@ class CheatImportWorker @AssistedInject constructor(
                     ))
                 }
 
-                override fun onGameParsed(game: Game) {
-                    cheatDatabase?.id?.let {
-                        cheatsRepository.addGameCheats(it, game)
-                    }
+                override fun onGameParsed(game: Game): Unit = runBlocking {
+                    cheatsRepository.addGameCheats(game)
                 }
 
                 override fun onParseComplete() {

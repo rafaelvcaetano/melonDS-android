@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -26,11 +27,14 @@ import me.magnum.melonds.domain.model.CheatFolder
 import me.magnum.melonds.domain.model.CheatInFolder
 import me.magnum.melonds.domain.model.Game
 import me.magnum.melonds.domain.repositories.CheatsRepository
+import me.magnum.melonds.extensions.removeFirst
 import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.cheat.CheatFolderParcelable
 import me.magnum.melonds.parcelables.cheat.CheatParcelable
 import me.magnum.melonds.parcelables.cheat.GameParcelable
+import me.magnum.melonds.ui.cheats.model.CheatSubmissionForm
 import me.magnum.melonds.ui.cheats.model.CheatsScreenUiState
+import me.magnum.melonds.ui.cheats.model.DeletedCheat
 import me.magnum.melonds.ui.cheats.model.OpenScreenEvent
 import javax.inject.Inject
 
@@ -47,7 +51,9 @@ class CheatsViewModel @Inject constructor(
         const val KEY_SELECTED_FOLDER = "selected_folder"
     }
 
+    private val romInfo = savedStateHandle.get<RomInfoParcelable>(CheatsActivity.KEY_ROM_INFO)?.toRomInfo()
     private val modifiedCheatSet = MutableStateFlow(savedStateHandle.get<List<CheatParcelable>>(KEY_MODIFIED_CHEATS).orEmpty().map { it.toCheat() })
+    private val deletedCheats = mutableListOf<DeletedCheat>()
 
     private val selectedGame = savedStateHandle.getStateFlow<GameParcelable?>(KEY_SELECTED_GAME, null).map { it?.toGame() }
     private val selectedCheatFolder = savedStateHandle.getStateFlow<CheatFolderParcelable?>(KEY_SELECTED_FOLDER, null).map { it?.toCheatFolder() }
@@ -65,44 +71,55 @@ class CheatsViewModel @Inject constructor(
             flow {
                 if (it == null) {
                     // No game is selected. Try to load it based on the ROM info
-                    val romInfo = savedStateHandle.get<RomInfoParcelable>(CheatsActivity.KEY_ROM_INFO)
                     if (romInfo == null) {
                         // Should never happen
                         emit(CheatsScreenUiState.Ready(emptyList()))
                     } else {
                         emit(CheatsScreenUiState.Loading())
-                        val game = cheatsRepository.findGameForRom(romInfo.toRomInfo())
-                        // This will reset the flow and will load the folders for this game
-                        savedStateHandle[KEY_SELECTED_GAME] = game?.let { GameParcelable.fromGame(it) }
+                        val game = cheatsRepository.findGameForRom(romInfo)
+                        if (game != null) {
+                            // This will reset the flow and will load the folders for this game
+                            savedStateHandle[KEY_SELECTED_GAME] = GameParcelable.fromGame(game)
+                        } else {
+                            emit(CheatsScreenUiState.Ready(emptyList()))
+                        }
                     }
                 } else {
                     emit(CheatsScreenUiState.Loading())
-                    val folders = cheatsRepository.getAllGameCheats(it)
-                    emit(CheatsScreenUiState.Ready(folders))
+                    cheatsRepository.getAllGameCheats(it)
+                        .map { CheatsScreenUiState.Ready(it) }
+                        .collect(this)
                 }
             }
         }.shareIn(viewModelScope, started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 1000L), replay = 1)
     }
 
     val folderCheats by lazy {
-        selectedCheatFolder.filterNotNull().flatMapLatest { cheatFolder ->
-            modifiedCheatSet.map { modifiedCheats ->
-                val cheats = cheatFolder.cheats.toMutableList()
-                modifiedCheats.forEach { cheat ->
-                    val originalCheatIndex = cheats.indexOfFirst { it.id == cheat.id }
-                    if (originalCheatIndex >= 0) {
-                        cheats[originalCheatIndex] = cheat
+        selectedCheatFolder.filterNotNull()
+            .flatMapLatest { cheatsRepository.getFolderCheats(it) }
+            .flatMapLatest { cheats ->
+                modifiedCheatSet.map { modifiedCheats ->
+                    val cheats = cheats.toMutableList()
+                    modifiedCheats.forEach { cheat ->
+                        val originalCheatIndex = cheats.indexOfFirst { it.id == cheat.id }
+                        if (originalCheatIndex >= 0) {
+                            cheats[originalCheatIndex] = cheat
+                        }
                     }
-                }
 
-                CheatsScreenUiState.Ready(cheats.toList())
-            }
-        }.shareIn(viewModelScope, started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 1000L), replay = 1)
+                    CheatsScreenUiState.Ready(cheats as List<Cheat>)
+                }
+            }.shareIn(viewModelScope, started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 1000L), replay = 1)
     }
 
     val selectedGameCheats: SharedFlow<CheatsScreenUiState<List<CheatInFolder>>> by lazy {
-        selectedGame.filterNotNull().flatMapLatest {
-            val allGameCheats = cheatsRepository.getAllGameCheats(it)
+        selectedGame.flatMapLatest {
+            if (it == null) {
+                flowOf(emptyList())
+            } else {
+                cheatsRepository.getAllGameCheats(it)
+            }
+        }.flatMapLatest { allGameCheats ->
             // Enabled cheats when the user entered the screen
             val gameCheats = allGameCheats.flatMap { folder ->
                 folder.cheats.filter { it.enabled }.map { CheatInFolder(it, folder.name) }
@@ -166,6 +183,39 @@ class CheatsViewModel @Inject constructor(
         _openCheatsEvent.trySend(OpenScreenEvent(folder.name))
     }
 
+    fun addFolder(folderName: String) {
+        if (folderName.isBlank()) return
+
+        val selectedGame = savedStateHandle.get<GameParcelable>(KEY_SELECTED_GAME)?.toGame()
+
+        viewModelScope.launch {
+            val folderGame = if (selectedGame != null) {
+                selectedGame
+            } else {
+                if (romInfo == null) {
+                    // Should never happen
+                    return@launch
+                } else {
+                    // A game needs to be created to be associated with the folder
+                    val newGame = Game(
+                        id = null,
+                        name = romInfo.gameName,
+                        gameCode = romInfo.gameCode,
+                        gameChecksum = romInfo.headerChecksumString(),
+                        cheats = emptyList()
+                    )
+                    cheatsRepository.addGameCheats(newGame)
+                }
+            }
+
+            cheatsRepository.addCheatFolder(folderName, folderGame)
+            if (selectedGame == null) {
+                // Update selected game with the new one
+                savedStateHandle[KEY_SELECTED_GAME] = GameParcelable.fromGame(folderGame)
+            }
+        }
+    }
+
     fun toggleCheat(cheat: Cheat) {
         if (committingCheatsChangesState.value) {
             // Already commiting changes. Cannot modify cheats now
@@ -185,6 +235,48 @@ class CheatsViewModel @Inject constructor(
             }.also {
                 savedStateHandle[KEY_MODIFIED_CHEATS] = it.map { CheatParcelable.fromCheat(it) }
             }
+        }
+    }
+
+    fun addNewCheat(cheatSubmissionForm: CheatSubmissionForm) {
+        if (!cheatSubmissionForm.isValid()) return
+        val selectedFolder = savedStateHandle.get<CheatFolderParcelable>(KEY_SELECTED_FOLDER) ?: return
+
+        viewModelScope.launch {
+            cheatsRepository.addCustomCheat(selectedFolder.toCheatFolder(), cheatSubmissionForm)
+        }
+    }
+
+    fun updateCheat(originalCheat: Cheat, cheatSubmissionForm: CheatSubmissionForm) {
+        if (!cheatSubmissionForm.isValid()) return
+        if (originalCheat.name == cheatSubmissionForm.name && originalCheat.description == cheatSubmissionForm.description && originalCheat.code == cheatSubmissionForm.code) {
+            // No changes were made. Do nothing
+            return
+        }
+
+        val updatedCheat = originalCheat.copy(
+            name = cheatSubmissionForm.name,
+            description = cheatSubmissionForm.description.takeUnless { it.isBlank() },
+            code = cheatSubmissionForm.code,
+        )
+        viewModelScope.launch {
+            cheatsRepository.updateCheat(updatedCheat)
+        }
+    }
+
+    fun deleteCheat(cheat: Cheat) {
+        val selectedFolder = savedStateHandle.get<CheatFolderParcelable>(KEY_SELECTED_FOLDER) ?: return
+
+        viewModelScope.launch {
+            cheatsRepository.deleteCheat(cheat)
+            deletedCheats.add(DeletedCheat(cheat, selectedFolder.toCheatFolder()))
+        }
+    }
+
+    fun undoCheatDeletion(cheat: Cheat) {
+        val deletedCheat = deletedCheats.removeFirst { it.cheat.id == cheat.id } ?: return
+        viewModelScope.launch {
+            cheatsRepository.addCheat(deletedCheat.folder, deletedCheat.cheat)
         }
     }
 

@@ -66,7 +66,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
     override fun getRomInfo(rom: Rom): RomInfo? {
         return try {
             getBestRomInputStream(rom)?.use {
-                RomProcessor.getRomInfo(it)
+                RomProcessor.getRomInfo(rom, it)
             }
         } catch (e: Exception) {
             e.printStackTrace()

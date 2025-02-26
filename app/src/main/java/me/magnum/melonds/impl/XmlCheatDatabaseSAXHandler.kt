@@ -1,6 +1,7 @@
 package me.magnum.melonds.impl
 
 import me.magnum.melonds.domain.model.Cheat
+import me.magnum.melonds.domain.model.CheatDatabase
 import me.magnum.melonds.domain.model.CheatFolder
 import me.magnum.melonds.domain.model.Game
 import org.xml.sax.Attributes
@@ -8,7 +9,7 @@ import org.xml.sax.helpers.DefaultHandler
 
 class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : DefaultHandler() {
     interface HandlerListener {
-        fun onCheatDatabaseParseStart(databaseName: String)
+        fun onCheatDatabaseParseStart(databaseName: String): CheatDatabase
         fun onGameParseStart(gameName: String)
         fun onGameParsed(game: Game)
         fun onParseComplete()
@@ -28,6 +29,7 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
     private var parsingText = false
 
     private var databaseName: String? = null
+    private var cheatDatabase: CheatDatabase? = null
     private var gameName: String? = null
     private var gameCode: String? = null
     private var gameChecksum: String? = null
@@ -161,7 +163,7 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
             parsingCheatDescription = false
             parsingCheatCodes = false
 
-            currentFolderCheats.add(Cheat(null, cheatName!!, cheatDescription, cheatCodes!!, false))
+            currentFolderCheats.add(Cheat(null, cheatDatabase!!.id!!, cheatName!!, cheatDescription, cheatCodes!!, false))
             cheatName = null
             cheatDescription = null
             cheatCodes = null
@@ -203,7 +205,7 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
     }
 
     private fun emitCheatDatabaseName(databaseName: String) {
-        listener.onCheatDatabaseParseStart(databaseName)
+        cheatDatabase = listener.onCheatDatabaseParseStart(databaseName)
     }
 
     private fun emitGameNameParsed(gameName: String) {

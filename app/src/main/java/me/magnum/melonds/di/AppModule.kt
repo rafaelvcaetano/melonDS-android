@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.text.util.Linkify
 import androidx.preference.PreferenceManager
-import androidx.room.Room
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.squareup.picasso.Picasso
@@ -22,10 +21,6 @@ import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.common.uridelegates.CompositeUriHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
-import me.magnum.melonds.database.MelonDatabase
-import me.magnum.melonds.database.daos.RAAchievementsDao
-import me.magnum.melonds.database.migrations.Migration1to2
-import me.magnum.melonds.impl.retroachievements.NoCacheRAAchievementsDao
 import me.magnum.melonds.utils.UriTypeHierarchyAdapter
 import javax.inject.Singleton
 
@@ -47,19 +42,6 @@ object AppModule {
         return GsonBuilder()
                 .registerTypeHierarchyAdapter(Uri::class.java, UriTypeHierarchyAdapter())
                 .create()
-    }
-
-    @Provides
-    @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): MelonDatabase {
-        return Room.databaseBuilder(context, MelonDatabase::class.java, "melon-database")
-                .addMigrations(Migration1to2())
-                .build()
-    }
-
-    @Provides
-    fun provideRAAchievementsDao(database: MelonDatabase): RAAchievementsDao {
-        return NoCacheRAAchievementsDao(database.achievementsDao())
     }
 
     @Provides

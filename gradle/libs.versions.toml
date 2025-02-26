@@ -2,6 +2,8 @@
 accompanist = "0.30.1"
 activity = "1.9.3"
 appCompat = "1.7.0"
+androidxTest = "1.6.1"
+androidxTestJunit = "1.2.1"
 cameraX = "1.4.0"
 cardView = "1.0.0"
 coil = "2.2.2"
@@ -113,6 +115,10 @@ room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 
 # Testing
 junit = { module = "junit:junit", version.ref = "junit" }
+androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
+androidx-test-core = { module = "androidx.test:core-ktx", version.ref = "androidxTest" }
+androidx-test-junit = { module = "androidx.test.ext:junit", version.ref = "androidxTestJunit" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTest" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "gradle" }

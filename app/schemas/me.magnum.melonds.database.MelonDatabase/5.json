@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "9e809c6c64bd502b883cc8a701f6de33",
+    "identityHash": "176fb59c13808974b80ae16cf0f653e8",
     "entities": [
       {
         "tableName": "cheat_database",
@@ -42,17 +42,11 @@
       },
       {
         "tableName": "game",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `database_id` INTEGER, `name` TEXT NOT NULL, `game_code` TEXT NOT NULL, `game_checksum` TEXT NOT NULL, FOREIGN KEY(`database_id`) REFERENCES `cheat_database`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `game_code` TEXT NOT NULL, `game_checksum` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": false
-          },
-          {
-            "fieldPath": "databaseId",
-            "columnName": "database_id",
             "affinity": "INTEGER",
             "notNull": false
           },
@@ -83,37 +77,17 @@
         },
         "indices": [
           {
-            "name": "index_game_game_code",
-            "unique": false,
+            "name": "game_code_checksum_index",
+            "unique": true,
             "columnNames": [
-              "game_code"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_game_game_code` ON `${TABLE_NAME}` (`game_code`)"
-          },
-          {
-            "name": "index_game_game_checksum",
-            "unique": false,
-            "columnNames": [
+              "game_code",
               "game_checksum"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_game_game_checksum` ON `${TABLE_NAME}` (`game_checksum`)"
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `game_code_checksum_index` ON `${TABLE_NAME}` (`game_code`, `game_checksum`)"
           }
         ],
-        "foreignKeys": [
-          {
-            "table": "cheat_database",
-            "onDelete": "CASCADE",
-            "onUpdate": "NO ACTION",
-            "columns": [
-              "database_id"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
-          }
-        ]
+        "foreignKeys": []
       },
       {
         "tableName": "cheat_folder",
@@ -171,7 +145,7 @@
       },
       {
         "tableName": "cheat",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `cheat_folder_id` INTEGER NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `code` TEXT NOT NULL, `enabled` INTEGER NOT NULL, FOREIGN KEY(`cheat_folder_id`) REFERENCES `cheat_folder`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `cheat_folder_id` INTEGER NOT NULL, `cheat_database_id` INTEGER NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `code` TEXT NOT NULL, `enabled` INTEGER NOT NULL, FOREIGN KEY(`cheat_folder_id`) REFERENCES `cheat_folder`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`cheat_database_id`) REFERENCES `cheat_database`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -182,6 +156,12 @@
           {
             "fieldPath": "cheatFolderId",
             "columnName": "cheat_folder_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cheatDatabaseId",
+            "columnName": "cheat_database_id",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -225,6 +205,15 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_cheat_cheat_folder_id` ON `${TABLE_NAME}` (`cheat_folder_id`)"
+          },
+          {
+            "name": "index_cheat_cheat_database_id",
+            "unique": false,
+            "columnNames": [
+              "cheat_database_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_cheat_cheat_database_id` ON `${TABLE_NAME}` (`cheat_database_id`)"
           }
         ],
         "foreignKeys": [
@@ -234,6 +223,17 @@
             "onUpdate": "NO ACTION",
             "columns": [
               "cheat_folder_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "cheat_database",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "cheat_database_id"
             ],
             "referencedColumns": [
               "id"
@@ -510,7 +510,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9e809c6c64bd502b883cc8a701f6de33')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '176fb59c13808974b80ae16cf0f653e8')"
     ]
   }
 }

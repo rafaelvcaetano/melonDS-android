@@ -12,6 +12,13 @@ import androidx.room.PrimaryKey
     ]
 )
 data class CheatDatabaseEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long?,
+    @ColumnInfo(name = "id") @PrimaryKey(autoGenerate = true) val id: Long?,
     @ColumnInfo(name = "name") val name: String,
-)
+) {
+
+    companion object {
+        // The ID of the database that holds cheats manually created by the user. Its 0 because SQLite starts autoincrement keys from 1
+        const val CUSTOM_CHEATS_DATABASE_ID = 0L
+        const val CUSTOM_CHEATS_DATABASE_NAME = "__custom_cheat_database"
+    }
+}

@@ -52,7 +52,7 @@ class NdsRomFileProcessor(private val context: Context, private val uriHandler: 
     override fun getRomInfo(rom: Rom): RomInfo? {
         return try {
             context.contentResolver.openInputStream(rom.uri)?.use { inputStream ->
-                RomProcessor.getRomInfo(inputStream)
+                RomProcessor.getRomInfo(rom, inputStream)
             }
         } catch (e: Exception) {
             e.printStackTrace()

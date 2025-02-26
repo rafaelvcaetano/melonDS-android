@@ -18,6 +18,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.Cheat
@@ -38,28 +39,34 @@ fun CheatInFolderItem(
             modifier = modifier
                 .clickable(enabled = cheatInFolder.cheat.isValid(), onClick = onClick)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(32.dp),
         ) {
+            Checkbox(
+                modifier = Modifier.padding(top = 4.dp),
+                checked = cheatInFolder.cheat.enabled,
+                enabled = cheatInFolder.cheat.isValid(),
+                onCheckedChange = null,
+            )
+
             Column {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(20.dp),
                         painter = painterResource(id = R.drawable.ic_folder),
                         contentDescription = null,
-                        tint = MaterialTheme.colors.secondary.copy(alpha = contentAlpha),
                     )
                     Text(
                         modifier = Modifier.weight(1f),
                         text = cheatInFolder.folderName,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
 
-                Text(
-                    text = cheatInFolder.cheat.name
-                )
+                Text(cheatInFolder.cheat.name)
                 if (cheatInFolder.cheat.description?.isNotBlank() == true) {
                     CaptionText(
                         text = cheatInFolder.cheat.description,
@@ -67,13 +74,6 @@ fun CheatInFolderItem(
                     )
                 }
             }
-
-            Checkbox(
-                modifier = Modifier.padding(top = 4.dp),
-                checked = cheatInFolder.cheat.enabled,
-                enabled = cheatInFolder.cheat.isValid(),
-                onCheckedChange = null,
-            )
         }
     }
 }
@@ -85,7 +85,7 @@ private fun CheatInFolderItemPreview() {
         CheatInFolderItem(
             modifier = Modifier.fillMaxWidth(),
             cheatInFolder = CheatInFolder(
-                cheat = Cheat(0, "Some random cheat", "Press some buttons to activate this cheat. What does it do?", "", false),
+                cheat = Cheat(0, 0, "Some random cheat", "Press some buttons to activate this cheat. What does it do?", "", false),
                 folderName = "Best cheats",
             ),
             onClick = { },

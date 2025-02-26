@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -19,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import me.magnum.melonds.ui.common.melonTextButtonColors
 
 @Composable
@@ -28,8 +32,11 @@ fun BaseDialog(
     content: @Composable (PaddingValues) -> Unit,
     buttons: (@Composable () -> Unit)? = null,
 ) {
-    Dialog(onDismissRequest = onDismiss) {
-        Card(Modifier.fillMaxWidth()) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(decorFitsSystemWindows = false),
+    ) {
+        Card(Modifier.fillMaxWidth().safeDrawingPadding()) {
             Column(Modifier.fillMaxWidth()) {
                 Box(
                     modifier = Modifier
@@ -46,15 +53,17 @@ fun BaseDialog(
                     )
                 }
 
-                content(PaddingValues(horizontal = 24.dp))
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    content(PaddingValues(horizontal = 24.dp))
 
-                buttons?.let {
-                    Row(
-                        modifier = Modifier.fillMaxWidth()
-                            .padding(start = 24.dp, top = 8.dp, end = 8.dp, bottom = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
-                    ) {
-                        buttons()
+                    buttons?.let {
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(start = 24.dp, top = 8.dp, end = 8.dp, bottom = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                        ) {
+                            buttons()
+                        }
                     }
                 }
             }
