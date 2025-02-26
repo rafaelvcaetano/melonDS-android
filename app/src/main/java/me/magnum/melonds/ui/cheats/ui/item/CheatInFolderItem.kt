@@ -13,14 +13,14 @@ import androidx.compose.material.Icon
 import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.CheatInFolder
 import me.magnum.melonds.ui.common.MelonPreviewSet
@@ -55,7 +55,7 @@ fun CheatInFolderItem(
                 ) {
                     Icon(
                         modifier = Modifier.size(20.dp),
-                        painter = painterResource(id = R.drawable.ic_folder),
+                        imageVector = Icons.Filled.Folder,
                         contentDescription = null,
                     )
                     Text(
