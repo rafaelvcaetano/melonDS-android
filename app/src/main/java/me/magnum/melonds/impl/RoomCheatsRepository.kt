@@ -275,7 +275,7 @@ class RoomCheatsRepository(private val context: Context, private val database: M
                 emitter.onNext(CheatImportProgress(CheatImportProgress.CheatImportStatus.NOT_IMPORTING, 0f, null))
                 emitter.onComplete()
             } else {
-                val observer = Observer<MutableList<WorkInfo>> {
+                val observer = Observer<List<WorkInfo>> {
                     val workInfo = it.firstOrNull()
                     if (workInfo != null) {
                         when (workInfo.state) {

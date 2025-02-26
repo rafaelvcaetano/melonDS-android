@@ -292,7 +292,7 @@ object RomProcessor {
 			val sortedProcessors = processors.sortedBy { it.streamOffset }.toMutableList()
 
 			while (sortedProcessors.isNotEmpty()) {
-				val processor = sortedProcessors.removeFirst()
+				val processor = sortedProcessors.removeAt(0)
 				val bytesToSkip = processor.streamOffset - trackedStream.totalReadBytes
 				trackedStream.skipStreamBytes(bytesToSkip)
 

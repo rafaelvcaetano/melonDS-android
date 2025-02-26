@@ -106,7 +106,7 @@ class GitHubProdUpdatesRepository(private val context: Context, private val api:
     private fun isReleaseNewUpdate(releaseDto: ReleaseDto): Boolean {
         val packageInfo = PackageManagerCompat.getPackageInfo(context.packageManager, context.packageName, 0)
 
-        val currentVersion = getCurrentAppVersion(packageInfo.versionName)
+        val currentVersion = getCurrentAppVersion(packageInfo.versionName!!)
         val releaseVersion = Version.fromString(releaseDto.tagName)
 
         return releaseVersion > currentVersion

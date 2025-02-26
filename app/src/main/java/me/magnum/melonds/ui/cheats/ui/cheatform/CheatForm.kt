@@ -67,7 +67,7 @@ fun CheatFormDialog(
     if (state != CheatFormDialogState.Hidden) {
         val cheatFormState = rememberCheatFormState(state)
 
-        val isLargeScreen = LocalConfiguration.current.screenHeightDp >= 900
+        val isLargeScreen = LocalConfiguration.current.screenHeightDp >= 900 && LocalConfiguration.current.screenWidthDp >= 840
         if (isLargeScreen) {
             CheatFormPopupDialog(
                 cheatFormState = cheatFormState,

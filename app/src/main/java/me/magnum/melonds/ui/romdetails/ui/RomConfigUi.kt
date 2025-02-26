@@ -7,7 +7,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
@@ -16,8 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import me.magnum.melonds.R
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.contracts.FilePickerContract
@@ -37,13 +45,15 @@ import java.util.UUID
 @Composable
 fun RomConfigUi(
     modifier: Modifier,
+    contentPadding: PaddingValues,
     romConfigUiState: RomConfigUiState,
     onConfigUpdate: (RomConfigUpdateEvent) -> Unit,
 ) {
     when (romConfigUiState) {
-        is RomConfigUiState.Loading -> Loading(modifier)
+        is RomConfigUiState.Loading -> Loading(modifier.padding(contentPadding))
         is RomConfigUiState.Ready -> Content(
             modifier = modifier,
+            contentPadding = contentPadding,
             romConfig = romConfigUiState.romConfigUiModel,
             onConfigUpdate = onConfigUpdate,
         )
@@ -63,11 +73,16 @@ private fun Loading(modifier: Modifier) {
 @Composable
 private fun Content(
     modifier: Modifier,
+    contentPadding: PaddingValues,
     romConfig: RomConfigUiModel,
     onConfigUpdate: (RomConfigUpdateEvent) -> Unit,
 ) {
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState()),
+        modifier = modifier.verticalScroll(rememberScrollState())
+            .padding(
+                start = contentPadding.calculateStartPadding(LocalLayoutDirection.current),
+                end = contentPadding.calculateEndPadding(LocalLayoutDirection.current),
+            ),
     ) {
         val consoleOptions = stringArrayResource(id = R.array.game_runtime_console_type_options)
         SingleChoiceItem(
@@ -152,6 +167,8 @@ private fun Content(
                 )
             }
         }
+
+        Spacer(Modifier.height(contentPadding.calculateBottomPadding()))
     }
 }
 
@@ -161,6 +178,7 @@ private fun PreviewRomConfigUi() {
     MelonTheme {
         RomConfigUi(
             modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(0.dp),
             romConfigUiState = RomConfigUiState.Ready(
                 RomConfigUiModel(
                     layoutName = "Default",

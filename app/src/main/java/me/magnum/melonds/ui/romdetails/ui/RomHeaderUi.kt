@@ -3,8 +3,14 @@ package me.magnum.melonds.ui.romdetails.ui
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -54,9 +60,8 @@ fun RomHeaderUi(
         Surface(
             modifier = modifier,
             elevation = 4.dp,
-            color = MaterialTheme.colors.surface,
         ) {
-            Column {
+            Column(Modifier.windowInsetsPadding(WindowInsets.safeDrawing.exclude(WindowInsets(bottom = Int.MAX_VALUE)))) {
                 TopAppBar(
                     backgroundColor = MaterialTheme.colors.surface,
                     elevation = 0.dp,

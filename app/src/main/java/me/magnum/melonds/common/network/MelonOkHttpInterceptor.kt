@@ -12,7 +12,7 @@ class MelonOkHttpInterceptor(private val context: Context) : Interceptor {
 
     private val userAgentVersion by lazy {
         val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-        val appVersion = packageInfo.versionName
+        val appVersion = packageInfo.versionName!!
         val userAgentSuffix = appVersion.lowercase().replace(' ', '-').replace("(", "").replace(")", "")
         "$MELON_USER_AGENT_PREFIX/$userAgentSuffix"
     }

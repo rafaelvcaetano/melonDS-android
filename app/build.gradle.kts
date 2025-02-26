@@ -153,7 +153,6 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
 
     implementation(libs.coil)
-    implementation(libs.flexbox)
     implementation(libs.gson)
     implementation(libs.hilt)
     implementation(libs.kotlin.serialization)

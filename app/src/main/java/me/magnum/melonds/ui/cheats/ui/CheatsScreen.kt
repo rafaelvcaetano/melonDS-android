@@ -3,10 +3,13 @@ package me.magnum.melonds.ui.cheats.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -118,37 +121,39 @@ fun CheatsScreen(
         modifier = Modifier.fillMaxSize(),
         scaffoldState = scaffoldState,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = appBarTitle ?: stringResource(R.string.cheats),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
-                backgroundColor = MaterialTheme.colors.primary,
-                navigationIcon = {
-                    IconButton(onClick = { navigateBack() }) {
-                        Icon(
-                            painter = rememberVectorPainter(Icons.AutoMirrored.Filled.ArrowBack),
-                            contentDescription = null,
+            Box(Modifier.background(MaterialTheme.colors.primaryVariant).statusBarsPadding()) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = appBarTitle ?: stringResource(R.string.cheats),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
-                    }
-                },
-                actions = {
-                    if (showEnabledCheatsButton) {
-                        CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
-                            IconButton(onClick = { viewModel.openEnabledCheats() }) {
-                                Icon(
-                                    painter = rememberVectorPainter(Icons.Outlined.CheckBox),
-                                    contentDescription = stringResource(R.string.enabled_cheats),
-                                )
+                    },
+                    backgroundColor = MaterialTheme.colors.primary,
+                    navigationIcon = {
+                        IconButton(onClick = { navigateBack() }) {
+                            Icon(
+                                painter = rememberVectorPainter(Icons.AutoMirrored.Filled.ArrowBack),
+                                contentDescription = null,
+                            )
+                        }
+                    },
+                    actions = {
+                        if (showEnabledCheatsButton) {
+                            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
+                                IconButton(onClick = { viewModel.openEnabledCheats() }) {
+                                    Icon(
+                                        painter = rememberVectorPainter(Icons.Outlined.CheckBox),
+                                        contentDescription = stringResource(R.string.enabled_cheats),
+                                    )
+                                }
                             }
                         }
-                    }
-                },
-                windowInsets = WindowInsets.safeDrawing.exclude(WindowInsets(bottom = Int.MAX_VALUE)),
-            )
+                    },
+                    windowInsets = WindowInsets.safeDrawing.exclude(WindowInsets(bottom = Int.MAX_VALUE)),
+                )
+            }
         },
         backgroundColor = MaterialTheme.colors.surface,
         contentWindowInsets = WindowInsets.safeDrawing,

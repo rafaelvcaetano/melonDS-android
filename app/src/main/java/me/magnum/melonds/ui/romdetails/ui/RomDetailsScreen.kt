@@ -1,11 +1,14 @@
 package me.magnum.melonds.ui.romdetails.ui
 
 import android.net.Uri
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -23,8 +26,7 @@ import me.magnum.rcheevosapi.model.RAAchievement
 import java.util.Date
 
 @Composable
-fun RomScreen(
-    modifier: Modifier,
+fun RomDetailsScreen(
     rom: Rom,
     romConfigUiState: RomConfigUiState,
     retroAchievementsUiState: RomRetroAchievementsUiState,
@@ -41,26 +43,32 @@ fun RomScreen(
     )
     val coroutineScope = rememberCoroutineScope()
 
-    Column(modifier) {
-        RomHeaderUi(
-            modifier = Modifier.fillMaxWidth(),
-            rom = rom,
-            pagerState = pagerState,
-            onLaunchRom = { onLaunchRom(rom) },
-            onNavigateBack = onNavigateBack
-        ) {
-            coroutineScope.launch {
-                pagerState.animateScrollToPage(it.tabIndex)
+    Scaffold(
+        topBar = {
+            RomHeaderUi(
+                modifier = Modifier.fillMaxWidth(),
+                rom = rom,
+                pagerState = pagerState,
+                onLaunchRom = { onLaunchRom(rom) },
+                onNavigateBack = onNavigateBack
+            ) {
+                coroutineScope.launch {
+                    pagerState.animateScrollToPage(it.tabIndex)
+                }
             }
-        }
+        },
+        backgroundColor = MaterialTheme.colors.surface,
+        contentWindowInsets = WindowInsets.safeDrawing,
+    ) { padding ->
         HorizontalPager(
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier.fillMaxSize(),
             state = pagerState,
         ) {
             when (it) {
                 RomDetailsTab.CONFIG.tabIndex -> {
                     RomConfigUi(
                         modifier = Modifier.fillMaxSize(),
+                        contentPadding = padding,
                         romConfigUiState = romConfigUiState,
                         onConfigUpdate = onRomConfigUpdate,
                     )
@@ -68,6 +76,7 @@ fun RomScreen(
                 RomDetailsTab.RETRO_ACHIEVEMENTS.tabIndex -> {
                     RomRetroAchievementsUi(
                         modifier = Modifier.fillMaxSize(),
+                        contentPadding = padding,
                         retroAchievementsUiState = retroAchievementsUiState,
                         onLogin = onRetroAchievementsLogin,
                         onRetryLoad = onRetroAchievementsRetryLoad,
@@ -83,8 +92,7 @@ fun RomScreen(
 @Composable
 private fun PreviewRomScreen() {
     MelonTheme {
-        RomScreen(
-            modifier = Modifier.fillMaxSize(),
+        RomDetailsScreen(
             rom = Rom(
                 name = "Professor Layton and the Unwound Future",
                 developerName = "Nontendo",
