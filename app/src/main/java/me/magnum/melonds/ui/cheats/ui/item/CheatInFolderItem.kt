@@ -80,7 +80,7 @@ fun CheatInFolderItem(
 
 @MelonPreviewSet
 @Composable
-private fun CheatInFolderItemPreview() {
+private fun PreviewCheatInFolderItem() {
     MelonTheme {
         CheatInFolderItem(
             modifier = Modifier.fillMaxWidth(),

@@ -277,12 +277,13 @@ private fun CheatFormBody(
 
 @MelonPreviewSet
 @Composable
-fun CheatFormPreview() {
+private fun PreviewCheatForm() {
     MelonTheme {
-        CheatFormDialog(
-            state = CheatFormDialogState.NewCheat,
-            onDismiss = { },
-            onSaveCheat = { },
+        CheatFormBody(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            cheatFormState = CheatFormState(isNewCheat = true),
+            onDoneClick = { },
         )
     }
 }
