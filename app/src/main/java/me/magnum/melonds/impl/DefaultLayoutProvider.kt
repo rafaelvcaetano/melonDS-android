@@ -70,10 +70,10 @@ class DefaultLayoutProvider(private val screenUnitsConverter: ScreenUnitsConvert
                 PositionedLayoutComponent(Rect(width - lrButtonsSize, screenHeight, lrButtonsSize, lrButtonsSize), LayoutComponent.BUTTON_R),
                 PositionedLayoutComponent(Rect(width / 2 - smallButtonsSize - spacing4dp / 2, height - smallButtonsSize, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_SELECT),
                 PositionedLayoutComponent(Rect(width / 2 + spacing4dp / 2, height - smallButtonsSize, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_START),
-                PositionedLayoutComponent(Rect(width / 2 - (smallButtonsSize * 2.0).toInt() - spacing4dp * 2, screenHeight, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_HINGE),
-                PositionedLayoutComponent(Rect(width / 2 - smallButtonsSize, screenHeight, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT),
-                PositionedLayoutComponent(Rect(width / 2 + spacing4dp * 2, screenHeight, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE),
-                PositionedLayoutComponent(Rect(width / 2 + smallButtonsSize + spacing4dp * 4, screenHeight, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_MICROPHONE_TOGGLE),
+                PositionedLayoutComponent(Rect(width / 2 - (smallButtonsSize * 2.0).toInt() - spacing4dp * 3, screenHeight, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_HINGE),
+                PositionedLayoutComponent(Rect(width / 2 - smallButtonsSize - spacing4dp, screenHeight, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT),
+                PositionedLayoutComponent(Rect(width / 2 + spacing4dp, screenHeight, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE),
+                PositionedLayoutComponent(Rect(width / 2 + smallButtonsSize + spacing4dp * 3, screenHeight, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_MICROPHONE_TOGGLE),
                 )
         )
     }
@@ -108,10 +108,10 @@ class DefaultLayoutProvider(private val screenUnitsConverter: ScreenUnitsConvert
                 PositionedLayoutComponent(Rect(width - lrButtonsSize, 0, lrButtonsSize, lrButtonsSize), LayoutComponent.BUTTON_R),
                 PositionedLayoutComponent(Rect((width - spacing4dp) / 2 - smallButtonsSize, height - smallButtonsSize, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_SELECT),
                 PositionedLayoutComponent(Rect((width + spacing4dp) / 2, height - smallButtonsSize, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_START),
-                PositionedLayoutComponent(Rect(width / 2 - (smallButtonsSize * 2.0).toInt() - spacing4dp * 2, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_HINGE),
-                PositionedLayoutComponent(Rect(width / 2 - smallButtonsSize, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT),
-                PositionedLayoutComponent(Rect(width / 2 + spacing4dp * 2, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE),
-                PositionedLayoutComponent(Rect(width / 2 + smallButtonsSize + spacing4dp * 4, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_MICROPHONE_TOGGLE),
+                PositionedLayoutComponent(Rect(width / 2 - (smallButtonsSize * 2.0).toInt() - spacing4dp * 3, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_HINGE),
+                PositionedLayoutComponent(Rect(width / 2 - smallButtonsSize - spacing4dp, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT),
+                PositionedLayoutComponent(Rect(width / 2 + spacing4dp, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE),
+                PositionedLayoutComponent(Rect(width / 2 + smallButtonsSize + spacing4dp * 3, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_MICROPHONE_TOGGLE),
                 )
         )
     }
@@ -155,9 +155,10 @@ class DefaultLayoutProvider(private val screenUnitsConverter: ScreenUnitsConvert
                 PositionedLayoutComponent(Rect(width - lrButtonsSize, mainFold.foldBounds.bottom, lrButtonsSize, lrButtonsSize), LayoutComponent.BUTTON_R),
                 PositionedLayoutComponent(Rect(width / 2 - smallButtonsSize - spacing4dp / 2, height - smallButtonsSize, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_SELECT),
                 PositionedLayoutComponent(Rect(width / 2 + spacing4dp / 2, height - smallButtonsSize, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_START),
-                PositionedLayoutComponent(Rect(width / 2 - (smallButtonsSize * 1.5).toInt() - spacing4dp * 2, mainFold.foldBounds.bottom, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_HINGE),
-                PositionedLayoutComponent(Rect(width / 2 - (smallButtonsSize * 0.5).toInt(), mainFold.foldBounds.bottom, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT),
-                PositionedLayoutComponent(Rect(width / 2 + (smallButtonsSize * 0.5).toInt() + spacing4dp * 2, mainFold.foldBounds.bottom, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE),
+                PositionedLayoutComponent(Rect(width / 2 - (smallButtonsSize * 2.0).toInt() - spacing4dp * 3, mainFold.foldBounds.bottom, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_HINGE),
+                PositionedLayoutComponent(Rect(width / 2 - smallButtonsSize - spacing4dp, mainFold.foldBounds.bottom, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT),
+                PositionedLayoutComponent(Rect(width / 2 + spacing4dp, mainFold.foldBounds.bottom, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE),
+                PositionedLayoutComponent(Rect(width / 2 + smallButtonsSize + spacing4dp * 3, mainFold.foldBounds.bottom, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_MICROPHONE_TOGGLE),
             )
         )
     }
@@ -212,9 +213,10 @@ class DefaultLayoutProvider(private val screenUnitsConverter: ScreenUnitsConvert
                 PositionedLayoutComponent(Rect(width - lrButtonsSize, 0, lrButtonsSize, lrButtonsSize), LayoutComponent.BUTTON_R),
                 PositionedLayoutComponent(Rect(mainFold.foldBounds.x - smallButtonsSize - spacing8dp, height - smallButtonsSize, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_SELECT),
                 PositionedLayoutComponent(Rect(mainFold.foldBounds.right + spacing8dp, height - smallButtonsSize, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_START),
-                PositionedLayoutComponent(Rect(mainFold.foldBounds.x - smallButtonsSize - spacing8dp, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_HINGE),
-                PositionedLayoutComponent(Rect(mainFold.foldBounds.right + spacing8dp, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT),
-                PositionedLayoutComponent(Rect(mainFold.foldBounds.right + smallButtonsSize + spacing8dp * 2, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE),
+                PositionedLayoutComponent(Rect(mainFold.foldBounds.x - smallButtonsSize * 2 - spacing8dp * 2, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_HINGE),
+                PositionedLayoutComponent(Rect(mainFold.foldBounds.x - smallButtonsSize - spacing8dp, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT),
+                PositionedLayoutComponent(Rect(mainFold.foldBounds.right + spacing8dp, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE),
+                PositionedLayoutComponent(Rect(mainFold.foldBounds.right + smallButtonsSize + spacing8dp * 2, 0, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_MICROPHONE_TOGGLE),
             )
         )
     }
