@@ -12,6 +12,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.rom.config.RomConfig
@@ -37,11 +38,14 @@ fun RomDetailsScreen(
     onRetroAchievementsRetryLoad: () -> Unit,
     onViewAchievement: (RAAchievement) -> Unit,
 ) {
+    val systemUiController = rememberSystemUiController()
     val pagerState = rememberPagerState(
         initialPage = RomDetailsTab.CONFIG.tabIndex,
         pageCount = { RomDetailsTab.entries.size },
     )
     val coroutineScope = rememberCoroutineScope()
+
+    systemUiController.isNavigationBarContrastEnforced = false
 
     Scaffold(
         topBar = {

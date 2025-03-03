@@ -103,6 +103,7 @@ fun BackgroundListScreen(
     val systemUiController = rememberSystemUiController()
 
     systemUiController.setStatusBarColor(MaterialTheme.colors.primaryVariant)
+    systemUiController.isNavigationBarContrastEnforced = false
 
     Scaffold(
         scaffoldState = scaffoldState,

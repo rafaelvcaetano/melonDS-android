@@ -107,6 +107,7 @@ fun DSiWareManagerScreen(
     }
 
     systemUiController.setStatusBarColor(MaterialTheme.colors.primaryVariant)
+    systemUiController.isNavigationBarContrastEnforced = false
 
     val currentState = state
     Scaffold(

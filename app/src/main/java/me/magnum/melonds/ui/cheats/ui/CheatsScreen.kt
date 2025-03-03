@@ -91,6 +91,7 @@ fun CheatsScreen(
     }
 
     systemUiController.setStatusBarColor(MaterialTheme.colors.primaryVariant)
+    systemUiController.isNavigationBarContrastEnforced = false
 
     LaunchedEffect(Unit) {
         viewModel.openGamesEvent.collect {
