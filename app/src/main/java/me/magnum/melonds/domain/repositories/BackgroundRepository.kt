@@ -1,14 +1,12 @@
 package me.magnum.melonds.domain.repositories
 
-import io.reactivex.Completable
-import io.reactivex.Maybe
-import io.reactivex.Observable
+import kotlinx.coroutines.flow.Flow
 import me.magnum.melonds.domain.model.Background
-import java.util.*
+import java.util.UUID
 
 interface BackgroundRepository {
-    fun getBackgrounds(): Observable<List<Background>>
-    fun getBackground(id: UUID): Maybe<Background>
-    fun addBackground(background: Background)
-    fun deleteBackground(background: Background): Completable
+    fun getBackgrounds(): Flow<List<Background>>
+    suspend fun getBackground(id: UUID): Background?
+    suspend fun addBackground(background: Background)
+    suspend fun deleteBackground(background: Background)
 }

@@ -14,7 +14,7 @@ import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.common.camera.BlackDSiCameraSource
 import me.magnum.melonds.common.camera.DSiCameraSource
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
-import me.magnum.melonds.common.runtime.FrameBufferProvider
+import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
 import me.magnum.melonds.domain.repositories.SettingsRepository
@@ -40,8 +40,8 @@ object EmulatorRuntimeModule {
 
     @Provides
     @ActivityRetainedScoped
-    fun provideFrameBufferProvider(): FrameBufferProvider {
-        return FrameBufferProvider()
+    fun provideFrameBufferProvider(): ScreenshotFrameBufferProvider {
+        return ScreenshotFrameBufferProvider()
     }
 
     @Provides
@@ -113,7 +113,7 @@ object EmulatorRuntimeModule {
         @ApplicationContext context: Context,
         settingsRepository: SettingsRepository,
         sramProvider: SramProvider,
-        frameBufferProvider: FrameBufferProvider,
+        screenshotFrameBufferProvider: ScreenshotFrameBufferProvider,
         romFileProcessorFactory: RomFileProcessorFactory,
         permissionHandler: PermissionHandler,
         cameraManagerMultiplexer: DSiCameraSourceMultiplexer,
@@ -122,7 +122,7 @@ object EmulatorRuntimeModule {
             context,
             settingsRepository,
             sramProvider,
-            frameBufferProvider,
+            screenshotFrameBufferProvider,
             romFileProcessorFactory,
             permissionHandler,
             cameraManagerMultiplexer,

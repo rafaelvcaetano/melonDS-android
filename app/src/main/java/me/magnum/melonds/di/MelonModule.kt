@@ -26,6 +26,7 @@ import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.domain.services.DSiNandManager
 import me.magnum.melonds.impl.AndroidDSiNandManager
 import me.magnum.melonds.impl.*
+import me.magnum.melonds.impl.layout.UILayoutProvider
 import me.magnum.melonds.impl.romprocessors.Api24RomFileProcessorFactory
 import me.magnum.melonds.impl.romprocessors.OldRomFileProcessorFactory
 import me.magnum.melonds.ui.romdetails.RomDetailsUiMapper
@@ -62,8 +63,8 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideLayoutsRepository(@ApplicationContext context: Context, gson: Gson, defaultLayoutProvider: DefaultLayoutProvider): LayoutsRepository {
-        return InternalLayoutsRepository(context, gson, defaultLayoutProvider)
+    fun provideLayoutsRepository(@ApplicationContext context: Context, gson: Gson): LayoutsRepository {
+        return InternalLayoutsRepository(context, gson)
     }
 
     @Provides
@@ -150,8 +151,13 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideDefaultLayoutBuilder(@ApplicationContext context: Context, screenUnitsConverter: ScreenUnitsConverter): DefaultLayoutProvider {
-        return DefaultLayoutProvider(context, screenUnitsConverter)
+    fun provideDefaultLayoutBuilder(screenUnitsConverter: ScreenUnitsConverter): DefaultLayoutProvider {
+        return DefaultLayoutProvider(screenUnitsConverter)
+    }
+
+    @Provides
+    fun provideUILayoutProvider(defaultLayoutProvider: DefaultLayoutProvider): UILayoutProvider {
+        return UILayoutProvider(defaultLayoutProvider)
     }
 
     @Provides

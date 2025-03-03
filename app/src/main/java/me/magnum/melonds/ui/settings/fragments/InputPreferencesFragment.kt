@@ -30,8 +30,8 @@ class InputPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
 
         if (!vibrator.supportsVibration()) {
             touchVibratePreference.isVisible = false
-            vibrationStrengthPreference.isVisible = false
         }
+        vibrationStrengthPreference.isVisible = false
 
         vibrationStrengthPreference.setOnPreferenceChangeListener { _, newValue ->
             val strength = newValue as Int

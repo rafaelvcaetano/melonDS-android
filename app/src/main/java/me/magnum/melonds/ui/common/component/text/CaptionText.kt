@@ -1,6 +1,5 @@
 package me.magnum.melonds.ui.common.component.text
 
-import android.util.Log
 import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -39,7 +38,6 @@ fun CaptionText(
     style: TextStyle = MaterialTheme.typography.caption,
 ) {
     CompositionLocalProvider(LocalContentColor provides MaterialTheme.colors.onBackground) {
-        Log.d("CaptionText", "LocalContentColor: ${LocalContentColor.current}, Style color: ${style.color}, Color: $color")
         Text(
             text = text,
             modifier = modifier,

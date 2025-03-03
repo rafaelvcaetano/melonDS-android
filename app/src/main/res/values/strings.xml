@@ -17,6 +17,7 @@
     <string name="update">Update</string>
     <string name="close">Close</string>
     <string name="play">Play</string>
+    <string name="save">Save</string>
     <string name="ellipsis">…</string>
 
     <string name="version_alpha">Alpha</string>
@@ -245,6 +246,19 @@
     <string name="no_cheats_found">Could not find cheats for the current ROM. Try importing a different cheat database.</string>
     <string name="enabled_cheats">Enabled cheats</string>
     <string name="no_enabled_cheats_for_rom">You haven\'t enabled any cheat for this ROM</string>
+    <string name="folder_is_empty">This folder is empty. Try adding your own cheat code</string>
+    <string name="add_cheat_folder">Add cheat folder</string>
+    <string name="new_cheat">New cheat</string>
+    <string name="edit_cheat">Edit cheat</string>
+    <string name="cheat_name">Cheat name</string>
+    <string name="description">Description</string>
+    <string name="cheat_code">Code</string>
+    <string name="error_name_cannot_be_empty">Cheat name cannot be empty</string>
+    <string name="error_code_cannot_be_empty">Code cannot be empty</string>
+    <string name="error_code_invalid_format">Code format is invalid</string>
+    <string name="cheat_deleted">Cheat \"%1$s\" deleted</string>
+    <string name="cheat_folder_default_name">My cheats</string>
+
     <string name="day">Day</string>
     <string name="month">Month</string>
     <string name="symbol_increase">+</string>
@@ -252,7 +266,7 @@
 
     <string name="rom_settings">Rom settings</string> <!-- Accessibility string. Should not use acronyms -->
     <string name="label_rom_config_console">Boot system</string>
-    <string name="label_rom_config_load_gba_rom">Load GBA ROM</string>
+    <string name="label_rom_config_gba_slot">GBA slot</string>
     <string name="label_rom_config_gba_rom_path">GBA ROM path</string>
     <string name="label_rom_config_gba_save_path">GBA save path</string>
     <string name="rom_details_configuration_tab">Configuration</string>
@@ -294,6 +308,7 @@
     <string name="layouts_summary">Manage custom layout configurations</string>
     <string name="action_layouts_new">New layout</string>
     <string name="default_layout_name">Default</string>
+    <string name="custom_layout_default_name">My Layout</string>
     <string name="use_global_layout">Use global layout</string>
     <string name="layout_deleted">Layout deleted</string>
 
@@ -306,10 +321,6 @@
     <string name="revert_changes">Revert changes</string>
     <string name="reset_default">Reset to default</string>
     <string name="exit_without_saving">Exit without saving</string>
-    <string name="portrait_background">Portrait background</string>
-    <string name="portrait_background_mode">Portrait background mode</string>
-    <string name="landscape_background">Landscape background</string>
-    <string name="landscape_background_mode">Landscape background mode</string>
     <string name="save_and_exit">Save and exit</string>
     <string name="layout_name">Layout name</string>
     <string name="layout_orientation">Layout orientation</string>
@@ -317,11 +328,13 @@
     <string name="layout_opacity">Layout opacity</string>
     <string name="layout_background_load_failed">Failed to load the background</string>
 
+    <string name="layout_background_title">Layout Background</string>
+    <string name="background">Background</string>
     <string name="backgrounds">Backgrounds</string>
+    <string name="background_mode">Background mode</string>
     <string name="action_backgrounds_new">New background</string>
     <string name="background_name">Background name</string>
     <string name="background_deleted">Background deleted</string>
-    <string name="background_add_wrong_orientation">Background added but it\'s not visible for the selected orientation.</string>
     <string name="background_add_processing_failed">Failed to process the selected background image. Make sure it\'s not corrupted.</string>
 
     <string name="retro_achievements_login_description">Login with RetroAchievements to view achievements that you can unlock while playing this game!</string>
@@ -389,6 +402,12 @@
         <item>None</item>
         <item>Blow</item>
         <item>Device microphone</item>
+    </string-array>
+
+    <string-array name="gba_slot_options">
+        <item>None</item>
+        <item>GBA ROM</item>
+        <item>Memory expansion</item>
     </string-array>
 
     <string-array name="console_type_options">
@@ -479,13 +498,8 @@
         <item>Stretch</item>
         <item>Fit center</item>
         <item>Fit top</item>
-        <item>Fit bottom</item>
-    </string-array>
-
-    <string-array name="background_landscape_mode_options">
-        <item>Stretch</item>
-        <item>Fit center</item>
         <item>Fit left</item>
+        <item>Fit bottom</item>
         <item>Fit right</item>
     </string-array>
 </resources>

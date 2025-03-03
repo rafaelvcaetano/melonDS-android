@@ -9,15 +9,24 @@ import androidx.room.TypeConverters
 import androidx.room.migration.AutoMigrationSpec
 import androidx.sqlite.db.SupportSQLiteDatabase
 import me.magnum.melonds.database.converters.InstantConverter
-import me.magnum.melonds.database.daos.*
+import me.magnum.melonds.database.daos.CheatDao
+import me.magnum.melonds.database.daos.CheatDatabaseDao
+import me.magnum.melonds.database.daos.CheatFolderDao
+import me.magnum.melonds.database.daos.GameDao
+import me.magnum.melonds.database.daos.RAAchievementsDao
 import me.magnum.melonds.database.entities.CheatDatabaseEntity
 import me.magnum.melonds.database.entities.CheatEntity
 import me.magnum.melonds.database.entities.CheatFolderEntity
 import me.magnum.melonds.database.entities.GameEntity
-import me.magnum.melonds.database.entities.retroachievements.*
+import me.magnum.melonds.database.entities.retroachievements.RAAchievementEntity
+import me.magnum.melonds.database.entities.retroachievements.RAGameEntity
+import me.magnum.melonds.database.entities.retroachievements.RAGameHashEntity
+import me.magnum.melonds.database.entities.retroachievements.RAGameSetMetadata
+import me.magnum.melonds.database.entities.retroachievements.RAPendingAchievementSubmissionEntity
+import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEntity
 
 @Database(
-    version = 4,
+    version = 5,
     exportSchema = true,
     entities = [
         CheatDatabaseEntity::class,
@@ -40,7 +49,7 @@ import me.magnum.melonds.database.entities.retroachievements.*
         AutoMigration(
             from = 3,
             to = 4,
-        )
+        ),
     ]
 )
 @TypeConverters(InstantConverter::class)

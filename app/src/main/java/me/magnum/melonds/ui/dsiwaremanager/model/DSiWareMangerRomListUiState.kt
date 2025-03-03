@@ -1,6 +1,6 @@
 package me.magnum.melonds.ui.dsiwaremanager.model
 
-import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.rom.Rom
 
 sealed class DSiWareMangerRomListUiState {
     object Loading : DSiWareMangerRomListUiState()

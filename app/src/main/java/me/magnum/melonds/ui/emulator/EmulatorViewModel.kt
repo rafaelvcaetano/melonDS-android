@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Maybe
-import io.reactivex.Observable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -21,36 +21,40 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
-import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.rx2.awaitSingleOrNull
 import kotlinx.coroutines.rx2.rxMaybe
 import me.magnum.melonds.MelonEmulator
-import me.magnum.melonds.common.Schedulers
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
-import me.magnum.melonds.common.runtime.FrameBufferProvider
-import me.magnum.melonds.domain.model.BackgroundMode
+import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.FpsCounterPosition
-import me.magnum.melonds.domain.model.LayoutConfiguration
-import me.magnum.melonds.domain.model.Orientation
-import me.magnum.melonds.domain.model.Rom
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.domain.model.emulator.EmulatorSessionUpdateAction
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
+import me.magnum.melonds.domain.model.layout.BackgroundMode
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration
+import me.magnum.melonds.domain.model.layout.ScreenFold
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
+import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.repositories.BackgroundRepository
 import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.domain.repositories.LayoutsRepository
@@ -60,6 +64,7 @@ import me.magnum.melonds.domain.repositories.SaveStatesRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.EmulatorManager
 import me.magnum.melonds.impl.emulator.EmulatorSession
+import me.magnum.melonds.impl.layout.UILayoutProvider
 import me.magnum.melonds.ui.emulator.firmware.FirmwarePauseMenuOption
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
@@ -79,6 +84,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class EmulatorViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
@@ -89,21 +95,21 @@ class EmulatorViewModel @Inject constructor(
     private val layoutsRepository: LayoutsRepository,
     private val backgroundsRepository: BackgroundRepository,
     private val saveStatesRepository: SaveStatesRepository,
-    private val frameBufferProvider: FrameBufferProvider,
+    private val screenshotFrameBufferProvider: ScreenshotFrameBufferProvider,
+    private val uiLayoutProvider: UILayoutProvider,
     private val emulatorManager: EmulatorManager,
     private val emulatorSession: EmulatorSession,
-    private val schedulers: Schedulers
 ) : ViewModel() {
 
     private val sessionCoroutineScope = EmulatorSessionCoroutineScope()
     private var raSessionJob: Job? = null
 
-    private val _currentSystemOrientation = MutableStateFlow<Orientation?>(null)
-
     private val _emulatorState = MutableStateFlow<EmulatorState>(EmulatorState.Uninitialized)
     val emulatorState = _emulatorState.asStateFlow()
 
     private val _layout = MutableStateFlow<LayoutConfiguration?>(null)
+
+    val frameRenderEvent = emulatorManager.frameRenderedEvent
 
     private val _runtimeLayout = MutableStateFlow<RuntimeInputLayoutConfiguration?>(null)
     val runtimeLayout = _runtimeLayout.asStateFlow()
@@ -129,22 +135,30 @@ class EmulatorViewModel @Inject constructor(
     private val _uiEvent = EventSharedFlow<EmulatorUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
-    fun loadRom(rom: Rom) {
+    init {
         viewModelScope.launch {
-            resetEmulatorState(EmulatorState.LoadingRom)
-            sessionCoroutineScope.launch {
-                launchRom(rom)
+            _layout.filterNotNull().collect {
+                uiLayoutProvider.setCurrentLayoutConfiguration(it)
             }
         }
     }
 
-    fun loadRom(romUri: Uri) {
+    fun loadRom(rom: Rom, glContext: Long) {
+        viewModelScope.launch {
+            resetEmulatorState(EmulatorState.LoadingRom)
+            sessionCoroutineScope.launch {
+                launchRom(rom, glContext)
+            }
+        }
+    }
+
+    fun loadRom(romUri: Uri, glContext: Long) {
         viewModelScope.launch {
             resetEmulatorState(EmulatorState.LoadingRom)
             sessionCoroutineScope.launch {
                 val rom = getRomAtUri(romUri).awaitSingleOrNull()
                 if (rom != null) {
-                    launchRom(rom)
+                    launchRom(rom, glContext)
                 } else {
                     _emulatorState.value = EmulatorState.RomNotFoundError(romUri.toString())
                 }
@@ -152,13 +166,13 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    fun loadRom(romPath: String) {
+    fun loadRom(romPath: String, glContext: Long) {
         viewModelScope.launch {
             resetEmulatorState(EmulatorState.LoadingRom)
             sessionCoroutineScope.launch {
                 val rom = getRomAtPath(romPath).awaitSingleOrNull()
                 if (rom != null) {
-                    launchRom(rom)
+                    launchRom(rom, glContext)
                 } else {
                     _emulatorState.value = EmulatorState.RomNotFoundError(romPath)
                 }
@@ -166,7 +180,7 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    private suspend fun launchRom(rom: Rom) = coroutineScope {
+    private suspend fun launchRom(rom: Rom, glContext: Long) = coroutineScope {
         startEmulatorSession(EmulatorSession.SessionType.RomSession(rom))
         startObservingBackground()
         startObservingRuntimeInputLayoutConfiguration()
@@ -176,7 +190,7 @@ class EmulatorViewModel @Inject constructor(
         startRetroAchievementsSession(rom)
 
         val cheats = getRomInfo(rom)?.let { getRomEnabledCheats(it) } ?: emptyList()
-        val result = emulatorManager.loadRom(rom, cheats)
+        val result = emulatorManager.loadRom(rom, cheats, glContext)
         when (result) {
             is RomLaunchResult.LaunchFailedSramProblem,
             is RomLaunchResult.LaunchFailed -> {
@@ -192,7 +206,7 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    fun loadFirmware(consoleType: ConsoleType) {
+    fun loadFirmware(consoleType: ConsoleType, glContext: Long) {
         viewModelScope.launch {
             resetEmulatorState(EmulatorState.LoadingFirmware)
             startEmulatorSession(EmulatorSession.SessionType.FirmwareSession(consoleType))
@@ -202,7 +216,7 @@ class EmulatorViewModel @Inject constructor(
                 startObservingRendererConfiguration()
                 startObservingLayoutForFirmware()
 
-                val result = emulatorManager.loadFirmware(consoleType)
+                val result = emulatorManager.loadFirmware(consoleType, glContext)
                 when (result) {
                     is FirmwareLaunchResult.LaunchFailed -> {
                         _emulatorState.value = EmulatorState.FirmwareLoadError(result.reason)
@@ -217,7 +231,15 @@ class EmulatorViewModel @Inject constructor(
     }
 
     fun setSystemOrientation(orientation: Orientation) {
-        _currentSystemOrientation.value = orientation
+        uiLayoutProvider.updateCurrentOrientation(orientation)
+    }
+
+    fun setUiSize(width: Int, height: Int) {
+        uiLayoutProvider.updateUiSize(width, height)
+    }
+
+    fun setScreenFolds(folds: List<ScreenFold>) {
+        uiLayoutProvider.updateFolds(folds)
     }
 
     fun onSettingsChanged() {
@@ -292,7 +314,7 @@ class EmulatorViewModel @Inject constructor(
 
     fun stopEmulator() {
         emulatorManager.stopEmulator()
-        frameBufferProvider.clearFrameBuffer()
+        screenshotFrameBufferProvider.clearBuffer()
     }
 
     fun onPauseMenuOptionSelected(option: PauseMenuOption) {
@@ -448,7 +470,7 @@ class EmulatorViewModel @Inject constructor(
     private suspend fun saveRomState(rom: Rom, slot: SaveStateSlot): Boolean {
         val slotUri = saveStatesRepository.getRomSaveStateUri(rom, slot)
         return if (emulatorManager.saveState(slotUri)) {
-            val screenshot = frameBufferProvider.getScreenshot()
+            val screenshot = screenshotFrameBufferProvider.getScreenshot()
             saveStatesRepository.setRomSaveStateScreenshot(rom, slot, screenshot)
             true
         } else {
@@ -469,21 +491,17 @@ class EmulatorViewModel @Inject constructor(
         sessionCoroutineScope.launch {
             combine(
                 _layout,
-                _currentSystemOrientation,
+                uiLayoutProvider.currentLayout,
                 settingsRepository.showSoftInput(),
                 settingsRepository.isTouchHapticFeedbackEnabled(),
                 settingsRepository.getSoftInputOpacity(),
-            ) { layout, orientation, showSoftInput, isHapticFeedbackEnabled, inputOpacity ->
-                if (layout == null || orientation == null) {
+            ) { layoutConfiguration, variant, showSoftInput, isHapticFeedbackEnabled, inputOpacity ->
+                val layout = variant?.second
+                if (layoutConfiguration == null || layout == null) {
                     null
                 } else {
-                    val layoutToUse = when (orientation) {
-                        Orientation.PORTRAIT -> layout.portraitLayout
-                        Orientation.LANDSCAPE -> layout.landscapeLayout
-                    }
-
-                    val opacity = if (layout.useCustomOpacity) {
-                        layout.opacity
+                    val opacity = if (layoutConfiguration.useCustomOpacity) {
+                        layoutConfiguration.opacity
                     } else {
                         inputOpacity
                     }
@@ -492,8 +510,8 @@ class EmulatorViewModel @Inject constructor(
                         showSoftInput = showSoftInput,
                         softInputOpacity = opacity,
                         isHapticFeedbackEnabled = isHapticFeedbackEnabled,
-                        layoutOrientation = layout.orientation,
-                        layout = layoutToUse,
+                        layoutOrientation = layoutConfiguration.orientation,
+                        layout = layout,
                     )
                 }
             }.collect(_runtimeLayout)
@@ -524,37 +542,31 @@ class EmulatorViewModel @Inject constructor(
 
     private fun startObservingBackground() {
         sessionCoroutineScope.launch {
-            combine(_layout, _currentSystemOrientation, ensureEmulatorIsRunning()) { layout, orientation, _ ->
-                if (layout == null || orientation == null) {
+            combine(uiLayoutProvider.currentLayout, ensureEmulatorIsRunning()) { variant, _ ->
+                val layout = variant?.second
+                if (layout == null) {
                     RuntimeBackground.None
                 } else {
-                    if (orientation == Orientation.PORTRAIT) {
-                        loadBackground(layout.portraitLayout.backgroundId, layout.portraitLayout.backgroundMode)
-                    } else {
-                        loadBackground(layout.landscapeLayout.backgroundId, layout.landscapeLayout.backgroundMode)
-                    }
+                    loadBackground(layout.backgroundId, layout.backgroundMode)
                 }
             }.collect(_background)
         }
     }
 
-    private suspend fun startObservingLayoutForRom(rom: Rom) {
+    private fun startObservingLayoutForRom(rom: Rom) {
         val romLayoutId = rom.config.layoutId
-        val layoutObservable = if (romLayoutId == null) {
-            getGlobalLayoutObservable()
+        val layoutFlow = if (romLayoutId == null) {
+            getGlobalLayoutFlow()
         } else {
-            // Load and observe ROM layout but switch to global layout if not found
-            layoutsRepository.getLayout(romLayoutId)
-                    .flatMapObservable {
-                        // Continue observing the ROM layout but if the observable completes, this means that it is no
-                        // longer available. From that point on, start observing the global layout
-                        layoutsRepository.observeLayout(romLayoutId).concatWith(getGlobalLayoutObservable())
-                    }
-                    .switchIfEmpty(getGlobalLayoutObservable())
+            // Load and observe ROM layout but switch to global layout if the ROM layout stops existing
+            layoutsRepository.observeLayout(romLayoutId)
+                .onCompletion {
+                    emitAll(getGlobalLayoutFlow())
+                }
         }
 
         sessionCoroutineScope.launch {
-            combine(layoutObservable.subscribeOn(schedulers.backgroundThreadScheduler).asFlow(), ensureEmulatorIsRunning()) { layout, _ ->
+            combine(layoutFlow, ensureEmulatorIsRunning()) { layout, _ ->
                 layout
             }.collect(_layout)
         }
@@ -572,7 +584,7 @@ class EmulatorViewModel @Inject constructor(
         _layout.value = null
 
         sessionCoroutineScope.launch {
-            combine(getGlobalLayoutObservable().subscribeOn(schedulers.backgroundThreadScheduler).asFlow(), ensureEmulatorIsRunning()) { layout, _ ->
+            combine(getGlobalLayoutFlow(), ensureEmulatorIsRunning()) { layout, _ ->
                 layout
             }.collect(_layout)
         }
@@ -582,23 +594,20 @@ class EmulatorViewModel @Inject constructor(
         return if (backgroundId == null) {
             RuntimeBackground(null, mode)
         } else {
-            val message = backgroundsRepository.getBackground(backgroundId)
-                    .subscribeOn(schedulers.backgroundThreadScheduler)
-                    .materialize()
-                    .await()
-
-            RuntimeBackground(message.value, mode)
+            val background = backgroundsRepository.getBackground(backgroundId)
+            RuntimeBackground(background, mode)
         }
     }
 
-    private fun getGlobalLayoutObservable(): Observable<LayoutConfiguration> {
-        return settingsRepository.observeSelectedLayoutId()
-                .startWith(settingsRepository.getSelectedLayoutId())
-                .switchMap { layoutId ->
-                    layoutsRepository.getLayout(layoutId)
-                            .flatMapObservable { layoutsRepository.observeLayout(layoutId).startWith(it) }
-                            .switchIfEmpty(layoutsRepository.observeLayout(LayoutConfiguration.DEFAULT_ID))
-                }
+    private fun getGlobalLayoutFlow(): Flow<LayoutConfiguration> {
+        return settingsRepository.observeSelectedLayoutId().asFlow()
+            .onStart { emit(settingsRepository.getSelectedLayoutId()) }
+            .flatMapLatest {
+                layoutsRepository.observeLayout(it)
+                    .onCompletion {
+                        emitAll(layoutsRepository.observeLayout(LayoutConfiguration.DEFAULT_ID))
+                    }
+            }
     }
 
     private fun getRomInfo(rom: Rom): RomInfo? {
@@ -635,7 +644,7 @@ class EmulatorViewModel @Inject constructor(
             return emptyList()
         }
 
-        return cheatsRepository.getRomEnabledCheats(romInfo).await()
+        return cheatsRepository.getRomEnabledCheats(romInfo)
     }
 
     private suspend fun getRomAchievementData(rom: Rom): GameAchievementData {

@@ -21,6 +21,13 @@
             android:entryValues="@array/video_internal_resolution_values"
             android:defaultValue="1"/>
 
+    <SwitchPreference
+            android:key="enable_threaded_rendering"
+            android:title="@string/threaded_rendering"
+            android:summary="@string/threaded_rendering_summary"
+            app:iconSpaceReserved="false"
+            android:defaultValue="true" />
+
     <ListPreference
             android:key="video_filtering"
             android:title="@string/filter"
@@ -28,14 +35,7 @@
             app:iconSpaceReserved="false"
             android:entries="@array/video_filtering_options"
             android:entryValues="@array/video_filtering_values"
-            android:defaultValue="linear"/>
-
-    <SwitchPreference
-            android:key="enable_threaded_rendering"
-            android:title="@string/threaded_rendering"
-            android:summary="@string/threaded_rendering_summary"
-            app:iconSpaceReserved="false"
-            android:defaultValue="true" />
+            android:defaultValue="none"/>
 
     <ListPreference
             android:key="fps_counter_position"

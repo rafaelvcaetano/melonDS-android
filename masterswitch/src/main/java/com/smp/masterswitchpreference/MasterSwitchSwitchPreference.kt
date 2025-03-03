@@ -8,6 +8,7 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.preference.PreferenceViewHolder
 import androidx.preference.SwitchPreferenceCompat
+import androidx.preference.R
 
 internal class MasterSwitchSwitchPreference : SwitchPreferenceCompat {
 

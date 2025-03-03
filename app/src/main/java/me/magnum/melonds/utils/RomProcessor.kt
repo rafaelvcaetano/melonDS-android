@@ -7,6 +7,7 @@ import me.magnum.melonds.common.Crc32
 import me.magnum.melonds.common.cheats.ProgressTrackerInputStream
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RomMetadata
+import me.magnum.melonds.domain.model.rom.Rom
 import java.io.BufferedInputStream
 import java.io.InputStream
 import java.math.BigInteger
@@ -169,7 +170,7 @@ object RomProcessor {
 		return bitmap
 	}
 
-	fun getRomInfo(inputStream: InputStream): RomInfo? {
+	fun getRomInfo(rom: Rom, inputStream: InputStream): RomInfo? {
 		val romHeader = ByteArray(0x200)
 		if (inputStream.read(romHeader) < 0x200) {
 			return null
@@ -177,8 +178,8 @@ object RomProcessor {
 
 		val gameTitle = romHeader.decodeToString(endIndex = 12)
 		val gameCode = romHeader.decodeToString(startIndex = 12, endIndex = 12 + 4)
-		val headerChecksum = Crc32(romHeader)
-		return RomInfo(gameCode, headerChecksum.value, gameTitle)
+		val headerChecksum = Crc32.compute(romHeader)
+		return RomInfo(gameCode, headerChecksum, gameTitle, rom.name)
 	}
 
 	private fun byteArrayToInt(intData: ByteArray, offset: Int = 0): Int {
@@ -291,7 +292,7 @@ object RomProcessor {
 			val sortedProcessors = processors.sortedBy { it.streamOffset }.toMutableList()
 
 			while (sortedProcessors.isNotEmpty()) {
-				val processor = sortedProcessors.removeFirst()
+				val processor = sortedProcessors.removeAt(0)
 				val bytesToSkip = processor.streamOffset - trackedStream.totalReadBytes
 				trackedStream.skipStreamBytes(bytesToSkip)
 

@@ -2,7 +2,7 @@ package me.magnum.melonds.impl.emulator
 
 import android.net.Uri
 import me.magnum.melonds.common.uridelegates.UriHandler
-import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.repositories.SettingsRepository
 
 class SramProvider(

@@ -3,7 +3,7 @@ package me.magnum.melonds.parcelables
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.core.net.toUri
-import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.extensions.parcelable
 import java.util.*
 

@@ -10,9 +10,12 @@ class SingleButtonInputHandler(inputListener: IInputListener, private val input:
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 inputListener.onKeyPress(input)
-                performHapticFeedback()
+                performHapticFeedback(v, HapticFeedbackType.KEY_PRESS)
             }
-            MotionEvent.ACTION_UP -> inputListener.onKeyReleased(input)
+            MotionEvent.ACTION_UP -> {
+                inputListener.onKeyReleased(input)
+                performHapticFeedback(v, HapticFeedbackType.KEY_RELEASE)
+            }
         }
         return true
     }

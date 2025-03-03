@@ -5,7 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.core.view.children
-import me.magnum.melonds.domain.model.BackgroundMode
+import me.magnum.melonds.domain.model.layout.BackgroundMode
 
 fun View.setViewEnabledRecursive(enabled: Boolean) {
     this.isEnabled = enabled

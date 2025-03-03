@@ -1,12 +1,14 @@
 package me.magnum.melonds.ui.layouteditor
 
 import android.content.Context
-import android.content.res.Configuration
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import me.magnum.melonds.domain.model.*
+import me.magnum.melonds.domain.model.layout.LayoutComponent
+import me.magnum.melonds.domain.model.layout.PositionedLayoutComponent
+import me.magnum.melonds.domain.model.layout.UILayout
 import me.magnum.melonds.ui.common.LayoutComponentView
 import me.magnum.melonds.ui.common.LayoutView
 import kotlin.math.*
@@ -28,6 +30,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
     private val minComponentSize by lazy { screenUnitsConverter.dpToPixels(30f).toInt() }
     private var selectedView: LayoutComponentView? = null
     private var selectedViewAnchor = Anchor.TOP_LEFT
+    private var modifiedByUser = false
 
     init {
         super.setOnClickListener {
@@ -39,12 +42,9 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         }
     }
 
-    fun instantiateLayout(layoutConfiguration: LayoutConfiguration) {
-        if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            instantiateLayout(layoutConfiguration.portraitLayout)
-        } else {
-            instantiateLayout(layoutConfiguration.landscapeLayout)
-        }
+    override fun instantiateLayout(layoutConfiguration: UILayout) {
+        super.instantiateLayout(layoutConfiguration)
+        modifiedByUser = false
     }
 
     fun setOnViewSelectedListener(listener: ViewSelectedListener) {
@@ -60,10 +60,15 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         val componentHeight = defaultComponentWidth / componentBuilder.getAspectRatio()
         val componentView = addPositionedLayoutComponent(PositionedLayoutComponent(Rect(0, 0, defaultComponentWidth, componentHeight.toInt()), component))
         views[component] = componentView
+        modifiedByUser = true
     }
 
-    fun buildCurrentLayout(): UILayout {
-        return UILayout(views.values.map { PositionedLayoutComponent(it.getRect(), it.component) })
+    fun isModifiedByUser(): Boolean {
+        return modifiedByUser
+    }
+
+    fun buildCurrentLayout(): List<PositionedLayoutComponent> {
+        return views.values.map { PositionedLayoutComponent(it.getRect(), it.component) }
     }
 
     fun handleKeyDown(event: KeyEvent): Boolean {
@@ -194,6 +199,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         val finalX = min(max(currentPosition.x + offsetX, 0f), width - view.getWidth().toFloat())
         val finalY = min(max(currentPosition.y + offsetY, 0f), height - view.getHeight().toFloat())
         view.setPosition(Point(finalX.toInt(), finalY.toInt()))
+        modifiedByUser = true
     }
 
     fun scaleSelectedView(newScale: Float) {
@@ -258,5 +264,6 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
             }
         }
         currentlySelectedView.setPositionAndSize(Point(viewX, viewY), newViewWidth, newViewHeight)
+        modifiedByUser = true
     }
 }

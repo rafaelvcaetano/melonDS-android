@@ -3,6 +3,7 @@ package me.magnum.melonds.ui.romdetails.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -13,6 +14,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import me.magnum.melonds.R
 import me.magnum.melonds.ui.common.autofill
 import me.magnum.melonds.ui.common.melonOutlinedTextFieldColors
@@ -24,22 +26,23 @@ fun RetroAchievementsLoginDialog(
     onDismiss: () -> Unit,
     onLogin: (username: String, password: String) -> Unit,
 ) {
-    var username by remember {
+    var username by rememberSaveable {
         mutableStateOf("")
     }
     var password by remember {
         mutableStateOf("")
     }
 
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(Modifier.fillMaxWidth()) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Card(Modifier.widthIn(max = 450.dp).fillMaxWidth(0.85f)) {
+            Column {
                 Box(
                     modifier = Modifier
                         .heightIn(min = 64.dp)
-                        .padding(start = 24.dp, end = 24.dp),
+                        .padding(horizontal = 24.dp),
                     contentAlignment = Alignment.CenterStart,
                 ) {
                     Text(
@@ -57,10 +60,12 @@ fun RetroAchievementsLoginDialog(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     OutlinedTextField(
-                        modifier = Modifier.autofill(
-                            autofillTypes = listOf(AutofillType.Username),
-                            onFill = { username = it },
-                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .autofill(
+                                autofillTypes = listOf(AutofillType.Username),
+                                onFill = { username = it },
+                            ),
                         value = username,
                         onValueChange = { username = it },
                         colors = melonOutlinedTextFieldColors(),
@@ -70,10 +75,12 @@ fun RetroAchievementsLoginDialog(
                     )
 
                     OutlinedTextField(
-                        modifier = Modifier.autofill(
-                            autofillTypes = listOf(AutofillType.Password),
-                            onFill = { password = it },
-                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .autofill(
+                                autofillTypes = listOf(AutofillType.Password),
+                                onFill = { password = it },
+                            ),
                         value = password,
                         onValueChange = { password = it },
                         visualTransformation = PasswordVisualTransformation(),

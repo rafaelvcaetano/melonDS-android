@@ -26,7 +26,7 @@ private enum class FabState {
 
 @Composable
 fun MultiActionFloatingActionButton(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     actions: List<FabActionItem>,
     onActionClicked: (FabActionItem) -> Unit,
     content: @Composable () -> Unit,

@@ -36,7 +36,6 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         setPreferencesFromResource(R.xml.pref_video, rootKey)
 
         softwareRendererPreferences.apply {
-            add(findPreference("video_filtering")!!)
             add(findPreference("enable_threaded_rendering")!!)
         }
 

@@ -3,7 +3,7 @@ package me.magnum.rcheevosapi.dto.mapper
 import me.magnum.rcheevosapi.dto.AchievementDto
 import me.magnum.rcheevosapi.model.RAAchievement
 import me.magnum.rcheevosapi.model.RAGameId
-import java.net.URL
+import java.net.URI
 
 internal fun AchievementDto.mapToModel(gameId: RAGameId): RAAchievement {
     return RAAchievement(
@@ -15,8 +15,8 @@ internal fun AchievementDto.mapToModel(gameId: RAGameId): RAAchievement {
         description = description,
         points = points.toIntOrNull() ?: 0,
         displayOrder = displayOrder?.toIntOrNull() ?: 0,
-        badgeUrlUnlocked = URL(badgeUrl),
-        badgeUrlLocked = URL(badgeUrlLocked),
+        badgeUrlUnlocked = URI(badgeUrl).toURL(),
+        badgeUrlLocked = URI(badgeUrlLocked).toURL(),
         memoryAddress = memoryAddress,
         type = achievementFlagsToType(flags),
     )

@@ -3,8 +3,8 @@ package me.magnum.melonds.domain.repositories
 import android.net.Uri
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
-import me.magnum.melonds.domain.model.Rom
-import me.magnum.melonds.domain.model.RomConfig
+import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.domain.model.RomScanningStatus
 import java.util.*
 

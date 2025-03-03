@@ -8,7 +8,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.DialogLayoutPropertiesBinding
-import me.magnum.melonds.domain.model.LayoutConfiguration
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.extensions.setViewEnabledRecursive
 import me.magnum.melonds.ui.common.TextInputDialog
 
@@ -57,7 +57,7 @@ class LayoutPropertiesDialog : DialogFragment() {
             useCustomOpacity = savedInstanceState.getBoolean(KEY_CUSTOM_OPACITY)
             layoutOpacity = savedInstanceState.getInt(KEY_LAYOUT_OPACITY)
         } else {
-            layoutName = arguments?.getString(KEY_LAYOUT_NAME)
+            layoutName = arguments?.getString(KEY_LAYOUT_NAME) ?: getString(R.string.custom_layout_default_name)
             layoutOrientation = LayoutConfiguration.LayoutOrientation.entries[arguments?.getInt(KEY_LAYOUT_ORIENTATION) ?: 0]
             useCustomOpacity = arguments?.getBoolean(KEY_CUSTOM_OPACITY) ?: true
             layoutOpacity = arguments?.getInt(KEY_LAYOUT_OPACITY) ?: 0

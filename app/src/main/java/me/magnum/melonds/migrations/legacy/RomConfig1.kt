@@ -2,8 +2,8 @@ package me.magnum.melonds.migrations.legacy
 
 import android.net.Uri
 import com.google.gson.annotations.SerializedName
-import me.magnum.melonds.domain.model.RuntimeConsoleType
-import me.magnum.melonds.domain.model.RuntimeMicSource
+import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
+import me.magnum.melonds.domain.model.rom.config.RuntimeMicSource
 import java.util.*
 
 data class RomConfig1(

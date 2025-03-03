@@ -9,7 +9,7 @@ import androidx.core.view.isVisible
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.domain.model.Input
-import me.magnum.melonds.domain.model.LayoutComponent
+import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.ui.common.LayoutView
 import me.magnum.melonds.ui.emulator.input.*
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration

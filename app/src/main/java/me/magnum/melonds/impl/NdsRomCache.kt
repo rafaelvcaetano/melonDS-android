@@ -5,7 +5,7 @@ import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
-import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.SizeUnit
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import java.io.File

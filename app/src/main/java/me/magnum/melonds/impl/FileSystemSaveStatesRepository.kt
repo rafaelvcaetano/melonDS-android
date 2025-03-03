@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import me.magnum.melonds.common.uridelegates.UriHandler
-import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.domain.repositories.SaveStatesRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository

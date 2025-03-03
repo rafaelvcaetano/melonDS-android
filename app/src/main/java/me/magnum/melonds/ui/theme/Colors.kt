@@ -1,15 +1,11 @@
 package me.magnum.melonds.ui.theme
 
-import androidx.compose.material.Colors
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import me.magnum.melonds.R
-
-@Suppress("unused")
-val Colors.toolbarBackground: Color @Composable get() = colorResource(id = R.color.toolbarBackground)
 
 val uncheckedThumbColor: Color @Composable get() = colorResource(id = R.color.switchThumbUnselected)
 

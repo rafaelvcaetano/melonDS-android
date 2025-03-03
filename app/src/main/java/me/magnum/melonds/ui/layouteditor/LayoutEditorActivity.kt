@@ -1,8 +1,9 @@
 package me.magnum.melonds.ui.layouteditor
 
-import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.Handler
+import android.util.Log
 import android.view.KeyEvent
 import android.widget.SeekBar
 import android.widget.Toast
@@ -11,23 +12,33 @@ import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.*
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.isGone
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.window.layout.FoldingFeature
+import androidx.window.layout.WindowInfoTracker
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityLayoutEditorBinding
-import me.magnum.melonds.domain.model.LayoutComponent
-import me.magnum.melonds.domain.model.LayoutConfiguration
-import me.magnum.melonds.domain.model.Orientation
+import me.magnum.melonds.domain.model.layout.LayoutComponent
+import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
+import me.magnum.melonds.domain.model.ui.Orientation
+import me.magnum.melonds.domain.model.layout.ScreenFold
 import me.magnum.melonds.extensions.insetsControllerCompat
 import me.magnum.melonds.extensions.setBackgroundMode
 import me.magnum.melonds.extensions.setLayoutOrientation
 import me.magnum.melonds.impl.ScreenUnitsConverter
 import me.magnum.melonds.ui.common.TextInputDialog
 import me.magnum.melonds.utils.getLayoutComponentName
-import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -40,7 +51,7 @@ class LayoutEditorActivity : AppCompatActivity() {
 
     enum class MenuOption(@StringRes val stringRes: Int) {
         PROPERTIES(R.string.properties),
-        BACKGROUNDS(R.string.backgrounds),
+        BACKGROUNDS(R.string.background),
         REVERT(R.string.revert_changes),
         RESET(R.string.reset_default),
         SAVE_AND_EXIT(R.string.save_and_exit),
@@ -54,7 +65,7 @@ class LayoutEditorActivity : AppCompatActivity() {
 
     private val viewModel: LayoutEditorViewModel by viewModels()
     private lateinit var binding: ActivityLayoutEditorBinding
-    private var currentlySelectedBackgroundId: UUID? = null
+    private lateinit var handler: Handler
     private var areBottomControlsShown = true
     private var areScalingControlsShown = true
     private var selectedViewMinSize = 0
@@ -62,6 +73,7 @@ class LayoutEditorActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLayoutEditorBinding.inflate(layoutInflater)
+        handler = Handler(mainLooper)
         setContentView(binding.root)
 
         onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
@@ -108,22 +120,68 @@ class LayoutEditorActivity : AppCompatActivity() {
             }
         })
 
-        val currentOrientation = if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            Orientation.PORTRAIT
-        } else {
-            Orientation.LANDSCAPE
-        }
-        viewModel.setCurrentSystemOrientation(currentOrientation)
-        viewModel.getBackground().observe(this) {
-            updateBackground(it)
-        }
-        viewModel.onLayoutPropertiesUpdate().observe(this) {
-            onLayoutPropertiesUpdated()
+        binding.viewLayoutEditor.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            val oldWith = oldRight - oldLeft
+            val oldHeight = oldBottom - oldTop
+
+            val viewWidth = right - left
+            val viewHeight = bottom - top
+
+            if (viewWidth != oldWith || viewHeight != oldHeight) {
+                storeLayoutChanges()
+                viewModel.setCurrentUiSize(viewWidth, viewHeight)
+            }
         }
 
         setupFullscreen()
-        instantiateLayout()
         hideScalingControls(false)
+        updateOrientation(resources.configuration)
+
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.currentLayout.collect {
+                    if (it == null) {
+                        binding.viewLayoutEditor.destroyLayout()
+                    } else {
+                        Log.d("LayoutEditorActivity", "Instantiating layout. On main thread: ${mainLooper.isCurrentThread}")
+                        handler.removeCallbacksAndMessages(null)
+                        handler.post {
+                            binding.viewLayoutEditor.instantiateLayout(it.layout)
+                            setLayoutOrientation(it.orientation)
+                        }
+                    }
+                }
+            }
+        }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.background.collect {
+                    it?.let {
+                        updateBackground(it)
+                    }
+                }
+            }
+        }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                WindowInfoTracker.getOrCreate(this@LayoutEditorActivity).windowLayoutInfo(this@LayoutEditorActivity).collect { info ->
+                    val folds = info.displayFeatures.mapNotNull {
+                        if (it is FoldingFeature) {
+                            ScreenFold(
+                                orientation = if (it.orientation == FoldingFeature.Orientation.HORIZONTAL) Orientation.LANDSCAPE else Orientation.PORTRAIT,
+                                type = if (it.isSeparating) ScreenFold.FoldType.SEAMLESS else ScreenFold.FoldType.GAP,
+                                foldBounds = Rect(it.bounds.left, it.bounds.top, it.bounds.width(), it.bounds.height())
+                            )
+                        } else {
+                            null
+                        }
+                    }
+
+                    storeLayoutChanges()
+                    viewModel.setScreenFolds(folds)
+                }
+            }
+        }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -141,16 +199,26 @@ class LayoutEditorActivity : AppCompatActivity() {
         setupFullscreen()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
         storeLayoutChanges()
+        updateOrientation(newConfig)
+    }
+
+    private fun updateOrientation(configuration: Configuration) {
+        val orientation = if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            Orientation.PORTRAIT
+        } else {
+            Orientation.LANDSCAPE
+        }
+        viewModel.setCurrentSystemOrientation(orientation)
     }
 
     private fun storeLayoutChanges() {
-        val layoutConfiguration = binding.viewLayoutEditor.buildCurrentLayout().copy(
-                backgroundId = currentlySelectedBackgroundId
-        )
-        viewModel.saveLayoutToCurrentConfiguration(layoutConfiguration)
+        if (binding.viewLayoutEditor.isModifiedByUser()) {
+            val layoutComponents = binding.viewLayoutEditor.buildCurrentLayout()
+            viewModel.saveLayoutToCurrentConfiguration(layoutComponents)
+        }
     }
 
     private fun setupFullscreen() {
@@ -158,23 +226,6 @@ class LayoutEditorActivity : AppCompatActivity() {
             it.hide(WindowInsetsCompat.Type.navigationBars())
             it.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
-    }
-
-    private fun instantiateLayout() {
-        val currentLayoutConfiguration = viewModel.getCurrentLayoutConfiguration()
-        if (currentLayoutConfiguration == null) {
-            instantiateDefaultConfiguration()
-            currentlySelectedBackgroundId = null
-        } else {
-            binding.viewLayoutEditor.instantiateLayout(currentLayoutConfiguration)
-            setLayoutOrientation(currentLayoutConfiguration.orientation)
-        }
-    }
-
-    private fun instantiateDefaultConfiguration() {
-        val defaultLayout = viewModel.getDefaultLayoutConfiguration()
-        viewModel.setCurrentLayoutConfiguration(defaultLayout)
-        binding.viewLayoutEditor.instantiateLayout(defaultLayout)
     }
 
     private fun updateBackground(background: RuntimeBackground) {
@@ -188,20 +239,6 @@ class LayoutEditorActivity : AppCompatActivity() {
                 Toast.makeText(this@LayoutEditorActivity, R.string.layout_background_load_failed, Toast.LENGTH_LONG).show()
             }
         })
-    }
-
-    private fun onLayoutPropertiesUpdated() {
-        viewModel.getCurrentLayoutConfiguration()?.let {
-            val desiredSystemOrientation = when(it.orientation) {
-                LayoutConfiguration.LayoutOrientation.FOLLOW_SYSTEM -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                LayoutConfiguration.LayoutOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                LayoutConfiguration.LayoutOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-            }
-
-            if (desiredSystemOrientation != requestedOrientation) {
-                requestedOrientation = desiredSystemOrientation
-            }
-        }
     }
 
     private fun showBottomControls(animate: Boolean = true) {
@@ -322,6 +359,7 @@ class LayoutEditorActivity : AppCompatActivity() {
     }
 
     private fun openMenu() {
+        storeLayoutChanges()
         val values = MenuOption.entries
         val options = Array(values.size) { i -> getString(values[i].stringRes) }
 
@@ -336,13 +374,13 @@ class LayoutEditorActivity : AppCompatActivity() {
         when (option) {
             MenuOption.PROPERTIES -> openPropertiesDialog()
             MenuOption.BACKGROUNDS -> openBackgroundsConfigDialog()
-            MenuOption.REVERT -> revertLayoutConfiguration()
-            MenuOption.RESET -> instantiateDefaultConfiguration()
+            MenuOption.REVERT -> viewModel.revertLayoutChanges()
+            MenuOption.RESET -> viewModel.resetLayout()
             MenuOption.SAVE_AND_EXIT -> {
-                if (viewModel.isCurrentLayoutNew()) {
-                    showLayoutNameInputDialog()
-                } else {
+                if (viewModel.currentLayoutHasName()) {
                     saveLayoutAndExit()
+                } else {
+                    showLayoutNameInputDialog()
                 }
             }
             MenuOption.EXIT_WITHOUT_SAVING -> finish()
@@ -357,32 +395,25 @@ class LayoutEditorActivity : AppCompatActivity() {
 
     private fun openBackgroundsConfigDialog() {
         storeLayoutChanges()
-        val layoutConfiguration = viewModel.getCurrentLayoutConfiguration() ?: return
-        LayoutBackgroundsDialog.newInstance(layoutConfiguration).show(supportFragmentManager, null)
+        LayoutBackgroundDialog.newInstance().show(supportFragmentManager, null)
     }
 
     private fun showLayoutNameInputDialog() {
         TextInputDialog.Builder()
-                .setTitle(getString(R.string.layout_name))
-                .setOnConfirmListener {
-                    viewModel.setCurrentLayoutName(it)
-                    saveLayoutAndExit()
-                }
-                .build()
-                .show(supportFragmentManager, null)
+            .setTitle(getString(R.string.layout_name))
+            .setText(getString(R.string.custom_layout_default_name))
+            .setOnConfirmListener {
+                viewModel.setCurrentLayoutName(it)
+                saveLayoutAndExit()
+            }
+            .build()
+            .show(supportFragmentManager, null)
     }
 
     private fun saveLayoutAndExit() {
         storeLayoutChanges()
         viewModel.saveCurrentLayout()
         finish()
-    }
-
-    private fun revertLayoutConfiguration() {
-        viewModel.getInitialLayoutConfiguration()?.let {
-            viewModel.setCurrentLayoutConfiguration(it)
-            binding.viewLayoutEditor.instantiateLayout(it)
-        }
     }
 
     override fun onDestroy() {
