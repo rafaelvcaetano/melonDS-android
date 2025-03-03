@@ -38,6 +38,7 @@ class InputSetupActivity : AppCompatActivity() {
                 Input.HINGE -> R.string.input_lid
                 Input.PAUSE -> R.string.input_pause
                 Input.FAST_FORWARD -> R.string.input_fast_forward
+                Input.MICROPHONE -> R.string.input_microphone
                 Input.RESET -> R.string.input_reset
                 Input.SWAP_SCREENS -> R.string.input_swap_screens
                 Input.QUICK_SAVE -> R.string.input_quick_save
