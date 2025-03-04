@@ -218,7 +218,6 @@
 
     <string name="rom_settings">Configurações da ROM</string> <!-- Cadeia de caracteres de acessibilidade. Não se deve usar acrônimos (siglas) -->
     <string name="label_rom_config_console">Sistema Inicializador</string>
-    <string name="label_rom_config_load_gba_rom">Carregar ROM de GBA</string>
     <string name="label_rom_config_gba_rom_path">Caminho da ROM de GBA</string>
     <string name="label_rom_config_gba_save_path">Caminho do arquivo de salvamento GBA</string>
 
@@ -269,10 +268,6 @@
     <string name="revert_changes">Reverter alterações</string>
     <string name="reset_default">Reiniciar para o padrão</string>
     <string name="exit_without_saving">Sair sem salvar</string>
-    <string name="portrait_background">Fundo do modo retrato</string>
-    <string name="portrait_background_mode">Modo de fundo de retrato</string>
-    <string name="landscape_background">Fundo do modo paisagem</string>
-    <string name="landscape_background_mode">Modo de fundo de paisagem</string>
     <string name="save_and_exit">Salvar e sair</string>
     <string name="layout_name">Nome do layout</string>
     <string name="layout_orientation">Orientação do layout</string>
@@ -280,11 +275,12 @@
     <string name="layout_opacity">Opacidade do layout</string>
     <string name="layout_background_load_failed">Falha em carregar o plano de fundo</string>
 
+    <string name="background">Plano de fundo</string>
     <string name="backgrounds">Planos de fundo</string>
+    <string name="background_mode">Modo do fundo</string>
     <string name="action_backgrounds_new">Novo plano de fundo</string>
     <string name="background_name">Nome do plano de fundo</string>
     <string name="background_deleted">Plano de fundo deletado</string>
-    <string name="background_add_wrong_orientation">Plano de fundo adicionado, mas não visível com a orientação selecionada.</string>
     <string name="background_add_processing_failed">Falha ao processar a imagem de plano de fundo selecionada. Certifique-se de que não está corrompida.</string>
 
     <string-array name="fast_forward_speed_multiplier_options">
@@ -388,14 +384,9 @@
     <string-array name="background_portrait_mode_options">
         <item>Esticar</item>
         <item>Ajustar ao centro</item>
-        <item>Ajustar para cima</item>
-        <item>Ajustar para baixo</item>
-    </string-array>
-
-    <string-array name="background_landscape_mode_options">
-        <item>Esticar</item>
-        <item>Ajustar ao centro</item>
+        <item>Ajustar em cima</item>
         <item>Ajustar à esquerda</item>
+        <item>Ajustar em baixo</item>
         <item>Ajustar à direita</item>
     </string-array>
 </resources>

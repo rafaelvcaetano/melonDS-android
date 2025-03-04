@@ -1,6 +1,6 @@
 package me.magnum.melonds.ui.layouteditor
 
-import me.magnum.melonds.domain.model.LayoutComponent
+import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.ui.common.LayoutComponentViewBuilder
 import me.magnum.melonds.ui.common.LayoutComponentViewBuilderFactory
 import me.magnum.melonds.ui.common.componentbuilders.*

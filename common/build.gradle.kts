@@ -1,13 +1,11 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm")
+    alias(libs.plugins.kotlin.jvm)
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 dependencies {
-    with(Dependencies.Kotlin) {
-        implementation(coroutines)
-    }
+    implementation(libs.kotlin.coroutines)
 }

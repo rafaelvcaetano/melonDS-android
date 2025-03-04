@@ -1,37 +1,31 @@
 package me.magnum.melonds.ui.layouts
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import io.reactivex.disposables.CompositeDisposable
-import me.magnum.melonds.domain.model.LayoutConfiguration
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.domain.repositories.LayoutsRepository
-import me.magnum.melonds.extensions.addTo
-import java.util.*
+import java.util.UUID
 
 abstract class BaseLayoutsViewModel(protected val layoutsRepository: LayoutsRepository) : ViewModel() {
-    protected val disposables = CompositeDisposable()
-    protected val layoutsLiveData = MutableLiveData<List<LayoutConfiguration>>()
 
-    fun getLayouts(): LiveData<List<LayoutConfiguration>> {
-        return layoutsLiveData
-    }
+    protected val _layouts = MutableStateFlow<List<LayoutConfiguration>?>(null)
+    val layouts = _layouts.asStateFlow()
 
     fun addLayout(layout: LayoutConfiguration) {
-        layoutsRepository.saveLayout(layout)
+        viewModelScope.launch {
+            layoutsRepository.saveLayout(layout)
+        }
     }
 
     fun deleteLayout(layout: LayoutConfiguration) {
-        layoutsRepository.deleteLayout(layout)
-                .subscribe()
-                .addTo(disposables)
+        viewModelScope.launch {
+            layoutsRepository.deleteLayout(layout)
+        }
     }
 
     abstract fun getSelectedLayoutId(): UUID?
     abstract fun setSelectedLayoutId(id: UUID?)
-
-    override fun onCleared() {
-        super.onCleared()
-        disposables.dispose()
-    }
 }

@@ -238,7 +238,6 @@
 
     <string name="rom_settings">Configuración de Rom</string> <!-- Cadena de accesibilidad. No debe usar acrónimos -->
     <string name="label_rom_config_console">Sistema de arranque</string>
-    <string name="label_rom_config_load_gba_rom">Cargar ROM de GBA</string>
     <string name="label_rom_config_gba_rom_path">Ruta de acceso de la ROM de GBA</string>
     <string name="label_rom_config_gba_save_path">Ruta de guardado de GBA</string>
     <string name="rom_details_configuration_tab">Configuración</string>
@@ -291,10 +290,6 @@
     <string name="revert_changes">Revertir cambios</string>
     <string name="reset_default">Restablecer los valores predeterminados</string>
     <string name="exit_without_saving">Salir sin guardar</string>
-    <string name="portrait_background">Fondo vertical</string>
-    <string name="portrait_background_mode">Modo de fondo vertical</string>
-    <string name="landscape_background">Fondo horizontal</string>
-    <string name="landscape_background_mode">Modo de fondo horizontal</string>
     <string name="save_and_exit">Guardar y salir</string>
     <string name="layout_name">Nombre de diseño</string>
     <string name="layout_orientation">Orientación de diseño</string>
@@ -306,7 +301,6 @@
     <string name="action_backgrounds_new">Nuevo fondo</string>
     <string name="background_name">Nombre de fondo</string>
     <string name="background_deleted">Fondo eliminado</string>
-    <string name="background_add_wrong_orientation">Se agregó fondo pero no es visible para la orientación seleccionada.</string>
     <string name="background_add_processing_failed">Error al procesar la imagen de fondo seleccionada. Asegúrate de que no esté dañada.</string>
     
     <string name="retro_achievements_login_description">¡Inicia sesión con RetroAchievements para ver los logros que puedes desbloquear mientras juegas este juego!</string>
@@ -448,13 +442,8 @@
         <item>Estirar</item>
         <item>Ajustar al centro</item>
         <item>Ajustar a la parte superior</item>
-        <item>Ajustar a la parte inferior</item>
-    </string-array>
-
-    <string-array name="background_landscape_mode_options">
-        <item>Estirar</item>
-        <item>Ajustar al centro</item>
         <item>Ajustar a la izquierda</item>
+        <item>Ajustar a la parte inferior</item>
         <item>Ajustar a la derecha</item>
     </string-array>
 </resources>

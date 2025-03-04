@@ -40,6 +40,10 @@ abstract class MultiButtonInputHandler(inputListener: IInputListener, enableHapt
             inputListener.onKeyReleased(it)
         }
 
+        if (tempInputList.isNotEmpty()) {
+            performHapticFeedback(v, HapticFeedbackType.KEY_RELEASE)
+        }
+
         tempInputList.clear()
         newPressedInputs.filterNotTo(tempInputList) {
             it in pressedInputs
@@ -48,7 +52,7 @@ abstract class MultiButtonInputHandler(inputListener: IInputListener, enableHapt
         }
 
         if (tempInputList.isNotEmpty()) {
-            performHapticFeedback()
+            performHapticFeedback(v, HapticFeedbackType.KEY_PRESS)
         }
 
         pressedInputs.clear()

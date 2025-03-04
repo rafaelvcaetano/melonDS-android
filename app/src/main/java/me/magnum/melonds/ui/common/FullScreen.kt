@@ -3,14 +3,25 @@ package me.magnum.melonds.ui.common
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
-import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.runtime.*
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionContext
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCompositionContext
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.findViewTreeLifecycleOwner
@@ -19,7 +30,7 @@ import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import java.util.*
+import java.util.UUID
 
 @Composable
 fun FullScreen(onDismiss: () -> Unit, content: @Composable () -> Unit) {
@@ -101,6 +112,7 @@ private class FullScreenLayout(
 
     private fun createLayoutParams(): WindowManager.LayoutParams =
         WindowManager.LayoutParams().apply {
+            flags = WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
             type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL
             token = composeView.applicationWindowToken
             width = WindowManager.LayoutParams.MATCH_PARENT
@@ -126,7 +138,6 @@ private class FullScreenLayout(
     }
 
     private fun destroy() {
-        Log.d("FullScreen", "destroy()")
         disposeComposition()
         setViewTreeLifecycleOwner(null)
         windowManager.removeViewImmediate(this)

@@ -239,7 +239,6 @@
 
     <string name="rom_settings">Paramètres de la ROM</string>
     <string name="label_rom_config_console">Démarrer le système</string>
-    <string name="label_rom_config_load_gba_rom">Charger la ROM GBA</string>
     <string name="label_rom_config_gba_rom_path">Chemin de la ROM GBA</string>
     <string name="label_rom_config_gba_save_path">Chemin de la sauvegarde GBA</string>
     <string name="rom_details_configuration_tab">Configuration</string>
@@ -292,10 +291,6 @@
     <string name="revert_changes">Annuler les changements</string>
     <string name="reset_default">Revenir aux paramètres par défaut</string>
     <string name="exit_without_saving">Quitter sans enregistrer</string>
-    <string name="portrait_background">Arrière-plan en portrait</string>
-    <string name="portrait_background_mode">Arrière-plan en mode portrait</string>
-    <string name="landscape_background">Arrière-plan en paysage</string>
-    <string name="landscape_background_mode">Arrière-plan en mode paysage</string>
     <string name="save_and_exit">Enregistrer et quitter</string>
     <string name="layout_name">Nom de la disposition</string>
     <string name="layout_orientation">Orientation de la disposition</string>
@@ -307,7 +302,6 @@
     <string name="action_backgrounds_new">Nouvel arrière-plan</string>
     <string name="background_name">Nom de l\'arrière-plan</string>
     <string name="background_deleted">Arrière-plan supprimé</string>
-    <string name="background_add_wrong_orientation">L\'arrière-plan a été ajouté mais n\'est pas visible pour l\'orientation sélectionnée.</string>
     <string name="background_add_processing_failed">Le traitement de l\'image d\'arrière-plan sélectionnée a échoué. Veuillez vérifier qu\'elle n\'est pas corrompue.</string>
 
     <string name="retro_achievements_login_description">Connectez-vous à RetroAchievements pour consulter les succès que vous pouvez déverouiller en jouant à ce jeu !</string>
@@ -449,13 +443,8 @@
         <item>Étirer</item>
         <item>Ajuster au centre</item>
         <item>Ajuster en haut</item>
-        <item>Ajuster en bas</item>
-    </string-array>
-
-    <string-array name="background_landscape_mode_options">
-        <item>Étirer</item>
-        <item>Ajuster au centre</item>
         <item>Ajuster à gauche</item>
+        <item>Ajuster en bas</item>
         <item>Ajuster à droite</item>
     </string-array>
 </resources>

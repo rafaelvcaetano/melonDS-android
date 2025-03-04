@@ -1,7 +1,7 @@
 package me.magnum.melonds.utils
 
 import me.magnum.melonds.R
-import me.magnum.melonds.domain.model.LayoutComponent
+import me.magnum.melonds.domain.model.layout.LayoutComponent
 
 fun getLayoutComponentName(layoutComponent: LayoutComponent): Int {
     return when (layoutComponent) {
@@ -16,6 +16,7 @@ fun getLayoutComponentName(layoutComponent: LayoutComponent): Int {
         LayoutComponent.BUTTON_HINGE -> R.string.input_lid
         LayoutComponent.BUTTON_PAUSE -> R.string.input_pause
         LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE -> R.string.input_fast_forward
+        LayoutComponent.BUTTON_MICROPHONE_TOGGLE -> R.string.input_microphone
         LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT -> R.string.input_toggle_soft_input
         LayoutComponent.BUTTON_RESET -> R.string.reset
         LayoutComponent.BUTTON_SWAP_SCREENS -> R.string.input_swap_screens

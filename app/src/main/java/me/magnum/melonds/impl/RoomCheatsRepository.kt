@@ -9,9 +9,8 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import me.magnum.melonds.common.workers.CheatImportWorker
 import me.magnum.melonds.database.MelonDatabase
@@ -27,28 +26,27 @@ import me.magnum.melonds.domain.model.CheatImportProgress
 import me.magnum.melonds.domain.model.Game
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.repositories.CheatsRepository
+import me.magnum.melonds.ui.cheats.model.CheatSubmissionForm
 
 class RoomCheatsRepository(private val context: Context, private val database: MelonDatabase) : CheatsRepository {
     companion object {
         private const val IMPORT_WORKER_NAME = "cheat_import_worker"
     }
 
-    override suspend fun observeGames(): Flow<List<Game>> {
-        return database.gameDao().getGames().map {
-            it.map { game ->
-                Game(
-                    game.id,
-                    game.name,
-                    game.gameCode,
-                    game.gameChecksum,
-                    emptyList(),
-                )
-            }
+    override suspend fun getGames(): List<Game> {
+        return database.gameDao().getGames().map { game ->
+            Game(
+                game.id,
+                game.name,
+                game.gameCode,
+                game.gameChecksum,
+                emptyList(),
+            )
         }
     }
 
-    override suspend fun findGamesForRom(romInfo: RomInfo): List<Game> {
-        return database.gameDao().findGames(romInfo.gameCode, romInfo.headerChecksumString()).map {
+    override suspend fun findGameForRom(romInfo: RomInfo): Game? {
+        return database.gameDao().findGame(romInfo.gameCode, romInfo.headerChecksumString())?.let {
             Game(
                 it.id,
                 it.name,
@@ -59,38 +57,55 @@ class RoomCheatsRepository(private val context: Context, private val database: M
         }
     }
 
-    override suspend fun getAllGameCheats(game: Game): List<CheatFolder> {
-        val gameId = game.id ?: return emptyList()
+    override fun getAllGameCheats(game: Game): Flow<List<CheatFolder>> {
+        val gameId = game.id ?: return emptyFlow()
 
-        return database.gameDao().getGameCheats(gameId).map {
-            CheatFolder(
-                it.cheatFolder.id,
-                it.cheatFolder.name,
-                it.cheats.map { cheat ->
-                    Cheat(
-                        cheat.id,
-                        cheat.name,
-                        cheat.description,
-                        cheat.code,
-                        cheat.enabled
-                    )
-                }
-            )
+        return database.gameDao().getGameCheats(gameId).map { foldersWithCheats ->
+            foldersWithCheats.map {
+                CheatFolder(
+                    it.cheatFolder.id,
+                    it.cheatFolder.name,
+                    it.cheats.map { cheat ->
+                        Cheat(
+                            cheat.id,
+                            cheat.cheatDatabaseId,
+                            cheat.name,
+                            cheat.description,
+                            cheat.code,
+                            cheat.enabled
+                        )
+                    }
+                )
+            }
         }
     }
 
-    override fun getRomEnabledCheats(romInfo: RomInfo): Single<List<Cheat>> {
-        return database.cheatDao().getEnabledRomCheats(romInfo.gameCode, romInfo.headerChecksumString()).map {
+    override fun getFolderCheats(folder: CheatFolder): Flow<List<Cheat>> {
+        return database.cheatDao().getFolderCheats(folder.id!!).map {
             it.map { cheat ->
                 Cheat(
-                        cheat.id,
-                        cheat.name,
-                        cheat.description,
-                        cheat.code,
-                        cheat.enabled
+                    cheat.id,
+                    cheat.cheatDatabaseId,
+                    cheat.name,
+                    cheat.description,
+                    cheat.code,
+                    cheat.enabled
                 )
             }
-        }.subscribeOn(Schedulers.io())
+        }
+    }
+
+    override suspend fun getRomEnabledCheats(romInfo: RomInfo): List<Cheat> {
+        return database.cheatDao().getEnabledRomCheats(romInfo.gameCode, romInfo.headerChecksumString()).map { cheat ->
+            Cheat(
+                cheat.id,
+                cheat.cheatDatabaseId,
+                cheat.name,
+                cheat.description,
+                cheat.code,
+                cheat.enabled
+            )
+        }
     }
 
     override suspend fun updateCheatsStatus(cheats: List<Cheat>) {
@@ -101,11 +116,36 @@ class RoomCheatsRepository(private val context: Context, private val database: M
         database.cheatDao().updateCheatsStatus(cheatEntities)
     }
 
-    override fun deleteCheatDatabaseIfExists(databaseName: String) {
-        database.cheatDatabaseDao().deleteCheatDatabase(databaseName)
+    override suspend fun addCheatFolder(folderName: String, game: Game) {
+        val gameId = if (game.id == null) {
+            // It's a new game. Insert it first
+            val gameEntity = GameEntity(
+                id = null,
+                name = game.name,
+                gameCode = game.gameCode,
+                gameChecksum = game.gameChecksum
+            )
+            database.gameDao().insertGame(gameEntity)
+        } else {
+            game.id
+        }
+
+        val cheatFolderEntity = CheatFolderEntity(null, gameId, folderName)
+        database.cheatFolderDao().insertCheatFolder(cheatFolderEntity)
     }
 
-    override fun addCheatDatabase(databaseName: String): CheatDatabase {
+    override suspend fun deleteCheatDatabaseIfExists(databaseName: String) {
+        if (databaseName == CheatDatabaseEntity.CUSTOM_CHEATS_DATABASE_NAME) {
+            // Don't allow the custom cheat database to be deleted
+            return
+        }
+
+        database.cheatDatabaseDao().deleteCheatDatabase(databaseName)
+        database.cheatFolderDao().deleteEmptyFolders()
+        database.gameDao().deleteEmptyGames()
+    }
+
+    override suspend fun addCheatDatabase(databaseName: String): CheatDatabase {
         val cheatDatabaseEntity = CheatDatabaseEntity(
             null,
             databaseName,
@@ -115,21 +155,24 @@ class RoomCheatsRepository(private val context: Context, private val database: M
         return CheatDatabase(databaseId, databaseName)
     }
 
-    override fun addGameCheats(databaseId: Long, game: Game) {
+    override suspend fun addGameCheats(game: Game): Game {
         val gameEntity = GameEntity(
-                null,
-                databaseId,
-                game.name,
-                game.gameCode,
-                game.gameChecksum
+            null,
+            game.name,
+            game.gameCode,
+            game.gameChecksum
         )
 
-        val gameId = database.gameDao().insertGame(gameEntity)
+        // Insertion may do nothing if the game already exists
+        database.gameDao().insertGame(gameEntity)
+        val insertedGame = database.gameDao().findGame(game.gameCode, game.gameChecksum)!!
+        val gameId = insertedGame.id!!
+
         val categoryEntities = game.cheats.map { category ->
             CheatFolderEntity(
-                    null,
-                    gameId,
-                    category.name
+                null,
+                gameId,
+                category.name
             )
         }
         val categoryIds = database.cheatFolderDao().insertCheatFolders(categoryEntities)
@@ -137,20 +180,73 @@ class RoomCheatsRepository(private val context: Context, private val database: M
         val cheatEntities = game.cheats.zip(categoryIds).flatMap { pair ->
             pair.first.cheats.map {
                 CheatEntity(
-                        null,
-                        pair.second,
-                        it.name,
-                        it.description,
-                        it.code,
-                        false
+                    id = null,
+                    cheatFolderId = pair.second,
+                    cheatDatabaseId = it.cheatDatabaseId,
+                    name = it.name,
+                    description = it.description,
+                    code = it.code,
+                    enabled = false
                 )
             }
         }
         database.cheatDao().insertCheats(cheatEntities)
+
+        return Game(
+            id = insertedGame.id,
+            name = insertedGame.name,
+            gameCode = insertedGame.gameCode,
+            gameChecksum = insertedGame.gameChecksum,
+            cheats = emptyList(),
+        )
     }
 
-    override fun deleteAllCheats() {
-        database.gameDao().deleteAll()
+    override suspend fun addCheat(folder: CheatFolder, cheat: Cheat) {
+        val cheatEntity = CheatEntity(
+            id = null,
+            cheatFolderId = folder.id!!,
+            cheatDatabaseId = cheat.cheatDatabaseId,
+            name = cheat.name,
+            description = cheat.description,
+            code = cheat.code,
+            enabled = cheat.enabled,
+        )
+
+        database.cheatDao().insertCheat(cheatEntity)
+    }
+
+    override suspend fun addCustomCheat(folder: CheatFolder, cheatForm: CheatSubmissionForm) {
+        val cheatEntity = CheatEntity(
+            id = null,
+            cheatFolderId = folder.id!!,
+            cheatDatabaseId = CheatDatabaseEntity.CUSTOM_CHEATS_DATABASE_ID,
+            name = cheatForm.name,
+            description = cheatForm.description,
+            code = cheatForm.code,
+            enabled = false,
+        )
+
+        database.cheatDao().insertCheat(cheatEntity)
+    }
+
+    override suspend fun updateCheat(cheat: Cheat) {
+        val originalEntity = database.cheatDao().getCheat(cheat.id!!) ?: return
+        val updatedCheatEntity = CheatEntity(
+            id = cheat.id,
+            cheatFolderId = originalEntity.cheatFolderId,
+            cheatDatabaseId = originalEntity.cheatDatabaseId,
+            name = cheat.name,
+            description = cheat.description,
+            code = cheat.code,
+            enabled = cheat.enabled,
+        )
+
+        database.cheatDao().insertCheat(updatedCheatEntity)
+    }
+
+    override suspend fun deleteCheat(cheat: Cheat) {
+        val cheatId = cheat.id ?: return
+        database.cheatDao().deleteCheat(cheatId)
     }
 
     override fun importCheats(uri: Uri) {
@@ -179,7 +275,7 @@ class RoomCheatsRepository(private val context: Context, private val database: M
                 emitter.onNext(CheatImportProgress(CheatImportProgress.CheatImportStatus.NOT_IMPORTING, 0f, null))
                 emitter.onComplete()
             } else {
-                val observer = Observer<MutableList<WorkInfo>> {
+                val observer = Observer<List<WorkInfo>> {
                     val workInfo = it.firstOrNull()
                     if (workInfo != null) {
                         when (workInfo.state) {

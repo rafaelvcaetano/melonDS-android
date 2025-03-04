@@ -6,11 +6,13 @@
 #include <unistd.h>
 #include <cstdlib>
 #include <MelonDS.h>
+#include <RomGbaSlotConfig.h>
 #include <InputAndroid.h>
 #include <android/asset_manager_jni.h>
 #include "UriFileHandler.h"
 #include "JniEnvHandler.h"
 #include "AndroidRACallback.h"
+#include "AndroidFrameRenderedCallback.h"
 #include "MelonDSAndroidInterface.h"
 #include "MelonDSAndroidConfiguration.h"
 #include "MelonDSAndroidCameraHandler.h"
@@ -18,7 +20,14 @@
 
 #define MAX_CHEAT_SIZE (2*64)
 
+enum GbaSlotType {
+    NONE = 0,
+    GBA_ROM = 1,
+    MEMORY_EXPANSION = 2,
+};
+
 void* emulate(void*);
+MelonDSAndroid::RomGbaSlotConfig* buildGbaSlotConfig(GbaSlotType slotType, const char* romPath, const char* savePath);
 
 pthread_t emuThread;
 pthread_mutex_t emuThreadMutex;
@@ -38,13 +47,15 @@ bool isFastForwardEnabled = false;
 jobject globalAssetManager;
 jobject globalCameraManager;
 jobject androidRaCallback;
+jobject androidFrameRenderListener;
 MelonDSAndroidCameraHandler* androidCameraHandler;
 AndroidRACallback* raCallback;
+AndroidFrameRenderedCallback* frameRenderedCallback;
 
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject cameraManager, jobject retroAchievementsCallback, jobject textureBuffer)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject cameraManager, jobject retroAchievementsCallback, jobject frameRenderListener, jobject screenshotBuffer, jlong glContext)
 {
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
     fastForwardSpeedMultiplier = finalEmulatorConfiguration.fastForwardSpeedMultiplier;
@@ -52,15 +63,16 @@ Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jo
     globalAssetManager = env->NewGlobalRef(javaAssetManager);
     globalCameraManager = env->NewGlobalRef(cameraManager);
     androidRaCallback = env->NewGlobalRef(retroAchievementsCallback);
+    androidFrameRenderListener = env->NewGlobalRef(frameRenderListener);
 
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
     androidCameraHandler = new MelonDSAndroidCameraHandler(jniEnvHandler, globalCameraManager);
     raCallback = new AndroidRACallback(jniEnvHandler, androidRaCallback);
-
-    u32* textureBufferPointer = (u32*) env->GetDirectBufferAddress(textureBuffer);
+    frameRenderedCallback = new AndroidFrameRenderedCallback(jniEnvHandler, androidFrameRenderListener);
+    u32* screenshotBufferPointer = (u32*) env->GetDirectBufferAddress(screenshotBuffer);
 
     MelonDSAndroid::setConfiguration(finalEmulatorConfiguration);
-    MelonDSAndroid::setup(assetManager, androidCameraHandler, raCallback, textureBufferPointer, true);
+    MelonDSAndroid::setup(assetManager, androidCameraHandler, raCallback, frameRenderedCallback, screenshotBufferPointer, glContext, true);
     paused = false;
 }
 
@@ -186,7 +198,7 @@ Java_me_magnum_melonds_MelonEmulator_getRichPresenceStatus(JNIEnv* env, jobject 
 }
 
 JNIEXPORT jint JNICALL
-Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jobject thiz, jstring romPath, jstring sramPath, jboolean loadGbaRom, jstring gbaRomPath, jstring gbaSramPath)
+Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jobject thiz, jstring romPath, jstring sramPath, jint gbaSlotType, jstring gbaRomPath, jstring gbaSramPath)
 {
     jboolean isCopy = JNI_FALSE;
     const char* rom = romPath == nullptr ? nullptr : env->GetStringUTFChars(romPath, &isCopy);
@@ -194,7 +206,9 @@ Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jobject thiz, 
     const char* gbaRom = gbaRomPath == nullptr ? nullptr : env->GetStringUTFChars(gbaRomPath, &isCopy);
     const char* gbaSram = gbaSramPath == nullptr ? nullptr : env->GetStringUTFChars(gbaSramPath, &isCopy);
 
-    int result = MelonDSAndroid::loadRom(const_cast<char*>(rom), const_cast<char*>(sram), loadGbaRom, const_cast<char*>(gbaRom), const_cast<char*>(gbaSram));
+    MelonDSAndroid::RomGbaSlotConfig* gbaSlotConfig = buildGbaSlotConfig((GbaSlotType) gbaSlotType, gbaRom, gbaSram);
+    int result = MelonDSAndroid::loadRom(const_cast<char*>(rom), const_cast<char*>(sram), gbaSlotConfig);
+    delete gbaSlotConfig;
 
     if (isCopy == JNI_TRUE) {
         if (romPath) env->ReleaseStringUTFChars(romPath, rom);
@@ -405,13 +419,16 @@ Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
     env->DeleteGlobalRef(globalAssetManager);
     env->DeleteGlobalRef(globalCameraManager);
     env->DeleteGlobalRef(androidRaCallback);
+    env->DeleteGlobalRef(androidFrameRenderListener);
 
     globalAssetManager = nullptr;
     globalCameraManager = nullptr;
     androidRaCallback = nullptr;
+    androidFrameRenderListener = nullptr;
 
     delete androidCameraHandler;
     delete raCallback;
+    delete frameRenderedCallback;
 }
 
 JNIEXPORT void JNICALL
@@ -452,12 +469,22 @@ Java_me_magnum_melonds_MelonEmulator_setFastForwardEnabled(JNIEnv* env, jobject 
 }
 
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject frameBuffer)
+Java_me_magnum_melonds_MelonEmulator_setMicrophoneEnabled(JNIEnv* env, jobject thiz, jboolean enabled)
+{
+    if(enabled)
+    {
+        MelonDSAndroid::enableMic();
+    } else {
+        MelonDSAndroid::disableMic();
+    }
+}
+
+JNIEXPORT void JNICALL
+Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jobject thiz, jobject emulatorConfiguration)
 {
     MelonDSAndroid::EmulatorConfiguration newConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
-    u32* frameBufferPointer = (u32*) env->GetDirectBufferAddress(frameBuffer);
 
-    MelonDSAndroid::updateEmulatorConfiguration(newConfiguration, frameBufferPointer);
+    MelonDSAndroid::updateEmulatorConfiguration(newConfiguration);
     fastForwardSpeedMultiplier = newConfiguration.fastForwardSpeedMultiplier;
 
     if (isFastForwardEnabled) {
@@ -465,6 +492,26 @@ Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jo
         targetFps = 60 * fastForwardSpeedMultiplier;
     }
 }
+}
+
+MelonDSAndroid::RomGbaSlotConfig* buildGbaSlotConfig(GbaSlotType slotType, const char* romPath, const char* savePath)
+{
+    if (slotType == GbaSlotType::GBA_ROM && romPath != nullptr)
+    {
+        MelonDSAndroid::RomGbaSlotConfigGbaRom* gbaSlotConfigGbaRom = new MelonDSAndroid::RomGbaSlotConfigGbaRom {
+            .romPath = std::string(romPath),
+            .savePath = savePath ? std::string(savePath) : "",
+        };
+        return (MelonDSAndroid::RomGbaSlotConfig*) gbaSlotConfigGbaRom;
+    }
+    else if (slotType == GbaSlotType::MEMORY_EXPANSION)
+    {
+        return (MelonDSAndroid::RomGbaSlotConfig*) new MelonDSAndroid::RomGbaSlotConfigMemoryExpansion;
+    }
+    else
+    {
+        return (MelonDSAndroid::RomGbaSlotConfig*) new MelonDSAndroid::RomGbaSlotConfigNone;
+    }
 }
 
 double getCurrentMillis() {

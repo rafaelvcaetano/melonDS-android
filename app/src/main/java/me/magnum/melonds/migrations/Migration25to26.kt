@@ -1,11 +1,11 @@
 package me.magnum.melonds.migrations
 
-import me.magnum.melonds.impl.dtos.layout.LayoutConfigurationDto
 import me.magnum.melonds.impl.dtos.layout.PositionedLayoutComponentDto
 import me.magnum.melonds.impl.dtos.layout.RectDto
 import me.magnum.melonds.impl.dtos.layout.UILayoutDto
 import me.magnum.melonds.migrations.helper.GenericJsonArrayMigrationHelper
 import me.magnum.melonds.migrations.legacy.layout.LayoutConfiguration25
+import me.magnum.melonds.migrations.legacy.layout.LayoutConfigurationDto31
 import me.magnum.melonds.migrations.legacy.layout.UILayout25
 
 class Migration25to26(
@@ -20,9 +20,9 @@ class Migration25to26(
     override val to = 26
 
     override fun migrate() {
-        layoutMigrationHelper.migrateJsonArrayData<LayoutConfiguration25, LayoutConfigurationDto>(LAYOUTS_DATA_FILE) {
+        layoutMigrationHelper.migrateJsonArrayData<LayoutConfiguration25, LayoutConfigurationDto31>(LAYOUTS_DATA_FILE) {
             try {
-                LayoutConfigurationDto(
+                LayoutConfigurationDto31(
                     it.id,
                     it.name,
                     it.type,

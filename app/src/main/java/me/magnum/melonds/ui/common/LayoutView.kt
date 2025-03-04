@@ -4,9 +4,9 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.FrameLayout
 import dagger.hilt.android.AndroidEntryPoint
-import me.magnum.melonds.domain.model.LayoutComponent
-import me.magnum.melonds.domain.model.PositionedLayoutComponent
-import me.magnum.melonds.domain.model.UILayout
+import me.magnum.melonds.domain.model.layout.LayoutComponent
+import me.magnum.melonds.domain.model.layout.PositionedLayoutComponent
+import me.magnum.melonds.domain.model.layout.UILayout
 import me.magnum.melonds.impl.ScreenUnitsConverter
 import javax.inject.Inject
 
@@ -18,15 +18,22 @@ open class LayoutView(context: Context, attrs: AttributeSet?) : FrameLayout(cont
     protected lateinit var viewBuilderFactory: LayoutComponentViewBuilderFactory
     protected val views = mutableMapOf<LayoutComponent, LayoutComponentView>()
 
+    init {
+        layoutDirection = LAYOUT_DIRECTION_LTR
+    }
+
     fun setLayoutComponentViewBuilderFactory(factory: LayoutComponentViewBuilderFactory) {
         viewBuilderFactory = factory
     }
 
-    fun instantiateLayout(layoutConfiguration: UILayout) {
+    open fun instantiateLayout(layoutConfiguration: UILayout) {
+        destroyLayout()
+        loadLayout(layoutConfiguration)
+    }
+
+    fun destroyLayout() {
         views.clear()
         removeAllViews()
-
-        loadLayout(layoutConfiguration)
     }
 
     fun getInstantiatedComponents(): List<LayoutComponent> {
@@ -42,7 +49,7 @@ open class LayoutView(context: Context, attrs: AttributeSet?) : FrameLayout(cont
     }
 
     private fun loadLayout(layout: UILayout) {
-        layout.components.forEach {
+        layout.components?.forEach {
             views[it.component] = addPositionedLayoutComponent(it)
         }
     }

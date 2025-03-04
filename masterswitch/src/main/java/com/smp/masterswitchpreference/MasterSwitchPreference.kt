@@ -102,7 +102,7 @@ open class MasterSwitchPreference : Preference {
 
         with(resAttrs) {
             val libraryAttrs =
-                context.theme.obtainStyledAttributes(attrs, R.styleable.Preference, 0, 0)
+                context.theme.obtainStyledAttributes(attrs, androidx.preference.R.styleable.Preference, 0, 0)
 
             val includedPrefScreenRes: String? =
                 getString(R.styleable.MasterSwitchPreference_ms_includedPrefScreen)
@@ -153,11 +153,11 @@ open class MasterSwitchPreference : Preference {
                     ?: def.switchOffText,
                 key = this@MasterSwitchPreference.key ?: def.key,
                 defaultValue = when {
-                    libraryAttrs.hasValue(R.styleable.Preference_defaultValue) -> {
-                        libraryAttrs.getBoolean(R.styleable.Preference_defaultValue, false)
+                    libraryAttrs.hasValue(androidx.preference.R.styleable.Preference_defaultValue) -> {
+                        libraryAttrs.getBoolean(androidx.preference.R.styleable.Preference_defaultValue, false)
                     }
-                    libraryAttrs.hasValue(R.styleable.Preference_android_defaultValue) -> {
-                        libraryAttrs.getBoolean(R.styleable.Preference_android_defaultValue, false)
+                    libraryAttrs.hasValue(androidx.preference.R.styleable.Preference_android_defaultValue) -> {
+                        libraryAttrs.getBoolean(androidx.preference.R.styleable.Preference_android_defaultValue, false)
                     }
                     else -> {
                         def.defaultValue
@@ -175,11 +175,11 @@ open class MasterSwitchPreference : Preference {
             )
 
             val fragName = when {
-                libraryAttrs.hasValue(R.styleable.Preference_fragment) -> {
-                    libraryAttrs.getString(R.styleable.Preference_fragment)
+                libraryAttrs.hasValue(androidx.preference.R.styleable.Preference_fragment) -> {
+                    libraryAttrs.getString(androidx.preference.R.styleable.Preference_fragment)
                 }
-                libraryAttrs.hasValue(R.styleable.Preference_android_fragment) -> {
-                    libraryAttrs.getString(R.styleable.Preference_android_fragment)
+                libraryAttrs.hasValue(androidx.preference.R.styleable.Preference_android_fragment) -> {
+                    libraryAttrs.getString(androidx.preference.R.styleable.Preference_android_fragment)
                 }
                 else -> {
                     MasterSwitchPreferenceFragment::class.qualifiedName

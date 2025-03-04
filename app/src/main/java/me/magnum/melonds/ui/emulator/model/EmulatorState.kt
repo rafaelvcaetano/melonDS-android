@@ -2,7 +2,7 @@ package me.magnum.melonds.ui.emulator.model
 
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.domain.model.ConsoleType
-import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.rom.Rom
 
 sealed class EmulatorState {
     data object Uninitialized : EmulatorState()

@@ -1,5 +1,6 @@
 package me.magnum.melonds.common.cheats
 
+import me.magnum.melonds.domain.model.CheatDatabase
 import me.magnum.melonds.domain.model.Game
 import me.magnum.melonds.impl.XmlCheatDatabaseSAXHandler
 import javax.xml.parsers.SAXParserFactory
@@ -9,8 +10,8 @@ class XmlCheatDatabaseParser : CheatDatabaseParser {
         val saxFactory = SAXParserFactory.newInstance()
         val parser = saxFactory.newSAXParser()
         val handler = XmlCheatDatabaseSAXHandler(object : XmlCheatDatabaseSAXHandler.HandlerListener {
-            override fun onCheatDatabaseParseStart(databaseName: String) {
-                parseListener.onDatabaseParseStart(databaseName)
+            override fun onCheatDatabaseParseStart(databaseName: String): CheatDatabase {
+                return parseListener.onDatabaseParseStart(databaseName)
             }
 
             override fun onGameParseStart(gameName: String) {
@@ -24,7 +25,6 @@ class XmlCheatDatabaseParser : CheatDatabaseParser {
             override fun onParseComplete() {
                 parseListener.onParseComplete()
             }
-
         })
         parser.parse(databaseStream, handler)
     }

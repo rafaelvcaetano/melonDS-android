@@ -32,11 +32,11 @@ import me.magnum.melonds.domain.model.ControllerConfiguration
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.FirmwareConfiguration
 import me.magnum.melonds.domain.model.FpsCounterPosition
-import me.magnum.melonds.domain.model.LayoutConfiguration
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.domain.model.MacAddress
 import me.magnum.melonds.domain.model.MicSource
 import me.magnum.melonds.domain.model.RendererConfiguration
-import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.domain.model.SaveStateLocation
 import me.magnum.melonds.domain.model.SizeUnit
@@ -186,7 +186,7 @@ class SharedPreferencesSettingsRepository(
     }
 
     override fun getRomIconFiltering(): RomIconFiltering {
-        val romIconFilteringPreference = preferences.getString("rom_icon_filtering", "linear")!!
+        val romIconFilteringPreference = preferences.getString("rom_icon_filtering", "none")!!
         return enumValueOfIgnoreCase(romIconFilteringPreference)
     }
 
@@ -281,7 +281,7 @@ class SharedPreferencesSettingsRepository(
 
     override fun getVideoFiltering(): Flow<VideoFiltering> {
         return getOrCreatePreferenceSharedFlow("video_filtering") {
-            val filteringPreference = preferences.getString("video_filtering", "linear")!!
+            val filteringPreference = preferences.getString("video_filtering", "none")!!
             VideoFiltering.valueOf(filteringPreference.uppercase())
         }
     }

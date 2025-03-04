@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +35,7 @@ private const val ACHIEVEMENT_ITEM_TYPE = "achievement"
 @Composable
 fun RomRetroAchievementsUi(
     modifier: Modifier,
+    contentPadding: PaddingValues,
     retroAchievementsUiState: RomRetroAchievementsUiState,
     onLogin: (username: String, password: String) -> Unit,
     onRetryLoad: () -> Unit,
@@ -41,23 +43,24 @@ fun RomRetroAchievementsUi(
 ) {
     when (retroAchievementsUiState) {
         is RomRetroAchievementsUiState.LoggedOut -> LoggedOut(
-            modifier = modifier,
+            modifier = modifier.padding(contentPadding),
             onLogin = onLogin,
         )
-        is RomRetroAchievementsUiState.Loading -> Loading(modifier)
+        is RomRetroAchievementsUiState.Loading -> Loading(modifier.padding(contentPadding))
         is RomRetroAchievementsUiState.Ready -> {
             if (retroAchievementsUiState.achievements.isEmpty()) {
-                NoAchievements(modifier)
+                NoAchievements(modifier.padding(contentPadding))
             } else {
                 Ready(
                     modifier = modifier,
+                    contentPadding = contentPadding,
                     content = retroAchievementsUiState,
                     onViewAchievement = onViewAchievement,
                 )
             }
         }
-        is RomRetroAchievementsUiState.LoginError -> LoginError(modifier = modifier, onLogin = onLogin)
-        is RomRetroAchievementsUiState.AchievementLoadError -> LoadError(modifier = modifier, onRetry = onRetryLoad)
+        is RomRetroAchievementsUiState.LoginError -> LoginError(modifier = modifier.padding(contentPadding), onLogin = onLogin)
+        is RomRetroAchievementsUiState.AchievementLoadError -> LoadError(modifier = modifier.padding(contentPadding), onRetry = onRetryLoad)
     }
 }
 
@@ -66,7 +69,7 @@ private fun LoggedOut(
     modifier: Modifier,
     onLogin: (username: String, password: String) -> Unit,
 ) {
-    var showLoginPopup by remember {
+    var showLoginPopup by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -132,11 +135,13 @@ private fun NoAchievements(modifier: Modifier) {
 @Composable
 private fun Ready(
     modifier: Modifier,
+    contentPadding: PaddingValues,
     content: RomRetroAchievementsUiState.Ready,
     onViewAchievement: (RAAchievement) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier,
+        contentPadding = contentPadding,
     ) {
         item(contentType = HEADER_ITEM_TYPE) {
             Header(
@@ -301,6 +306,7 @@ private fun PreviewContent() {
     MelonTheme {
         Ready(
             modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(0.dp),
             content = RomRetroAchievementsUiState.Ready(
                 listOf(
                     RAUserAchievement(mockRAAchievementPreview(id = 1), false, false),

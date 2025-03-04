@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
+import android.opengl.GLSurfaceView
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
@@ -53,24 +54,30 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.window.layout.FoldingFeature
+import androidx.window.layout.WindowInfoTracker
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.common.PermissionHandler
-import me.magnum.melonds.common.runtime.FrameBufferProvider
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.FpsCounterPosition
-import me.magnum.melonds.domain.model.LayoutComponent
-import me.magnum.melonds.domain.model.Orientation
-import me.magnum.melonds.domain.model.Rom
+import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.SaveStateSlot
+import me.magnum.melonds.domain.model.layout.LayoutComponent
+import me.magnum.melonds.domain.model.layout.ScreenFold
+import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.insetsControllerCompat
 import me.magnum.melonds.extensions.parcelable
@@ -136,19 +143,18 @@ class EmulatorActivity : AppCompatActivity() {
     lateinit var picasso: Picasso
 
     @Inject
-    lateinit var frameBufferProvider: FrameBufferProvider
-
-    @Inject
     lateinit var permissionHandler: PermissionHandler
 
     @Inject
     lateinit var lifecycleOwnerProvider: LifecycleOwnerProvider
 
+    private val currentOpenGlContext = MutableStateFlow<Long?>(null)
     private lateinit var dsRenderer: DSRenderer
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
     private val frontendInputHandler = object : FrontendInputHandler() {
         private var fastForwardEnabled = false
+        private var microphoneEnabled = true
 
         override fun onSoftInputTogglePressed() {
             binding.viewLayoutControls.toggleSoftInputVisibility()
@@ -161,6 +167,11 @@ class EmulatorActivity : AppCompatActivity() {
         override fun onFastForwardPressed() {
             fastForwardEnabled = !fastForwardEnabled
             MelonEmulator.setFastForwardEnabled(fastForwardEnabled)
+        }
+
+        override fun onMicrophonePressed() {
+            microphoneEnabled = !microphoneEnabled
+            MelonEmulator.setMicrophoneEnabled(microphoneEnabled)
         }
 
         override fun onResetPressed() {
@@ -234,13 +245,17 @@ class EmulatorActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(backPressedCallback)
 
         melonTouchHandler = MelonTouchHandler()
-        dsRenderer = DSRenderer(frameBufferProvider, this)
+        dsRenderer = DSRenderer(
+            context = this,
+            onGlContextReady = {
+                currentOpenGlContext.value = it
+            }
+        )
         binding.surfaceMain.apply {
-            setEGLContextClientVersion(2)
+            setEGLContextClientVersion(3)
             preserveEGLContextOnPause = true
-            /*setEGLConfigChooser(8, 8, 8, 8, 0, 0)
-            holder.setFormat(PixelFormat.RGBA_8888)*/
             setRenderer(dsRenderer)
+            renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
         }
 
         binding.textFps.visibility = View.INVISIBLE
@@ -259,18 +274,23 @@ class EmulatorActivity : AppCompatActivity() {
             setSystemInputHandler(melonTouchHandler)
         }
 
-        val layoutChangeListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+        val layoutChangeListener = View.OnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
             updateRendererScreenAreas()
 
-            if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                viewModel.setSystemOrientation(Orientation.PORTRAIT)
-            } else {
-                viewModel.setSystemOrientation(Orientation.LANDSCAPE)
+            val oldWith = oldRight - oldLeft
+            val oldHeight = oldBottom - oldTop
+
+            val newWidth = right - left
+            val newHeight = bottom - top
+
+            if (newWidth != oldWith || newHeight != oldHeight) {
+                viewModel.setUiSize(newWidth, newHeight)
             }
         }
         binding.root.addOnLayoutChangeListener(layoutChangeListener)
 
         setupInputHandling()
+        updateOrientation(resources.configuration)
         launchEmulator()
 
         binding.layoutAchievement.setContent {
@@ -386,6 +406,14 @@ class EmulatorActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.frameRenderEvent.collect {
+                    dsRenderer.prepareNextFrame(it)
+                    binding.surfaceMain.requestRender()
+                }
+            }
+        }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.runtimeLayout.collectLatest {
                     setupSoftInput(it)
                 }
@@ -409,7 +437,7 @@ class EmulatorActivity : AppCompatActivity() {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.currentFps.collectLatest {
                     if (it == null) {
-                        binding.textFps.text = ""
+                        binding.textFps.text = null
                     } else {
                         binding.textFps.text = getString(R.string.info_fps, it)
                     }
@@ -515,9 +543,27 @@ class EmulatorActivity : AppCompatActivity() {
                 }
             }
         }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                WindowInfoTracker.getOrCreate(this@EmulatorActivity).windowLayoutInfo(this@EmulatorActivity).collect {
+                    val folds = it.displayFeatures.mapNotNull {
+                        if (it is FoldingFeature) {
+                            ScreenFold(
+                                orientation = if (it.orientation == FoldingFeature.Orientation.HORIZONTAL) Orientation.LANDSCAPE else Orientation.PORTRAIT,
+                                type = if (it.isSeparating) ScreenFold.FoldType.SEAMLESS else ScreenFold.FoldType.GAP,
+                                foldBounds = Rect(it.bounds.left, it.bounds.top, it.bounds.width(), it.bounds.height())
+                            )
+                        } else {
+                            null
+                        }
+                    }
+                    viewModel.setScreenFolds(folds)
+                }
+            }
+        }
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
         if (viewModel.emulatorState.value.isRunning()) {
@@ -562,29 +608,33 @@ class EmulatorActivity : AppCompatActivity() {
         val extras = intent?.extras
         val bootFirmwareOnly = extras?.getBoolean(KEY_BOOT_FIRMWARE_ONLY) ?: false
 
-        disableScreenTimeOut()
-        if (bootFirmwareOnly) {
-            val consoleTypeParameter = extras?.getInt(KEY_BOOT_FIRMWARE_CONSOLE, -1)
-            if (consoleTypeParameter == null || consoleTypeParameter == -1) {
-                throw RuntimeException("No console type specified")
-            }
+        lifecycleScope.launch {
+            val glContext = currentOpenGlContext.filterNotNull().first()
 
-            val firmwareConsoleType = ConsoleType.values()[consoleTypeParameter]
-            viewModel.loadFirmware(firmwareConsoleType)
-        } else {
-            val romParcelable = extras?.parcelable(KEY_ROM) as RomParcelable?
+            disableScreenTimeOut()
+            if (bootFirmwareOnly) {
+                val consoleTypeParameter = extras?.getInt(KEY_BOOT_FIRMWARE_CONSOLE, -1)
+                if (consoleTypeParameter == null || consoleTypeParameter == -1) {
+                    throw RuntimeException("No console type specified")
+                }
 
-            if (romParcelable?.rom != null) {
-                viewModel.loadRom(romParcelable.rom)
+                val firmwareConsoleType = ConsoleType.entries[consoleTypeParameter]
+                viewModel.loadFirmware(firmwareConsoleType, glContext)
             } else {
-                if (extras?.containsKey(KEY_PATH) == true) {
-                    val romPath = extras.getString(KEY_PATH)!!
-                    viewModel.loadRom(romPath)
-                } else if (extras?.containsKey(KEY_URI) == true) {
-                    val romUri = extras.getString(KEY_URI)!!
-                    viewModel.loadRom(romUri.toUri())
+                val romParcelable = extras?.parcelable(KEY_ROM) as RomParcelable?
+
+                if (romParcelable?.rom != null) {
+                    viewModel.loadRom(romParcelable.rom, glContext)
                 } else {
-                    throw RuntimeException("No ROM was specified")
+                    if (extras?.containsKey(KEY_PATH) == true) {
+                        val romPath = extras.getString(KEY_PATH)!!
+                        viewModel.loadRom(romPath, glContext)
+                    } else if (extras?.containsKey(KEY_URI) == true) {
+                        val romUri = extras.getString(KEY_URI)!!
+                        viewModel.loadRom(romUri.toUri(), glContext)
+                    } else {
+                        throw RuntimeException("No ROM was specified")
+                    }
                 }
             }
         }
@@ -652,6 +702,8 @@ class EmulatorActivity : AppCompatActivity() {
         if (layoutConfiguration != null) {
             setLayoutOrientation(layoutConfiguration.layoutOrientation)
             binding.viewLayoutControls.instantiateLayout(layoutConfiguration)
+        } else {
+            binding.viewLayoutControls.destroyLayout()
         }
     }
 
@@ -815,10 +867,24 @@ class EmulatorActivity : AppCompatActivity() {
         viewModel.resumeEmulator()
     }
 
+    private fun updateOrientation(configuration: Configuration) {
+        val orientation = if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            Orientation.PORTRAIT
+        } else {
+            Orientation.LANDSCAPE
+        }
+        viewModel.setSystemOrientation(orientation)
+    }
+
     override fun onPause() {
         super.onPause()
         enableScreenTimeOut()
         binding.surfaceMain.onPause()
         viewModel.pauseEmulator(false)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        updateOrientation(newConfig)
     }
 }
