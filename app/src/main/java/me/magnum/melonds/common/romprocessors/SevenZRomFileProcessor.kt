@@ -2,8 +2,6 @@ package me.magnum.melonds.common.romprocessors
 
 import android.app.ActivityManager
 import android.content.Context
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.core.content.getSystemService
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.SizeUnit
@@ -14,7 +12,6 @@ import org.apache.commons.compress.archivers.sevenz.SevenZFileOptions
 import java.io.FileInputStream
 import java.io.InputStream
 
-@RequiresApi(Build.VERSION_CODES.N)
 class SevenZRomFileProcessor(private val context: Context, uriHandler: UriHandler, ndsRomCache: NdsRomCache) : CompressedRomFileProcessor(context, uriHandler, ndsRomCache) {
 
     override fun getNdsEntryStreamInFileStream(fileStream: InputStream): RomFileStream? {

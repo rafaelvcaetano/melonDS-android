@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.opengl.GLSurfaceView
-import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -625,9 +624,7 @@ class EmulatorActivity : AppCompatActivity() {
     }
 
     private fun setupSustainedPerformanceMode() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            window.setSustainedPerformanceMode(viewModel.isSustainedPerformanceModeEnabled())
-        }
+        window.setSustainedPerformanceMode(viewModel.isSustainedPerformanceModeEnabled())
     }
 
     private fun setupFpsCounter() {
