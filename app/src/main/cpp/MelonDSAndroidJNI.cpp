@@ -471,12 +471,10 @@ Java_me_magnum_melonds_MelonEmulator_setFastForwardEnabled(JNIEnv* env, jobject 
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_setMicrophoneEnabled(JNIEnv* env, jobject thiz, jboolean enabled)
 {
-    if(enabled)
-    {
+    if (enabled)
         MelonDSAndroid::enableMic();
-    } else {
+    else
         MelonDSAndroid::disableMic();
-    }
 }
 
 JNIEXPORT void JNICALL
