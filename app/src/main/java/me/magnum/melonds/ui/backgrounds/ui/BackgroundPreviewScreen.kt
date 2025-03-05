@@ -58,6 +58,7 @@ fun BackgroundPreviewScreen(
     val context = LocalContext.current
     val systemUiController = rememberSystemUiController()
     systemUiController.isNavigationBarVisible = isWindowDecorVisible
+    systemUiController.isNavigationBarContrastEnforced = true
 
     LaunchedEffect(Unit) {
         systemUiController.isStatusBarVisible = false

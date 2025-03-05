@@ -34,7 +34,7 @@ import me.magnum.melonds.ui.romdetails.ui.RomAchievementUi
 import me.magnum.rcheevosapi.model.RAAchievement
 
 @Composable
-fun AchievementListUi(
+fun AchievementList(
     modifier: Modifier,
     state: RomRetroAchievementsUiState,
     onViewAchievement: (RAAchievement) -> Unit,

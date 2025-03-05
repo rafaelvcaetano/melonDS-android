@@ -3,9 +3,7 @@ package me.magnum.melonds.ui.emulator
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.net.Uri
 import android.opengl.GLSurfaceView
-import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -22,14 +20,9 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,11 +30,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.DialogWindowProvider
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.net.toUri
 import androidx.core.os.ConfigurationCompat
@@ -102,7 +92,7 @@ import me.magnum.melonds.ui.emulator.rewind.EdgeSpacingDecorator
 import me.magnum.melonds.ui.emulator.rewind.RewindSaveStateAdapter
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 import me.magnum.melonds.ui.emulator.rom.SaveStateListAdapter
-import me.magnum.melonds.ui.emulator.ui.AchievementListUi
+import me.magnum.melonds.ui.emulator.ui.AchievementListDialog
 import me.magnum.melonds.ui.emulator.ui.AchievementPopupUi
 import me.magnum.melonds.ui.emulator.ui.RAIntegrationEventUi
 import me.magnum.melonds.ui.settings.SettingsActivity
@@ -337,7 +327,10 @@ class EmulatorActivity : AppCompatActivity() {
                             AchievementPopupUi(
                                 modifier = Modifier
                                     .align(Alignment.TopCenter)
-                                    .offset(y = (popupOffset * (popupHeight ?: Int.MAX_VALUE)).dp)
+                                    .offset {
+                                        val y = (popupOffset * (popupHeight ?: Int.MAX_VALUE)).dp
+                                        IntOffset(0, y.roundToPx())
+                                    }
                                     .onSizeChanged { popupHeight = it.height },
                                 achievement = currentPopupEvent.achievement,
                             )
@@ -346,7 +339,10 @@ class EmulatorActivity : AppCompatActivity() {
                             RAIntegrationEventUi(
                                 modifier = Modifier
                                     .align(Alignment.TopCenter)
-                                    .offset(y = (popupOffset * (popupHeight ?: Int.MAX_VALUE)).dp)
+                                    .offset {
+                                        val y = (popupOffset * (popupHeight ?: Int.MAX_VALUE)).dp
+                                        IntOffset(0, y.roundToPx())
+                                    }
                                     .onSizeChanged { popupHeight = it.height },
                                 event = currentPopupEvent.event,
                             )
@@ -358,40 +354,15 @@ class EmulatorActivity : AppCompatActivity() {
                 }
 
                 if (showAchievementList.value) {
-                    Dialog(
-                        properties = DialogProperties(usePlatformDefaultWidth = false),
-                        onDismissRequest = {
+                    val achievementsViewModel = viewModels<EmulatorRetroAchievementsViewModel>().value
+
+                    AchievementListDialog(
+                        viewModel = achievementsViewModel,
+                        onDismiss = {
                             viewModel.resumeEmulator()
                             showAchievementList.value = false
                         }
-                    ) {
-                        (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(0.8f)
-
-                        val achievementsViewModel by viewModels<EmulatorRetroAchievementsViewModel>()
-                        val achievementListState by achievementsViewModel.uiState.collectAsState()
-
-                        LaunchedEffect(Unit) {
-                            // Perform a load immediately so that the last achievement data is discarded. This is to ensure that the latest up-to-date data is displayed and
-                            // that if the user has loaded a new ROM, then the achievements of the new ROM are loaded
-                            achievementsViewModel.retryLoadAchievements()
-                            achievementsViewModel.viewAchievementEvent.collectLatest {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it))
-                                startActivity(intent)
-                            }
-                        }
-
-                        // Force dark colors here because the background will be dark
-                        MelonTheme(isDarkTheme = true) {
-                            CompositionLocalProvider(LocalContentColor provides MaterialTheme.colors.onSurface) {
-                                AchievementListUi(
-                                    modifier = Modifier.fillMaxSize(),
-                                    state = achievementListState,
-                                    onViewAchievement = achievementsViewModel::viewAchievement,
-                                    onRetry = achievementsViewModel::retryLoadAchievements,
-                                )
-                            }
-                        }
-                    }
+                    )
                 }
             }
         }
@@ -653,9 +624,7 @@ class EmulatorActivity : AppCompatActivity() {
     }
 
     private fun setupSustainedPerformanceMode() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            window.setSustainedPerformanceMode(viewModel.isSustainedPerformanceModeEnabled())
-        }
+        window.setSustainedPerformanceMode(viewModel.isSustainedPerformanceModeEnabled())
     }
 
     private fun setupFpsCounter() {

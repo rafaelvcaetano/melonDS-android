@@ -1,7 +1,6 @@
 package me.magnum.melonds.ui.settings.fragments
 
 import android.Manifest
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -54,9 +53,6 @@ class AudioPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
     }
 
     private fun requestMicrophonePermission(overrideRationaleRequest: Boolean) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
-            return
-
         if (!overrideRationaleRequest && shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO)) {
             AlertDialog.Builder(requireContext())
                 .setTitle(R.string.microphone_permission_required)

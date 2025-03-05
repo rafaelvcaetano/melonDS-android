@@ -28,7 +28,6 @@ import me.magnum.melonds.impl.AndroidDSiNandManager
 import me.magnum.melonds.impl.*
 import me.magnum.melonds.impl.layout.UILayoutProvider
 import me.magnum.melonds.impl.romprocessors.Api24RomFileProcessorFactory
-import me.magnum.melonds.impl.romprocessors.OldRomFileProcessorFactory
 import me.magnum.melonds.ui.romdetails.RomDetailsUiMapper
 import me.magnum.rcheevosapi.RAApi
 import me.magnum.rcheevosapi.RAUserAuthStore
@@ -106,11 +105,7 @@ object MelonModule {
     @Provides
     @Singleton
     fun provideFileRomProcessorFactory(@ApplicationContext context: Context, uriHandler: UriHandler, ndsRomCache: NdsRomCache): RomFileProcessorFactory {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Api24RomFileProcessorFactory(context, uriHandler, ndsRomCache)
-        } else {
-            OldRomFileProcessorFactory(context, uriHandler, ndsRomCache)
-        }
+        return Api24RomFileProcessorFactory(context, uriHandler, ndsRomCache)
     }
 
     @Provides
