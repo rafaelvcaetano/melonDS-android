@@ -17,6 +17,7 @@
     <string name="update">Aggiorna</string>
     <string name="close">Chiudi</string>
     <string name="play">Gioca</string>
+    <string name="save">Salva</string>
     <string name="ellipsis">…</string>
 
     <string name="version_alpha">Alfa</string>
@@ -61,8 +62,8 @@
 
     <string name="dsiware_manager">Gestione DSiWare</string>
     <string name="no_dsiware_titles_installed">Non ci sono titoli DSiWare installati</string>
-    <string name="dsiware_manager_no_dsi_setup">Non hai configurato il DSi</string>
-    <string name="dsiware_manager_invalid_dsi_setup">Configurazione DSi non valida</string>
+    <string name="dsiware_manager_no_dsi_setup">Non hai configurato il sistema DSi</string>
+    <string name="dsiware_manager_invalid_dsi_setup">Configurazione di sistema DSi non valida</string>
     <string name="import_dsiware_title">Importa titolo DSiWare</string>
     <string name="dsiware_manager_setup">Configurazione</string>
     <string name="dsiware_manager_fix_setup">Correggi configurazione</string>
@@ -106,12 +107,12 @@
     <string name="action_sort_recently_played">Avviati di recente</string>
 
     <string name="ds_bios_dir_not_set">Cartella BIOS DS non impostata</string>
-    <string name="ds_bios_dir_not_set_info">La cartella del BIOS del DS non è impostata. Seleziona la cartella che contiene i seguenti file:\n• bios7.bin\n• bios9.bin\n• firmware.bin</string>
+    <string name="ds_bios_dir_not_set_info">La cartella del BIOS del DS non è impostata. Seleziona la cartella che contiene i seguenti file:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
     <string name="dsi_bios_dir_not_set">Cartella BIOS DSi non impostata</string>
-    <string name="dsi_bios_dir_not_set_info">La cartella del BIOS del DSi non è impostata. Seleziona la cartella che contiene i seguenti file:\n• bios7.bin\n• bios9.bin\n• firmware.bin\n• nand.bin</string>
+    <string name="dsi_bios_dir_not_set_info">La cartella del BIOS del DSi non è impostata. Seleziona la cartella che contiene i seguenti file:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
     <string name="incorrect_bios_dir">Cartella BIOS errata</string>
-    <string name="ds_incorrect_bios_dir_info">La cartella del BIOS del DS non è corretta. Assicurati che la cartella contenga i seguenti file:\n• bios7.bin\n• bios9.bin\n• firmware.bin</string>
-    <string name="dsi_incorrect_bios_dir_info">La cartella del BIOS del DSi non è corretta. Assicurati che la cartella contenga i seguenti file:\n• bios7.bin\n• bios9.bin\n• firmware.bin\n• nand.bin</string>
+    <string name="ds_incorrect_bios_dir_info">La cartella del BIOS del DS non è corretta. Assicurati che la cartella contenga i seguenti file:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="dsi_incorrect_bios_dir_info">La cartella del BIOS del DSi non è corretta. Assicurati che la cartella contenga i seguenti file:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
     <string name="storage_permission_required">Accesso all\'archiviazione richiesto</string>
     <string name="storage_permission_required_info">È necessario autorizzare l\'accesso all\'archiviazione per caricare le ROM dal dispositivo. Nella finestra di dialogo successiva, concedi l\'accesso all\'archiviazione.</string>
     <string name="microphone_permission_required">Autorizzazione alla registrazione audio richiesta</string>
@@ -138,7 +139,7 @@
     <string name="load_state">Carica stato</string>
     <string name="rewind">Riavvolgi</string>
     <string name="save_slot">Slot salvataggio</string>
-    <string name="empty_slot">%1$s. &lt;Vuoto></string>
+    <string name="empty_slot">%1$s. &lt;Vuoto&gt;</string>
     <string name="quick_slot">Slot rapido</string>
     <string name="saved">Salvato</string>
     <string name="loaded">Caricato</string>
@@ -161,7 +162,7 @@
     <string name="check_for_updates">Cerca aggiornamenti</string>
     <string name="check_for_updates_summary">Se abilitato, l\'applicazione controllerà regolarmente la presenza di nuovi aggiornamenti</string>
     <string name="rom_icon_filtering">Filtro icone</string>
-    <string name="max_rom_cache_size">Massima dimensione della cache ROM</string>
+    <string name="max_rom_cache_size">Dimensione massima della cache ROM</string>
     <string name="clear_extracted_rom_cache">Pulisci la cache ROM</string>
     <string name="cache_size">Dimensione cache: %s</string>
     <string name="cache_size_calculating">Dimensione cache: sto calcolando…</string>
@@ -177,7 +178,7 @@
     <string name="show_boot_screen">Mostra schermata di avvio</string>
     <string name="mac_address">Indirizzo MAC</string>
     <string name="randomize_mac_address">Indirizzo MAC casuale</string>
-    <string name="randomize_mac_address_summary">Se abilitato, un indirizzo MAC casuale viene utilizzato ad ogni avvio. Questo può far sì che alcuni giochi pensino di essere in esecuzione su una console diversa e ciò può rompere gli eventi a tempo.</string>
+    <string name="randomize_mac_address_summary">Se abilitato, viene utilizzato un indirizzo MAC casuale ad ogni avvio. Questo potrebbe far sì che alcuni giochi credano di essere in esecuzione su una console diversa, e ciò potrebbe compromettere il funzionamento degli eventi basati sul tempo.</string>
     <string name="generate_new_mac_address">Genera nuovo</string>
     <string name="generate_new_mac_address_description">Generare un nuovo indirizzo MAC farà credere ai giochi di essere in esecuzione su una console diversa.</string>
     <string name="enable_jit">Abilita JIT</string>
@@ -185,7 +186,7 @@
     <string name="jit_not_supported">JIT è supportato esclusivamente su dispositivi a 64 bit.</string>
     <string name="threaded_rendering">Threaded rendering</string>
     <string name="fps_counter_position">Posizione contatore FPS</string>
-    <string name="threaded_rendering_summary">Se abilitato, migliora le prestazioni nei giochi 3D ma potrebbe causare errori grafici.</string>
+    <string name="threaded_rendering_summary">Se abilitato, migliora le prestazioni nei giochi 3D ma può causare errori grafici.</string>
     <string name="category_video">Video</string>
     <string name="category_video_summary">Filtri, threaded rendering, contatore FPS</string>
     <string name="filter">Filtri</string>
@@ -202,20 +203,20 @@
     <string name="volume_percentage">%1$d%%</string>
     <string name="audio_latency">Ritardo audio</string>
     <string name="microphone_source">Sorgente microfono</string>
-    <string name="controller_layout">Disposizione dei comandi</string>
+    <string name="controller_layout">Disposizione dei comandi a schermo</string>
     <string name="category_save_files">File di salvataggio</string>
-    <string name="category_save_files_summary">Percorsi file di salvataggio e stati</string>
+    <string name="category_save_files_summary">Percorsi di file di salvataggio e stati</string>
     <string name="save_next_rom">Salva nello stesso percorso della ROM</string>
     <string name="save_file_directory">Cartella dei file di salvataggio</string>
     <string name="save_state_location">Percorso salvataggi dello stato</string>
     <string name="input">Comandi</string>
-    <string name="input_summary">Assegnazione dei tasti, disposizione comandi, feedback tattile</string>
+    <string name="input_summary">Assegnazione dei tasti, disposizione dei comandi a schermo, feedback tattile</string>
     <string name="key_mapping">Assegnazione dei tasti</string>
     <string name="key_mapping_summary">Assegna tasti agli input del controller</string>
-    <string name="show_soft_input">Mostra pulsanti a schermo</string>
+    <string name="show_soft_input">Mostra comandi a schermo</string>
     <string name="vibrate_on_touch">Vibra al tocco</string>
     <string name="vibration_strength">Intensità vibrazione</string>
-    <string name="soft_input_opacity">Opacità tasti a schermo</string>
+    <string name="soft_input_opacity">Opacità comandi a schermo</string>
     <string name="retroachievements">RetroAchievements</string> <!-- Keep words together because this is the official name -->
     <string name="retroachievements_summary">Accesso e gestione dell\'integrazione RetroAchievements</string> <!-- Keep words together because this is the official name -->
     <string name="enable_rich_presence">Attiva rich presence</string>
@@ -245,6 +246,19 @@
     <string name="no_cheats_found">Impossibile trovare trucchi per la ROM attuale. Prova a importare un database dei trucchi diverso.</string>
     <string name="enabled_cheats">Abilita trucchi</string>
     <string name="no_enabled_cheats_for_rom">Non hai abilitato trucchi per questa ROM</string>
+    <string name="folder_is_empty">Questa cartella è vuota. Prova ad aggiungere un tuo trucco</string>
+    <string name="add_cheat_folder">Aggiungi cartella trucchi</string>
+    <string name="new_cheat">Nuovo trucco</string>
+    <string name="edit_cheat">Modifica trucco</string>
+    <string name="cheat_name">Nome trucco</string>
+    <string name="description">Descrizione</string>
+    <string name="cheat_code">Codice</string>
+    <string name="error_name_cannot_be_empty">Il nome non può essere vuoto</string>
+    <string name="error_code_cannot_be_empty">Il codice non può essere vuoto</string>
+    <string name="error_code_invalid_format">Il formato del codice non è valido</string>
+    <string name="cheat_deleted">Trucco \"%1$s\" cancellato</string>
+    <string name="cheat_folder_default_name">I miei trucchi</string>
+
     <string name="day">Giorno</string>
     <string name="month">Mese</string>
     <string name="symbol_increase">+</string>
@@ -252,7 +266,7 @@
 
     <string name="rom_settings">Impostazioni rom</string> <!-- Accessibility string. Should not use acronyms -->
     <string name="label_rom_config_console">Console di avvio</string>
-    <string name="label_rom_config_load_gba_rom">Carica ROM GBA</string>
+    <string name="label_rom_config_gba_slot">Slot GBA</string>
     <string name="label_rom_config_gba_rom_path">Cartella ROM GBA</string>
     <string name="label_rom_config_gba_save_path">Cartella salvataggi GBA</string>
     <string name="rom_details_configuration_tab">Impostazioni</string>
@@ -281,6 +295,7 @@
     <string name="input_lid">Apri/Chiudi console</string>
     <string name="input_pause">Pausa</string>
     <string name="input_fast_forward">Avanzamento rapido (attiva/disattiva)</string>
+    <string name="input_microphone">Attiva/Disattiva microfono</string>
     <string name="input_toggle_soft_input">Mostra/nascondi tasti a schermo</string>
     <string name="input_reset">@string/reset</string>
     <string name="input_dpad">Tasti direzionali</string>
@@ -290,10 +305,11 @@
     <string name="input_quick_load">Caricamento rapido</string>
 
     <string name="layouts">Disposizione dei comandi</string>
-    <string name="layouts_summary">Gestisci disposizioni personalizzate</string>
+    <string name="layouts_summary">Personalizza e gestisci le disposizioni dei comandi a schermo</string>
     <string name="action_layouts_new">Nuova disposizione</string>
     <string name="default_layout_name">Predefinita</string>
-    <string name="use_global_layout">Utilizza disposizione globale</string>
+    <string name="custom_layout_default_name">Mia disposizione</string>
+    <string name="use_global_layout">Usa disposizione globale</string>
     <string name="layout_deleted">Disposizione eliminata</string>
 
     <string name="layout_editor">Editor disposizione</string>
@@ -305,10 +321,6 @@
     <string name="revert_changes">Annulla cambiamenti</string>
     <string name="reset_default">Ripristina le impostazioni predefinite</string>
     <string name="exit_without_saving">Esci senza salvare</string>
-    <string name="portrait_background">Sfondo verticale</string>
-    <string name="portrait_background_mode">Modalità sfondo verticale</string>
-    <string name="landscape_background">Sfondo orizzontale</string>
-    <string name="landscape_background_mode">Modalità sfondo orizzontale</string>
     <string name="save_and_exit">Salva ed esci</string>
     <string name="layout_name">Nome disposizione</string>
     <string name="layout_orientation">Orientamento disposizione</string>
@@ -316,11 +328,13 @@
     <string name="layout_opacity">Opacità disposizione</string>
     <string name="layout_background_load_failed">Impossibile caricare lo sfondo</string>
 
+    <string name="layout_background_title">Sfondo del layout</string>
+    <string name="background">Sfondo</string>
     <string name="backgrounds">Sfondi</string>
+    <string name="background_mode">Modalità sfondo</string>
     <string name="action_backgrounds_new">Nuovo sfondo</string>
     <string name="background_name">Nome sfondo</string>
     <string name="background_deleted">Sfondo eliminato</string>
-    <string name="background_add_wrong_orientation">Sfondo aggiunto, ma non visible per l\'orientamento selezionato.</string>
     <string name="background_add_processing_failed">Si è verificato un errore durante l\'elaborazione dell\'immagine di sfondo selezionata. Assicurati che non sia corrotta.</string>
 
     <string name="retro_achievements_login_description">Accedi con RetroAchievements per vedere gli obiettivi che puoi sbloccare giocando a questo gioco!</string>
@@ -338,7 +352,7 @@
     <string name="username">Utente</string>
     <string name="password">Password</string>
     <string name="retry">Riprova</string>
-    <string name="points_abbreviated">Pt</string>
+    <string name="points_abbreviated">PT</string>
     <string name="points">Punti</string>
     <string name="completed">Completato</string>
     <string name="ra_mode_hardcore">Hardcore</string>
@@ -388,6 +402,12 @@
         <item>Nessuna</item>
         <item>Soffio</item>
         <item>Microfono del dispositivo</item>
+    </string-array>
+
+    <string-array name="gba_slot_options">
+        <item>Nessuno</item>
+        <item>ROM GBA</item>
+        <item>Espansione di memoria</item>
     </string-array>
 
     <string-array name="console_type_options">
@@ -463,13 +483,13 @@
     </string-array>
 
     <string-array name="save_state_locations">
-        <item>Save file directory</item>
-        <item>ROM directory</item>
-        <item>Internal directory</item>
+        <item>Cartella dei file di salvataggio</item>
+        <item>Cartella della ROM</item>
+        <item>Cartella interna</item>
     </string-array>
 
     <string-array name="layout_orientation_options">
-        <item>Segui il sistema</item>
+        <item>Segui sistema</item>
         <item>Verticale</item>
         <item>Orizzontale</item>
     </string-array>
@@ -478,13 +498,8 @@
         <item>Estendi</item>
         <item>Adatta al centro</item>
         <item>Adatta in alto</item>
-        <item>Adatta in basso</item>
-    </string-array>
-
-    <string-array name="background_landscape_mode_options">
-        <item>Estendi</item>
-        <item>Adatta al centro</item>
         <item>Adatta a sinistra</item>
+        <item>Adatta in basso</item>
         <item>Adatta a destra</item>
     </string-array>
 </resources>
