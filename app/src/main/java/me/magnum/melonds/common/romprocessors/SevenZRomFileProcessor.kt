@@ -8,7 +8,6 @@ import me.magnum.melonds.domain.model.SizeUnit
 import me.magnum.melonds.impl.NdsRomCache
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry
 import org.apache.commons.compress.archivers.sevenz.SevenZFile
-import org.apache.commons.compress.archivers.sevenz.SevenZFileOptions
 import java.io.FileInputStream
 import java.io.InputStream
 
@@ -25,11 +24,10 @@ class SevenZRomFileProcessor(private val context: Context, uriHandler: UriHandle
             SizeUnit.Bytes(memoryInfo.totalMem)
         } ?: SizeUnit.Bytes(Int.MAX_VALUE.toLong())
 
-        val options = SevenZFileOptions.builder()
-            .withMaxMemoryLimitInKb((deviceMemory * 0.1f).toKB().toInt())
-            .build()
-
-        val sevenZFile = SevenZFile(fileStream.channel, options)
+        val sevenZFile = SevenZFile.Builder()
+            .setMaxMemoryLimitKb((deviceMemory * 0.1f).toKB().toInt())
+            .setSeekableByteChannel(fileStream.channel)
+            .get()
         return getNdsEntryInFile(sevenZFile)?.let {
             RomFileStream(sevenZFile.getInputStream(it), SizeUnit.Bytes(it.size))
         }
