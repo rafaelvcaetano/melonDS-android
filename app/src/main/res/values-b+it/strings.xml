@@ -241,10 +241,10 @@
     <string name="error_clear_rom_cache">Pulizia cache ROM fallita</string>
     <string name="importing_cheats">Importazione trucchi in corso…</string>
     <string name="starting">Avvio in corso…</string>
-    <string name="move_to_background">Sposta in secondo piano</string>
+    <string name="move_to_background">Continua in background</string>
     <string name="failed_save_cheat_changes">Impossibile salvare le modifiche ai trucchi</string>
     <string name="no_cheats_found">Impossibile trovare trucchi per la ROM attuale. Prova a importare un database dei trucchi diverso.</string>
-    <string name="enabled_cheats">Abilita trucchi</string>
+    <string name="enabled_cheats">Trucchi abilitati</string>
     <string name="no_enabled_cheats_for_rom">Non hai abilitato trucchi per questa ROM</string>
     <string name="folder_is_empty">Questa cartella è vuota. Prova ad aggiungere un tuo trucco</string>
     <string name="add_cheat_folder">Aggiungi cartella trucchi</string>
