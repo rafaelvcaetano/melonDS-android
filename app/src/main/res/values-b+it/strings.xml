@@ -178,7 +178,7 @@
     <string name="show_boot_screen">Mostra schermata di avvio</string>
     <string name="mac_address">Indirizzo MAC</string>
     <string name="randomize_mac_address">Indirizzo MAC casuale</string>
-    <string name="randomize_mac_address_summary">Se abilitato, viene utilizzato un indirizzo MAC casuale ad ogni avvio. Questo potrebbe far sì che alcuni giochi credano di essere in esecuzione su una console diversa, e ciò potrebbe compromettere il funzionamento degli eventi basati sul tempo.</string>
+    <string name="randomize_mac_address_summary">Se abilitato, viene utilizzato un indirizzo MAC casuale ad ogni avvio. Questo potrebbe far sì che alcuni giochi credano di essere in esecuzione su una console diversa e ciò potrebbe compromettere il funzionamento degli eventi basati sul tempo.</string>
     <string name="generate_new_mac_address">Genera nuovo</string>
     <string name="generate_new_mac_address_description">Generare un nuovo indirizzo MAC farà credere ai giochi di essere in esecuzione su una console diversa.</string>
     <string name="enable_jit">Abilita JIT</string>
