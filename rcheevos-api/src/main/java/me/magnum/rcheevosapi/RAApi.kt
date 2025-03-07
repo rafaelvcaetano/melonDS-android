@@ -4,23 +4,29 @@ import com.google.gson.Gson
 import com.google.gson.JsonParser
 import me.magnum.melonds.common.suspendMapCatching
 import me.magnum.melonds.common.suspendRunCatching
-import me.magnum.rcheevosapi.dto.*
+import me.magnum.rcheevosapi.dto.GamePatchDto
+import me.magnum.rcheevosapi.dto.HashLibraryDto
+import me.magnum.rcheevosapi.dto.UserLoginDto
+import me.magnum.rcheevosapi.dto.UserUnlocksDto
 import me.magnum.rcheevosapi.dto.mapper.mapToModel
 import me.magnum.rcheevosapi.exception.UnsuccessfulRequestException
 import me.magnum.rcheevosapi.exception.UserNotAuthenticatedException
 import me.magnum.rcheevosapi.model.RAGame
 import me.magnum.rcheevosapi.model.RAGameId
 import me.magnum.rcheevosapi.model.RAUserAuth
-import okhttp3.*
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import java.io.IOException
 import java.net.URLEncoder
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
-import kotlin.reflect.javaType
-import kotlin.reflect.typeOf
+import kotlin.reflect.KClass
 
 class RAApi(
     private val okHttpClient: OkHttpClient,
@@ -167,10 +173,17 @@ class RAApi(
         return post(parameters)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
-    private suspend inline fun <reified T> get(
+    private suspend inline fun <reified T : Any> get(
         parameters: Map<String, String>,
-        errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") }
+        noinline errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") },
+    ): Result<T> {
+        return get(T::class, parameters, errorHandler)
+    }
+
+    private suspend fun <T : Any> get(
+        responseClass: KClass<T>,
+        parameters: Map<String, String>,
+        errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") },
     ): Result<T> {
         val request = buildGetRequest(parameters)
         return suspendRunCatching {
@@ -185,11 +198,11 @@ class RAApi(
                     errorHandler.invoke(reason)
                 }
 
-                if (T::class == Unit::class) {
+                if (responseClass == Unit::class) {
                     // Ignore response. Don't parse anything
                     Unit as T
                 } else {
-                    gson.fromJson(json, typeOf<T>().javaType)
+                    gson.fromJson(json, responseClass.java)
                 }
             } else {
                 throw Exception(response.message)
@@ -197,10 +210,17 @@ class RAApi(
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
-    private suspend inline fun <reified T> post(
+    private suspend inline fun <reified T : Any> post(
         parameters: Map<String, String>,
-        errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") }
+        noinline errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") },
+    ): Result<T> {
+        return post(T::class, parameters, errorHandler)
+    }
+
+    private suspend fun <T : Any> post(
+        responseClass: KClass<T>,
+        parameters: Map<String, String>,
+        errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") },
     ): Result<T> {
         val request = buildPostRequest(parameters)
         return suspendRunCatching {
@@ -215,11 +235,11 @@ class RAApi(
                     errorHandler.invoke(reason)
                 }
 
-                if (T::class == Unit::class) {
+                if (responseClass == Unit::class) {
                     // Ignore response. Don't parse anything
                     Unit as T
                 } else {
-                    gson.fromJson(json, typeOf<T>().javaType)
+                    gson.fromJson(json, responseClass.java)
                 }
             } else {
                 throw Exception(response.message)
