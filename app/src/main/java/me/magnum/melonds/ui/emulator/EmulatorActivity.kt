@@ -143,8 +143,10 @@ class EmulatorActivity : AppCompatActivity() {
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
     private val frontendInputHandler = object : FrontendInputHandler() {
-        private var fastForwardEnabled = false
-        private var microphoneEnabled = true
+        var fastForwardEnabled = false
+            private set
+        var microphoneEnabled = true
+            private set
 
         override fun onSoftInputTogglePressed() {
             binding.viewLayoutControls.toggleSoftInputVisibility()
@@ -156,11 +158,13 @@ class EmulatorActivity : AppCompatActivity() {
 
         override fun onFastForwardPressed() {
             fastForwardEnabled = !fastForwardEnabled
+            binding.viewLayoutControls.setLayoutComponentToggleState(LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE, fastForwardEnabled)
             MelonEmulator.setFastForwardEnabled(fastForwardEnabled)
         }
 
         override fun onMicrophonePressed() {
             microphoneEnabled = !microphoneEnabled
+            binding.viewLayoutControls.setLayoutComponentToggleState(LayoutComponent.BUTTON_MICROPHONE_TOGGLE, microphoneEnabled)
             MelonEmulator.setMicrophoneEnabled(microphoneEnabled)
         }
 
@@ -670,7 +674,11 @@ class EmulatorActivity : AppCompatActivity() {
     private fun setupSoftInput(layoutConfiguration: RuntimeInputLayoutConfiguration?) {
         if (layoutConfiguration != null) {
             setLayoutOrientation(layoutConfiguration.layoutOrientation)
-            binding.viewLayoutControls.instantiateLayout(layoutConfiguration)
+            with(binding.viewLayoutControls) {
+                instantiateLayout(layoutConfiguration)
+                setLayoutComponentToggleState(LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE, frontendInputHandler.fastForwardEnabled)
+                setLayoutComponentToggleState(LayoutComponent.BUTTON_MICROPHONE_TOGGLE, frontendInputHandler.microphoneEnabled)
+            }
         } else {
             binding.viewLayoutControls.destroyLayout()
         }

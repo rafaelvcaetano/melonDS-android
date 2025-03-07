@@ -12,6 +12,7 @@ import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.ui.common.LayoutView
 import me.magnum.melonds.ui.emulator.input.*
+import me.magnum.melonds.ui.emulator.input.view.ToggleableImageView
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration
 import javax.inject.Inject
 
@@ -39,22 +40,29 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
 
     fun toggleSoftInputVisibility() {
         isSoftInputVisible = !isSoftInputVisible
+        setLayoutComponentToggleState(LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT, isSoftInputVisible)
         updateSoftInputVisibility()
     }
 
     fun swapScreens() {
         areScreensSwapped = !areScreensSwapped
-        updateInputs()
+        updateScreenInputs()
     }
 
     fun areScreensSwapped(): Boolean {
         return areScreensSwapped
     }
 
+    fun setLayoutComponentToggleState(layoutComponent: LayoutComponent, isEnabled: Boolean) {
+        val toggleableImageView = getLayoutComponentView(layoutComponent)?.view as? ToggleableImageView ?: return
+        toggleableImageView.setToggleState(isEnabled)
+    }
+
     fun instantiateLayout(runtimeLayout: RuntimeInputLayoutConfiguration) {
         currentRuntimeLayout = runtimeLayout
         instantiateLayout(runtimeLayout.layout)
         updateInputs()
+        setLayoutComponentToggleState(LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT, isSoftInputVisible)
     }
 
     private fun updateInputs() {
@@ -109,6 +117,10 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
             }
         }
 
+        updateScreenInputs()
+    }
+
+    private fun updateScreenInputs() {
         val (touchScreenComponent, nonTouchScreenComponent) = if (areScreensSwapped) {
             LayoutComponent.TOP_SCREEN to LayoutComponent.BOTTOM_SCREEN
         } else {
