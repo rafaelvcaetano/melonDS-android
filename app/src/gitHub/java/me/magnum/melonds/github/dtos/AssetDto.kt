@@ -1,11 +1,13 @@
 package me.magnum.melonds.github.dtos
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class AssetDto(
-    @SerializedName("id") val id: Long,
-    @SerializedName("browser_download_url") val url: String,
-    @SerializedName("name") val name: String,
-    @SerializedName("size") val size: Long,
-    @SerializedName("content_type") val contentType: String
+    @SerialName("id") val id: Long,
+    @SerialName("browser_download_url") val url: String,
+    @SerialName("name") val name: String,
+    @SerialName("size") val size: Long,
+    @SerialName("content_type") val contentType: String
 )

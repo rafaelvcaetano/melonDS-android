@@ -167,8 +167,7 @@ dependencies {
     implementation(libs.xz)
 
     gitHubImplementation(libs.retrofit)
-    gitHubImplementation(libs.retrofit.adapter.rxjava)
-    gitHubImplementation(libs.retrofit.converter.gson)
+    gitHubImplementation(libs.retrofit.converter.kotlinx)
 
     ksp(libs.hilt.compiler)
     ksp(libs.hilt.compiler.android)

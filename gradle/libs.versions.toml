@@ -103,8 +103,7 @@ xz = { module = "org.tukaani:xz", version.ref = "xz" }
 
 # GitHub
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
-retrofit-adapter-rxjava = { module = "com.squareup.retrofit2:adapter-rxjava2", version.ref = "retrofit" }
-retrofit-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
+retrofit-converter-kotlinx = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "retrofit" }
 
 # Ksp
 hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltX" }

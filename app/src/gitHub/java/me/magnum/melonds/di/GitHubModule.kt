@@ -1,18 +1,18 @@
 package me.magnum.melonds.di
 
 import android.content.Context
-import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.json.Json
 import me.magnum.melonds.domain.services.UpdateInstallManager
 import me.magnum.melonds.github.GitHubApi
 import me.magnum.melonds.github.services.GitHubUpdateInstallManager
+import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -20,10 +20,9 @@ import javax.inject.Singleton
 object GitHubModule {
     @Provides
     @Singleton
-    fun provideGitHubApi(gson: Gson): GitHubApi {
+    fun provideGitHubApi(json: Json): GitHubApi {
         val retrofit = Retrofit.Builder()
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-            .addConverterFactory(GsonConverterFactory.create(gson))
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .baseUrl("https://api.github.com")
             .build()
 
