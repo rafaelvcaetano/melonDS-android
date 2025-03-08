@@ -9,8 +9,8 @@ fun RAAchievement.mapToEntity(): RAAchievementEntity {
     return RAAchievementEntity(
         id,
         gameId.id,
-        totalAwardsCasual,
-        totalAwardsHardcore,
+        totalAwardsCasual ?: 0,
+        totalAwardsHardcore ?: 0,
         title,
         description,
         points,

@@ -6,7 +6,7 @@ import me.magnum.rcheevosapi.model.RAGameId
 import java.net.URI
 
 internal fun GameDto.mapToModel(): RAGame {
-    val gameId = RAGameId(id.toLong())
+    val gameId = RAGameId(id)
     return RAGame(
         id = gameId,
         title = title,

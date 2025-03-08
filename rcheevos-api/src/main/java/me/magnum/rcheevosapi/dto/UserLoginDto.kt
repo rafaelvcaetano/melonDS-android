@@ -1,12 +1,14 @@
 package me.magnum.rcheevosapi.dto
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class UserLoginDto(
-    @SerializedName("Token")
+    @SerialName("Token")
     val token: String,
-    @SerializedName("Score")
+    @SerialName("Score")
     val score: Long,
-    @SerializedName("SoftcoreScore")
+    @SerialName("SoftcoreScore")
     val softcoreScore: Long,
 )

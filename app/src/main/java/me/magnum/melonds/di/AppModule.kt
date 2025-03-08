@@ -16,6 +16,7 @@ import dagger.hilt.components.SingletonComponent
 import io.noties.markwon.Markwon
 import io.noties.markwon.image.picasso.PicassoImagesPlugin
 import io.noties.markwon.linkify.LinkifyPlugin
+import kotlinx.serialization.json.Json
 import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.common.UriPermissionManager
@@ -42,6 +43,15 @@ object AppModule {
         return GsonBuilder()
                 .registerTypeHierarchyAdapter(Uri::class.java, UriTypeHierarchyAdapter())
                 .create()
+    }
+
+    @Provides
+    @Singleton
+    fun provideJson(): Json {
+        return Json {
+            ignoreUnknownKeys = true
+            explicitNulls = false
+        }
     }
 
     @Provides

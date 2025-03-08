@@ -1,28 +1,30 @@
 package me.magnum.rcheevosapi.dto
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class AchievementDto(
-    @SerializedName("ID")
-    val id: String,
-    @SerializedName("NumAwarded")
-    val numAwarded: Int,
-    @SerializedName("NumAwardedHardcore")
-    val numAwardedHardcore: Int,
-    @SerializedName("Title")
+    @SerialName("ID")
+    val id: Long,
+    @SerialName("NumAwarded")
+    val numAwarded: Int?,
+    @SerialName("NumAwardedHardcore")
+    val numAwardedHardcore: Int?,
+    @SerialName("Title")
     val title: String,
-    @SerializedName("Description")
+    @SerialName("Description")
     val description: String,
-    @SerializedName("Points")
-    val points: String,
-    @SerializedName("Flags")
+    @SerialName("Points")
+    val points: Int,
+    @SerialName("Flags")
     val flags: Int,
-    @SerializedName("BadgeURL")
+    @SerialName("BadgeURL")
     val badgeUrl: String,
-    @SerializedName("BadgeLockedURL")
+    @SerialName("BadgeLockedURL")
     val badgeUrlLocked: String,
-    @SerializedName("DisplayOrder")
+    @SerialName("DisplayOrder")
     val displayOrder: String?,
-    @SerializedName("MemAddr")
+    @SerialName("MemAddr")
     val memoryAddress: String,
 )

@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -9,6 +10,6 @@ kotlin {
 dependencies {
     implementation(projects.common)
 
-    implementation(libs.gson)
+    implementation(libs.kotlin.serialization)
     implementation(libs.okhttp)
 }

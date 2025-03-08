@@ -7,13 +7,13 @@ import java.net.URI
 
 internal fun AchievementDto.mapToModel(gameId: RAGameId): RAAchievement {
     return RAAchievement(
-        id = id.toLong(),
+        id = id,
         gameId = gameId,
         totalAwardsCasual = numAwarded,
         totalAwardsHardcore = numAwardedHardcore,
         title = title,
         description = description,
-        points = points.toIntOrNull() ?: 0,
+        points = points,
         displayOrder = displayOrder?.toIntOrNull() ?: 0,
         badgeUrlUnlocked = URI(badgeUrl).toURL(),
         badgeUrlLocked = URI(badgeUrlLocked).toURL(),

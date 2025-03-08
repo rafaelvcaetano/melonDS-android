@@ -1,8 +1,10 @@
 package me.magnum.rcheevosapi.dto
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class GamePatchDto(
-    @SerializedName("PatchData")
+    @SerialName("PatchData")
     val game: GameDto,
 )

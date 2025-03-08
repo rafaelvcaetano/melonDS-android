@@ -1,7 +1,11 @@
 package me.magnum.rcheevosapi
 
-import com.google.gson.Gson
-import com.google.gson.JsonParser
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.serializer
 import me.magnum.melonds.common.suspendMapCatching
 import me.magnum.melonds.common.suspendRunCatching
 import me.magnum.rcheevosapi.dto.GamePatchDto
@@ -30,7 +34,7 @@ import kotlin.reflect.KClass
 
 class RAApi(
     private val okHttpClient: OkHttpClient,
-    private val gson: Gson,
+    private val json: Json,
     private val userAuthStore: RAUserAuthStore,
     private val achievementSignatureProvider: RAAchievementSignatureProvider,
 ) {
@@ -180,6 +184,7 @@ class RAApi(
         return get(T::class, parameters, errorHandler)
     }
 
+    @OptIn(InternalSerializationApi::class)
     private suspend fun <T : Any> get(
         responseClass: KClass<T>,
         parameters: Map<String, String>,
@@ -190,10 +195,11 @@ class RAApi(
             executeRequest(request)
         }.suspendMapCatching { response ->
             if (response.isSuccessful) {
-                val json = JsonParser.parseReader(response.body?.charStream())
-                val isSuccessful = json.asJsonObject["Success"].asBoolean
+                val body = response.body?.charStream()?.readText() ?: throw Exception("Could not retrieve body")
+                val responseJson = Json.parseToJsonElement(body).jsonObject
+                val isSuccessful = responseJson["Success"]!!.jsonPrimitive.boolean
                 if (!isSuccessful) {
-                    val reason = json.asJsonObject["Error"]?.asString
+                    val reason = responseJson["Error"]!!.jsonPrimitive.toString()
                     // The error handler may choose to ignore the error
                     errorHandler.invoke(reason)
                 }
@@ -202,7 +208,7 @@ class RAApi(
                     // Ignore response. Don't parse anything
                     Unit as T
                 } else {
-                    gson.fromJson(json, responseClass.java)
+                    json.decodeFromJsonElement(responseClass.serializer(), responseJson)
                 }
             } else {
                 throw Exception(response.message)
@@ -217,6 +223,7 @@ class RAApi(
         return post(T::class, parameters, errorHandler)
     }
 
+    @OptIn(InternalSerializationApi::class)
     private suspend fun <T : Any> post(
         responseClass: KClass<T>,
         parameters: Map<String, String>,
@@ -227,10 +234,11 @@ class RAApi(
             executeRequest(request)
         }.suspendMapCatching { response ->
             if (response.isSuccessful) {
-                val json = JsonParser.parseReader(response.body?.charStream())
-                val isSuccessful = json.asJsonObject["Success"].asBoolean
+                val body = response.body?.charStream()?.readText() ?: throw Exception("Could not retrieve body")
+                val responseJson = Json.parseToJsonElement(body).jsonObject
+                val isSuccessful = responseJson["Success"]!!.jsonPrimitive.boolean
                 if (!isSuccessful) {
-                    val reason = json.asJsonObject["Error"]?.asString
+                    val reason = responseJson["Error"]!!.jsonPrimitive.toString()
                     // The error handler may choose to ignore the error
                     errorHandler.invoke(reason)
                 }
@@ -239,7 +247,7 @@ class RAApi(
                     // Ignore response. Don't parse anything
                     Unit as T
                 } else {
-                    gson.fromJson(json, responseClass.java)
+                    json.decodeFromJsonElement(responseClass.serializer(), responseJson)
                 }
             } else {
                 throw Exception(response.message)
