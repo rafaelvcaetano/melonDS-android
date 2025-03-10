@@ -17,6 +17,7 @@
     <string name="update">Обновить</string>
     <string name="close">Закрыть</string>
     <string name="play">Запуск</string>
+    <string name="save">Сохранить</string>
     <string name="ellipsis">…</string>
 
     <string name="version_alpha">Альфа</string>
@@ -30,9 +31,9 @@
     <string name="console_dsi_full">Nintendo DSi</string>
     
     <string name="size_bytes">Б</string>
-    <string name="size_kb">КБ</string>
-    <string name="size_mb">МБ</string>
-    <string name="size_gb">ГБ</string>
+    <string name="size_kb">Кб</string>
+    <string name="size_mb">Мб</string>
+    <string name="size_gb">Гб</string>
 
     <string name="error_rom_not_found">Игра не найдена</string>
     <string name="error_rom_not_found_info">Не найден выбранный образ игры. Убедитесь, что файл присутствует в текущем каталоге поиска.\n%1$s</string>
@@ -43,7 +44,7 @@
     <string name="error_load_rom_report_issue">Сгенерирован лог об ошибке, который может помочь устранить проблему. Создать на GitHub запрос с содержимым лога? Требуется аккаунт GitHub.</string>
     <string name="title_emulator_running">Эмулятор запущен</string>
     <string name="message_stop_emulation">Остановить эмуляцию и загрузить новый файл?</string>
-    <string name="error_load_gba_rom">Не удалось загрузить образ GBA</string>
+    <string name="error_load_gba_rom">Не удалось загрузить ром GBA</string>
     <string name="action_search_roms">Поиск игр</string>
     <string name="action_sort_roms">Сортировка</string>
     <string name="action_boot_firmware">Загрузить прошивку</string>
@@ -74,6 +75,12 @@
     <string name="dsiware_manager_import_title_error_insatll_failed">Не удалось установить игру</string>
     <string name="dsiware_manager_import_title_error_metadat_fetch_failed">Не удалось загрузить метаданные игры. Проверьте соединение с Интернет</string>
     <string name="dsiware_manager_import_title_error_unknown">Произошла неизвестная ошибка</string>
+    <string name="dsiware_manager_import_data">Импорт данных…</string>
+    <string name="dsiware_manager_export_data">Экспорт данных…</string>
+    <string name="dsiware_manager_import_file_success">%1$s успешно импортировано</string>
+    <string name="dsiware_manager_import_file_error">Не удалось импортировать файл</string>
+    <string name="dsiware_manager_export_file_success">%1$s успешно экспортировано</string>
+    <string name="dsiware_manager_export_file_error">Не удалось экспортировать файл</string>
     <string name="dsiware_import_from_file">Из файла</string>
     <string name="dsiware_import_from_rom_list">Из списка игр</string>
 
@@ -151,7 +158,7 @@
     <string name="rewind_max_memory_usage">Максимальный объём памяти: %1$s</string>
     <string name="rewind_memory_usage_above_recommended_limit">Превышен рекомендуемый объём памяти</string>
     <string name="sustained_performance_mode">Режим устойчивой производительности</string>
-    <string name="sustained_performance_mode_summary">При включении ограничивает пиковую производительность и уменьшает троттлинг.</string>
+    <string name="sustained_performance_mode_summary">При включении ограничивает пиковую производительность, снижая троттлинг.</string>
     <string name="check_for_updates">Проверять обновления</string>
     <string name="check_for_updates_summary">Если включено, приложение будет периодически проверять наличие обновлений</string>
     <string name="rom_icon_filtering">Сглаживание иконок</string>
@@ -160,7 +167,7 @@
     <string name="cache_size">Размер кэша: %s</string>
     <string name="cache_size_calculating">Размер кэша: вычисление…</string>
     <string name="rom_search_directory">Каталог поиска</string>
-    <string name="use_custom_bios">Исп. внешние BIOS и прошивку</string>
+    <string name="use_custom_bios">Исп. образы BIOS и прошивки</string>
     <string name="console_type">Система по умолчанию</string>
     <string name="internal_firmware_settings">Настройки прошивки</string>
     <string name="internal_firmware_settings_summary">Установки встроенного программного обеспечения.</string>
@@ -183,6 +190,8 @@
     <string name="category_video">Видео</string>
     <string name="category_video_summary">Сглаживание, рендеринг в отдельном потоке, счётчик FPS</string>
     <string name="filter">Сглаживание</string>
+    <string name="internal_resolution">Внутреннее разрешение</string>
+    <string name="renderer">Графический движок</string>
     <string name="dsi_camera_source">Источник камеры DSi</string>
     <string name="dsi_camera_image">Образ камеры DSi</string>
     <string name="category_audio">Аудио</string>
@@ -216,7 +225,7 @@
     <string name="hardcore_mode_summary">Удваивает количество очков, но отключает возможность использовать быстрые сохранения, чит-коды или замедление во время игры</string>
 
     <string name="cheats">Чит-коды</string>
-    <string name="cheats_summary">Включение и импорт чит-кодов</string>
+    <string name="cheats_summary">Активация и импорт чит-кодов</string>
     <string name="enable_cheats">Включить чит-коды</string>
     <string name="cheats_database">База чит-кодов (в формате XML)</string>
     <string name="import_cheats">Импорт чит-кодов</string>
@@ -237,6 +246,19 @@
     <string name="no_cheats_found">Не найдены чит-коды для данной игры. Попробуйте импортировать другую базу.</string>
     <string name="enabled_cheats">Активные чит-коды</string>
     <string name="no_enabled_cheats_for_rom">Нет активных чит-кодов для данной игры</string>
+    <string name="folder_is_empty">Данная папка пуста. Попробуйте добавить чит-код вручную</string>
+    <string name="add_cheat_folder">Добавить папку чит-кодов</string>
+    <string name="new_cheat">Новый чит-код</string>
+    <string name="edit_cheat">Изменить чит-код</string>
+    <string name="cheat_name">Имя чит-кода</string>
+    <string name="description">Описание</string>
+    <string name="cheat_code">Код</string>
+    <string name="error_name_cannot_be_empty">Имя чит-кода не может быть пустым</string>
+    <string name="error_code_cannot_be_empty">Код не может быть пустым</string>
+    <string name="error_code_invalid_format">Неправильный формат чит-кода</string>
+    <string name="cheat_deleted">Чит-код \"%1$s\" удалён</string>
+    <string name="cheat_folder_default_name">Мои чит-коды</string>
+    
     <string name="day">День</string>
     <string name="month">Месяц</string>
     <string name="symbol_increase">+</string>
@@ -244,7 +266,8 @@
 
     <string name="rom_settings">Настройки игры</string> <!-- Accessibility string. Should not use acronyms -->
     <string name="label_rom_config_console">Система загрузки</string>
-    <string name="label_rom_config_gba_rom_path">Путь к образу GBA</string>
+    <string name="label_rom_config_gba_slot">Слот GBA</string>
+    <string name="label_rom_config_gba_rom_path">Путь к рому GBA</string>
     <string name="label_rom_config_gba_save_path">Путь к сохранению GBA</string>
     <string name="rom_details_configuration_tab">Конфигурация</string>
     <string name="retro_achievements_tab">Retro Achievements</string> <!-- Keep words separated to help with word wrapping -->
@@ -272,6 +295,7 @@
     <string name="input_lid">Закрыть крышку</string>
     <string name="input_pause">Пауза</string>
     <string name="input_fast_forward">Ускорить (переключение)</string>
+    <string name="input_microphone">Микрофон (переключение)</string>
     <string name="input_toggle_soft_input">Экранные кнопки</string>
     <string name="input_reset">@string/reset</string>
     <string name="input_dpad">DPAD</string>
@@ -285,6 +309,7 @@
     <string name="action_layouts_new">Новая раскладка</string>
     <string name="default_layout_name">По умолчанию</string>
     <string name="use_global_layout">Глобальная раскладка</string>
+    <string name="custom_layout_default_name">Моя раскладка</string>
     <string name="layout_deleted">Раскладка удалена</string>
 
     <string name="layout_editor">Редактор раскладки</string>
@@ -299,14 +324,17 @@
     <string name="save_and_exit">Сохранить и выйти</string>
     <string name="layout_name">Имя раскладки</string>
     <string name="layout_orientation">Ориентация раскладки</string>
-    <string name="layout_use_default_opacity">Исп. видимость по умолчанию</string>
+    <string name="layout_use_default_opacity">Видимость по умолчанию</string>
     <string name="layout_opacity">Видимость раскладки</string>
     <string name="layout_background_load_failed">Не удалось загрузить фон</string>
 
-    <string name="backgrounds">Задний фон</string>
+    <string name="layout_background_title">Фон раскладки</string>
+    <string name="background">Задний фон</string>
+    <string name="backgrounds">Задние фоны</string>
+    <string name="background_mode">Режим фона</string>
     <string name="action_backgrounds_new">Новый фон</string>
     <string name="background_name">Имя фона</string>
-    <string name="background_deleted">Фон удалён</string>
+    <string name="background_deleted">Задний фон удалён</string>
     <string name="background_add_processing_failed">Не удалось обработать выбранное изображение. Убедитесь, что файл не повреждён.</string>
     
     <string name="retro_achievements_login_description">Выполните вход в RetroAchievements для просмотра доступных достижений для данной игры.</string>
@@ -376,6 +404,12 @@
         <item>Микрофон устройства</item>
     </string-array>
 
+    <string-array name="gba_slot_options">
+        <item>Нет</item>
+        <item>Ром GBA</item>
+        <item>Расширение памяти</item>
+    </string-array>
+    
     <string-array name="console_type_options">
         <item>@string/console_ds</item>
         <item>@string/console_dsi</item>
@@ -389,6 +423,22 @@
         <item>Внизу слева</item>
         <item>Внизу по центру</item>
         <item>Внизу справа</item>
+    </string-array>
+
+    <string-array name="video_renderer_options">
+        <item>Программный</item>
+        <item>OpenGL</item>
+    </string-array>
+
+    <string-array name="video_internal_resolution_options">
+        <item>1x исходное (256x192)</item>
+        <item>2x исходное (512x384)</item>
+        <item>3x исходное (768x576)</item>
+        <item>4x исходное (1024x768)</item>
+        <item>5x исходное (1280x960)</item>
+        <item>6x исходное (1536x1152)</item>
+        <item>7x исходное (1792x1344)</item>
+        <item>8x исходное (2048x1536)</item>
     </string-array>
 
     <string-array name="video_filtering_options">
@@ -447,9 +497,9 @@
     <string-array name="background_portrait_mode_options">
         <item>Растянуть</item>
         <item>По центру</item>
-        <item>По верху</item>
-        <item>По левой стороне</item>
-        <item>По низу</item>
-        <item>По правой стороне</item>
+        <item>Сверху</item>
+        <item>Слева</item>
+        <item>Снизу</item>
+        <item>Справа</item>
     </string-array>
 </resources>
