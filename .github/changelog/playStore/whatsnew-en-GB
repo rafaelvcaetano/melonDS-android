@@ -1,11 +1,11 @@
-Beta 1.9.3
-• Fix issues with RetroAchievements
-• Fix loading indicator in cheats screen
-
-Beta 1.9.2
-• Fix startup crash on devices running Android 14
-• Fix crash on spanish devices when opening the RetroAchievements screen
-• Other minor fixes
-
-Beta 1.9.1
-• Fix saves states not saving/loading properly
+Beta 1.10.0
+• Add OpenGL renderer, with resolution scaling up to 8x native
+• Add support for manual cheat input
+• Add button to toggle microphone input
+• Add visual indicators for toggle buttons
+• Add support for memory expansion GBA slot
+• Allow DSiWare title data to be imported/exported
+• Improve foldable support
+• Add Italian translation
+• Fix crash when importing cheat databases
+• Minor fixes and improvements
