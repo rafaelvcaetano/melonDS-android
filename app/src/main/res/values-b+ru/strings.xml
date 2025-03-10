@@ -295,6 +295,7 @@
     <string name="input_lid">Закрыть крышку</string>
     <string name="input_pause">Пауза</string>
     <string name="input_fast_forward">Ускорить (переключение)</string>
+    <string name="input_microphone">Микрофон (переключение)</string>
     <string name="input_toggle_soft_input">Экранные кнопки</string>
     <string name="input_reset">@string/reset</string>
     <string name="input_dpad">DPAD</string>
