@@ -170,8 +170,7 @@ class SharedPreferencesSettingsRepository(
     }
 
     override fun isSustainedPerformanceModeEnabled(): Boolean {
-        val defaultValue = context.isSustainedPerformanceModeAvailable()
-        return preferences.getBoolean("enable_sustained_performance", defaultValue)
+        return preferences.getBoolean("enable_sustained_performance", false)
     }
 
     override fun getRomSearchDirectories(): Array<Uri> {

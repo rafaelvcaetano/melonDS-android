@@ -41,5 +41,5 @@
             android:title="@string/sustained_performance_mode"
             android:summary="@string/sustained_performance_mode_summary"
             app:iconSpaceReserved="false"
-            android:defaultValue="true" />
+            android:defaultValue="false" />
 </PreferenceScreen>
