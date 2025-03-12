@@ -11,7 +11,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <uses-feature android:glEsVersion="0x00030000" android:required="true" />
-    <uses-feature android:glEsVersion="0x00030002" android:required="false" />
 
     <application
         android:name=".MelonDSApplication"
