@@ -1,86 +1,81 @@
 package me.magnum.melonds.ui.inputsetup
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import me.magnum.melonds.domain.model.ControllerConfiguration
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.InputConfig
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.utils.EventSharedFlow
 import javax.inject.Inject
 
 @HiltViewModel
 class InputSetupViewModel @Inject constructor(private val settingsRepository: SettingsRepository) : ViewModel() {
-    private val inputConfigLiveData: MutableLiveData<List<StatefulInputConfig>>
 
-    init {
-        val currentConfiguration = settingsRepository.getControllerConfiguration()
-        val currentInputs = currentConfiguration.inputMapper.map {
-            StatefulInputConfig(it.copy())
-        }
+    private val _inputConfig = MutableStateFlow(settingsRepository.getControllerConfiguration().inputMapper)
+    val inputConfiguration = _inputConfig.asStateFlow()
 
-        inputConfigLiveData = MutableLiveData(currentInputs)
+    private val _inputUnderAssignment = MutableStateFlow<Input?>(null)
+    val inputUnderAssignment = _inputUnderAssignment.asStateFlow()
+
+    private val _onInputAssignedEvent = EventSharedFlow<Input>()
+    val onInputAssignedEvent = _onInputAssignedEvent.asSharedFlow()
+
+    fun startInputAssignment(input: Input) {
+        _inputUnderAssignment.value = input
     }
 
-    fun getInputConfig(): LiveData<List<StatefulInputConfig>> {
-        return inputConfigLiveData
+    fun stopInputAssignment() {
+        _inputUnderAssignment.value = null
     }
 
-    fun getNextInputToConfigure(currentInput: Input): Input? {
-        val currentConfig = inputConfigLiveData.value ?: return null
-        val inputIndex = currentConfig.indexOfFirst { it.inputConfig.input == currentInput }
-        return if (inputIndex < currentConfig.lastIndex) {
-            currentConfig[inputIndex + 1].inputConfig.input
-        } else {
-            null
-        }
+    fun updateInputAssignedKey(key: Int) {
+        val inputUnderAssignment = _inputUnderAssignment.value ?: return
+        val inputType = InputConfig.Assignment.Key(null, key)
+        setInputAssignment(inputUnderAssignment, inputType)
+        focusOnNextInput(inputUnderAssignment)
     }
 
-    fun startUpdatingInputConfig(input: Input) {
-        val newConfig = inputConfigLiveData.value?.toMutableList() ?: return
-        val inputIndex = newConfig.indexOfFirst { it.inputConfig.input == input }
+    fun updateInputAssignedAxis(axis: Int, direction: InputConfig.Assignment.Axis.Direction) {
+        val inputUnderAssignment = _inputUnderAssignment.value ?: return
+        val inputType = InputConfig.Assignment.Axis(null, axis, direction)
+        setInputAssignment(inputUnderAssignment, inputType)
+        focusOnNextInput(inputUnderAssignment)
+    }
+
+    fun clearInputAssignment(input: Input) {
+        setInputAssignment(input, InputConfig.Assignment.None)
+        _inputUnderAssignment.value = null
+    }
+
+    private fun setInputAssignment(input: Input, assignment: InputConfig.Assignment) {
+        val inputIndex = _inputConfig.value.indexOfFirst { it.input == input }
         if (inputIndex >= 0) {
-            newConfig[inputIndex] = newConfig[inputIndex].copy(isBeingConfigured = true)
-            onConfigsChanged(newConfig)
+            _inputConfig.update { config ->
+                config.toMutableList().apply {
+                    this[inputIndex] = this[inputIndex].copy(assignment = assignment)
+                }.also {
+                    onConfigsChanged(it)
+                }
+            }
         }
+        _inputUnderAssignment.value = null
     }
 
-    fun stopUpdatingInputConfig(input: Input) {
-        val newConfig = inputConfigLiveData.value?.toMutableList() ?: return
-        val inputIndex = newConfig.indexOfFirst { it.inputConfig.input == input }
-        if (inputIndex >= 0) {
-            newConfig[inputIndex] = newConfig[inputIndex].copy(isBeingConfigured = false)
-            onConfigsChanged(newConfig)
-        }
-    }
-
-    fun updateInputConfig(input: Input, key: Int) {
-        val newConfig = inputConfigLiveData.value?.toMutableList() ?: return
-        val inputIndex = newConfig.indexOfFirst { it.inputConfig.input == input }
-        if (inputIndex >= 0) {
-            val oldInputConfig = newConfig[inputIndex]
-            newConfig[inputIndex] = oldInputConfig.copy(inputConfig = oldInputConfig.inputConfig.copy(key = key), isBeingConfigured = false)
-            onConfigsChanged(newConfig)
-        }
-    }
-
-    fun clearInput(input: Input) {
-        updateInputConfig(input, InputConfig.KEY_NOT_SET)
-    }
-
-    private fun onConfigsChanged(newConfig: List<StatefulInputConfig>) {
-        inputConfigLiveData.value = newConfig
-        val currentConfiguration = buildCurrentControllerConfiguration()
+    private fun onConfigsChanged(newConfig: List<InputConfig>) {
+        val currentConfiguration = ControllerConfiguration(newConfig)
         settingsRepository.setControllerConfiguration(currentConfiguration)
     }
 
-    private fun buildCurrentControllerConfiguration(): ControllerConfiguration {
-        val currentInputs = inputConfigLiveData.value!!
-        val configs = currentInputs.map {
-            it.inputConfig.copy()
+    private fun focusOnNextInput(currentInput: Input) {
+        val currentInputIndex = _inputConfig.value.indexOfFirst { it.input == currentInput }
+        val nextInput = _inputConfig.value.getOrNull(currentInputIndex + 1)
+        if (nextInput != null) {
+            _onInputAssignedEvent.tryEmit(nextInput.input)
         }
-
-        return ControllerConfiguration(configs)
     }
 }

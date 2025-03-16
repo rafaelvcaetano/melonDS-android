@@ -1,11 +1,19 @@
 package me.magnum.melonds.domain.model
 
-data class InputConfig(val input: Input, val key: Int = KEY_NOT_SET) {
-    companion object {
-        const val KEY_NOT_SET = -1
+data class InputConfig(val input: Input, val assignment: Assignment = Assignment.None) {
+
+    sealed class Assignment(open val deviceId: Int?) {
+        data object None : Assignment(null)
+        data class Key(override val deviceId: Int?, val keyCode: Int) : Assignment(deviceId)
+        data class Axis(override val deviceId: Int?, val axisCode: Int, val direction: Direction) : Assignment(deviceId) {
+            enum class Direction {
+                POSITIVE,
+                NEGATIVE,
+            }
+        }
     }
 
     fun hasKeyAssigned(): Boolean {
-        return key != KEY_NOT_SET
+        return assignment != Assignment.None
     }
 }

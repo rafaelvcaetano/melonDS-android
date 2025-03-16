@@ -6,6 +6,7 @@ import android.content.res.Configuration
 import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
@@ -743,10 +744,17 @@ class EmulatorActivity : AppCompatActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (!isRewindWindowOpen() && nativeInputListener.onKeyEvent(event))
+        if (!activeOverlays.hasActiveOverlays() && nativeInputListener.onKeyEvent(event))
             return true
 
         return super.dispatchKeyEvent(event)
+    }
+
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        if (!activeOverlays.hasActiveOverlays() && nativeInputListener.onMotionEvent(event))
+            return true
+
+        return super.dispatchGenericMotionEvent(event)
     }
 
     private fun isRewindWindowOpen(): Boolean {

@@ -14,6 +14,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.json.Json
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.common.vibration.Api26VibratorDelegate
@@ -38,8 +39,8 @@ import javax.inject.Singleton
 object MelonModule {
     @Provides
     @Singleton
-    fun provideSettingsRepository(@ApplicationContext context: Context, sharedPreferences: SharedPreferences, gson: Gson, uriHandler: UriHandler): SettingsRepository {
-        return SharedPreferencesSettingsRepository(context, sharedPreferences, gson, uriHandler, CoroutineScope(Dispatchers.IO))
+    fun provideSettingsRepository(@ApplicationContext context: Context, sharedPreferences: SharedPreferences, json: Json, uriHandler: UriHandler): SettingsRepository {
+        return SharedPreferencesSettingsRepository(context, sharedPreferences, json, uriHandler, CoroutineScope(Dispatchers.IO))
     }
 
     @Provides

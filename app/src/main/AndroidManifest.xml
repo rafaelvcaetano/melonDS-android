@@ -75,6 +75,8 @@
             android:name=".ui.inputsetup.InputSetupActivity"
             android:label="@string/key_mapping"
             android:parentActivityName=".ui.settings.SettingsActivity"
+            android:theme="@style/AppTheme.NoToolbar"
+            android:enableOnBackInvokedCallback="true"
             android:exported="false" >
         </activity>
         <activity

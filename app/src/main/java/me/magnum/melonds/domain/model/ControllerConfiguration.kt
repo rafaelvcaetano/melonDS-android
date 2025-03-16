@@ -31,7 +31,7 @@ class ControllerConfiguration(configList: List<InputConfig>) {
         fun empty(): ControllerConfiguration {
             val inputConfigs = ArrayList<InputConfig>()
             for (input in configurableInput) {
-                inputConfigs.add(InputConfig(input, -1))
+                inputConfigs.add(InputConfig(input))
             }
             return ControllerConfiguration(inputConfigs)
         }
@@ -59,9 +59,17 @@ class ControllerConfiguration(configList: List<InputConfig>) {
 
     fun keyToInput(key: Int): Input? {
         for (i in inputMapper.indices) {
-            if (inputMapper[i].key == key)
+            if ((inputMapper[i].assignment as? InputConfig.Assignment.Key)?.keyCode == key)
                 return inputMapper[i].input
         }
         return null
+    }
+
+    fun axisToInput(axis: Int, direction: InputConfig.Assignment.Axis.Direction): Input? {
+        return inputMapper.firstOrNull {
+            (it.assignment as? InputConfig.Assignment.Axis)?.let {
+                it.axisCode == axis && it.direction == direction
+            } ?: false
+        }?.input
     }
 }

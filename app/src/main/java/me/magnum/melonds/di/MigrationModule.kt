@@ -8,6 +8,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.json.Json
 import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.repositories.RomsRepository
@@ -35,6 +36,7 @@ object MigrationModule {
         directoryAccessValidator: DirectoryAccessValidator,
         uriHandler: UriHandler,
         gson: Gson,
+        json: Json,
         genericJsonArrayMigrationHelper: GenericJsonArrayMigrationHelper,
     ): Migrator {
 
@@ -49,6 +51,7 @@ object MigrationModule {
             registerMigration(Migration25to26(genericJsonArrayMigrationHelper))
             registerMigration(Migration30to31(genericJsonArrayMigrationHelper))
             registerMigration(Migration31to32(context, genericJsonArrayMigrationHelper))
+            registerMigration(Migration33to34(context, json))
         }
     }
 }
