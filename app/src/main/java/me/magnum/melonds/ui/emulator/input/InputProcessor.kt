@@ -1,5 +1,6 @@
 package me.magnum.melonds.ui.emulator.input
 
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import me.magnum.melonds.domain.model.ControllerConfiguration
@@ -50,39 +51,43 @@ class InputProcessor(private val controllerConfiguration: ControllerConfiguratio
     }
 
     override fun onMotionEvent(motionEvent: MotionEvent): Boolean {
-        val deviceAxis = axisStates.filterKeys { it.deviceId == null || it.deviceId == motionEvent.deviceId }
-        deviceAxis.forEach {
-            val axis = it.key
-            val axisState = it.value
+        if (motionEvent.isFromSource(InputDevice.SOURCE_CLASS_JOYSTICK)) {
+            val deviceAxis = axisStates.filterKeys { it.deviceId == null || it.deviceId == motionEvent.deviceId }
+            deviceAxis.forEach {
+                val axis = it.key
+                val axisState = it.value
 
-            val newValue = motionEvent.getAxisValue(axis.axisCode)
-            val clampedValue = when (axis.direction) {
-                InputConfig.Assignment.Axis.Direction.POSITIVE -> newValue.coerceAtLeast(0f)
-                InputConfig.Assignment.Axis.Direction.NEGATIVE -> newValue.coerceAtMost(0f)
-            }
+                val newValue = motionEvent.getAxisValue(axis.axisCode)
+                val clampedValue = when (axis.direction) {
+                    InputConfig.Assignment.Axis.Direction.POSITIVE -> newValue.coerceAtLeast(0f)
+                    InputConfig.Assignment.Axis.Direction.NEGATIVE -> newValue.coerceAtMost(0f)
+                }
 
-            if (axisState.shouldToggleFor(newValue = clampedValue)) {
-                controllerConfiguration.axisToInput(axis.axisCode, axis.direction)?.let { input ->
-                    if (axisState.active) {
-                        axisState.active = false
-                        if (input.isSystemInput) {
-                            systemInputListener.onKeyReleased(input)
+                if (axisState.shouldToggleFor(newValue = clampedValue)) {
+                    controllerConfiguration.axisToInput(axis.axisCode, axis.direction)?.let { input ->
+                        if (axisState.active) {
+                            axisState.active = false
+                            if (input.isSystemInput) {
+                                systemInputListener.onKeyReleased(input)
+                            } else {
+                                frontendInputListener.onKeyReleased(input)
+                            }
                         } else {
-                            frontendInputListener.onKeyReleased(input)
-                        }
-                    } else {
-                        axisState.active = true
-                        if (input.isSystemInput) {
-                            systemInputListener.onKeyPress(input)
-                        } else {
-                            frontendInputListener.onKeyPress(input)
+                            axisState.active = true
+                            if (input.isSystemInput) {
+                                systemInputListener.onKeyPress(input)
+                            } else {
+                                frontendInputListener.onKeyPress(input)
+                            }
                         }
                     }
                 }
+                axisState.value = clampedValue
             }
-            axisState.value = clampedValue
+            return deviceAxis.isNotEmpty()
+        } else {
+            return false
         }
-        return deviceAxis.isNotEmpty()
     }
 
     private data class Axis(
