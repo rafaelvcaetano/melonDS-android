@@ -6,8 +6,6 @@ import android.opengl.EGL14
 import android.opengl.GLES30
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
-import android.opengl.Matrix
-import android.util.Log
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
@@ -25,7 +23,6 @@ import java.util.LinkedList
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
 class DSRenderer(
     private val context: Context,
@@ -58,7 +55,6 @@ class DSRenderer(
     private var screenShader: Shader? = null
     private lateinit var backgroundShader: Shader
 
-    private lateinit var mvpMatrix: FloatArray
     private lateinit var posBuffer: FloatBuffer
     private lateinit var uvBuffer: FloatBuffer
 
@@ -134,14 +130,6 @@ class DSRenderer(
 
         // Create background shader
         backgroundShader = ShaderFactory.createShaderProgram(ShaderProgramSource.BackgroundShader)
-
-        // Create MVP matrix
-        mvpMatrix = FloatArray(16)
-        val projectionMatrix = FloatArray(16)
-        val viewMatrix = FloatArray(16)
-        Matrix.orthoM(projectionMatrix, 0, -1f, 1f, -1f, 1f, -1f, 10f)
-        Matrix.setLookAtM(viewMatrix, 0, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f)
-        Matrix.multiplyMM(mvpMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
 
         applyRendererConfiguration()
         onGlContextReady(EGL14.eglGetCurrentContext().nativeHandle)
@@ -316,7 +304,6 @@ class DSRenderer(
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, shader.textureFiltering)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, shader.textureFiltering)
 
-            GLES30.glUniformMatrix4fv(shader.uniformMvp, 1, false, mvpMatrix, 0)
             GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, posBuffer)
             GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBuffer)
             GLES30.glUniform1i(shader.uniformTex, 0)
@@ -349,7 +336,6 @@ class DSRenderer(
         backgroundShader.use()
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, backgroundTexture)
-        GLES30.glUniformMatrix4fv(backgroundShader.uniformMvp, 1, false, mvpMatrix, 0)
         GLES30.glVertexAttribPointer(backgroundShader.attribPos, 2, GLES30.GL_FLOAT, false, 0, backgroundPosBuffer)
         GLES30.glVertexAttribPointer(backgroundShader.attribUv, 2, GLES30.GL_FLOAT, false, 0, backgroundUvBuffer)
         GLES30.glUniform1i(backgroundShader.uniformTex, 0)

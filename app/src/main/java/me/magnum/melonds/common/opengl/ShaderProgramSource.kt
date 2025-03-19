@@ -7,13 +7,12 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
     }
 
     companion object {
-        private const val DEFAULT_VERT_SHADER = "uniform mat4 MVP;\n" +
-                "attribute vec2 vUV;\n" +
+        private const val DEFAULT_VERT_SHADER = "attribute vec2 vUV;\n" +
                 "attribute vec2 vPos;\n" +
                 "varying vec2 uv;\n" +
                 "void main()\n" +
                 "{\n" +
-                "    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n" +
+                "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                 "    uv = vUV;\n" +
                 "}"
 
@@ -55,14 +54,13 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
         // License: Public domain
         val LcdShader = ShaderProgramSource(
             TextureFiltering.NEAREST,
-            "uniform mat4 MVP;\n" +
-                    "attribute vec2 vPos;\n" +
+                "attribute vec2 vPos;\n" +
                     "attribute vec2 vUV;\n" +
                     "varying vec2 uv;\n" +
                     "varying vec2 omega;\n" +
                     "" +
                     "void main() {\n" +
-                    "    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n" +
+                    "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                     "    uv = vUV;\n" +
                     "    omega = 3.141592654 * 2.0 * vec2(256, 384);\n" +
                     "}",
@@ -95,8 +93,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
         // This code is hereby placed in the public domain.
         val ScanlinesShader = ShaderProgramSource(
             TextureFiltering.NEAREST,
-            "uniform mat4 MVP;\n" +
-                    "attribute vec2 vPos;\n" +
+                "attribute vec2 vPos;\n" +
                     "attribute vec2 vUV;\n" +
                     "varying vec2 uv;\n" +
                     "varying vec2 omega;\n" +
@@ -106,7 +103,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "" +
                     "void main()\n" +
                     "{\n" +
-                    "    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n" +
+                    "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                     "    uv = vUV;\n" +
                     "    vec2 textureSize = vec2(256, 384);\n" +
                     "    omega = vec2(3.1415 * outputSize.x * textureSize.x / inputSize.x, 2.0 * 3.1415 * textureSize.y);\n" +
@@ -152,8 +149,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
         // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
         val XbrShader = ShaderProgramSource(
             TextureFiltering.NEAREST,
-            "uniform mat4 MVP;\n" +
-                    "attribute vec2 vPos;\n" +
+                "attribute vec2 vPos;\n" +
                     "attribute vec2 vUV;\n" +
                     "varying vec2 uv[3];\n" +
                     "" +
@@ -163,7 +159,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "    uv[1] = vec2(0.0, -ps.y);\n" +
                     "    uv[2] = vec2(-ps.x, 0.0);\n" +
                     "" +
-                    "    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n" +
+                    "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                     "}",
             "#ifdef GL_FRAGMENT_PRECISION_HIGH\n" +
                     "precision highp float;\n" +
@@ -216,8 +212,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
 
         val Hq2xShader = ShaderProgramSource(
             TextureFiltering.NEAREST,
-            "uniform mat4 MVP;\n" +
-                    "attribute vec2 vPos;\n" +
+                "attribute vec2 vPos;\n" +
                     "attribute vec2 vUV;\n" +
                     "varying vec4 uv[5];\n" +
                     "" +
@@ -237,7 +232,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "    uv[4].xy = vUV + dg2;\n" +
                     "    uv[4].zw = vUV - dx;\n" +
                     "" +
-                    "    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n" +
+                    "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                     "}",
             "#ifdef GL_FRAGMENT_PRECISION_HIGH\n" +
                     "precision highp float;\n" +
@@ -310,8 +305,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
         // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
         val Hq4xShader = ShaderProgramSource(
             TextureFiltering.NEAREST,
-            "uniform mat4 MVP;\n" +
-                    "attribute vec2 vPos;\n" +
+                "attribute vec2 vPos;\n" +
                     "attribute vec2 vUV;\n" +
                     "varying vec4 uv[7];\n" +
                     "" +
@@ -324,7 +318,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "    vec2 ddx = vec2(dg1.x, 0.0);\n" +
                     "    vec2 ddy = vec2(0.0, dg1.y);\n" +
                     "" +
-                    "    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n" +
+                    "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                     "    uv[0].xy = vUV;\n" +
                     "    uv[1].xy = vUV - sd1;\n" +
                     "    uv[2].xy = vUV - sd2;\n" +
