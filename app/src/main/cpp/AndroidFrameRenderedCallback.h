@@ -13,7 +13,7 @@ private:
 
 public:
     AndroidFrameRenderedCallback(JniEnvHandler* jniEnvHandler, jobject androidFrameRenderedListener);
-    void onFrameRendered(long syncFence, int textureId);
+    void onFrameRendered(int textureId);
 };
 
 

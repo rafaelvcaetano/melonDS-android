@@ -201,8 +201,8 @@ class AndroidEmulatorManager(
                     achievementsSharedFlow.tryEmit(RAEvent.OnAchievementUnPrimed(achievementId))
                 }
             },
-            frameRenderedListener = { glFenceSync, textureId ->
-                _frameRenderedEvent.tryEmit(FrameRenderEvent(glFenceSync, textureId))
+            frameRenderedListener = { textureId ->
+                _frameRenderedEvent.tryEmit(FrameRenderEvent(textureId))
             },
             screenshotBuffer = screenshotFrameBufferProvider.frameBuffer(),
             glContext = glContext,

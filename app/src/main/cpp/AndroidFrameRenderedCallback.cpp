@@ -6,11 +6,11 @@ AndroidFrameRenderedCallback::AndroidFrameRenderedCallback(JniEnvHandler* jniEnv
     this->androidFrameRenderedListener = androidFrameRenderedListener;
 }
 
-void AndroidFrameRenderedCallback::onFrameRendered(long syncFence, int textureId)
+void AndroidFrameRenderedCallback::onFrameRendered(int textureId)
 {
     JNIEnv* env = this->jniEnvHandler->getCurrentThreadEnv();
 
     jclass listenerClass = env->GetObjectClass(this->androidFrameRenderedListener);
-    jmethodID onFrameRenderedMethod = env->GetMethodID(listenerClass, "onFrameRendered", "(JI)V");
-    env->CallVoidMethod(this->androidFrameRenderedListener, onFrameRenderedMethod, (jlong) syncFence, textureId);
+    jmethodID onFrameRenderedMethod = env->GetMethodID(listenerClass, "onFrameRendered", "(I)V");
+    env->CallVoidMethod(this->androidFrameRenderedListener, onFrameRenderedMethod, textureId);
 }

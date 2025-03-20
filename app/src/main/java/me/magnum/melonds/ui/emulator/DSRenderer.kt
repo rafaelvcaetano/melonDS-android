@@ -44,7 +44,7 @@ class DSRenderer(
         )
     }
 
-    private val renderEventQueue = LinkedList<FrameRenderEvent>()
+    private var nextRenderEvent: FrameRenderEvent? = null
     private var rendererConfiguration: RuntimeRendererConfiguration? = null
     private var mustUpdateConfiguration = false
     private var isBackgroundPositionDirty = false
@@ -99,9 +99,7 @@ class DSRenderer(
     }
 
     fun prepareNextFrame(frameRenderEvent: FrameRenderEvent) {
-        synchronized(renderEventQueue) {
-            renderEventQueue.add(frameRenderEvent)
-        }
+        nextRenderEvent = frameRenderEvent
     }
 
     private fun screenXToViewportX(x: Int): Float {
@@ -271,19 +269,7 @@ class DSRenderer(
             mustUpdateConfiguration = false
         }
 
-        val currentGlFenceSync: Long
-        val currentTextureId: Int
-        synchronized(renderEventQueue) {
-            val renderEvent = renderEventQueue.removeLastOrNull() ?: return
-            currentGlFenceSync = renderEvent.glSyncFence
-            currentTextureId = renderEvent.textureId
-
-            while (renderEventQueue.isNotEmpty()) {
-                // Discard old events
-                val discardedEvent = renderEventQueue.removeLast()
-                GLES30.glDeleteSync(discardedEvent.glSyncFence)
-            }
-        }
+        val currentTextureId = nextRenderEvent?.textureId ?: return
 
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
 
@@ -293,9 +279,6 @@ class DSRenderer(
         val indices = posBuffer.capacity() / 2
         screenShader?.let { shader ->
             shader.use()
-
-            GLES30.glWaitSync(currentGlFenceSync, 0, GLES30.GL_TIMEOUT_IGNORED)
-            GLES30.glDeleteSync(currentGlFenceSync)
 
             GLES30.glEnable(GLES30.GL_DEPTH_TEST)
             GLES30.glDepthFunc(GLES30.GL_NOTEQUAL)
