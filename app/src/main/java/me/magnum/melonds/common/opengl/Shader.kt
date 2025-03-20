@@ -3,6 +3,8 @@ package me.magnum.melonds.common.opengl
 import android.opengl.GLES30
 
 class Shader(
+    private val vertexShaderId: Int,
+    private val fragmentShaderId: Int,
     private val programId: Int,
     val textureFiltering: Int,
 ) {
@@ -25,6 +27,8 @@ class Shader(
     }
 
     fun delete() {
+        GLES30.glDeleteShader(vertexShaderId)
+        GLES30.glDeleteShader(fragmentShaderId)
         GLES30.glDeleteProgram(programId)
     }
 }

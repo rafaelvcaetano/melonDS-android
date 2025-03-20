@@ -5,19 +5,21 @@ import android.util.Log
 
 object ShaderFactory {
     fun createShaderProgram(source: ShaderProgramSource): Shader {
-        val shaderProgram = createShaderProgram(source.vertexShaderSource, source.fragmentShaderSource)
+        val vertexShader = createShader(GLES30.GL_VERTEX_SHADER, source.vertexShaderSource)
+        val fragmentShader = createShader(GLES30.GL_FRAGMENT_SHADER, source.fragmentShaderSource)
+        val shaderProgram = createShaderProgram(vertexShader, fragmentShader)
         val textureFilter = when (source.textureFiltering) {
             ShaderProgramSource.TextureFiltering.NEAREST -> GLES30.GL_NEAREST
             ShaderProgramSource.TextureFiltering.LINEAR -> GLES30.GL_LINEAR
         }
 
-        return Shader(shaderProgram, textureFilter)
+        return Shader(vertexShader, fragmentShader, shaderProgram, textureFilter)
     }
 
-    private fun createShaderProgram(vertexShader: String, fragmentShader: String): Int {
+    private fun createShaderProgram(vertexShader: Int, fragmentShader: Int): Int {
         val program = GLES30.glCreateProgram()
-        GLES30.glAttachShader(program, createShader(GLES30.GL_VERTEX_SHADER, vertexShader))
-        GLES30.glAttachShader(program, createShader(GLES30.GL_FRAGMENT_SHADER, fragmentShader))
+        GLES30.glAttachShader(program, vertexShader)
+        GLES30.glAttachShader(program, fragmentShader)
         GLES30.glLinkProgram(program)
         val result = IntArray(1)
         GLES30.glGetProgramiv(program, GLES30.GL_LINK_STATUS, result, 0)
