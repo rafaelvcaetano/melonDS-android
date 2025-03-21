@@ -39,11 +39,13 @@ fun FullScreen(onDismiss: () -> Unit, content: @Composable () -> Unit) {
     val currentContent by rememberUpdatedState(content)
     val dismiss by rememberUpdatedState(onDismiss)
     val id = rememberSaveable { UUID.randomUUID() }
+    var initialVisibilityState by rememberSaveable { mutableStateOf(false) }
 
     val fullScreenLayout = remember {
         FullScreenLayout(
-            view,
-            id
+            composeView = view,
+            initiallyVisible = initialVisibilityState,
+            uniqueId = id,
         ).apply {
             setContent(parentComposition) {
                 currentContent()
@@ -54,6 +56,7 @@ fun FullScreen(onDismiss: () -> Unit, content: @Composable () -> Unit) {
 
     DisposableEffect(fullScreenLayout) {
         fullScreenLayout.show()
+        initialVisibilityState = true
         onDispose { fullScreenLayout.dismiss() }
     }
 }
@@ -61,12 +64,13 @@ fun FullScreen(onDismiss: () -> Unit, content: @Composable () -> Unit) {
 @SuppressLint("ViewConstructor")
 private class FullScreenLayout(
     private val composeView: View,
+    initiallyVisible: Boolean,
     uniqueId: UUID
 ) : AbstractComposeView(composeView.context) {
 
     private val windowManager = composeView.context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val params = createLayoutParams()
-    private var visible = MutableTransitionState(false).apply { targetState = true }
+    private var visible = MutableTransitionState(initiallyVisible).apply { targetState = true }
     private var onDismissListener: (() -> Unit)? = null
 
     override var shouldCreateCompositionOnAttachedToWindow: Boolean = false
