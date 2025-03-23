@@ -1,7 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">melonDS</string>
 
-    <string name="ok">OK</string>
+    <string name="ok">OKE</string>
     <string name="yes">Ya</string>
     <string name="no">Tidak</string>
     <string name="on">Aktif</string>
@@ -9,192 +9,278 @@
     <string name="cancel">Batal</string>
     <string name="not_set">Tidak diatur</string>
     <string name="delete">Hapus</string>
-    <string name="edit">Edit</string>
+    <string name="edit">Ubah</string>
+    <string name="clear">Kosongkan</string>
     <string name="none">Tidak ada</string>
     <string name="options">Pilihan</string>
-    <string name="preview">Tinjauan</string>
-    <string name="undo">Balikan</string>
-    <string name="update">Memperbarui</string>
+    <string name="preview">Pratinjau</string>
+    <string name="undo">Batalkan</string>
+    <string name="update">Perbarui</string>
+    <string name="close">Tutup</string>
+    <string name="play">Mainkan</string>
+    <string name="save">Simpan</string>
+    <string name="ellipsis">…</string>
 
-    <string name="version_alpha">Alpha</string>
+    <string name="version_alpha">Alfa</string>
     <string name="version_beta">Beta</string>
+    <string name="version_nightly">Tiap malam</string>
 
     <string name="console_ds">DS</string>
     <string name="console_dsi">DSi (Eksperimental)</string>
 
+    <string name="console_ds_full">Nintendo DS</string>
+    <string name="console_dsi_full">Nintendo DSi</string>
+
+    <string name="size_bytes">B</string>
+    <string name="size_kb">KB</string>
+    <string name="size_mb">MB</string>
+    <string name="size_gb">GB</string>
+
     <string name="error_rom_not_found">Tidak dapat menemukan ROM</string>
     <string name="error_rom_not_found_info">ROM yang kamu pilih tidak dapat ditemukan. Pastikan ROM yang dipilih dapat ditemukan di direktori pencarian ROM saat ini.\n%1$s</string>
     <string name="error_load_rom">Tidak dapat memuat ROM</string>
-    <string name="error_load_rom_report_issue">Catatan kesalahan dibuat menyelesaikan masalah ini. Maukah kamu menambahkan masalah ini ke GitHub dengan catatan ini? Kamu memerlukan akun GitHub.</string>
+    <string name="error_load_rom_message">Ada masalah saat memuat ROM. Pastikan berkas tidak korup dan coba lagi.</string>
+    <string name="error_load_firmware">Tidak dapat memuat firmware</string>
+    <string name="error_load_firmware_message">Ada masalah saat memuat firmware (%1$s). Pastikan BIOS dan dump firmware tidak korup, bahwa firmware dapat dijalankan dan coba lagi.</string>
+    <string name="error_load_rom_report_issue">Sebuah catatan kesalahan telah dibuat yang dapat membantu memperbaiki masalah ini. Apakah anda ingin membuka masalah ini pada GitHub dengan catatan ini? Anda akan memerlukan akun GitHub.</string>
     <string name="title_emulator_running">Emulator berjalan</string>
     <string name="message_stop_emulation">Hentikan emulasi dan muat ROM baru?</string>
     <string name="error_load_gba_rom">Tidak dapat memuat ROM GBA</string>
     <string name="action_search_roms">Cari ROM</string>
     <string name="action_sort_roms">Menyortir ROM</string>
-    <string name="action_boot_firmware">Boot Frimware</string>
-    <string name="action_refresh_rom_list">Segarkan ROM list</string>
+    <string name="action_boot_firmware">Nyalakan firmware</string>
+    <string name="action_refresh_rom_list">Segarkan daftar ROM</string>
     <string name="hint_search_roms">Mencari ROM…</string>
     <string name="update_available">Pembaruan tersedia: %1$s</string>
-    <string name="skip_update">Skip</string>
+    <string name="nightly_update_available">Pembaruan tiap malam tersedia</string>
+    <string name="nightly_update_available_message">Apakah anda ingin mengunduhnya sekarang?</string>
+    <string name="skip_update">Lewati</string>
+    <string name="remind_later_update">Lain Waktu</string>
     <string name="downloading_update">Mengunduh pembaruan…</string>
-    <string name="starting_download">Memulai unduhan…</string>
+    <string name="starting_download">Starting download…</string>
     <string name="download_progress_sizes">%1$.1fMB/%2$.1fMB</string>
     <string name="update_download_failed">Gagal mengunduh pembaruan</string>
 
-    <string name="info_fps">FPS: %1$d</string>
-    <string name="info_loading">Memuat…</string>
+    <string name="dsiware_manager">Manajer DSiWare</string>
+    <string name="no_dsiware_titles_installed">Anda tidak memiliki judul DSiWare apapun yang terpasang</string>
+    <string name="dsiware_manager_no_dsi_setup">Anda belum mengatur sistem DSi</string>
+    <string name="dsiware_manager_invalid_dsi_setup">Pengaturan sistem DSi anda tidak sah</string>
+    <string name="import_dsiware_title">Impor judul DSiWare</string>
+    <string name="dsiware_manager_setup">Pengaturan</string>
+    <string name="dsiware_manager_fix_setup">Perbaiki pengaturan</string>
+    <string name="dsiware_manager_load_error">Ada masalah saat mendaftar judul DSiWare anda. Silahkan cek pengaturan DSi anda</string>
+    <string name="dsiware_manager_import_title_error_open_nand_failed">NAND tidak dapat dibuka</string>
+    <string name="dsiware_manager_import_title_error_open_file_failed">Terjadi kesalahan saat membuka berkas terpilih</string>
+    <string name="dsiware_manager_import_title_error_not_dsiware_title">Bukan judul DSiWare</string>
+    <string name="dsiware_manager_import_title_error_title_already_imported">Judul DSiWare sudah terimpor</string>
+    <string name="dsiware_manager_import_title_error_insatll_failed">Gagal memasang judul</string>
+    <string name="dsiware_manager_import_title_error_metadat_fetch_failed">Gagal mengunduh data meta judul. Cek koneksi internet anda</string>
+    <string name="dsiware_manager_import_title_error_unknown">Terjadi kesalahan yang tidak diketahui</string>
+    <string name="dsiware_manager_import_data">Impor data…</string>
+    <string name="dsiware_manager_export_data">Ekspor data…</string>
+    <string name="dsiware_manager_import_file_success">%1$s berhasil diimpor</string>
+    <string name="dsiware_manager_import_file_error">Gagal mengimpor berkas</string>
+    <string name="dsiware_manager_export_file_success">%1$s berhasil diekspor</string>
+    <string name="dsiware_manager_export_file_error">Gagal mengekspor berkas</string>
+    <string name="dsiware_import_from_file">Dari berkas</string>
+    <string name="dsiware_import_from_rom_list">Dari daftar ROM</string>
+
+    <string name="select_dsiware_title">Pilih judul DSiWare</string>
+    <string name="no_dsiware_roms_found">Tidak ada ROM DSiWare yang ditemukan</string>
+
+    <string name="info_fps">FPDetik: %1$d</string>
+    <string name="info_loading">MEMUAT…</string>
     <string name="save_state_slot">%1$s.</string>
     <string name="failed_save_state">Gagal menyimpan status</string>
     <string name="failed_load_state">Gagal memuat status</string>
-    <string name="cant_load_empty_slot">Tidak dapat memuat simpanan status kosong</string>
-    <string name="failed_reset_emulation">Gagal menyetel ulang emulasi</string>
+    <string name="cant_load_empty_slot">Tidak dapat memuat slot penyimpanan status kosong</string>
+    <string name="failed_reset_emulation">Gagal mengatur ulang emulasi</string>
     <string name="save_states_not_supported">Penyimpanan status tidak didukung saat menjalankan firmware</string>
+    <string name="save_states_unavailable_ra_hardcore_enabled">Penyimpanan status tidak tersedia saat mode Hardcore diaktifkan</string>
     <string name="rewind_time_seconds">%1$ss</string> <!-- Ex: 43.56s -->
     <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string> <!-- Ex: 2m37.93s -->
     <string name="rewind_not_enabled">Putar ulang tidak diaktifkan</string>
+    <string name="rewind_unavailable_ra_hardcore_enabled">Putar ulang tidak tersedia saat mode Hardcore diaktifkan</string>
+    <string name="no_image_selected">Tidak ada gambar terpilih</string>
+    <string name="failed_to_load_image">Gagal memuat gambar</string>
 
     <string name="action_sort_alphabetically">Sesuai abjad</string>
-    <string name="action_sort_recently_played">Baru dimainkan</string>
+    <string name="action_sort_recently_played">Baru saja dimainkan</string>
 
-    <string name="ds_bios_dir_not_set">Direktori BIOS DS tidak disetel</string>
-    <string name="ds_bios_dir_not_set_info">Direktori BIOS DS tidak disetel. Pilih direktori yang memiliki file-file berikut:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
-    <string name="dsi_bios_dir_not_set">Direktori BIOS DSi tidak disetel</string>
-    <string name="dsi_bios_dir_not_set_info">Direktori BIOS DSi tidak disetel. Pilih direktori yang memiliki file-file berikut:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
-    <string name="incorrect_bios_dir">Direktori BIOS salah</string>
-    <string name="ds_incorrect_bios_dir_info">Direktori BIOS untuk sistem DS salah. Pastikan direktori yang dipilih memiliki file-file berikut:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
-    <string name="dsi_incorrect_bios_dir_info">Direktori BIOS untuk sistem DSi salah. Pastikan direktori yang dipilih memiliki file-file berikut:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
+    <string name="ds_bios_dir_not_set">Direktori BIOS DS tidak diatur</string>
+    <string name="ds_bios_dir_not_set_info">Direktori BIOS DS tidak diatur. Pilih direktori yang berisi berkas-berkas berikut:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="dsi_bios_dir_not_set">Direktori BIOS DSi tidak diatur</string>
+    <string name="dsi_bios_dir_not_set_info">Direktori BIOS DSi tidak diatur. Pilih direktori yang berisi berkas-berkas berikut:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
+    <string name="incorrect_bios_dir">Direktori BIOS tidak tepat</string>
+    <string name="ds_incorrect_bios_dir_info">Direktori BIOS untuk sistem DS tidak tepat. Pastikan bahwa direktori terpilih berisi berkas-berkas berikut:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="dsi_incorrect_bios_dir_info">Direktori BIOS untuk sistem DSi tidak tepat. Pastikan bahwa direktori terpilih berisi berkas-berkas berikut:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
     <string name="storage_permission_required">Izin penyimpanan diperlukan</string>
-    <string name="storage_permission_required_info">Izin penyimpanan diperlukan untuk memuat ROM dari perangkat Anda. Berikan akses ke penyimpanan pada pop up berikutnya.</string>
-    <string name="microphone_permission_required">Izin perekaman audio diperlukan</string>
-    <string name="microphone_permission_required_info">Izin perekaman audio diperlukan untuk mengirim data mikrofon ke emulator. Berikan akses ke audio pada pop up berikutnya.</string>
+    <string name="storage_permission_required_info">Izin penyimpanan diperlukan untuk memuat ROM dari perangkat anda. Silahkan berikan akses ke penyimpanan pada dialog selanjutnya.</string>
+    <string name="microphone_permission_required">Izin perekaman suara diperlukan</string>
+    <string name="microphone_permission_required_info">Izin perekaman suara diperlukan untuk mengirim data mikrofon data ke emulator. Silahkan berikan akses ke penyimpanan pada dialog selanjutnya.</string>
     <string name="no_rom_search_directory_specified">Tidak ada direktori pencarian ROM yang ditentukan</string>
-    <string name="set_rom_directory">Setel direktori ROM</string>
-    <string name="error_invalid_directory">Direktori tidak valid</string>
-    <string name="error_invalid_directory_description">It\'s tidak mungkin untuk menulis ke direktori yang dipilih. Silakan pilih yang lain. Jika Anda memilih file yang terkompres, coba ekstrak isinya.</string>
+    <string name="set_rom_directory">Atur direktori ROM</string>
+    <string name="error_invalid_directory">Directori tidak valid</string>
+    <string name="error_invalid_directory_description">Tidak mungkin untuk menulis ke direktori terpilih. Silahkan pilih yang lainnya. Jika anda memilih berkas yang terkompresi, coba ekstrak isinya.</string>
     <string name="no_roms_found">Tidak ada ROM yang ditemukan</string>
+    <string name="dsiware_title_cannot_be_launched_directly_title">Judul DSiWare tidak dapat dijalankan</string>
+    <string name="dsiware_title_cannot_be_launched_directly_message">Judul DSiWare titles tidak dapat dijalankan secara langsung. Mereka harus dipasang ke NAND (Melalui Manajer DSiWare) dan dijalankan dari firmware DSi.</string>
 
-    <string name="press_any_button">Tekan tombol apa saja…</string>
+    <string name="press_any_button">Tekan sembarang tombol</string>
 
     <string name="choose_component">Pilih komponen</string>
 
-    <string name="pause">Menghentikan</string>
-    <string name="reset">Memulai ulang</string>
+    <string name="pause">Jeda</string>
+    <string name="achievements">Pencapaian</string>
+    <string name="reset">Atur Ulang</string>
     <string name="exit">Keluar</string>
 
     <string name="settings">Pengaturan</string>
     <string name="save_state">Simpan status</string>
-    <string name="load_state">Memuat status</string>
-    <string name="rewind">Memutar ulang</string>
-    <string name="save_slot">Simpan slot</string>
-    <string name="empty_slot">%1$s. &lt;Kosong&gt;</string>
+    <string name="load_state">Muat Status</string>
+    <string name="rewind">Putar ulang</string>
+    <string name="save_slot">Slot penyimpanan</string>
+    <string name="empty_slot">%1$s. &lt;kosong&gt;</string>
     <string name="quick_slot">Slot Cepat</string>
-    <string name="saved">Tersimpan</string>
+    <string name="saved">Disimpan</string>
     <string name="loaded">Dimuat</string>
     <string name="title_activity_settings">Pengaturan</string>
     <string name="category_general">Umum</string>
     <string name="category_general_summary">Tema, pengaturan umum</string>
-    <string name="category_roms">ROMs</string>
-    <string name="category_roms_summary">Cari direktori, pemfilteran ikon, pengaturan cache</string>
+    <string name="category_roms">ROM</string>
+    <string name="category_roms_summary">Cari direktori, penyaringan ikon, pengaturan tembolok</string>
     <string name="category_system">Sistem</string>
-    <string name="category_system_summary">Pengaturan firmware, BIOS khusus, JIT</string>
+    <string name="category_system_summary">Pengaturan firmware, BIOS kustom, JIT</string>
     <string name="theme">Tema</string>
-    <string name="fast_forward_max_speed">Kecepatan maksimum Putaran Cepat</string>
-    <string name="rewind_description">Saat diaktifkan, status penyimpanan disimpan secara otomatis secara berkala. Kapan pun Anda ingin kembali ke status Anda dalam waktu singkat, cukup buka layar Memutar ulang dan pilih status yang ingin Anda lanjutkan.\n\nBe Sadarilah bahwa dengan mengaktifkan fitur ini, Anda mungkin sesekali mengalami lag jika perangkat Anda tidak cukup kuat. Sejumlah besar memori juga digunakan tergantung pada seberapa sering Anda menginginkan stat.</string>
-    <string name="rewind_save_period">Periode menyimpan</string>
-    <string name="rewind_length">Panjang Memutar Ulang</string>
+    <string name="fast_forward_max_speed">Maju-cepat kecepatan maks</string>
+    <string name="rewind_description">Ketika diaktifkan, status penyimpanan disimpan otomatis secara berkala. Kapan pun anda ingin kembali ke kemajuan anda dalam waktu singkat, cukup buka layar putar ulang dan pilih status yang ingin anda lanjutkan.\n\nKetahuilah bawah dengan mengaktifkan fitur ini, anda mungkin sesekali mengalami lag jika perangkat anda tidak cukup kuat. Sejumlah besar memori juga digunakan tergantung pada seberapa sering anda ingin status ditangkap dan seberapa lama harus disimpan.</string>
+    <string name="rewind_save_period">Periode penyimpanan</string>
+    <string name="rewind_length">Panjang putar ulang</string>
     <string name="rewind_max_memory_usage">Maks. penggunaan memori: %1$s</string>
-    <string name="rewind_memory_usage_above_recommended_limit">Penggunaan memori di atas batas yang disarankan</string>
-    <string name="sustained_performance_mode">Mode kinerja berkelanjutan</string>
-    <string name="sustained_performance_mode_summary">Saat diaktifkan, kinerja puncak akan lebih rendah tetapi pelambatan termal akan kurang terasa.</string>
-    <string name="rom_icon_filtering">Pemfilteran ikon</string>
-    <string name="max_rom_cache_size">Maks. ukuran cache ROM</string>
-    <string name="clear_extracted_rom_cache">Hapus cache ROM yang diekstrak</string>
-    <string name="cache_size">Ukuran cache: %s</string>
-    <string name="cache_size_calculating">Ukuran cache: menghitung…</string>
-    <string name="rom_search_directory">Cari direktori</string>
-    <string name="console_type">Default sistem</string>
+    <string name="rewind_memory_usage_above_recommended_limit">Penggunaan memori melebihi batas rekomendasi</string>
+    <string name="sustained_performance_mode">Mode performa berkelanjutan</string>
+    <string name="sustained_performance_mode_summary">Ketika diaktifkan, kinerja puncak akan lebih rendah namun pembatasan panas akan kurang terasa.</string>
+    <string name="check_for_updates">Periksa pembaruan</string>
+    <string name="check_for_updates_summary">Ketika diaktifkan, aplikasi akan secara berkala mengecek ketersediaan pembaruan</string>
+    <string name="rom_icon_filtering">Penyaringan ikon</string>
+    <string name="max_rom_cache_size">Maks. ukuran tembolok ROM</string>
+    <string name="clear_extracted_rom_cache">Bersihkan tembolok ROM terekstraksi</string>
+    <string name="cache_size">Ukuran tembolok: %s</string>
+    <string name="cache_size_calculating">Ukuran tembolok: menghitung…</string>
+    <string name="rom_search_directory">Direktori pencarian</string>
+    <string name="use_custom_bios">Gunakan BIOS dan firmware kustom</string>
+    <string name="console_type">Sistem bawaan</string>
     <string name="internal_firmware_settings">Pengaturan firmware internal</string>
-    <string name="internal_firmware_settings_summary">Sesuaikan pengaturan firmware internal.</string>
-    <string name="custom_bios_firmware">BIOS dan firmware khusus</string>
-    <string name="custom_bios_firmware_description">Menggunakan BIOS dan firmware khusus memungkinkan Anda meluncurkan dan menavigasi di firmware DS\'s tanpa memuat ROM, sama seperti di sistem nyata</string>
-    <string name="bios_directory">Direktori DS BIOS</string>
+    <string name="internal_firmware_settings_summary">Sesuaikan pengaturan dari firmware internal.</string>
+    <string name="custom_bios_firmware">BIOS dan firmware kustom</string>
+    <string name="custom_bios_firmware_description">Menggunakan BIOS dan firmware kustom memungkinkan anda untuk menjalankan dan menavigasi dalam firmware DS tanpa memuat ROM, sama seperti di sistem sesungguhnya</string>
+    <string name="bios_directory">Direktori BIOS DS</string>
     <string name="dsi_bios_directory">Direktori BIOS DSi</string>
-    <string name="show_boot_screen">Tampilkan layar boot</string>
+    <string name="show_boot_screen">Tampilkan layar mulai</string>
     <string name="mac_address">Alamat MAC</string>
     <string name="randomize_mac_address">Acak alamat MAC</string>
-    <string name="randomize_mac_address_summary">Saat diaktifkan, alamat MAC acak digunakan di setiap boot. Hal ini dapat menyebabkan beberapa game menganggapnya berjalan pada sistem yang berbeda dan dapat merusak acara berdasarkan waktu.</string>
+    <string name="randomize_mac_address_summary">Ketika diaktifkan, alamat MAC acak digunakan pada setiap memulai. Ini mungkin menyebabkan beberapa permainan menganggapnya berjalan pada sistem yang berbeda dan dapat merusak peristiwa yang berdasarkan waktu.</string>
     <string name="generate_new_mac_address">Hasilkan yang baru</string>
-    <string name="generate_new_mac_address_description">Membuat alamat MAC baru akan membuat game berpikir bahwa mereka berjalan di sistem yang berbeda.</string>
+    <string name="generate_new_mac_address_description">Menghasilkan alamat MAC baru akan membuat permainan menganggapnya berjalan pada sistem berbeda.</string>
     <string name="enable_jit">Aktifkan JIT</string>
-    <string name="enable_jit_summary">Meningkatkan kinerja tetapi dapat menyebabkan macet atau macet.</string>
+    <string name="enable_jit_summary">Meningkatkan kinerja namun dapat menyebabkan berhenti atau macet.</string>
     <string name="jit_not_supported">JIT hanya didukung di perangkat 64 bit.</string>
-    <string name="threaded_rendering">Rendering terpadu</string>
-    <string name="fps_counter_position">Posisi penghitung FPS</string>
-    <string name="threaded_rendering_summary">Meningkatkan kinerja pada game 3D saat diaktifkan tetapi dapat menyebabkan gangguan grafis.</string>
+    <string name="threaded_rendering">Perenderan berulir</string>
+    <string name="fps_counter_position">Posisi penghitung FPDetik</string>
+    <string name="threaded_rendering_summary">Meningkatkan kinerja pada game 3D saat diaktifkan namun dapat menyebabkan gangguan grafis.</string>
     <string name="category_video">Video</string>
-    <string name="category_video_summary">Filter, rendering terpadu, penghitung FPS</string>
-    <string name="filter">Filter</string>
-    <string name="category_audio">Audio</string>
+    <string name="category_video_summary">Saring, perenderan terulir, penghitung FPDetik</string>
+    <string name="filter">Saring</string>
+    <string name="internal_resolution">Resolusi internal</string>
+    <string name="renderer">Perender</string>
+    <string name="dsi_camera_source">Sumber kamera DSi</string>
+    <string name="dsi_camera_image">Gambar kamera DSi</string>
+    <string name="category_audio">Suara</string>
     <string name="category_audio_summary">Volume, latensi, sumber mikrofon</string>
     <string name="enable_sound">Aktifkan suara</string>
     <string name="interpolation">Interpolasi</string>
-    <string name="bitrate">Kecepatan bit(bitrate)</string>
+    <string name="bitrate">Kecepatan bit</string>
     <string name="volume">Volume</string>
     <string name="volume_percentage">%1$d%%</string>
-    <string name="audio_latency">Latensi audio</string>
+    <string name="audio_latency">Latensi suara</string>
     <string name="microphone_source">Sumber mikrofon</string>
-    <string name="controller_layout">Tata letak pengontrol</string>
-    <string name="category_save_files">Simpan File</string>
-    <string name="category_save_files_summary">Menyimpan file &amp; lokasi status simpanan</string>
-    <string name="save_next_rom">Simpan di dekat file ROM</string>
-    <string name="save_file_directory">Simpan direktori file</string>
-    <string name="save_state_location">Lokasi simpanan status</string>
-    <string name="input">Input</string>
-    <string name="input_summary">Pemetaan tombol, tata letak, balikan haptic(getaran)</string>
-    <string name="key_mapping">Pemetaan tombol</string>
-    <string name="key_mapping_summary">Tetapkan kunci ke input pengontrol</string>
-    <string name="show_soft_input">Tampilkan soft input</string>
-    <string name="vibrate_on_touch">Bergetar ketika disentuh</string>
+    <string name="controller_layout">Tata letak kontroler</string>
+    <string name="category_save_files">Simpan Berkas</string>
+    <string name="category_save_files_summary">Lokasi simpan berkas &amp; simpan status</string>
+    <string name="save_next_rom">Simpan di sebelah berkas ROM</string>
+    <string name="save_file_directory">Direktori simpan berkas</string>
+    <string name="save_state_location">Lokasi simpan status</string>
+    <string name="input">Masukan</string>
+    <string name="input_summary">Pemetaan kunci, tata letak, umpan balik haptik</string>
+    <string name="key_mapping">Pemetaan kunci</string>
+    <string name="key_mapping_summary">Tetapkan kunci ke masukan kontroler</string>
+    <string name="show_soft_input">Tampilkan masukan lunak</string>
+    <string name="vibrate_on_touch">Bergetar saat disentuh</string>
     <string name="vibration_strength">Kekuatan getaran</string>
-    <string name="soft_input_opacity">Opasitas soft input</string>
-    <string name="cheats">Cheat</string>
-    <string name="cheats_summary">Nyalakan &amp; impor kode cheat</string>
-    <string name="enable_cheats">Nyalakan cheat</string>
-    <string name="cheats_database">Database cheat (Format XML)</string>
-    <string name="import_cheats">Impor cheat</string>
-    <string name="import_cheats_summary">Impor cheat dari file database untuk membuatnya tersedia. Hanya database XML yang didukung untuk saat ini. Cheat yang diimpor sebelumnya akan dihapus.</string>
+    <string name="soft_input_opacity">Opasitas masukan lunak</string>
+    <string name="retroachievements">RetroAchievements</string> <!-- Keep words together because this is the official name -->
+    <string name="retroachievements_summary">Masuk &amp; kelola integrasi RetroAchievements</string> <!-- Keep words together because this is the official name -->
+    <string name="enable_rich_presence">Aktifkan tampilan kaya</string>
+    <string name="rich_presence_summary">Memungkinkan pengguna RetroAchievement lain untuk melihat apa yang anda mainkan</string>
+    <string name="hardcore_mode">Mode Hardcore</string>
+    <string name="hardcore_mode_summary">Dapatkan dua kali lebih banyak poin namun anda tidak dapat menggunakan simpan status, curang atau gerak-lambat ketika bermain</string>
+
+    <string name="cheats">Curang</string>
+    <string name="cheats_summary">Aktifkan &amp; impor kode curang</string>
+    <string name="enable_cheats">Mengaktifkan curang</string>
+    <string name="cheats_database">Basis data curang (format XML)</string>
+    <string name="import_cheats">Mengimpor curang</string>
+    <string name="import_cheats_summary">Mengimpor curang dari berkas basis data untuk membuatnya tersedia. Hanya basis data XML yang didukung untuk sekarang. Curang apa pun yang terinstal sebelumnya akan dihapus.</string>
     <string name="rom_shortcut">Pintasan ROM</string>
 
-    <string name="firmware_nickname">Panggilan</string>
+    <string name="firmware_nickname">Nama panggilan</string>
     <string name="firmware_message">Pesan</string>
     <string name="firmware_language">Bahasa</string>
     <string name="firmware_favourite_colour">Warna favorit</string>
     <string name="firmware_birthday">Ulang tahun</string>
 
-    <string name="error_clear_rom_cache">Gagal menghapus cache ROM</string>
-    <string name="importing_cheats">Mengimpor cheat…</string>
+    <string name="error_clear_rom_cache">Gagal membersihkan tembolok ROM</string>
+    <string name="importing_cheats">Mengimpor curang…</string>
     <string name="starting">Memulai…</string>
-    <string name="move_to_background">Pindah ke latar belakang</string>
-    <string name="failed_save_cheat_changes">Tidak dapat menyimpan perubahan cheat</string>
-    <string name="no_cheats_found">Tidak dapat menemukan cheat untuk ROM saat ini. Coba impor database cheat yang berbeda.</string>
+    <string name="move_to_background">Pindahkan ke latar belakang</string>
+    <string name="failed_save_cheat_changes">Tidak dapat menyimpan perubahan curang</string>
+    <string name="no_cheats_found">Tidak dapat menemukan curang pada ROM saat ini. Coba impor basis data curang yang berbeda.</string>
+    <string name="enabled_cheats">Curang yang diaktifkan</string>
+    <string name="no_enabled_cheats_for_rom">Anda belum mengaktifkan curang apa pun untuk ROM ini</string>
+    <string name="folder_is_empty">Folder ini kosong. coba tambahkan kode curang anda sendiri</string>
+    <string name="add_cheat_folder">Tambahkan folder curang</string>
+    <string name="new_cheat">Curang baru</string>
+    <string name="edit_cheat">Ubah curang</string>
+    <string name="cheat_name">Nama curang</string>
+    <string name="description">Deskripsi</string>
+    <string name="cheat_code">Kode</string>
+    <string name="error_name_cannot_be_empty">Nama curang tidak boleh kosong</string>
+    <string name="error_code_cannot_be_empty">Kode tidak boleh kosong</string>
+    <string name="error_code_invalid_format">Format kode tidak valid</string>
+    <string name="cheat_deleted">Curang \"%1$s\" terhapus</string>
+    <string name="cheat_folder_default_name">Curangku</string>
+
     <string name="day">Hari</string>
     <string name="month">Bulan</string>
     <string name="symbol_increase">+</string>
     <string name="symbol_decrease">-</string>
 
-    <string name="rom_settings">Pengaturan rom</string> <!-- Accessibility string. Should not use acronyms -->
-    <string name="label_rom_config_console">Boot sistem</string>
-    <string name="label_rom_config_gba_rom_path">Direktori ROM GBA</string>
-    <string name="label_rom_config_gba_save_path">Direktori simpanan GBA</string>
+    <string name="rom_settings">Pengaturan Rom</string> <!-- Accessibility string. Should not use acronyms -->
+    <string name="label_rom_config_console">Sistem mulai</string>
+    <string name="label_rom_config_gba_slot">Slot GBA</string>
+    <string name="label_rom_config_gba_rom_path">Jalur ROM GBA</string>
+    <string name="label_rom_config_gba_save_path">Jalur simpan GBA</string>
+    <string name="rom_details_configuration_tab">Konfigurasi</string>
+    <string name="retro_achievements_tab">Pencapaian Retro</string> <!-- Keep words separated to help with word wrapping -->
 
     <string name="theme_option_light">Terang</string>
     <string name="theme_option_dark">Gelap</string>
-    <string name="theme_option_system_default">Default sistem</string>
+    <string name="theme_option_system_default">Bawaan sistem</string>
 
     <string name="notification_channel_background_tasks">Tugas latar belakang</string>
 
-    <string name="top_screen">Layar atas</string>
-    <string name="bottom_screen">Layar bawah</string>
+    <string name="top_screen">Layar Atas</string>
+    <string name="bottom_screen">Layar Bawah</string>
     <string name="input_a">A</string>
     <string name="input_b">B</string>
     <string name="input_x">X</string>
@@ -205,50 +291,86 @@
     <string name="input_down">Bawah</string>
     <string name="input_l">L</string>
     <string name="input_r">R</string>
-    <string name="input_start">Start</string>
-    <string name="input_select">Select</string>
-    <string name="input_lid">Toggle Lid</string>
-    <string name="input_pause">Menghentikaj</string>
-    <string name="input_fast_forward">Putar cepat (Nyalakan)</string>
-    <string name="input_toggle_soft_input">Nyalakan Soft Input</string>
+    <string name="input_start">Mulai</string>
+    <string name="input_select">Pilih</string>
+    <string name="input_lid">Saklar Penutup</string>
+    <string name="input_pause">Jeda</string>
+    <string name="input_fast_forward">Maju cepat (Saklar)</string>
+    <string name="input_microphone">Saklar Mikrofon</string>
+    <string name="input_toggle_soft_input">Saklar Masukan Lunak</string>
     <string name="input_reset">@string/reset</string>
     <string name="input_dpad">DPAD</string>
     <string name="input_abxy_buttons">Tombol ABXY</string>
     <string name="input_swap_screens">Tukar Layar</string>
     <string name="input_quick_save">Simpan Cepat</string>
-    <string name="input_quick_load">Memuat Cepat</string>
+    <string name="input_quick_load">Muat Cepat</string>
 
-    <string name="layouts">Tampilan</string>
-    <string name="layouts_summary">Kelola konfigurasi tata letak khusus</string>
+    <string name="layouts">Layouts</string>
+    <string name="layouts_summary">Kelola konfigurasi tata letak kustom</string>
     <string name="action_layouts_new">Tata letak baru</string>
-    <string name="default_layout_name">Default</string>
+    <string name="default_layout_name">Bawaan</string>
+    <string name="custom_layout_default_name">Tata letakku</string>
     <string name="use_global_layout">Gunakan tata letak global</string>
-    <string name="layout_deleted">Tata letak dihapus</string>
+    <string name="layout_deleted">Tata letak terhapus</string>
 
-    <string name="layout_editor">Editor tata letak</string>
+    <string name="layout_editor">Pengubah tata letak</string>
     <string name="add_component">Tambahkan komponen</string>
     <string name="no_more_components">Tidak ada lagi komponen untuk ditambahkan</string>
     <string name="label_size">Ukuran:</string>
     <string name="menu">Menu</string>
     <string name="properties">Properti</string>
     <string name="revert_changes">Kembalikan perubahan</string>
-    <string name="reset_default">Setel ulang ke default</string>
+    <string name="reset_default">Atur ulang ke bawaan</string>
     <string name="exit_without_saving">Keluar tanpa menyimpan</string>
     <string name="save_and_exit">Simpan dan keluar</string>
     <string name="layout_name">Nama tata letak</string>
     <string name="layout_orientation">Orientasi tata letak</string>
-    <string name="layout_use_default_opacity">Gunakan transparasi default</string>
-    <string name="layout_opacity">Transparasi tata letak</string>
+    <string name="layout_use_default_opacity">Gunakan opasitas bawaan</string>
+    <string name="layout_opacity">Opasitas tata letak</string>
     <string name="layout_background_load_failed">Gagal memuat latar belakang</string>
 
+    <string name="layout_background_title">Latar Belakang Tata Letak</string>
+    <string name="background">Latar belakang</string>
     <string name="backgrounds">Latar belakang</string>
+    <string name="background_mode">Mode latar belakang</string>
     <string name="action_backgrounds_new">Latar belakang baru</string>
     <string name="background_name">Nama latar belakang</string>
-    <string name="background_deleted">Latar belakang dihapus</string>
-    <string name="background_add_processing_failed">Gagal memproses gambar latar yang dipilih. Pastikan tidak rusak.</string>
+    <string name="background_deleted">Latar belakang terhapus</string>
+    <string name="background_add_processing_failed">Gagal untuk memproses gambar latar belakang terpilih. Pastikan tidak korup.</string>
+
+    <string name="retro_achievements_login_description">Masuk dengan RetroAchievements untuk melihat pencapaian yang anda dapat buka ketika memainkan permainan ini!</string>
+    <string name="login_with_retro_achievements">Masuk dengan RetroAchievements</string>
+    <string name="login">Masuk</string>
+    <string name="retroachievements_login_summary">Masuk dengan RetroAchievements untuk membuka pencapaian saat bermain!</string>
+    <string name="retroachievements_login_status">Masuk sebagai %1$s</string>
+    <string name="retroachievements_logout">Keluar</string>
+    <string name="retroachievements_logout_confirmation">Apakah anda yakin anda ingin keluar dari RetroAchievements? Anda tidak akan membuka pencapaian saat bermaian.</string>
+    <string name="retro_achievements_login_error">Ada masalah saat mencoba untuk masuk. Pastikan nama pengguna dan kata sandi anda benar, dan bahwa anda terkoneksi ke internet</string>
+    <string name="retro_achievements_login_error_short">Ada masalah saat mencoba masuk</string>
+    <string name="retro_achievements_load_error">Ada masalah saat mencoba memuat pencapaian untuk permainan ini. Pastikan anda terkoneksi ke internet dan coba lagi nanti</string>
+    <string name="retro_achievements_no_achievements">Tidak ada RetroAchievements yang ditemukan untuk permainan ini</string>
+    <string name="retro_achievements_relaunch_to_apply_settings">Jalankan kembali ROM untuk menerapkan pengaturan RetroAchievements baru</string>
+    <string name="username">Nama pengguna</string>
+    <string name="password">Kata sandi</string>
+    <string name="retry">Coba lagi</string>
+    <string name="points_abbreviated">PT</string>
+    <string name="points">Poin</string>
+    <string name="completed">Diselesaikan</string>
+    <string name="ra_mode_hardcore">Hardcore</string>
+    <string name="ra_mode_softcore">Softcore</string>
+    <string name="view_achievement">Lihat pencapaian</string>
+    <string name="completed_achievements"><b>%1$d</b> dari <b>%2$d</b> (%3$d%%)</string>
+    <string name="submitting_achievements">Mengirimkan RetroAchievements…</string>
+    <string name="achievements_loaded">Pencapaian termuat</string>
+    <string name="achievements_unlocked_compact">Terbuka: %1$d/%2$d</string>
+    <string name="achievements_failed_load">Gagal memuat pencapaian!</string>
+    <string name="achievements_failed_load_tip">Pastikan anda Online</string>
+    <string name="achievement_unlocked">Pencapaian terbuka!</string>
+    <string name="achievement_missable">Dapat terlewatkan</string>
+    <string name="achievement_missable_description">Pencapaian ini dapat terlewatkan selama permainan</string>
 
     <string-array name="fast_forward_speed_multiplier_options">
-        <item>Unlimited</item>
+        <item>Tidak terbatas</item>
         <item>1.5x</item>
         <item>2x</item>
         <item>3x</item>
@@ -257,19 +379,19 @@
     </string-array>
 
     <string-array name="rom_icon_filtering_options">
-        <item>None (Pixelated)</item>
-        <item>Linear (Halus)</item>
+        <item>Tidak ada (Berpiksel)</item>
+        <item>Linier (Halus)</item>
     </string-array>
 
     <string-array name="game_runtime_console_type_options">
-        <item>Default</item>
+        <item>Bawaan</item>
         <item>@string/console_ds</item>
         <item>@string/console_dsi</item>
     </string-array>
 
     <string-array name="firmware_settings_language_options">
         <item>Inggris</item>
-        <item>Francis</item>
+        <item>Perancis</item>
         <item>Jerman</item>
         <item>Italia</item>
         <item>Spanyol</item>
@@ -277,10 +399,16 @@
     </string-array>
 
     <string-array name="game_runtime_mic_source_options">
-        <item>Default</item>
-        <item>None</item>
+        <item>Bawaan</item>
+        <item>Tidak ada</item>
         <item>Tiup</item>
         <item>Mikrofon perangkat</item>
+    </string-array>
+
+    <string-array name="gba_slot_options">
+        <item>Tidak ada</item>
+        <item>ROM GBA</item>
+        <item>Ekspansi memori</item>
     </string-array>
 
     <string-array name="console_type_options">
@@ -290,17 +418,33 @@
 
     <string-array name="fps_counter_position_options">
         <item>Tersembunyi</item>
-        <item>Kiri atas</item>
-        <item>Tengah atas</item>
-        <item>Kanan atas</item>
-        <item>Kiri bawah</item>
-        <item>Tengah bawah</item>
-        <item>Kanan bawah</item>
+        <item>Atas kiri</item>
+        <item>Atas tengah</item>
+        <item>Atas kanan</item>
+        <item>Bawah kiri</item>
+        <item>Bawah tengah</item>
+        <item>Bawah kanan</item>
+    </string-array>
+
+    <string-array name="video_renderer_options">
+        <item>Perangkat lunak</item>
+        <item>OpenGL</item>
+    </string-array>
+
+    <string-array name="video_internal_resolution_options">
+        <item>1x asli (256x192)</item>
+        <item>2x asli (512x384)</item>
+        <item>3x asli (768x576)</item>
+        <item>4x asli (1024x768)</item>
+        <item>5x asli (1280x960)</item>
+        <item>6x asli (1536x1152)</item>
+        <item>7x asli (1792x1344)</item>
+        <item>8x asli (2048x1536)</item>
     </string-array>
 
     <string-array name="video_filtering_options">
         <item>Tidak ada</item>
-        <item>Linear</item>
+        <item>Linier</item>
         <item>2xBR</item>
         <item>HQ2X</item>
         <item>HQ4X</item>
@@ -308,11 +452,17 @@
         <item>LCD</item>
     </string-array>
 
+    <string-array name="dsi_camera_source_options">
+        <item>Layar hitam</item>
+        <item>Kamera fisikal</item>
+        <item>Gambar statis</item>
+    </string-array>
+
     <string-array name="audio_interpolation_options">
         <item>Tidak ada</item>
-        <item>Linear</item>
-        <item>Cosine</item>
-        <item>Cubic</item>
+        <item>Linier</item>
+        <item>Kosinus</item>
+        <item>Kubik</item>
     </string-array>
 
     <string-array name="audio_bitrate_options">
@@ -334,7 +484,7 @@
     </string-array>
 
     <string-array name="save_state_locations">
-        <item>Simpan direktori file</item>
+        <item>Direktori berkas simpan</item>
         <item>Direktori ROM</item>
         <item>Direktori internal</item>
     </string-array>
@@ -348,7 +498,7 @@
     <string-array name="background_portrait_mode_options">
         <item>Diregangkan</item>
         <item>Pas tengah</item>
-        <item>Pas atas</item>
+        <item>Pas Atas</item>
         <item>Pas kiri</item>
         <item>Pas bawah</item>
         <item>Pas kanan</item>
