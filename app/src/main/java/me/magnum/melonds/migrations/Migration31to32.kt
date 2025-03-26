@@ -31,32 +31,36 @@ class Migration31to32(
         }
 
         layoutMigrationHelper.migrateJsonArrayData<LayoutConfigurationDto31, LayoutConfigurationDto>(LAYOUTS_DATA_FILE) {
-            LayoutConfigurationDto(
-                id = it.id,
-                name = it.name,
-                type = it.type,
-                orientation = it.orientation,
-                useCustomOpacity = it.useCustomOpacity,
-                opacity = it.opacity,
-                layoutVariants = listOf(
-                    LayoutConfigurationDto.LayoutEntryDto(
-                        variant = UILayoutVariantDto(
-                            uiSize = PointDto.fromModel(portraitSize),
-                            orientation = Orientation.PORTRAIT.name,
-                            folds = emptyList(),
+            try {
+                LayoutConfigurationDto(
+                    id = it.id,
+                    name = it.name,
+                    type = it.type,
+                    orientation = it.orientation,
+                    useCustomOpacity = it.useCustomOpacity,
+                    opacity = it.opacity,
+                    layoutVariants = listOf(
+                        LayoutConfigurationDto.LayoutEntryDto(
+                            variant = UILayoutVariantDto(
+                                uiSize = PointDto.fromModel(portraitSize),
+                                orientation = Orientation.PORTRAIT.name,
+                                folds = emptyList(),
+                            ),
+                            layout = it.portraitLayout,
                         ),
-                        layout = it.portraitLayout,
-                    ),
-                    LayoutConfigurationDto.LayoutEntryDto(
-                        variant = UILayoutVariantDto(
-                            uiSize = PointDto.fromModel(landscapeSize),
-                            orientation = Orientation.LANDSCAPE.name,
-                            folds = emptyList(),
+                        LayoutConfigurationDto.LayoutEntryDto(
+                            variant = UILayoutVariantDto(
+                                uiSize = PointDto.fromModel(landscapeSize),
+                                orientation = Orientation.LANDSCAPE.name,
+                                folds = emptyList(),
+                            ),
+                            layout = it.landscapeLayout,
                         ),
-                        layout = it.landscapeLayout,
-                    ),
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                null
+            }
         }
     }
 }
