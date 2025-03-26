@@ -12,6 +12,17 @@
 
     <uses-feature android:glEsVersion="0x00030000" android:required="true" />
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.OPEN_DOCUMENT_TREE" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+        </intent>
+        <package android:name="com.android.documentsui" />
+        <package android:name="com.google.android.documentsui" />
+    </queries>
+
     <application
         android:name=".MelonDSApplication"
         android:allowBackup="true"
