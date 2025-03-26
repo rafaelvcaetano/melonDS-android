@@ -192,6 +192,7 @@ class EmulatorViewModel @Inject constructor(
         val cheats = getRomInfo(rom)?.let { getRomEnabledCheats(it) } ?: emptyList()
         val result = emulatorManager.loadRom(rom, cheats, glContext)
         when (result) {
+            is RomLaunchResult.LaunchFailedRomNotFound,
             is RomLaunchResult.LaunchFailedSramProblem,
             is RomLaunchResult.LaunchFailed -> {
                 _emulatorState.value = EmulatorState.RomLoadError

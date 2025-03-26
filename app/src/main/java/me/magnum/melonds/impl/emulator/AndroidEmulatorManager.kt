@@ -2,6 +2,7 @@ package me.magnum.melonds.impl.emulator
 
 import android.content.Context
 import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -30,6 +31,7 @@ import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
 import me.magnum.melonds.domain.model.rom.config.RuntimeEnum
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.EmulatorManager
+import me.magnum.melonds.extensions.extension
 import me.magnum.melonds.impl.camera.DSiCameraSourceMultiplexer
 import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
@@ -54,8 +56,9 @@ class AndroidEmulatorManager(
 
     override suspend fun loadRom(rom: Rom, cheats: List<Cheat>, glContext: Long): RomLaunchResult {
         return withContext(Dispatchers.IO) {
-            val fileRomProcessor = romFileProcessorFactory.getFileRomProcessorForDocument(rom.uri)
-            val romUri = fileRomProcessor?.getRealRomUri(rom)?.await() ?: throw RomLoadException("Unsupported ROM file extension")
+            val fileRomDocument = DocumentFile.fromSingleUri(context, rom.uri) ?: return@withContext RomLaunchResult.LaunchFailedRomNotFound
+            val fileRomProcessor = romFileProcessorFactory.getFileRomProcessorForDocument(fileRomDocument)
+            val romUri = fileRomProcessor?.getRealRomUri(rom)?.await() ?: throw RomLoadException("Unsupported ROM file extension: ${fileRomDocument.extension}")
 
             setupEmulator(getRomEmulatorConfiguration(rom), glContext)
 
