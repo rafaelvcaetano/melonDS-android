@@ -416,6 +416,8 @@ Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
         pthread_cond_destroy(&emuThreadCond);
     }
 
+    MelonDSAndroid::cleanup();
+
     env->DeleteGlobalRef(globalAssetManager);
     env->DeleteGlobalRef(globalCameraManager);
     env->DeleteGlobalRef(androidRaCallback);
@@ -587,6 +589,6 @@ void* emulate(void*)
 
     }
 
-    MelonDSAndroid::cleanup();
+    MelonDSAndroid::stop();
     pthread_exit(NULL);
 }

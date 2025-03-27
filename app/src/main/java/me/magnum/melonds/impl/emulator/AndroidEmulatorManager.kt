@@ -84,6 +84,7 @@ class AndroidEmulatorManager(
             )
             if (loadResult.isTerminal || !isActive) {
                 cameraManager.stopCurrentCameraSource()
+                MelonEmulator.stopEmulation()
                 RomLaunchResult.LaunchFailed(loadResult)
             } else {
                 MelonEmulator.setupCheats(cheats.toTypedArray())
@@ -100,6 +101,7 @@ class AndroidEmulatorManager(
             val result = MelonEmulator.bootFirmware()
             if (result != MelonEmulator.FirmwareLoadResult.SUCCESS) {
                 cameraManager.stopCurrentCameraSource()
+                MelonEmulator.stopEmulation()
                 FirmwareLaunchResult.LaunchFailed(result)
             } else {
                 MelonEmulator.startEmulation()

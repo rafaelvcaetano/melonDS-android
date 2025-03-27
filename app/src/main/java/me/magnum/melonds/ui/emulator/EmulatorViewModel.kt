@@ -350,14 +350,20 @@ class EmulatorViewModel @Inject constructor(
                     }
                     RomPauseMenuOption.VIEW_ACHIEVEMENTS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowAchievementList)
                     RomPauseMenuOption.RESET -> resetEmulator()
-                    RomPauseMenuOption.EXIT -> _uiEvent.tryEmit(EmulatorUiEvent.CloseEmulator)
+                    RomPauseMenuOption.EXIT -> {
+                        emulatorManager.stopEmulator()
+                        _uiEvent.tryEmit(EmulatorUiEvent.CloseEmulator)
+                    }
                 }
             }
             is FirmwarePauseMenuOption -> {
                 when (option) {
                     FirmwarePauseMenuOption.SETTINGS -> _uiEvent.tryEmit(EmulatorUiEvent.OpenScreen.SettingsScreen)
                     FirmwarePauseMenuOption.RESET -> resetEmulator()
-                    FirmwarePauseMenuOption.EXIT -> _uiEvent.tryEmit(EmulatorUiEvent.CloseEmulator)
+                    FirmwarePauseMenuOption.EXIT -> {
+                        emulatorManager.stopEmulator()
+                        _uiEvent.tryEmit(EmulatorUiEvent.CloseEmulator)
+                    }
                 }
             }
         }
@@ -784,9 +790,6 @@ class EmulatorViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         sessionCoroutineScope.cancel()
-        if (_emulatorState.value.isRunning() || _emulatorState.value.isLoading()) {
-            emulatorManager.stopEmulator()
-        }
         emulatorManager.cleanEmulator()
     }
 
