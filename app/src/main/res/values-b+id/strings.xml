@@ -118,6 +118,9 @@
     <string name="storage_permission_required_info">Izin penyimpanan diperlukan untuk memuat ROM dari perangkat anda. Silahkan berikan akses ke penyimpanan pada dialog selanjutnya.</string>
     <string name="microphone_permission_required">Izin perekaman suara diperlukan</string>
     <string name="microphone_permission_required_info">Izin perekaman suara diperlukan untuk mengirim data mikrofon data ke emulator. Silahkan berikan akses ke penyimpanan pada dialog selanjutnya.</string>
+    <string name="system_file_picker_not_found">Perangkat anda tidak memiliki pemilih berkas. Tanpanya, emulator ini tidak akan bekerja</string>
+    <string name="system_file_picker_not_enabled">Pemilih berkas perangkat anda tidak aktif. Silahkan aktifkan</string>
+    <string name="file_picker_settings">Pengaturan pemilih berkas</string>
     <string name="no_rom_search_directory_specified">Tidak ada direktori pencarian ROM yang ditentukan</string>
     <string name="set_rom_directory">Atur direktori ROM</string>
     <string name="error_invalid_directory">Directori tidak valid</string>
