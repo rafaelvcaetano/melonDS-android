@@ -136,8 +136,8 @@ class AndroidEmulatorManager(
         MelonEmulator.resumeEmulation()
     }
 
-    override suspend fun resetEmulator(): Boolean {
-        return MelonEmulator.resetEmulation()
+    override suspend fun resetEmulator() {
+        MelonEmulator.resetEmulation()
     }
 
     override suspend fun updateCheats(cheats: List<Cheat>) {
@@ -229,6 +229,7 @@ class AndroidEmulatorManager(
         return settingsRepository.getEmulatorConfiguration().copy(
             consoleType = consoleType,
             useCustomBios = true,
+            showBootScreen = true,
         ).run { getPermissionAdjustedConfiguration(this) }
     }
 

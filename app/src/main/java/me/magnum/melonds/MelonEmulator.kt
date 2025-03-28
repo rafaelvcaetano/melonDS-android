@@ -90,7 +90,7 @@ object MelonEmulator {
 
 	external fun resumeEmulation()
 
-    external fun resetEmulation(): Boolean
+    external fun resetEmulation()
 
 	external fun stopEmulation()
 

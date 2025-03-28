@@ -15,6 +15,4 @@ sealed class EmulatorState {
     data class RomNotFoundError(val romPath: String) : EmulatorState()
 
     fun isRunning() = this is RunningRom || this is RunningFirmware
-
-    fun isLoading() = this is LoadingRom || this is LoadingFirmware
 }

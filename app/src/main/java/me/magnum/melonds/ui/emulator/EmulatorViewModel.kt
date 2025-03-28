@@ -306,9 +306,7 @@ class EmulatorViewModel @Inject constructor(
     fun resetEmulator() {
         if (_emulatorState.value.isRunning()) {
             sessionCoroutineScope.launch {
-                if (!emulatorManager.resetEmulator()) {
-                    _toastEvent.emit(ToastEvent.ResetFailed)
-                }
+                emulatorManager.resetEmulator()
             }
         }
     }

@@ -32,7 +32,7 @@ interface EmulatorManager {
 
     suspend fun resumeEmulator()
 
-    suspend fun resetEmulator(): Boolean
+    suspend fun resetEmulator()
 
     suspend fun updateCheats(cheats: List<Cheat>)
     suspend fun setupAchievements(achievementData: GameAchievementData)
