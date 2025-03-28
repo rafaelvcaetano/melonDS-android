@@ -117,7 +117,7 @@
     <string name="storage_permission_required">Storage permission required</string>
     <string name="storage_permission_required_info">Storage permission is required to load ROMs from your device. Please grant access to storage on the next dialog.</string>
     <string name="microphone_permission_required">Audio recording permission required</string>
-    <string name="microphone_permission_required_info">Audio recording permission is required to send microphone data to the emulator. Please grant access to storage on the next dialog.</string>
+    <string name="microphone_permission_required_info">Audio recording permission is required to send microphone data to the emulator. Please grant microphone access permission on the next dialog.</string>
     <string name="system_file_picker_not_found">Your device does not have a file picker. Without one, this emulator will not work</string>
     <string name="system_file_picker_not_enabled">Your device\'s file picker is disabled. Please enable it</string>
     <string name="file_picker_settings">File picker settings</string>
