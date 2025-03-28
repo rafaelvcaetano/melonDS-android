@@ -81,6 +81,7 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
 {
     jsize cheatCount = env->GetArrayLength(cheats);
     if (cheatCount < 1) {
+        MelonDSAndroid::setCodeList(std::list<MelonDSAndroid::Cheat>());
         return;
     }
 
