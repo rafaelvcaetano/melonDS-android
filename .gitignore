@@ -8,3 +8,7 @@
 /captures
 .externalNativeBuild
 .kotlin
+android-ndk-r12b/
+android-ndk-r12b-linux-x86_64.zip
+android-sdk-linux/
+android-sdk_r24.4.1-linux.tgz

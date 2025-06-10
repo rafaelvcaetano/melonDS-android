@@ -98,6 +98,9 @@ import me.magnum.melonds.ui.emulator.ui.AchievementPopupUi
 import me.magnum.melonds.ui.emulator.ui.RAIntegrationEventUi
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.theme.MelonTheme
+import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
+import me.magnum.melonds.ui.ExternalDisplayManager
+import me.magnum.melonds.ui.TopScreenRenderer
 import java.text.SimpleDateFormat
 import javax.inject.Inject
 
@@ -139,10 +142,14 @@ class EmulatorActivity : AppCompatActivity() {
     @Inject
     lateinit var lifecycleOwnerProvider: LifecycleOwnerProvider
 
+    @Inject
+    lateinit var screenshotFrameBufferProvider: ScreenshotFrameBufferProvider
+
     private val currentOpenGlContext = MutableStateFlow<Long?>(null)
     private lateinit var dsRenderer: DSRenderer
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
+    private var topScreenRenderer: TopScreenRenderer? = null
     private val frontendInputHandler = object : FrontendInputHandler() {
         var fastForwardEnabled = false
             private set
@@ -269,6 +276,8 @@ class EmulatorActivity : AppCompatActivity() {
             setSystemInputHandler(melonTouchHandler)
         }
 
+        setupExternalScreen()
+
         val layoutChangeListener = View.OnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
             updateRendererScreenAreas()
 
@@ -385,6 +394,9 @@ class EmulatorActivity : AppCompatActivity() {
                 viewModel.frameRenderEvent.collect {
                     dsRenderer.prepareNextFrame(it)
                     binding.surfaceMain.requestRender()
+                    topScreenRenderer?.let { _ ->
+                        ExternalDisplayManager.presentation?.requestRender()
+                    }
                 }
             }
         }
@@ -576,6 +588,12 @@ class EmulatorActivity : AppCompatActivity() {
         if (!activeOverlays.hasActiveOverlays()) {
             disableScreenTimeOut()
             viewModel.resumeEmulator()
+        }
+    }
+
+    private fun setupExternalScreen() {
+        ExternalDisplayManager.presentation?.let { pres ->
+            topScreenRenderer = pres.showTopScreen(screenshotFrameBufferProvider)
         }
     }
 

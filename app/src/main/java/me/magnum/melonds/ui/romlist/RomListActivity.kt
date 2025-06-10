@@ -39,7 +39,7 @@ import me.magnum.melonds.ui.settings.SettingsActivity
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class RomListActivity : AppCompatActivity() {
+open class RomListActivity : AppCompatActivity() {
     companion object {
         private const val FRAGMENT_ROM_LIST = "ROM_LIST"
         private const val FRAGMENT_NO_ROM_DIRECTORIES = "NO_ROM_DIRECTORY"
@@ -300,7 +300,7 @@ class RomListActivity : AppCompatActivity() {
         return "$typeString${if (typeString.isEmpty()) "" else " "}${version.major}.${version.minor}.${version.patch}"
     }
 
-    private fun loadRom(rom: Rom) {
+    protected open fun loadRom(rom: Rom) {
         if (rom.isDsiWareTitle) {
             AlertDialog.Builder(this)
                 .setTitle(R.string.dsiware_title_cannot_be_launched_directly_title)
@@ -324,7 +324,7 @@ class RomListActivity : AppCompatActivity() {
         }
     }
 
-    private fun bootFirmware(consoleType: ConsoleType) {
+    protected open fun bootFirmware(consoleType: ConsoleType) {
         selectedRom = null
         selectedFirmwareConsole = consoleType
 

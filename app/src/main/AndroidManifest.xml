@@ -39,7 +39,7 @@
             android:resource="@xml/game_mode_config" />
 
         <activity
-            android:name=".ui.romlist.RomListActivity"
+            android:name=".ui.MainActivity"
             android:theme="@style/SplashTheme"
             android:launchMode="singleTop"
             android:exported="true">
@@ -51,7 +51,7 @@
         <activity
             android:name=".ui.romdetails.RomDetailsActivity"
             android:theme="@style/AppTheme.NoToolbar"
-            android:parentActivityName=".ui.romlist.RomListActivity"
+            android:parentActivityName=".ui.MainActivity"
             android:exported="false">
         </activity>
         <activity
@@ -69,18 +69,18 @@
         <activity
                 android:name=".ui.dsiwaremanager.DSiWareManagerActivity"
                 android:label="@string/dsiware_manager"
-                android:parentActivityName=".ui.romlist.RomListActivity"
+                android:parentActivityName=".ui.MainActivity"
                 android:theme="@style/AppTheme.NoToolbar"
                 android:exported="false">
         </activity>
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".ui.romlist.RomListActivity"
+            android:parentActivityName=".ui.MainActivity"
             android:launchMode="singleTop">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="me.magnum.melonds.ui.romlist.RomListActivity"/>
+                android:value="me.magnum.melonds.ui.MainActivity"/>
         </activity>
         <activity
             android:name=".ui.inputsetup.InputSetupActivity"
