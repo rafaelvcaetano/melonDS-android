@@ -151,6 +151,7 @@ class EmulatorActivity : AppCompatActivity() {
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
     private var externalScreenRenderer: DSScreenRenderer? = null
+    private var currentExternalDisplayScreen: DsScreen? = null
     private val frontendInputHandler = object : FrontendInputHandler() {
         var fastForwardEnabled = false
             private set
@@ -586,6 +587,8 @@ class EmulatorActivity : AppCompatActivity() {
         super.onResume()
         binding.surfaceMain.onResume()
 
+        setupExternalScreen()
+
         if (!activeOverlays.hasActiveOverlays()) {
             disableScreenTimeOut()
             viewModel.resumeEmulator()
@@ -595,9 +598,12 @@ class EmulatorActivity : AppCompatActivity() {
     private fun setupExternalScreen() {
         ExternalDisplayManager.presentation?.let { pres ->
             val screen = viewModel.getExternalDisplayScreen()
-            externalScreenRenderer = when (screen) {
-                DsScreen.TOP -> pres.showTopScreen(screenshotFrameBufferProvider)
-                DsScreen.BOTTOM -> pres.showBottomScreen(screenshotFrameBufferProvider)
+            if (screen != currentExternalDisplayScreen) {
+                currentExternalDisplayScreen = screen
+                externalScreenRenderer = when (screen) {
+                    DsScreen.TOP -> pres.showTopScreen(screenshotFrameBufferProvider)
+                    DsScreen.BOTTOM -> pres.showBottomScreen(screenshotFrameBufferProvider)
+                }
             }
         }
     }
