@@ -27,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.fillMaxSize
 import me.magnum.melonds.ui.emulator.ui.AchievementList
 import me.magnum.melonds.ui.romlist.RomListRetroAchievementsViewModel
-import androidx.compose.ui.platform.setContent
 import me.magnum.melonds.ui.theme.MelonTheme
 
 /**

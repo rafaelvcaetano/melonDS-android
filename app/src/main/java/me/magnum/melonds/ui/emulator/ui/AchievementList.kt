@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.background
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
@@ -63,6 +64,7 @@ fun AchievementList(
                             .align(Alignment.Center),
                         achievements = state.achievements,
                         onViewAchievement = onViewAchievement,
+                        fillScreen = fillScreen,
                     )
                 }
             }
@@ -92,17 +94,20 @@ private fun Content(
     modifier: Modifier,
     achievements: List<RAUserAchievement>,
     onViewAchievement: (RAAchievement) -> Unit,
+    fillScreen: Boolean,
 ) {
     LazyColumn(
         modifier = modifier
+            .background(MaterialTheme.colors.background)
             .drawWithCache {
                 val fadeHeight = 56 * density
+                val bg = MaterialTheme.colors.background
                 val topBrush = Brush.verticalGradient(
-                    listOf(Color.White.copy(alpha = 0f), Color.White),
+                    listOf(bg.copy(alpha = 0f), bg),
                     endY = fadeHeight,
                 )
                 val bottomBrush = Brush.verticalGradient(
-                    listOf(Color.White, Color.White.copy(alpha = 0f)),
+                    listOf(bg, bg.copy(alpha = 0f)),
                     startY = size.height - fadeHeight,
                     endY = size.height
                 )
@@ -122,11 +127,14 @@ private fun Content(
                     )
                 }
             },
+        verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(vertical = 40.dp),
     ) {
         items(achievements) {
             RomAchievementUi(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = if (fillScreen) 96.dp else 0.dp),
                 userAchievement = it,
                 onViewAchievement = { onViewAchievement(it.achievement) },
             )
