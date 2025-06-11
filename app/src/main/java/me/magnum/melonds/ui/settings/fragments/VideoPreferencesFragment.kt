@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.settings.fragments
 
 import android.app.ActivityManager
+import android.content.Intent
 import android.os.Bundle
 import androidx.core.content.getSystemService
 import androidx.preference.ListPreference
@@ -15,6 +16,7 @@ import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
 import me.magnum.melonds.ui.settings.PreferenceFragmentHelper
 import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
 import me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
+import me.magnum.melonds.ui.layouts.ExternalLayoutListActivity
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import javax.inject.Inject
 
@@ -46,6 +48,7 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         val rendererPreference = findPreference<ListPreference>("video_renderer")!!
         val dsiCameraSourcePreference = findPreference<ListPreference>("dsi_camera_source")!!
         val dsiCameraImagePreference = findPreference<StoragePickerPreference>("dsi_camera_static_image")!!
+        val externalLayoutsPreference = findPreference<Preference>("external_layouts")!!
 
         val activityManager = requireContext().getSystemService<ActivityManager>()
 
@@ -64,6 +67,12 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
 
         dsiCameraSourcePreference.setOnPreferenceChangeListener { _, newValue ->
             updateDsiCameraImagePreference(dsiCameraImagePreference, newValue as String)
+            true
+        }
+
+        externalLayoutsPreference.setOnPreferenceClickListener {
+            val intent = Intent(requireContext(), ExternalLayoutListActivity::class.java)
+            startActivity(intent)
             true
         }
 

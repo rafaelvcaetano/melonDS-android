@@ -162,20 +162,10 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         selectedViewAnchor = anchor
         selectedView = view
 
-        val layoutAspectRatio = width / height.toFloat()
-        val selectedViewAspectRatio = view.aspectRatio
-        val currentConstrainedDimension: Int
-        val maxDimension: Int
-
-        if (layoutAspectRatio > selectedViewAspectRatio) {
-            maxDimension = height
-            currentConstrainedDimension = view.getHeight()
-        } else {
-            maxDimension = width
-            currentConstrainedDimension = view.getWidth()
-        }
-
-        val viewScale = (currentConstrainedDimension - minComponentSize) / (maxDimension - minComponentSize).toFloat()
+        val maxDimension = max(width, height)
+        val currentConstrainedDimension = max(view.getWidth(), view.getHeight())
+        val viewScale = (currentConstrainedDimension - minComponentSize) /
+                (maxDimension - minComponentSize).toFloat()
         onViewSelectedListener?.invoke(view, viewScale, maxDimension, minComponentSize)
     }
 
@@ -205,22 +195,8 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
     fun scaleSelectedView(newScale: Float) {
         val currentlySelectedView = selectedView ?: return
 
-        val screenAspectRatio = width / height.toFloat()
-        val selectedViewAspectRatio = currentlySelectedView.aspectRatio
-        val newViewWidth: Int
-        val newViewHeight: Int
-
-        if (screenAspectRatio > selectedViewAspectRatio) {
-            // The scale range must go from minComponentSize to height
-            val scaledHeight = ((height - minComponentSize) * newScale + minComponentSize).roundToInt()
-            newViewWidth = (scaledHeight * selectedViewAspectRatio).toInt()
-            newViewHeight = scaledHeight
-        } else {
-            // The scale range must go from minComponentSize to width
-            val scaledWidth = ((width - minComponentSize) * newScale + minComponentSize).roundToInt()
-            newViewWidth = scaledWidth
-            newViewHeight = (scaledWidth / selectedViewAspectRatio).toInt()
-        }
+        val newViewWidth = ((width - minComponentSize) * newScale + minComponentSize).roundToInt()
+        val newViewHeight = ((height - minComponentSize) * newScale + minComponentSize).roundToInt()
 
         val viewPosition = currentlySelectedView.getPosition()
         var viewX: Int

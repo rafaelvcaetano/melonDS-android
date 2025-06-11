@@ -425,6 +425,11 @@ class SharedPreferencesSettingsRepository(
         return id?.let { UUID.fromString(it) } ?: LayoutConfiguration.DEFAULT_ID
     }
 
+    override fun getExternalLayoutId(): UUID {
+        val id = preferences.getString("external_layout_id", null)
+        return id?.let { UUID.fromString(it) } ?: LayoutConfiguration.DEFAULT_ID
+    }
+
     override fun showSoftInput(): Flow<Boolean> {
         return getOrCreatePreferenceSharedFlow("input_show_soft") {
             preferences.getBoolean("input_show_soft", true)
@@ -469,6 +474,12 @@ class SharedPreferencesSettingsRepository(
     override fun observeSelectedLayoutId(): Observable<UUID> {
         return getOrCreatePreferenceObservable("input_layout_id") {
             getSelectedLayoutId()
+        }
+    }
+
+    override fun observeExternalLayoutId(): Observable<UUID> {
+        return getOrCreatePreferenceObservable("external_layout_id") {
+            getExternalLayoutId()
         }
     }
 
@@ -532,6 +543,12 @@ class SharedPreferencesSettingsRepository(
     override fun setSelectedLayoutId(layoutId: UUID) {
         preferences.edit {
             putString("input_layout_id", layoutId.toString())
+        }
+    }
+
+    override fun setExternalLayoutId(layoutId: UUID) {
+        preferences.edit {
+            putString("external_layout_id", layoutId.toString())
         }
     }
 

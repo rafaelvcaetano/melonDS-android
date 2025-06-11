@@ -53,6 +53,7 @@ interface SettingsRepository {
 
     fun getControllerConfiguration(): ControllerConfiguration
     fun getSelectedLayoutId(): UUID
+    fun getExternalLayoutId(): UUID
     fun showSoftInput(): Flow<Boolean>
     fun isTouchHapticFeedbackEnabled(): Flow<Boolean>
     fun getTouchHapticFeedbackStrength(): Int
@@ -67,6 +68,7 @@ interface SettingsRepository {
     fun observeRomIconFiltering(): Flow<RomIconFiltering>
     fun observeRomSearchDirectories(): Observable<Array<Uri>>
     fun observeSelectedLayoutId(): Observable<UUID>
+    fun observeExternalLayoutId(): Observable<UUID>
     fun observeDSiCameraSource(): Flow<DSiCameraSourceType>
     fun observeDSiCameraStaticImage(): Flow<Uri?>
 
@@ -77,6 +79,7 @@ interface SettingsRepository {
     fun setRomSortingMode(sortingMode: SortingMode)
     fun setRomSortingOrder(sortingOrder: SortingOrder)
     fun setSelectedLayoutId(layoutId: UUID)
+    fun setExternalLayoutId(layoutId: UUID)
 
     fun observeRenderConfiguration(): Flow<RendererConfiguration>
 }
