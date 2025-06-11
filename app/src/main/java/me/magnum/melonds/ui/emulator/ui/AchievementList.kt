@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.background
@@ -96,18 +97,18 @@ private fun Content(
     onViewAchievement: (RAAchievement) -> Unit,
     fillScreen: Boolean,
 ) {
+    val backgroundColor = MaterialTheme.colors.background
     LazyColumn(
         modifier = modifier
-            .background(MaterialTheme.colors.background)
+            .background(backgroundColor)
             .drawWithCache {
                 val fadeHeight = 56 * density
-                val bg = MaterialTheme.colors.background
                 val topBrush = Brush.verticalGradient(
-                    listOf(bg.copy(alpha = 0f), bg),
+                    listOf(backgroundColor.copy(alpha = 0f), backgroundColor),
                     endY = fadeHeight,
                 )
                 val bottomBrush = Brush.verticalGradient(
-                    listOf(bg, bg.copy(alpha = 0f)),
+                    listOf(backgroundColor, backgroundColor.copy(alpha = 0f)),
                     startY = size.height - fadeHeight,
                     endY = size.height
                 )
