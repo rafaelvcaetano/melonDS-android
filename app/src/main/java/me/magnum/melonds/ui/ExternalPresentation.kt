@@ -76,9 +76,11 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
     fun showCustomLayout(
         provider: ScreenshotFrameBufferProvider,
         topRect: Rect?,
-        bottomRect: Rect?
+        bottomRect: Rect?,
+        layoutWidth: Int,
+        layoutHeight: Int,
     ): DSLayoutRenderer {
-        val renderer = DSLayoutRenderer(provider, topRect, bottomRect)
+        val renderer = DSLayoutRenderer(provider, topRect, bottomRect, layoutWidth, layoutHeight)
         val view = GLSurfaceView(context).apply {
             setEGLContextClientVersion(3)
             setRenderer(renderer)

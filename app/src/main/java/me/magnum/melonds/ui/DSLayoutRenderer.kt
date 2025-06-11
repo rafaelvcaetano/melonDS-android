@@ -21,6 +21,8 @@ class DSLayoutRenderer(
     private val frameBufferProvider: ScreenshotFrameBufferProvider,
     private var topScreen: Rect?,
     private var bottomScreen: Rect?,
+    private var layoutWidth: Int,
+    private var layoutHeight: Int,
 ) : GLSurfaceView.Renderer {
 
     companion object {
@@ -51,17 +53,19 @@ class DSLayoutRenderer(
             )
         }
 
-    fun updateRects(top: Rect?, bottom: Rect?) {
+    fun updateLayout(top: Rect?, bottom: Rect?, width: Int, height: Int) {
         topScreen = top
         bottomScreen = bottom
+        layoutWidth = width
+        layoutHeight = height
         updateBuffers()
     }
 
     private fun rectToBuffer(rect: Rect): FloatBuffer {
-        val left = rect.x / viewWidth * 2f - 1f
-        val right = (rect.x + rect.width) / viewWidth * 2f - 1f
-        val top = (viewHeight - rect.y) / viewHeight * 2f - 1f
-        val bottom = (viewHeight - (rect.y + rect.height)) / viewHeight * 2f - 1f
+        val left = rect.x / layoutWidth.toFloat() * 2f - 1f
+        val right = (rect.x + rect.width) / layoutWidth.toFloat() * 2f - 1f
+        val top = 1f - rect.y / layoutHeight.toFloat() * 2f
+        val bottom = 1f - (rect.y + rect.height) / layoutHeight.toFloat() * 2f
         val coords = floatArrayOf(
             left, bottom,
             left, top,

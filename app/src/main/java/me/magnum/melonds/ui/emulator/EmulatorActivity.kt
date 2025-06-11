@@ -602,7 +602,7 @@ class EmulatorActivity : AppCompatActivity() {
     private fun setupExternalScreen() {
         ExternalDisplayManager.presentation?.let { pres ->
             val screen = viewModel.getExternalDisplayScreen()
-            if (screen != currentExternalDisplayScreen) {
+            if (screen != currentExternalDisplayScreen || screen == DsScreen.CUSTOM) {
                 currentExternalDisplayScreen = screen
                 externalScreenRenderer = when (screen) {
                     DsScreen.TOP -> pres.showTopScreen(screenshotFrameBufferProvider)
@@ -613,7 +613,14 @@ class EmulatorActivity : AppCompatActivity() {
                         val variant = layout?.layoutVariants?.values?.firstOrNull()
                         val topRect = variant?.components?.firstOrNull { it.component == LayoutComponent.TOP_SCREEN }?.rect
                         val bottomRect = variant?.components?.firstOrNull { it.component == LayoutComponent.BOTTOM_SCREEN }?.rect
-                        pres.showCustomLayout(screenshotFrameBufferProvider, topRect, bottomRect)
+                        val uiSize = variant?.uiSize
+                        pres.showCustomLayout(
+                            screenshotFrameBufferProvider,
+                            topRect,
+                            bottomRect,
+                            uiSize?.x ?: 0,
+                            uiSize?.y ?: 0
+                        )
                     }
                 }
             }
