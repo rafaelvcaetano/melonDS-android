@@ -134,7 +134,12 @@ private fun Content(
             RomAchievementUi(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = if (fillScreen) 96.dp else 0.dp),
+                    // When filling the entire external display give each item
+                    // a larger minimum height so fewer achievements are shown
+                    // at once. This makes the list easier to read from a
+                    // distance and roughly limits it to about seven visible
+                    // items on a 1080p screen.
+                    .heightIn(min = if (fillScreen) 140.dp else 0.dp),
                 userAchievement = it,
                 onViewAchievement = { onViewAchievement(it.achievement) },
             )

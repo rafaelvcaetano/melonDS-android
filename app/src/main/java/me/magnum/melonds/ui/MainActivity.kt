@@ -84,6 +84,17 @@ class MainActivity : RomListActivity() {
     private fun onRomFocused(rom: me.magnum.melonds.domain.model.rom.Rom) {
         showExternalDisplay()
         achievementsViewModel.setRom(rom)
-        presentation?.showAchievements(achievementsViewModel)
+        presentation?.showAchievements(achievementsViewModel, isDarkTheme())
+    }
+
+    private fun isDarkTheme(): Boolean {
+        val theme = settingsRepository.getTheme()
+        return when (theme) {
+            me.magnum.melonds.ui.Theme.DARK -> true
+            me.magnum.melonds.ui.Theme.LIGHT -> false
+            else -> (resources.configuration.uiMode and
+                android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                android.content.res.Configuration.UI_MODE_NIGHT_YES
+        }
     }
 }

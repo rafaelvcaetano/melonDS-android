@@ -143,14 +143,20 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
         surfaceView.requestRender()
     }
 
-    fun showAchievements(viewModel: RomListRetroAchievementsViewModel) {
+    fun showAchievements(
+        viewModel: RomListRetroAchievementsViewModel,
+        isDarkTheme: Boolean,
+    ) {
         val composeView = ComposeView(context)
+        // Let Compose draw the entire background; otherwise the default view
+        // background (typically white) would show through.
+        composeView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
         composeView.layoutParams = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT,
         )
         composeView.setContent {
-            MelonTheme {
+            MelonTheme(isDarkTheme = isDarkTheme) {
                 val state by viewModel.uiState.collectAsState()
                 AchievementList(
                     modifier = Modifier.fillMaxSize(),
