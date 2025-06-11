@@ -12,21 +12,42 @@ import me.magnum.melonds.ui.romlist.RomListActivity
  */
 class MainActivity : RomListActivity() {
     private var presentation: ExternalPresentation? = null
+    private lateinit var displayManager: DisplayManager
+    private val displayListener = object : DisplayManager.DisplayListener {
+        override fun onDisplayAdded(displayId: Int) {
+            showExternalDisplay()
+        }
+
+        override fun onDisplayRemoved(displayId: Int) {
+            if (presentation?.display?.displayId == displayId) {
+                presentation?.dismiss()
+                presentation = null
+                ExternalDisplayManager.presentation = null
+            }
+        }
+
+        override fun onDisplayChanged(displayId: Int) {
+            // No-op
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        displayManager = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+        displayManager.registerDisplayListener(displayListener, null)
         showExternalDisplay()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        displayManager.unregisterDisplayListener(displayListener)
         presentation?.dismiss()
         ExternalDisplayManager.presentation = null
     }
 
     private fun showExternalDisplay() {
-        val dm = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-        val external = dm.displays.firstOrNull { it.displayId != Display.DEFAULT_DISPLAY }
+        if (presentation != null) return
+        val external = displayManager.displays.firstOrNull { it.displayId != Display.DEFAULT_DISPLAY }
         if (external != null) {
             presentation = ExternalPresentation(this, external).apply {
                 setBackground(Color.parseColor("#8B0000"))
@@ -38,6 +59,7 @@ class MainActivity : RomListActivity() {
 
     override fun loadRom(rom: me.magnum.melonds.domain.model.rom.Rom) {
         super.loadRom(rom)
+        showExternalDisplay()
         presentation?.setBackground(Color.parseColor("#00008B"))
     }
 }
