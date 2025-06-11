@@ -21,11 +21,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:background="#AFFF"
             android:clickable="true"
-            android:focusable="false"
-            android:gravity="center_vertical">
+            android:focusable="false">
 
         <Button
                 android:id="@+id/button_delete_button"
@@ -35,34 +34,78 @@
                 style="@style/Button.Editor" />
 
         <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minWidth="34sp"
-                android:orientation="vertical"
-                android:gravity="center_horizontal">
-
-            <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/textLayoutEditor"
-                    android:text="@string/label_size" />
-
-            <TextView
-                    android:id="@+id/text_size"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/textLayoutEditor"
-                    android:gravity="center_horizontal"
-                    tools:text="1080" />
-        </LinearLayout>
-
-        <SeekBar
-                android:id="@+id/seek_bar_scaling"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="8dp"
-                android:max="10000"
-                android:layout_gravity="center_vertical" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+            <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="34sp"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+
+                <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/textLayoutEditor"
+                        android:text="@string/label_width" />
+
+                <TextView
+                        android:id="@+id/text_width"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/textLayoutEditor"
+                        android:gravity="center_horizontal"
+                        tools:text="1080" />
+            </LinearLayout>
+
+            <SeekBar
+                    android:id="@+id/seek_bar_width"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:max="10000"
+                    android:layout_gravity="center_vertical" />
+        </LinearLayout>
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+            <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="34sp"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+
+                <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/textLayoutEditor"
+                        android:text="@string/label_height" />
+
+                <TextView
+                        android:id="@+id/text_height"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/textLayoutEditor"
+                        android:gravity="center_horizontal"
+                        tools:text="1080" />
+            </LinearLayout>
+
+            <SeekBar
+                    android:id="@+id/seek_bar_height"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:max="10000"
+                    android:layout_gravity="center_vertical" />
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout

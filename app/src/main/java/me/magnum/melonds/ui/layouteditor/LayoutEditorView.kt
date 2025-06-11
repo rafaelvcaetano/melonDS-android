@@ -13,7 +13,14 @@ import me.magnum.melonds.ui.common.LayoutComponentView
 import me.magnum.melonds.ui.common.LayoutView
 import kotlin.math.*
 
-typealias ViewSelectedListener = ((LayoutComponentView, currentScale: Float, maxSize: Int, minSize: Int) -> Unit)
+typealias ViewSelectedListener = (
+    view: LayoutComponentView,
+    widthScale: Float,
+    heightScale: Float,
+    maxWidth: Int,
+    maxHeight: Int,
+    minSize: Int
+) -> Unit
 
 class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(context, attrs) {
     enum class Anchor {
@@ -162,11 +169,11 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         selectedViewAnchor = anchor
         selectedView = view
 
-        val maxDimension = max(width, height)
-        val currentConstrainedDimension = max(view.getWidth(), view.getHeight())
-        val viewScale = (currentConstrainedDimension - minComponentSize) /
-                (maxDimension - minComponentSize).toFloat()
-        onViewSelectedListener?.invoke(view, viewScale, maxDimension, minComponentSize)
+        val widthScale = (view.getWidth() - minComponentSize) /
+                (width - minComponentSize).toFloat()
+        val heightScale = (view.getHeight() - minComponentSize) /
+                (height - minComponentSize).toFloat()
+        onViewSelectedListener?.invoke(view, widthScale, heightScale, width, height, minComponentSize)
     }
 
     private fun deselectCurrentView() {
@@ -192,11 +199,11 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         modifiedByUser = true
     }
 
-    fun scaleSelectedView(newScale: Float) {
+    fun scaleSelectedView(widthScale: Float, heightScale: Float) {
         val currentlySelectedView = selectedView ?: return
 
-        val newViewWidth = ((width - minComponentSize) * newScale + minComponentSize).roundToInt()
-        val newViewHeight = ((height - minComponentSize) * newScale + minComponentSize).roundToInt()
+        val newViewWidth = ((width - minComponentSize) * widthScale + minComponentSize).roundToInt()
+        val newViewHeight = ((height - minComponentSize) * heightScale + minComponentSize).roundToInt()
 
         val viewPosition = currentlySelectedView.getPosition()
         var viewX: Int

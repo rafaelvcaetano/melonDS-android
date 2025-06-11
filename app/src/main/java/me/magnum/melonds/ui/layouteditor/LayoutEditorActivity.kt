@@ -69,6 +69,8 @@ class LayoutEditorActivity : AppCompatActivity() {
     private var areBottomControlsShown = true
     private var areScalingControlsShown = true
     private var selectedViewMinSize = 0
+    private var currentWidthScale = 0f
+    private var currentHeightScale = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,18 +101,32 @@ class LayoutEditorActivity : AppCompatActivity() {
             else
                 showBottomControls()
         }
-        binding.viewLayoutEditor.setOnViewSelectedListener { _, scale, maxSize, minSize ->
+        binding.viewLayoutEditor.setOnViewSelectedListener { _, widthScale, heightScale, maxWidth, maxHeight, minSize ->
             hideBottomControls()
-            showScalingControls(scale, maxSize, minSize)
+            showScalingControls(widthScale, heightScale, maxWidth, maxHeight, minSize)
         }
         binding.viewLayoutEditor.setOnViewDeselectedListener {
             hideScalingControls()
         }
-        binding.seekBarScaling.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        binding.seekBarWidth.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val scale = progress / binding.seekBarScaling.max.toFloat()
-                binding.textSize.text = ((binding.seekBarScaling.max - selectedViewMinSize) * scale + selectedViewMinSize).toInt().toString()
-                binding.viewLayoutEditor.scaleSelectedView(scale)
+                currentWidthScale = progress / binding.seekBarWidth.max.toFloat()
+                binding.textWidth.text = ((binding.seekBarWidth.max - selectedViewMinSize) * currentWidthScale + selectedViewMinSize).toInt().toString()
+                binding.viewLayoutEditor.scaleSelectedView(currentWidthScale, currentHeightScale)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+            }
+        })
+
+        binding.seekBarHeight.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                currentHeightScale = progress / binding.seekBarHeight.max.toFloat()
+                binding.textHeight.text = ((binding.seekBarHeight.max - selectedViewMinSize) * currentHeightScale + selectedViewMinSize).toInt().toString()
+                binding.viewLayoutEditor.scaleSelectedView(currentWidthScale, currentHeightScale)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -286,12 +302,21 @@ class LayoutEditorActivity : AppCompatActivity() {
         areBottomControlsShown = false
     }
 
-    private fun showScalingControls(currentScale: Float, maxSize: Int, minSize: Int, animate: Boolean = true) {
-        binding.seekBarScaling.apply {
-            max = maxSize
-            progress = (currentScale * maxSize).toInt()
+    private fun showScalingControls(widthScale: Float, heightScale: Float, maxWidth: Int, maxHeight: Int, minSize: Int, animate: Boolean = true) {
+        binding.seekBarWidth.apply {
+            max = maxWidth
+            progress = (widthScale * maxWidth).toInt()
         }
+        binding.textWidth.text = ((binding.seekBarWidth.max - minSize) * widthScale + minSize).toInt().toString()
 
+        binding.seekBarHeight.apply {
+            max = maxHeight
+            progress = (heightScale * maxHeight).toInt()
+        }
+        binding.textHeight.text = ((binding.seekBarHeight.max - minSize) * heightScale + minSize).toInt().toString()
+
+        currentWidthScale = widthScale
+        currentHeightScale = heightScale
         selectedViewMinSize = minSize
 
         if (areScalingControlsShown) {
