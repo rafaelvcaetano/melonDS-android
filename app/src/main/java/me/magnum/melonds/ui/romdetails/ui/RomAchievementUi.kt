@@ -26,6 +26,7 @@ import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -41,6 +42,7 @@ fun RomAchievementUi(
     modifier: Modifier,
     userAchievement: RAUserAchievement,
     onViewAchievement: () -> Unit,
+    badgeSize: Dp = 52.dp,
 ) {
     var expanded by remember(userAchievement) {
         mutableStateOf(false)
@@ -62,11 +64,12 @@ fun RomAchievementUi(
             if (LocalInspectionMode.current) {
                 Box(
                     Modifier
-                        .size(52.dp)
-                        .background(Color.Gray))
+                        .size(badgeSize)
+                        .background(Color.Gray)
+                )
             } else {
                 AsyncImage(
-                    modifier = Modifier.size(52.dp),
+                    modifier = Modifier.size(badgeSize),
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(image.toString())
                         .crossfade(true)

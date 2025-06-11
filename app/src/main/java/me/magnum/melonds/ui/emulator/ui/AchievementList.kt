@@ -43,7 +43,11 @@ fun AchievementList(
     onRetry: () -> Unit,
     fillScreen: Boolean = false,
 ) {
-    Box(modifier.fillMaxSize()) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colors.background)
+    ) {
         when (state) {
             RomRetroAchievementsUiState.Loading -> {
                 CircularProgressIndicator(
@@ -143,6 +147,7 @@ private fun Content(
                     .heightIn(min = if (fillScreen) 140.dp else 0.dp),
                 userAchievement = it,
                 onViewAchievement = { onViewAchievement(it.achievement) },
+                badgeSize = if (fillScreen) 96.dp else 52.dp,
             )
         }
     }
@@ -154,7 +159,7 @@ private fun LoadError(
     onRetry: () -> Unit,
     ) {
         Column(
-            modifier = modifier,
+            modifier = modifier.background(MaterialTheme.colors.background),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -174,7 +179,12 @@ private fun LoadError(
 
 @Composable
 private fun LoggedOutMessage(modifier: Modifier) {
-    Box(modifier = modifier.padding(32.dp), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = modifier
+            .background(MaterialTheme.colors.background)
+            .padding(32.dp),
+        contentAlignment = Alignment.Center
+    ) {
         Text(
             text = stringResource(id = R.string.retro_achievements_login_description),
             textAlign = TextAlign.Center,
@@ -184,7 +194,12 @@ private fun LoggedOutMessage(modifier: Modifier) {
 
 @Composable
 private fun NoAchievements(modifier: Modifier) {
-    Box(modifier = modifier.padding(32.dp), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = modifier
+            .background(MaterialTheme.colors.background)
+            .padding(32.dp),
+        contentAlignment = Alignment.Center
+    ) {
         Text(
             text = stringResource(id = R.string.retro_achievements_no_achievements),
             textAlign = TextAlign.Center,
