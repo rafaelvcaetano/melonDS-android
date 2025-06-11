@@ -41,6 +41,7 @@ import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.FpsCounterPosition
+import me.magnum.melonds.domain.model.DsScreen
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.SaveStateSlot
@@ -642,6 +643,10 @@ class EmulatorViewModel @Inject constructor(
 
     fun getFpsCounterPosition(): FpsCounterPosition {
         return settingsRepository.getFpsCounterPosition()
+    }
+
+    fun getExternalDisplayScreen(): DsScreen {
+        return settingsRepository.getExternalDisplayScreen()
     }
 
     private suspend fun getRomEnabledCheats(romInfo: RomInfo): List<Cheat> {

@@ -3,6 +3,7 @@ package me.magnum.melonds.ui
 import android.opengl.GLES30
 import android.opengl.GLSurfaceView
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
+import me.magnum.melonds.domain.model.DsScreen
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
@@ -13,11 +14,12 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 /**
- * Renderer that draws the emulator top screen using the screenshot framebuffer
+ * Renderer that draws one of the DS screens using the screenshot framebuffer
  * updated by the native code each frame.
  */
-class TopScreenRenderer(
-    private val frameBufferProvider: ScreenshotFrameBufferProvider
+class DSScreenRenderer(
+    private val frameBufferProvider: ScreenshotFrameBufferProvider,
+    private val screen: DsScreen
 ) : GLSurfaceView.Renderer {
 
     companion object {
@@ -86,9 +88,10 @@ class TopScreenRenderer(
 
     override fun onDrawFrame(gl: GL10?) {
         val fullBuffer = frameBufferProvider.frameBuffer()
-        val topBuffer = fullBuffer.duplicate()
-        topBuffer.limit(SCREEN_WIDTH * SCREEN_HEIGHT * 4)
-        topBuffer.position(0)
+        val offset = if (screen == DsScreen.BOTTOM) SCREEN_WIDTH * SCREEN_HEIGHT * 4 else 0
+        val screenBuffer = fullBuffer.duplicate()
+        screenBuffer.position(offset)
+        screenBuffer.limit(offset + SCREEN_WIDTH * SCREEN_HEIGHT * 4)
 
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
         GLES30.glTexSubImage2D(
@@ -100,7 +103,7 @@ class TopScreenRenderer(
             SCREEN_HEIGHT,
             GLES30.GL_RGBA,
             GLES30.GL_UNSIGNED_BYTE,
-            topBuffer
+            screenBuffer
         )
 
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)

@@ -100,7 +100,8 @@ import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.theme.MelonTheme
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.ui.ExternalDisplayManager
-import me.magnum.melonds.ui.TopScreenRenderer
+import me.magnum.melonds.ui.DSScreenRenderer
+import me.magnum.melonds.domain.model.DsScreen
 import java.text.SimpleDateFormat
 import javax.inject.Inject
 
@@ -149,7 +150,7 @@ class EmulatorActivity : AppCompatActivity() {
     private lateinit var dsRenderer: DSRenderer
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
-    private var topScreenRenderer: TopScreenRenderer? = null
+    private var externalScreenRenderer: DSScreenRenderer? = null
     private val frontendInputHandler = object : FrontendInputHandler() {
         var fastForwardEnabled = false
             private set
@@ -394,7 +395,7 @@ class EmulatorActivity : AppCompatActivity() {
                 viewModel.frameRenderEvent.collect {
                     dsRenderer.prepareNextFrame(it)
                     binding.surfaceMain.requestRender()
-                    topScreenRenderer?.let { _ ->
+                    externalScreenRenderer?.let { _ ->
                         ExternalDisplayManager.presentation?.requestRender()
                     }
                 }
@@ -593,7 +594,11 @@ class EmulatorActivity : AppCompatActivity() {
 
     private fun setupExternalScreen() {
         ExternalDisplayManager.presentation?.let { pres ->
-            topScreenRenderer = pres.showTopScreen(screenshotFrameBufferProvider)
+            val screen = viewModel.getExternalDisplayScreen()
+            externalScreenRenderer = when (screen) {
+                DsScreen.TOP -> pres.showTopScreen(screenshotFrameBufferProvider)
+                DsScreen.BOTTOM -> pres.showBottomScreen(screenshotFrameBufferProvider)
+            }
         }
     }
 

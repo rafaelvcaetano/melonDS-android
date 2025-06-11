@@ -35,6 +35,7 @@ interface SettingsRepository {
     fun getVideoFiltering(): Flow<VideoFiltering>
     fun isThreadedRenderingEnabled(): Flow<Boolean>
     fun getFpsCounterPosition(): FpsCounterPosition
+    fun getExternalDisplayScreen(): DsScreen
     fun getDSiCameraSource(): DSiCameraSourceType
     fun getDSiCameraStaticImage(): Uri?
 

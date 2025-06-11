@@ -8,6 +8,8 @@ import android.view.Display
 import android.view.View
 import android.widget.FrameLayout
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
+import me.magnum.melonds.domain.model.DsScreen
+import me.magnum.melonds.ui.DSScreenRenderer
 
 /**
  * Presentation shown on an external display. For now it only shows
@@ -55,8 +57,8 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
      * top screen. Returns the created renderer so callers can request renders
      * when new frames are available.
      */
-    fun showTopScreen(provider: ScreenshotFrameBufferProvider): TopScreenRenderer {
-        val renderer = TopScreenRenderer(provider)
+    fun showDsScreen(provider: ScreenshotFrameBufferProvider, screen: DsScreen): DSScreenRenderer {
+        val renderer = DSScreenRenderer(provider, screen)
         val view = GLSurfaceView(context).apply {
             setEGLContextClientVersion(3)
             setRenderer(renderer)
@@ -65,6 +67,9 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
         attachView(view)
         return renderer
     }
+
+    fun showTopScreen(provider: ScreenshotFrameBufferProvider) = showDsScreen(provider, DsScreen.TOP)
+    fun showBottomScreen(provider: ScreenshotFrameBufferProvider) = showDsScreen(provider, DsScreen.BOTTOM)
 
     fun requestRender() {
         surfaceView.requestRender()

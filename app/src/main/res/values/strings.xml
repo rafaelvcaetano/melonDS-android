@@ -196,6 +196,7 @@
     <string name="filter">Filter</string>
     <string name="internal_resolution">Internal resolution</string>
     <string name="renderer">Renderer</string>
+    <string name="external_display_screen">External display screen</string>
     <string name="dsi_camera_source">DSi camera source</string>
     <string name="dsi_camera_image">DSi camera image</string>
     <string name="category_audio">Audio</string>
@@ -459,6 +460,11 @@
         <item>Black screen</item>
         <item>Physical cameras</item>
         <item>Static image</item>
+    </string-array>
+
+    <string-array name="external_display_screen_options">
+        <item>@string/top_screen</item>
+        <item>@string/bottom_screen</item>
     </string-array>
 
     <string-array name="audio_interpolation_options">

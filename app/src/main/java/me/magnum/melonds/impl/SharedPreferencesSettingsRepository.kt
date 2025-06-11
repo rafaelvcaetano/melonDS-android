@@ -296,6 +296,11 @@ class SharedPreferencesSettingsRepository(
         return FpsCounterPosition.valueOf(fpsCounterPreference.uppercase())
     }
 
+    override fun getExternalDisplayScreen(): DsScreen {
+        val screenPref = preferences.getString("external_display_screen", "top")!!
+        return if (screenPref == "bottom") DsScreen.BOTTOM else DsScreen.TOP
+    }
+
     override fun getDSiCameraSource(): DSiCameraSourceType {
         val dsiCameraSource = preferences.getString("dsi_camera_source", "physical_cameras")!!
         return DSiCameraSourceType.valueOf(dsiCameraSource.uppercase())
