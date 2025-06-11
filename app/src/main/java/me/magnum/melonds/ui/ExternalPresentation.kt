@@ -140,14 +140,21 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
 
     fun showAchievements(viewModel: RomListRetroAchievementsViewModel) {
         val composeView = ComposeView(context)
+        composeView.layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT,
+        )
         composeView.setContent {
-            val state by viewModel.uiState.collectAsState()
-            AchievementList(
-                modifier = Modifier.fillMaxSize(),
-                state = state,
-                onViewAchievement = { viewModel.viewAchievement(it) },
-                onRetry = { viewModel.retryLoadAchievements() },
-            )
+            MelonTheme {
+                val state by viewModel.uiState.collectAsState()
+                AchievementList(
+                    modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    onViewAchievement = { viewModel.viewAchievement(it) },
+                    onRetry = { viewModel.retryLoadAchievements() },
+                    fillScreen = true,
+                )
+            }
         }
         attachView(composeView)
     }

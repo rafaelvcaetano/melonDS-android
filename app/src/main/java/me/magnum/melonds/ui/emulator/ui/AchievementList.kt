@@ -39,6 +39,7 @@ fun AchievementList(
     state: RomRetroAchievementsUiState,
     onViewAchievement: (RAAchievement) -> Unit,
     onRetry: () -> Unit,
+    fillScreen: Boolean = false,
 ) {
     Box(modifier.fillMaxSize()) {
         when (state) {
@@ -52,13 +53,13 @@ fun AchievementList(
                 if (state.achievements.isEmpty()) {
                     NoAchievements(
                         modifier = Modifier
-                            .widthIn(max = 640.dp)
+                            .then(if (!fillScreen) Modifier.widthIn(max = 640.dp) else Modifier)
                             .align(Alignment.Center)
                     )
                 } else {
                     Content(
                         modifier = Modifier
-                            .widthIn(max = 640.dp)
+                            .then(if (!fillScreen) Modifier.widthIn(max = 640.dp) else Modifier)
                             .align(Alignment.Center),
                         achievements = state.achievements,
                         onViewAchievement = onViewAchievement,
@@ -68,7 +69,7 @@ fun AchievementList(
             RomRetroAchievementsUiState.LoggedOut -> {
                 LoggedOutMessage(
                     modifier = Modifier
-                        .widthIn(max = 640.dp)
+                        .then(if (!fillScreen) Modifier.widthIn(max = 640.dp) else Modifier)
                         .align(Alignment.Center),
                 )
             }
@@ -76,7 +77,7 @@ fun AchievementList(
             RomRetroAchievementsUiState.LoginError -> {
                 LoadError(
                     modifier = Modifier
-                        .widthIn(max = 640.dp)
+                        .then(if (!fillScreen) Modifier.widthIn(max = 640.dp) else Modifier)
                         .padding(32.dp)
                         .align(Alignment.Center),
                     onRetry = onRetry,
