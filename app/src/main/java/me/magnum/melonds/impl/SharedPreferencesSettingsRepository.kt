@@ -299,7 +299,11 @@ class SharedPreferencesSettingsRepository(
 
     override fun getExternalDisplayScreen(): DsScreen {
         val screenPref = preferences.getString("external_display_screen", "top")!!
-        return if (screenPref == "bottom") DsScreen.BOTTOM else DsScreen.TOP
+        return when (screenPref) {
+            "bottom" -> DsScreen.BOTTOM
+            "custom" -> DsScreen.CUSTOM
+            else -> DsScreen.TOP
+        }
     }
 
     override fun getDSiCameraSource(): DSiCameraSourceType {

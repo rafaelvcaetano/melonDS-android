@@ -10,6 +10,8 @@ import android.widget.FrameLayout
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.DsScreen
 import me.magnum.melonds.ui.DSScreenRenderer
+import me.magnum.melonds.ui.DSLayoutRenderer
+import me.magnum.melonds.domain.model.Rect
 
 /**
  * Presentation shown on an external display. For now it only shows
@@ -59,6 +61,24 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
      */
     fun showDsScreen(provider: ScreenshotFrameBufferProvider, screen: DsScreen): DSScreenRenderer {
         val renderer = DSScreenRenderer(provider, screen)
+        val view = GLSurfaceView(context).apply {
+            setEGLContextClientVersion(3)
+            setRenderer(renderer)
+            renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
+        }
+        attachView(view)
+        return renderer
+    }
+
+    /**
+     * Display both DS screens using the provided layout rectangles.
+     */
+    fun showCustomLayout(
+        provider: ScreenshotFrameBufferProvider,
+        topRect: Rect?,
+        bottomRect: Rect?
+    ): DSLayoutRenderer {
+        val renderer = DSLayoutRenderer(provider, topRect, bottomRect)
         val view = GLSurfaceView(context).apply {
             setEGLContextClientVersion(3)
             setRenderer(renderer)

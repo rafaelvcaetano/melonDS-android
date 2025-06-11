@@ -66,6 +66,7 @@ import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.domain.model.layout.LayoutComponent
+import kotlinx.coroutines.runBlocking
 import me.magnum.melonds.domain.model.layout.ScreenFold
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.ui.Orientation
@@ -146,11 +147,14 @@ class EmulatorActivity : AppCompatActivity() {
     @Inject
     lateinit var screenshotFrameBufferProvider: ScreenshotFrameBufferProvider
 
+    @Inject
+    lateinit var layoutsRepository: me.magnum.melonds.domain.repositories.LayoutsRepository
+
     private val currentOpenGlContext = MutableStateFlow<Long?>(null)
     private lateinit var dsRenderer: DSRenderer
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
-    private var externalScreenRenderer: DSScreenRenderer? = null
+    private var externalScreenRenderer: GLSurfaceView.Renderer? = null
     private var currentExternalDisplayScreen: DsScreen? = null
     private val frontendInputHandler = object : FrontendInputHandler() {
         var fastForwardEnabled = false
@@ -603,6 +607,14 @@ class EmulatorActivity : AppCompatActivity() {
                 externalScreenRenderer = when (screen) {
                     DsScreen.TOP -> pres.showTopScreen(screenshotFrameBufferProvider)
                     DsScreen.BOTTOM -> pres.showBottomScreen(screenshotFrameBufferProvider)
+                    DsScreen.CUSTOM -> {
+                        val layoutId = settingsRepository.getExternalLayoutId()
+                        val layout = runBlocking { layoutsRepository.getLayout(layoutId) }
+                        val variant = layout?.layoutVariants?.values?.firstOrNull()
+                        val topRect = variant?.components?.firstOrNull { it.component == LayoutComponent.TOP_SCREEN }?.rect
+                        val bottomRect = variant?.components?.firstOrNull { it.component == LayoutComponent.BOTTOM_SCREEN }?.rect
+                        pres.showCustomLayout(screenshotFrameBufferProvider, topRect, bottomRect)
+                    }
                 }
             }
         }

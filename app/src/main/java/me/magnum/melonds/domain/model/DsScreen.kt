@@ -1,3 +1,7 @@
 package me.magnum.melonds.domain.model
 
-enum class DsScreen { TOP, BOTTOM }
+enum class DsScreen {
+    TOP,
+    BOTTOM,
+    CUSTOM,
+}

@@ -286,6 +286,7 @@
 
     <string name="top_screen">Top Screen</string>
     <string name="bottom_screen">Bottom Screen</string>
+    <string name="custom_layout">Custom layout</string>
     <string name="input_a">A</string>
     <string name="input_b">B</string>
     <string name="input_x">X</string>
@@ -468,6 +469,7 @@
     <string-array name="external_display_screen_options">
         <item>@string/top_screen</item>
         <item>@string/bottom_screen</item>
+        <item>@string/custom_layout</item>
     </string-array>
 
     <string-array name="audio_interpolation_options">
