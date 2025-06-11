@@ -16,7 +16,9 @@ import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.LocalContentColor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -48,7 +50,8 @@ fun AchievementList(
             .fillMaxSize()
             .background(MaterialTheme.colors.background)
     ) {
-        when (state) {
+        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colors.onBackground) {
+            when (state) {
             RomRetroAchievementsUiState.Loading -> {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
