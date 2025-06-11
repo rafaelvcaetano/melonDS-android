@@ -49,18 +49,34 @@ fun AchievementList(
                 )
             }
             is RomRetroAchievementsUiState.Ready -> {
-                Content(
-                    modifier = Modifier.widthIn(max = 640.dp)
+                if (state.achievements.isEmpty()) {
+                    NoAchievements(
+                        modifier = Modifier
+                            .widthIn(max = 640.dp)
+                            .align(Alignment.Center)
+                    )
+                } else {
+                    Content(
+                        modifier = Modifier
+                            .widthIn(max = 640.dp)
+                            .align(Alignment.Center),
+                        achievements = state.achievements,
+                        onViewAchievement = onViewAchievement,
+                    )
+                }
+            }
+            RomRetroAchievementsUiState.LoggedOut -> {
+                LoggedOutMessage(
+                    modifier = Modifier
+                        .widthIn(max = 640.dp)
                         .align(Alignment.Center),
-                    achievements = state.achievements,
-                    onViewAchievement = onViewAchievement,
                 )
             }
             RomRetroAchievementsUiState.AchievementLoadError,
-            RomRetroAchievementsUiState.LoggedOut,
             RomRetroAchievementsUiState.LoginError -> {
                 LoadError(
-                    modifier = Modifier.widthIn(max = 640.dp)
+                    modifier = Modifier
+                        .widthIn(max = 640.dp)
                         .padding(32.dp)
                         .align(Alignment.Center),
                     onRetry = onRetry,
@@ -121,22 +137,42 @@ private fun Content(
 private fun LoadError(
     modifier: Modifier,
     onRetry: () -> Unit,
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Column(
+            modifier = modifier,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = stringResource(id = R.string.retro_achievements_load_error),
+                textAlign = TextAlign.Center,
+            )
+
+            Button(
+                onClick = onRetry,
+                colors = melonButtonColors(),
+            ) {
+                Text(text = stringResource(id = R.string.retry).uppercase())
+            }
+        }
+    }
+
+@Composable
+private fun LoggedOutMessage(modifier: Modifier) {
+    Box(modifier = modifier.padding(32.dp), contentAlignment = Alignment.Center) {
         Text(
-            text = stringResource(id = R.string.retro_achievements_load_error),
+            text = stringResource(id = R.string.retro_achievements_login_description),
             textAlign = TextAlign.Center,
         )
+    }
+}
 
-        Button(
-            onClick = onRetry,
-            colors = melonButtonColors(),
-        ) {
-            Text(text = stringResource(id = R.string.retry).uppercase())
-        }
+@Composable
+private fun NoAchievements(modifier: Modifier) {
+    Box(modifier = modifier.padding(32.dp), contentAlignment = Alignment.Center) {
+        Text(
+            text = stringResource(id = R.string.retro_achievements_no_achievements),
+            textAlign = TextAlign.Center,
+        )
     }
 }

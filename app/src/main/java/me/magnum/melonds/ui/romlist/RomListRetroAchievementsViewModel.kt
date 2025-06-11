@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -54,20 +53,23 @@ class RomListRetroAchievementsViewModel @Inject constructor(
         val rom = currentRom ?: return
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
-            if (retroAchievementsRepository.isUserAuthenticated()) {
-                val hardcore = settingsRepository.isRetroAchievementsHardcoreEnabled()
-                retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash, hardcore).fold(
-                    onSuccess = { achievements ->
-                        val sorted = achievements.sortedBy { if (it.isUnlocked) 0 else 1 }
-                        _uiState.value = RomRetroAchievementsUiState.Ready(sorted, buildSummary(hardcore, sorted))
-                    },
-                    onFailure = {
-                        ensureActive()
-                        _uiState.value = RomRetroAchievementsUiState.AchievementLoadError
-                    }
-                )
-            } else {
-                _uiState.value = RomRetroAchievementsUiState.LoggedOut
+            try {
+                if (retroAchievementsRepository.isUserAuthenticated()) {
+                    val hardcore = settingsRepository.isRetroAchievementsHardcoreEnabled()
+                    retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash, hardcore).fold(
+                        onSuccess = { achievements ->
+                            val sorted = achievements.sortedBy { if (it.isUnlocked) 0 else 1 }
+                            _uiState.value = RomRetroAchievementsUiState.Ready(sorted, buildSummary(hardcore, sorted))
+                        },
+                        onFailure = {
+                            _uiState.value = RomRetroAchievementsUiState.AchievementLoadError
+                        }
+                    )
+                } else {
+                    _uiState.value = RomRetroAchievementsUiState.LoggedOut
+                }
+            } catch (_: Exception) {
+                _uiState.value = RomRetroAchievementsUiState.AchievementLoadError
             }
         }
     }
