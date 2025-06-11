@@ -90,6 +90,10 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
     fun attachView(view: View) {
         container.removeAllViews()
         container.addView(view)
+        if (touchOverlay != null) {
+            // Ensure the touch overlay stays on top of any newly attached view
+            container.addView(touchOverlay)
+        }
         if (view is GLSurfaceView) {
             surfaceView = view
         }
