@@ -10,9 +10,11 @@ import me.magnum.melonds.ui.romlist.RomListActivity
 /**
  * Entry activity that also manages an external display if available.
  */
+@dagger.hilt.android.AndroidEntryPoint
 class MainActivity : RomListActivity() {
     private var presentation: ExternalPresentation? = null
     private lateinit var displayManager: DisplayManager
+    @javax.inject.Inject lateinit var settingsRepository: me.magnum.melonds.domain.repositories.SettingsRepository
     private val displayListener = object : DisplayManager.DisplayListener {
         override fun onDisplayAdded(displayId: Int) {
             showExternalDisplay()
@@ -51,6 +53,7 @@ class MainActivity : RomListActivity() {
         if (external != null) {
             presentation = ExternalPresentation(this, external).apply {
                 setBackground(Color.parseColor("#8B0000"))
+                setOrientation(settingsRepository.getExternalDisplayOrientation())
                 show()
             }
             ExternalDisplayManager.presentation = presentation
@@ -60,6 +63,9 @@ class MainActivity : RomListActivity() {
     override fun loadRom(rom: me.magnum.melonds.domain.model.rom.Rom) {
         super.loadRom(rom)
         showExternalDisplay()
-        presentation?.setBackground(Color.parseColor("#00008B"))
+        presentation?.apply {
+            setBackground(Color.parseColor("#00008B"))
+            setOrientation(settingsRepository.getExternalDisplayOrientation())
+        }
     }
 }

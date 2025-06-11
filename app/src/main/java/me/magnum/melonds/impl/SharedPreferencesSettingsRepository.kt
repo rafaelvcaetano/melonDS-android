@@ -306,6 +306,15 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
+    override fun getExternalDisplayOrientation(): LayoutConfiguration.LayoutOrientation {
+        val value = preferences.getString("external_display_orientation", "follow_system")!!
+        return when (value) {
+            "portrait" -> LayoutConfiguration.LayoutOrientation.PORTRAIT
+            "landscape" -> LayoutConfiguration.LayoutOrientation.LANDSCAPE
+            else -> LayoutConfiguration.LayoutOrientation.FOLLOW_SYSTEM
+        }
+    }
+
     override fun getDSiCameraSource(): DSiCameraSourceType {
         val dsiCameraSource = preferences.getString("dsi_camera_source", "physical_cameras")!!
         return DSiCameraSourceType.valueOf(dsiCameraSource.uppercase())

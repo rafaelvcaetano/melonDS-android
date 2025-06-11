@@ -197,6 +197,7 @@
     <string name="internal_resolution">Internal resolution</string>
     <string name="renderer">Renderer</string>
     <string name="external_display_screen">External display screen</string>
+    <string name="external_display_orientation">External display orientation</string>
     <string name="external_screen_layout">External screen layout</string>
     <string name="dsi_camera_source">DSi camera source</string>
     <string name="dsi_camera_image">DSi camera image</string>

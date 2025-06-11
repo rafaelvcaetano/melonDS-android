@@ -45,6 +45,7 @@ import javax.inject.Inject
 class LayoutEditorActivity : AppCompatActivity() {
     companion object {
         const val KEY_LAYOUT_ID = "layout_id"
+        const val KEY_IS_EXTERNAL = "is_external"
 
         private const val CONTROLS_SLIDE_ANIMATION_DURATION_MS = 100L
     }
@@ -68,6 +69,7 @@ class LayoutEditorActivity : AppCompatActivity() {
     private lateinit var handler: Handler
     private var areBottomControlsShown = true
     private var areScalingControlsShown = true
+    private var isExternalLayout = false
     private var selectedViewMinSize = 0
     private var currentWidthScale = 0f
     private var currentHeightScale = 0f
@@ -77,6 +79,8 @@ class LayoutEditorActivity : AppCompatActivity() {
         binding = ActivityLayoutEditorBinding.inflate(layoutInflater)
         handler = Handler(mainLooper)
         setContentView(binding.root)
+
+        isExternalLayout = intent?.getBooleanExtra(KEY_IS_EXTERNAL, false) ?: false
 
         onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -363,7 +367,12 @@ class LayoutEditorActivity : AppCompatActivity() {
     private fun openButtonsMenu() {
         hideBottomControls()
         val instantiatedComponents = binding.viewLayoutEditor.getInstantiatedComponents()
-        val componentsToShow = LayoutComponent.entries.filterNot { instantiatedComponents.contains(it) }
+        val availableComponents = if (isExternalLayout) {
+            listOf(LayoutComponent.TOP_SCREEN, LayoutComponent.BOTTOM_SCREEN)
+        } else {
+            LayoutComponent.entries
+        }
+        val componentsToShow = availableComponents.filterNot { instantiatedComponents.contains(it) }
 
         val dialogBuilder = AlertDialog.Builder(this)
                 .setTitle(R.string.choose_component)

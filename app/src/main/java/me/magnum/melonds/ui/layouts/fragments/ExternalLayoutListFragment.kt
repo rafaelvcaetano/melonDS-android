@@ -17,4 +17,19 @@ class ExternalLayoutListFragment : BaseLayoutsFragment() {
     override fun getFallbackLayoutId(): UUID {
         return LayoutConfiguration.DEFAULT_ID
     }
+
+    override fun editLayout(layout: LayoutConfiguration) {
+        layout.id?.let {
+            val intent = android.content.Intent(requireContext(), me.magnum.melonds.ui.layouteditor.LayoutEditorActivity::class.java)
+            intent.putExtra(me.magnum.melonds.ui.layouteditor.LayoutEditorActivity.KEY_LAYOUT_ID, it.toString())
+            intent.putExtra(me.magnum.melonds.ui.layouteditor.LayoutEditorActivity.KEY_IS_EXTERNAL, true)
+            startActivity(intent)
+        }
+    }
+
+    override fun createLayout() {
+        val intent = android.content.Intent(requireContext(), me.magnum.melonds.ui.layouteditor.LayoutEditorActivity::class.java)
+        intent.putExtra(me.magnum.melonds.ui.layouteditor.LayoutEditorActivity.KEY_IS_EXTERNAL, true)
+        startActivity(intent)
+    }
 }

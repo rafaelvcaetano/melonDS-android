@@ -46,6 +46,15 @@
             android:entryValues="@array/external_display_screen_values"
             android:defaultValue="top"/>
 
+    <ListPreference
+            android:key="external_display_orientation"
+            android:title="@string/external_display_orientation"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/layout_orientation_options"
+            android:entryValues="@array/external_display_orientation_values"
+            android:defaultValue="follow_system"/>
+
     <Preference
             android:key="external_layouts"
             android:title="@string/external_screen_layout"

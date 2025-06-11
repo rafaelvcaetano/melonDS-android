@@ -112,4 +112,10 @@
         <item>rom_dir</item>
         <item>internal_dir</item>
     </string-array>
+
+    <string-array name="external_display_orientation_values">
+        <item>follow_system</item>
+        <item>portrait</item>
+        <item>landscape</item>
+    </string-array>
 </resources>

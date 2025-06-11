@@ -36,6 +36,7 @@ interface SettingsRepository {
     fun isThreadedRenderingEnabled(): Flow<Boolean>
     fun getFpsCounterPosition(): FpsCounterPosition
     fun getExternalDisplayScreen(): DsScreen
+    fun getExternalDisplayOrientation(): me.magnum.melonds.domain.model.layout.LayoutConfiguration.LayoutOrientation
     fun getDSiCameraSource(): DSiCameraSourceType
     fun getDSiCameraStaticImage(): Uri?
 

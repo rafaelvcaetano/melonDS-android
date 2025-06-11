@@ -36,6 +36,14 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
         setContentView(container)
     }
 
+    fun setOrientation(orientation: me.magnum.melonds.domain.model.layout.LayoutConfiguration.LayoutOrientation) {
+        container.rotation = when (orientation) {
+            me.magnum.melonds.domain.model.layout.LayoutConfiguration.LayoutOrientation.PORTRAIT -> 0f
+            me.magnum.melonds.domain.model.layout.LayoutConfiguration.LayoutOrientation.LANDSCAPE -> 90f
+            else -> 0f
+        }
+    }
+
     fun setBackground(color: Int) {
         placeholderRenderer.color = color
         surfaceView.requestRender()
