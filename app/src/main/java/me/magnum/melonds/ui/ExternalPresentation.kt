@@ -14,6 +14,14 @@ import me.magnum.melonds.domain.model.DsScreen
 import me.magnum.melonds.ui.DSScreenRenderer
 import me.magnum.melonds.ui.DSLayoutRenderer
 import me.magnum.melonds.domain.model.Rect
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.fillMaxSize
+import me.magnum.melonds.ui.emulator.ui.AchievementList
+import me.magnum.melonds.ui.romlist.RomListRetroAchievementsViewModel
+import androidx.compose.ui.platform.setContent
 
 /**
  * Presentation shown on an external display. For now it only shows
@@ -50,6 +58,10 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
     fun setBackground(color: Int) {
         placeholderRenderer.color = color
         surfaceView.requestRender()
+    }
+
+    fun showBackground() {
+        attachView(surfaceView)
     }
 
     /**
@@ -106,6 +118,20 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
 
     fun requestRender() {
         surfaceView.requestRender()
+    }
+
+    fun showAchievements(viewModel: RomListRetroAchievementsViewModel) {
+        val composeView = ComposeView(context)
+        composeView.setContent {
+            val state by viewModel.uiState.collectAsState()
+            AchievementList(
+                modifier = Modifier.fillMaxSize(),
+                state = state,
+                onViewAchievement = { viewModel.viewAchievement(it) },
+                onRetry = { viewModel.retryLoadAchievements() },
+            )
+        }
+        attachView(composeView)
     }
 
     /** Enable or disable touch input forwarding for the bottom screen. When

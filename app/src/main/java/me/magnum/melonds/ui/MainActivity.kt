@@ -6,6 +6,9 @@ import android.hardware.display.DisplayManager
 import android.os.Bundle
 import android.view.Display
 import me.magnum.melonds.ui.romlist.RomListActivity
+import androidx.activity.viewModels
+import me.magnum.melonds.ui.romlist.RomListRetroAchievementsViewModel
+import me.magnum.melonds.ui.romlist.RomListFragment
 
 /**
  * Entry activity that also manages an external display if available.
@@ -15,6 +18,7 @@ class MainActivity : RomListActivity() {
     private var presentation: ExternalPresentation? = null
     private lateinit var displayManager: DisplayManager
     @javax.inject.Inject lateinit var settingsRepository: me.magnum.melonds.domain.repositories.SettingsRepository
+    private val achievementsViewModel: RomListRetroAchievementsViewModel by viewModels()
     private val displayListener = object : DisplayManager.DisplayListener {
         override fun onDisplayAdded(displayId: Int) {
             showExternalDisplay()
@@ -30,6 +34,13 @@ class MainActivity : RomListActivity() {
 
         override fun onDisplayChanged(displayId: Int) {
             // No-op
+        }
+    }
+
+    override fun onAttachFragment(fragment: androidx.fragment.app.Fragment) {
+        super.onAttachFragment(fragment)
+        if (fragment is RomListFragment) {
+            fragment.setRomFocusListener { onRomFocused(it) }
         }
     }
 
@@ -66,6 +77,13 @@ class MainActivity : RomListActivity() {
         presentation?.apply {
             setBackground(Color.parseColor("#00008B"))
             setOrientation(settingsRepository.getExternalDisplayOrientation())
+            showBackground()
         }
+    }
+
+    private fun onRomFocused(rom: me.magnum.melonds.domain.model.rom.Rom) {
+        showExternalDisplay()
+        achievementsViewModel.setRom(rom)
+        presentation?.showAchievements(achievementsViewModel)
     }
 }
