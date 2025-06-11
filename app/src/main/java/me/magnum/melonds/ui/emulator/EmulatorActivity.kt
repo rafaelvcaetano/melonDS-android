@@ -610,10 +610,12 @@ class EmulatorActivity : AppCompatActivity() {
                     DsScreen.CUSTOM -> {
                         val layoutId = settingsRepository.getExternalLayoutId()
                         val layout = runBlocking { layoutsRepository.getLayout(layoutId) }
-                        val variant = layout?.layoutVariants?.values?.firstOrNull()
-                        val topRect = variant?.components?.firstOrNull { it.component == LayoutComponent.TOP_SCREEN }?.rect
-                        val bottomRect = variant?.components?.firstOrNull { it.component == LayoutComponent.BOTTOM_SCREEN }?.rect
-                        val uiSize = variant?.uiSize
+                        val entry = layout?.layoutVariants?.entries?.firstOrNull()
+                        val uiLayout = entry?.value
+                        val layoutVariant = entry?.key
+                        val topRect = uiLayout?.components?.firstOrNull { it.component == LayoutComponent.TOP_SCREEN }?.rect
+                        val bottomRect = uiLayout?.components?.firstOrNull { it.component == LayoutComponent.BOTTOM_SCREEN }?.rect
+                        val uiSize = layoutVariant?.uiSize
                         pres.showCustomLayout(
                             screenshotFrameBufferProvider,
                             topRect,
