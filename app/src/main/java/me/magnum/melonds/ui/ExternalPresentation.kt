@@ -7,6 +7,12 @@ import android.opengl.GLSurfaceView
 import android.view.Display
 import android.view.View
 import android.widget.FrameLayout
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.savedstate.SavedStateRegistryOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import me.magnum.melonds.ui.emulator.input.IInputListener
 import me.magnum.melonds.ui.emulator.input.TouchscreenInputHandler
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
@@ -43,6 +49,19 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
             renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
         }
         container.addView(surfaceView)
+
+        // Propagate lifecycle and state owners from the host Activity so
+        // Compose content inside the presentation can access them.
+        (context as? LifecycleOwner)?.let { owner ->
+            container.setViewTreeLifecycleOwner(owner)
+        }
+        (context as? ViewModelStoreOwner)?.let { owner ->
+            container.setViewTreeViewModelStoreOwner(owner)
+        }
+        (context as? SavedStateRegistryOwner)?.let { owner ->
+            container.setViewTreeSavedStateRegistryOwner(owner)
+        }
+
         setContentView(container)
     }
 
