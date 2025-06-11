@@ -93,8 +93,11 @@ fun AchievementList(
                     onRetry = onRetry,
                 )
             }
+
+
         }
     }
+}
 }
 
 @Composable
