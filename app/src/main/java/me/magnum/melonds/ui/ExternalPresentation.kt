@@ -7,6 +7,8 @@ import android.opengl.GLSurfaceView
 import android.view.Display
 import android.view.View
 import android.widget.FrameLayout
+import me.magnum.melonds.ui.emulator.input.IInputListener
+import me.magnum.melonds.ui.emulator.input.TouchscreenInputHandler
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.DsScreen
 import me.magnum.melonds.ui.DSScreenRenderer
@@ -25,6 +27,7 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
     // but can be replaced with a renderer displaying the emulator's top screen.
     private var surfaceView: GLSurfaceView
     private val placeholderRenderer = ColorRenderer(Color.parseColor("#8B0000"))
+    private var touchOverlay: View? = null
 
     init {
         surfaceView = GLSurfaceView(context).apply {
@@ -103,5 +106,47 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
 
     fun requestRender() {
         surfaceView.requestRender()
+    }
+
+    /** Enable or disable touch input forwarding for the bottom screen. When
+     *  [rect] is provided, touch coordinates are mapped from that region using
+     *  the specified layout size. */
+    fun configureTouchInput(
+        listener: IInputListener?,
+        rect: Rect? = null,
+        layoutWidth: Int = 0,
+        layoutHeight: Int = 0
+    ) {
+        if (listener == null) {
+            touchOverlay?.let { container.removeView(it) }
+            touchOverlay = null
+            return
+        }
+
+        val overlay = touchOverlay ?: View(context).also {
+            touchOverlay = it
+            container.addView(it)
+        }
+        overlay.setOnTouchListener(TouchscreenInputHandler(listener))
+
+        overlay.post {
+            val params = if (rect != null && layoutWidth > 0 && layoutHeight > 0) {
+                val widthScale = container.width.toFloat() / layoutWidth
+                val heightScale = container.height.toFloat() / layoutHeight
+                FrameLayout.LayoutParams(
+                    (rect.width * widthScale).toInt(),
+                    (rect.height * heightScale).toInt()
+                ).apply {
+                    leftMargin = (rect.x * widthScale).toInt()
+                    topMargin = (rect.y * heightScale).toInt()
+                }
+            } else {
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                )
+            }
+            overlay.layoutParams = params
+        }
     }
 }

@@ -605,8 +605,14 @@ class EmulatorActivity : AppCompatActivity() {
             if (screen != currentExternalDisplayScreen || screen == DsScreen.CUSTOM) {
                 currentExternalDisplayScreen = screen
                 externalScreenRenderer = when (screen) {
-                    DsScreen.TOP -> pres.showTopScreen(screenshotFrameBufferProvider)
-                    DsScreen.BOTTOM -> pres.showBottomScreen(screenshotFrameBufferProvider)
+                    DsScreen.TOP -> {
+                        pres.configureTouchInput(null)
+                        pres.showTopScreen(screenshotFrameBufferProvider)
+                    }
+                    DsScreen.BOTTOM -> {
+                        pres.configureTouchInput(melonTouchHandler)
+                        pres.showBottomScreen(screenshotFrameBufferProvider)
+                    }
                     DsScreen.CUSTOM -> {
                         val layoutId = settingsRepository.getExternalLayoutId()
                         val layout = runBlocking { layoutsRepository.getLayout(layoutId) }
@@ -616,6 +622,7 @@ class EmulatorActivity : AppCompatActivity() {
                         val topRect = uiLayout?.components?.firstOrNull { it.component == LayoutComponent.TOP_SCREEN }?.rect
                         val bottomRect = uiLayout?.components?.firstOrNull { it.component == LayoutComponent.BOTTOM_SCREEN }?.rect
                         val uiSize = layoutVariant?.uiSize
+                        pres.configureTouchInput(melonTouchHandler, bottomRect, uiSize?.x ?: 0, uiSize?.y ?: 0)
                         pres.showCustomLayout(
                             screenshotFrameBufferProvider,
                             topRect,
