@@ -2,11 +2,12 @@ package me.magnum.melonds.ui
 
 import android.opengl.GLES30
 import android.opengl.GLSurfaceView
-import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.DsScreen
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
+import me.magnum.melonds.domain.model.render.FrameRenderEvent
+import me.magnum.melonds.ui.emulator.FrameRenderEventConsumer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -14,47 +15,24 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 /**
- * Renderer that draws one of the DS screens using the screenshot framebuffer
- * updated by the native code each frame.
+ * Renderer that draws one of the DS screens using the texture provided
+ * by the emulator.
  */
 class DSScreenRenderer(
-    private val frameBufferProvider: ScreenshotFrameBufferProvider,
     private val screen: DsScreen
-) : GLSurfaceView.Renderer {
+) : GLSurfaceView.Renderer, FrameRenderEventConsumer {
 
     companion object {
-        private const val SCREEN_WIDTH = 256
-        private const val SCREEN_HEIGHT = 192
+        private const val TOTAL_SCREEN_HEIGHT = 384
     }
 
     private lateinit var shader: Shader
-    private var textureId: Int = 0
     private lateinit var posBuffer: FloatBuffer
     private lateinit var uvBuffer: FloatBuffer
+    private var nextRenderEvent: FrameRenderEvent? = null
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         shader = ShaderFactory.createShaderProgram(ShaderProgramSource.NoFilterShader)
-
-        val texIds = IntArray(1)
-        GLES30.glGenTextures(1, texIds, 0)
-        textureId = texIds[0]
-
-        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
-        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, shader.textureFiltering)
-        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, shader.textureFiltering)
-        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_CLAMP_TO_EDGE)
-        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE)
-        GLES30.glTexImage2D(
-            GLES30.GL_TEXTURE_2D,
-            0,
-            GLES30.GL_RGBA,
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
-            0,
-            GLES30.GL_RGBA,
-            GLES30.GL_UNSIGNED_BYTE,
-            null
-        )
 
         val coords = floatArrayOf(
             -1f, -1f,
@@ -64,14 +42,28 @@ class DSScreenRenderer(
             1f, 1f,
             1f, -1f
         )
-        val uvs = floatArrayOf(
-            0f, 1f,
-            0f, 0f,
-            1f, 0f,
-            0f, 1f,
-            1f, 0f,
-            1f, 1f
-        )
+
+        val lineRelativeSize = 1f / (TOTAL_SCREEN_HEIGHT + 1).toFloat()
+        val uvs = if (screen == DsScreen.TOP) {
+            floatArrayOf(
+                0f, 0.5f - lineRelativeSize,
+                0f, 0f,
+                1f, 0f,
+                0f, 0.5f - lineRelativeSize,
+                1f, 0f,
+                1f, 0.5f - lineRelativeSize
+            )
+        } else {
+            floatArrayOf(
+                0f, 1f,
+                0f, 0.5f + lineRelativeSize,
+                1f, 0.5f + lineRelativeSize,
+                0f, 1f,
+                1f, 0.5f + lineRelativeSize,
+                1f, 1f
+            )
+        }
+
         posBuffer = ByteBuffer.allocateDirect(coords.size * 4)
             .order(ByteOrder.nativeOrder())
             .asFloatBuffer()
@@ -87,33 +79,19 @@ class DSScreenRenderer(
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        val fullBuffer = frameBufferProvider.frameBuffer()
-        val offset = if (screen == DsScreen.BOTTOM) SCREEN_WIDTH * SCREEN_HEIGHT * 4 else 0
-        val screenBuffer = fullBuffer.duplicate()
-        screenBuffer.position(offset)
-        screenBuffer.limit(offset + SCREEN_WIDTH * SCREEN_HEIGHT * 4)
-
-        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
-        GLES30.glTexSubImage2D(
-            GLES30.GL_TEXTURE_2D,
-            0,
-            0,
-            0,
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
-            GLES30.GL_RGBA,
-            GLES30.GL_UNSIGNED_BYTE,
-            screenBuffer
-        )
-
+        val textureId = nextRenderEvent?.textureId ?: return
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
         shader.use()
         posBuffer.position(0)
         uvBuffer.position(0)
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
         GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, posBuffer)
         GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBuffer)
         GLES30.glUniform1i(shader.uniformTex, 0)
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, posBuffer.capacity() / 2)
     }
-}
 
+    override fun prepareNextFrame(frameRenderEvent: FrameRenderEvent) {
+        nextRenderEvent = frameRenderEvent
+    }
+}

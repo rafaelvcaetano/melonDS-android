@@ -99,10 +99,10 @@ import me.magnum.melonds.ui.emulator.ui.AchievementPopupUi
 import me.magnum.melonds.ui.emulator.ui.RAIntegrationEventUi
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.theme.MelonTheme
-import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.ui.ExternalDisplayManager
 import me.magnum.melonds.ui.DSScreenRenderer
 import me.magnum.melonds.domain.model.DsScreen
+import me.magnum.melonds.ui.emulator.FrameRenderEventConsumer
 import java.text.SimpleDateFormat
 import javax.inject.Inject
 
@@ -144,8 +144,6 @@ class EmulatorActivity : AppCompatActivity() {
     @Inject
     lateinit var lifecycleOwnerProvider: LifecycleOwnerProvider
 
-    @Inject
-    lateinit var screenshotFrameBufferProvider: ScreenshotFrameBufferProvider
 
     @Inject
     lateinit var layoutsRepository: me.magnum.melonds.domain.repositories.LayoutsRepository
@@ -154,7 +152,7 @@ class EmulatorActivity : AppCompatActivity() {
     private lateinit var dsRenderer: DSRenderer
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
-    private var externalScreenRenderer: GLSurfaceView.Renderer? = null
+    private var externalScreenRenderer: FrameRenderEventConsumer? = null
     private var currentExternalDisplayScreen: DsScreen? = null
     private val frontendInputHandler = object : FrontendInputHandler() {
         var fastForwardEnabled = false
@@ -256,7 +254,11 @@ class EmulatorActivity : AppCompatActivity() {
         dsRenderer = DSRenderer(
             context = this,
             onGlContextReady = {
-                currentOpenGlContext.value = it
+                runOnUiThread {
+                    currentOpenGlContext.value = it
+                    ExternalDisplayManager.presentation?.setSharedContext(dsRenderer.getSharedEglContext())
+                    setupExternalScreen()
+                }
             }
         )
         binding.surfaceMain.apply {
@@ -281,8 +283,6 @@ class EmulatorActivity : AppCompatActivity() {
             setFrontendInputHandler(frontendInputHandler)
             setSystemInputHandler(melonTouchHandler)
         }
-
-        setupExternalScreen()
 
         val layoutChangeListener = View.OnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
             updateRendererScreenAreas()
@@ -400,9 +400,8 @@ class EmulatorActivity : AppCompatActivity() {
                 viewModel.frameRenderEvent.collect {
                     dsRenderer.prepareNextFrame(it)
                     binding.surfaceMain.requestRender()
-                    externalScreenRenderer?.let { _ ->
-                        ExternalDisplayManager.presentation?.requestRender()
-                    }
+                    externalScreenRenderer?.prepareNextFrame(it)
+                    ExternalDisplayManager.presentation?.requestRender()
                 }
             }
         }
@@ -600,18 +599,20 @@ class EmulatorActivity : AppCompatActivity() {
     }
 
     private fun setupExternalScreen() {
+        val sharedContext = dsRenderer.getSharedEglContext() ?: return
         ExternalDisplayManager.presentation?.let { pres ->
+            pres.setSharedContext(sharedContext)
             val screen = viewModel.getExternalDisplayScreen()
             if (screen != currentExternalDisplayScreen || screen == DsScreen.CUSTOM) {
                 currentExternalDisplayScreen = screen
                 externalScreenRenderer = when (screen) {
                     DsScreen.TOP -> {
                         pres.configureTouchInput(null)
-                        pres.showTopScreen(screenshotFrameBufferProvider)
+                        pres.showTopScreen()
                     }
                     DsScreen.BOTTOM -> {
                         pres.configureTouchInput(melonTouchHandler)
-                        pres.showBottomScreen(screenshotFrameBufferProvider)
+                        pres.showBottomScreen()
                     }
                     DsScreen.CUSTOM -> {
                         val layoutId = settingsRepository.getExternalLayoutId()
@@ -624,7 +625,6 @@ class EmulatorActivity : AppCompatActivity() {
                         val uiSize = layoutVariant?.uiSize
                         pres.configureTouchInput(melonTouchHandler, bottomRect, uiSize?.x ?: 0, uiSize?.y ?: 0)
                         pres.showCustomLayout(
-                            screenshotFrameBufferProvider,
                             topRect,
                             bottomRect,
                             uiSize?.x ?: 0,

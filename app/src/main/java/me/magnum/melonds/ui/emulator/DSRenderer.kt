@@ -6,10 +6,12 @@ import android.opengl.EGL14
 import android.opengl.GLES30
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
+import javax.microedition.khronos.egl.EGL10
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
 import me.magnum.melonds.domain.model.Rect
+import me.magnum.melonds.ui.emulator.FrameRenderEventConsumer
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.layout.BackgroundMode
@@ -27,7 +29,7 @@ import kotlin.math.roundToInt
 class DSRenderer(
     private val context: Context,
     private val onGlContextReady: (glContext: Long) -> Unit,
-) : GLSurfaceView.Renderer {
+) : GLSurfaceView.Renderer, FrameRenderEventConsumer {
     companion object {
         private const val SCREEN_WIDTH = 256
         private const val SCREEN_HEIGHT = 384
@@ -77,6 +79,12 @@ class DSRenderer(
     private var backgroundWidth = 0
     private var backgroundHeight = 0
 
+    // EGL context used to share textures with secondary renderers
+    private var eglContext: javax.microedition.khronos.egl.EGLContext? = null
+
+    /** Return the EGL context associated with this renderer when available. */
+    fun getSharedEglContext(): javax.microedition.khronos.egl.EGLContext? = eglContext
+
     fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
         rendererConfiguration = newRendererConfiguration
         mustUpdateConfiguration = true
@@ -98,7 +106,7 @@ class DSRenderer(
         }
     }
 
-    fun prepareNextFrame(frameRenderEvent: FrameRenderEvent) {
+    override fun prepareNextFrame(frameRenderEvent: FrameRenderEvent) {
         nextRenderEvent = frameRenderEvent
     }
 
@@ -111,6 +119,10 @@ class DSRenderer(
     }
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
+        // Cache EGL context so other renderers can share textures
+        val egl = javax.microedition.khronos.egl.EGLContext.getEGL() as EGL10
+        eglContext = egl.eglGetCurrentContext()
+
         GLES30.glClearColor(0f, 0f, 0f, 1f)
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
         GLES30.glDisable(GLES30.GL_CULL_FACE)

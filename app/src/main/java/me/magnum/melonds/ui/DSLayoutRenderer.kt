@@ -2,11 +2,12 @@ package me.magnum.melonds.ui
 
 import android.opengl.GLES30
 import android.opengl.GLSurfaceView
-import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
+import me.magnum.melonds.domain.model.render.FrameRenderEvent
+import me.magnum.melonds.ui.emulator.FrameRenderEventConsumer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -14,44 +15,29 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 /**
- * Simple renderer that draws both DS screens using coordinates provided by a layout.
- * It relies on the screenshot framebuffer updated by the native code.
+ * Renderer that draws both DS screens using layout coordinates and the
+ * texture provided by the emulator.
  */
 class DSLayoutRenderer(
-    private val frameBufferProvider: ScreenshotFrameBufferProvider,
     private var topScreen: Rect?,
     private var bottomScreen: Rect?,
     private var layoutWidth: Int,
     private var layoutHeight: Int,
-) : GLSurfaceView.Renderer {
+) : GLSurfaceView.Renderer, FrameRenderEventConsumer {
 
     companion object {
-        private const val SCREEN_WIDTH = 256
-        private const val SCREEN_HEIGHT = 192
+        private const val TOTAL_SCREEN_HEIGHT = 384
     }
 
     private lateinit var shader: Shader
-    private val textureIds = IntArray(2)
 
-    private var viewWidth = 0f
-    private var viewHeight = 0f
     private var posTop: FloatBuffer? = null
     private var posBottom: FloatBuffer? = null
-    private val uvBuffer: FloatBuffer = ByteBuffer.allocateDirect(6 * 2 * 4)
-        .order(ByteOrder.nativeOrder())
-        .asFloatBuffer()
-        .apply {
-            put(
-                floatArrayOf(
-                    0f, 1f,
-                    0f, 0f,
-                    1f, 0f,
-                    0f, 1f,
-                    1f, 0f,
-                    1f, 1f,
-                )
-            )
-        }
+
+    private lateinit var uvTop: FloatBuffer
+    private lateinit var uvBottom: FloatBuffer
+
+    private var nextRenderEvent: FrameRenderEvent? = null
 
     fun updateLayout(top: Rect?, bottom: Rect?, width: Int, height: Int) {
         topScreen = top
@@ -87,87 +73,63 @@ class DSLayoutRenderer(
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         shader = ShaderFactory.createShaderProgram(ShaderProgramSource.NoFilterShader)
-        GLES30.glGenTextures(2, textureIds, 0)
-        for (id in textureIds) {
-            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, id)
-            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, shader.textureFiltering)
-            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, shader.textureFiltering)
-            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_CLAMP_TO_EDGE)
-            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE)
-            GLES30.glTexImage2D(
-                GLES30.GL_TEXTURE_2D,
-                0,
-                GLES30.GL_RGBA,
-                SCREEN_WIDTH,
-                SCREEN_HEIGHT,
-                0,
-                GLES30.GL_RGBA,
-                GLES30.GL_UNSIGNED_BYTE,
-                null
-            )
-        }
+        val lineRelativeSize = 1f / (TOTAL_SCREEN_HEIGHT + 1).toFloat()
+        val topUvs = floatArrayOf(
+            0f, 0.5f - lineRelativeSize,
+            0f, 0f,
+            1f, 0f,
+            0f, 0.5f - lineRelativeSize,
+            1f, 0f,
+            1f, 0.5f - lineRelativeSize,
+        )
+        val bottomUvs = floatArrayOf(
+            0f, 1f,
+            0f, 0.5f + lineRelativeSize,
+            1f, 0.5f + lineRelativeSize,
+            0f, 1f,
+            1f, 0.5f + lineRelativeSize,
+            1f, 1f,
+        )
+        uvTop = ByteBuffer.allocateDirect(topUvs.size * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(topUvs)
+        uvBottom = ByteBuffer.allocateDirect(bottomUvs.size * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(bottomUvs)
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
-        viewWidth = width.toFloat()
-        viewHeight = height.toFloat()
         GLES30.glViewport(0, 0, width, height)
         updateBuffers()
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        val buffer = frameBufferProvider.frameBuffer()
-        val topSlice = buffer.duplicate().apply {
-            limit(SCREEN_WIDTH * SCREEN_HEIGHT * 4)
-        }
-        val bottomSlice = buffer.duplicate().apply {
-            position(SCREEN_WIDTH * SCREEN_HEIGHT * 4)
-            limit(SCREEN_WIDTH * SCREEN_HEIGHT * 8)
-        }
-        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureIds[0])
-        GLES30.glTexSubImage2D(
-            GLES30.GL_TEXTURE_2D,
-            0,
-            0,
-            0,
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
-            GLES30.GL_RGBA,
-            GLES30.GL_UNSIGNED_BYTE,
-            topSlice
-        )
-        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureIds[1])
-        GLES30.glTexSubImage2D(
-            GLES30.GL_TEXTURE_2D,
-            0,
-            0,
-            0,
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
-            GLES30.GL_RGBA,
-            GLES30.GL_UNSIGNED_BYTE,
-            bottomSlice
-        )
-
+        val textureId = nextRenderEvent?.textureId ?: return
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
         shader.use()
-
-        uvBuffer.position(0)
         posTop?.let { buf ->
             buf.position(0)
-            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureIds[0])
+            uvTop.position(0)
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
             GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
-            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBuffer)
+            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvTop)
             GLES30.glUniform1i(shader.uniformTex, 0)
             GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6)
         }
         posBottom?.let { buf ->
             buf.position(0)
-            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureIds[1])
+            uvBottom.position(0)
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
             GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
-            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBuffer)
+            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBottom)
             GLES30.glUniform1i(shader.uniformTex, 0)
             GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6)
         }
+    }
+
+    override fun prepareNextFrame(frameRenderEvent: FrameRenderEvent) {
+        nextRenderEvent = frameRenderEvent
     }
 }

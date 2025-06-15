@@ -4,6 +4,8 @@ import android.app.Presentation
 import android.content.Context
 import android.graphics.Color
 import android.opengl.GLSurfaceView
+import me.magnum.melonds.common.opengl.SharedEglContextFactory
+import javax.microedition.khronos.egl.EGLContext as EGL10Context
 import android.view.Display
 import android.view.View
 import android.widget.FrameLayout
@@ -15,7 +17,6 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import me.magnum.melonds.ui.emulator.input.IInputListener
 import me.magnum.melonds.ui.emulator.input.TouchscreenInputHandler
-import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.DsScreen
 import me.magnum.melonds.ui.DSScreenRenderer
 import me.magnum.melonds.ui.DSLayoutRenderer
@@ -42,6 +43,7 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
     private var surfaceView: GLSurfaceView
     private val placeholderRenderer = ColorRenderer(Color.parseColor("#8B0000"))
     private var touchOverlay: View? = null
+    private var sharedContext: EGL10Context? = null
 
     init {
         surfaceView = GLSurfaceView(context).apply {
@@ -64,6 +66,10 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
         }
 
         setContentView(container)
+    }
+
+    fun setSharedContext(context: EGL10Context?) {
+        sharedContext = context
     }
 
     fun setOrientation(orientation: me.magnum.melonds.domain.model.layout.LayoutConfiguration.LayoutOrientation) {
@@ -105,13 +111,18 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
      * top screen. Returns the created renderer so callers can request renders
      * when new frames are available.
      */
-    fun showDsScreen(provider: ScreenshotFrameBufferProvider, screen: DsScreen): DSScreenRenderer {
-        val renderer = DSScreenRenderer(provider, screen)
-        val view = GLSurfaceView(context).apply {
+    private fun createSurfaceView(renderer: GLSurfaceView.Renderer): GLSurfaceView {
+        return GLSurfaceView(context).apply {
             setEGLContextClientVersion(3)
+            sharedContext?.let { setEGLContextFactory(SharedEglContextFactory(it)) }
             setRenderer(renderer)
             renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
         }
+    }
+
+    fun showDsScreen(screen: DsScreen): DSScreenRenderer {
+        val renderer = DSScreenRenderer(screen)
+        val view = createSurfaceView(renderer)
         attachView(view)
         return renderer
     }
@@ -120,24 +131,19 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
      * Display both DS screens using the provided layout rectangles.
      */
     fun showCustomLayout(
-        provider: ScreenshotFrameBufferProvider,
         topRect: Rect?,
         bottomRect: Rect?,
         layoutWidth: Int,
         layoutHeight: Int,
     ): DSLayoutRenderer {
-        val renderer = DSLayoutRenderer(provider, topRect, bottomRect, layoutWidth, layoutHeight)
-        val view = GLSurfaceView(context).apply {
-            setEGLContextClientVersion(3)
-            setRenderer(renderer)
-            renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
-        }
+        val renderer = DSLayoutRenderer(topRect, bottomRect, layoutWidth, layoutHeight)
+        val view = createSurfaceView(renderer)
         attachView(view)
         return renderer
     }
 
-    fun showTopScreen(provider: ScreenshotFrameBufferProvider) = showDsScreen(provider, DsScreen.TOP)
-    fun showBottomScreen(provider: ScreenshotFrameBufferProvider) = showDsScreen(provider, DsScreen.BOTTOM)
+    fun showTopScreen() = showDsScreen(DsScreen.TOP)
+    fun showBottomScreen() = showDsScreen(DsScreen.BOTTOM)
 
     fun requestRender() {
         surfaceView.requestRender()
