@@ -56,6 +56,11 @@
             android:defaultValue="follow_system"/>
 
     <Preference
+            android:key="input_layouts"
+            android:title="@string/internal_screen_layout"
+            app:iconSpaceReserved="false" />
+
+    <Preference
             android:key="external_layouts"
             android:title="@string/external_screen_layout"
             app:iconSpaceReserved="false" />

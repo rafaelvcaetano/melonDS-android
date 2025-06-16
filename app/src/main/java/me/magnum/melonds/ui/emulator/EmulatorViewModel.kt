@@ -348,6 +348,7 @@ class EmulatorViewModel @Inject constructor(
                         }
                     }
                     RomPauseMenuOption.VIEW_ACHIEVEMENTS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowAchievementList)
+                    RomPauseMenuOption.QUICK_SETTINGS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowQuickSettings)
                     RomPauseMenuOption.RESET -> resetEmulator()
                     RomPauseMenuOption.EXIT -> {
                         emulatorManager.stopEmulator()
@@ -647,6 +648,10 @@ class EmulatorViewModel @Inject constructor(
 
     fun getExternalDisplayScreen(): DsScreen {
         return settingsRepository.getExternalDisplayScreen()
+    }
+
+    fun setExternalDisplayScreen(screen: DsScreen) {
+        settingsRepository.setExternalDisplayScreen(screen)
     }
 
     private suspend fun getRomEnabledCheats(romInfo: RomInfo): List<Cheat> {

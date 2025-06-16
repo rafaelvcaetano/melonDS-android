@@ -81,6 +81,7 @@ interface SettingsRepository {
     fun setRomSortingOrder(sortingOrder: SortingOrder)
     fun setSelectedLayoutId(layoutId: UUID)
     fun setExternalLayoutId(layoutId: UUID)
+    fun setExternalDisplayScreen(screen: DsScreen)
 
     fun observeRenderConfiguration(): Flow<RendererConfiguration>
 }

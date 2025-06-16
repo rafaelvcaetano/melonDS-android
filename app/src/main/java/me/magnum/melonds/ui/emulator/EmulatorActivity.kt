@@ -97,6 +97,9 @@ import me.magnum.melonds.ui.emulator.rom.SaveStateListAdapter
 import me.magnum.melonds.ui.emulator.ui.AchievementListDialog
 import me.magnum.melonds.ui.emulator.ui.AchievementPopupUi
 import me.magnum.melonds.ui.emulator.ui.RAIntegrationEventUi
+import me.magnum.melonds.ui.emulator.ui.QuickSettingsDialog
+import me.magnum.melonds.ui.layouts.LayoutListActivity
+import me.magnum.melonds.ui.layouts.ExternalLayoutListActivity
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.theme.MelonTheme
 import me.magnum.melonds.ui.ExternalDisplayManager
@@ -229,6 +232,7 @@ class EmulatorActivity : AppCompatActivity() {
         closeRewindWindow()
     }
     private val showAchievementList = mutableStateOf(false)
+    private val showQuickSettings = mutableStateOf(false)
     private var emulatorReady = false
 
     private val activeOverlays = EmulatorOverlayTracker(
@@ -384,6 +388,26 @@ class EmulatorActivity : AppCompatActivity() {
                         }
                     )
                 }
+
+                if (showQuickSettings.value) {
+                    QuickSettingsDialog(
+                        currentScreen = viewModel.getExternalDisplayScreen(),
+                        onScreenSelected = {
+                            viewModel.setExternalDisplayScreen(it)
+                            setupExternalScreen()
+                        },
+                        onOpenInternalLayout = {
+                            startActivity(Intent(this@EmulatorActivity, LayoutListActivity::class.java))
+                        },
+                        onOpenExternalLayout = {
+                            startActivity(Intent(this@EmulatorActivity, ExternalLayoutListActivity::class.java))
+                        },
+                        onDismiss = {
+                            viewModel.resumeEmulator()
+                            showQuickSettings.value = false
+                        }
+                    )
+                }
             }
         }
 
@@ -485,6 +509,7 @@ class EmulatorActivity : AppCompatActivity() {
                             }
                         }
                         EmulatorUiEvent.ShowAchievementList -> showAchievementList.value = true
+                        EmulatorUiEvent.ShowQuickSettings -> showQuickSettings.value = true
                     }
                 }
             }

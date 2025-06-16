@@ -9,11 +9,6 @@
             android:summary="@string/key_mapping_summary"
             app:iconSpaceReserved="false" />
 
-    <Preference
-            android:key="input_layouts"
-            android:title="@string/layouts"
-            android:summary="@string/layouts_summary"
-            app:iconSpaceReserved="false" />
 
     <SwitchPreference
             android:key="input_show_soft"

@@ -565,6 +565,17 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
+    override fun setExternalDisplayScreen(screen: DsScreen) {
+        val value = when (screen) {
+            DsScreen.TOP -> "top"
+            DsScreen.BOTTOM -> "bottom"
+            DsScreen.CUSTOM -> "custom"
+        }
+        preferences.edit {
+            putString("external_display_screen", value)
+        }
+    }
+
     override fun observeTheme(): Observable<Theme> {
         return getOrCreatePreferenceObservable("theme") {
             getTheme()
