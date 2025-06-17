@@ -23,6 +23,10 @@ class DSLayoutRenderer(
     private var bottomScreen: Rect?,
     private var layoutWidth: Int,
     private var layoutHeight: Int,
+    private var topAlpha: Float = 1f,
+    private var bottomAlpha: Float = 1f,
+    private var topOnTop: Boolean = false,
+    private var bottomOnTop: Boolean = false,
 ) : GLSurfaceView.Renderer, FrameRenderEventConsumer {
 
     companion object {
@@ -39,11 +43,24 @@ class DSLayoutRenderer(
 
     private var nextRenderEvent: FrameRenderEvent? = null
 
-    fun updateLayout(top: Rect?, bottom: Rect?, width: Int, height: Int) {
+    fun updateLayout(
+        top: Rect?,
+        bottom: Rect?,
+        width: Int,
+        height: Int,
+        topAlpha: Float = this.topAlpha,
+        bottomAlpha: Float = this.bottomAlpha,
+        topOnTop: Boolean = this.topOnTop,
+        bottomOnTop: Boolean = this.bottomOnTop,
+    ) {
         topScreen = top
         bottomScreen = bottom
         layoutWidth = width
         layoutHeight = height
+        this.topAlpha = topAlpha
+        this.bottomAlpha = bottomAlpha
+        this.topOnTop = topOnTop
+        this.bottomOnTop = bottomOnTop
         updateBuffers()
     }
 
@@ -109,23 +126,24 @@ class DSLayoutRenderer(
         val textureId = nextRenderEvent?.textureId ?: return
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
         shader.use()
-        posTop?.let { buf ->
+        val screens = listOfNotNull(
+            posTop?.let { Triple(it, uvTop, Pair(topAlpha, topOnTop)) },
+            posBottom?.let { Triple(it, uvBottom, Pair(bottomAlpha, bottomOnTop)) },
+        ).sortedBy { if (it.third.second) 1 else 0 }
+
+        screens.forEach { (buf, uv, info) ->
+            val alpha = info.first
             buf.position(0)
-            uvTop.position(0)
+            uv.position(0)
             GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
             GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
-            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvTop)
+            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uv)
             GLES30.glUniform1i(shader.uniformTex, 0)
+            GLES30.glEnable(GLES30.GL_BLEND)
+            GLES30.glBlendColor(0f, 0f, 0f, alpha)
+            GLES30.glBlendFunc(GLES30.GL_CONSTANT_ALPHA, GLES30.GL_ONE_MINUS_CONSTANT_ALPHA)
             GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6)
-        }
-        posBottom?.let { buf ->
-            buf.position(0)
-            uvBottom.position(0)
-            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
-            GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
-            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBottom)
-            GLES30.glUniform1i(shader.uniformTex, 0)
-            GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6)
+            GLES30.glDisable(GLES30.GL_BLEND)
         }
     }
 

@@ -133,10 +133,23 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
     fun showCustomLayout(
         topRect: Rect?,
         bottomRect: Rect?,
+        topAlpha: Float,
+        bottomAlpha: Float,
+        topOnTop: Boolean,
+        bottomOnTop: Boolean,
         layoutWidth: Int,
         layoutHeight: Int,
     ): DSLayoutRenderer {
-        val renderer = DSLayoutRenderer(topRect, bottomRect, layoutWidth, layoutHeight)
+        val renderer = DSLayoutRenderer(
+            topRect,
+            bottomRect,
+            layoutWidth,
+            layoutHeight,
+            topAlpha,
+            bottomAlpha,
+            topOnTop,
+            bottomOnTop,
+        )
         val view = createSurfaceView(renderer)
         attachView(view)
         return renderer

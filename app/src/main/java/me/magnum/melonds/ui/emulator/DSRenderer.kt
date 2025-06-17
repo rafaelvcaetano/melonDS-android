@@ -57,8 +57,10 @@ class DSRenderer(
     private var screenShader: Shader? = null
     private lateinit var backgroundShader: Shader
 
-    private lateinit var posBuffer: FloatBuffer
-    private lateinit var uvBuffer: FloatBuffer
+    private var posTop: FloatBuffer? = null
+    private var posBottom: FloatBuffer? = null
+    private lateinit var uvTop: FloatBuffer
+    private lateinit var uvBottom: FloatBuffer
 
     private lateinit var backgroundPosBuffer: FloatBuffer
     private lateinit var backgroundUvBuffer: FloatBuffer
@@ -69,6 +71,10 @@ class DSRenderer(
     private var mustLoadBackground = false
     private var topScreenRect: Rect? = null
     private var bottomScreenRect: Rect? = null
+    private var topAlpha: Float = 1f
+    private var bottomAlpha: Float = 1f
+    private var topOnTop: Boolean = false
+    private var bottomOnTop: Boolean = false
 
     private var width = 0f
     private var height = 0f
@@ -90,9 +96,20 @@ class DSRenderer(
         mustUpdateConfiguration = true
     }
 
-    fun updateScreenAreas(topScreenRect: Rect?, bottomScreenRect: Rect?) {
+    fun updateScreenAreas(
+        topScreenRect: Rect?,
+        bottomScreenRect: Rect?,
+        topAlpha: Float = this.topAlpha,
+        bottomAlpha: Float = this.bottomAlpha,
+        topOnTop: Boolean = this.topOnTop,
+        bottomOnTop: Boolean = this.bottomOnTop,
+    ) {
         this.topScreenRect = topScreenRect
         this.bottomScreenRect = bottomScreenRect
+        this.topAlpha = topAlpha
+        this.bottomAlpha = bottomAlpha
+        this.topOnTop = topOnTop
+        this.bottomOnTop = bottomOnTop
         mustUpdateConfiguration = true
         isBackgroundPositionDirty = true
     }
@@ -154,106 +171,55 @@ class DSRenderer(
     }
 
     private fun updateScreenCoordinates() {
-        val uvs = mutableListOf<Float>()
-        val coords = mutableListOf<Float>()
-
-        // Indices:
-        // 1                         2
-        //   +-----------------------+ 4
-        //   |                       |
-        //   |                       |
-        //   |                       |
-        //   |                       |
-        // 0 +-----------------------+
-        //   3                         5
-        // Texture is vertically flipped
-
-        // The texture will have 2 lines between the screens. Take that into account when computing UVs
         val lineRelativeSize = 1 / (SCREEN_HEIGHT + 1).toFloat()
-        topScreenRect?.let {
-            uvs.add(0f)
-            uvs.add(0.5f - lineRelativeSize)
+        val topUvs = floatArrayOf(
+            0f, 0.5f - lineRelativeSize,
+            0f, 0f,
+            1f, 0f,
+            0f, 0.5f - lineRelativeSize,
+            1f, 0f,
+            1f, 0.5f - lineRelativeSize,
+        )
+        val bottomUvs = floatArrayOf(
+            0f, 1f,
+            0f, 0.5f + lineRelativeSize,
+            1f, 0.5f + lineRelativeSize,
+            0f, 1f,
+            1f, 0.5f + lineRelativeSize,
+            1f, 1f,
+        )
 
-            uvs.add(0f)
-            uvs.add(0f)
+        uvTop = ByteBuffer.allocateDirect(topUvs.size * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(topUvs)
 
-            uvs.add(1f)
-            uvs.add(0f)
+        uvBottom = ByteBuffer.allocateDirect(bottomUvs.size * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(bottomUvs)
 
-            uvs.add(0f)
-            uvs.add(0.5f - lineRelativeSize)
+        posTop = topScreenRect?.let { rectToBuffer(it) }
+        posBottom = bottomScreenRect?.let { rectToBuffer(it) }
+    }
 
-            uvs.add(1f)
-            uvs.add(0f)
-
-            uvs.add(1f)
-            uvs.add(0.5f - lineRelativeSize)
-
-            coords.add(screenXToViewportX(it.x))
-            coords.add(screenYToViewportY(it.y + it.height))
-
-            coords.add(screenXToViewportX(it.x))
-            coords.add(screenYToViewportY(it.y))
-
-            coords.add(screenXToViewportX(it.x + it.width))
-            coords.add(screenYToViewportY(it.y))
-
-            coords.add(screenXToViewportX(it.x))
-            coords.add(screenYToViewportY(it.y + it.height))
-
-            coords.add(screenXToViewportX(it.x + it.width))
-            coords.add(screenYToViewportY(it.y))
-
-            coords.add(screenXToViewportX(it.x + it.width))
-            coords.add(screenYToViewportY(it.y + it.height))
-        }
-        bottomScreenRect?.let {
-            uvs.add(0f)
-            uvs.add(1f)
-
-            uvs.add(0f)
-            uvs.add(0.5f + lineRelativeSize)
-
-            uvs.add(1f)
-            uvs.add(0.5f + lineRelativeSize)
-
-            uvs.add(0f)
-            uvs.add(1f)
-
-            uvs.add(1f)
-            uvs.add(0.5f + lineRelativeSize)
-
-            uvs.add(1f)
-            uvs.add(1f)
-
-            coords.add(screenXToViewportX(it.x))
-            coords.add(screenYToViewportY(it.y + it.height))
-
-            coords.add(screenXToViewportX(it.x))
-            coords.add(screenYToViewportY(it.y))
-
-            coords.add(screenXToViewportX(it.x + it.width))
-            coords.add(screenYToViewportY(it.y))
-
-            coords.add(screenXToViewportX(it.x))
-            coords.add(screenYToViewportY(it.y + it.height))
-
-            coords.add(screenXToViewportX(it.x + it.width))
-            coords.add(screenYToViewportY(it.y))
-
-            coords.add(screenXToViewportX(it.x + it.width))
-            coords.add(screenYToViewportY(it.y + it.height))
-        }
-
-        uvBuffer = ByteBuffer.allocateDirect(4 * uvs.size)
-                .order(ByteOrder.nativeOrder())
-                .asFloatBuffer()
-                .put(uvs.toFloatArray())
-
-        posBuffer = ByteBuffer.allocateDirect(4 * coords.size)
-                .order(ByteOrder.nativeOrder())
-                .asFloatBuffer()
-                .put(coords.toFloatArray())
+    private fun rectToBuffer(rect: Rect): FloatBuffer {
+        val left = rect.x / width * 2f - 1f
+        val right = (rect.x + rect.width) / width * 2f - 1f
+        val top = 1f - rect.y / height * 2f
+        val bottom = 1f - (rect.y + rect.height) / height * 2f
+        val coords = floatArrayOf(
+            left, bottom,
+            left, top,
+            right, top,
+            left, bottom,
+            right, top,
+            right, bottom,
+        )
+        return ByteBuffer.allocateDirect(coords.size * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(coords)
     }
 
     private fun updateShader() {
@@ -285,24 +251,36 @@ class DSRenderer(
 
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
 
-        posBuffer.position(0)
-        uvBuffer.position(0)
-
-        val indices = posBuffer.capacity() / 2
         screenShader?.let { shader ->
             shader.use()
 
-            GLES30.glEnable(GLES30.GL_DEPTH_TEST)
-            GLES30.glDepthFunc(GLES30.GL_NOTEQUAL)
+            // Depth testing prevents blending both screens correctly, since the
+            // first drawn screen writes depth and subsequent ones fail the test.
+            // Disable depth test so ordering is controlled purely by draw order.
+            GLES30.glDisable(GLES30.GL_DEPTH_TEST)
             GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
             GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, currentTextureId)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, shader.textureFiltering)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, shader.textureFiltering)
 
-            GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, posBuffer)
-            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBuffer)
-            GLES30.glUniform1i(shader.uniformTex, 0)
-            GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, indices)
+            val screens = listOfNotNull(
+                posTop?.let { Triple(it, uvTop, Pair(topAlpha, topOnTop)) },
+                posBottom?.let { Triple(it, uvBottom, Pair(bottomAlpha, bottomOnTop)) },
+            ).sortedBy { if (it.third.second) 1 else 0 }
+
+            screens.forEach { (buf, uv, info) ->
+                val alpha = info.first
+                buf.position(0)
+                uv.position(0)
+                GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
+                GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uv)
+                GLES30.glUniform1i(shader.uniformTex, 0)
+                GLES30.glEnable(GLES30.GL_BLEND)
+                GLES30.glBlendColor(0f, 0f, 0f, alpha)
+                GLES30.glBlendFunc(GLES30.GL_CONSTANT_ALPHA, GLES30.GL_ONE_MINUS_CONSTANT_ALPHA)
+                GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6)
+                GLES30.glDisable(GLES30.GL_BLEND)
+            }
         }
 
         synchronized(backgroundLock) {

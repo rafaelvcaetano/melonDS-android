@@ -49,7 +49,12 @@ open class LayoutView(context: Context, attrs: AttributeSet?) : FrameLayout(cont
     }
 
     private fun loadLayout(layout: UILayout) {
-        layout.components?.forEach {
+        val components = layout.components ?: return
+
+        val screens = components.filter { it.isScreen() }.sortedBy { if (it.onTop) 0 else 1 }
+        val others = components.filterNot { it.isScreen() }
+
+        (screens + others).forEach {
             views[it.component] = addPositionedLayoutComponent(it)
         }
     }
@@ -63,7 +68,11 @@ open class LayoutView(context: Context, attrs: AttributeSet?) : FrameLayout(cont
             topMargin = layoutComponent.rect.y
         }
 
-        val viewLayoutComponent = LayoutComponentView(view, viewBuilder.getAspectRatio(), layoutComponent.component)
+        val viewLayoutComponent = LayoutComponentView(view, viewBuilder.getAspectRatio(), layoutComponent.component).apply {
+            baseAlpha = layoutComponent.alpha
+            setHighlighted(false)
+            onTop = layoutComponent.onTop
+        }
         if (layoutComponent.isScreen()) {
             // Screens should be below other views
             addView(view, 0, viewParams)

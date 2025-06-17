@@ -4,6 +4,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
@@ -31,6 +35,7 @@ fun QuickSettingsDialog(
         (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(0.8f)
         MelonTheme(isDarkTheme = true) {
             Surface {
+                var selectedScreen by remember { mutableStateOf(currentScreen) }
                 Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                     Text(stringResource(R.string.quick_settings), style = MaterialTheme.typography.h6)
                     Spacer(Modifier.height(8.dp))
@@ -40,10 +45,13 @@ fun QuickSettingsDialog(
                         Row(
                             Modifier
                                 .fillMaxWidth()
-                                .selectable(selected = currentScreen == screen, onClick = { onScreenSelected(screen) })
+                                .selectable(selected = selectedScreen == screen, onClick = {
+                                    selectedScreen = screen
+                                    onScreenSelected(screen)
+                                })
                                 .padding(vertical = 4.dp)
                         ) {
-                            RadioButton(selected = currentScreen == screen, onClick = null)
+                            RadioButton(selected = selectedScreen == screen, onClick = null)
                             Spacer(Modifier.width(8.dp))
                             val text = when (screen) {
                                 DsScreen.TOP -> R.string.top_screen

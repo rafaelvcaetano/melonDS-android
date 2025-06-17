@@ -75,7 +75,9 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
     }
 
     fun buildCurrentLayout(): List<PositionedLayoutComponent> {
-        return views.values.map { PositionedLayoutComponent(it.getRect(), it.component) }
+        return views.values.map {
+            PositionedLayoutComponent(it.getRect(), it.component, it.baseAlpha, it.onTop)
+        }
     }
 
     fun handleKeyDown(event: KeyEvent): Boolean {
@@ -99,7 +101,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
     override fun onLayoutComponentViewAdded(layoutComponentView: LayoutComponentView) {
         super.onLayoutComponentViewAdded(layoutComponentView)
         setupDragHandler(layoutComponentView)
-        layoutComponentView.view.alpha = 0.5f
+        layoutComponentView.setHighlighted(false)
     }
 
     private fun setupDragHandler(layoutComponentView: LayoutComponentView) {
@@ -121,7 +123,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
                     MotionEvent.ACTION_DOWN -> {
                         downOffsetX = motionEvent.x
                         downOffsetY = motionEvent.y
-                        view.alpha = 1f
+                        layoutComponentView.setHighlighted(true)
                         true
                     }
                     MotionEvent.ACTION_MOVE -> {
@@ -139,7 +141,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
                         if (!dragging) {
                             selectView(layoutComponentView)
                         } else {
-                            view.alpha = 0.5f
+                            layoutComponentView.setHighlighted(false)
                             dragging = false
                         }
                         true
@@ -178,7 +180,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
 
     private fun deselectCurrentView() {
         selectedView?.let {
-            it.view.alpha = 0.5f
+            it.setHighlighted(false)
             onViewDeselectedListener?.invoke(it)
         }
         selectedView = null
@@ -197,6 +199,41 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         val finalY = min(max(currentPosition.y + offsetY, 0f), height - view.getHeight().toFloat())
         view.setPosition(Point(finalX.toInt(), finalY.toInt()))
         modifiedByUser = true
+    }
+
+    fun setSelectedViewAlpha(alpha: Float) {
+        selectedView?.let {
+            it.baseAlpha = alpha
+            it.setHighlighted(true)
+            modifiedByUser = true
+        }
+    }
+
+    fun setSelectedScreenOnTop(onTop: Boolean) {
+        selectedView?.let {
+            it.onTop = onTop
+            rearrangeScreens()
+            modifiedByUser = true
+        }
+    }
+
+    private fun rearrangeScreens() {
+        val topScreen = views[LayoutComponent.TOP_SCREEN]
+        val bottomScreen = views[LayoutComponent.BOTTOM_SCREEN]
+        if (topScreen != null && bottomScreen != null) {
+            removeView(topScreen.view)
+            removeView(bottomScreen.view)
+            if (topScreen.onTop) {
+                addView(bottomScreen.view, 0)
+                addView(topScreen.view, 0)
+            } else if (bottomScreen.onTop) {
+                addView(topScreen.view, 0)
+                addView(bottomScreen.view, 0)
+            } else {
+                addView(bottomScreen.view, 0)
+                addView(topScreen.view, 0)
+            }
+        }
     }
 
     fun scaleSelectedView(widthScale: Float, heightScale: Float) {

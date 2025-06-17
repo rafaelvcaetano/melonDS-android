@@ -16,15 +16,32 @@
             android:layout_height="match_parent"
             android:focusable="false" />
 
-    <LinearLayout
-            android:id="@+id/layout_scaling"
+    <TextView
+            android:id="@+id/text_layout_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:padding="8dp" />
+
+    <ScrollView
+            android:id="@+id/layout_scaling_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:orientation="vertical"
             android:background="#AFFF"
             android:clickable="true"
-            android:focusable="false">
+            android:focusable="false"
+            android:fillViewport="true">
+
+        <LinearLayout
+                android:id="@+id/layout_scaling"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
         <Button
                 android:id="@+id/button_delete_button"
@@ -106,7 +123,45 @@
                     android:max="10000"
                     android:layout_gravity="center_vertical" />
         </LinearLayout>
-    </LinearLayout>
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/textLayoutEditor"
+                    android:text="@string/label_alpha" />
+
+            <SeekBar
+                    android:id="@+id/seek_bar_alpha"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:max="100"
+                    android:layout_gravity="center_vertical" />
+        </LinearLayout>
+
+        <CheckBox
+                android:id="@+id/checkbox_keep_ratio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/textLayoutEditor"
+                android:text="@string/keep_ds_ratio" />
+
+        <CheckBox
+                android:id="@+id/checkbox_above_screen"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/textLayoutEditor"
+                android:text="@string/above_other_screen" />
+
+        </LinearLayout>
+
+    </ScrollView>
 
     <LinearLayout
             android:id="@+id/layout_controls"

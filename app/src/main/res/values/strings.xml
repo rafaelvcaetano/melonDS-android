@@ -328,6 +328,11 @@
     <string name="label_size">Size:</string>
     <string name="label_width">Width:</string>
     <string name="label_height">Height:</string>
+    <string name="label_alpha">Alpha:</string>
+    <string name="keep_ds_ratio">Keep DS aspect ratio</string>
+    <string name="above_other_screen">Above other screen</string>
+    <string name="editing_internal_layout">Editing internal layout</string>
+    <string name="editing_external_layout">Editing external layout</string>
     <string name="menu">Menu</string>
     <string name="properties">Properties</string>
     <string name="revert_changes">Revert changes</string>
