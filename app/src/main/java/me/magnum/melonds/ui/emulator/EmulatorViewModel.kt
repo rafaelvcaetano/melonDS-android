@@ -40,6 +40,7 @@ import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
+import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RuntimeBackground
@@ -347,6 +348,7 @@ class EmulatorViewModel @Inject constructor(
                         }
                     }
                     RomPauseMenuOption.VIEW_ACHIEVEMENTS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowAchievementList)
+                    RomPauseMenuOption.QUICK_SETTINGS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowQuickSettings)
                     RomPauseMenuOption.RESET -> resetEmulator()
                     RomPauseMenuOption.EXIT -> {
                         emulatorManager.stopEmulator()
@@ -642,6 +644,14 @@ class EmulatorViewModel @Inject constructor(
 
     fun getFpsCounterPosition(): FpsCounterPosition {
         return settingsRepository.getFpsCounterPosition()
+    }
+
+    fun getExternalDisplayScreen(): DsExternalScreen {
+        return settingsRepository.getExternalDisplayScreen()
+    }
+
+    fun setExternalDisplayScreen(screen: DsExternalScreen) {
+        settingsRepository.setExternalDisplayScreen(screen)
     }
 
     private suspend fun getRomEnabledCheats(romInfo: RomInfo): List<Cheat> {

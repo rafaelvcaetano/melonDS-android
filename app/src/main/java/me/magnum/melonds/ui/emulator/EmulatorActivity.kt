@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.opengl.GLSurfaceView
+import android.hardware.display.DisplayManager
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -34,6 +35,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.graphics.toColorInt
 import androidx.core.net.toUri
 import androidx.core.os.ConfigurationCompat
 import androidx.core.view.WindowInsetsCompat
@@ -57,11 +59,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
 import me.magnum.melonds.domain.model.ConsoleType
+import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.SaveStateSlot
@@ -76,6 +80,7 @@ import me.magnum.melonds.extensions.setLayoutOrientation
 import me.magnum.melonds.impl.emulator.LifecycleOwnerProvider
 import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
+import me.magnum.melonds.ui.ExternalDisplayManager
 import me.magnum.melonds.ui.cheats.CheatsActivity
 import me.magnum.melonds.ui.emulator.component.EmulatorOverlayTracker
 import me.magnum.melonds.ui.emulator.input.FrontendInputHandler
@@ -94,6 +99,9 @@ import me.magnum.melonds.ui.emulator.rewind.RewindSaveStateAdapter
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 import me.magnum.melonds.ui.emulator.rom.SaveStateListAdapter
 import me.magnum.melonds.ui.emulator.ui.AchievementListDialog
+import me.magnum.melonds.ui.emulator.ui.QuickSettingsDialog
+import me.magnum.melonds.ui.layouts.LayoutListActivity
+import me.magnum.melonds.ui.layouts.ExternalLayoutListActivity
 import me.magnum.melonds.ui.emulator.ui.AchievementPopupUi
 import me.magnum.melonds.ui.emulator.ui.RAIntegrationEventUi
 import me.magnum.melonds.ui.settings.SettingsActivity
@@ -138,6 +146,43 @@ class EmulatorActivity : AppCompatActivity() {
 
     @Inject
     lateinit var lifecycleOwnerProvider: LifecycleOwnerProvider
+
+    /**
+     * Repository for managing and accessing layout configurations.
+     * This is injected to allow the activity to retrieve layout information.
+     */
+    @Inject
+    lateinit var layoutsRepository: me.magnum.melonds.domain.repositories.LayoutsRepository
+
+    /**
+     * Renderer for displaying the top screen on an external display.
+     * This is nullable because it's only initialized if an external display is connected.
+     */
+    private var externalScreenRender: FrameRenderEventConsumer? = null
+
+
+    /**
+     * The current configuration for the external display screen.
+     * This is used to determine which screen (top or bottom) is shown on an external display.
+     * It's updated when an external display is connected or disconnected, or when the
+     * user changes the external display screen setting.
+     */
+    private var currentExternalDisplayScreen: DsExternalScreen? = null
+
+    private lateinit var displayManager: DisplayManager
+    private val displayListener = object : DisplayManager.DisplayListener {
+        override fun onDisplayAdded(displayId: Int) {
+            runOnUiThread { setupExternalScreen() }
+        }
+
+        override fun onDisplayRemoved(displayId: Int) {
+            // Nothing to do; MainActivity dismisses the presentation
+        }
+
+        override fun onDisplayChanged(displayId: Int) {
+            // No-op
+        }
+    }
 
     private val currentOpenGlContext = MutableStateFlow<Long?>(null)
     private lateinit var dsRenderer: DSRenderer
@@ -218,6 +263,8 @@ class EmulatorActivity : AppCompatActivity() {
         closeRewindWindow()
     }
     private val showAchievementList = mutableStateOf(false)
+    private val showQuickSettings = mutableStateOf(false)
+
     private var emulatorReady = false
 
     private val activeOverlays = EmulatorOverlayTracker(
@@ -239,11 +286,18 @@ class EmulatorActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(backPressedCallback)
 
+        displayManager = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+        displayManager.registerDisplayListener(displayListener, null)
+
         melonTouchHandler = MelonTouchHandler()
         dsRenderer = DSRenderer(
             context = this,
             onGlContextReady = {
-                currentOpenGlContext.value = it
+                runOnUiThread {
+                    currentOpenGlContext.value = it
+                    ExternalDisplayManager.presentation?.setSharedContext(dsRenderer.getSharedEglContext())
+                    setupExternalScreen()
+                }
             }
         )
         binding.surfaceMain.apply {
@@ -369,6 +423,26 @@ class EmulatorActivity : AppCompatActivity() {
                         }
                     )
                 }
+
+                if (showQuickSettings.value) {
+                    QuickSettingsDialog(
+                        currentScreen = viewModel.getExternalDisplayScreen(),
+                        onScreenSelected = {
+                            viewModel.setExternalDisplayScreen(it)
+                            setupExternalScreen()
+                        },
+                        onOpenInternalLayout = {
+                            startActivity(Intent(this@EmulatorActivity, LayoutListActivity::class.java))
+                        },
+                        onOpenExternalLayout = {
+                            startActivity(Intent(this@EmulatorActivity, ExternalLayoutListActivity::class.java))
+                        },
+                        onDismiss = {
+                            viewModel.resumeEmulator()
+                            showQuickSettings.value = false
+                        }
+                    )
+                }
             }
         }
 
@@ -385,6 +459,8 @@ class EmulatorActivity : AppCompatActivity() {
                 viewModel.frameRenderEvent.collect {
                     dsRenderer.prepareNextFrame(it)
                     binding.surfaceMain.requestRender()
+                    externalScreenRender?.prepareNextFrame(it)
+                    ExternalDisplayManager.presentation?.requestRender()
                 }
             }
         }
@@ -446,7 +522,13 @@ class EmulatorActivity : AppCompatActivity() {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.uiEvent.collectLatest {
                     when (it) {
-                        EmulatorUiEvent.CloseEmulator -> finish()
+                        EmulatorUiEvent.CloseEmulator -> {
+                            ExternalDisplayManager.presentation?.apply {
+                                setBackground("black".toColorInt())
+                                show()
+                            }
+                            finish()
+                        }
                         is EmulatorUiEvent.OpenScreen.CheatsScreen -> {
                             val intent = Intent(this@EmulatorActivity, CheatsActivity::class.java)
                             intent.putExtra(CheatsActivity.KEY_ROM_INFO, RomInfoParcelable.fromRomInfo(it.romInfo))
@@ -468,6 +550,7 @@ class EmulatorActivity : AppCompatActivity() {
                             }
                         }
                         EmulatorUiEvent.ShowAchievementList -> showAchievementList.value = true
+                        EmulatorUiEvent.ShowQuickSettings -> showQuickSettings.value = true
                     }
                 }
             }
@@ -538,6 +621,53 @@ class EmulatorActivity : AppCompatActivity() {
         }
     }
 
+
+    /**
+     * Sets up the external screen if one is connected.
+     *
+     * This function retrieves the shared EGL context from the DSRenderer and passes it to the
+     * external display presentation. It then determines which screen (top, bottom, or custom)
+     * should be displayed on the external screen based on the user's settings.
+     *
+     * If the selected screen configuration has changed or if a custom layout is selected,
+     * the function updates the `currentExternalDisplayScreen` and configures the external
+     * display presentation accordingly.
+     *
+     * For custom layouts, it fetches the layout details (top/bottom screen rectangles and UI size)
+     * from the `layoutsRepository` and `settingsRepository` to correctly display the custom layout
+     * on the external screen.
+     */
+    private fun setupExternalScreen() {
+        val sharedContext = dsRenderer.getSharedEglContext() ?: return
+        ExternalDisplayManager.presentation?.let { pres ->
+            pres.setSharedContext(sharedContext)
+            val screen = viewModel.getExternalDisplayScreen()
+            if (screen != currentExternalDisplayScreen || screen == DsExternalScreen.CUSTOM) {
+                currentExternalDisplayScreen = screen
+                externalScreenRender = when (screen) {
+                    DsExternalScreen.TOP -> pres.showTopScreen()
+                    DsExternalScreen.BOTTOM -> pres.showBottomScreen()
+                    DsExternalScreen.CUSTOM -> {
+                        val layoutId = settingsRepository.getExternalLayoutId()
+                        val layout = runBlocking { layoutsRepository.getLayout(layoutId) }
+                        val entry = layout?.layoutVariants?.entries?.firstOrNull()
+                        val uiLayout = entry?.value
+                        val layoutVariant = entry?.key
+                        val topRect = uiLayout?.components?.firstOrNull { it.component == LayoutComponent.TOP_SCREEN }?.rect
+                        val bottomRect = uiLayout?.components?.firstOrNull { it.component == LayoutComponent.BOTTOM_SCREEN }?.rect
+                        val uiSize = layoutVariant?.uiSize
+                        pres.showCustomLayout(
+                            topRect,
+                            bottomRect,
+                            uiSize?.x ?: 0,
+                            uiSize?.y ?: 0
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
@@ -572,6 +702,8 @@ class EmulatorActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         binding.surfaceMain.onResume()
+
+        setupExternalScreen()
 
         if (!activeOverlays.hasActiveOverlays()) {
             disableScreenTimeOut()
@@ -871,4 +1003,12 @@ class EmulatorActivity : AppCompatActivity() {
         super.onConfigurationChanged(newConfig)
         updateOrientation(newConfig)
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (::displayManager.isInitialized) {
+            displayManager.unregisterDisplayListener(displayListener)
+        }
+    }
+
 }

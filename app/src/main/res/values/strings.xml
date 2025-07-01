@@ -197,7 +197,11 @@
     <string name="internal_resolution">Internal resolution</string>
     <string name="renderer">Renderer</string>
     <string name="dsi_camera_source">DSi camera source</string>
+    <string name="external_screen_layout">External screen layout</string>
+    <string name="external_display_screen">External display screen</string>
     <string name="dsi_camera_image">DSi camera image</string>
+    <string name="internal_screen_layout">Internal screen layout</string>
+    <string name="quick_settings">Quick settings</string>
     <string name="category_audio">Audio</string>
     <string name="category_audio_summary">Volume, latency, microphone source</string>
     <string name="enable_sound">Enable sound</string>
@@ -284,6 +288,7 @@
 
     <string name="top_screen">Top Screen</string>
     <string name="bottom_screen">Bottom Screen</string>
+    <string name="custom_layout">Custom layout</string>
     <string name="input_a">A</string>
     <string name="input_b">B</string>
     <string name="input_x">X</string>
@@ -320,6 +325,8 @@
     <string name="add_component">Add component</string>
     <string name="no_more_components">No more components to add</string>
     <string name="label_size">Size:</string>
+    <string name="label_width">Width:</string>
+    <string name="label_height">Height:</string>
     <string name="menu">Menu</string>
     <string name="properties">Properties</string>
     <string name="revert_changes">Revert changes</string>
@@ -459,6 +466,12 @@
         <item>Black screen</item>
         <item>Physical cameras</item>
         <item>Static image</item>
+    </string-array>
+
+    <string-array name="external_display_screen_options">
+        <item>@string/top_screen</item>
+        <item>@string/bottom_screen</item>
+        <item>@string/custom_layout</item>
     </string-array>
 
     <string-array name="audio_interpolation_options">

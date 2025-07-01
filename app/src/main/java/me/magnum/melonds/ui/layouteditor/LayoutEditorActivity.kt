@@ -45,6 +45,7 @@ import javax.inject.Inject
 class LayoutEditorActivity : AppCompatActivity() {
     companion object {
         const val KEY_LAYOUT_ID = "layout_id"
+        const val KEY_IS_EXTERNAL = "is_external"
 
         private const val CONTROLS_SLIDE_ANIMATION_DURATION_MS = 100L
     }
@@ -68,13 +69,18 @@ class LayoutEditorActivity : AppCompatActivity() {
     private lateinit var handler: Handler
     private var areBottomControlsShown = true
     private var areScalingControlsShown = true
+    private var isExternalLayout = false
     private var selectedViewMinSize = 0
+    private var currentWidthScale = 0f
+    private var currentHeightScale = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLayoutEditorBinding.inflate(layoutInflater)
         handler = Handler(mainLooper)
         setContentView(binding.root)
+
+        isExternalLayout = intent?.getBooleanExtra(KEY_IS_EXTERNAL, false) ?: false
 
         onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -99,18 +105,33 @@ class LayoutEditorActivity : AppCompatActivity() {
             else
                 showBottomControls()
         }
-        binding.viewLayoutEditor.setOnViewSelectedListener { _, scale, maxSize, minSize ->
+        binding.viewLayoutEditor.setOnViewSelectedListener { _, widthScale, heightScale, maxWidth, maxHeight, minSize ->
             hideBottomControls()
-            showScalingControls(scale, maxSize, minSize)
+            showScalingControls(widthScale, heightScale, maxWidth, maxHeight, minSize)
         }
         binding.viewLayoutEditor.setOnViewDeselectedListener {
             hideScalingControls()
         }
-        binding.seekBarScaling.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+
+        binding.seekBarWidth.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val scale = progress / binding.seekBarScaling.max.toFloat()
-                binding.textSize.text = ((binding.seekBarScaling.max - selectedViewMinSize) * scale + selectedViewMinSize).toInt().toString()
-                binding.viewLayoutEditor.scaleSelectedView(scale)
+                currentWidthScale = progress / binding.seekBarWidth.max.toFloat()
+                        binding.textWidth.text = ((binding.seekBarWidth.max - selectedViewMinSize) * currentWidthScale + selectedViewMinSize).toInt().toString()
+                binding.viewLayoutEditor.scaleSelectedView(currentWidthScale, currentHeightScale)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+            }
+        })
+
+        binding.seekBarHeight.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                currentHeightScale = progress / binding.seekBarHeight.max.toFloat()
+                binding.textHeight.text = ((binding.seekBarHeight.max - selectedViewMinSize) * currentHeightScale + selectedViewMinSize).toInt().toString()
+                binding.viewLayoutEditor.scaleSelectedView(currentWidthScale, currentHeightScale)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -286,12 +307,22 @@ class LayoutEditorActivity : AppCompatActivity() {
         areBottomControlsShown = false
     }
 
-    private fun showScalingControls(currentScale: Float, maxSize: Int, minSize: Int, animate: Boolean = true) {
-        binding.seekBarScaling.apply {
-            max = maxSize
-            progress = (currentScale * maxSize).toInt()
+    private fun showScalingControls(widthScale: Float, heightScale: Float, maxWidth: Int, maxHeight: Int, minSize: Int, animate: Boolean = true) {
+        binding.seekBarWidth.apply {
+            max = maxWidth
+            progress = (widthScale * maxWidth).toInt()
+        }
+        binding.textWidth.text = ((binding.seekBarWidth.max - minSize) * widthScale + minSize).toInt().toString()
+
+        binding.seekBarHeight.apply {
+            max = maxHeight
+            progress = (heightScale * maxHeight).toInt()
         }
 
+        binding.textHeight.text = ((binding.seekBarHeight.max - minSize) * heightScale + minSize).toInt().toString()
+
+        currentWidthScale = widthScale
+        currentHeightScale = heightScale
         selectedViewMinSize = minSize
 
         if (areScalingControlsShown) {
@@ -338,7 +369,12 @@ class LayoutEditorActivity : AppCompatActivity() {
     private fun openButtonsMenu() {
         hideBottomControls()
         val instantiatedComponents = binding.viewLayoutEditor.getInstantiatedComponents()
-        val componentsToShow = LayoutComponent.entries.filterNot { instantiatedComponents.contains(it) }
+        val availableComponents = if (isExternalLayout) {
+            listOf(LayoutComponent.TOP_SCREEN, LayoutComponent.BOTTOM_SCREEN)
+        } else {
+            LayoutComponent.entries
+        }
+        val componentsToShow = availableComponents.filterNot { instantiatedComponents.contains(it) }
 
         val dialogBuilder = AlertDialog.Builder(this)
                 .setTitle(R.string.choose_component)

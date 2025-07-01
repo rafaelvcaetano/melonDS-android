@@ -32,6 +32,7 @@ import me.magnum.melonds.domain.model.AudioInterpolation
 import me.magnum.melonds.domain.model.AudioLatency
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.ControllerConfiguration
+import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.FirmwareConfiguration
 import me.magnum.melonds.domain.model.FpsCounterPosition
@@ -296,6 +297,15 @@ class SharedPreferencesSettingsRepository(
         return FpsCounterPosition.valueOf(fpsCounterPreference.uppercase())
     }
 
+    override fun getExternalDisplayScreen(): DsExternalScreen {
+        val screenPref = preferences.getString("external_display_screen", "top")!!
+        return when (screenPref) {
+            "bottom" -> DsExternalScreen.BOTTOM
+            "custom" -> DsExternalScreen.CUSTOM
+            else -> DsExternalScreen.TOP
+        }
+    }
+
     override fun getDSiCameraSource(): DSiCameraSourceType {
         val dsiCameraSource = preferences.getString("dsi_camera_source", "physical_cameras")!!
         return DSiCameraSourceType.valueOf(dsiCameraSource.uppercase())
@@ -419,6 +429,11 @@ class SharedPreferencesSettingsRepository(
         return id?.let { UUID.fromString(it) } ?: LayoutConfiguration.DEFAULT_ID
     }
 
+    override fun getExternalLayoutId(): UUID {
+        val id = preferences.getString("external_layout_id", null)
+        return id?.let { UUID.fromString(it) } ?: LayoutConfiguration.DEFAULT_ID
+    }
+
     override fun showSoftInput(): Flow<Boolean> {
         return getOrCreatePreferenceSharedFlow("input_show_soft") {
             preferences.getBoolean("input_show_soft", true)
@@ -463,6 +478,12 @@ class SharedPreferencesSettingsRepository(
     override fun observeSelectedLayoutId(): Observable<UUID> {
         return getOrCreatePreferenceObservable("input_layout_id") {
             getSelectedLayoutId()
+        }
+    }
+
+    override fun observeExternalLayoutId(): Observable<UUID> {
+        return getOrCreatePreferenceObservable("external_layout_id") {
+            getExternalLayoutId()
         }
     }
 
@@ -526,6 +547,23 @@ class SharedPreferencesSettingsRepository(
     override fun setSelectedLayoutId(layoutId: UUID) {
         preferences.edit {
             putString("input_layout_id", layoutId.toString())
+        }
+    }
+
+    override fun setExternalLayoutId(layoutId: UUID) {
+        preferences.edit {
+            putString("external_layout_id", layoutId.toString())
+        }
+    }
+
+    override fun setExternalDisplayScreen(screen: DsExternalScreen) {
+        val value = when (screen) {
+            DsExternalScreen.TOP -> "top"
+            DsExternalScreen.BOTTOM -> "bottom"
+            DsExternalScreen.CUSTOM -> "custom"
+        }
+        preferences.edit {
+            putString("external_display_screen", value)
         }
     }
 

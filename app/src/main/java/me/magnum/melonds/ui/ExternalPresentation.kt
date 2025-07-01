@@ -1,0 +1,141 @@
+package me.magnum.melonds.ui
+
+import android.app.Presentation
+import android.content.Context
+import android.opengl.GLSurfaceView
+import me.magnum.melonds.common.opengl.SharedEglContextFactory
+import javax.microedition.khronos.egl.EGLContext as EGL10Context
+import android.view.Display
+import android.view.View
+import android.widget.FrameLayout
+import androidx.core.graphics.toColorInt
+import me.magnum.melonds.domain.model.DsExternalScreen
+import me.magnum.melonds.domain.model.Rect
+
+
+/**
+ * Manages the presentation of content on an external display.
+ *
+ * This class extends [Presentation] to display emulator screens or custom layouts
+ * on a secondary display. It handles the creation and management of [GLSurfaceView]
+ * instances for rendering, allowing for shared EGL contexts for efficient OpenGL rendering.
+ *
+ * The `ExternalPresentation` can display:
+ * - A single DS screen (top or bottom).
+ * - A custom layout with specified rectangles for the top and bottom screens.
+ * - A placeholder color when no specific content is set.
+ *
+ * It provides methods to switch between these display modes and to request renders
+ * on the active [GLSurfaceView].
+ *
+ * @param context The [Context] in which the presentation is running.
+ * @param display The [Display] on which to show the presentation.
+ */
+class ExternalPresentation(context: Context, display: Display) : Presentation(context, display) {
+    private val container = FrameLayout(context)
+
+    private var surfaceView: GLSurfaceView
+    private val placeholderRenderer = ColorRenderer("black".toColorInt())
+    private var sharedContext: EGL10Context? = null
+
+    init {
+        surfaceView = GLSurfaceView(context).apply {
+            setEGLContextClientVersion(3)
+            setRenderer(placeholderRenderer)
+            renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
+        }
+        container.addView(surfaceView)
+        setContentView(container)
+    }
+
+    fun setSharedContext(context: EGL10Context?) {
+        sharedContext = context
+    }
+
+    fun setBackground(color: Int) {
+        placeholderRenderer.color = color
+        surfaceView.requestRender()
+    }
+
+    private fun attachView(view: View) {
+        container.removeAllViews()
+        container.addView(view)
+        if (view is GLSurfaceView) {
+            surfaceView = view
+        }
+    }
+
+    /**
+     * Creates and configures a [GLSurfaceView] with the given renderer.
+     *
+     * This function initializes a [GLSurfaceView] with OpenGL ES 3.0,
+     * optionally sets up a shared EGL context if [sharedContext] is available,
+     * assigns the provided [renderer], and sets the render mode to
+     * [GLSurfaceView.RENDERMODE_WHEN_DIRTY] for efficiency.
+     *
+     * @param renderer The [GLSurfaceView.Renderer] to be used for rendering.
+     * @return The configured [GLSurfaceView] instance.
+     */
+    private fun createSurfaceView(renderer: GLSurfaceView.Renderer): GLSurfaceView {
+        return GLSurfaceView(context).apply {
+            setEGLContextClientVersion(3)
+            sharedContext?.let { setEGLContextFactory(SharedEglContextFactory(it)) }
+            setRenderer(renderer)
+            renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
+        }
+    }
+
+    /**
+     * Replaces the current view with a renderer for a specific DS screen.
+     *
+     * This function sets up a [GLSurfaceView] with an [ExternalScreenRender]
+     * to display either the top or bottom screen of the emulator.
+     *
+     * @param screen The [DsExternalScreen] to display (either [DsExternalScreen.TOP] or [DsExternalScreen.BOTTOM]).
+     * @return The created [ExternalScreenRender] instance, which callers can use
+     *         to request new frame renders.
+     */
+    private fun showDsScreen(screen: DsExternalScreen): ExternalScreenRender {
+        val renderer = ExternalScreenRender(screen)
+        val view = createSurfaceView(renderer)
+        attachView(view)
+        return renderer
+    }
+
+
+    /**
+     * Replaces the current view with a custom layout renderer.
+     *
+     * This function sets up a [GLSurfaceView] with an [ExternalLayoutRender]
+     * to display a custom layout that can include the top screen, bottom screen, or both,
+     * arranged according to the provided rectangles and dimensions.
+     *
+     * @param topRect The [Rect] defining the position and size of the top screen in the custom layout.
+     *                If `null`, the top screen will not be rendered.
+     * @param bottomRect The [Rect] defining the position and size of the bottom screen in the custom layout.
+     *                   If `null`, the bottom screen will not be rendered.
+     * @param layoutWidth The total width of the custom layout.
+     * @param layoutHeight The total height of the custom layout.
+     * @return The created [ExternalLayoutRender] instance, which callers can use
+     *         to request new frame renders.
+     */
+    fun showCustomLayout(
+                         topRect: Rect?,
+                         bottomRect: Rect?,
+                         layoutWidth: Int,
+                         layoutHeight: Int,
+
+    ): ExternalLayoutRender {
+        val renderer = ExternalLayoutRender(topRect, bottomRect, layoutWidth, layoutHeight)
+        val view = createSurfaceView(renderer)
+        attachView(view)
+        return renderer
+    }
+
+    fun showTopScreen() = showDsScreen(DsExternalScreen.TOP)
+    fun showBottomScreen() = showDsScreen(DsExternalScreen.BOTTOM)
+
+    fun requestRender() {
+        surfaceView.requestRender()
+    }
+}

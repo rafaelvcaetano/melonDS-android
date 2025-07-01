@@ -1,8 +1,11 @@
 package me.magnum.melonds.ui.romlist
 
 import android.app.SearchManager
+import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.view.Display
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ProgressBar
@@ -33,13 +36,46 @@ import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.SortingMode
 import me.magnum.melonds.domain.model.Version
 import me.magnum.melonds.domain.model.appupdate.AppUpdate
+import me.magnum.melonds.ui.ExternalDisplayManager
+import me.magnum.melonds.ui.ExternalPresentation
 import me.magnum.melonds.ui.dsiwaremanager.DSiWareManagerActivity
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.ui.settings.SettingsActivity
 import javax.inject.Inject
+import androidx.core.graphics.toColorInt
+import android.hardware.display.DisplayManager
 
 @AndroidEntryPoint
 class RomListActivity : AppCompatActivity() {
+
+    /**
+     * The [ExternalPresentation] instance used to display content on an external display, if available.
+     * This allows the application to show a different UI or content on a secondary screen
+     * connected to the device. It is initialized when an external display is detected and
+     * dismissed when the activity is destroyed or the display is no longer available.
+     */
+    private var presentation: ExternalPresentation? = null
+
+    private lateinit var displayManager: DisplayManager
+
+    private val displayListener = object : DisplayManager.DisplayListener {
+        override fun onDisplayAdded(displayId: Int) {
+            showExternalDisplay()
+        }
+
+        override fun onDisplayRemoved(displayId: Int) {
+            if (presentation?.display?.displayId == displayId) {
+                presentation?.dismiss()
+                presentation = null
+                ExternalDisplayManager.presentation = null
+            }
+        }
+
+        override fun onDisplayChanged(displayId: Int) {
+            // No-op
+        }
+    }
+
     companion object {
         private const val FRAGMENT_ROM_LIST = "ROM_LIST"
         private const val FRAGMENT_NO_ROM_DIRECTORIES = "NO_ROM_DIRECTORY"
@@ -80,6 +116,11 @@ class RomListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        displayManager = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+        displayManager.registerDisplayListener(displayListener, null)
+        showExternalDisplay()
+
         val binding = ActivityRomListBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -119,6 +160,36 @@ class RomListActivity : AppCompatActivity() {
                     onDownloadProgressUpdated(it)
                 }
             }
+        }
+    }
+
+
+    /**
+     * Called when the activity is being destroyed.
+     * This method dismisses the external presentation, unregisters the display listener,
+     * and cleans up resources related to the external display.
+     */
+    override fun onDestroy() {
+        super.onDestroy()
+        presentation?.dismiss()
+        displayManager.unregisterDisplayListener(displayListener)
+        ExternalDisplayManager.presentation = null
+    }
+
+
+    /**
+     * Shows a black screen on an external display if one is connected.
+     * This is used to prevent screen burn-in on OLED displays when the app is idle.
+     */
+    private fun showExternalDisplay() {
+        if (presentation != null) return
+        val external = displayManager.displays.firstOrNull { it.displayId != Display.DEFAULT_DISPLAY }
+        if (external != null) {
+            presentation = ExternalPresentation(this, external).apply {
+                setBackground("black".toColorInt())
+                show()
+            }
+            ExternalDisplayManager.presentation = presentation
         }
     }
 
@@ -322,6 +393,7 @@ class RomListActivity : AppCompatActivity() {
         } else {
             showIncorrectConfigurationDirectoryDialog(configurationDirResult)
         }
+        showExternalDisplay()
     }
 
     private fun bootFirmware(consoleType: ConsoleType) {
