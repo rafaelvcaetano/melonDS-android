@@ -6,6 +6,8 @@ import android.content.res.Configuration
 import android.opengl.GLSurfaceView
 import android.hardware.display.DisplayManager
 import android.os.Bundle
+import android.util.Log
+import android.view.Display
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -81,6 +83,7 @@ import me.magnum.melonds.impl.emulator.LifecycleOwnerProvider
 import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.ExternalDisplayManager
+import me.magnum.melonds.ui.ExternalPresentation
 import me.magnum.melonds.ui.cheats.CheatsActivity
 import me.magnum.melonds.ui.emulator.component.EmulatorOverlayTracker
 import me.magnum.melonds.ui.emulator.input.FrontendInputHandler
@@ -171,12 +174,53 @@ class EmulatorActivity : AppCompatActivity() {
 
     private lateinit var displayManager: DisplayManager
     private val displayListener = object : DisplayManager.DisplayListener {
+        /**
+         * Called when a new display is added to the system.
+         *
+         * This method is part of the [DisplayManager.DisplayListener] interface.
+         * It's triggered when an external display (e.g., via HDMI or screen mirroring)
+         * is connected.
+         *
+         * Upon a new display being added, this method will:
+         * 1. Attempt to show the [ExternalPresentation] on the newly added display.
+         * 2. Set up the external screen rendering, which might involve configuring
+         *    which part of the emulated DS screen (top, bottom, or custom layout)
+         *    is shown on the external display.
+         *
+         * This is executed on the UI thread to ensure thread safety when interacting
+         * with UI components and the display manager.
+         *
+         * @param displayId The ID of the newly added display.
+         */
         override fun onDisplayAdded(displayId: Int) {
-            runOnUiThread { setupExternalScreen() }
+            runOnUiThread {
+                showExternalDisplay()
+                setupExternalScreen()
+            }
         }
 
+        /**
+         * Called when a display is removed.
+         *
+         * This method handles the case where an external display is disconnected.
+         * It checks if the removed display is the one currently used for presentation.
+         * If so, it dismisses the presentation, nullifies the presentation object
+         * in [ExternalDisplayManager], and clears the associated external screen
+         * renderer and current external display screen configuration.
+         *
+         * @param displayId The ID of the display that was removed.
+         */
         override fun onDisplayRemoved(displayId: Int) {
-            // Nothing to do; MainActivity dismisses the presentation
+            runOnUiThread {
+                ExternalDisplayManager.presentation?.let { pres ->
+                    if (pres.display.displayId == displayId) {
+                        pres.dismiss()
+                        ExternalDisplayManager.presentation = null
+                        externalScreenRender = null
+                        currentExternalDisplayScreen = null
+                    }
+                }
+            }
         }
 
         override fun onDisplayChanged(displayId: Int) {
@@ -288,6 +332,7 @@ class EmulatorActivity : AppCompatActivity() {
 
         displayManager = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
         displayManager.registerDisplayListener(displayListener, null)
+        showExternalDisplay()
 
         melonTouchHandler = MelonTouchHandler()
         dsRenderer = DSRenderer(
@@ -621,6 +666,49 @@ class EmulatorActivity : AppCompatActivity() {
         }
     }
 
+
+    /**
+     * Creates a presentation for an external display if one is connected.
+     *
+     * This method checks for an available display different from the default
+     * device display. When found, it instantiates [ExternalPresentation],
+     * stores it in [ExternalDisplayManager] and shows it. If the OpenGL context
+     * is already available, it will also share it with the new presentation.
+     */
+    private fun showExternalDisplay() {
+        if (ExternalDisplayManager.presentation != null) return
+
+        val displays = displayManager.displays
+        Log.d("DualScreenEmulator", "Found ${displays.size} displays.")
+        for (display in displays) {
+            Log.d("DualScreenEmulator", "Display ID: ${display.displayId}, Name: ${display.name}")
+        }
+
+        val external = displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION)
+            .firstOrNull { it.displayId != Display.DEFAULT_DISPLAY && it.name != "Built-in Screen" }
+        if (external != null) {
+            Log.d("DualScreenEmulator", "Using external display: ID=${external.displayId}, Name=${external.name}")
+
+            ExternalDisplayManager.presentation = ExternalPresentation(this, external).apply {
+
+                setSharedContext(dsRenderer.getSharedEglContext())
+
+                setOnShowListener {
+                    Log.d("DualScreenEmulator", "Presentation successfully shown on external display.")
+                }
+
+                try {
+                    show()
+                    Log.d("DualScreenEmulator", "Presentation.show() called")
+                } catch (e: Exception) {
+                    Log.e("DualScreenEmulator", "Error showing presentation: ${e.message}", e)
+                }
+
+            }
+        }else {
+            Log.w("DualScreenEmulator", "No external display found.")
+        }
+    }
 
     /**
      * Sets up the external screen if one is connected.

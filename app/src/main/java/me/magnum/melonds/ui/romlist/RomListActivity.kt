@@ -44,6 +44,7 @@ import me.magnum.melonds.ui.settings.SettingsActivity
 import javax.inject.Inject
 import androidx.core.graphics.toColorInt
 import android.hardware.display.DisplayManager
+import android.util.Log
 
 @AndroidEntryPoint
 class RomListActivity : AppCompatActivity() {
@@ -178,18 +179,55 @@ class RomListActivity : AppCompatActivity() {
 
 
     /**
-     * Shows a black screen on an external display if one is connected.
-     * This is used to prevent screen burn-in on OLED displays when the app is idle.
+     * Attempts to show a presentation on an external display if one is available and
+     * not already showing.
+     *
+     * This function first checks if a presentation is already active. If so, it returns
+     * immediately. Otherwise, it queries the [DisplayManager] for available displays.
+     * It logs the number and details of all found displays.
+     *
+     * It then specifically looks for displays in the [DisplayManager.DISPLAY_CATEGORY_PRESENTATION]
+     * category, excluding the default built-in screen. If a suitable external display is found,
+     * it initializes an [ExternalPresentation] with a black background and attempts to show it.
+     *
+     * Logging is performed at various stages to track the process and any potential errors.
+     * If an external display is successfully utilized, the [presentation] field is updated,
+     * and the [ExternalDisplayManager.presentation] is also set.
+     * If no suitable external display is found, a warning is logged.
      */
     private fun showExternalDisplay() {
-        if (presentation != null) return
-        val external = displayManager.displays.firstOrNull { it.displayId != Display.DEFAULT_DISPLAY }
+        if (presentation != null){
+            return
+        }
+
+        val displays = displayManager.displays
+        Log.d("DualScreen", "Found ${displays.size} displays.")
+        for (display in displays) {
+            Log.d("DualScreen", "Display ID: ${display.displayId}, Name: ${display.name}")
+        }
+
+        val external = displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION)
+            .firstOrNull { it.displayId != Display.DEFAULT_DISPLAY && it.name != "Built-in Screen" }
+
         if (external != null) {
+            Log.d("DualScreen", "Using external display: ID=${external.displayId}, Name=${external.name}")
             presentation = ExternalPresentation(this, external).apply {
                 setBackground("black".toColorInt())
-                show()
+
+                setOnShowListener {
+                    Log.d("DualScreen", "Presentation successfully shown on external display.")
+                }
+
+                try {
+                    show()
+                    Log.d("DualScreen", "Presentation.show() called")
+                } catch (e: Exception) {
+                    Log.e("DualScreen", "Error showing presentation: ${e.message}", e)
+                }
             }
             ExternalDisplayManager.presentation = presentation
+        } else {
+            Log.w("DualScreen", "No external display found.")
         }
     }
 
