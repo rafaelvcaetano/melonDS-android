@@ -35,6 +35,10 @@ class ExternalLayoutRender(
     private var bottomScreen: Rect?,
     private var layoutWidth: Int,
     private var layoutHeight: Int,
+    private var topAlpha: Float = 1f,
+    private var bottomAlpha: Float = 1f,
+    private var topOnTop: Boolean = false,
+    private var bottomOnTop: Boolean = false,
 ) : GLSurfaceView.Renderer, FrameRenderEventConsumer {
 
     companion object {
@@ -51,11 +55,24 @@ class ExternalLayoutRender(
 
     private var nextRenderEvent: FrameRenderEvent? = null
 
-    fun updateLayout(top: Rect?, bottom: Rect?, width: Int, height: Int){
+    fun updateLayout(
+        top: Rect?,
+        bottom: Rect?,
+        width: Int,
+        height: Int,
+        topA: Float,
+        bottomA: Float,
+        topOnT: Boolean,
+        bottomOnT: Boolean,
+    ) {
         topScreen = top
         bottomScreen = bottom
         layoutWidth = width
         layoutHeight = height
+        topAlpha = topA
+        bottomAlpha = bottomA
+        topOnTop = topOnT
+        bottomOnTop = bottomOnT
         updateBuffers()
     }
 
@@ -130,7 +147,11 @@ class ExternalLayoutRender(
             GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
             GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvTop)
             GLES30.glUniform1i(shader.uniformTex, 0)
+            GLES30.glEnable(GLES30.GL_BLEND)
+            GLES30.glBlendColor(0f, 0f, 0f, topAlpha)
+            GLES30.glBlendFunc(GLES30.GL_CONSTANT_ALPHA, GLES30.GL_ONE_MINUS_CONSTANT_ALPHA)
             GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6)
+            GLES30.glDisable(GLES30.GL_BLEND)
         }
         posBottom?.let { buf ->
             buf.position(0)
@@ -139,7 +160,11 @@ class ExternalLayoutRender(
             GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
             GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBottom)
             GLES30.glUniform1i(shader.uniformTex, 0)
+            GLES30.glEnable(GLES30.GL_BLEND)
+            GLES30.glBlendColor(0f, 0f, 0f, bottomAlpha)
+            GLES30.glBlendFunc(GLES30.GL_CONSTANT_ALPHA, GLES30.GL_ONE_MINUS_CONSTANT_ALPHA)
             GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6)
+            GLES30.glDisable(GLES30.GL_BLEND)
         }
     }
 

@@ -741,12 +741,22 @@ class EmulatorActivity : AppCompatActivity() {
                         val entry = layout?.layoutVariants?.entries?.firstOrNull()
                         val uiLayout = entry?.value
                         val layoutVariant = entry?.key
-                        val topRect = uiLayout?.components?.firstOrNull { it.component == LayoutComponent.TOP_SCREEN }?.rect
-                        val bottomRect = uiLayout?.components?.firstOrNull { it.component == LayoutComponent.BOTTOM_SCREEN }?.rect
+                        val topComponent = uiLayout?.components?.firstOrNull { it.component == LayoutComponent.TOP_SCREEN }
+                        val bottomComponent = uiLayout?.components?.firstOrNull { it.component == LayoutComponent.BOTTOM_SCREEN }
+                        val topRect = topComponent?.rect
+                        val bottomRect = bottomComponent?.rect
+                        val topAlpha = topComponent?.alpha ?: 1f
+                        val bottomAlpha = bottomComponent?.alpha ?: 1f
+                        val topOnTop = topComponent?.onTop ?: false
+                        val bottomOnTop = bottomComponent?.onTop ?: false
                         val uiSize = layoutVariant?.uiSize
                         pres.showCustomLayout(
                             topRect,
                             bottomRect,
+                            topAlpha,
+                            bottomAlpha,
+                            topOnTop,
+                            bottomOnTop,
                             uiSize?.x ?: 0,
                             uiSize?.y ?: 0
                         )
@@ -915,9 +925,15 @@ class EmulatorActivity : AppCompatActivity() {
         } else {
             LayoutComponent.TOP_SCREEN to LayoutComponent.BOTTOM_SCREEN
         }
+        val topView = binding.viewLayoutControls.getLayoutComponentView(topScreen)
+        val bottomView = binding.viewLayoutControls.getLayoutComponentView(bottomScreen)
         dsRenderer.updateScreenAreas(
-            binding.viewLayoutControls.getLayoutComponentView(topScreen)?.getRect(),
-            binding.viewLayoutControls.getLayoutComponentView(bottomScreen)?.getRect()
+            topView?.getRect(),
+            bottomView?.getRect(),
+            topView?.baseAlpha ?: 1f,
+            bottomView?.baseAlpha ?: 1f,
+            topView?.onTop ?: false,
+            bottomView?.onTop ?: false,
         )
     }
 
