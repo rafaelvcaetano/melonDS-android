@@ -8,9 +8,23 @@ import javax.microedition.khronos.egl.EGLContext as EGL10Context
 import android.view.Display
 import android.view.View
 import android.widget.FrameLayout
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.savedstate.SavedStateRegistryOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import androidx.core.graphics.toColorInt
 import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.Rect
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.fillMaxSize
+import me.magnum.melonds.ui.emulator.ui.AchievementList
+import me.magnum.melonds.ui.romlist.RomListRetroAchievementsViewModel
+import me.magnum.melonds.ui.theme.MelonTheme
 
 
 /**
@@ -45,6 +59,17 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
             renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
         }
         container.addView(surfaceView)
+
+        (context as? LifecycleOwner)?.let { owner ->
+            container.setViewTreeLifecycleOwner(owner)
+        }
+        (context as? ViewModelStoreOwner)?.let { owner ->
+            container.setViewTreeViewModelStoreOwner(owner)
+        }
+        (context as? SavedStateRegistryOwner)?.let { owner ->
+            container.setViewTreeSavedStateRegistryOwner(owner)
+        }
+
         setContentView(container)
     }
 
@@ -143,6 +168,43 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
         val view = createSurfaceView(renderer)
         attachView(view)
         return renderer
+    }
+
+
+    /**
+     * Replaces the current view with a Composable that displays a list of achievements.
+     *
+     * This function sets up a [ComposeView] to show the [AchievementList] Composable.
+     * It uses the provided [viewModel] to observe and display the achievement data.
+     * The theme (dark or light) is determined by the [isDarkTheme] parameter.
+     *
+     * @param viewModel The [RomListRetroAchievementsViewModel] used to fetch and manage
+     *                  achievement data.
+     * @param isDarkTheme A boolean indicating whether to use a dark theme for the UI.
+     */
+    fun showAchievements(
+        viewModel: RomListRetroAchievementsViewModel,
+        isDarkTheme: Boolean,
+    ) {
+        val composeView = ComposeView(context)
+        composeView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        composeView.layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT,
+        )
+        composeView.setContent {
+            MelonTheme(isDarkTheme = isDarkTheme) {
+                val state by viewModel.uiState.collectAsState()
+                AchievementList(
+                    modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    onViewAchievement = { viewModel.viewAchievement(it) },
+                    onRetry = { viewModel.retryLoadAchievements() },
+                    fillScreen = true,
+                )
+            }
+        }
+        attachView(composeView)
     }
 
     fun showTopScreen() = showDsScreen(DsExternalScreen.TOP)

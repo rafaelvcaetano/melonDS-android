@@ -69,6 +69,7 @@ class RomListFragment : Fragment() {
     private lateinit var romListAdapter: RomListAdapter
 
     private var romSelectedListener: ((Rom) -> Unit)? = null
+    private var romFocusListener: ((Rom) -> Unit)? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = RomListFragmentBinding.inflate(inflater, container, false)
@@ -101,6 +102,7 @@ class RomListFragment : Fragment() {
                 }
             },
             romEnabledFilter = buildRomEnabledFilter(romEnableCriteria),
+            focusListener = romFocusListener,
         )
 
         binding.listRoms.apply {
@@ -154,12 +156,20 @@ class RomListFragment : Fragment() {
         romSelectedListener = listener
     }
 
+    fun setRomFocusListener(listener: (Rom) -> Unit) {
+        romFocusListener = listener
+        if (this::romListAdapter.isInitialized) {
+            romListAdapter.setRomFocusListener(listener)
+        }
+    }
+
     private inner class RomListAdapter(
         private val allowRomConfiguration: Boolean,
         private val context: Context,
         private val coroutineScope: CoroutineScope,
         private val listener: RomClickListener,
         private val romEnabledFilter: RomEnabledFilter,
+        private var focusListener: ((Rom) -> Unit)? = null,
     ) : RecyclerView.Adapter<RomViewHolder>() {
 
         private val roms: ArrayList<Rom> = ArrayList()
@@ -175,6 +185,10 @@ class RomListFragment : Fragment() {
         fun updateIcons() {
             val diff = DiffUtil.calculateDiff(RomIconDiffUtilCallback(this.roms.size))
             diff.dispatchUpdatesTo(this)
+        }
+
+        fun setRomFocusListener(listener: (Rom) -> Unit) {
+            focusListener = listener
         }
 
         override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RomViewHolder {
@@ -201,7 +215,11 @@ class RomListFragment : Fragment() {
             return roms.size
         }
 
-        open inner class RomViewHolder(itemView: View, private val coroutineScope: CoroutineScope, onRomClick: (Rom) -> Unit) : RecyclerView.ViewHolder(itemView) {
+        open inner class RomViewHolder(
+            itemView: View,
+            private val coroutineScope: CoroutineScope,
+            onRomClick: (Rom) -> Unit
+        ) : RecyclerView.ViewHolder(itemView) {
             private val imageViewRomIcon = itemView.findViewById<ImageView>(R.id.imageRomIcon)
             private val textViewRomName = itemView.findViewById<TextView>(R.id.textRomName)
             private val textViewRomPath = itemView.findViewById<TextView>(R.id.textRomPath)
@@ -211,8 +229,11 @@ class RomListFragment : Fragment() {
             private var romIconLoadJob: Job? = null
 
             init {
-                itemView.setOnClickListener {
-                    onRomClick(rom)
+                itemView.setOnClickListener { onRomClick(rom) }
+                itemView.setOnFocusChangeListener { _, hasFocus ->
+                    if (hasFocus) {
+                        this@RomListAdapter.focusListener?.invoke(rom)
+                    }
                 }
             }
 

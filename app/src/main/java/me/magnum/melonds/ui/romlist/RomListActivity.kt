@@ -3,7 +3,6 @@ package me.magnum.melonds.ui.romlist
 import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.view.Display
 import android.view.Menu
@@ -56,6 +55,21 @@ class RomListActivity : AppCompatActivity() {
      * dismissed when the activity is destroyed or the display is no longer available.
      */
     private var presentation: ExternalPresentation? = null
+    /**
+     * ViewModel responsible for managing and providing data related to RetroAchievements
+     * for the ROM list. This ViewModel handles fetching achievement data,
+     * user login status, and other RetroAchievements-specific information.
+     * It is used by the [RomListActivity] to display achievements on an external
+     * display when a ROM is focused.
+     */
+    private val achievementsViewModel: RomListRetroAchievementsViewModel by viewModels()
+
+    /**
+     * Repository for accessing and modifying application settings.
+     * This is injected by Hilt and provides methods to retrieve and store
+     * various user preferences and application configurations.
+     */
+    @Inject lateinit var settingsRepository: me.magnum.melonds.domain.repositories.SettingsRepository
 
     private lateinit var displayManager: DisplayManager
 
@@ -74,6 +88,13 @@ class RomListActivity : AppCompatActivity() {
 
         override fun onDisplayChanged(displayId: Int) {
             // No-op
+        }
+    }
+
+    override fun onAttachFragment(fragment: androidx.fragment.app.Fragment) {
+        super.onAttachFragment(fragment)
+        if (fragment is RomListFragment) {
+            fragment.setRomFocusListener { onRomFocused(it) }
         }
     }
 
@@ -432,6 +453,43 @@ class RomListActivity : AppCompatActivity() {
             showIncorrectConfigurationDirectoryDialog(configurationDirResult)
         }
         showExternalDisplay()
+    }
+
+    /**
+     * Handles the event when a ROM is focused in the list.
+     * This function ensures the external display is active, sets the focused ROM in the
+     * [achievementsViewModel], and then instructs the [presentation] (if available)
+     * to show achievements for that ROM, taking into account the current theme (dark/light).
+     *
+     * @param rom The [Rom] that has gained focus.
+     */
+    private fun onRomFocused(rom: Rom) {
+        showExternalDisplay()
+        achievementsViewModel.setRom(rom)
+        presentation?.showAchievements(achievementsViewModel, isDarkTheme())
+    }
+
+    /**
+     * Determines whether the current theme is dark.
+     *
+     * This function checks the theme setting stored in [settingsRepository].
+     * If the theme is explicitly set to [me.magnum.melonds.ui.Theme.DARK], it returns `true`.
+     * If the theme is explicitly set to [me.magnum.melonds.ui.Theme.LIGHT], it returns `false`.
+     * If the theme setting is not explicitly set (e.g., system default), it falls back to checking
+     * the system's current UI mode. It returns `true` if the system is in night mode
+     * ([android.content.res.Configuration.UI_MODE_NIGHT_YES]), and `false` otherwise.
+     *
+     * @return `true` if the current theme is dark, `false` otherwise.
+     */
+    private fun isDarkTheme(): Boolean {
+        val theme = settingsRepository.getTheme()
+        return when (theme) {
+            me.magnum.melonds.ui.Theme.DARK -> true
+            me.magnum.melonds.ui.Theme.LIGHT -> false
+            else -> (resources.configuration.uiMode and
+                    android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                    android.content.res.Configuration.UI_MODE_NIGHT_YES
+        }
     }
 
     private fun bootFirmware(consoleType: ConsoleType) {
