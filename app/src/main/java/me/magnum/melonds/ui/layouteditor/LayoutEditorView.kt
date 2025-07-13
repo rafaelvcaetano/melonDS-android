@@ -190,9 +190,10 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
 
     fun deleteSelectedView() {
         val currentlySelectedView = selectedView ?: return
-        deselectCurrentView()
         removeView(currentlySelectedView.view)
         views.remove(currentlySelectedView.component)
+        deselectCurrentView()
+        modifiedByUser = true
     }
 
     private fun dragView(view: LayoutComponentView, offsetX: Float, offsetY: Float) {
@@ -236,6 +237,14 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
                 addView(topScreen.view, 0)
             }
         }
+    }
+
+    fun centerSelectedView() {
+        val view = selectedView ?: return
+        val centerX = (width - view.getWidth()) / 2
+        val centerY = (height - view.getHeight()) / 2
+        view.setPosition(Point(centerX, centerY))
+        modifiedByUser = true
     }
 
     fun scaleSelectedView(widthScale: Float, heightScale: Float) {

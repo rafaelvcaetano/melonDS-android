@@ -158,6 +158,13 @@
             android:textColor="@color/textLayoutEditor"
             android:text="@string/above_other_screen" />
 
+        <Button
+            android:id="@+id/button_center_screen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/center_screen"
+            style="@style/Button.Editor" />
+
     </LinearLayout>
 
     </ScrollView>

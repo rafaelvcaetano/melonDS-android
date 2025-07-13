@@ -109,6 +109,10 @@ class LayoutEditorActivity : AppCompatActivity() {
         }
         binding.buttonDeleteButton.setOnClickListener {
             binding.viewLayoutEditor.deleteSelectedView()
+            storeLayoutChanges()
+        }
+        binding.buttonCenterScreen.setOnClickListener {
+            binding.viewLayoutEditor.centerSelectedView()
         }
 
         binding.viewLayoutEditor.setLayoutComponentViewBuilderFactory(EditorLayoutComponentViewBuilderFactory())
@@ -413,6 +417,7 @@ class LayoutEditorActivity : AppCompatActivity() {
         binding.seekBarAlpha.isVisible = isScreen
         binding.checkboxKeepRatio.isVisible = isScreen
         binding.checkboxAboveScreen.isVisible = isScreen
+        binding.buttonCenterScreen.isVisible = isScreen
 
         currentWidthScale = widthScale
         currentHeightScale = heightScale
@@ -469,6 +474,7 @@ class LayoutEditorActivity : AppCompatActivity() {
         binding.seekBarAlpha.isVisible = false
         binding.checkboxKeepRatio.isVisible = false
         binding.checkboxAboveScreen.isVisible = false
+        binding.buttonCenterScreen.isVisible = false
     }
 
     private fun openButtonsMenu() {

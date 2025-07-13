@@ -45,6 +45,7 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
             false,
             0,
             emptyMap(),
+            LayoutConfiguration.LayoutTarget.INTERNAL,
         )
     }
 
@@ -175,6 +176,7 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
             useCustomOpacity = false,
             opacity = 50,
             layoutVariants = emptyMap(),
+            target = LayoutConfiguration.LayoutTarget.INTERNAL,
         )
     }
 }
