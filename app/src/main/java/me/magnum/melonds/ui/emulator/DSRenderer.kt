@@ -10,6 +10,7 @@ import android.opengl.GLUtils
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
+import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.ui.emulator.FrameRenderEventConsumer
 import me.magnum.melonds.domain.model.RuntimeBackground
@@ -33,17 +34,6 @@ class DSRenderer(
     companion object {
         private const val SCREEN_WIDTH = 256
         private const val SCREEN_HEIGHT = 384
-
-        private val FILTERING_SHADER_MAP = mapOf(
-            VideoFiltering.NONE to ShaderProgramSource.NoFilterShader,
-            VideoFiltering.LINEAR to ShaderProgramSource.LinearShader,
-            VideoFiltering.XBR2 to ShaderProgramSource.XbrShader,
-            VideoFiltering.HQ2X to ShaderProgramSource.Hq2xShader,
-            VideoFiltering.HQ4X to ShaderProgramSource.Hq4xShader,
-            VideoFiltering.QUILEZ to ShaderProgramSource.QuilezShader,
-            VideoFiltering.LCD to ShaderProgramSource.LcdShader,
-            VideoFiltering.SCANLINES to ShaderProgramSource.ScanlinesShader
-        )
     }
 
     private var nextRenderEvent: FrameRenderEvent? = null
@@ -231,7 +221,8 @@ class DSRenderer(
         // Delete previous shader
         screenShader?.delete()
 
-        val shaderSource = FILTERING_SHADER_MAP[rendererConfiguration?.videoFiltering ?: VideoFiltering.NONE] ?: throw Exception("Invalid video filtering")
+        val filtering = rendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
+        val shaderSource = VideoFilterShaderProvider.getShaderSource(filtering)
         screenShader = ShaderFactory.createShaderProgram(shaderSource)
     }
 

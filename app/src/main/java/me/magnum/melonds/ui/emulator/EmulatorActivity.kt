@@ -84,6 +84,9 @@ import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.ExternalDisplayManager
 import me.magnum.melonds.ui.ExternalPresentation
+import me.magnum.melonds.ui.ExternalRenderer
+import me.magnum.melonds.domain.model.VideoFiltering
+import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.ui.cheats.CheatsActivity
 import me.magnum.melonds.ui.emulator.component.EmulatorOverlayTracker
 import me.magnum.melonds.ui.emulator.input.FrontendInputHandler
@@ -155,14 +158,13 @@ class EmulatorActivity : AppCompatActivity() {
      * This is injected to allow the activity to retrieve layout information.
      */
     @Inject
-    lateinit var layoutsRepository: me.magnum.melonds.domain.repositories.LayoutsRepository
+    lateinit var layoutsRepository: LayoutsRepository
 
     /**
      * Renderer for displaying the top screen on an external display.
      * This is nullable because it's only initialized if an external display is connected.
      */
-    private var externalScreenRender: FrameRenderEventConsumer? = null
-
+    private var externalScreenRender: ExternalRenderer? = null
 
     /**
      * The current configuration for the external display screen.
@@ -527,6 +529,9 @@ class EmulatorActivity : AppCompatActivity() {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.runtimeRendererConfiguration.collectLatest {
                     dsRenderer.updateRendererConfiguration(it)
+                    externalScreenRender?.updateVideoFiltering(
+                        it?.videoFiltering ?: VideoFiltering.NONE
+                    )
                 }
             }
         }
@@ -762,6 +767,10 @@ class EmulatorActivity : AppCompatActivity() {
                         )
                     }
                 }
+                externalScreenRender?.updateVideoFiltering(
+                    viewModel.runtimeRendererConfiguration.value?.videoFiltering
+                        ?: VideoFiltering.NONE
+                )
             }
         }
     }
@@ -917,6 +926,7 @@ class EmulatorActivity : AppCompatActivity() {
     private fun swapScreen() {
         binding.viewLayoutControls.swapScreens()
         updateRendererScreenAreas()
+        updateExternalScreen()
     }
 
     private fun updateRendererScreenAreas() {
@@ -935,6 +945,58 @@ class EmulatorActivity : AppCompatActivity() {
             topView?.onTop ?: false,
             bottomView?.onTop ?: false,
         )
+    }
+
+    private fun updateExternalScreen() {
+        val presentation = ExternalDisplayManager.presentation ?: return
+
+        val swapped = binding.viewLayoutControls.areScreensSwapped()
+        val screen = viewModel.getExternalDisplayScreen()
+
+        presentation.setSharedContext(dsRenderer.getSharedEglContext())
+
+        externalScreenRender = when (screen) {
+            DsExternalScreen.TOP -> if (swapped) {
+                presentation.showBottomScreen()
+            } else {
+                presentation.showTopScreen()
+            }
+
+            DsExternalScreen.BOTTOM -> if (swapped) {
+                presentation.showTopScreen()
+            } else {
+                presentation.showBottomScreen()
+            }
+
+            DsExternalScreen.CUSTOM -> {
+                val layoutId = settingsRepository.getExternalLayoutId()
+                val layout = runBlocking { layoutsRepository.getLayout(layoutId) }
+                val entry = layout?.layoutVariants?.entries?.firstOrNull()
+                val uiLayout = entry?.value
+                val layoutVariant = entry?.key
+                val topComponent = uiLayout?.components?.firstOrNull { it.component == LayoutComponent.TOP_SCREEN }
+                val bottomComponent = uiLayout?.components?.firstOrNull { it.component == LayoutComponent.BOTTOM_SCREEN }
+
+                val topRect = if (swapped) bottomComponent?.rect else topComponent?.rect
+                val bottomRect = if (swapped) topComponent?.rect else bottomComponent?.rect
+                val topAlpha = if (swapped) bottomComponent?.alpha ?: 1f else topComponent?.alpha ?: 1f
+                val bottomAlpha = if (swapped) topComponent?.alpha ?: 1f else bottomComponent?.alpha ?: 1f
+                val topOnTop = if (swapped) bottomComponent?.onTop ?: false else topComponent?.onTop ?: false
+                val bottomOnTop = if (swapped) topComponent?.onTop ?: false else bottomComponent?.onTop ?: false
+                val uiSize = layoutVariant?.uiSize
+
+                presentation.showCustomLayout(
+                    topRect,
+                    bottomRect,
+                    topAlpha,
+                    bottomAlpha,
+                    topOnTop,
+                    bottomOnTop,
+                    uiSize?.x ?: 0,
+                    uiSize?.y ?: 0,
+                )
+            }
+        }
     }
 
     private fun setupInputHandling() {

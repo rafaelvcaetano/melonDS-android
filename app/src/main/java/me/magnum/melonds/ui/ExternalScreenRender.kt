@@ -5,10 +5,12 @@ import android.opengl.GLSurfaceView
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
+import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
+import me.magnum.melonds.domain.model.VideoFiltering
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import me.magnum.melonds.domain.model.render.FrameRenderEvent
-import me.magnum.melonds.ui.emulator.FrameRenderEventConsumer
+import me.magnum.melonds.ui.ExternalRenderer
 import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -18,7 +20,7 @@ import me.magnum.melonds.domain.model.DsExternalScreen
  * Renders a single DS screen (top or bottom) to a GLSurfaceView.
  *
  * This class implements [GLSurfaceView.Renderer] to handle OpenGL rendering callbacks and
- * [FrameRenderEventConsumer] to receive frame data from the emulator.
+ * [ExternalRenderer] to receive frame data from the emulator.
  *
  * It uses a simple shader to draw a texture containing the screen content onto a quad
  * that fills the GLSurfaceView. The texture coordinates are adjusted based on whether
@@ -29,7 +31,7 @@ import me.magnum.melonds.domain.model.DsExternalScreen
  */
 class ExternalScreenRender(
     private val screen: DsExternalScreen
-) : GLSurfaceView.Renderer, FrameRenderEventConsumer {
+) : GLSurfaceView.Renderer, ExternalRenderer {
 
     companion object {
         private const val TOTAL_SCREEN_HEIGHT = 384
@@ -39,9 +41,12 @@ class ExternalScreenRender(
     private lateinit var posBuffer: FloatBuffer
     private lateinit var uvBuffer: FloatBuffer
     private var nextRenderEvent: FrameRenderEvent? = null
+    private var videoFiltering: VideoFiltering = VideoFiltering.NONE
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        shader = ShaderFactory.createShaderProgram(ShaderProgramSource.NoFilterShader)
+        shader = ShaderFactory.createShaderProgram(
+            VideoFilterShaderProvider.getShaderSource(videoFiltering)
+        )
 
         val coords = floatArrayOf(
             -1f, -1f,
@@ -103,5 +108,24 @@ class ExternalScreenRender(
 
     override fun prepareNextFrame(frameRenderEvent: FrameRenderEvent) {
         nextRenderEvent = frameRenderEvent
+    }
+
+    /**
+     * Updates the video filtering setting for the renderer.
+     *
+     * This function changes the shader used for rendering to apply the specified
+     * video filtering effect. If a shader is already initialized, it is deleted
+     * and a new one is created based on the new filtering setting.
+     *
+     * @param videoFiltering The [VideoFiltering] mode to apply.
+     */
+    override fun updateVideoFiltering(videoFiltering: VideoFiltering) {
+        this.videoFiltering = videoFiltering
+        if (this::shader.isInitialized) {
+            shader.delete()
+            shader = ShaderFactory.createShaderProgram(
+                VideoFilterShaderProvider.getShaderSource(videoFiltering)
+            )
+        }
     }
 }

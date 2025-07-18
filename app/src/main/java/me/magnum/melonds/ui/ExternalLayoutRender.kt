@@ -3,11 +3,13 @@ package me.magnum.melonds.ui
 import android.opengl.GLES30
 import android.opengl.GLSurfaceView
 import me.magnum.melonds.domain.model.render.FrameRenderEvent
-import me.magnum.melonds.ui.emulator.FrameRenderEventConsumer
+import me.magnum.melonds.ui.ExternalRenderer
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
+import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
+import me.magnum.melonds.domain.model.VideoFiltering
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -19,7 +21,7 @@ import javax.microedition.khronos.opengles.GL10
  * according to the provided layout information.
  *
  * This class implements [GLSurfaceView.Renderer] to handle OpenGL rendering
- * and [FrameRenderEventConsumer] to receive frame data from the emulator.
+ * and [ExternalRenderer] to receive frame data from the emulator.
  *
  * The layout of the screens (their positions and sizes) can be updated dynamically.
  *
@@ -29,6 +31,10 @@ import javax.microedition.khronos.opengles.GL10
  *                        Can be null if the bottom screen is not to be rendered.
  * @property layoutWidth The total width of the layout area where the screens are rendered.
  * @property layoutHeight The total height of the layout area where the screens are rendered.
+ * @property topAlpha The alpha (transparency) value for the top screen, ranging from 0.0 (fully transparent) to 1.0 (fully opaque).
+ * @property bottomAlpha The alpha (transparency) value for the bottom screen, ranging from 0.0 (fully transparent) to 1.0 (fully opaque).
+ * @property topOnTop A boolean indicating whether the top screen should be rendered on top of the bottom screen if they overlap.
+ * @property bottomOnTop A boolean indicating whether the bottom screen should be rendered on top of the top screen if they overlap.
  */
 class ExternalLayoutRender(
     private var topScreen: Rect?,
@@ -39,7 +45,7 @@ class ExternalLayoutRender(
     private var bottomAlpha: Float = 1f,
     private var topOnTop: Boolean = false,
     private var bottomOnTop: Boolean = false,
-) : GLSurfaceView.Renderer, FrameRenderEventConsumer {
+) : GLSurfaceView.Renderer, ExternalRenderer {
 
     companion object {
         private const val TOTAL_SCREEN_HEIGHT = 384
@@ -54,6 +60,7 @@ class ExternalLayoutRender(
     private lateinit var uvBottom: FloatBuffer
 
     private var nextRenderEvent: FrameRenderEvent? = null
+    private var videoFiltering: VideoFiltering = VideoFiltering.NONE
 
     fun updateLayout(
         top: Rect?,
@@ -101,7 +108,9 @@ class ExternalLayoutRender(
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        shader = ShaderFactory.createShaderProgram(ShaderProgramSource.NoFilterShader)
+        shader = ShaderFactory.createShaderProgram(
+            VideoFilterShaderProvider.getShaderSource(videoFiltering)
+        )
         val lineRelativeSize = 1f / (TOTAL_SCREEN_HEIGHT + 1).toFloat()
         val topUvs = floatArrayOf(
             0f, 0.5f - lineRelativeSize,
@@ -171,4 +180,23 @@ class ExternalLayoutRender(
     override fun prepareNextFrame(frameRenderEvent: FrameRenderEvent) {
         nextRenderEvent = frameRenderEvent
     }
+
+    /**
+     * Updates the video filtering setting used by the renderer.
+     *
+     * If the shader has already been initialized, it will be deleted and a new
+     * shader will be created with the updated filtering.
+     *
+     * @param videoFiltering The new [VideoFiltering] setting to apply.
+     */
+    override fun updateVideoFiltering(videoFiltering: VideoFiltering) {
+        this.videoFiltering = videoFiltering
+        if (this::shader.isInitialized) {
+            shader.delete()
+            shader = ShaderFactory.createShaderProgram(
+                VideoFilterShaderProvider.getShaderSource(videoFiltering)
+            )
+        }
+    }
+
 }

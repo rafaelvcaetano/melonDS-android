@@ -297,6 +297,10 @@
     <string name="input_right">Right</string>
     <string name="input_up">Up</string>
     <string name="input_down">Down</string>
+    <string name="input_left_joy">Left Joy</string>
+    <string name="input_right_joy">Right Joy</string>
+    <string name="input_up_joy">Up Joy</string>
+    <string name="input_down_joy">Down Joy</string>
     <string name="input_l">L</string>
     <string name="input_r">R</string>
     <string name="input_start">Start</string>
