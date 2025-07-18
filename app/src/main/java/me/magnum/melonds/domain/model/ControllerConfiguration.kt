@@ -58,18 +58,23 @@ class ControllerConfiguration(configList: List<InputConfig>) {
     }
 
     fun keyToInput(key: Int): Input? {
-        for (i in inputMapper.indices) {
-            if ((inputMapper[i].assignment as? InputConfig.Assignment.Key)?.keyCode == key)
-                return inputMapper[i].input
+        for (config in inputMapper) {
+            val assignments = listOf(config.assignment, config.altAssignment)
+            if (assignments.any { (it as? InputConfig.Assignment.Key)?.keyCode == key }) {
+                return config.input
+            }
         }
         return null
     }
 
     fun axisToInput(axis: Int, direction: InputConfig.Assignment.Axis.Direction): Input? {
-        return inputMapper.firstOrNull {
-            (it.assignment as? InputConfig.Assignment.Axis)?.let {
-                it.axisCode == axis && it.direction == direction
-            } ?: false
+        return inputMapper.firstOrNull { config ->
+            val assignments = listOf(config.assignment, config.altAssignment)
+            assignments.any {
+                (it as? InputConfig.Assignment.Axis)?.let { ax ->
+                    ax.axisCode == axis && ax.direction == direction
+                } ?: false
+            }
         }?.input
     }
 }

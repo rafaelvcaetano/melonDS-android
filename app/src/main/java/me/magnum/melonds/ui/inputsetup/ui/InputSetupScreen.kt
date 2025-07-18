@@ -173,18 +173,25 @@ private fun Input(
             val inputString = if (isBeingConfigured) {
                 stringResource(R.string.press_any_button)
             } else {
-                when (config.assignment) {
-                    is InputConfig.Assignment.Key -> {
-                        val keyCodeString = KeyEvent.keyCodeToString(config.assignment.keyCode)
-                        keyCodeString.replace("KEYCODE", "").replace("_", " ").trim()
+                val assignments = listOf(config.assignment, config.altAssignment).filter { it != InputConfig.Assignment.None }
+                if (assignments.isEmpty()) {
+                    stringResource(R.string.not_set)
+                } else {
+                    assignments.joinToString(" / ") { assignment ->
+                        when (assignment) {
+                            is InputConfig.Assignment.Key -> {
+                                val keyCodeString = KeyEvent.keyCodeToString(assignment.keyCode)
+                                keyCodeString.replace("KEYCODE", "").replace("_", " ").trim()
+                            }
+                            is InputConfig.Assignment.Axis -> {
+                                val axisString = MotionEvent.axisToString(assignment.axisCode)
+                                val axisPrettyName = axisString.replace("_", " ").trim()
+                                val prefix = if (assignment.direction == InputConfig.Assignment.Axis.Direction.NEGATIVE) "-" else ""
+                                "$prefix$axisPrettyName"
+                            }
+                            InputConfig.Assignment.None -> ""
+                        }
                     }
-                    is InputConfig.Assignment.Axis -> {
-                        val axisString = MotionEvent.axisToString(config.assignment.axisCode)
-                        val axisPrettyName = axisString.replace("_", " ").trim()
-                        val prefix = if (config.assignment.direction == InputConfig.Assignment.Axis.Direction.NEGATIVE) "-" else ""
-                        "$prefix$axisPrettyName"
-                    }
-                    InputConfig.Assignment.None -> stringResource(R.string.not_set)
                 }
             }
 
@@ -268,18 +275,22 @@ private fun PreviewInputSetupScreen() {
                 InputConfig(
                     input = Input.UP,
                     assignment = InputConfig.Assignment.Key(null, KeyEvent.KEYCODE_DPAD_UP),
+                    altAssignment = InputConfig.Assignment.Axis(null, MotionEvent.AXIS_Y, InputConfig.Assignment.Axis.Direction.NEGATIVE),
                 ),
                 InputConfig(
                     input = Input.DOWN,
                     assignment = InputConfig.Assignment.Key(null, KeyEvent.KEYCODE_DPAD_DOWN),
+                    altAssignment = InputConfig.Assignment.Axis(null, MotionEvent.AXIS_Y, InputConfig.Assignment.Axis.Direction.POSITIVE),
                 ),
                 InputConfig(
                     input = Input.LEFT,
                     assignment = InputConfig.Assignment.Key(null, KeyEvent.KEYCODE_DPAD_LEFT),
+                    altAssignment = InputConfig.Assignment.Axis(null, MotionEvent.AXIS_X, InputConfig.Assignment.Axis.Direction.NEGATIVE),
                 ),
                 InputConfig(
                     input = Input.RIGHT,
                     assignment = InputConfig.Assignment.Key(null, KeyEvent.KEYCODE_DPAD_RIGHT),
+                    altAssignment = InputConfig.Assignment.Axis(null, MotionEvent.AXIS_X, InputConfig.Assignment.Axis.Direction.POSITIVE),
                 ),
             ),
             inputUnderConfiguration = Input.B,
