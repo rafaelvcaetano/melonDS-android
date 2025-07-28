@@ -3,6 +3,7 @@ package me.magnum.melonds.ui.inputsetup
 import android.graphics.Color
 import android.os.Bundle
 import android.view.InputDevice
+import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -89,5 +90,13 @@ class InputSetupActivity : AppCompatActivity() {
         }
 
         return super.onGenericMotionEvent(event)
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (viewModel.inputUnderAssignment.value != null && event.action == KeyEvent.ACTION_DOWN) {
+            viewModel.updateInputAssignedKey(event.keyCode)
+            return true
+        }
+        return super.dispatchKeyEvent(event)
     }
 }

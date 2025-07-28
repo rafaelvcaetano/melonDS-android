@@ -2,7 +2,6 @@ package me.magnum.melonds.ui.inputsetup.ui
 
 import android.view.KeyEvent
 import android.view.MotionEvent
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -11,6 +10,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -23,6 +24,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
@@ -36,10 +38,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.nativeKeyCode
-import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -69,7 +68,6 @@ fun InputSetupScreen(
         onInputAssignedEvent = onInputAssignedEvent,
         onInputClick = viewModel::startInputAssignment,
         onClearInputClick = viewModel::clearInputAssignment,
-        onKeyAssigned = { viewModel.updateInputAssignedKey(it.nativeKeyCode) },
         onCancelInputConfiguration = viewModel::stopInputAssignment,
         onBackClick = onBackClick,
     )
@@ -82,7 +80,6 @@ private fun InputSetupScreenContent(
     onInputAssignedEvent: Flow<Input>,
     onInputClick: (Input) -> Unit,
     onClearInputClick: (Input) -> Unit,
-    onKeyAssigned: (Key) -> Unit,
     onCancelInputConfiguration: () -> Unit,
     onBackClick: () -> Unit,
 ) {
@@ -92,9 +89,9 @@ private fun InputSetupScreenContent(
     systemUiController.setStatusBarColor(MaterialTheme.colors.primaryVariant)
     systemUiController.isNavigationBarContrastEnforced = false
 
-    BackHandler(enabled = inputUnderConfiguration != null) {
-        onCancelInputConfiguration()
-    }
+    // When waiting for input we allow the next key press to be mapped, even if
+    // it would normally trigger the system back action. Therefore we do not
+    // handle the back key here.
 
     LaunchedEffect(Unit) {
         onInputAssignedEvent.collect {
@@ -103,18 +100,6 @@ private fun InputSetupScreenContent(
     }
 
     Scaffold(
-        modifier = Modifier.onPreviewKeyEvent {
-            if (inputUnderConfiguration != null && it.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
-                if (it.key == Key.Back) {
-                    onCancelInputConfiguration()
-                } else {
-                    onKeyAssigned(it.key)
-                }
-                true
-            } else {
-                false
-            }
-        },
         topBar = {
             Box(Modifier.background(MaterialTheme.colors.primaryVariant).statusBarsPadding()) {
                 TopAppBar(
@@ -135,20 +120,26 @@ private fun InputSetupScreenContent(
         backgroundColor = MaterialTheme.colors.surface,
         contentWindowInsets = WindowInsets.safeDrawing,
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().consumeWindowInsets(padding),
-            contentPadding = padding,
-        ) {
-            items(
-                items = inputConfig,
-                key = { it.input },
+        Box(Modifier.fillMaxSize().consumeWindowInsets(padding)) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = padding,
             ) {
-                Input(
-                    config = it,
-                    isBeingConfigured = it.input == inputUnderConfiguration,
-                    onClick = { onInputClick(it.input) },
-                    onClearClick = { onClearInputClick(it.input) },
-                )
+                items(
+                    items = inputConfig,
+                    key = { it.input },
+                ) {
+                    Input(
+                        config = it,
+                        isBeingConfigured = it.input == inputUnderConfiguration,
+                        onClick = { onInputClick(it.input) },
+                        onClearClick = { onClearInputClick(it.input) },
+                    )
+                }
+            }
+
+            if (inputUnderConfiguration != null) {
+                WaitingForInputOverlay(onCancelInputConfiguration)
             }
         }
     }
@@ -215,6 +206,30 @@ private fun Input(
                     imageVector = Icons.Default.Clear,
                     contentDescription = stringResource(R.string.clear),
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun WaitingForInputOverlay(onCancel: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colors.background.copy(alpha = 0.8f))
+            .clickable(enabled = true, onClick = { })
+    ) {
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = stringResource(R.string.waiting_for_input),
+                style = MaterialTheme.typography.h6,
+            )
+            Spacer(Modifier.height(16.dp))
+            TextButton(onClick = onCancel) {
+                Text(stringResource(android.R.string.cancel))
             }
         }
     }
@@ -297,7 +312,6 @@ private fun PreviewInputSetupScreen() {
             onInputAssignedEvent = emptyFlow(),
             onInputClick = { },
             onClearInputClick = { },
-            onKeyAssigned = { },
             onCancelInputConfiguration = { },
             onBackClick = { },
         )

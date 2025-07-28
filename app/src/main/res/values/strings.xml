@@ -130,6 +130,7 @@
     <string name="dsiware_title_cannot_be_launched_directly_message">DSiWare titles cannot be launched directly. They must be installed to the NAND (through the DSiWare Manager) and launched from the DSi firmware.</string>
 
     <string name="press_any_button">Press any button…</string>
+    <string name="waiting_for_input">Waiting for input…</string>
 
     <string name="choose_component">Choose component</string>
 
