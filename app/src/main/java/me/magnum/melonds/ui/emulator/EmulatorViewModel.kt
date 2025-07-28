@@ -121,6 +121,9 @@ class EmulatorViewModel @Inject constructor(
     private val _background = MutableStateFlow(RuntimeBackground.None)
     val background = _background.asStateFlow()
 
+    private val _externalBackground = MutableStateFlow(RuntimeBackground.None)
+    val externalBackground = _externalBackground.asStateFlow()
+
     private val _achievementTriggeredEvent = MutableSharedFlow<RAAchievement>(extraBufferCapacity = 5, onBufferOverflow = BufferOverflow.SUSPEND)
     val achievementTriggeredEvent = _achievementTriggeredEvent.asSharedFlow()
 
@@ -184,6 +187,7 @@ class EmulatorViewModel @Inject constructor(
     private suspend fun launchRom(rom: Rom, glContext: Long) = coroutineScope {
         startEmulatorSession(EmulatorSession.SessionType.RomSession(rom))
         startObservingBackground()
+        startObservingExternalBackground()
         startObservingRuntimeInputLayoutConfiguration()
         startObservingRendererConfiguration()
         startObservingAchievementEvents()
@@ -214,6 +218,7 @@ class EmulatorViewModel @Inject constructor(
             startEmulatorSession(EmulatorSession.SessionType.FirmwareSession(consoleType))
             sessionCoroutineScope.launch {
                 startObservingBackground()
+                startObservingExternalBackground()
                 startObservingRuntimeInputLayoutConfiguration()
                 startObservingRendererConfiguration()
                 startObservingLayoutForFirmware()
@@ -532,6 +537,7 @@ class EmulatorViewModel @Inject constructor(
         _currentFps.value = null
         _emulatorState.value = newState
         _background.value = RuntimeBackground.None
+        _externalBackground.value = RuntimeBackground.None
         _layout.value = null
     }
 
@@ -557,6 +563,20 @@ class EmulatorViewModel @Inject constructor(
                     loadBackground(layout.backgroundId, layout.backgroundMode)
                 }
             }.collect(_background)
+        }
+    }
+
+    private fun startObservingExternalBackground() {
+        sessionCoroutineScope.launch {
+            val layoutFlow = settingsRepository.observeExternalLayoutId().asFlow()
+                .onStart { emit(settingsRepository.getExternalLayoutId()) }
+                .flatMapLatest { layoutsRepository.observeLayout(it) }
+
+            combine(layoutFlow, ensureEmulatorIsRunning()) { layout, _ ->
+                val entry = layout?.layoutVariants?.entries?.firstOrNull()
+                entry?.let { loadBackground(it.value.backgroundId, it.value.backgroundMode) }
+                    ?: RuntimeBackground.None
+            }.collect(_externalBackground)
         }
     }
 

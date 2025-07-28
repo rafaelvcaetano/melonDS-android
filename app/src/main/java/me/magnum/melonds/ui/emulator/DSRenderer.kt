@@ -248,6 +248,10 @@ class DSRenderer(
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
 
 
+        synchronized(backgroundLock) {
+            renderBackground()
+        }
+
         screenShader?.let { shader ->
             shader.use()
 
@@ -277,9 +281,6 @@ class DSRenderer(
             }
         }
 
-        synchronized(backgroundLock) {
-            renderBackground()
-        }
     }
 
     private fun renderBackground() {

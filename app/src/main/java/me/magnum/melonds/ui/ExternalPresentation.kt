@@ -17,6 +17,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import androidx.core.graphics.toColorInt
 import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.Rect
+import me.magnum.melonds.domain.model.RuntimeBackground
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
@@ -153,9 +154,11 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
                          bottomOnTop: Boolean,
                          layoutWidth: Int,
                          layoutHeight: Int,
+                         background: RuntimeBackground,
 
     ): ExternalLayoutRender {
         val renderer = ExternalLayoutRender(
+            context,
             topRect,
             bottomRect,
             layoutWidth,
@@ -164,6 +167,7 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
             bottomAlpha,
             topOnTop,
             bottomOnTop,
+            background,
         )
         val view = createSurfaceView(renderer)
         attachView(view)

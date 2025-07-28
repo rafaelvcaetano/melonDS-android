@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.toColorInt
+import me.magnum.melonds.ui.ExternalLayoutRender
 import androidx.core.net.toUri
 import androidx.core.os.ConfigurationCompat
 import androidx.core.view.WindowInsetsCompat
@@ -527,6 +528,13 @@ class EmulatorActivity : AppCompatActivity() {
         }
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.externalBackground.collectLatest {
+                    (externalScreenRender as? ExternalLayoutRender)?.setBackground(it)
+                }
+            }
+        }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.runtimeRendererConfiguration.collectLatest {
                     dsRenderer.updateRendererConfiguration(it)
                     externalScreenRender?.updateVideoFiltering(
@@ -763,7 +771,8 @@ class EmulatorActivity : AppCompatActivity() {
                             topOnTop,
                             bottomOnTop,
                             uiSize?.x ?: 0,
-                            uiSize?.y ?: 0
+                            uiSize?.y ?: 0,
+                            viewModel.externalBackground.value
                         )
                     }
                 }
@@ -994,6 +1003,7 @@ class EmulatorActivity : AppCompatActivity() {
                     bottomOnTop,
                     uiSize?.x ?: 0,
                     uiSize?.y ?: 0,
+                    viewModel.externalBackground.value,
                 )
             }
         }
