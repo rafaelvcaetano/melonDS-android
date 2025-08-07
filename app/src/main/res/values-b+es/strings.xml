@@ -251,6 +251,7 @@
 
     <string name="top_screen">Pantalla superior</string>
     <string name="bottom_screen">Pantalla inferior</string>
+    <string name="refresh_external_screen">Refrescar pantalla externa</string>
     <string name="input_a">A</string>
     <string name="input_b">B</string>
     <string name="input_x">X</string>

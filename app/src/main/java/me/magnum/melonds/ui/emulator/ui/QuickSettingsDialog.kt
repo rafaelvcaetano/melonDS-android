@@ -39,6 +39,7 @@ fun QuickSettingsDialog(
     onScreenSelected: (DsExternalScreen) -> Unit,
     onOpenInternalLayout: () -> Unit,
     onOpenExternalLayout: () -> Unit,
+    onRefreshExternalScreen: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     Dialog(
@@ -80,6 +81,10 @@ fun QuickSettingsDialog(
                     Spacer(Modifier.height(8.dp))
                     Button(onClick = onOpenExternalLayout, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.external_screen_layout))
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Button(onClick = onRefreshExternalScreen, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.refresh_external_screen))
                     }
                 }
             }

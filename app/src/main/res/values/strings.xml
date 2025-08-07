@@ -200,6 +200,7 @@
     <string name="dsi_camera_source">DSi camera source</string>
     <string name="external_screen_layout">External screen layout</string>
     <string name="external_display_screen">External display screen</string>
+    <string name="refresh_external_screen">Refresh external screen</string>
     <string name="dsi_camera_image">DSi camera image</string>
     <string name="internal_screen_layout">Internal screen layout</string>
     <string name="quick_settings">Quick settings</string>

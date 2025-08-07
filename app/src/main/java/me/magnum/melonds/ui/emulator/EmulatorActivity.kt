@@ -338,10 +338,6 @@ class EmulatorActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(backPressedCallback)
 
-        displayManager = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-        displayManager.registerDisplayListener(displayListener, null)
-        showExternalDisplay()
-
         melonTouchHandler = MelonTouchHandler()
         dsRenderer = DSRenderer(
             context = this,
@@ -359,6 +355,10 @@ class EmulatorActivity : AppCompatActivity() {
             setRenderer(dsRenderer)
             renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
         }
+
+        displayManager = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+        displayManager.registerDisplayListener(displayListener, null)
+        showExternalDisplay()
 
         binding.textFps.visibility = View.INVISIBLE
         binding.viewLayoutControls.setLayoutComponentViewBuilderFactory(RuntimeLayoutComponentViewBuilderFactory())
@@ -489,6 +489,9 @@ class EmulatorActivity : AppCompatActivity() {
                         },
                         onOpenExternalLayout = {
                             startActivity(Intent(this@EmulatorActivity, ExternalLayoutListActivity::class.java))
+                        },
+                        onRefreshExternalScreen = {
+                            setupExternalScreen()
                         },
                         onDismiss = {
                             viewModel.resumeEmulator()
