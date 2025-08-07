@@ -49,13 +49,6 @@ import android.util.Log
 class RomListActivity : AppCompatActivity() {
 
     /**
-     * The [ExternalPresentation] instance used to display content on an external display, if available.
-     * This allows the application to show a different UI or content on a secondary screen
-     * connected to the device. It is initialized when an external display is detected and
-     * dismissed when the activity is destroyed or the display is no longer available.
-     */
-    private var presentation: ExternalPresentation? = null
-    /**
      * ViewModel responsible for managing and providing data related to RetroAchievements
      * for the ROM list. This ViewModel handles fetching achievement data,
      * user login status, and other RetroAchievements-specific information.
@@ -79,10 +72,10 @@ class RomListActivity : AppCompatActivity() {
         }
 
         override fun onDisplayRemoved(displayId: Int) {
-            if (presentation?.display?.displayId == displayId) {
-                presentation?.dismiss()
-                presentation = null
-                ExternalDisplayManager.presentation = null
+            ExternalDisplayManager.presentation?.let { pres ->
+                if (pres.display.displayId == displayId) {
+                    ExternalDisplayManager.detach()
+                }
             }
         }
 
@@ -185,6 +178,11 @@ class RomListActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        showExternalDisplay()
+    }
+
 
     /**
      * Called when the activity is being destroyed.
@@ -193,9 +191,8 @@ class RomListActivity : AppCompatActivity() {
      */
     override fun onDestroy() {
         super.onDestroy()
-        presentation?.dismiss()
+        ExternalDisplayManager.detach()
         displayManager.unregisterDisplayListener(displayListener)
-        ExternalDisplayManager.presentation = null
     }
 
 
@@ -212,12 +209,12 @@ class RomListActivity : AppCompatActivity() {
      * it initializes an [ExternalPresentation] with a black background and attempts to show it.
      *
      * Logging is performed at various stages to track the process and any potential errors.
-     * If an external display is successfully utilized, the [presentation] field is updated,
-     * and the [ExternalDisplayManager.presentation] is also set.
+     * If an external display is successfully utilized, the instance is stored in
+     * [ExternalDisplayManager.presentation].
      * If no suitable external display is found, a warning is logged.
      */
     private fun showExternalDisplay() {
-        if (presentation != null){
+        if (ExternalDisplayManager.presentation != null){
             return
         }
 
@@ -232,7 +229,7 @@ class RomListActivity : AppCompatActivity() {
 
         if (external != null) {
             Log.d("DualScreen", "Using external display: ID=${external.displayId}, Name=${external.name}")
-            presentation = ExternalPresentation(this, external).apply {
+            ExternalDisplayManager.presentation = ExternalPresentation(this, external).apply {
                 setBackground("black".toColorInt())
 
                 setOnShowListener {
@@ -246,7 +243,6 @@ class RomListActivity : AppCompatActivity() {
                     Log.e("DualScreen", "Error showing presentation: ${e.message}", e)
                 }
             }
-            ExternalDisplayManager.presentation = presentation
         } else {
             Log.w("DualScreen", "No external display found.")
         }
@@ -458,7 +454,7 @@ class RomListActivity : AppCompatActivity() {
     /**
      * Handles the event when a ROM is focused in the list.
      * This function ensures the external display is active, sets the focused ROM in the
-     * [achievementsViewModel], and then instructs the [presentation] (if available)
+     * [achievementsViewModel], and then instructs the external presentation (if available)
      * to show achievements for that ROM, taking into account the current theme (dark/light).
      *
      * @param rom The [Rom] that has gained focus.
@@ -466,7 +462,7 @@ class RomListActivity : AppCompatActivity() {
     private fun onRomFocused(rom: Rom) {
         showExternalDisplay()
         achievementsViewModel.setRom(rom)
-        presentation?.showAchievements(achievementsViewModel, isDarkTheme())
+        ExternalDisplayManager.presentation?.showAchievements(achievementsViewModel, isDarkTheme())
     }
 
     /**

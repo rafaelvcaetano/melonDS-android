@@ -687,6 +687,11 @@ class EmulatorActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        showExternalDisplay()
+    }
+
 
     /**
      * Creates a presentation for an external display if one is connected.
