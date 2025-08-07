@@ -7,6 +7,7 @@ import android.opengl.GLSurfaceView
 import android.hardware.display.DisplayManager
 import android.os.Bundle
 import android.util.Log
+import android.util.DisplayMetrics
 import android.view.Display
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -78,6 +79,7 @@ import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.insetsControllerCompat
+import me.magnum.melonds.impl.DefaultLayoutProvider
 import me.magnum.melonds.extensions.parcelable
 import me.magnum.melonds.extensions.setLayoutOrientation
 import me.magnum.melonds.impl.emulator.LifecycleOwnerProvider
@@ -160,6 +162,9 @@ class EmulatorActivity : AppCompatActivity() {
      */
     @Inject
     lateinit var layoutsRepository: LayoutsRepository
+
+    @Inject
+    lateinit var defaultLayoutProvider: DefaultLayoutProvider
 
     /**
      * Renderer for displaying the top screen on an external display.
@@ -752,28 +757,57 @@ class EmulatorActivity : AppCompatActivity() {
                         val layoutId = settingsRepository.getExternalLayoutId()
                         val layout = runBlocking { layoutsRepository.getLayout(layoutId) }
                         val entry = layout?.layoutVariants?.entries?.firstOrNull()
-                        val uiLayout = entry?.value
-                        val layoutVariant = entry?.key
-                        val topComponent = uiLayout?.components?.firstOrNull { it.component == LayoutComponent.TOP_SCREEN }
-                        val bottomComponent = uiLayout?.components?.firstOrNull { it.component == LayoutComponent.BOTTOM_SCREEN }
-                        val topRect = topComponent?.rect
-                        val bottomRect = bottomComponent?.rect
-                        val topAlpha = topComponent?.alpha ?: 1f
-                        val bottomAlpha = bottomComponent?.alpha ?: 1f
-                        val topOnTop = topComponent?.onTop ?: false
-                        val bottomOnTop = bottomComponent?.onTop ?: false
-                        val uiSize = layoutVariant?.uiSize
-                        pres.showCustomLayout(
-                            topRect,
-                            bottomRect,
-                            topAlpha,
-                            bottomAlpha,
-                            topOnTop,
-                            bottomOnTop,
-                            uiSize?.x ?: 0,
-                            uiSize?.y ?: 0,
-                            viewModel.externalBackground.value
-                        )
+
+                        if (entry != null) {
+                            val uiLayout = entry.value
+                            val layoutVariant = entry.key
+                            val topComponent = uiLayout.components?.firstOrNull { it.component == LayoutComponent.TOP_SCREEN }
+                            val bottomComponent = uiLayout.components?.firstOrNull { it.component == LayoutComponent.BOTTOM_SCREEN }
+                            val topRect = topComponent?.rect
+                            val bottomRect = bottomComponent?.rect
+                            val topAlpha = topComponent?.alpha ?: 1f
+                            val bottomAlpha = bottomComponent?.alpha ?: 1f
+                            val topOnTop = topComponent?.onTop ?: false
+                            val bottomOnTop = bottomComponent?.onTop ?: false
+                            val uiSize = layoutVariant.uiSize
+                            pres.showCustomLayout(
+                                topRect,
+                                bottomRect,
+                                topAlpha,
+                                bottomAlpha,
+                                topOnTop,
+                                bottomOnTop,
+                                uiSize.x,
+                                uiSize.y,
+                                viewModel.externalBackground.value
+                            )
+                        } else {
+                            val metrics = DisplayMetrics()
+                            pres.display?.getRealMetrics(metrics)
+                            val width = metrics.widthPixels
+                            val height = metrics.heightPixels
+                            val orientation = if (width > height) Orientation.LANDSCAPE else Orientation.PORTRAIT
+                            val defaultLayout = defaultLayoutProvider.buildDefaultLayout(width, height, orientation, emptyList())
+                            val topComponent = defaultLayout.components?.firstOrNull { it.component == LayoutComponent.TOP_SCREEN }
+                            val bottomComponent = defaultLayout.components?.firstOrNull { it.component == LayoutComponent.BOTTOM_SCREEN }
+                            val topRect = topComponent?.rect
+                            val bottomRect = bottomComponent?.rect
+                            val topAlpha = topComponent?.alpha ?: 1f
+                            val bottomAlpha = bottomComponent?.alpha ?: 1f
+                            val topOnTop = topComponent?.onTop ?: false
+                            val bottomOnTop = bottomComponent?.onTop ?: false
+                            pres.showCustomLayout(
+                                topRect,
+                                bottomRect,
+                                topAlpha,
+                                bottomAlpha,
+                                topOnTop,
+                                bottomOnTop,
+                                width,
+                                height,
+                                viewModel.externalBackground.value
+                            )
+                        }
                     }
                 }
                 externalScreenRender?.updateVideoFiltering(

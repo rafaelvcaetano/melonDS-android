@@ -568,15 +568,15 @@ class EmulatorViewModel @Inject constructor(
 
     private fun startObservingExternalBackground() {
         sessionCoroutineScope.launch {
-            val layoutFlow = settingsRepository.observeExternalLayoutId().asFlow()
+            settingsRepository.observeExternalLayoutId().asFlow()
                 .onStart { emit(settingsRepository.getExternalLayoutId()) }
                 .flatMapLatest { layoutsRepository.observeLayout(it) }
-
-            combine(layoutFlow, ensureEmulatorIsRunning()) { layout, _ ->
-                val entry = layout?.layoutVariants?.entries?.firstOrNull()
-                entry?.let { loadBackground(it.value.backgroundId, it.value.backgroundMode) }
-                    ?: RuntimeBackground.None
-            }.collect(_externalBackground)
+                .map { layout ->
+                    val entry = layout.layoutVariants.entries.firstOrNull()
+                    entry?.let { loadBackground(it.value.backgroundId, it.value.backgroundMode) }
+                        ?: RuntimeBackground.None
+                }
+                .collect(_externalBackground)
         }
     }
 

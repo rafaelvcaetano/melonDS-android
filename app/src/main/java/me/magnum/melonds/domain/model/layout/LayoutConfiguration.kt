@@ -15,6 +15,7 @@ data class LayoutConfiguration(
 
     companion object {
         val DEFAULT_ID = UUID(0, 0)
+        val DEFAULT_EXTERNAL_ID = UUID(0, 1)
 
         fun newCustom(target: LayoutTarget = LayoutTarget.INTERNAL): LayoutConfiguration {
             return LayoutConfiguration(

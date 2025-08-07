@@ -431,7 +431,7 @@ class SharedPreferencesSettingsRepository(
 
     override fun getExternalLayoutId(): UUID {
         val id = preferences.getString("external_layout_id", null)
-        return id?.let { UUID.fromString(it) } ?: LayoutConfiguration.DEFAULT_ID
+        return id?.let { UUID.fromString(it) } ?: LayoutConfiguration.DEFAULT_EXTERNAL_ID
     }
 
     override fun showSoftInput(): Flow<Boolean> {

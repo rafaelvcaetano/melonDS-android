@@ -24,7 +24,7 @@ class ExternalLayoutListFragment : BaseLayoutsFragment() {
     }
 
     override fun getFallbackLayoutId(): UUID {
-        return LayoutConfiguration.DEFAULT_ID
+        return LayoutConfiguration.DEFAULT_EXTERNAL_ID
     }
 
     override fun editLayout(layout: LayoutConfiguration) {
