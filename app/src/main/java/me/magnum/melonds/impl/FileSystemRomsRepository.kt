@@ -128,6 +128,16 @@ class FileSystemRomsRepository(
         onRomsChanged()
     }
 
+    override fun addRomPlayTime(rom: Rom, playTimeMillis: Long) {
+        val romIndex = roms.indexOfFirst { it.hasSameFileAsRom(rom) }
+        if (romIndex < 0)
+            return
+
+        rom.totalPlayTime += playTimeMillis
+        roms[romIndex] = rom
+        onRomsChanged()
+    }
+
     override fun rescanRoms() {
         coroutineScope.launch(Dispatchers.IO) {
             scanningStatusSubject.emit(RomScanningStatus.SCANNING)

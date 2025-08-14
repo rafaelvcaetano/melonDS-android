@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.toColorInt
 import me.magnum.melonds.ui.ExternalLayoutRender
+import me.magnum.melonds.ui.ExternalScreenRender
 import androidx.core.net.toUri
 import androidx.core.os.ConfigurationCompat
 import androidx.core.view.WindowInsetsCompat
@@ -493,6 +494,14 @@ class EmulatorActivity : AppCompatActivity() {
                         onRefreshExternalScreen = {
                             setupExternalScreen()
                         },
+                        keepAspectRatio = viewModel.isExternalDisplayKeepAspectRatioEnabled(),
+                        onKeepAspectRatioChanged = { enabled ->
+                            viewModel.setExternalDisplayKeepAspectRatioEnabled(enabled)
+                            (externalScreenRender as? ExternalScreenRender)?.let { renderer ->
+                                ExternalDisplayManager.presentation?.queueEvent { renderer.setKeepAspectRatio(enabled) }
+                                ExternalDisplayManager.presentation?.requestRender()
+                            }
+                        },
                         onDismiss = {
                             viewModel.resumeEmulator()
                             showQuickSettings.value = false
@@ -818,6 +827,11 @@ class EmulatorActivity : AppCompatActivity() {
                         }
                     }
                 }
+                (externalScreenRender as? ExternalScreenRender)?.let { renderer ->
+                    val keep = viewModel.isExternalDisplayKeepAspectRatioEnabled()
+                    pres.queueEvent { renderer.setKeepAspectRatio(keep) }
+                    pres.requestRender()
+                }
                 externalScreenRender?.updateVideoFiltering(
                     viewModel.runtimeRendererConfiguration.value?.videoFiltering
                         ?: VideoFiltering.NONE
@@ -1049,6 +1063,16 @@ class EmulatorActivity : AppCompatActivity() {
                 )
             }
         }
+
+        (externalScreenRender as? ExternalScreenRender)?.let { renderer ->
+            val keep = viewModel.isExternalDisplayKeepAspectRatioEnabled()
+            presentation.queueEvent { renderer.setKeepAspectRatio(keep) }
+            presentation.requestRender()
+        }
+        externalScreenRender?.updateVideoFiltering(
+            viewModel.runtimeRendererConfiguration.value?.videoFiltering
+                ?: VideoFiltering.NONE
+        )
     }
 
     private fun setupInputHandling() {

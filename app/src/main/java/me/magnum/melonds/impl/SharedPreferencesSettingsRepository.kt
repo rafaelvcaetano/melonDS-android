@@ -306,6 +306,10 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
+    override fun isExternalDisplayKeepAspectRatioEnabled(): Boolean {
+        return preferences.getBoolean("external_display_keep_ratio", false)
+    }
+
     override fun getDSiCameraSource(): DSiCameraSourceType {
         val dsiCameraSource = preferences.getString("dsi_camera_source", "physical_cameras")!!
         return DSiCameraSourceType.valueOf(dsiCameraSource.uppercase())
@@ -564,6 +568,12 @@ class SharedPreferencesSettingsRepository(
         }
         preferences.edit {
             putString("external_display_screen", value)
+        }
+    }
+
+    override fun setExternalDisplayKeepAspectRatioEnabled(enabled: Boolean) {
+        preferences.edit {
+            putBoolean("external_display_keep_ratio", enabled)
         }
     }
 

@@ -43,6 +43,10 @@ class ExternalScreenRender(
     private var nextRenderEvent: FrameRenderEvent? = null
     private var videoFiltering: VideoFiltering = VideoFiltering.NONE
 
+    private var surfaceWidth = 0
+    private var surfaceHeight = 0
+    private var keepAspectRatio = false
+
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         shader = ShaderFactory.createShaderProgram(
             VideoFilterShaderProvider.getShaderSource(videoFiltering)
@@ -89,7 +93,9 @@ class ExternalScreenRender(
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
-        GLES30.glViewport(0, 0, width, height)
+        surfaceWidth = width
+        surfaceHeight = height
+        updateViewport()
     }
 
     override fun onDrawFrame(gl: GL10?) {
@@ -108,6 +114,30 @@ class ExternalScreenRender(
 
     override fun prepareNextFrame(frameRenderEvent: FrameRenderEvent) {
         nextRenderEvent = frameRenderEvent
+    }
+
+    fun setKeepAspectRatio(keep: Boolean) {
+        keepAspectRatio = keep
+        updateViewport()
+    }
+
+    private fun updateViewport() {
+        if (surfaceWidth == 0 || surfaceHeight == 0) return
+        if (keepAspectRatio) {
+            val dsRatio = 256f / 192f
+            val viewRatio = surfaceWidth.toFloat() / surfaceHeight
+            if (viewRatio > dsRatio) {
+                val newWidth = (surfaceHeight * dsRatio).toInt()
+                val x = (surfaceWidth - newWidth) / 2
+                GLES30.glViewport(x, 0, newWidth, surfaceHeight)
+            } else {
+                val newHeight = (surfaceWidth / dsRatio).toInt()
+                val y = (surfaceHeight - newHeight) / 2
+                GLES30.glViewport(0, y, surfaceWidth, newHeight)
+            }
+        } else {
+            GLES30.glViewport(0, 0, surfaceWidth, surfaceHeight)
+        }
     }
 
     /**

@@ -217,4 +217,8 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
     fun requestRender() {
         surfaceView.requestRender()
     }
+
+    fun queueEvent(event: () -> Unit) {
+        surfaceView.queueEvent(event)
+    }
 }

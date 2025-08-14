@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.text.format.DateUtils
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isGone
@@ -244,7 +245,7 @@ class RomListFragment : Fragment() {
             open fun setRom(rom: Rom, isEnabled: Boolean) {
                 this.rom = rom
                 textViewRomName.text = rom.name
-                textViewRomPath.text = rom.fileName
+                textViewRomPath.text = itemView.context.getString(R.string.info_play_time, DateUtils.formatElapsedTime(rom.totalPlayTime / 1000))
                 imageViewRomIcon.setImageDrawable(null)
                 imagePlatformLogo.isVisible = rom.isDsiWareTitle
 

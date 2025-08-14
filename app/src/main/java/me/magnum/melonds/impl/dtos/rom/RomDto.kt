@@ -24,6 +24,8 @@ data class RomDto(
     val isDsiWareTitle: Boolean,
     @SerializedName("retroAchievementsHash")
     val retroAchievementsHash: String,
+    @SerializedName("totalPlayTime")
+    var totalPlayTime: Long = 0,
 ) {
 
     companion object {
@@ -38,6 +40,7 @@ data class RomDto(
                 rom.lastPlayed,
                 rom.isDsiWareTitle,
                 rom.retroAchievementsHash,
+                rom.totalPlayTime,
             )
         }
     }
@@ -53,6 +56,7 @@ data class RomDto(
             lastPlayed,
             isDsiWareTitle,
             retroAchievementsHash,
+            totalPlayTime,
         )
     }
 }

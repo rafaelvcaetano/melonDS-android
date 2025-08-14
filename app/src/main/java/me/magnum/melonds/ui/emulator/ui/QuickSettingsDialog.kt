@@ -8,10 +8,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
@@ -40,6 +36,8 @@ fun QuickSettingsDialog(
     onOpenInternalLayout: () -> Unit,
     onOpenExternalLayout: () -> Unit,
     onRefreshExternalScreen: () -> Unit,
+    keepAspectRatio: Boolean,
+    onKeepAspectRatioChanged: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
     Dialog(
@@ -50,6 +48,7 @@ fun QuickSettingsDialog(
         MelonTheme(isDarkTheme = true) {
             Surface {
                 var selectedScreen by remember { mutableStateOf(currentScreen) }
+                var keepAspect by remember { mutableStateOf(keepAspectRatio) }
                 Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                     Text(stringResource(R.string.quick_settings), style = MaterialTheme.typography.h6)
                     Spacer(Modifier.height(8.dp))
@@ -72,6 +71,22 @@ fun QuickSettingsDialog(
                                 DsExternalScreen.CUSTOM -> R.string.custom_layout
                             }
                             Text(stringResource(text), modifier = Modifier.align(Alignment.CenterVertically))
+                        }
+                    }
+                    if (selectedScreen != DsExternalScreen.CUSTOM) {
+                        Spacer(Modifier.height(16.dp))
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(stringResource(R.string.keep_ds_ratio), modifier = Modifier.weight(1f))
+                            Switch(
+                                checked = keepAspect,
+                                onCheckedChange = {
+                                    keepAspect = it
+                                    onKeepAspectRatioChanged(it)
+                                }
+                            )
                         }
                     }
                     Spacer(Modifier.height(16.dp))

@@ -208,6 +208,7 @@ class EmulatorViewModel @Inject constructor(
                 }
                 _emulatorState.value = EmulatorState.RunningRom(rom)
                 startTrackingFps()
+                startTrackingPlayTime(rom)
             }
         }
     }
@@ -320,6 +321,18 @@ class EmulatorViewModel @Inject constructor(
     fun stopEmulator() {
         emulatorManager.stopEmulator()
         screenshotFrameBufferProvider.clearBuffer()
+    }
+
+    private fun startTrackingPlayTime(rom: Rom) {
+        sessionCoroutineScope.launch {
+            var lastTime = System.currentTimeMillis()
+            while (isActive) {
+                delay(1000)
+                val now = System.currentTimeMillis()
+                romsRepository.addRomPlayTime(rom, now - lastTime)
+                lastTime = now
+            }
+        }
     }
 
     fun onPauseMenuOptionSelected(option: PauseMenuOption) {
@@ -672,6 +685,14 @@ class EmulatorViewModel @Inject constructor(
 
     fun setExternalDisplayScreen(screen: DsExternalScreen) {
         settingsRepository.setExternalDisplayScreen(screen)
+    }
+
+    fun isExternalDisplayKeepAspectRatioEnabled(): Boolean {
+        return settingsRepository.isExternalDisplayKeepAspectRatioEnabled()
+    }
+
+    fun setExternalDisplayKeepAspectRatioEnabled(enabled: Boolean) {
+        settingsRepository.setExternalDisplayKeepAspectRatioEnabled(enabled)
     }
 
     private suspend fun getRomEnabledCheats(romInfo: RomInfo): List<Cheat> {

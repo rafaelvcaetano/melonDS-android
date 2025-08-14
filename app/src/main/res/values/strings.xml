@@ -89,6 +89,7 @@
     <string name="no_dsiware_roms_found">No DSiWare ROMs found</string>
 
     <string name="info_fps">FPS: %1$d</string>
+    <string name="info_play_time">Play time: %1$s</string>
     <string name="info_loading">LOADING…</string>
     <string name="save_state_slot">%1$s.</string>
     <string name="failed_save_state">Failed to save state</string>
