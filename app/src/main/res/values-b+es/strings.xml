@@ -175,7 +175,7 @@
     <string name="restore_settings">Restaurar ajustes</string>
     <string name="settings_backup_success">Respaldo de ajustes creado.\n\nSe omitieron:\n&#8226; Sesión de RetroAchievements\n&#8226; Directorios de ROM/guardado\n&#8226; Directorio de DS BIOS\n&#8226; Directorio de DSi BIOS</string>
     <string name="settings_backup_error">Error al respaldar ajustes</string>
-    <string name="settings_restore_success">Ajustes restaurados.\n\nSin cambios:\n&#8226; Sesión de RetroAchievements\n&#8226; Directorios de ROM/guardado\n&#8226; Directorio de DS BIOS\n&#8226; Directorio de DSi BIOS</string>
+    <string name="settings_restore_success">Ajustes restaurados, reinicia para que surtan efecto.\n\nSin cambios:\n&#8226; Sesión de RetroAchievements\n&#8226; Directorios de ROM/guardado\n&#8226; Directorio de DS BIOS\n&#8226; Directorio de DSi BIOS</string>
     <string name="settings_restore_error">Error al restaurar ajustes</string>
     <string name="threaded_rendering">Renderizar en subproceso</string>
     <string name="fps_counter_position">Posición del contador de FPS</string>
