@@ -45,6 +45,12 @@ object MelonModule {
 
     @Provides
     @Singleton
+    fun provideSettingsBackupManager(@ApplicationContext context: Context, sharedPreferences: SharedPreferences): SettingsBackupManager {
+        return SettingsBackupManager(context, sharedPreferences)
+    }
+
+    @Provides
+    @Singleton
     fun provideRomsRepository(@ApplicationContext context: Context, gson: Gson, settingsRepository: SettingsRepository, romFileProcessorFactory: RomFileProcessorFactory): RomsRepository {
         return FileSystemRomsRepository(context, gson, settingsRepository, romFileProcessorFactory)
     }

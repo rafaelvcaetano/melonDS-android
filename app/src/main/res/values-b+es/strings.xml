@@ -171,6 +171,12 @@
     <string name="enable_jit">Habilitar JIT</string>
     <string name="enable_jit_summary">Mejora el rendimiento, pero puede provocar bloqueos o crasheos</string>
     <string name="jit_not_supported">JIT solamente es compatible con dispositivos de 64 bits.</string>
+    <string name="backup_settings">Respaldar ajustes</string>
+    <string name="restore_settings">Restaurar ajustes</string>
+    <string name="settings_backup_success">Respaldo de ajustes creado.\n\nSe omitieron:\n&#8226; Sesión de RetroAchievements\n&#8226; Directorios de ROM/guardado\n&#8226; Directorio de DS BIOS\n&#8226; Directorio de DSi BIOS</string>
+    <string name="settings_backup_error">Error al respaldar ajustes</string>
+    <string name="settings_restore_success">Ajustes restaurados.\n\nSin cambios:\n&#8226; Sesión de RetroAchievements\n&#8226; Directorios de ROM/guardado\n&#8226; Directorio de DS BIOS\n&#8226; Directorio de DSi BIOS</string>
+    <string name="settings_restore_error">Error al restaurar ajustes</string>
     <string name="threaded_rendering">Renderizar en subproceso</string>
     <string name="fps_counter_position">Posición del contador de FPS</string>
     <string name="threaded_rendering_summary">Mejora el rendimiento de los juegos en 3D cuando está habilitado, pero causará fallas gráficas.</string>
@@ -274,6 +280,7 @@
     <string name="input_swap_screens">Intercambiar pantallas</string>
     <string name="input_quick_save">Guardado rápido</string>
     <string name="input_quick_load">Carga rápida</string>
+    <string name="input_refresh_external_screen">@string/refresh_external_screen</string>
 
     <string name="layouts">Diseños</string>
     <string name="layouts_summary">Administrar configuraciones de diseño personalizadas</string>

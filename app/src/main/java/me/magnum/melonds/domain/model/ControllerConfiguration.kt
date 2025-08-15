@@ -25,7 +25,8 @@ class ControllerConfiguration(configList: List<InputConfig>) {
                 Input.SWAP_SCREENS,
                 Input.QUICK_SAVE,
                 Input.QUICK_LOAD,
-                Input.REWIND
+                Input.REWIND,
+                Input.REFRESH_EXTERNAL_SCREEN
         )
 
         fun empty(): ControllerConfiguration {
