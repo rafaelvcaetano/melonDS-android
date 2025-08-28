@@ -7,6 +7,7 @@ import me.magnum.melonds.common.opengl.SharedEglContextFactory
 import javax.microedition.khronos.egl.EGLContext as EGL10Context
 import android.view.Display
 import android.view.View
+import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelStoreOwner
@@ -56,10 +57,16 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
     private var sharedContext: EGL10Context? = null
 
     init {
+        window?.setFlags(
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+        )
         surfaceView = GLSurfaceView(context).apply {
             setEGLContextClientVersion(3)
             setRenderer(placeholderRenderer)
             renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
+            isFocusable = false
+            isFocusableInTouchMode = false
         }
         container.addView(surfaceView)
 
@@ -110,6 +117,8 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
             sharedContext?.let { setEGLContextFactory(SharedEglContextFactory(it)) }
             setRenderer(renderer)
             renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
+            isFocusable = false
+            isFocusableInTouchMode = false
         }
     }
 
