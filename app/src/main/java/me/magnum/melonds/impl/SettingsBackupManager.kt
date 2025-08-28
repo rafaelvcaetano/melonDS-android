@@ -20,6 +20,8 @@ class SettingsBackupManager @Inject constructor(
         private const val SETTINGS_FILE = "settings.json"
         private const val CONTROLLER_FILE = "controller_config.json"
         private const val LAYOUTS_FILE = "layouts.json"
+        private const val INTERNAL_LAYOUT_FILE = "internal_layout.json"
+        private const val EXTERNAL_LAYOUT_FILE = "external_layout.json"
         private const val ROM_DATA_FILE = "rom_data.json"
         private val EXCLUDED_PREF_KEYS = setOf(
             "ra_username",
@@ -30,11 +32,11 @@ class SettingsBackupManager @Inject constructor(
             "dsi_bios_dir"
         )
         private val LONG_PREF_KEYS = setOf(
-            "last_version",
             "ra_hash_library_last_updated",
-            "github_updates_last_check",
             "github_updates_nightly_next_check_date",
-            "github_updates_nightly_last_release_date"
+            "github_updates_nightly_last_release_date",
+            "github_updates_last_check",
+            "last_version",
         )
     }
 
@@ -122,6 +124,16 @@ class SettingsBackupManager @Inject constructor(
                             }
                             editor.putStringSet(key, set)
                         }
+                        is Number -> {
+                            val current = preferences.all[key]
+                            when {
+                                current is Long || key in LONG_PREF_KEYS -> editor.putLong(key, value.toLong())
+                                current is Int -> editor.putInt(key, value.toInt())
+                                current is Float -> editor.putFloat(key, value.toFloat())
+                                value is Double -> editor.putFloat(key, value.toFloat())
+                                else -> editor.putLong(key, value.toLong())
+                            }
+                        }
                     }
                 }
                 editor.apply()
@@ -156,6 +168,74 @@ class SettingsBackupManager @Inject constructor(
                     input.copyTo(output)
                 }
             }
+        }
+    }
+
+    fun backupInternalLayout(treeUri: Uri) {
+        backupFilteredLayout(treeUri, INTERNAL_LAYOUT_FILE, "INTERNAL")
+    }
+
+    fun backupExternalLayout(treeUri: Uri) {
+        backupFilteredLayout(treeUri, EXTERNAL_LAYOUT_FILE, "EXTERNAL")
+    }
+
+    fun restoreInternalLayout(treeUri: Uri) {
+        restoreFilteredLayout(treeUri, INTERNAL_LAYOUT_FILE, "INTERNAL")
+    }
+
+    fun restoreExternalLayout(treeUri: Uri) {
+        restoreFilteredLayout(treeUri, EXTERNAL_LAYOUT_FILE, "EXTERNAL")
+    }
+
+    private fun backupFilteredLayout(treeUri: Uri, fileName: String, target: String) {
+        val root = DocumentFile.fromTreeUri(context, treeUri) ?: return
+
+        val layoutsSrc = File(context.filesDir, LAYOUTS_FILE)
+        if (!layoutsSrc.exists()) return
+
+        val layoutsText = runCatching { layoutsSrc.readText() }.getOrNull() ?: return
+        val allLayouts = runCatching { JSONArray(layoutsText) }.getOrNull() ?: return
+        val filtered = JSONArray()
+        for (i in 0 until allLayouts.length()) {
+            val obj = allLayouts.optJSONObject(i) ?: continue
+            if (obj.optString("target") == target) {
+                filtered.put(obj)
+            }
+        }
+
+        val dest = root.findFile(fileName) ?: root.createFile("application/json", fileName) ?: return
+        context.contentResolver.openOutputStream(dest.uri)?.use { out ->
+            out.writer().use { it.write(filtered.toString()) }
+        }
+    }
+
+    private fun restoreFilteredLayout(treeUri: Uri, fileName: String, target: String) {
+        val root = DocumentFile.fromTreeUri(context, treeUri) ?: return
+        val src = root.findFile(fileName) ?: return
+
+        val backupArray = context.contentResolver.openInputStream(src.uri)?.use { input ->
+            runCatching { JSONArray(input.reader().readText()) }.getOrNull()
+        } ?: return
+
+        val layoutsFile = File(context.filesDir, LAYOUTS_FILE)
+        val existingArray = if (layoutsFile.exists()) {
+            runCatching { JSONArray(layoutsFile.readText()) }.getOrElse { JSONArray() }
+        } else {
+            JSONArray()
+        }
+
+        val merged = JSONArray()
+        for (i in 0 until existingArray.length()) {
+            val obj = existingArray.optJSONObject(i) ?: continue
+            if (obj.optString("target") != target) {
+                merged.put(obj)
+            }
+        }
+        for (i in 0 until backupArray.length()) {
+            merged.put(backupArray.getJSONObject(i))
+        }
+        layoutsFile.outputStream().use { out ->
+            out.writer().use { it.write(merged.toString()) }
         }
     }
 }

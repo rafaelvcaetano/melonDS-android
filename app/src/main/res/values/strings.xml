@@ -194,8 +194,20 @@
     <string name="restore_settings">Restore settings</string>
     <string name="settings_backup_success">Settings backup created.\n\nThe following were skipped:\n&#8226; RetroAchievements session\n&#8226; ROM/save directories\n&#8226; DS BIOS directory\n&#8226; DSi BIOS directory</string>
     <string name="settings_backup_error">Failed to backup settings</string>
-    <string name="settings_restore_success">Settings restored, restart to take effect.\n\nThe following were unchanged:\n&#8226; RetroAchievements session\n&#8226; ROM/save directories\n&#8226; DS BIOS directory\n&#8226; DSi BIOS directory</string>
+    <string name="settings_restore_success">Settings restored.\n\nThe following were unchanged:\n&#8226; RetroAchievements session\n&#8226; ROM/save directories\n&#8226; DS BIOS directory\n&#8226; DSi BIOS directory</string>
     <string name="settings_restore_error">Failed to restore settings</string>
+    <string name="backup_internal_layout">Backup internal layout</string>
+    <string name="backup_external_layout">Backup external layout</string>
+    <string name="restore_internal_layout">Restore internal layout</string>
+    <string name="restore_external_layout">Restore external layout</string>
+    <string name="internal_layout_backup_success">Internal layout backup created.</string>
+    <string name="internal_layout_backup_error">Failed to backup internal layout</string>
+    <string name="external_layout_backup_success">External layout backup created.</string>
+    <string name="external_layout_backup_error">Failed to backup external layout</string>
+    <string name="internal_layout_restore_success">Internal layout restored.</string>
+    <string name="internal_layout_restore_error">Failed to restore internal layout</string>
+    <string name="external_layout_restore_success">External layout restored.</string>
+    <string name="external_layout_restore_error">Failed to restore external layout</string>
     <string name="threaded_rendering">Threaded rendering</string>
     <string name="fps_counter_position">FPS counter position</string>
     <string name="threaded_rendering_summary">Improves performance on 3D games when enabled but may cause graphical glitches.</string>
@@ -325,7 +337,6 @@
     <string name="input_swap_screens">Swap Screens</string>
     <string name="input_quick_save">Quick Save</string>
     <string name="input_quick_load">Quick Load</string>
-    <string name="input_refresh_external_screen">@string/refresh_external_screen</string>
 
     <string name="layouts">Layouts</string>
     <string name="layouts_summary">Manage custom layout configurations</string>

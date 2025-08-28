@@ -31,4 +31,24 @@
             android:key="restore_settings"
             android:title="@string/restore_settings"
             app:iconSpaceReserved="false" />
+
+    <Preference
+            android:key="backup_internal_layout"
+            android:title="@string/backup_internal_layout"
+            app:iconSpaceReserved="false" />
+
+    <Preference
+            android:key="backup_external_layout"
+            android:title="@string/backup_external_layout"
+            app:iconSpaceReserved="false" />
+
+    <Preference
+            android:key="restore_internal_layout"
+            android:title="@string/restore_internal_layout"
+            app:iconSpaceReserved="false" />
+
+    <Preference
+            android:key="restore_external_layout"
+            android:title="@string/restore_external_layout"
+            app:iconSpaceReserved="false" />
 </PreferenceScreen>
