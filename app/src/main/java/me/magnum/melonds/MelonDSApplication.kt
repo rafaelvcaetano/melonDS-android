@@ -16,6 +16,7 @@ import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.migrations.Migrator
 import me.magnum.melonds.ui.ExternalDisplayManager
+import me.magnum.melonds.ui.ensureOnPrimaryDisplay
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -50,7 +51,9 @@ class MelonDSApplication : Application(), Configuration.Provider {
                 }
             }
 
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+                activity.ensureOnPrimaryDisplay()
+            }
             override fun onActivityResumed(activity: Activity) {}
             override fun onActivityPaused(activity: Activity) {}
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}

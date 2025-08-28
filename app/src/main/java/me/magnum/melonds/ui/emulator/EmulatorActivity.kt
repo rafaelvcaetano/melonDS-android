@@ -89,6 +89,7 @@ import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.ExternalDisplayManager
 import me.magnum.melonds.ui.ExternalPresentation
 import me.magnum.melonds.ui.ExternalRenderer
+import me.magnum.melonds.ui.ensureOnPrimaryDisplay
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.ui.cheats.CheatsActivity
@@ -335,6 +336,8 @@ class EmulatorActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ensureOnPrimaryDisplay()
+        if (isFinishing) return
         lifecycleOwnerProvider.setCurrentLifecycleOwner(this)
         binding = ActivityEmulatorBinding.inflate(layoutInflater)
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)

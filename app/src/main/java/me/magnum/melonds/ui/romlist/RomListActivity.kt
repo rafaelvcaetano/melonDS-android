@@ -44,6 +44,7 @@ import javax.inject.Inject
 import androidx.core.graphics.toColorInt
 import android.hardware.display.DisplayManager
 import android.util.Log
+import me.magnum.melonds.ui.ensureOnPrimaryDisplay
 
 @AndroidEntryPoint
 class RomListActivity : AppCompatActivity() {
@@ -132,6 +133,9 @@ class RomListActivity : AppCompatActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
+        ensureOnPrimaryDisplay()
+        if (isFinishing) return
+
         displayManager = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
         displayManager.registerDisplayListener(displayListener, null)
         showExternalDisplay()
@@ -192,7 +196,9 @@ class RomListActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         ExternalDisplayManager.detach()
-        displayManager.unregisterDisplayListener(displayListener)
+        if (::displayManager.isInitialized) {
+            displayManager.unregisterDisplayListener(displayListener)
+        }
     }
 
 
