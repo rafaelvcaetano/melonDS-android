@@ -222,6 +222,7 @@
     <string name="refresh_external_screen">Refresh external screen</string>
     <string name="dsi_camera_image">DSi camera image</string>
     <string name="internal_screen_layout">Internal screen layout</string>
+    <string name="input_refresh_external_screen">Refresh external screen</string>
     <string name="quick_settings">Quick settings</string>
     <string name="category_audio">Audio</string>
     <string name="category_audio_summary">Volume, latency, microphone source</string>

@@ -703,6 +703,7 @@ class EmulatorActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         showExternalDisplay()
+        setupExternalScreen()
     }
 
 
@@ -773,7 +774,7 @@ class EmulatorActivity : AppCompatActivity() {
                 currentExternalDisplayScreen = screen
                 externalScreenRender = when (screen) {
                     DsExternalScreen.TOP -> pres.showTopScreen()
-                    DsExternalScreen.BOTTOM -> pres.showBottomScreen()
+                    DsExternalScreen.BOTTOM -> pres.showBottomScreen(melonTouchHandler)
                     DsExternalScreen.CUSTOM -> {
                         val layoutId = settingsRepository.getExternalLayoutId()
                         val layout = runBlocking { layoutsRepository.getLayout(layoutId) }
@@ -920,6 +921,16 @@ class EmulatorActivity : AppCompatActivity() {
                     }
                 }
             }
+
+            // Ensure the external display is correctly configured when launching
+            // the emulator from external intents such as LAUNCH_ROM. When the
+            // activity is started directly from a front-end, the external
+            // presentation might not yet be set up. Calling both
+            // `showExternalDisplay` and `setupExternalScreen` here guarantees that
+            // the presentation is created (if needed) and configured with the
+            // proper screen before emulation begins.
+            showExternalDisplay()
+            setupExternalScreen()
         }
     }
 
@@ -1026,7 +1037,7 @@ class EmulatorActivity : AppCompatActivity() {
 
         externalScreenRender = when (screen) {
             DsExternalScreen.TOP -> if (swapped) {
-                presentation.showBottomScreen()
+                presentation.showBottomScreen(melonTouchHandler)
             } else {
                 presentation.showTopScreen()
             }
@@ -1034,7 +1045,7 @@ class EmulatorActivity : AppCompatActivity() {
             DsExternalScreen.BOTTOM -> if (swapped) {
                 presentation.showTopScreen()
             } else {
-                presentation.showBottomScreen()
+                presentation.showBottomScreen(melonTouchHandler)
             }
 
             DsExternalScreen.CUSTOM -> {

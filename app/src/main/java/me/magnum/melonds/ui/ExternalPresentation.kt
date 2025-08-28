@@ -18,6 +18,8 @@ import androidx.core.graphics.toColorInt
 import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
+import me.magnum.melonds.ui.emulator.input.IInputListener
+import me.magnum.melonds.ui.emulator.input.TouchscreenInputHandler
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
@@ -118,12 +120,19 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
      * to display either the top or bottom screen of the emulator.
      *
      * @param screen The [DsExternalScreen] to display (either [DsExternalScreen.TOP] or [DsExternalScreen.BOTTOM]).
+     * @param inputListener Optional listener that receives touch events when the bottom screen is shown.
      * @return The created [ExternalScreenRender] instance, which callers can use
      *         to request new frame renders.
      */
-    private fun showDsScreen(screen: DsExternalScreen): ExternalScreenRender {
+    private fun showDsScreen(
+        screen: DsExternalScreen,
+        inputListener: IInputListener? = null,
+    ): ExternalScreenRender {
         val renderer = ExternalScreenRender(screen)
         val view = createSurfaceView(renderer)
+        if (screen == DsExternalScreen.BOTTOM && inputListener != null) {
+            view.setOnTouchListener(TouchscreenInputHandler(inputListener))
+        }
         attachView(view)
         return renderer
     }
@@ -212,7 +221,7 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
     }
 
     fun showTopScreen() = showDsScreen(DsExternalScreen.TOP)
-    fun showBottomScreen() = showDsScreen(DsExternalScreen.BOTTOM)
+    fun showBottomScreen(inputListener: IInputListener) = showDsScreen(DsExternalScreen.BOTTOM, inputListener)
 
     fun requestRender() {
         surfaceView.requestRender()
