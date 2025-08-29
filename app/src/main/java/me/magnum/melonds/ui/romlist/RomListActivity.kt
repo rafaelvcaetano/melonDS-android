@@ -39,6 +39,7 @@ import me.magnum.melonds.ui.ExternalDisplayManager
 import me.magnum.melonds.ui.ExternalPresentation
 import me.magnum.melonds.ui.dsiwaremanager.DSiWareManagerActivity
 import me.magnum.melonds.ui.emulator.EmulatorActivity
+import me.magnum.melonds.ui.launchedFromExternalDisplay
 import me.magnum.melonds.ui.settings.SettingsActivity
 import javax.inject.Inject
 import androidx.core.graphics.toColorInt
@@ -230,12 +231,19 @@ class RomListActivity : AppCompatActivity() {
             Log.d("DualScreen", "Display ID: ${display.displayId}, Name: ${display.name}")
         }
 
-        val external = displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION)
-            .firstOrNull { it.displayId != Display.DEFAULT_DISPLAY && it.name != "Built-in Screen" }
+        val targetDisplay = if (launchedFromExternalDisplay) {
+            displayManager.getDisplay(Display.DEFAULT_DISPLAY)
+        } else {
+            displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION)
+                .firstOrNull { it.displayId != Display.DEFAULT_DISPLAY && it.name != "Built-in Screen" }
+        }
 
-        if (external != null) {
-            Log.d("DualScreen", "Using external display: ID=${external.displayId}, Name=${external.name}")
-            ExternalDisplayManager.presentation = ExternalPresentation(this, external).apply {
+        if (targetDisplay != null) {
+            Log.d(
+                "DualScreen",
+                "Using external display: ID=${targetDisplay.displayId}, Name=${targetDisplay.name}"
+            )
+            ExternalDisplayManager.presentation = ExternalPresentation(this, targetDisplay).apply {
                 setBackground("black".toColorInt())
 
                 setOnShowListener {

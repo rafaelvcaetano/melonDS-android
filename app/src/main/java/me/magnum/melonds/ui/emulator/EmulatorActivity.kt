@@ -89,6 +89,7 @@ import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.ExternalDisplayManager
 import me.magnum.melonds.ui.ExternalPresentation
 import me.magnum.melonds.ui.ExternalRenderer
+import me.magnum.melonds.ui.launchedFromExternalDisplay
 import me.magnum.melonds.ui.ensureOnPrimaryDisplay
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.repositories.LayoutsRepository
@@ -727,12 +728,19 @@ class EmulatorActivity : AppCompatActivity() {
             Log.d("DualScreenEmulator", "Display ID: ${display.displayId}, Name: ${display.name}")
         }
 
-        val external = displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION)
-            .firstOrNull { it.displayId != Display.DEFAULT_DISPLAY && it.name != "Built-in Screen" }
-        if (external != null) {
-            Log.d("DualScreenEmulator", "Using external display: ID=${external.displayId}, Name=${external.name}")
+        val targetDisplay = if (launchedFromExternalDisplay) {
+            displayManager.getDisplay(Display.DEFAULT_DISPLAY)
+        } else {
+            displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION)
+                .firstOrNull { it.displayId != Display.DEFAULT_DISPLAY && it.name != "Built-in Screen" }
+        }
+        if (targetDisplay != null) {
+            Log.d(
+                "DualScreenEmulator",
+                "Using external display: ID=${targetDisplay.displayId}, Name=${targetDisplay.name}"
+            )
 
-            ExternalDisplayManager.presentation = ExternalPresentation(this, external).apply {
+            ExternalDisplayManager.presentation = ExternalPresentation(this, targetDisplay).apply {
 
                 setSharedContext(dsRenderer.getSharedEglContext())
 
