@@ -206,7 +206,7 @@ class EmulatorActivity : AppCompatActivity() {
         override fun onDisplayAdded(displayId: Int) {
             runOnUiThread {
                 showExternalDisplay()
-                setupExternalScreen()
+                setupExternalScreen(true)
             }
         }
 
@@ -290,7 +290,7 @@ class EmulatorActivity : AppCompatActivity() {
         }
 
         override fun onRefreshExternalScreen() {
-            setupExternalScreen()
+            setupExternalScreen(true)
         }
     }
     private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -354,7 +354,7 @@ class EmulatorActivity : AppCompatActivity() {
                 runOnUiThread {
                     currentOpenGlContext.value = it
                     ExternalDisplayManager.presentation?.setSharedContext(dsRenderer.getSharedEglContext())
-                    setupExternalScreen()
+                    setupExternalScreen(true)
                 }
             }
         )
@@ -491,7 +491,7 @@ class EmulatorActivity : AppCompatActivity() {
                         currentScreen = viewModel.getExternalDisplayScreen(),
                         onScreenSelected = {
                             viewModel.setExternalDisplayScreen(it)
-                            setupExternalScreen()
+                            setupExternalScreen(true)
                         },
                         onOpenInternalLayout = {
                             startActivity(Intent(this@EmulatorActivity, LayoutListActivity::class.java))
@@ -500,7 +500,7 @@ class EmulatorActivity : AppCompatActivity() {
                             startActivity(Intent(this@EmulatorActivity, ExternalLayoutListActivity::class.java))
                         },
                         onRefreshExternalScreen = {
-                            setupExternalScreen()
+                            setupExternalScreen(true)
                         },
                         keepAspectRatio = viewModel.isExternalDisplayKeepAspectRatioEnabled(),
                         onKeepAspectRatioChanged = { enabled ->
@@ -707,7 +707,7 @@ class EmulatorActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         showExternalDisplay()
-        setupExternalScreen()
+        setupExternalScreen(true)
     }
 
 
@@ -776,12 +776,30 @@ class EmulatorActivity : AppCompatActivity() {
      * from the `layoutsRepository` and `settingsRepository` to correctly display the custom layout
      * on the external screen.
      */
-    private fun setupExternalScreen() {
-        val sharedContext = dsRenderer.getSharedEglContext() ?: return
+    private fun setupExternalScreen(
+        force: Boolean = false,
+        retryDelay: Long = 200L,
+        maxRetries: Int = 10
+    ) {
+        if (ExternalDisplayManager.presentation == null) {
+            showExternalDisplay()
+        }
+
+        val sharedContext = dsRenderer.getSharedEglContext()
+        if (sharedContext == null) {
+            if (maxRetries > 0) {
+                lifecycleScope.launch {
+                    delay(retryDelay)
+                    setupExternalScreen(force, retryDelay, maxRetries - 1)
+                }
+            }
+            return
+        }
+
         ExternalDisplayManager.presentation?.let { pres ->
             pres.setSharedContext(sharedContext)
             val screen = viewModel.getExternalDisplayScreen()
-            if (screen != currentExternalDisplayScreen || screen == DsExternalScreen.CUSTOM) {
+            if (force || screen != currentExternalDisplayScreen || screen == DsExternalScreen.CUSTOM) {
                 currentExternalDisplayScreen = screen
                 externalScreenRender = when (screen) {
                     DsExternalScreen.TOP -> pres.showTopScreen()
@@ -891,7 +909,7 @@ class EmulatorActivity : AppCompatActivity() {
         super.onResume()
         binding.surfaceMain.onResume()
 
-        setupExternalScreen()
+        setupExternalScreen(true)
 
         if (!activeOverlays.hasActiveOverlays()) {
             disableScreenTimeOut()
@@ -941,7 +959,7 @@ class EmulatorActivity : AppCompatActivity() {
             // the presentation is created (if needed) and configured with the
             // proper screen before emulation begins.
             showExternalDisplay()
-            setupExternalScreen()
+            setupExternalScreen(true)
         }
     }
 
