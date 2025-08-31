@@ -144,6 +144,11 @@
             android:exported="false">
         </activity>
         <activity
+            android:name=".ui.layouts.ExternalLayoutSelectorActivity"
+            android:label="@string/external_screen_layout"
+            android:exported="false">
+        </activity>
+        <activity
             android:name=".ui.layouteditor.LayoutEditorActivity"
             android:theme="@style/EmulatorTheme"
             android:label="@string/layout_editor"

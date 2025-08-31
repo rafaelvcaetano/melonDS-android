@@ -29,12 +29,14 @@ import androidx.compose.ui.unit.dp
 import me.magnum.melonds.R
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.contracts.FilePickerContract
+import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
 import me.magnum.melonds.domain.model.rom.config.RuntimeMicSource
 import me.magnum.melonds.ui.common.MelonPreviewSet
 import me.magnum.melonds.ui.common.preference.ActionLauncherItem
 import me.magnum.melonds.ui.common.preference.SingleChoiceItem
 import me.magnum.melonds.ui.layouts.LayoutSelectorActivity
+import me.magnum.melonds.ui.layouts.ExternalLayoutSelectorActivity
 import me.magnum.melonds.ui.romdetails.model.RomConfigUiModel
 import me.magnum.melonds.ui.romdetails.model.RomConfigUiState
 import me.magnum.melonds.ui.romdetails.model.RomConfigUpdateEvent
@@ -124,6 +126,46 @@ private fun Content(
             }
         )
 
+        val externalScreenOptions = listOf(
+            stringResource(id = R.string.use_global_preference),
+            stringResource(id = R.string.top_screen),
+            stringResource(id = R.string.bottom_screen),
+            stringResource(id = R.string.custom_layout),
+        )
+        val selectedExternalScreenIndex = romConfig.externalScreen?.ordinal?.plus(1) ?: 0
+        SingleChoiceItem(
+            name = stringResource(id = R.string.external_display_screen),
+            value = externalScreenOptions[selectedExternalScreenIndex],
+            items = externalScreenOptions,
+            selectedItemIndex = selectedExternalScreenIndex,
+            onItemSelected = { index ->
+                val screen = when (index) {
+                    1 -> DsExternalScreen.TOP
+                    2 -> DsExternalScreen.BOTTOM
+                    3 -> DsExternalScreen.CUSTOM
+                    else -> null
+                }
+                onConfigUpdate(RomConfigUpdateEvent.ExternalScreenUpdate(screen))
+            }
+        )
+
+        val externalLayoutSelectorLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val layoutId = result.data?.getStringExtra(LayoutSelectorActivity.KEY_SELECTED_LAYOUT_ID)?.let { UUID.fromString(it) }
+                onConfigUpdate(RomConfigUpdateEvent.ExternalLayoutUpdate(layoutId))
+            }
+        }
+        ActionLauncherItem(
+            name = stringResource(id = R.string.external_screen_layout),
+            value = romConfig.externalLayoutName ?: stringResource(id = R.string.use_global_layout),
+            onLaunchAction = {
+                val intent = Intent(context, ExternalLayoutSelectorActivity::class.java).apply {
+                    putExtra(LayoutSelectorActivity.KEY_SELECTED_LAYOUT_ID, romConfig.externalLayoutId?.toString())
+                }
+                externalLayoutSelectorLauncher.launch(intent)
+            }
+        )
+
         val gbaSlotOptions = stringArrayResource(id = R.array.gba_slot_options)
         SingleChoiceItem(
             name = stringResource(id = R.string.label_rom_config_gba_slot),
@@ -182,6 +224,7 @@ private fun PreviewRomConfigUi() {
             romConfigUiState = RomConfigUiState.Ready(
                 RomConfigUiModel(
                     layoutName = "Default",
+                    externalLayoutName = "Default",
                     gbaSlotConfig = RomGbaSlotConfigUiModel(type = RomGbaSlotConfigUiModel.Type.GbaRom)
                 ),
             ),

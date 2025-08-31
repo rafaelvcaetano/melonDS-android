@@ -5,6 +5,7 @@ import android.os.Parcelable
 import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
 import me.magnum.melonds.domain.model.rom.config.RuntimeMicSource
+import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.extensions.parcelable
 import java.util.UUID
 
@@ -20,6 +21,8 @@ class RomConfigParcelable : Parcelable {
             runtimeConsoleType = RuntimeConsoleType.entries[parcel.readInt()],
             runtimeMicSource = RuntimeMicSource.entries[parcel.readInt()],
             layoutId = parcel.readString()?.let { UUID.fromString(it) },
+            externalLayoutId = parcel.readString()?.let { UUID.fromString(it) },
+            externalScreen = parcel.readString()?.let { DsExternalScreen.valueOf(it) },
             gbaSlotConfig = parcel.parcelable<RomGbaSlotConfigParcelable>()!!.gbaSlotConfig,
         )
     }
@@ -28,6 +31,8 @@ class RomConfigParcelable : Parcelable {
         dest.writeInt(romConfig.runtimeConsoleType.ordinal)
         dest.writeInt(romConfig.runtimeMicSource.ordinal)
         dest.writeString(romConfig.layoutId?.toString())
+        dest.writeString(romConfig.externalLayoutId?.toString())
+        dest.writeString(romConfig.externalScreen?.name)
         dest.writeParcelable(RomGbaSlotConfigParcelable(romConfig.gbaSlotConfig), 0)
     }
 

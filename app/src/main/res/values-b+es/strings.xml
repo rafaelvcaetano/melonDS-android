@@ -298,6 +298,7 @@
     <string name="action_layouts_new">Nuevo diseño</string>
     <string name="default_layout_name">Predeterminado</string>
     <string name="use_global_layout">Usar diseño global</string>
+    <string name="use_global_preference">Usar configuración global</string>
     <string name="layout_deleted">Diseño eliminado</string>
 
     <string name="layout_editor">Editor de diseño</string>

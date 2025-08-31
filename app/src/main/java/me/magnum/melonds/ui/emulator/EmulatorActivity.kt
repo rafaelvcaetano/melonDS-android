@@ -805,7 +805,7 @@ class EmulatorActivity : AppCompatActivity() {
                     DsExternalScreen.TOP -> pres.showTopScreen()
                     DsExternalScreen.BOTTOM -> pres.showBottomScreen(melonTouchHandler)
                     DsExternalScreen.CUSTOM -> {
-                        val layoutId = settingsRepository.getExternalLayoutId()
+                        val layoutId = viewModel.getExternalLayoutId()
                         val layout = runBlocking { layoutsRepository.getLayout(layoutId) }
                         val entry = layout?.layoutVariants?.entries?.firstOrNull()
 
@@ -1078,7 +1078,7 @@ class EmulatorActivity : AppCompatActivity() {
             }
 
             DsExternalScreen.CUSTOM -> {
-                val layoutId = settingsRepository.getExternalLayoutId()
+                val layoutId = viewModel.getExternalLayoutId()
                 val layout = runBlocking { layoutsRepository.getLayout(layoutId) }
                 val entry = layout?.layoutVariants?.entries?.firstOrNull()
                 val uiLayout = entry?.value

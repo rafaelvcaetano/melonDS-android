@@ -345,6 +345,7 @@
     <string name="default_layout_name">Default</string>
     <string name="custom_layout_default_name">My Layout</string>
     <string name="use_global_layout">Use global layout</string>
+    <string name="use_global_preference">Use global setting</string>
     <string name="layout_deleted">Layout deleted</string>
 
     <string name="layout_editor">Layout editor</string>
