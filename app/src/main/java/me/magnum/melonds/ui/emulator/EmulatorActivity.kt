@@ -778,8 +778,8 @@ class EmulatorActivity : AppCompatActivity() {
      */
     private fun setupExternalScreen(
         force: Boolean = false,
-        retryDelay: Long = 200L,
-        maxRetries: Int = 10
+        retryDelay: Long = 1000L,
+        maxRetries: Int = 120
     ) {
         if (ExternalDisplayManager.presentation == null) {
             showExternalDisplay()
