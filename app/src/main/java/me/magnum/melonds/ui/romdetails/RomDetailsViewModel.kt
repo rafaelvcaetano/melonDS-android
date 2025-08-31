@@ -78,6 +78,7 @@ class RomDetailsViewModel @Inject constructor(
                     it.copy(gbaSlotConfig = gbaConfig.copy(savePath = event.gbaSavePath))
                 }
             }
+            is RomConfigUpdateEvent.CustomNameUpdate -> currentRomConfig.copy(customName = event.customName)
         }
 
         newRomConfig?.let { newConfig ->

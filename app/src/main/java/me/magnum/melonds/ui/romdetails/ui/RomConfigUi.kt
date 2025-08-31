@@ -33,6 +33,8 @@ import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
 import me.magnum.melonds.domain.model.rom.config.RuntimeMicSource
 import me.magnum.melonds.ui.common.MelonPreviewSet
+import me.magnum.melonds.ui.common.component.dialog.TextInputDialog
+import me.magnum.melonds.ui.common.component.dialog.rememberTextInputDialogState
 import me.magnum.melonds.ui.common.preference.ActionLauncherItem
 import me.magnum.melonds.ui.common.preference.SingleChoiceItem
 import me.magnum.melonds.ui.layouts.LayoutSelectorActivity
@@ -48,6 +50,7 @@ import java.util.UUID
 fun RomConfigUi(
     modifier: Modifier,
     contentPadding: PaddingValues,
+    romName: String,
     romConfigUiState: RomConfigUiState,
     onConfigUpdate: (RomConfigUpdateEvent) -> Unit,
 ) {
@@ -56,6 +59,7 @@ fun RomConfigUi(
         is RomConfigUiState.Ready -> Content(
             modifier = modifier,
             contentPadding = contentPadding,
+            romName = romName,
             romConfig = romConfigUiState.romConfigUiModel,
             onConfigUpdate = onConfigUpdate,
         )
@@ -76,6 +80,7 @@ private fun Loading(modifier: Modifier) {
 private fun Content(
     modifier: Modifier,
     contentPadding: PaddingValues,
+    romName: String,
     romConfig: RomConfigUiModel,
     onConfigUpdate: (RomConfigUpdateEvent) -> Unit,
 ) {
@@ -86,6 +91,25 @@ private fun Content(
                 end = contentPadding.calculateEndPadding(LocalLayoutDirection.current),
             ),
     ) {
+        val renameDialogState = rememberTextInputDialogState()
+        ActionLauncherItem(
+            name = stringResource(id = R.string.label_rom_config_custom_name),
+            value = romConfig.customName ?: romName,
+            onLaunchAction = {
+                renameDialogState.show(romConfig.customName ?: romName) { newName ->
+                    onConfigUpdate(RomConfigUpdateEvent.CustomNameUpdate(newName.ifBlank { null }))
+                }
+            }
+        )
+        TextInputDialog(
+            title = stringResource(id = R.string.label_rom_config_custom_name),
+            dialogState = renameDialogState,
+            allowEmpty = true,
+            onDelete = {
+                onConfigUpdate(RomConfigUpdateEvent.CustomNameUpdate(null))
+            },
+        )
+
         val consoleOptions = stringArrayResource(id = R.array.game_runtime_console_type_options)
         SingleChoiceItem(
             name = stringResource(id = R.string.label_rom_config_console),
@@ -221,6 +245,7 @@ private fun PreviewRomConfigUi() {
         RomConfigUi(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(0.dp),
+            romName = "Professor Layton and the Unwound Future",
             romConfigUiState = RomConfigUiState.Ready(
                 RomConfigUiModel(
                     layoutName = "Default",

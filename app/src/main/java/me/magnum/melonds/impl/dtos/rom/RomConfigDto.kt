@@ -20,6 +20,8 @@ data class RomConfigDto(
     val externalScreen: String?,
     @SerializedName("gbaSlotConfig")
     val gbaSlotConfig: RomGbaSlotConfigDto,
+    @SerializedName("customName")
+    val customName: String? = null,
 ) {
 
     companion object {
@@ -31,6 +33,7 @@ data class RomConfigDto(
                 romConfig.externalLayoutId?.toString(),
                 romConfig.externalScreen?.name?.lowercase(),
                 RomGbaSlotConfigDto.fromModel(romConfig.gbaSlotConfig),
+                romConfig.customName,
             )
         }
     }
@@ -43,6 +46,7 @@ data class RomConfigDto(
             externalLayoutId?.let { UUID.fromString(it) },
             externalScreen?.let { DsExternalScreen.valueOf(it.uppercase()) },
             gbaSlotConfig.toModel(),
+            customName = customName,
         )
     }
 }

@@ -24,6 +24,7 @@ class RomConfigParcelable : Parcelable {
             externalLayoutId = parcel.readString()?.let { UUID.fromString(it) },
             externalScreen = parcel.readString()?.let { DsExternalScreen.valueOf(it) },
             gbaSlotConfig = parcel.parcelable<RomGbaSlotConfigParcelable>()!!.gbaSlotConfig,
+            customName = parcel.readString(),
         )
     }
 
@@ -34,6 +35,7 @@ class RomConfigParcelable : Parcelable {
         dest.writeString(romConfig.externalLayoutId?.toString())
         dest.writeString(romConfig.externalScreen?.name)
         dest.writeParcelable(RomGbaSlotConfigParcelable(romConfig.gbaSlotConfig), 0)
+        dest.writeString(romConfig.customName)
     }
 
     override fun describeContents(): Int {

@@ -10,4 +10,5 @@ data class RomConfig(
     var externalLayoutId: UUID? = null,
     var externalScreen: DsExternalScreen? = null,
     val gbaSlotConfig: RomGbaSlotConfig = RomGbaSlotConfig.None,
+    var customName: String? = null,
 )

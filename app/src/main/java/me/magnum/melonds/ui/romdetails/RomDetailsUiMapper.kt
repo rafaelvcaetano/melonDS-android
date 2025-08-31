@@ -23,6 +23,7 @@ class RomDetailsUiMapper(
             externalLayoutName = romConfig.externalLayoutId?.let { layoutsRepository.getLayout(it)?.name } ?: layoutsRepository.getGlobalLayoutPlaceholder().name,
             externalScreen = romConfig.externalScreen,
             gbaSlotConfig = mapGbaSlotConfigToUi(romConfig.gbaSlotConfig),
+            customName = romConfig.customName,
         )
     }
 

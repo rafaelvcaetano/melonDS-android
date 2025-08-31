@@ -13,5 +13,6 @@ data class RomConfigUiModel(
     val externalLayoutId: UUID? = null,
     val externalLayoutName: String? = null,
     val externalScreen: DsExternalScreen? = null,
-    val gbaSlotConfig: RomGbaSlotConfigUiModel = RomGbaSlotConfigUiModel()
+    val gbaSlotConfig: RomGbaSlotConfigUiModel = RomGbaSlotConfigUiModel(),
+    val customName: String? = null,
 )

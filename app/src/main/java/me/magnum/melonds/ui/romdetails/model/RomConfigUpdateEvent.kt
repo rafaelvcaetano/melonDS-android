@@ -15,4 +15,5 @@ sealed class RomConfigUpdateEvent {
     data class GbaSlotTypeUpdated(val type: RomGbaSlotConfigUiModel.Type) : RomConfigUpdateEvent()
     data class GbaRomPathUpdate(val gbaRomPath: Uri?) : RomConfigUpdateEvent()
     data class GbaSavePathUpdate(val gbaSavePath: Uri?) : RomConfigUpdateEvent()
+    data class CustomNameUpdate(val customName: String?) : RomConfigUpdateEvent()
 }

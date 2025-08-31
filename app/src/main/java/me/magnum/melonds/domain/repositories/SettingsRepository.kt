@@ -21,6 +21,7 @@ interface SettingsRepository {
     fun clearRomSearchDirectories()
     fun getRomIconFiltering(): RomIconFiltering
     fun getRomCacheMaxSize(): SizeUnit
+    fun showRomFileName(): Boolean
 
     fun getDefaultConsoleType(): ConsoleType
     fun getFirmwareConfiguration(): FirmwareConfiguration
@@ -67,6 +68,7 @@ interface SettingsRepository {
 
     fun observeTheme(): Observable<Theme>
     fun observeRomIconFiltering(): Flow<RomIconFiltering>
+    fun observeShowRomFileName(): Flow<Boolean>
     fun observeRomSearchDirectories(): Observable<Array<Uri>>
     fun observeSelectedLayoutId(): Observable<UUID>
     fun observeExternalLayoutId(): Observable<UUID>
