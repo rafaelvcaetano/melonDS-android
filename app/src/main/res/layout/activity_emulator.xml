@@ -10,7 +10,7 @@
         app:layoutDescription="@xml/scene_activity_emulator"
         tools:context=".ui.emulator.EmulatorActivity">
 
-    <android.opengl.GLSurfaceView
+    <me.magnum.melonds.ui.emulator.EmulatorSurfaceView
             android:id="@+id/surfaceMain"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>

@@ -49,7 +49,6 @@ add_library(
         src/main/cpp/UriFileHandler.cpp
         src/main/cpp/JniEnvHandler.cpp
         src/main/cpp/MelonDSAndroidCameraHandler.cpp
-        src/main/cpp/AndroidFrameRenderedCallback.cpp
         src/main/cpp/AndroidRACallback.cpp
         src/main/cpp/RAAchievementMapper.cpp
 )

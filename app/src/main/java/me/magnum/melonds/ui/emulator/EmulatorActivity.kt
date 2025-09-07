@@ -3,12 +3,11 @@ package me.magnum.melonds.ui.emulator
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.opengl.GLSurfaceView
-import android.hardware.display.DisplayManager
 import android.os.Bundle
 import android.util.Log
 import android.util.DisplayMetrics
 import android.view.Display
+import android.view.Choreographer
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -122,7 +121,7 @@ import java.text.SimpleDateFormat
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class EmulatorActivity : AppCompatActivity() {
+class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     companion object {
         const val KEY_ROM = "rom"
         const val KEY_PATH = "PATH"
@@ -359,10 +358,10 @@ class EmulatorActivity : AppCompatActivity() {
             }
         )
         binding.surfaceMain.apply {
-            setEGLContextClientVersion(3)
-            preserveEGLContextOnPause = true
             setRenderer(dsRenderer)
-            renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
+            setOnGlContextReadyListener {
+                currentOpenGlContext.value = it
+            }
         }
 
         displayManager = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
@@ -606,11 +605,14 @@ class EmulatorActivity : AppCompatActivity() {
                 viewModel.uiEvent.collectLatest {
                     when (it) {
                         EmulatorUiEvent.CloseEmulator -> {
+                            Choreographer.getInstance().removeFrameCallback(this@EmulatorActivity)
+                            {
                             ExternalDisplayManager.presentation?.apply {
                                 setBackground("black".toColorInt())
                                 show()
                             }
                             finish()
+                        }
                         }
                         is EmulatorUiEvent.OpenScreen.CheatsScreen -> {
                             val intent = Intent(this@EmulatorActivity, CheatsActivity::class.java)
@@ -882,7 +884,6 @@ class EmulatorActivity : AppCompatActivity() {
         super.onNewIntent(intent)
 
         if (viewModel.emulatorState.value.isRunning()) {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             viewModel.pauseEmulator(false)
             backPressedCallback.isEnabled = false
 
@@ -911,7 +912,7 @@ class EmulatorActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        binding.surfaceMain.onResume()
+        Choreographer.getInstance().postFrameCallback(this)
 
         setupExternalScreen(true)
 
@@ -919,6 +920,11 @@ class EmulatorActivity : AppCompatActivity() {
             disableScreenTimeOut()
             viewModel.resumeEmulator()
         }
+    }
+
+    override fun doFrame(frameTimeNanos: Long) {
+        binding.surfaceMain.doFrame()
+        Choreographer.getInstance().postFrameCallback(this)
     }
 
     private fun launchEmulator() {
@@ -930,15 +936,15 @@ class EmulatorActivity : AppCompatActivity() {
 
             disableScreenTimeOut()
             if (bootFirmwareOnly) {
-                val consoleTypeParameter = extras?.getInt(KEY_BOOT_FIRMWARE_CONSOLE, -1)
-                if (consoleTypeParameter == null || consoleTypeParameter == -1) {
+                val consoleTypeParameter = extras.getInt(KEY_BOOT_FIRMWARE_CONSOLE, -1)
+                if (consoleTypeParameter == -1) {
                     throw RuntimeException("No console type specified")
                 }
 
                 val firmwareConsoleType = ConsoleType.entries[consoleTypeParameter]
                 viewModel.loadFirmware(firmwareConsoleType, glContext)
             } else {
-                val romParcelable = extras?.parcelable(KEY_ROM) as RomParcelable?
+                val romParcelable = extras?.parcelable<RomParcelable>(KEY_ROM)
 
                 if (romParcelable?.rom != null) {
                     viewModel.loadRom(romParcelable.rom, glContext)
@@ -1285,7 +1291,7 @@ class EmulatorActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         enableScreenTimeOut()
-        binding.surfaceMain.onPause()
+        Choreographer.getInstance().removeFrameCallback(this)
         viewModel.pauseEmulator(false)
     }
 
@@ -1296,6 +1302,7 @@ class EmulatorActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        binding.surfaceMain.stop()
         if (::displayManager.isInitialized) {
             displayManager.unregisterDisplayListener(displayListener)
         }
