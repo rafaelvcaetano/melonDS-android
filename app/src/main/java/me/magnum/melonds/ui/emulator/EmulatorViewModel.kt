@@ -109,8 +109,6 @@ class EmulatorViewModel @Inject constructor(
 
     private val _layout = MutableStateFlow<LayoutConfiguration?>(null)
 
-    val frameRenderEvent = emulatorManager.frameRenderedEvent
-
     private val _runtimeLayout = MutableStateFlow<RuntimeInputLayoutConfiguration?>(null)
     val runtimeLayout = _runtimeLayout.asStateFlow()
 

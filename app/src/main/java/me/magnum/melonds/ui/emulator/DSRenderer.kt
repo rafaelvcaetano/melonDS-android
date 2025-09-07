@@ -2,9 +2,7 @@ package me.magnum.melonds.ui.emulator
 
 import android.content.Context
 import android.graphics.BitmapFactory
-import android.opengl.EGL14
 import android.opengl.GLES30
-import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
@@ -13,21 +11,15 @@ import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.layout.BackgroundMode
-import me.magnum.melonds.domain.model.render.FrameRenderEvent
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
+import me.magnum.melonds.domain.model.render.PresentFrameWrapper
 import me.magnum.melonds.utils.BitmapUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
-import java.util.LinkedList
-import javax.microedition.khronos.egl.EGLConfig
-import javax.microedition.khronos.opengles.GL10
 import kotlin.math.roundToInt
 
-class DSRenderer(
-    private val context: Context,
-    private val onGlContextReady: (glContext: Long) -> Unit,
-) : GLSurfaceView.Renderer {
+class DSRenderer(private val context: Context) {
     companion object {
         private const val SCREEN_WIDTH = 256
         private const val SCREEN_HEIGHT = 384
@@ -44,7 +36,6 @@ class DSRenderer(
         )
     }
 
-    private var nextRenderEvent: FrameRenderEvent? = null
     private var rendererConfiguration: RuntimeRendererConfiguration? = null
     private var mustUpdateConfiguration = false
     private var isBackgroundPositionDirty = false
@@ -98,10 +89,6 @@ class DSRenderer(
         }
     }
 
-    fun prepareNextFrame(frameRenderEvent: FrameRenderEvent) {
-        nextRenderEvent = frameRenderEvent
-    }
-
     private fun screenXToViewportX(x: Int): Float {
         return (x / this.width) * 2f - 1f
     }
@@ -110,7 +97,7 @@ class DSRenderer(
         return ((this.height - y) / this.height) * 2f - 1f
     }
 
-    override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
+    fun onSurfaceCreated() {
         GLES30.glClearColor(0f, 0f, 0f, 1f)
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
         GLES30.glDisable(GLES30.GL_CULL_FACE)
@@ -130,7 +117,6 @@ class DSRenderer(
         backgroundShader = ShaderFactory.createShaderProgram(ShaderProgramSource.BackgroundShader)
 
         applyRendererConfiguration()
-        onGlContextReady(EGL14.eglGetCurrentContext().nativeHandle)
     }
 
     private fun applyRendererConfiguration() {
@@ -252,7 +238,7 @@ class DSRenderer(
         screenShader = ShaderFactory.createShaderProgram(shaderSource)
     }
 
-    override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) {
+    fun onSurfaceChanged(width: Int, height: Int) {
         this.width = width.toFloat()
         this.height = height.toFloat()
         GLES30.glViewport(0, 0, width, height)
@@ -263,15 +249,18 @@ class DSRenderer(
         }
     }
 
-    override fun onDrawFrame(gl: GL10) {
+    fun drawFrame(presentFrameWrapper: PresentFrameWrapper) {
         if (mustUpdateConfiguration) {
             applyRendererConfiguration()
             mustUpdateConfiguration = false
         }
 
-        val currentTextureId = nextRenderEvent?.textureId ?: return
-
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
+        if (!presentFrameWrapper.isValidFrame) {
+            return
+        }
+
+        GLES30.glWaitSync(presentFrameWrapper.renderFenceHandle, 0, GLES30.GL_TIMEOUT_IGNORED)
 
         posBuffer.position(0)
         uvBuffer.position(0)
@@ -283,7 +272,7 @@ class DSRenderer(
             GLES30.glEnable(GLES30.GL_DEPTH_TEST)
             GLES30.glDepthFunc(GLES30.GL_NOTEQUAL)
             GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
-            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, currentTextureId)
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, presentFrameWrapper.textureId)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, shader.textureFiltering)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, shader.textureFiltering)
 

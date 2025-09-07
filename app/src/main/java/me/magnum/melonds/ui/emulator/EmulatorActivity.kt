@@ -3,8 +3,8 @@ package me.magnum.melonds.ui.emulator
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.opengl.GLSurfaceView
 import android.os.Bundle
+import android.view.Choreographer
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -102,7 +102,7 @@ import java.text.SimpleDateFormat
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class EmulatorActivity : AppCompatActivity() {
+class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     companion object {
         const val KEY_ROM = "rom"
         const val KEY_PATH = "PATH"
@@ -240,17 +240,12 @@ class EmulatorActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(backPressedCallback)
 
         melonTouchHandler = MelonTouchHandler()
-        dsRenderer = DSRenderer(
-            context = this,
-            onGlContextReady = {
+        dsRenderer = DSRenderer(this)
+        binding.surfaceMain.apply {
+            setRenderer(dsRenderer)
+            setOnGlContextReadyListener {
                 currentOpenGlContext.value = it
             }
-        )
-        binding.surfaceMain.apply {
-            setEGLContextClientVersion(3)
-            preserveEGLContextOnPause = true
-            setRenderer(dsRenderer)
-            renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
         }
 
         binding.textFps.visibility = View.INVISIBLE
@@ -382,14 +377,6 @@ class EmulatorActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.frameRenderEvent.collect {
-                    dsRenderer.prepareNextFrame(it)
-                    binding.surfaceMain.requestRender()
-                }
-            }
-        }
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.runtimeLayout.collectLatest {
                     setupSoftInput(it)
                 }
@@ -446,7 +433,10 @@ class EmulatorActivity : AppCompatActivity() {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.uiEvent.collectLatest {
                     when (it) {
-                        EmulatorUiEvent.CloseEmulator -> finish()
+                        EmulatorUiEvent.CloseEmulator -> {
+                            Choreographer.getInstance().removeFrameCallback(this@EmulatorActivity)
+                            finish()
+                        }
                         is EmulatorUiEvent.OpenScreen.CheatsScreen -> {
                             val intent = Intent(this@EmulatorActivity, CheatsActivity::class.java)
                             intent.putExtra(CheatsActivity.KEY_ROM_INFO, RomInfoParcelable.fromRomInfo(it.romInfo))
@@ -542,7 +532,6 @@ class EmulatorActivity : AppCompatActivity() {
         super.onNewIntent(intent)
 
         if (viewModel.emulatorState.value.isRunning()) {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             viewModel.pauseEmulator(false)
             backPressedCallback.isEnabled = false
 
@@ -571,12 +560,17 @@ class EmulatorActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        binding.surfaceMain.onResume()
+        Choreographer.getInstance().postFrameCallback(this)
 
         if (!activeOverlays.hasActiveOverlays()) {
             disableScreenTimeOut()
             viewModel.resumeEmulator()
         }
+    }
+
+    override fun doFrame(frameTimeNanos: Long) {
+        binding.surfaceMain.doFrame()
+        Choreographer.getInstance().postFrameCallback(this)
     }
 
     private fun launchEmulator() {
@@ -588,15 +582,15 @@ class EmulatorActivity : AppCompatActivity() {
 
             disableScreenTimeOut()
             if (bootFirmwareOnly) {
-                val consoleTypeParameter = extras?.getInt(KEY_BOOT_FIRMWARE_CONSOLE, -1)
-                if (consoleTypeParameter == null || consoleTypeParameter == -1) {
+                val consoleTypeParameter = extras.getInt(KEY_BOOT_FIRMWARE_CONSOLE, -1)
+                if (consoleTypeParameter == -1) {
                     throw RuntimeException("No console type specified")
                 }
 
                 val firmwareConsoleType = ConsoleType.entries[consoleTypeParameter]
                 viewModel.loadFirmware(firmwareConsoleType, glContext)
             } else {
-                val romParcelable = extras?.parcelable(KEY_ROM) as RomParcelable?
+                val romParcelable = extras?.parcelable<RomParcelable>(KEY_ROM)
 
                 if (romParcelable?.rom != null) {
                     viewModel.loadRom(romParcelable.rom, glContext)
@@ -863,12 +857,17 @@ class EmulatorActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         enableScreenTimeOut()
-        binding.surfaceMain.onPause()
+        Choreographer.getInstance().removeFrameCallback(this)
         viewModel.pauseEmulator(false)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         updateOrientation(newConfig)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        binding.surfaceMain.stop()
     }
 }

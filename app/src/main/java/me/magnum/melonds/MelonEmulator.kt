@@ -2,13 +2,13 @@ package me.magnum.melonds
 
 import android.content.res.AssetManager
 import android.net.Uri
+import me.magnum.melonds.common.RetroAchievementsCallback
 import me.magnum.melonds.common.camera.DSiCameraSource
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
-import me.magnum.melonds.common.RetroAchievementsCallback
-import me.magnum.melonds.ui.emulator.EmulatorFrameRenderedListener
+import me.magnum.melonds.ui.emulator.render.FrameRenderCallback
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 import java.nio.ByteBuffer
@@ -49,7 +49,6 @@ object MelonEmulator {
         assetManager: AssetManager?,
         dsiCameraSource: DSiCameraSource?,
         retroAchievementsCallback: RetroAchievementsCallback,
-        frameRenderedListener: EmulatorFrameRenderedListener,
         screenshotBuffer: ByteBuffer,
         glContext: Long,
     )
@@ -83,6 +82,8 @@ object MelonEmulator {
     private external fun bootFirmwareInternal(): Int
 
 	external fun startEmulation()
+
+    external fun presentFrame(frameRenderCallback: FrameRenderCallback)
 
 	external fun getFPS(): Int
 
