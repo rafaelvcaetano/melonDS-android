@@ -243,7 +243,11 @@ class RomListActivity : AppCompatActivity() {
                 "DualScreen",
                 "Using external display: ID=${targetDisplay.displayId}, Name=${targetDisplay.name}"
             )
-            ExternalDisplayManager.presentation = ExternalPresentation(this, targetDisplay).apply {
+            ExternalDisplayManager.presentation = ExternalPresentation(
+                this,
+                targetDisplay,
+                settingsRepository.isExternalDisplayRotateLeftEnabled(),
+            ).apply {
                 setBackground("black".toColorInt())
 
                 setOnShowListener {
@@ -467,16 +471,14 @@ class RomListActivity : AppCompatActivity() {
 
     /**
      * Handles the event when a ROM is focused in the list.
-     * This function ensures the external display is active, sets the focused ROM in the
-     * [achievementsViewModel], and then instructs the external presentation (if available)
-     * to show achievements for that ROM, taking into account the current theme (dark/light).
+     * This function ensures the external display is active and sets the focused ROM in the
+     * [achievementsViewModel].
      *
      * @param rom The [Rom] that has gained focus.
      */
     private fun onRomFocused(rom: Rom) {
         showExternalDisplay()
         achievementsViewModel.setRom(rom)
-        ExternalDisplayManager.presentation?.showAchievements(achievementsViewModel, isDarkTheme())
     }
 
     /**

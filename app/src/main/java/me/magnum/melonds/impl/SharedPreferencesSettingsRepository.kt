@@ -196,11 +196,6 @@ class SharedPreferencesSettingsRepository(
         // Cache size is 128MB * (cacheSizeStepPreference ^ 2)
         return SizeUnit.MB(128) * 2.toDouble().pow(cacheSizeStepPreference).toLong()
     }
-
-    override fun showRomFileName(): Boolean {
-        return preferences.getBoolean("show_rom_filename", false)
-    }
-
     override fun getDefaultConsoleType(): ConsoleType {
         val consoleTypePreference = preferences.getString("console_type", "ds")!!
         return enumValueOfIgnoreCase(consoleTypePreference)
@@ -312,6 +307,10 @@ class SharedPreferencesSettingsRepository(
 
     override fun isExternalDisplayKeepAspectRatioEnabled(): Boolean {
         return preferences.getBoolean("external_display_keep_ratio", false)
+    }
+
+    override fun isExternalDisplayRotateLeftEnabled(): Boolean {
+        return preferences.getBoolean("external_display_rotate_left", false)
     }
 
     override fun getDSiCameraSource(): DSiCameraSourceType {
@@ -581,6 +580,12 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
+    override fun setExternalDisplayRotateLeftEnabled(enabled: Boolean) {
+        preferences.edit {
+            putBoolean("external_display_rotate_left", enabled)
+        }
+    }
+
     override fun observeTheme(): Observable<Theme> {
         return getOrCreatePreferenceObservable("theme") {
             getTheme()
@@ -590,12 +595,6 @@ class SharedPreferencesSettingsRepository(
     override fun observeRomIconFiltering(): Flow<RomIconFiltering> {
         return getOrCreatePreferenceSharedFlow("rom_icon_filtering") {
             getRomIconFiltering()
-        }
-    }
-
-    override fun observeShowRomFileName(): Flow<Boolean> {
-        return getOrCreatePreferenceSharedFlow("show_rom_filename") {
-            showRomFileName()
         }
     }
 

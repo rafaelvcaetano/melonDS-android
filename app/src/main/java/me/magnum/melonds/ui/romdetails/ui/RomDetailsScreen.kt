@@ -75,6 +75,7 @@ fun RomDetailsScreen(
                         contentPadding = padding,
                         romName = rom.name,
                         romConfigUiState = romConfigUiState,
+                        romTotalPlayTime = rom.totalPlayTime,
                         onConfigUpdate = onRomConfigUpdate,
                     )
                 }

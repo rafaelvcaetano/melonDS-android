@@ -47,7 +47,6 @@ fun AchievementList(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colors.background)
     ) {
         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colors.onBackground) {
             when (state) {

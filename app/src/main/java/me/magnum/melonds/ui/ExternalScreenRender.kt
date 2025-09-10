@@ -30,7 +30,8 @@ import me.magnum.melonds.domain.model.DsExternalScreen
  * @property screen Specifies which DS screen (TOP or BOTTOM) this renderer is responsible for.
  */
 class ExternalScreenRender(
-    private val screen: DsExternalScreen
+    private val screen: DsExternalScreen,
+    private val rotateLeft: Boolean,
 ) : GLSurfaceView.Renderer, ExternalRenderer {
 
     companion object {
@@ -60,6 +61,10 @@ class ExternalScreenRender(
             1f, 1f,
             1f, -1f
         )
+
+        if (rotateLeft) {
+            RdsRotation.rotateLeft(coords)
+        }
 
         val lineRelativeSize = 1f / (TOTAL_SCREEN_HEIGHT + 1).toFloat()
         val uvs = if (screen == DsExternalScreen.TOP) {

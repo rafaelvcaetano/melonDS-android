@@ -21,14 +21,6 @@ import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.ui.emulator.input.IInputListener
 import me.magnum.melonds.ui.emulator.input.TouchscreenInputHandler
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.fillMaxSize
-import me.magnum.melonds.ui.emulator.ui.AchievementList
-import me.magnum.melonds.ui.romlist.RomListRetroAchievementsViewModel
-import me.magnum.melonds.ui.theme.MelonTheme
 
 
 /**
@@ -49,7 +41,7 @@ import me.magnum.melonds.ui.theme.MelonTheme
  * @param context The [Context] in which the presentation is running.
  * @param display The [Display] on which to show the presentation.
  */
-class ExternalPresentation(context: Context, display: Display) : Presentation(context, display) {
+class ExternalPresentation(context: Context, display: Display, private val rotateLeft: Boolean) : Presentation(context, display) {
     private val container = FrameLayout(context)
 
     private var surfaceView: GLSurfaceView
@@ -137,7 +129,7 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
         screen: DsExternalScreen,
         inputListener: IInputListener? = null,
     ): ExternalScreenRender {
-        val renderer = ExternalScreenRender(screen)
+        val renderer = ExternalScreenRender(screen, rotateLeft)
         val view = createSurfaceView(renderer)
         if (screen == DsExternalScreen.BOTTOM && inputListener != null) {
             view.setOnTouchListener(TouchscreenInputHandler(inputListener))
@@ -186,48 +178,13 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
             topOnTop,
             bottomOnTop,
             background,
+            rotateLeft,
         )
         val view = createSurfaceView(renderer)
         attachView(view)
         return renderer
     }
 
-
-    /**
-     * Replaces the current view with a Composable that displays a list of achievements.
-     *
-     * This function sets up a [ComposeView] to show the [AchievementList] Composable.
-     * It uses the provided [viewModel] to observe and display the achievement data.
-     * The theme (dark or light) is determined by the [isDarkTheme] parameter.
-     *
-     * @param viewModel The [RomListRetroAchievementsViewModel] used to fetch and manage
-     *                  achievement data.
-     * @param isDarkTheme A boolean indicating whether to use a dark theme for the UI.
-     */
-    fun showAchievements(
-        viewModel: RomListRetroAchievementsViewModel,
-        isDarkTheme: Boolean,
-    ) {
-        val composeView = ComposeView(context)
-        composeView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
-        composeView.layoutParams = FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.MATCH_PARENT,
-        )
-        composeView.setContent {
-            MelonTheme(isDarkTheme = isDarkTheme) {
-                val state by viewModel.uiState.collectAsState()
-                AchievementList(
-                    modifier = Modifier.fillMaxSize(),
-                    state = state,
-                    onViewAchievement = { viewModel.viewAchievement(it) },
-                    onRetry = { viewModel.retryLoadAchievements() },
-                    fillScreen = true,
-                )
-            }
-        }
-        attachView(composeView)
-    }
 
     fun showTopScreen() = showDsScreen(DsExternalScreen.TOP)
     fun showBottomScreen(inputListener: IInputListener) = showDsScreen(DsExternalScreen.BOTTOM, inputListener)

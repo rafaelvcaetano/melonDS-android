@@ -168,8 +168,6 @@
     <string name="check_for_updates">Check for updates</string>
     <string name="check_for_updates_summary">When enabled, the app will periodically check for available updates</string>
     <string name="rom_icon_filtering">Icon filtering</string>
-    <string name="show_rom_filename">Show ROM filename</string>
-    <string name="show_rom_filename_summary">Display filename instead of ROM title</string>
     <string name="max_rom_cache_size">Max. ROM cache size</string>
     <string name="clear_extracted_rom_cache">Clear extracted ROM cache</string>
     <string name="cache_size">Cache size: %s</string>
@@ -221,6 +219,7 @@
     <string name="dsi_camera_source">DSi camera source</string>
     <string name="external_screen_layout">External screen layout</string>
     <string name="external_display_screen">External display screen</string>
+    <string name="external_display_rotate_left">Rotate external screen content left</string>
     <string name="refresh_external_screen">Refresh external screen</string>
     <string name="dsi_camera_image">DSi camera image</string>
     <string name="internal_screen_layout">Internal screen layout</string>

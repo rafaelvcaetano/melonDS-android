@@ -21,7 +21,6 @@ interface SettingsRepository {
     fun clearRomSearchDirectories()
     fun getRomIconFiltering(): RomIconFiltering
     fun getRomCacheMaxSize(): SizeUnit
-    fun showRomFileName(): Boolean
 
     fun getDefaultConsoleType(): ConsoleType
     fun getFirmwareConfiguration(): FirmwareConfiguration
@@ -38,6 +37,7 @@ interface SettingsRepository {
     fun getFpsCounterPosition(): FpsCounterPosition
     fun getExternalDisplayScreen(): DsExternalScreen
     fun isExternalDisplayKeepAspectRatioEnabled(): Boolean
+    fun isExternalDisplayRotateLeftEnabled(): Boolean
     fun getDSiCameraSource(): DSiCameraSourceType
     fun getDSiCameraStaticImage(): Uri?
 
@@ -68,7 +68,6 @@ interface SettingsRepository {
 
     fun observeTheme(): Observable<Theme>
     fun observeRomIconFiltering(): Flow<RomIconFiltering>
-    fun observeShowRomFileName(): Flow<Boolean>
     fun observeRomSearchDirectories(): Observable<Array<Uri>>
     fun observeSelectedLayoutId(): Observable<UUID>
     fun observeExternalLayoutId(): Observable<UUID>
@@ -85,6 +84,7 @@ interface SettingsRepository {
     fun setExternalLayoutId(layoutId: UUID)
     fun setExternalDisplayScreen(screen: DsExternalScreen)
     fun setExternalDisplayKeepAspectRatioEnabled(enabled: Boolean)
+    fun setExternalDisplayRotateLeftEnabled(enabled: Boolean)
 
     fun observeRenderConfiguration(): Flow<RendererConfiguration>
 }

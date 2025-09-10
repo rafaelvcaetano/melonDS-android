@@ -740,7 +740,11 @@ class EmulatorActivity : AppCompatActivity() {
                 "Using external display: ID=${targetDisplay.displayId}, Name=${targetDisplay.name}"
             )
 
-            ExternalDisplayManager.presentation = ExternalPresentation(this, targetDisplay).apply {
+            ExternalDisplayManager.presentation = ExternalPresentation(
+                this,
+                targetDisplay,
+                settingsRepository.isExternalDisplayRotateLeftEnabled(),
+            ).apply {
 
                 setSharedContext(dsRenderer.getSharedEglContext())
 
