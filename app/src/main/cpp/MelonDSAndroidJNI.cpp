@@ -12,7 +12,6 @@
 #include "UriFileHandler.h"
 #include "JniEnvHandler.h"
 #include "AndroidRACallback.h"
-#include "AndroidFrameRenderedCallback.h"
 #include "MelonDSAndroidInterface.h"
 #include "MelonDSAndroidConfiguration.h"
 #include "MelonDSAndroidCameraHandler.h"
@@ -47,15 +46,13 @@ bool isFastForwardEnabled = false;
 jobject globalAssetManager;
 jobject globalCameraManager;
 jobject androidRaCallback;
-jobject androidFrameRenderListener;
 MelonDSAndroidCameraHandler* androidCameraHandler;
 AndroidRACallback* raCallback;
-AndroidFrameRenderedCallback* frameRenderedCallback;
 
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject cameraManager, jobject retroAchievementsCallback, jobject frameRenderListener, jobject screenshotBuffer, jlong glContext)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject cameraManager, jobject retroAchievementsCallback, jobject screenshotBuffer, jlong glContext)
 {
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
     fastForwardSpeedMultiplier = finalEmulatorConfiguration.fastForwardSpeedMultiplier;
@@ -63,16 +60,14 @@ Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jo
     globalAssetManager = env->NewGlobalRef(javaAssetManager);
     globalCameraManager = env->NewGlobalRef(cameraManager);
     androidRaCallback = env->NewGlobalRef(retroAchievementsCallback);
-    androidFrameRenderListener = env->NewGlobalRef(frameRenderListener);
 
     AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
     androidCameraHandler = new MelonDSAndroidCameraHandler(jniEnvHandler, globalCameraManager);
     raCallback = new AndroidRACallback(jniEnvHandler, androidRaCallback);
-    frameRenderedCallback = new AndroidFrameRenderedCallback(jniEnvHandler, androidFrameRenderListener);
     u32* screenshotBufferPointer = (u32*) env->GetDirectBufferAddress(screenshotBuffer);
 
     MelonDSAndroid::setConfiguration(finalEmulatorConfiguration);
-    MelonDSAndroid::setup(assetManager, androidCameraHandler, raCallback, frameRenderedCallback, screenshotBufferPointer, glContext, true);
+    MelonDSAndroid::setup(assetManager, androidCameraHandler, raCallback, screenshotBufferPointer, glContext, true);
     paused = false;
 }
 
@@ -241,6 +236,24 @@ Java_me_magnum_melonds_MelonEmulator_startEmulation(JNIEnv* env, jobject thiz)
     pthread_setname_np(emuThread, "EmulatorThread");
 
     started = true;
+}
+
+JNIEXPORT void JNICALL
+Java_me_magnum_melonds_MelonEmulator_presentFrame(JNIEnv* env, jobject thiz, jobject renderFrameCallback)
+{
+    jclass presentFrameWrapperClass = env->GetObjectClass(renderFrameCallback);
+    jmethodID renderFrameMethodId = env->GetMethodID(presentFrameWrapperClass, "renderFrame", "(ZIJ)J");
+
+    Frame* presentationFrame = MelonDSAndroid::getPresentationFrame();
+    if (presentationFrame != nullptr)
+    {
+        jlong presentFence = env->CallLongMethod(renderFrameCallback, renderFrameMethodId, true, (jint) presentationFrame->frameTexture, (jlong) presentationFrame->renderFence);
+        presentationFrame->presentFence = reinterpret_cast<GLsync >(presentFence);
+    }
+    else
+    {
+        env->CallLongMethod(renderFrameCallback, renderFrameMethodId, false, 0, 0L);
+    }
 }
 
 JNIEXPORT jint JNICALL
@@ -418,16 +431,13 @@ Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
     env->DeleteGlobalRef(globalAssetManager);
     env->DeleteGlobalRef(globalCameraManager);
     env->DeleteGlobalRef(androidRaCallback);
-    env->DeleteGlobalRef(androidFrameRenderListener);
 
     globalAssetManager = nullptr;
     globalCameraManager = nullptr;
     androidRaCallback = nullptr;
-    androidFrameRenderListener = nullptr;
 
     delete androidCameraHandler;
     delete raCallback;
-    delete frameRenderedCallback;
 }
 
 JNIEXPORT void JNICALL

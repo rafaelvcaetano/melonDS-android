@@ -21,7 +21,6 @@ import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.MicSource
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
-import me.magnum.melonds.domain.model.render.FrameRenderEvent
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
@@ -48,9 +47,6 @@ class AndroidEmulatorManager(
 ) : EmulatorManager {
 
     private val achievementsSharedFlow = MutableSharedFlow<RAEvent>(replay = 0, extraBufferCapacity = Int.MAX_VALUE)
-
-    private val _frameRenderedEvent = MutableSharedFlow<FrameRenderEvent>(replay = 0, extraBufferCapacity = 1)
-    override val frameRenderedEvent = _frameRenderedEvent.asSharedFlow()
 
     private val loadedAchievements = mutableListOf<RASimpleAchievement>()
 
@@ -205,9 +201,6 @@ class AndroidEmulatorManager(
                 override fun onAchievementUnprimed(achievementId: Long) {
                     achievementsSharedFlow.tryEmit(RAEvent.OnAchievementUnPrimed(achievementId))
                 }
-            },
-            frameRenderedListener = { textureId ->
-                _frameRenderedEvent.tryEmit(FrameRenderEvent(textureId))
             },
             screenshotBuffer = screenshotFrameBufferProvider.frameBuffer(),
             glContext = glContext,
