@@ -38,6 +38,7 @@ interface SettingsRepository {
     fun getFpsCounterPosition(): FpsCounterPosition
     fun getExternalDisplayScreen(): DsExternalScreen
     fun isExternalDisplayKeepAspectRatioEnabled(): Boolean
+    fun isExternalDisplayRotateLeftEnabled(): Boolean
     fun getDSiCameraSource(): DSiCameraSourceType
     fun getDSiCameraStaticImage(): Uri?
 
@@ -85,6 +86,7 @@ interface SettingsRepository {
     fun setExternalLayoutId(layoutId: UUID)
     fun setExternalDisplayScreen(screen: DsExternalScreen)
     fun setExternalDisplayKeepAspectRatioEnabled(enabled: Boolean)
+    fun setExternalDisplayRotateLeftEnabled(enabled: Boolean)
 
     fun observeRenderConfiguration(): Flow<RendererConfiguration>
 }

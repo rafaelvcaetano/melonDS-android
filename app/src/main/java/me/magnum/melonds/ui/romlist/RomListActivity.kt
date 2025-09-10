@@ -243,7 +243,11 @@ class RomListActivity : AppCompatActivity() {
                 "DualScreen",
                 "Using external display: ID=${targetDisplay.displayId}, Name=${targetDisplay.name}"
             )
-            ExternalDisplayManager.presentation = ExternalPresentation(this, targetDisplay).apply {
+            ExternalDisplayManager.presentation = ExternalPresentation(
+                this,
+                targetDisplay,
+                settingsRepository.isExternalDisplayRotateLeftEnabled(),
+            ).apply {
                 setBackground("black".toColorInt())
 
                 setOnShowListener {

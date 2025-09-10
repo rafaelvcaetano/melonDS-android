@@ -46,6 +46,12 @@
         android:entryValues="@array/external_display_screen_values"
         android:defaultValue="top"/>
 
+    <SwitchPreference
+        android:key="external_display_rotate_left"
+        android:title="@string/external_display_rotate_left"
+        app:iconSpaceReserved="false"
+        android:defaultValue="false"/>
+
     <Preference
         android:key="external_layouts"
         android:title="@string/external_screen_layout"

@@ -49,7 +49,7 @@ import me.magnum.melonds.ui.theme.MelonTheme
  * @param context The [Context] in which the presentation is running.
  * @param display The [Display] on which to show the presentation.
  */
-class ExternalPresentation(context: Context, display: Display) : Presentation(context, display) {
+class ExternalPresentation(context: Context, display: Display, private val rotateLeft: Boolean) : Presentation(context, display) {
     private val container = FrameLayout(context)
 
     private var surfaceView: GLSurfaceView
@@ -137,7 +137,7 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
         screen: DsExternalScreen,
         inputListener: IInputListener? = null,
     ): ExternalScreenRender {
-        val renderer = ExternalScreenRender(screen)
+        val renderer = ExternalScreenRender(screen, rotateLeft)
         val view = createSurfaceView(renderer)
         if (screen == DsExternalScreen.BOTTOM && inputListener != null) {
             view.setOnTouchListener(TouchscreenInputHandler(inputListener))
@@ -186,6 +186,7 @@ class ExternalPresentation(context: Context, display: Display) : Presentation(co
             topOnTop,
             bottomOnTop,
             background,
+            rotateLeft,
         )
         val view = createSurfaceView(renderer)
         attachView(view)

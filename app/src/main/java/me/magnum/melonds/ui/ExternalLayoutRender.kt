@@ -53,6 +53,7 @@ class ExternalLayoutRender(
     private var topOnTop: Boolean = false,
     private var bottomOnTop: Boolean = false,
     private var background: RuntimeBackground = RuntimeBackground.None,
+    private val rotateLeft: Boolean,
 ) : GLSurfaceView.Renderer, ExternalRenderer {
 
     companion object {
@@ -121,6 +122,11 @@ class ExternalLayoutRender(
             right, top,
             right, bottom,
         )
+
+        if (rotateLeft) {
+            RdsRotation.rotateLeft(coords)
+        }
+
         return ByteBuffer.allocateDirect(coords.size * 4)
             .order(ByteOrder.nativeOrder())
             .asFloatBuffer()
@@ -328,11 +334,15 @@ class ExternalLayoutRender(
     private fun updateBackgroundPosition() {
         val bg = background ?: return
         val coords = getBackgroundCoords(bg.mode, backgroundWidth, backgroundHeight)
+        val array = coords.toFloatArray()
+        if (rotateLeft) {
+            RdsRotation.rotateLeft(array)
+        }
 
-        backgroundPosBuffer = ByteBuffer.allocateDirect(4 * coords.size)
+        backgroundPosBuffer = ByteBuffer.allocateDirect(4 * array.size)
             .order(ByteOrder.nativeOrder())
             .asFloatBuffer()
-            .put(coords.toFloatArray())
+            .put(array)
 
         isBackgroundPositionDirty = false
     }
