@@ -33,13 +33,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.nativeKeyCode
-import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -69,8 +67,6 @@ fun InputSetupScreen(
         onInputAssignedEvent = onInputAssignedEvent,
         onInputClick = viewModel::startInputAssignment,
         onClearInputClick = viewModel::clearInputAssignment,
-        onKeyAssigned = { viewModel.updateInputAssignedKey(it.nativeKeyCode) },
-        onCancelInputConfiguration = viewModel::stopInputAssignment,
         onBackClick = onBackClick,
     )
 }
@@ -82,8 +78,6 @@ private fun InputSetupScreenContent(
     onInputAssignedEvent: Flow<Input>,
     onInputClick: (Input) -> Unit,
     onClearInputClick: (Input) -> Unit,
-    onKeyAssigned: (Key) -> Unit,
-    onCancelInputConfiguration: () -> Unit,
     onBackClick: () -> Unit,
 ) {
     val systemUiController = rememberSystemUiController()
@@ -93,7 +87,7 @@ private fun InputSetupScreenContent(
     systemUiController.isNavigationBarContrastEnforced = false
 
     BackHandler(enabled = inputUnderConfiguration != null) {
-        onCancelInputConfiguration()
+        // Prevent back navigation when user is configuring an input
     }
 
     LaunchedEffect(Unit) {
@@ -103,18 +97,6 @@ private fun InputSetupScreenContent(
     }
 
     Scaffold(
-        modifier = Modifier.onPreviewKeyEvent {
-            if (inputUnderConfiguration != null && it.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
-                if (it.key == Key.Back) {
-                    onCancelInputConfiguration()
-                } else {
-                    onKeyAssigned(it.key)
-                }
-                true
-            } else {
-                false
-            }
-        },
         topBar = {
             Box(Modifier.background(MaterialTheme.colors.primaryVariant).statusBarsPadding()) {
                 TopAppBar(
@@ -286,8 +268,6 @@ private fun PreviewInputSetupScreen() {
             onInputAssignedEvent = emptyFlow(),
             onInputClick = { },
             onClearInputClick = { },
-            onKeyAssigned = { },
-            onCancelInputConfiguration = { },
             onBackClick = { },
         )
     }
