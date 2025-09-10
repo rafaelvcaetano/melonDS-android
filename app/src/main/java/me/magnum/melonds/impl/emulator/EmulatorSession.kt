@@ -11,7 +11,7 @@ class EmulatorSession {
         private set
 
     private var areRetroAchievementsEnabled = false
-    private var isRetroAchievementsIntegrationEnabled = false
+    private var sessionHasAchievements = false
     private var sessionType: SessionType? = null
 
     fun startSession(areRetroAchievementsEnabled: Boolean, isRetroAchievementsHardcoreModeEnabled: Boolean, sessionType: SessionType) {
@@ -24,7 +24,7 @@ class EmulatorSession {
     fun reset() {
         areRetroAchievementsEnabled = false
         isRetroAchievementsHardcoreModeEnabled = false
-        isRetroAchievementsIntegrationEnabled = false
+        sessionHasAchievements = false
         sessionType = null
     }
 
@@ -49,11 +49,11 @@ class EmulatorSession {
     }
 
     fun updateRetroAchievementsIntegrationStatus(integrationStatus: GameAchievementData.IntegrationStatus) {
-        isRetroAchievementsIntegrationEnabled = integrationStatus == GameAchievementData.IntegrationStatus.ENABLED
+        sessionHasAchievements = integrationStatus == GameAchievementData.IntegrationStatus.ENABLED_FULL
     }
 
     fun areRetroAchievementsEnabled(): Boolean {
-        return areRetroAchievementsEnabled && isRetroAchievementsIntegrationEnabled
+        return areRetroAchievementsEnabled && sessionHasAchievements
     }
 
     fun areSaveStateLoadsAllowed(): Boolean {

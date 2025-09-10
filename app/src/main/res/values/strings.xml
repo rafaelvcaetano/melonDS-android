@@ -413,6 +413,7 @@
     <string name="submitting_achievements">Submitting RetroAchievements…</string>
     <string name="achievements_loaded">Achievements loaded</string>
     <string name="achievements_unlocked_compact">Unlocked: %1$d/%2$d</string>
+    <string name="game_has_no_achievements">This game has no achievements</string>
     <string name="achievements_failed_load">Failed to load achievements!</string>
     <string name="achievements_failed_load_tip">Make sure you are Online</string>
     <string name="achievement_unlocked">Achievement unlocked!</string>

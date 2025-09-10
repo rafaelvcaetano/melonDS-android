@@ -8,8 +8,8 @@ import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import me.magnum.melonds.MelonEmulator
-import me.magnum.melonds.ui.emulator.render.GlContext
 import me.magnum.melonds.domain.model.render.PresentFrameWrapper
+import me.magnum.melonds.ui.emulator.render.GlContext
 
 class EmulatorSurfaceView(context: Context, attrs: AttributeSet? = null) : SurfaceView(context, attrs), SurfaceHolder.Callback {
 

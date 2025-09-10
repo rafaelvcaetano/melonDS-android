@@ -43,10 +43,10 @@ abstract class RetroAchievementsViewModel (
                 val forHardcoreMode = settingsRepository.isRetroAchievementsHardcoreEnabled()
                 retroAchievementsRepository.getGameUserAchievements(getRom().retroAchievementsHash, forHardcoreMode).fold(
                     onSuccess = { achievements ->
-                        val sortedAchievements = achievements.sortedBy {
+                        val sortedAchievements = achievements?.sortedBy {
                             // Display unlocked achievements first
                             if (it.isUnlocked) 0 else 1
-                        }
+                        }.orEmpty()
                         _uiState.value = RomRetroAchievementsUiState.Ready(sortedAchievements, buildAchievementsSummary(forHardcoreMode, sortedAchievements))
                     },
                     onFailure = {
