@@ -10,7 +10,7 @@ interface RetroAchievementsRepository {
     suspend fun getUserAuthentication(): RAUserAuth?
     suspend fun login(username: String, password: String): Result<Unit>
     suspend fun logout()
-    suspend fun getGameUserAchievements(gameHash: String, forHardcoreMode: Boolean): Result<List<RAUserAchievement>>
+    suspend fun getGameUserAchievements(gameHash: String, forHardcoreMode: Boolean): Result<List<RAUserAchievement>?>
     suspend fun getGameSummary(gameHash: String): RAGameSummary?
     suspend fun getAchievement(achievementId: Long): Result<RAAchievement?>
     suspend fun awardAchievement(achievement: RAAchievement, forHardcoreMode: Boolean): Result<Unit>

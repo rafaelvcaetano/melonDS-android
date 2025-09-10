@@ -66,7 +66,7 @@ class AndroidRetroAchievementsRepository(
         raUserAuthStore.clearUserAuth()
     }
 
-    override suspend fun getGameUserAchievements(gameHash: String, forHardcoreMode: Boolean): Result<List<RAUserAchievement>> {
+    override suspend fun getGameUserAchievements(gameHash: String, forHardcoreMode: Boolean): Result<List<RAUserAchievement>?> {
         val gameIdResult = getGameIdFromGameHash(gameHash)
         if (gameIdResult.isFailure) {
             return Result.failure(gameIdResult.exceptionOrNull()!!)
@@ -74,7 +74,7 @@ class AndroidRetroAchievementsRepository(
 
         val gameId = gameIdResult.getOrThrow()
         if (gameId == null) {
-            return Result.success(emptyList())
+            return Result.success(null)
         }
 
         val gameSetMetadata = achievementsDao.getGameSetMetadata(gameId.id)

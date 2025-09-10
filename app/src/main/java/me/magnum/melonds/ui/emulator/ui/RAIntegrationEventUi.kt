@@ -65,6 +65,13 @@ fun RAIntegrationEventUi(modifier: Modifier, event: RAIntegrationEvent) {
                         )
                     }
                 }
+                is RAIntegrationEvent.LoadedNoAchievements -> {
+                    Text(
+                        text = stringResource(id = R.string.game_has_no_achievements),
+                        style = MaterialTheme.typography.body2,
+                        maxLines = 1,
+                    )
+                }
                 is RAIntegrationEvent.Loaded -> {
                     Column {
                         Text(
