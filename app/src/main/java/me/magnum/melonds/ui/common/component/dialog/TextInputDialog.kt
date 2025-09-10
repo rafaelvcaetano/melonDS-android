@@ -26,6 +26,8 @@ import me.magnum.melonds.ui.common.melonOutlinedTextFieldColors
 fun TextInputDialog(
     title: String,
     dialogState: TextInputDialogState,
+    allowEmpty: Boolean = false,
+    onDelete: (() -> Unit)? = null,
 ) {
     if (dialogState.isDialogVisible) {
         BaseDialog(
@@ -58,9 +60,18 @@ fun TextInputDialog(
                     text = stringResource(R.string.cancel),
                     onClick = { dialogState.cancel() },
                 )
+                if (onDelete != null) {
+                    DialogButton(
+                        text = stringResource(R.string.delete),
+                        onClick = {
+                            onDelete()
+                            dialogState.cancel()
+                        },
+                    )
+                }
                 DialogButton(
                     text = stringResource(R.string.ok),
-                    enabled = dialogState.textField.text.isNotEmpty(),
+                    enabled = allowEmpty || dialogState.textField.text.isNotEmpty(),
                     onClick = { dialogState.confirm() },
                 )
             }

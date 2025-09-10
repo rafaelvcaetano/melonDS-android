@@ -21,6 +21,13 @@
             android:entryValues="@array/rom_icon_filtering_values"
             android:defaultValue="none" />
 
+    <SwitchPreference
+            android:key="show_rom_filename"
+            android:title="@string/show_rom_filename"
+            android:summary="@string/show_rom_filename_summary"
+            app:iconSpaceReserved="false"
+            android:defaultValue="false" />
+
     <!-- 7 steps of cache size. Real cache size is equal to 128MB * (2 ^ rom_cache_max_size) -->
     <SeekBarPreference
             android:key="rom_cache_max_size"

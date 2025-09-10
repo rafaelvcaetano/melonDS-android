@@ -86,9 +86,20 @@ class FileSystemRomsRepository(
     }
 
     override suspend fun getRomAtPath(path: String): Rom? {
-        return getRoms().first().find { rom ->
+        val romList = getRoms().first()
+
+        val fullPathRom = romList.find { rom ->
             val romPath = FileUtils.getAbsolutePathFromSAFUri(context, rom.uri)
             romPath == path
+        }
+        if (fullPathRom != null) {
+            return fullPathRom
+        }
+
+        val fileName = File(path).name
+        return romList.find { rom ->
+            val romPath = FileUtils.getAbsolutePathFromSAFUri(context, rom.uri)
+            romPath != null && File(romPath).name == fileName
         }
     }
 
@@ -113,6 +124,16 @@ class FileSystemRomsRepository(
             return
 
         rom.lastPlayed = lastPlayed
+        roms[romIndex] = rom
+        onRomsChanged()
+    }
+
+    override fun addRomPlayTime(rom: Rom, playTimeMillis: Long) {
+        val romIndex = roms.indexOfFirst { it.hasSameFileAsRom(rom) }
+        if (romIndex < 0)
+            return
+
+        rom.totalPlayTime += playTimeMillis
         roms[romIndex] = rom
         onRomsChanged()
     }

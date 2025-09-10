@@ -26,7 +26,6 @@ class InputPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         val touchVibratePreference = findPreference<SwitchPreference>("input_touch_haptic_feedback_enabled")!!
         val vibrationStrengthPreference = findPreference<SeekBarPreference>("input_touch_haptic_feedback_strength")!!
         val keyMappingPreference = findPreference<Preference>("input_key_mapping")!!
-        val layoutsPreference = findPreference<Preference>("input_layouts")!!
 
         if (!vibrator.supportsVibration()) {
             touchVibratePreference.isVisible = false
@@ -40,11 +39,6 @@ class InputPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         }
         keyMappingPreference.setOnPreferenceClickListener {
             val intent = Intent(requireContext(), InputSetupActivity::class.java)
-            startActivity(intent)
-            true
-        }
-        layoutsPreference.setOnPreferenceClickListener {
-            val intent = Intent(requireContext(), LayoutListActivity::class.java)
             startActivity(intent)
             true
         }

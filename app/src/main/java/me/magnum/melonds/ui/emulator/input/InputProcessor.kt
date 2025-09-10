@@ -12,9 +12,10 @@ class InputProcessor(private val controllerConfiguration: ControllerConfiguratio
     private val axisStates: Map<Axis, AxisState>
 
     init {
-        val axis = controllerConfiguration.inputMapper.mapNotNull { inputConfig ->
-            // Filter axis assignments only
-            (inputConfig.assignment as? InputConfig.Assignment.Axis)?.let {
+        val axis = controllerConfiguration.inputMapper.flatMap { inputConfig ->
+            listOf(inputConfig.assignment, inputConfig.altAssignment)
+        }.mapNotNull { assignment ->
+            (assignment as? InputConfig.Assignment.Axis)?.let {
                 Axis(it.deviceId, it.axisCode, it.direction)
             }
         }

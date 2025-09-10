@@ -45,6 +45,7 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
             false,
             0,
             emptyMap(),
+            LayoutConfiguration.LayoutTarget.INTERNAL,
         )
     }
 
@@ -120,7 +121,8 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
             } else {
                 val deletableLayouts = loadLayouts().map { Deletable(it, false) }
                 layouts.value = buildList {
-                    add(Deletable(buildDefaultLayout(), false))
+                    add(Deletable(buildDefaultInternalLayout(), false))
+                    add(Deletable(buildDefaultExternalLayout(), false))
                     addAll(deletableLayouts)
                 }
                 areLayoutsLoaded = true
@@ -166,7 +168,7 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
         }
     }
 
-    private fun buildDefaultLayout(): LayoutConfiguration {
+    private fun buildDefaultInternalLayout(): LayoutConfiguration {
         return LayoutConfiguration(
             id = LayoutConfiguration.DEFAULT_ID,
             name = context.getString(R.string.default_layout_name),
@@ -175,6 +177,20 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
             useCustomOpacity = false,
             opacity = 50,
             layoutVariants = emptyMap(),
+            target = LayoutConfiguration.LayoutTarget.INTERNAL,
+        )
+    }
+
+    private fun buildDefaultExternalLayout(): LayoutConfiguration {
+        return LayoutConfiguration(
+            id = LayoutConfiguration.DEFAULT_EXTERNAL_ID,
+            name = context.getString(R.string.default_layout_name),
+            type = LayoutConfiguration.LayoutType.DEFAULT,
+            orientation = LayoutConfiguration.LayoutOrientation.FOLLOW_SYSTEM,
+            useCustomOpacity = false,
+            opacity = 50,
+            layoutVariants = emptyMap(),
+            target = LayoutConfiguration.LayoutTarget.EXTERNAL,
         )
     }
 }

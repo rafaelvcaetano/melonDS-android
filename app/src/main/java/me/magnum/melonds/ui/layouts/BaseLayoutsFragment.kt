@@ -121,7 +121,7 @@ abstract class BaseLayoutsFragment : Fragment() {
         layoutSelectedListener?.invoke(layout.id, LayoutSelectionReason.BY_USER)
     }
 
-    private fun editLayout(layout: LayoutConfiguration) {
+    protected open fun editLayout(layout: LayoutConfiguration) {
         layout.id?.let {
             val intent = Intent(requireContext(), LayoutEditorActivity::class.java)
             intent.putExtra(LayoutEditorActivity.KEY_LAYOUT_ID, it.toString())
@@ -151,7 +151,7 @@ abstract class BaseLayoutsFragment : Fragment() {
         layoutSelectedListener?.invoke(defaultLayoutId, LayoutSelectionReason.BY_FALLBACK)
     }
 
-    private fun createLayout() {
+    protected open fun createLayout() {
         val intent = Intent(requireContext(), LayoutEditorActivity::class.java)
         startActivity(intent)
     }

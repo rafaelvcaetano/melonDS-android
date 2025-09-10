@@ -171,6 +171,24 @@
     <string name="enable_jit">Habilitar JIT</string>
     <string name="enable_jit_summary">Mejora el rendimiento, pero puede provocar bloqueos o crasheos</string>
     <string name="jit_not_supported">JIT solamente es compatible con dispositivos de 64 bits.</string>
+    <string name="backup_settings">Respaldar ajustes</string>
+    <string name="restore_settings">Restaurar ajustes</string>
+    <string name="settings_backup_success">Respaldo de ajustes creado.\n\nSe omitieron:\n&#8226; Sesión de RetroAchievements\n&#8226; Directorios de ROM/guardado\n&#8226; Directorio de DS BIOS\n&#8226; Directorio de DSi BIOS</string>
+    <string name="settings_backup_error">Error al respaldar ajustes</string>
+    <string name="settings_restore_success">Ajustes restaurados.\n\nSin cambios:\n&#8226; Sesión de RetroAchievements\n&#8226; Directorios de ROM/guardado\n&#8226; Directorio de DS BIOS\n&#8226; Directorio de DSi BIOS</string>
+    <string name="settings_restore_error">Error al restaurar ajustes</string>
+    <string name="backup_internal_layout">Respaldar layout interno</string>
+    <string name="backup_external_layout">Respaldar layout externo</string>
+    <string name="restore_internal_layout">Restaurar layout interno</string>
+    <string name="restore_external_layout">Restaurar layout externo</string>
+    <string name="internal_layout_backup_success">Respaldo de layout interno creado.</string>
+    <string name="internal_layout_backup_error">Error al respaldar layout interno</string>
+    <string name="external_layout_backup_success">Respaldo de layout externo creado.</string>
+    <string name="external_layout_backup_error">Error al respaldar layout externo</string>
+    <string name="internal_layout_restore_success">Layout interno restaurado.</string>
+    <string name="internal_layout_restore_error">Error al restaurar layout interno</string>
+    <string name="external_layout_restore_success">Layout externo restaurado.</string>
+    <string name="external_layout_restore_error">Error al restaurar layout externo</string>
     <string name="threaded_rendering">Renderizar en subproceso</string>
     <string name="fps_counter_position">Posición del contador de FPS</string>
     <string name="threaded_rendering_summary">Mejora el rendimiento de los juegos en 3D cuando está habilitado, pero causará fallas gráficas.</string>
@@ -251,6 +269,8 @@
 
     <string name="top_screen">Pantalla superior</string>
     <string name="bottom_screen">Pantalla inferior</string>
+    <string name="refresh_external_screen">Refrescar pantalla externa</string>
+    <string name="external_display_rotate_left">Rotar contenido a la izquierda en la pantalla externa</string>
     <string name="input_a">A</string>
     <string name="input_b">B</string>
     <string name="input_x">X</string>
@@ -279,6 +299,7 @@
     <string name="action_layouts_new">Nuevo diseño</string>
     <string name="default_layout_name">Predeterminado</string>
     <string name="use_global_layout">Usar diseño global</string>
+    <string name="use_global_preference">Usar configuración global</string>
     <string name="layout_deleted">Diseño eliminado</string>
 
     <string name="layout_editor">Editor de diseño</string>

@@ -15,6 +15,7 @@ abstract class FrontendInputHandler : IInputListener {
             Input.QUICK_SAVE -> onQuickSave()
             Input.QUICK_LOAD -> onQuickLoad()
             Input.REWIND -> onRewind()
+            Input.REFRESH_EXTERNAL_SCREEN -> onRefreshExternalScreen()
             else -> {}
         }
     }
@@ -34,4 +35,5 @@ abstract class FrontendInputHandler : IInputListener {
     abstract fun onQuickSave()
     abstract fun onQuickLoad()
     abstract fun onRewind()
+    abstract fun onRefreshExternalScreen()
 }

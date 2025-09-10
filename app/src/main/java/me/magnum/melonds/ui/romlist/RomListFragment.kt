@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.text.format.DateUtils
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isGone
@@ -42,6 +43,8 @@ import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.romdetails.RomDetailsActivity
 import me.magnum.melonds.ui.romlist.RomListFragment.RomEnabledFilter
 import me.magnum.melonds.ui.romlist.RomListFragment.RomListAdapter.RomViewHolder
+import me.magnum.melonds.domain.repositories.SettingsRepository
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class RomListFragment : Fragment() {
@@ -68,7 +71,10 @@ class RomListFragment : Fragment() {
     private val romListViewModel: RomListViewModel by activityViewModels()
     private lateinit var romListAdapter: RomListAdapter
 
+    @Inject lateinit var settingsRepository: SettingsRepository
+
     private var romSelectedListener: ((Rom) -> Unit)? = null
+    private var romFocusListener: ((Rom) -> Unit)? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = RomListFragmentBinding.inflate(inflater, container, false)
@@ -82,6 +88,7 @@ class RomListFragment : Fragment() {
 
         val allowRomConfiguration = arguments?.getBoolean(KEY_ALLOW_ROM_CONFIGURATION) ?: true
         val romEnableCriteria = arguments?.getString(KEY_ROM_ENABLE_CRITERIA)?.let { RomEnableCriteria.valueOf(it) } ?: RomEnableCriteria.ENABLE_ALL
+        val showRomFileName = settingsRepository.showRomFileName()
 
         romListAdapter = RomListAdapter(
             allowRomConfiguration = allowRomConfiguration,
@@ -101,6 +108,8 @@ class RomListFragment : Fragment() {
                 }
             },
             romEnabledFilter = buildRomEnabledFilter(romEnableCriteria),
+            focusListener = romFocusListener,
+            showRomFileName = showRomFileName,
         )
 
         binding.listRoms.apply {
@@ -135,6 +144,14 @@ class RomListFragment : Fragment() {
                 }
             }
         }
+
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsRepository.observeShowRomFileName().collectLatest { show ->
+                    romListAdapter.setShowRomFileName(show)
+                }
+            }
+        }
     }
 
     private fun displayEmptyListViewIfRequired() {
@@ -154,12 +171,21 @@ class RomListFragment : Fragment() {
         romSelectedListener = listener
     }
 
+    fun setRomFocusListener(listener: (Rom) -> Unit) {
+        romFocusListener = listener
+        if (this::romListAdapter.isInitialized) {
+            romListAdapter.setRomFocusListener(listener)
+        }
+    }
+
     private inner class RomListAdapter(
         private val allowRomConfiguration: Boolean,
         private val context: Context,
         private val coroutineScope: CoroutineScope,
         private val listener: RomClickListener,
         private val romEnabledFilter: RomEnabledFilter,
+        private var focusListener: ((Rom) -> Unit)? = null,
+        private var showRomFileName: Boolean,
     ) : RecyclerView.Adapter<RomViewHolder>() {
 
         private val roms: ArrayList<Rom> = ArrayList()
@@ -175,6 +201,17 @@ class RomListFragment : Fragment() {
         fun updateIcons() {
             val diff = DiffUtil.calculateDiff(RomIconDiffUtilCallback(this.roms.size))
             diff.dispatchUpdatesTo(this)
+        }
+
+        fun setRomFocusListener(listener: (Rom) -> Unit) {
+            focusListener = listener
+        }
+
+        fun setShowRomFileName(show: Boolean) {
+            if (showRomFileName != show) {
+                showRomFileName = show
+                notifyDataSetChanged()
+            }
         }
 
         override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RomViewHolder {
@@ -201,7 +238,11 @@ class RomListFragment : Fragment() {
             return roms.size
         }
 
-        open inner class RomViewHolder(itemView: View, private val coroutineScope: CoroutineScope, onRomClick: (Rom) -> Unit) : RecyclerView.ViewHolder(itemView) {
+        open inner class RomViewHolder(
+            itemView: View,
+            private val coroutineScope: CoroutineScope,
+            onRomClick: (Rom) -> Unit
+        ) : RecyclerView.ViewHolder(itemView) {
             private val imageViewRomIcon = itemView.findViewById<ImageView>(R.id.imageRomIcon)
             private val textViewRomName = itemView.findViewById<TextView>(R.id.textRomName)
             private val textViewRomPath = itemView.findViewById<TextView>(R.id.textRomPath)
@@ -211,8 +252,11 @@ class RomListFragment : Fragment() {
             private var romIconLoadJob: Job? = null
 
             init {
-                itemView.setOnClickListener {
-                    onRomClick(rom)
+                itemView.setOnClickListener { onRomClick(rom) }
+                itemView.setOnFocusChangeListener { _, hasFocus ->
+                    if (hasFocus) {
+                        this@RomListAdapter.focusListener?.invoke(rom)
+                    }
                 }
             }
 
@@ -222,8 +266,15 @@ class RomListFragment : Fragment() {
 
             open fun setRom(rom: Rom, isEnabled: Boolean) {
                 this.rom = rom
-                textViewRomName.text = rom.name
-                textViewRomPath.text = rom.fileName
+                textViewRomName.text = when {
+                    rom.config.customName != null -> rom.config.customName
+                    showRomFileName -> rom.fileName
+                    else -> rom.name
+                }
+                textViewRomPath.text = itemView.context.getString(
+                    R.string.info_play_time,
+                    DateUtils.formatElapsedTime(rom.totalPlayTime / 1000)
+                )
                 imageViewRomIcon.setImageDrawable(null)
                 imagePlatformLogo.isVisible = rom.isDsiWareTitle
 
