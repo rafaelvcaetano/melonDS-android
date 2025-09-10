@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -93,8 +94,12 @@ class InputSetupActivity : AppCompatActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (viewModel.inputUnderAssignment.value != null && event.action == KeyEvent.ACTION_DOWN) {
-            viewModel.updateInputAssignedKey(event.keyCode)
+        if (event.action == KeyEvent.ACTION_DOWN && viewModel.inputUnderAssignment.value != null) {
+            if (event.keyCode != KeyEvent.KEYCODE_BACK) {
+                viewModel.updateInputAssignedKey(event.keyCode)
+            } else {
+                viewModel.stopInputAssignment()
+            }
             return true
         }
         return super.dispatchKeyEvent(event)

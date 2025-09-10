@@ -35,6 +35,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -89,10 +91,9 @@ private fun InputSetupScreenContent(
     systemUiController.setStatusBarColor(MaterialTheme.colors.primaryVariant)
     systemUiController.isNavigationBarContrastEnforced = false
 
-    // When waiting for input we allow the next key press to be mapped, even if
-    // it would normally trigger the system back action. Therefore we do not
-    // handle the back key here.
-
+    BackHandler(enabled = inputUnderConfiguration != null) {
+        // Prevent back navigation when user is configuring an input
+    }
     LaunchedEffect(Unit) {
         onInputAssignedEvent.collect {
             focusManager.moveFocus(focusDirection = FocusDirection.Down)
