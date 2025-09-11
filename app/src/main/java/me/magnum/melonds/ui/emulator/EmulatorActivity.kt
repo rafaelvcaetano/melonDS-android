@@ -479,6 +479,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                     AchievementListDialog(
                         viewModel = achievementsViewModel,
                         onDismiss = {
+                            activeOverlays.removeActiveOverlay(EmulatorOverlay.ACHIEVEMENTS_DIALOG)
                             viewModel.resumeEmulator()
                             showAchievementList.value = false
                         }
@@ -634,7 +635,10 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                                 }
                             }
                         }
-                        EmulatorUiEvent.ShowAchievementList -> showAchievementList.value = true
+                        EmulatorUiEvent.ShowAchievementList -> {
+                            activeOverlays.addActiveOverlay(EmulatorOverlay.ACHIEVEMENTS_DIALOG)
+                            showAchievementList.value = true
+                        }
                         EmulatorUiEvent.ShowQuickSettings -> showQuickSettings.value = true
                     }
                 }
