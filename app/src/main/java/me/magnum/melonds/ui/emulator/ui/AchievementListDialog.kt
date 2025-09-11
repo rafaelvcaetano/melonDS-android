@@ -52,6 +52,7 @@ fun AchievementListDialog(
                     state = achievementListState,
                     onViewAchievement = viewModel::viewAchievement,
                     onRetry = viewModel::retryLoadAchievements,
+                    onDismiss = onDismiss,
                 )
             }
         }
