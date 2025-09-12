@@ -144,12 +144,25 @@
                 android:layout_gravity="center_vertical" />
         </LinearLayout>
 
-        <CheckBox
-            android:id="@+id/checkbox_keep_ratio"
+        <LinearLayout
+            android:id="@+id/layout_aspect_ratio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/textLayoutEditor"
-            android:text="@string/keep_ds_ratio" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/textLayoutEditor"
+                android:text="@string/label_aspect_ratio" />
+
+            <Spinner
+                android:id="@+id/spinner_aspect_ratio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
 
         <CheckBox
             android:id="@+id/checkbox_above_screen"
@@ -158,12 +171,26 @@
             android:textColor="@color/textLayoutEditor"
             android:text="@string/above_other_screen" />
 
-        <Button
-            android:id="@+id/button_center_screen"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/center_screen"
-            style="@style/Button.Editor" />
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/button_center_horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/center_horizontal"
+                style="@style/Button.Editor" />
+
+            <Button
+                android:id="@+id/button_center_vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/center_vertical"
+                style="@style/Button.Editor" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

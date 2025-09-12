@@ -239,12 +239,25 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         }
     }
 
-    fun centerSelectedView() {
+    fun centerSelectedViewHorizontally() {
         val view = selectedView ?: return
         val centerX = (width - view.getWidth()) / 2
-        val centerY = (height - view.getHeight()) / 2
-        view.setPosition(Point(centerX, centerY))
+        val position = view.getPosition()
+        view.setPosition(Point(centerX, position.y))
         modifiedByUser = true
+    }
+
+    fun centerSelectedViewVertically() {
+        val view = selectedView ?: return
+        val centerY = (height - view.getHeight()) / 2
+        val position = view.getPosition()
+        view.setPosition(Point(position.x, centerY))
+        modifiedByUser = true
+    }
+
+    fun centerSelectedView() {
+        centerSelectedViewHorizontally()
+        centerSelectedViewVertically()
     }
 
     fun scaleSelectedView(widthScale: Float, heightScale: Float) {
