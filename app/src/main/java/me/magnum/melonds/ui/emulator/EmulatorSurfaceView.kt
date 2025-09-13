@@ -61,7 +61,9 @@ class EmulatorSurfaceView(context: Context, attrs: AttributeSet? = null) : Surfa
         synchronized(surfaceLock) {
             surfaceWidth = width
             surfaceHeight = height
-            surfaceState = SurfaceState.DIRTY
+            if (surfaceState == SurfaceState.READY) {
+                surfaceState = SurfaceState.DIRTY
+            }
         }
     }
 
@@ -78,16 +80,6 @@ class EmulatorSurfaceView(context: Context, attrs: AttributeSet? = null) : Surfa
                 onGlContextReady?.onGlContextReady(glContext!!.contextNativeHandle)
             }
 
-            if (surfaceState == SurfaceState.UNINITIALIZED && dsRenderer != null) {
-                dsRenderer?.onSurfaceCreated()
-                surfaceState = SurfaceState.DIRTY
-            }
-
-            if (surfaceState == SurfaceState.DIRTY && dsRenderer != null) {
-                dsRenderer?.onSurfaceChanged(surfaceWidth, surfaceHeight)
-                surfaceState = SurfaceState.READY
-            }
-
             if (windowSurface == null) {
                 if (!setupWindowSurface()) {
                     return
@@ -99,6 +91,16 @@ class EmulatorSurfaceView(context: Context, attrs: AttributeSet? = null) : Surfa
                     windowSurface = null
                 }
                 return
+            }
+
+            if (surfaceState == SurfaceState.UNINITIALIZED && dsRenderer != null) {
+                dsRenderer?.onSurfaceCreated()
+                surfaceState = SurfaceState.DIRTY
+            }
+
+            if (surfaceState == SurfaceState.DIRTY && dsRenderer != null) {
+                dsRenderer?.onSurfaceChanged(surfaceWidth, surfaceHeight)
+                surfaceState = SurfaceState.READY
             }
 
             MelonEmulator.presentFrame { isValidFrame, frameTextureId, renderFenceHandle ->
