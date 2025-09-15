@@ -1,8 +1,10 @@
 package me.magnum.melonds.ui.romlist
 
 import android.app.SearchManager
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.Display
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ProgressBar
@@ -33,13 +35,64 @@ import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.SortingMode
 import me.magnum.melonds.domain.model.Version
 import me.magnum.melonds.domain.model.appupdate.AppUpdate
+import me.magnum.melonds.ui.ExternalDisplayManager
+import me.magnum.melonds.ui.ExternalPresentation
 import me.magnum.melonds.ui.dsiwaremanager.DSiWareManagerActivity
 import me.magnum.melonds.ui.emulator.EmulatorActivity
+import me.magnum.melonds.ui.launchedFromExternalDisplay
 import me.magnum.melonds.ui.settings.SettingsActivity
 import javax.inject.Inject
+import androidx.core.graphics.toColorInt
+import android.hardware.display.DisplayManager
+import android.util.Log
+import me.magnum.melonds.ui.ensureOnPrimaryDisplay
 
 @AndroidEntryPoint
 class RomListActivity : AppCompatActivity() {
+
+    /**
+     * ViewModel responsible for managing and providing data related to RetroAchievements
+     * for the ROM list. This ViewModel handles fetching achievement data,
+     * user login status, and other RetroAchievements-specific information.
+     * It is used by the [RomListActivity] to display achievements on an external
+     * display when a ROM is focused.
+     */
+    private val achievementsViewModel: RomListRetroAchievementsViewModel by viewModels()
+
+    /**
+     * Repository for accessing and modifying application settings.
+     * This is injected by Hilt and provides methods to retrieve and store
+     * various user preferences and application configurations.
+     */
+    @Inject lateinit var settingsRepository: me.magnum.melonds.domain.repositories.SettingsRepository
+
+    private lateinit var displayManager: DisplayManager
+
+    private val displayListener = object : DisplayManager.DisplayListener {
+        override fun onDisplayAdded(displayId: Int) {
+            showExternalDisplay()
+        }
+
+        override fun onDisplayRemoved(displayId: Int) {
+            ExternalDisplayManager.presentation?.let { pres ->
+                if (pres.display.displayId == displayId) {
+                    ExternalDisplayManager.detach()
+                }
+            }
+        }
+
+        override fun onDisplayChanged(displayId: Int) {
+            // No-op
+        }
+    }
+
+    override fun onAttachFragment(fragment: androidx.fragment.app.Fragment) {
+        super.onAttachFragment(fragment)
+        if (fragment is RomListFragment) {
+            fragment.setRomFocusListener { onRomFocused(it) }
+        }
+    }
+
     companion object {
         private const val FRAGMENT_ROM_LIST = "ROM_LIST"
         private const val FRAGMENT_NO_ROM_DIRECTORIES = "NO_ROM_DIRECTORY"
@@ -80,6 +133,14 @@ class RomListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        ensureOnPrimaryDisplay()
+        if (isFinishing) return
+
+        displayManager = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+        displayManager.registerDisplayListener(displayListener, null)
+        showExternalDisplay()
+
         val binding = ActivityRomListBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -119,6 +180,89 @@ class RomListActivity : AppCompatActivity() {
                     onDownloadProgressUpdated(it)
                 }
             }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        showExternalDisplay()
+    }
+
+
+    /**
+     * Called when the activity is being destroyed.
+     * This method dismisses the external presentation, unregisters the display listener,
+     * and cleans up resources related to the external display.
+     */
+    override fun onDestroy() {
+        super.onDestroy()
+        ExternalDisplayManager.detach()
+        if (::displayManager.isInitialized) {
+            displayManager.unregisterDisplayListener(displayListener)
+        }
+    }
+
+
+    /**
+     * Attempts to show a presentation on an external display if one is available and
+     * not already showing.
+     *
+     * This function first checks if a presentation is already active. If so, it returns
+     * immediately. Otherwise, it queries the [DisplayManager] for available displays.
+     * It logs the number and details of all found displays.
+     *
+     * It then specifically looks for displays in the [DisplayManager.DISPLAY_CATEGORY_PRESENTATION]
+     * category, excluding the default built-in screen. If a suitable external display is found,
+     * it initializes an [ExternalPresentation] with a black background and attempts to show it.
+     *
+     * Logging is performed at various stages to track the process and any potential errors.
+     * If an external display is successfully utilized, the instance is stored in
+     * [ExternalDisplayManager.presentation].
+     * If no suitable external display is found, a warning is logged.
+     */
+    private fun showExternalDisplay() {
+        if (ExternalDisplayManager.presentation != null){
+            return
+        }
+
+        val displays = displayManager.displays
+        Log.d("DualScreen", "Found ${displays.size} displays.")
+        for (display in displays) {
+            Log.d("DualScreen", "Display ID: ${display.displayId}, Name: ${display.name}")
+        }
+
+        val targetDisplay = if (launchedFromExternalDisplay) {
+            displayManager.getDisplay(Display.DEFAULT_DISPLAY)
+        } else {
+            displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION)
+                .firstOrNull { it.displayId != Display.DEFAULT_DISPLAY && it.name != "Built-in Screen" }
+        }
+
+        if (targetDisplay != null) {
+            Log.d(
+                "DualScreen",
+                "Using external display: ID=${targetDisplay.displayId}, Name=${targetDisplay.name}"
+            )
+            ExternalDisplayManager.presentation = ExternalPresentation(
+                this,
+                targetDisplay,
+                settingsRepository.isExternalDisplayRotateLeftEnabled(),
+            ).apply {
+                setBackground("black".toColorInt())
+
+                setOnShowListener {
+                    Log.d("DualScreen", "Presentation successfully shown on external display.")
+                }
+
+                try {
+                    show()
+                    Log.d("DualScreen", "Presentation.show() called")
+                } catch (e: Exception) {
+                    Log.e("DualScreen", "Error showing presentation: ${e.message}", e)
+                }
+            }
+        } else {
+            Log.w("DualScreen", "No external display found.")
         }
     }
 
@@ -321,6 +465,42 @@ class RomListActivity : AppCompatActivity() {
             startActivity(intent)
         } else {
             showIncorrectConfigurationDirectoryDialog(configurationDirResult)
+        }
+        showExternalDisplay()
+    }
+
+    /**
+     * Handles the event when a ROM is focused in the list.
+     * This function ensures the external display is active and sets the focused ROM in the
+     * [achievementsViewModel].
+     *
+     * @param rom The [Rom] that has gained focus.
+     */
+    private fun onRomFocused(rom: Rom) {
+        showExternalDisplay()
+        achievementsViewModel.setRom(rom)
+    }
+
+    /**
+     * Determines whether the current theme is dark.
+     *
+     * This function checks the theme setting stored in [settingsRepository].
+     * If the theme is explicitly set to [me.magnum.melonds.ui.Theme.DARK], it returns `true`.
+     * If the theme is explicitly set to [me.magnum.melonds.ui.Theme.LIGHT], it returns `false`.
+     * If the theme setting is not explicitly set (e.g., system default), it falls back to checking
+     * the system's current UI mode. It returns `true` if the system is in night mode
+     * ([android.content.res.Configuration.UI_MODE_NIGHT_YES]), and `false` otherwise.
+     *
+     * @return `true` if the current theme is dark, `false` otherwise.
+     */
+    private fun isDarkTheme(): Boolean {
+        val theme = settingsRepository.getTheme()
+        return when (theme) {
+            me.magnum.melonds.ui.Theme.DARK -> true
+            me.magnum.melonds.ui.Theme.LIGHT -> false
+            else -> (resources.configuration.uiMode and
+                    android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                    android.content.res.Configuration.UI_MODE_NIGHT_YES
         }
     }
 

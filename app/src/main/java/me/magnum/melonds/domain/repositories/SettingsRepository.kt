@@ -35,6 +35,9 @@ interface SettingsRepository {
     fun getVideoFiltering(): Flow<VideoFiltering>
     fun isThreadedRenderingEnabled(): Flow<Boolean>
     fun getFpsCounterPosition(): FpsCounterPosition
+    fun getExternalDisplayScreen(): DsExternalScreen
+    fun isExternalDisplayKeepAspectRatioEnabled(): Boolean
+    fun isExternalDisplayRotateLeftEnabled(): Boolean
     fun getDSiCameraSource(): DSiCameraSourceType
     fun getDSiCameraStaticImage(): Uri?
 
@@ -53,6 +56,7 @@ interface SettingsRepository {
     fun getControllerConfiguration(): ControllerConfiguration
     fun getSelectedLayoutId(): UUID
     fun showSoftInput(): Flow<Boolean>
+    fun getExternalLayoutId(): UUID
     fun isTouchHapticFeedbackEnabled(): Flow<Boolean>
     fun getTouchHapticFeedbackStrength(): Int
     fun getSoftInputOpacity(): Flow<Int>
@@ -66,6 +70,7 @@ interface SettingsRepository {
     fun observeRomIconFiltering(): Flow<RomIconFiltering>
     fun observeRomSearchDirectories(): Observable<Array<Uri>>
     fun observeSelectedLayoutId(): Observable<UUID>
+    fun observeExternalLayoutId(): Observable<UUID>
     fun observeDSiCameraSource(): Flow<DSiCameraSourceType>
     fun observeDSiCameraStaticImage(): Flow<Uri?>
 
@@ -76,6 +81,10 @@ interface SettingsRepository {
     fun setRomSortingMode(sortingMode: SortingMode)
     fun setRomSortingOrder(sortingOrder: SortingOrder)
     fun setSelectedLayoutId(layoutId: UUID)
+    fun setExternalLayoutId(layoutId: UUID)
+    fun setExternalDisplayScreen(screen: DsExternalScreen)
+    fun setExternalDisplayKeepAspectRatioEnabled(enabled: Boolean)
+    fun setExternalDisplayRotateLeftEnabled(enabled: Boolean)
 
     fun observeRenderConfiguration(): Flow<RendererConfiguration>
 }

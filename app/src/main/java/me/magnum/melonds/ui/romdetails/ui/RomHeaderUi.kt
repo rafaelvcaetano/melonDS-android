@@ -67,7 +67,7 @@ fun RomHeaderUi(
                     elevation = 0.dp,
                     title = {
                         Text(
-                            text = rom.name,
+                            text = rom.config.customName ?: rom.name,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -146,7 +146,7 @@ private fun PreviewRomHeaderUi() {
                 fileName = "layton.nds",
                 uri = Uri.EMPTY,
                 parentTreeUri = Uri.EMPTY,
-                config = RomConfig(),
+                config = RomConfig(customName = "Layton Custom"),
                 lastPlayed = Date(),
                 isDsiWareTitle = false,
                 retroAchievementsHash = "",

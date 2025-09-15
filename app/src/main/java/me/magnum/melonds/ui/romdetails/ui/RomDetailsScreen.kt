@@ -73,7 +73,9 @@ fun RomDetailsScreen(
                     RomConfigUi(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = padding,
+                        romName = rom.name,
                         romConfigUiState = romConfigUiState,
+                        romTotalPlayTime = rom.totalPlayTime,
                         onConfigUpdate = onRomConfigUpdate,
                     )
                 }

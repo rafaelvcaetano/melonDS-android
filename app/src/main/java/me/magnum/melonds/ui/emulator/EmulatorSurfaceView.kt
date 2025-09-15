@@ -108,12 +108,16 @@ class EmulatorSurfaceView(context: Context, attrs: AttributeSet? = null) : Surfa
                     this.isValidFrame = isValidFrame
                     this.textureId = frameTextureId
                     this.renderFenceHandle = renderFenceHandle
+                    this.presentFenceHandle = 0L
                 }
                 dsRenderer?.drawFrame(presentFrameWrapper)
 
                 if (isValidFrame) {
-                    GLES30.glFenceSync(GLES30.GL_SYNC_GPU_COMMANDS_COMPLETE, 0)
+                    val presentFence = GLES30.glFenceSync(GLES30.GL_SYNC_GPU_COMMANDS_COMPLETE, 0)
+                    presentFrameWrapper.presentFenceHandle = presentFence
+                    presentFence
                 } else {
+                    presentFrameWrapper.presentFenceHandle = 0L
                     0L
                 }
             }

@@ -9,4 +9,5 @@ enum class EmulatorOverlay {
     ROM_NOT_FOUND_DIALOG,
     SWITCH_NEW_ROM_DIALOG,
     ACHIEVEMENTS_DIALOG,
+    QUICK_SETTINGS_DIALOG,
 }

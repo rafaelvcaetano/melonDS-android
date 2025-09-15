@@ -5,8 +5,11 @@ import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.KeyEvent
+import android.view.View
 import android.widget.SeekBar
 import android.widget.Toast
+import android.widget.ArrayAdapter
+import android.widget.AdapterView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
@@ -39,12 +42,14 @@ import me.magnum.melonds.extensions.setLayoutOrientation
 import me.magnum.melonds.impl.ScreenUnitsConverter
 import me.magnum.melonds.ui.common.TextInputDialog
 import me.magnum.melonds.utils.getLayoutComponentName
+import kotlin.math.min
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class LayoutEditorActivity : AppCompatActivity() {
     companion object {
         const val KEY_LAYOUT_ID = "layout_id"
+        const val KEY_IS_EXTERNAL = "is_external"
 
         private const val CONTROLS_SLIDE_ANIMATION_DURATION_MS = 100L
     }
@@ -68,13 +73,39 @@ class LayoutEditorActivity : AppCompatActivity() {
     private lateinit var handler: Handler
     private var areBottomControlsShown = true
     private var areScalingControlsShown = true
+    private var isExternalLayout = false
     private var selectedViewMinSize = 0
+    private var currentWidthScale = 0f
+    private var currentHeightScale = 0f
+    private var selectedViewIsScreen = false
+    private var selectedScreenComponent: LayoutComponent? = null
+    private enum class ScreenAspectRatio {
+        RATIO_4_3,
+        RATIO_16_9,
+        UNRESTRICTED
+    }
+
+    private var selectedAspectRatio = ScreenAspectRatio.RATIO_4_3
+    private var topAspectRatio = ScreenAspectRatio.RATIO_4_3
+    private var bottomAspectRatio = ScreenAspectRatio.RATIO_4_3
+    private var updatingAspectSpinner = false
+
+    private val dsRatio = 256f / 192f
+    private val widescreenRatio = 16f / 9f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLayoutEditorBinding.inflate(layoutInflater)
         handler = Handler(mainLooper)
         setContentView(binding.root)
+
+        isExternalLayout = intent?.getBooleanExtra(KEY_IS_EXTERNAL, false) ?: false
+
+        binding.textLayoutType.text = if (isExternalLayout) {
+            getString(R.string.editing_external_layout)
+        } else {
+            getString(R.string.editing_internal_layout)
+        }
 
         onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -90,6 +121,13 @@ class LayoutEditorActivity : AppCompatActivity() {
         }
         binding.buttonDeleteButton.setOnClickListener {
             binding.viewLayoutEditor.deleteSelectedView()
+            storeLayoutChanges()
+        }
+        binding.buttonCenterHorizontal.setOnClickListener {
+            binding.viewLayoutEditor.centerSelectedViewHorizontally()
+        }
+        binding.buttonCenterVertical.setOnClickListener {
+            binding.viewLayoutEditor.centerSelectedViewVertically()
         }
 
         binding.viewLayoutEditor.setLayoutComponentViewBuilderFactory(EditorLayoutComponentViewBuilderFactory())
@@ -99,18 +137,76 @@ class LayoutEditorActivity : AppCompatActivity() {
             else
                 showBottomControls()
         }
-        binding.viewLayoutEditor.setOnViewSelectedListener { _, scale, maxSize, minSize ->
+        binding.viewLayoutEditor.setOnViewSelectedListener { view, widthScale, heightScale, maxWidth, maxHeight, minSize ->
+            // Persist any pending changes from the previous selection so the
+            // current layout state is always up to date.
+            storeLayoutChanges()
+
             hideBottomControls()
-            showScalingControls(scale, maxSize, minSize)
+            // Force the scaling controls to restart so the new view always
+            // receives fresh listeners even if they were already visible.
+            hideScalingControls(false)
+            selectedViewIsScreen = view.component.isScreen()
+            selectedScreenComponent = view.component
+            selectedAspectRatio = when (view.component) {
+                LayoutComponent.TOP_SCREEN -> topAspectRatio
+                LayoutComponent.BOTTOM_SCREEN -> bottomAspectRatio
+                else -> ScreenAspectRatio.UNRESTRICTED
+            }
+            showScalingControls(
+                widthScale,
+                heightScale,
+                maxWidth,
+                maxHeight,
+                minSize,
+                selectedViewIsScreen,
+                view.baseAlpha,
+                view.onTop,
+            )
         }
         binding.viewLayoutEditor.setOnViewDeselectedListener {
+            storeLayoutChanges()
             hideScalingControls()
         }
-        binding.seekBarScaling.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        binding.seekBarWidth.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val scale = progress / binding.seekBarScaling.max.toFloat()
-                binding.textSize.text = ((binding.seekBarScaling.max - selectedViewMinSize) * scale + selectedViewMinSize).toInt().toString()
-                binding.viewLayoutEditor.scaleSelectedView(scale)
+                var adjustedProgress = progress
+                var widthScale = adjustedProgress / binding.seekBarWidth.max.toFloat()
+                var width = (binding.seekBarWidth.max - selectedViewMinSize) * widthScale + selectedViewMinSize
+                if (selectedViewIsScreen && fromUser) {
+                    when (selectedAspectRatio) {
+                        ScreenAspectRatio.RATIO_4_3 -> {
+                            val maxWidth = min(binding.seekBarWidth.max.toFloat(), binding.seekBarHeight.max * dsRatio)
+                            if (width > maxWidth) {
+                                width = maxWidth
+                                widthScale = ((width - selectedViewMinSize) / (binding.seekBarWidth.max - selectedViewMinSize).toFloat()).coerceIn(0f, 1f)
+                                adjustedProgress = (widthScale * binding.seekBarWidth.max).toInt()
+                                binding.seekBarWidth.progress = adjustedProgress
+                            }
+                            val height = width / dsRatio
+                            currentHeightScale = ((height - selectedViewMinSize) / (binding.seekBarHeight.max - selectedViewMinSize).toFloat()).coerceIn(0f, 1f)
+                            binding.seekBarHeight.progress = (currentHeightScale * binding.seekBarHeight.max).toInt()
+                            binding.textHeight.text = ((binding.seekBarHeight.max - selectedViewMinSize) * currentHeightScale + selectedViewMinSize).toInt().toString()
+                        }
+                        ScreenAspectRatio.RATIO_16_9 -> {
+                            val maxWidth = min(binding.seekBarWidth.max.toFloat(), binding.seekBarHeight.max * widescreenRatio)
+                            if (width > maxWidth) {
+                                width = maxWidth
+                                widthScale = ((width - selectedViewMinSize) / (binding.seekBarWidth.max - selectedViewMinSize).toFloat()).coerceIn(0f, 1f)
+                                adjustedProgress = (widthScale * binding.seekBarWidth.max).toInt()
+                                binding.seekBarWidth.progress = adjustedProgress
+                            }
+                            val height = width / widescreenRatio
+                            currentHeightScale = ((height - selectedViewMinSize) / (binding.seekBarHeight.max - selectedViewMinSize).toFloat()).coerceIn(0f, 1f)
+                            binding.seekBarHeight.progress = (currentHeightScale * binding.seekBarHeight.max).toInt()
+                            binding.textHeight.text = ((binding.seekBarHeight.max - selectedViewMinSize) * currentHeightScale + selectedViewMinSize).toInt().toString()
+                        }
+                        ScreenAspectRatio.UNRESTRICTED -> { }
+                    }
+                }
+                currentWidthScale = widthScale
+                binding.textWidth.text = ((binding.seekBarWidth.max - selectedViewMinSize) * currentWidthScale + selectedViewMinSize).toInt().toString()
+                binding.viewLayoutEditor.scaleSelectedView(currentWidthScale, currentHeightScale)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -119,6 +215,123 @@ class LayoutEditorActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
             }
         })
+
+        binding.seekBarHeight.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                var adjustedProgress = progress
+                var heightScale = adjustedProgress / binding.seekBarHeight.max.toFloat()
+                var height = (binding.seekBarHeight.max - selectedViewMinSize) * heightScale + selectedViewMinSize
+                if (selectedViewIsScreen && fromUser) {
+                    when (selectedAspectRatio) {
+                        ScreenAspectRatio.RATIO_4_3 -> {
+                            val maxHeight = min(binding.seekBarHeight.max.toFloat(), binding.seekBarWidth.max / dsRatio)
+                            if (height > maxHeight) {
+                                height = maxHeight
+                                heightScale = ((height - selectedViewMinSize) / (binding.seekBarHeight.max - selectedViewMinSize).toFloat()).coerceIn(0f, 1f)
+                                adjustedProgress = (heightScale * binding.seekBarHeight.max).toInt()
+                                binding.seekBarHeight.progress = adjustedProgress
+                            }
+                            val width = height * dsRatio
+                            currentWidthScale = ((width - selectedViewMinSize) / (binding.seekBarWidth.max - selectedViewMinSize).toFloat()).coerceIn(0f, 1f)
+                            binding.seekBarWidth.progress = (currentWidthScale * binding.seekBarWidth.max).toInt()
+                            binding.textWidth.text = ((binding.seekBarWidth.max - selectedViewMinSize) * currentWidthScale + selectedViewMinSize).toInt().toString()
+                        }
+                        ScreenAspectRatio.RATIO_16_9 -> {
+                            val maxHeight = min(binding.seekBarHeight.max.toFloat(), binding.seekBarWidth.max / widescreenRatio)
+                            if (height > maxHeight) {
+                                height = maxHeight
+                                heightScale = ((height - selectedViewMinSize) / (binding.seekBarHeight.max - selectedViewMinSize).toFloat()).coerceIn(0f, 1f)
+                                adjustedProgress = (heightScale * binding.seekBarHeight.max).toInt()
+                                binding.seekBarHeight.progress = adjustedProgress
+                            }
+                            val width = height * widescreenRatio
+                            currentWidthScale = ((width - selectedViewMinSize) / (binding.seekBarWidth.max - selectedViewMinSize).toFloat()).coerceIn(0f, 1f)
+                            binding.seekBarWidth.progress = (currentWidthScale * binding.seekBarWidth.max).toInt()
+                            binding.textWidth.text = ((binding.seekBarWidth.max - selectedViewMinSize) * currentWidthScale + selectedViewMinSize).toInt().toString()
+                        }
+                        ScreenAspectRatio.UNRESTRICTED -> { }
+                    }
+                }
+                currentHeightScale = heightScale
+                binding.textHeight.text = ((binding.seekBarHeight.max - selectedViewMinSize) * currentHeightScale + selectedViewMinSize).toInt().toString()
+                binding.viewLayoutEditor.scaleSelectedView(currentWidthScale, currentHeightScale)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+            }
+        })
+
+        binding.seekBarAlpha.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val alpha = progress / 100f
+                binding.viewLayoutEditor.setSelectedViewAlpha(alpha)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        val aspectOptions = listOf(
+            getString(R.string.aspect_ratio_4_3),
+            getString(R.string.aspect_ratio_16_9),
+            getString(R.string.aspect_ratio_unrestricted),
+        )
+        val aspectAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, aspectOptions)
+        aspectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerAspectRatio.adapter = aspectAdapter
+        binding.spinnerAspectRatio.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                if (!selectedViewIsScreen || updatingAspectSpinner) return
+                selectedAspectRatio = ScreenAspectRatio.values()[position]
+                when (selectedScreenComponent) {
+                    LayoutComponent.TOP_SCREEN -> topAspectRatio = selectedAspectRatio
+                    LayoutComponent.BOTTOM_SCREEN -> bottomAspectRatio = selectedAspectRatio
+                    else -> {}
+                }
+                when (selectedAspectRatio) {
+                    ScreenAspectRatio.RATIO_4_3 -> {
+                        var width = (binding.seekBarWidth.max - selectedViewMinSize) * currentWidthScale + selectedViewMinSize
+                        val maxWidth = min(binding.seekBarWidth.max.toFloat(), binding.seekBarHeight.max * dsRatio)
+                        if (width > maxWidth) {
+                            width = maxWidth
+                            currentWidthScale = ((width - selectedViewMinSize) / (binding.seekBarWidth.max - selectedViewMinSize).toFloat()).coerceIn(0f, 1f)
+                            binding.seekBarWidth.progress = (currentWidthScale * binding.seekBarWidth.max).toInt()
+                            binding.textWidth.text = ((binding.seekBarWidth.max - selectedViewMinSize) * currentWidthScale + selectedViewMinSize).toInt().toString()
+                        }
+                        val height = width / dsRatio
+                        currentHeightScale = ((height - selectedViewMinSize) / (binding.seekBarHeight.max - selectedViewMinSize).toFloat()).coerceIn(0f, 1f)
+                        binding.seekBarHeight.progress = (currentHeightScale * binding.seekBarHeight.max).toInt()
+                        binding.textHeight.text = ((binding.seekBarHeight.max - selectedViewMinSize) * currentHeightScale + selectedViewMinSize).toInt().toString()
+                    }
+                    ScreenAspectRatio.RATIO_16_9 -> {
+                        var width = (binding.seekBarWidth.max - selectedViewMinSize) * currentWidthScale + selectedViewMinSize
+                        val maxWidth = min(binding.seekBarWidth.max.toFloat(), binding.seekBarHeight.max * widescreenRatio)
+                        if (width > maxWidth) {
+                            width = maxWidth
+                            currentWidthScale = ((width - selectedViewMinSize) / (binding.seekBarWidth.max - selectedViewMinSize).toFloat()).coerceIn(0f, 1f)
+                            binding.seekBarWidth.progress = (currentWidthScale * binding.seekBarWidth.max).toInt()
+                            binding.textWidth.text = ((binding.seekBarWidth.max - selectedViewMinSize) * currentWidthScale + selectedViewMinSize).toInt().toString()
+                        }
+                        val height = width / widescreenRatio
+                        currentHeightScale = ((height - selectedViewMinSize) / (binding.seekBarHeight.max - selectedViewMinSize).toFloat()).coerceIn(0f, 1f)
+                        binding.seekBarHeight.progress = (currentHeightScale * binding.seekBarHeight.max).toInt()
+                        binding.textHeight.text = ((binding.seekBarHeight.max - selectedViewMinSize) * currentHeightScale + selectedViewMinSize).toInt().toString()
+                    }
+                    ScreenAspectRatio.UNRESTRICTED -> { }
+                }
+                binding.viewLayoutEditor.scaleSelectedView(currentWidthScale, currentHeightScale)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        binding.checkboxAboveScreen.setOnCheckedChangeListener { _, isChecked ->
+            binding.viewLayoutEditor.setSelectedScreenOnTop(isChecked)
+            storeLayoutChanges()
+        }
 
         binding.viewLayoutEditor.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
             val oldWith = oldRight - oldLeft
@@ -286,32 +499,69 @@ class LayoutEditorActivity : AppCompatActivity() {
         areBottomControlsShown = false
     }
 
-    private fun showScalingControls(currentScale: Float, maxSize: Int, minSize: Int, animate: Boolean = true) {
-        binding.seekBarScaling.apply {
-            max = maxSize
-            progress = (currentScale * maxSize).toInt()
-        }
+    private fun showScalingControls(
+        widthScale: Float,
+        heightScale: Float,
+        maxWidth: Int,
+        maxHeight: Int,
+        minSize: Int,
+        isScreen: Boolean,
+        alpha: Float,
+        onTop: Boolean,
+        animate: Boolean = true,
+    ) {
+        binding.layoutScalingContainer.clearAnimation()
 
+        binding.seekBarWidth.apply {
+            max = maxWidth
+            progress = (widthScale * maxWidth).toInt()
+        }
+        binding.textWidth.text = ((binding.seekBarWidth.max - minSize) * widthScale + minSize).toInt().toString()
+
+        binding.seekBarHeight.apply {
+            max = maxHeight
+            progress = (heightScale * maxHeight).toInt()
+        }
+        binding.textHeight.text = ((binding.seekBarHeight.max - minSize) * heightScale + minSize).toInt().toString()
+
+        binding.seekBarAlpha.progress = (alpha * 100).toInt()
+        binding.checkboxAboveScreen.isChecked = onTop
+        updatingAspectSpinner = true
+        binding.spinnerAspectRatio.setSelection(selectedAspectRatio.ordinal, false)
+        updatingAspectSpinner = false
+
+        binding.seekBarAlpha.isVisible = isScreen
+        binding.layoutAspectRatio.isVisible = isScreen
+        binding.checkboxAboveScreen.isVisible = isScreen
+        binding.buttonCenterHorizontal.isVisible = isScreen
+        binding.buttonCenterVertical.isVisible = isScreen
+
+        currentWidthScale = widthScale
+        currentHeightScale = heightScale
         selectedViewMinSize = minSize
 
-        if (areScalingControlsShown) {
-            return
-        }
-
-        if (animate) {
-            binding.layoutScaling
-                .animate()
-                .y(binding.layoutScaling.bottom.toFloat() - binding.layoutScaling.height.toFloat())
-                .setDuration(CONTROLS_SLIDE_ANIMATION_DURATION_MS)
-                .withStartAction {
-                    binding.layoutScaling.isVisible = true
+        if (!areScalingControlsShown) {
+            if (animate) {
+                binding.layoutScalingContainer.isVisible = true
+                binding.layoutScalingContainer.post {
+                    binding.layoutScalingContainer
+                        .animate()
+                        .y(
+                            binding.layoutScalingContainer.bottom.toFloat() -
+                                    binding.layoutScalingContainer.height.toFloat()
+                        )
+                        .setDuration(CONTROLS_SLIDE_ANIMATION_DURATION_MS)
+                        .start()
                 }
-                .start()
-        } else {
-            binding.layoutScaling.isVisible = true
-        }
+            } else {
+                binding.layoutScalingContainer.isVisible = true
+                binding.layoutScalingContainer.y =
+                    binding.layoutScalingContainer.bottom.toFloat() -
+                            binding.layoutScalingContainer.height.toFloat()
+            }
 
-        areScalingControlsShown = true
+            areScalingControlsShown = true
+        }
     }
 
     private fun hideScalingControls(animate: Boolean = true) {
@@ -319,32 +569,47 @@ class LayoutEditorActivity : AppCompatActivity() {
             return
         }
 
+        binding.layoutScalingContainer.clearAnimation()
+
         if (animate) {
-            binding.layoutScaling
-                .animate()
-                .y(binding.layoutScaling.bottom.toFloat())
-                .setDuration(CONTROLS_SLIDE_ANIMATION_DURATION_MS)
-                .withEndAction {
-                    binding.layoutScaling.isInvisible = true
-                }
-                .start()
+            binding.layoutScalingContainer.post {
+                binding.layoutScalingContainer
+                    .animate()
+                    .y(binding.layoutScalingContainer.bottom.toFloat())
+                    .setDuration(CONTROLS_SLIDE_ANIMATION_DURATION_MS)
+                    .withEndAction {
+                        binding.layoutScalingContainer.isInvisible = true
+                    }
+                    .start()
+            }
         } else {
-            binding.layoutScaling.isInvisible = true
+            binding.layoutScalingContainer.y = binding.layoutScalingContainer.bottom.toFloat()
+            binding.layoutScalingContainer.isInvisible = true
         }
 
         areScalingControlsShown = false
+        binding.seekBarAlpha.isVisible = false
+        binding.layoutAspectRatio.isVisible = false
+        binding.checkboxAboveScreen.isVisible = false
+        binding.buttonCenterHorizontal.isVisible = false
+        binding.buttonCenterVertical.isVisible = false
     }
 
     private fun openButtonsMenu() {
         hideBottomControls()
         val instantiatedComponents = binding.viewLayoutEditor.getInstantiatedComponents()
-        val componentsToShow = LayoutComponent.entries.filterNot { instantiatedComponents.contains(it) }
+        val availableComponents = if (isExternalLayout) {
+            listOf(LayoutComponent.TOP_SCREEN, LayoutComponent.BOTTOM_SCREEN)
+        } else {
+            LayoutComponent.entries
+        }
+        val componentsToShow = availableComponents.filterNot { instantiatedComponents.contains(it) }
 
         val dialogBuilder = AlertDialog.Builder(this)
-                .setTitle(R.string.choose_component)
-                .setNegativeButton(R.string.cancel) { dialog, _ ->
-                    dialog.cancel()
-                }
+            .setTitle(R.string.choose_component)
+            .setNegativeButton(R.string.cancel) { dialog, _ ->
+                dialog.cancel()
+            }
 
         if (componentsToShow.isNotEmpty()) {
             dialogBuilder.setItems(componentsToShow.map { getString(getLayoutComponentName(it)) }.toTypedArray()) { _, which ->
@@ -364,10 +629,10 @@ class LayoutEditorActivity : AppCompatActivity() {
         val options = Array(values.size) { i -> getString(values[i].stringRes) }
 
         AlertDialog.Builder(this)
-                .setTitle(R.string.menu)
-                .setItems(options) { _, which -> onMenuOptionSelected(values[which]) }
-                .setNegativeButton(R.string.cancel, null)
-                .show()
+            .setTitle(R.string.menu)
+            .setItems(options) { _, which -> onMenuOptionSelected(values[which]) }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun onMenuOptionSelected(option: MenuOption) {

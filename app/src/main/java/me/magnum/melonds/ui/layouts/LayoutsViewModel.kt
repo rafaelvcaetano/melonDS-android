@@ -13,7 +13,9 @@ class LayoutsViewModel @Inject constructor(layoutsRepository: LayoutsRepository,
     init {
         viewModelScope.launch {
             layoutsRepository.getLayouts().collect {
-                _layouts.value = it
+                _layouts.value = it.filter { layout ->
+                    layout.target == me.magnum.melonds.domain.model.layout.LayoutConfiguration.LayoutTarget.INTERNAL
+                }
             }
         }
     }
