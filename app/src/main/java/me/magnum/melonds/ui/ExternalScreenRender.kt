@@ -104,7 +104,13 @@ class ExternalScreenRender(
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        val textureId = nextRenderEvent?.textureId ?: return
+        val event = nextRenderEvent ?: return
+        if (!event.isValidFrame) {
+            return
+        }
+
+        GLES30.glWaitSync(event.renderFenceHandle, 0, GLES30.GL_TIMEOUT_IGNORED)
+        val textureId = event.textureId
 
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
         shader.use()
@@ -118,7 +124,11 @@ class ExternalScreenRender(
     }
 
     override fun prepareNextFrame(frameRenderEvent: FrameRenderEvent) {
-        nextRenderEvent = frameRenderEvent
+        nextRenderEvent = if (frameRenderEvent.isValidFrame) {
+            frameRenderEvent
+        } else {
+            null
+        }
     }
 
     fun setKeepAspectRatio(keep: Boolean) {

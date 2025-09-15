@@ -3,19 +3,18 @@ package me.magnum.melonds.ui.emulator
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.opengl.GLES30
-import javax.microedition.khronos.egl.EGL10
-import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
+import javax.microedition.khronos.egl.EGL10
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
 import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
 import me.magnum.melonds.domain.model.Rect
-import me.magnum.melonds.ui.emulator.FrameRenderEventConsumer
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.layout.BackgroundMode
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
+import me.magnum.melonds.domain.model.render.FrameRenderEvent
 import me.magnum.melonds.domain.model.render.PresentFrameWrapper
 import me.magnum.melonds.utils.BitmapUtils
 import java.nio.ByteBuffer
@@ -23,9 +22,10 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.roundToInt
 
-class DSRenderer(private val context: Context, 
-private val onGlContextReady: (glContext: Long) -> Unit
-) : GLSurfaceView.Renderer {
+class DSRenderer(
+    private val context: Context,
+    private val onGlContextReady: (glContext: Long) -> Unit,
+) {
     companion object {
         private const val SCREEN_WIDTH = 256
         private const val SCREEN_HEIGHT = 384
@@ -83,8 +83,14 @@ private val onGlContextReady: (glContext: Long) -> Unit
     // EGL context used to share textures with secondary renderers
     private var eglContext: javax.microedition.khronos.egl.EGLContext? = null
 
+    private var frameRenderEventListener: ((FrameRenderEvent) -> Unit)? = null
+
     /** Return the EGL context associated with this renderer when available. */
     fun getSharedEglContext(): javax.microedition.khronos.egl.EGLContext? = eglContext
+
+    fun setOnFrameRenderedListener(listener: ((FrameRenderEvent) -> Unit)?) {
+        frameRenderEventListener = listener
+    }
 
     fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
         rendererConfiguration = newRendererConfiguration
@@ -126,7 +132,7 @@ private val onGlContextReady: (glContext: Long) -> Unit
         return ((this.height - y) / this.height) * 2f - 1f
     }
 
-    override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
+    fun onSurfaceCreated() {
         // Cache EGL context so other renderers can share textures
         val egl = javax.microedition.khronos.egl.EGLContext.getEGL() as EGL10
         eglContext = egl.eglGetCurrentContext()
@@ -244,16 +250,25 @@ private val onGlContextReady: (glContext: Long) -> Unit
         }
 
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
+
         if (!presentFrameWrapper.isValidFrame) {
+            frameRenderEventListener?.invoke(
+                FrameRenderEvent(
+                    isValidFrame = false,
+                    textureId = presentFrameWrapper.textureId,
+                    renderFenceHandle = presentFrameWrapper.renderFenceHandle,
+                    presentFenceHandle = presentFrameWrapper.presentFenceHandle,
+                )
+            )
             return
         }
 
         GLES30.glWaitSync(presentFrameWrapper.renderFenceHandle, 0, GLES30.GL_TIMEOUT_IGNORED)
 
-        posBuffer.position(0)
-        uvBuffer.position(0)
+        synchronized(backgroundLock) {
+            renderBackground()
+        }
 
-        val indices = posBuffer.capacity() / 2
         screenShader?.let { shader ->
             shader.use()
 
@@ -283,6 +298,14 @@ private val onGlContextReady: (glContext: Long) -> Unit
             }
         }
 
+        frameRenderEventListener?.invoke(
+            FrameRenderEvent(
+                isValidFrame = true,
+                textureId = presentFrameWrapper.textureId,
+                renderFenceHandle = presentFrameWrapper.renderFenceHandle,
+                presentFenceHandle = presentFrameWrapper.presentFenceHandle,
+            )
+        )
     }
 
     private fun renderBackground() {

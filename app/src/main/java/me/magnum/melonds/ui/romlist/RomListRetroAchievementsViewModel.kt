@@ -72,7 +72,7 @@ class RomListRetroAchievementsViewModel @Inject constructor(
                     val hardcore = settingsRepository.isRetroAchievementsHardcoreEnabled()
                     retroAchievementsRepository.getGameUserAchievements(rom.retroAchievementsHash, hardcore).fold(
                         onSuccess = { achievements ->
-                            val sorted = achievements.sortedBy { if (it.isUnlocked) 0 else 1 }
+                            val sorted = achievements!!.sortedBy { if (it.isUnlocked) 0 else 1 }
                             _uiState.value = RomRetroAchievementsUiState.Ready(sorted, buildSummary(hardcore, sorted))
                         },
                         onFailure = {

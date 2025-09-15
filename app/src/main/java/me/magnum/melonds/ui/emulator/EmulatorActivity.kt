@@ -3,6 +3,7 @@ package me.magnum.melonds.ui.emulator
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.hardware.display.DisplayManager
 import android.os.Bundle
 import android.util.Log
 import android.util.DisplayMetrics
@@ -357,6 +358,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 }
             }
         )
+        dsRenderer.setOnFrameRenderedListener(viewModel::onFrameRendered)
         binding.surfaceMain.apply {
             setRenderer(dsRenderer)
             setOnGlContextReadyListener {
@@ -529,11 +531,11 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.frameRenderEvent.collect {
-                    dsRenderer.prepareNextFrame(it)
-                    binding.surfaceMain.requestRender()
-                    externalScreenRender?.prepareNextFrame(it)
-                    ExternalDisplayManager.presentation?.requestRender()
+                viewModel.frameRenderEvent.collect { event ->
+                    externalScreenRender?.prepareNextFrame(event)
+                    if (event.isValidFrame) {
+                        ExternalDisplayManager.presentation?.requestRender()
+                    }
                 }
             }
         }
@@ -603,19 +605,17 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         }
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.uiEvent.collectLatest {
-                    when (it) {
-                        EmulatorUiEvent.CloseEmulator -> {
-                            Choreographer.getInstance().removeFrameCallback(this@EmulatorActivity)
-                            {
-                            ExternalDisplayManager.presentation?.apply {
-                                setBackground("black".toColorInt())
-                                show()
-                            }
-                            finish()
-                        }
-                        }
-                        is EmulatorUiEvent.OpenScreen.CheatsScreen -> {
+                        viewModel.uiEvent.collectLatest {
+                            when (it) {
+                                EmulatorUiEvent.CloseEmulator -> {
+                                    Choreographer.getInstance().removeFrameCallback(this@EmulatorActivity)
+                                    ExternalDisplayManager.presentation?.apply {
+                                        setBackground("black".toColorInt())
+                                        show()
+                                    }
+                                    finish()
+                                }
+                                is EmulatorUiEvent.OpenScreen.CheatsScreen -> {
                             val intent = Intent(this@EmulatorActivity, CheatsActivity::class.java)
                             intent.putExtra(CheatsActivity.KEY_ROM_INFO, RomInfoParcelable.fromRomInfo(it.romInfo))
                             cheatsLauncher.launch(intent)

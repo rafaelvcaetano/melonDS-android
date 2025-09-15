@@ -56,6 +56,7 @@ import me.magnum.melonds.domain.model.retroachievements.RAEvent
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.ui.Orientation
+import me.magnum.melonds.domain.model.render.FrameRenderEvent
 import me.magnum.melonds.domain.repositories.BackgroundRepository
 import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.domain.repositories.LayoutsRepository
@@ -137,6 +138,9 @@ class EmulatorViewModel @Inject constructor(
     private val _uiEvent = EventSharedFlow<EmulatorUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
+    private val _frameRenderEvent = MutableSharedFlow<FrameRenderEvent>(replay = 0, extraBufferCapacity = 1)
+    val frameRenderEvent = _frameRenderEvent.asSharedFlow()
+
     private var currentRom: Rom? = null
 
     init {
@@ -145,6 +149,10 @@ class EmulatorViewModel @Inject constructor(
                 uiLayoutProvider.setCurrentLayoutConfiguration(it)
             }
         }
+    }
+
+    fun onFrameRendered(frameRenderEvent: FrameRenderEvent) {
+        _frameRenderEvent.tryEmit(frameRenderEvent)
     }
 
     fun loadRom(rom: Rom, glContext: Long) {
