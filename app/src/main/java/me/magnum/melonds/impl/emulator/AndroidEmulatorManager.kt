@@ -187,7 +187,6 @@ class AndroidEmulatorManager(
     private fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, glContext: Long) {
         MelonEmulator.setupEmulator(
             emulatorConfiguration = emulatorConfiguration,
-            assetManager = context.assets,
             dsiCameraSource = cameraManager,
             retroAchievementsCallback = object : RetroAchievementsCallback {
                 override fun onAchievementPrimed(achievementId: Long) {

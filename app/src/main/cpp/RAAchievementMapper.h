@@ -5,6 +5,6 @@
 #include <list>
 #include "retroachievements/RAAchievement.h"
 
-void mapAchievementsFromJava(JNIEnv *env, jobjectArray javaAchievements, std::list<RetroAchievements::RAAchievement> &outputList);
+void mapAchievementsFromJava(JNIEnv *env, jobjectArray javaAchievements, std::list<MelonDSAndroid::RetroAchievements::RAAchievement> &outputList);
 
 #endif //RAACHIEVEMENTMAPPER_H
