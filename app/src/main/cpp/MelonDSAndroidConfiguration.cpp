@@ -1,6 +1,6 @@
 #include <jni.h>
-#include "MelonDS.h"
 #include "MelonDSAndroidConfiguration.h"
+#include "renderer/Renderer.h"
 
 MelonDSAndroid::EmulatorConfiguration MelonDSAndroidConfiguration::buildEmulatorConfiguration(JNIEnv* env, jobject emulatorConfiguration) {
     jclass emulatorConfigurationClass = env->GetObjectClass(emulatorConfiguration);
@@ -45,7 +45,7 @@ MelonDSAndroid::EmulatorConfiguration MelonDSAndroidConfiguration::buildEmulator
     jobject micSourceEnum = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "micSource", "Lme/magnum/melonds/domain/model/MicSource;"));
     jint micSource = env->GetIntField(micSourceEnum, env->GetFieldID(micSourceEnumClass, "sourceValue", "I"));
     jobject videoRendererEnum = env->GetObjectField(rendererConfigurationObject, env->GetFieldID(renderConfigurationClass, "renderer", "Lme/magnum/melonds/domain/model/VideoRenderer;"));
-    jint videoRenderer = env->GetIntField(videoRendererEnum, env->GetFieldID(videoRendererEnumClass, "renderer", "I"));
+    MelonDSAndroid::Renderer videoRenderer = static_cast<MelonDSAndroid::Renderer>(env->GetIntField(videoRendererEnum, env->GetFieldID(videoRendererEnumClass, "renderer", "I")));
     jboolean isCopy = JNI_FALSE;
     jstring dsBios7String = dsBios7Uri ? (jstring) env->CallObjectMethod(dsBios7Uri, uriToStringMethod) : nullptr;
     jstring dsBios9String = dsBios9Uri ? (jstring) env->CallObjectMethod(dsBios9Uri, uriToStringMethod) : nullptr;
@@ -84,10 +84,12 @@ MelonDSAndroid::EmulatorConfiguration MelonDSAndroidConfiguration::buildEmulator
     finalEmulatorConfiguration.audioLatency = audioLatency;
     finalEmulatorConfiguration.micSource = micSource;
     finalEmulatorConfiguration.firmwareConfiguration = buildFirmwareConfiguration(env, firmwareConfigurationObject);
-    finalEmulatorConfiguration.renderSettings = buildRenderSettings(env, rendererConfigurationObject);
     finalEmulatorConfiguration.rewindEnabled = enableRewind ? 1 : 0;
     finalEmulatorConfiguration.rewindCaptureSpacingSeconds = rewindPeriodSeconds;
     finalEmulatorConfiguration.rewindLengthSeconds = rewindWindowSeconds;
+    finalEmulatorConfiguration.renderSettings = std::move(buildRenderSettings(env, videoRenderer, rendererConfigurationObject));
+    finalEmulatorConfiguration.dsiSdCardSettings = MelonDSAndroid::SdCardSettings { .enabled = false };
+    finalEmulatorConfiguration.dldiSdCardSettings = MelonDSAndroid::SdCardSettings { .enabled = false };
     finalEmulatorConfiguration.renderer = videoRenderer;
     return finalEmulatorConfiguration;
 }
@@ -137,14 +139,39 @@ MelonDSAndroid::FirmwareConfiguration MelonDSAndroidConfiguration::buildFirmware
     return finalFirmwareConfiguration;
 }
 
-GPU::RenderSettings MelonDSAndroidConfiguration::buildRenderSettings(JNIEnv* env, jobject renderSettings) {
+std::unique_ptr<MelonDSAndroid::RenderSettings> MelonDSAndroidConfiguration::buildRenderSettings(JNIEnv* env, MelonDSAndroid::Renderer renderer, jobject renderSettings) {
     jclass renderSettingsClass = env->GetObjectClass(renderSettings);
     jmethodID getResolutionScalingMethod = env->GetMethodID(renderSettingsClass, "getResolutionScaling", "()I");
     jboolean threadedRendering = env->GetBooleanField(renderSettings, env->GetFieldID(renderSettingsClass, "threadedRendering", "Z"));
     jint internalResolutionScaling = env->CallIntMethod(renderSettings, getResolutionScalingMethod);
-    return {
-        threadedRendering == JNI_TRUE,
-        internalResolutionScaling,
-        false
-    };
+
+    std::unique_ptr<MelonDSAndroid::RenderSettings> settings;
+    if (renderer == MelonDSAndroid::Renderer::OpenGl)
+    {
+        settings = std::make_unique<MelonDSAndroid::OpenGlRenderSettings>(
+            MelonDSAndroid::OpenGlRenderSettings {
+                .betterPolygons = false,
+                .scale = internalResolutionScaling,
+            }
+        );
+    }
+    else if (renderer == MelonDSAndroid::Renderer::Compute)
+    {
+        settings = std::make_unique<MelonDSAndroid::ComputeRenderSettings>(
+            MelonDSAndroid::ComputeRenderSettings {
+                .scale = internalResolutionScaling,
+                .highResCoordinates = true,
+            }
+        );
+    }
+    else
+    {
+        settings = std::make_unique<MelonDSAndroid::SoftwareRenderSettings>(
+            MelonDSAndroid::SoftwareRenderSettings {
+                .threadedRendering = (bool) threadedRendering
+            }
+        );
+    }
+
+    return settings;
 }

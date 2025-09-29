@@ -46,7 +46,6 @@ object MelonEmulator {
 
 	external fun setupEmulator(
         emulatorConfiguration: EmulatorConfiguration,
-        assetManager: AssetManager?,
         dsiCameraSource: DSiCameraSource?,
         retroAchievementsCallback: RetroAchievementsCallback,
         screenshotBuffer: ByteBuffer,

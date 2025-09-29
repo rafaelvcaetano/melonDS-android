@@ -1,6 +1,6 @@
 #include "RAAchievementMapper.h"
 
-void mapAchievementsFromJava(JNIEnv *env, jobjectArray javaAchievements, std::list<RetroAchievements::RAAchievement> &outputList)
+void mapAchievementsFromJava(JNIEnv *env, jobjectArray javaAchievements, std::list<MelonDSAndroid::RetroAchievements::RAAchievement> &outputList)
 {
     jsize achievementCount = env->GetArrayLength(javaAchievements);
     if (achievementCount < 1)
@@ -18,7 +18,7 @@ void mapAchievementsFromJava(JNIEnv *env, jobjectArray javaAchievements, std::li
         jboolean isStringCopy;
         const char* codeString = env->GetStringUTFChars(memoryAddress, &isStringCopy);
 
-        RetroAchievements::RAAchievement internalAchievement = {
+        MelonDSAndroid::RetroAchievements::RAAchievement internalAchievement = {
                 .id = (long) id,
                 .memoryAddress = std::string(codeString),
         };

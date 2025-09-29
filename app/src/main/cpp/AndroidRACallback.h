@@ -5,7 +5,7 @@
 #include <retroachievements/RACallback.h>
 #include <jni.h>
 
-class AndroidRACallback : public RetroAchievements::RACallback
+class AndroidRACallback : public MelonDSAndroid::RetroAchievements::RACallback
 {
 private:
     JniEnvHandler* jniEnvHandler;
