@@ -5,6 +5,8 @@
         android:id="@+id/view_slot_root"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
         android:background="?attr/selectableItemBackground"
         android:nextFocusRight="@id/button_delete">
 
@@ -82,12 +84,5 @@
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_clear"
             app:tint="@color/romConfigButtonDefault" />
-
-    <View
-            android:id="@+id/divider"
-            style="@style/Divider.Horizontal"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

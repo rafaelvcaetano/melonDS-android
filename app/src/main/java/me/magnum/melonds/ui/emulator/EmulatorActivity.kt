@@ -8,6 +8,7 @@ import android.view.Choreographer
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
 import android.widget.RelativeLayout
@@ -44,7 +45,9 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import com.squareup.picasso.Picasso
@@ -92,7 +95,7 @@ import me.magnum.melonds.ui.emulator.model.ToastEvent
 import me.magnum.melonds.ui.emulator.rewind.EdgeSpacingDecorator
 import me.magnum.melonds.ui.emulator.rewind.RewindSaveStateAdapter
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
-import me.magnum.melonds.ui.emulator.rom.SaveStateListAdapter
+import me.magnum.melonds.ui.emulator.rom.SaveStateAdapter
 import me.magnum.melonds.ui.emulator.ui.AchievementListDialog
 import me.magnum.melonds.ui.emulator.ui.AchievementPopupUi
 import me.magnum.melonds.ui.emulator.ui.RAIntegrationEventUi
@@ -762,9 +765,9 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         val dateFormatter = SimpleDateFormat("EEE, dd MMM yyyy", ConfigurationCompat.getLocales(resources.configuration)[0])
         val timeFormatter = SimpleDateFormat("kk:mm:ss", ConfigurationCompat.getLocales(resources.configuration)[0])
         var dialog: AlertDialog? = null
-        var adapter: SaveStateListAdapter? = null
+        var adapter: SaveStateAdapter? = null
 
-        adapter = SaveStateListAdapter(
+        adapter = SaveStateAdapter(
             slots = slots,
             picasso = picasso,
             dateFormat = dateFormatter,
@@ -780,11 +783,19 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             },
         )
 
+        val recyclerView = RecyclerView(this).apply {
+            val layoutManager = LinearLayoutManager(this@EmulatorActivity)
+            this.layoutManager = layoutManager
+            addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
+            this.adapter = adapter
+            descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
+        }
+
         activeOverlays.addActiveOverlay(EmulatorOverlay.SAVE_STATES_DIALOG)
+
         dialog = AlertDialog.Builder(this)
             .setTitle(getString(R.string.save_slot))
-            .setAdapter(adapter) { _, _ ->
-            }
+            .setView(recyclerView)
             .setNegativeButton(R.string.cancel) { _dialog, _ ->
                 _dialog.cancel()
             }
