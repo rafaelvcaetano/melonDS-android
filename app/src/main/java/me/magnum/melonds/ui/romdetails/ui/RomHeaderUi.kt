@@ -2,22 +2,28 @@ package me.magnum.melonds.ui.romdetails.ui
 
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.LocalElevationOverlay
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -30,11 +36,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import kotlinx.coroutines.launch
@@ -56,7 +69,10 @@ fun RomHeaderUi(
     onNavigateBack: () -> Unit,
     onTabClicked: (RomDetailsTab) -> Unit,
 ) {
-    CompositionLocalProvider(LocalElevationOverlay provides null) {
+    CompositionLocalProvider(
+        LocalElevationOverlay provides null,
+        LocalContentAlpha provides ContentAlpha.high,
+    ) {
         Surface(
             modifier = modifier,
             elevation = 4.dp,
@@ -66,7 +82,19 @@ fun RomHeaderUi(
                     backgroundColor = MaterialTheme.colors.surface,
                     elevation = 0.dp,
                     title = {
+                        if (LocalInspectionMode.current) {
+                            Box(Modifier.size(42.dp).background(Color.Gray))
+                        } else {
+                            AsyncImage(
+                                modifier = Modifier.size(42.dp),
+                                model = rom,
+                                contentDescription = null,
+                                filterQuality = FilterQuality.None,
+                            )
+                        }
+
                         Text(
+                            modifier = Modifier.padding(start = 16.dp),
                             text = rom.config.customName ?: rom.name,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
@@ -77,17 +105,38 @@ fun RomHeaderUi(
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
                         }
                     },
-                    actions = {
-                        Button(
-                            modifier = Modifier.padding(8.dp),
-                            shape = RoundedCornerShape(50),
-                            onClick = onLaunchRom,
-                            colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary, contentColor = MaterialTheme.colors.onSecondary),
-                        ) {
-                            Text(text = stringResource(R.string.play).uppercase())
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Button(
+                        modifier = Modifier.widthIn(min = 132.dp),
+                        shape = RoundedCornerShape(50),
+                        onClick = onLaunchRom,
+                        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary, contentColor = MaterialTheme.colors.onSecondary),
+                    ) {
+                        Text(text = stringResource(R.string.play).uppercase())
+                    }
+
+                    val resources = LocalContext.current.resources
+                    val romPlayTime = remember(rom.totalPlayTime) {
+                        rom.totalPlayTime.toComponents { hours, minutes, _, _ ->
+                            if (hours > 0) {
+                                resources.getString(R.string.info_play_time_hours_minutes, hours, minutes)
+                            } else {
+                                resources.getString(R.string.info_play_time_minutes, minutes)
+                            }
                         }
                     }
-                )
+                    Text(
+                        text = romPlayTime,
+                        style = MaterialTheme.typography.body1,
+                        maxLines = 1,
+                    )
+                }
 
                 TabRow(
                     modifier = Modifier.fillMaxWidth(),

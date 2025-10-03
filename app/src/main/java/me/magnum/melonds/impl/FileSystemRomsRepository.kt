@@ -9,13 +9,22 @@ import com.google.gson.reflect.TypeToken
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
+import me.magnum.melonds.domain.model.RomScanningStatus
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.rom.config.RomConfig
-import me.magnum.melonds.domain.model.RomScanningStatus
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.addTo
@@ -26,8 +35,9 @@ import java.io.File
 import java.io.FileReader
 import java.io.OutputStreamWriter
 import java.lang.reflect.Type
-import java.util.*
+import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration
 
 class FileSystemRomsRepository(
         private val context: Context,
@@ -86,20 +96,9 @@ class FileSystemRomsRepository(
     }
 
     override suspend fun getRomAtPath(path: String): Rom? {
-        val romList = getRoms().first()
-
-        val fullPathRom = romList.find { rom ->
+        return getRoms().first().find { rom ->
             val romPath = FileUtils.getAbsolutePathFromSAFUri(context, rom.uri)
             romPath == path
-        }
-        if (fullPathRom != null) {
-            return fullPathRom
-        }
-
-        val fileName = File(path).name
-        return romList.find { rom ->
-            val romPath = FileUtils.getAbsolutePathFromSAFUri(context, rom.uri)
-            romPath != null && File(romPath).name == fileName
         }
     }
 
@@ -128,13 +127,14 @@ class FileSystemRomsRepository(
         onRomsChanged()
     }
 
-    override fun addRomPlayTime(rom: Rom, playTimeMillis: Long) {
+    override fun addRomPlayTime(rom: Rom, playTime: Duration) {
         val romIndex = roms.indexOfFirst { it.hasSameFileAsRom(rom) }
         if (romIndex < 0)
             return
 
-        rom.totalPlayTime += playTimeMillis
-        roms[romIndex] = rom
+        val romInList = roms[romIndex]
+        val updatedRom = romInList.copy(totalPlayTime = romInList.totalPlayTime + playTime)
+        roms[romIndex] = updatedRom
         onRomsChanged()
     }
 

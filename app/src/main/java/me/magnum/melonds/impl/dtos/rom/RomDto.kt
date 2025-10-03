@@ -1,9 +1,10 @@
 package me.magnum.melonds.impl.dtos.rom
 
-import android.net.Uri
+import androidx.core.net.toUri
 import com.google.gson.annotations.SerializedName
 import me.magnum.melonds.domain.model.rom.Rom
-import java.util.*
+import java.util.Date
+import kotlin.time.Duration.Companion.milliseconds
 
 data class RomDto(
     @SerializedName("name")
@@ -40,7 +41,7 @@ data class RomDto(
                 rom.lastPlayed,
                 rom.isDsiWareTitle,
                 rom.retroAchievementsHash,
-                rom.totalPlayTime,
+                rom.totalPlayTime.inWholeMilliseconds,
             )
         }
     }
@@ -50,13 +51,13 @@ data class RomDto(
             name,
             developerName,
             fileName,
-            Uri.parse(uri),
-            Uri.parse(parentTreeUri),
+            uri.toUri(),
+            parentTreeUri.toUri(),
             config.toModel(),
             lastPlayed,
             isDsiWareTitle,
             retroAchievementsHash,
-            totalPlayTime,
+            totalPlayTime.milliseconds,
         )
     }
 }

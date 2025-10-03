@@ -6,6 +6,7 @@ import androidx.core.net.toUri
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.extensions.parcelable
 import java.util.*
+import kotlin.time.Duration.Companion.milliseconds
 
 class RomParcelable : Parcelable {
     var rom: Rom
@@ -25,7 +26,7 @@ class RomParcelable : Parcelable {
         val romConfig = parcel.parcelable<RomConfigParcelable>()
         val isDsiWareTitle = parcel.readInt() == 1
         val retroAchievementsHash = parcel.readString()!!
-        val totalPlayTime = parcel.readLong()
+        val totalPlayTime = parcel.readLong().milliseconds
         rom = Rom(name!!, developerName, fileName!!, uri, parentTreeUri, romConfig!!.romConfig, lastPlayed, isDsiWareTitle, retroAchievementsHash, totalPlayTime)
     }
 
@@ -39,7 +40,7 @@ class RomParcelable : Parcelable {
         dest.writeParcelable(RomConfigParcelable(rom.config), 0)
         dest.writeInt(if (rom.isDsiWareTitle) 1 else 0)
         dest.writeString(rom.retroAchievementsHash)
-        dest.writeLong(rom.totalPlayTime)
+        dest.writeLong(rom.totalPlayTime.inWholeMilliseconds)
     }
 
     override fun describeContents(): Int {

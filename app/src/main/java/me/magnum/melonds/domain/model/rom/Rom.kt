@@ -3,6 +3,7 @@ package me.magnum.melonds.domain.model.rom
 import android.net.Uri
 import me.magnum.melonds.domain.model.rom.config.RomConfig
 import java.util.*
+import kotlin.time.Duration
 
 data class Rom(
     val name: String,
@@ -14,7 +15,7 @@ data class Rom(
     var lastPlayed: Date? = null,
     val isDsiWareTitle: Boolean,
     val retroAchievementsHash: String,
-    var totalPlayTime: Long = 0,
+    val totalPlayTime: Duration = Duration.ZERO,
 ) {
 
     fun hasSameFileAsRom(other: Rom): Boolean {

@@ -2,7 +2,6 @@ package me.magnum.melonds.ui.romdetails.ui
 
 import android.app.Activity
 import android.content.Intent
-import android.text.format.DateUtils
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -19,7 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,8 +37,8 @@ import me.magnum.melonds.ui.common.component.dialog.TextInputDialog
 import me.magnum.melonds.ui.common.component.dialog.rememberTextInputDialogState
 import me.magnum.melonds.ui.common.preference.ActionLauncherItem
 import me.magnum.melonds.ui.common.preference.SingleChoiceItem
-import me.magnum.melonds.ui.layouts.LayoutSelectorActivity
 import me.magnum.melonds.ui.layouts.ExternalLayoutSelectorActivity
+import me.magnum.melonds.ui.layouts.LayoutSelectorActivity
 import me.magnum.melonds.ui.romdetails.model.RomConfigUiModel
 import me.magnum.melonds.ui.romdetails.model.RomConfigUiState
 import me.magnum.melonds.ui.romdetails.model.RomConfigUpdateEvent
@@ -54,7 +52,6 @@ fun RomConfigUi(
     contentPadding: PaddingValues,
     romName: String,
     romConfigUiState: RomConfigUiState,
-    romTotalPlayTime: Long,
     onConfigUpdate: (RomConfigUpdateEvent) -> Unit,
 ) {
     when (romConfigUiState) {
@@ -64,7 +61,6 @@ fun RomConfigUi(
             contentPadding = contentPadding,
             romName = romName,
             romConfig = romConfigUiState.romConfigUiModel,
-            romTotalPlayTime = romTotalPlayTime,
             onConfigUpdate = onConfigUpdate,
         )
     }
@@ -86,7 +82,6 @@ private fun Content(
     contentPadding: PaddingValues,
     romName: String,
     romConfig: RomConfigUiModel,
-    romTotalPlayTime: Long,
     onConfigUpdate: (RomConfigUpdateEvent) -> Unit,
 ) {
     Column(
@@ -96,14 +91,6 @@ private fun Content(
                 end = contentPadding.calculateEndPadding(LocalLayoutDirection.current),
             ),
     ) {
-        Text(
-            text = stringResource(
-                id = R.string.info_play_time,
-                DateUtils.formatElapsedTime(romTotalPlayTime / 1000)
-            ),
-            style = MaterialTheme.typography.body2,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
-        )
         val renameDialogState = rememberTextInputDialogState()
         ActionLauncherItem(
             name = stringResource(id = R.string.label_rom_config_custom_name),
@@ -266,7 +253,6 @@ private fun PreviewRomConfigUi() {
                     gbaSlotConfig = RomGbaSlotConfigUiModel(type = RomGbaSlotConfigUiModel.Type.GbaRom)
                 ),
             ),
-            romTotalPlayTime = 0,
             onConfigUpdate = { },
         )
     }

@@ -83,6 +83,7 @@ import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -338,7 +339,7 @@ class EmulatorViewModel @Inject constructor(
             while (isActive) {
                 delay(1000)
                 val now = System.currentTimeMillis()
-                romsRepository.addRomPlayTime(rom, now - lastTime)
+                romsRepository.addRomPlayTime(rom, (now - lastTime).milliseconds)
                 lastTime = now
             }
         }

@@ -7,6 +7,7 @@ import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.domain.model.RomScanningStatus
 import java.util.*
+import kotlin.time.Duration
 
 interface RomsRepository {
     fun getRoms(): Flow<List<Rom>>
@@ -16,7 +17,7 @@ interface RomsRepository {
 
     fun updateRomConfig(rom: Rom, romConfig: RomConfig)
     fun setRomLastPlayed(rom: Rom, lastPlayed: Date)
-    fun addRomPlayTime(rom: Rom, playTimeMillis: Long)
+    fun addRomPlayTime(rom: Rom, playTime: Duration)
     fun rescanRoms()
     fun invalidateRoms()
 }
