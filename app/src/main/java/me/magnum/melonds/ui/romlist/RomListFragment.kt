@@ -34,13 +34,12 @@ import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ItemRomConfigurableBinding
 import me.magnum.melonds.databinding.ItemRomSimpleBinding
 import me.magnum.melonds.databinding.RomListFragmentBinding
-import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.domain.model.RomScanningStatus
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.extensions.setViewEnabledRecursive
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.romdetails.RomDetailsActivity
-import me.magnum.melonds.ui.romlist.RomListFragment.RomEnabledFilter
 import me.magnum.melonds.ui.romlist.RomListFragment.RomListAdapter.RomViewHolder
 
 @AndroidEntryPoint
@@ -69,7 +68,6 @@ class RomListFragment : Fragment() {
     private lateinit var romListAdapter: RomListAdapter
 
     private var romSelectedListener: ((Rom) -> Unit)? = null
-    private var romFocusListener: ((Rom) -> Unit)? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = RomListFragmentBinding.inflate(inflater, container, false)
@@ -102,7 +100,6 @@ class RomListFragment : Fragment() {
                 }
             },
             romEnabledFilter = buildRomEnabledFilter(romEnableCriteria),
-            focusListener = romFocusListener,
         )
 
         binding.listRoms.apply {
@@ -137,7 +134,6 @@ class RomListFragment : Fragment() {
                 }
             }
         }
-
     }
 
     private fun displayEmptyListViewIfRequired() {
@@ -157,20 +153,12 @@ class RomListFragment : Fragment() {
         romSelectedListener = listener
     }
 
-    fun setRomFocusListener(listener: (Rom) -> Unit) {
-        romFocusListener = listener
-        if (this::romListAdapter.isInitialized) {
-            romListAdapter.setRomFocusListener(listener)
-        }
-    }
-
     private inner class RomListAdapter(
         private val allowRomConfiguration: Boolean,
         private val context: Context,
         private val coroutineScope: CoroutineScope,
         private val listener: RomClickListener,
         private val romEnabledFilter: RomEnabledFilter,
-        private var focusListener: ((Rom) -> Unit)? = null,
     ) : RecyclerView.Adapter<RomViewHolder>() {
 
         private val roms: ArrayList<Rom> = ArrayList()
@@ -186,10 +174,6 @@ class RomListFragment : Fragment() {
         fun updateIcons() {
             val diff = DiffUtil.calculateDiff(RomIconDiffUtilCallback(this.roms.size))
             diff.dispatchUpdatesTo(this)
-        }
-
-        fun setRomFocusListener(listener: (Rom) -> Unit) {
-            focusListener = listener
         }
 
         override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RomViewHolder {
@@ -216,11 +200,7 @@ class RomListFragment : Fragment() {
             return roms.size
         }
 
-        open inner class RomViewHolder(
-            itemView: View,
-            private val coroutineScope: CoroutineScope,
-            onRomClick: (Rom) -> Unit
-        ) : RecyclerView.ViewHolder(itemView) {
+        open inner class RomViewHolder(itemView: View, private val coroutineScope: CoroutineScope, onRomClick: (Rom) -> Unit) : RecyclerView.ViewHolder(itemView) {
             private val imageViewRomIcon = itemView.findViewById<ImageView>(R.id.imageRomIcon)
             private val textViewRomName = itemView.findViewById<TextView>(R.id.textRomName)
             private val textViewRomPath = itemView.findViewById<TextView>(R.id.textRomPath)
@@ -231,11 +211,6 @@ class RomListFragment : Fragment() {
 
             init {
                 itemView.setOnClickListener { onRomClick(rom) }
-                itemView.setOnFocusChangeListener { _, hasFocus ->
-                    if (hasFocus) {
-                        this@RomListAdapter.focusListener?.invoke(rom)
-                    }
-                }
             }
 
             fun cleanup() {
