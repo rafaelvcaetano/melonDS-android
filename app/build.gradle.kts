@@ -14,10 +14,10 @@ android {
     signingConfigs {
         create("release") {
             val props = gradleLocalProperties(rootDir, providers)
-            storeFile = file(props["MELONDS_KEYSTORE"] as String)
-            storePassword = props["MELONDS_KEYSTORE_PASSWORD"] as String
-            keyAlias = props["MELONDS_KEY_ALIAS"] as String
-            keyPassword = props["MELONDS_KEY_PASSWORD"] as String
+            (props["MELONDS_KEYSTORE"] as String?)?.let { storeFile = file(it) }
+            storePassword = props["MELONDS_KEYSTORE_PASSWORD"] as String? ?: ""
+            keyAlias = props["MELONDS_KEY_ALIAS"] as String? ?: ""
+            keyPassword = props["MELONDS_KEY_PASSWORD"] as String? ?: ""
         }
     }
 

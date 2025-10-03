@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.emulator.ui
 
 import androidx.compose.animation.core.animate
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -18,6 +20,7 @@ import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -170,16 +173,18 @@ private fun Content(
     onViewAchievement: (RAAchievement) -> Unit,
     lazyListState: LazyListState,
 ) {
+    val backgroundColor = MaterialTheme.colors.background
+    val fillScreen = achievements.size <= 3
     LazyColumn(
         modifier = modifier
             .drawWithCache {
                 val fadeHeight = 56 * density
                 val topBrush = Brush.verticalGradient(
-                    listOf(Color.White.copy(alpha = 0f), Color.White),
+                    listOf(backgroundColor.copy(alpha = 0f), backgroundColor),
                     endY = fadeHeight,
                 )
                 val bottomBrush = Brush.verticalGradient(
-                    listOf(Color.White, Color.White.copy(alpha = 0f)),
+                    listOf(backgroundColor, backgroundColor.copy(alpha = 0f)),
                     startY = size.height - fadeHeight,
                     endY = size.height
                 )
@@ -204,9 +209,12 @@ private fun Content(
     ) {
         items(achievements) {
             RomAchievementUi(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = if (fillScreen) 140.dp else 0.dp),
                 userAchievement = it,
                 onViewAchievement = { onViewAchievement(it.achievement) },
+                badgeSize = if (fillScreen) 96.dp else 52.dp,
             )
         }
     }
@@ -216,9 +224,9 @@ private fun Content(
 private fun LoadError(
     modifier: Modifier,
     onRetry: () -> Unit,
-) {
+    ) {
     Column(
-        modifier = modifier,
+        modifier = modifier.background(MaterialTheme.colors.background),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -233,5 +241,35 @@ private fun LoadError(
         ) {
             Text(text = stringResource(id = R.string.retry).uppercase())
         }
+    }
+}
+
+@Composable
+private fun LoggedOutMessage(modifier: Modifier) {
+    Box(
+        modifier = modifier
+            .background(MaterialTheme.colors.background)
+            .padding(32.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(id = R.string.retro_achievements_login_description),
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+private fun NoAchievements(modifier: Modifier) {
+    Box(
+        modifier = modifier
+            .background(MaterialTheme.colors.background)
+            .padding(32.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(id = R.string.retro_achievements_no_achievements),
+            textAlign = TextAlign.Center,
+        )
     }
 }

@@ -58,6 +58,7 @@ class LayoutEditorViewModel @Inject constructor(
     }
 
     init {
+        val isExternal = savedStateHandle.get<Boolean>(LayoutEditorActivity.KEY_IS_EXTERNAL) ?: false
         val layoutId = savedStateHandle.get<String?>(LayoutEditorActivity.KEY_LAYOUT_ID)?.let { UUID.fromString(it) }
         if (layoutId != null) {
             viewModelScope.launch {
@@ -66,7 +67,9 @@ class LayoutEditorViewModel @Inject constructor(
                 _currentLayoutConfiguration.value = initialLayout
             }
         } else {
-            val newLayout = LayoutConfiguration.newCustom()
+            val newLayout = LayoutConfiguration.newCustom(
+                if (isExternal) LayoutConfiguration.LayoutTarget.EXTERNAL else LayoutConfiguration.LayoutTarget.INTERNAL
+            )
             initialLayoutConfiguration = newLayout
             _currentLayoutConfiguration.value = newLayout
         }
