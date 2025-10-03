@@ -43,66 +43,62 @@ fun CheatItem(
 ) {
     val hasDescription = cheat.description?.isNotBlank() == true
 
-    val contentAlpha = if (cheat.isValid()) ContentAlpha.high else ContentAlpha.disabled
     val verticalPadding = if (hasDescription) 12.dp else 4.dp
-    CompositionLocalProvider(LocalContentAlpha provides contentAlpha) {
-        Row(
-            modifier = modifier
-                .clickable(enabled = cheat.isValid(), onClick = onClick)
-                .padding(start = 16.dp, top = verticalPadding, bottom = verticalPadding),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = if (hasDescription) Alignment.Top else Alignment.CenterVertically,
+    Row(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(start = 16.dp, top = verticalPadding, bottom = verticalPadding),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = if (hasDescription) Alignment.Top else Alignment.CenterVertically,
+    ) {
+        Checkbox(
+            modifier = if (hasDescription) Modifier.padding(top = 4.dp) else Modifier,
+            checked = cheat.enabled,
+            onCheckedChange = null,
+        )
+
+        Column(
+            modifier = Modifier.weight(1f).padding(start = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Checkbox(
-                modifier = if (hasDescription) Modifier.padding(top = 4.dp) else Modifier,
-                checked = cheat.enabled,
-                enabled = cheat.isValid(),
-                onCheckedChange = null,
-            )
+            Text(cheat.name)
 
-            Column(
-                modifier = Modifier.weight(1f).padding(start = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(cheat.name)
-
-                if (hasDescription) {
-                    CaptionText(
-                        style = MaterialTheme.typography.body2,
-                        text = cheat.description.orEmpty(),
-                    )
-                }
+            if (hasDescription) {
+                CaptionText(
+                    style = MaterialTheme.typography.body2,
+                    text = cheat.description,
+                )
             }
+        }
 
-            var showCheatOptions by remember { mutableStateOf(false) }
-            // Cheat can always be edited even if it's not valid
-            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
-                IconButton(onClick = { showCheatOptions = true }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = stringResource(R.string.options),
-                    )
+        var showCheatOptions by remember { mutableStateOf(false) }
+        // Cheat can always be edited even if it's not valid
+        CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
+            IconButton(onClick = { showCheatOptions = true }) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = stringResource(R.string.options),
+                )
 
-                    DropdownMenu(
-                        expanded = showCheatOptions,
-                        onDismissRequest = { showCheatOptions = false },
+                DropdownMenu(
+                    expanded = showCheatOptions,
+                    onDismissRequest = { showCheatOptions = false },
+                ) {
+                    DropdownMenuItem(
+                        onClick = {
+                            showCheatOptions = false
+                            onEditClick()
+                        },
                     ) {
-                        DropdownMenuItem(
-                            onClick = {
-                                showCheatOptions = false
-                                onEditClick()
-                            },
-                        ) {
-                            Text(stringResource(R.string.edit))
-                        }
-                        DropdownMenuItem(
-                            onClick = {
-                                showCheatOptions = false
-                                onDeleteClick()
-                            },
-                        ) {
-                            Text(stringResource(R.string.delete))
-                        }
+                        Text(stringResource(R.string.edit))
+                    }
+                    DropdownMenuItem(
+                        onClick = {
+                            showCheatOptions = false
+                            onDeleteClick()
+                        },
+                    ) {
+                        Text(stringResource(R.string.delete))
                     }
                 }
             }

@@ -19,8 +19,6 @@
 
 #include "Platform.h"
 
-#define MAX_CHEAT_SIZE (2*64)
-
 enum GbaSlotType {
     NONE = 0,
     GBA_ROM = 1,
@@ -87,14 +85,18 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
     for (int i = 0; i < cheatCount; ++i) {
         jobject cheat = env->GetObjectArrayElement(cheats, i);
         jstring code = (jstring) env->GetObjectField(cheat, codeField);
-        std::string codeString = env->GetStringUTFChars(code, JNI_FALSE);
+        const char* codeStringPtr = env->GetStringUTFChars(code, JNI_FALSE);
+        std::string codeString = codeStringPtr;
+        // Since each part of a cheat code has 8 characters (4 bytes), we can add 1 to the length (to ensure that each part has a matching space separator) and divide by 9
+        // (part length + space separator) to calculate the total number of parts in the cheat
+        size_t codeLength = (codeString.size() + 1) / 9;
 
         bool isBad = false;
-        int sectionCounter = 0;
         std::size_t start = 0;
         std::size_t end = 0;
 
         MelonDSAndroid::Cheat internalCheat;
+        internalCheat.code.reserve(codeLength);
 
         // Split code string into sections separated by a space
         while ((end = codeString.find(' ', start)) != std::string::npos) {
@@ -109,13 +111,7 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
 
                 unsigned long section = strtoul(sectionString.c_str(), &endPointer, 16);
                 if (*endPointer == 0) {
-                    if (sectionCounter >= MAX_CHEAT_SIZE) {
-                        isBad = true;
-                        break;
-                    }
-
-                    internalCheat.code[sectionCounter] = (u32) section;
-                    sectionCounter++;
+                    internalCheat.code.push_back((u32) section);
                 } else {
                     isBad = true;
                     break;
@@ -131,20 +127,16 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
                 isBad = true;
             } else {
                 unsigned long section = strtoul(sectionString.c_str(), &endPointer, 16);
-                if (*endPointer == 0 && sectionCounter < MAX_CHEAT_SIZE) {
-                    internalCheat.code[sectionCounter] = (u32) section;
-                    sectionCounter++;
-                } else {
-                    isBad = true;
-                }
+                internalCheat.code.push_back((u32) section);
             }
         }
+
+        env->ReleaseStringUTFChars(code, codeStringPtr);
 
         if (isBad) {
             continue;
         }
 
-        internalCheat.codeLength = sectionCounter;
         internalCheats.push_back(internalCheat);
     }
 
