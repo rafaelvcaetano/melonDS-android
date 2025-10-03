@@ -9,6 +9,7 @@ import me.magnum.melonds.domain.model.InputConfig
 data class InputConfigDto(
     @SerialName("input") val input: Input,
     @SerialName("assignment") val assignment: AssignmentDto,
+    @SerialName("altAssignment") val altAssignment: AssignmentDto = AssignmentDto.None,
 ) {
 
     @Serializable
@@ -45,6 +46,11 @@ data class InputConfigDto(
                     is InputConfig.Assignment.None -> AssignmentDto.None
                     is InputConfig.Assignment.Key -> AssignmentDto.Key(inputConfig.assignment.deviceId, inputConfig.assignment.keyCode)
                     is InputConfig.Assignment.Axis -> AssignmentDto.Axis(inputConfig.assignment.deviceId, inputConfig.assignment.axisCode, inputConfig.assignment.direction)
+                },
+                altAssignment = when (inputConfig.altAssignment) {
+                    is InputConfig.Assignment.None -> AssignmentDto.None
+                    is InputConfig.Assignment.Key -> AssignmentDto.Key(inputConfig.altAssignment.deviceId, inputConfig.altAssignment.keyCode)
+                    is InputConfig.Assignment.Axis -> AssignmentDto.Axis(inputConfig.altAssignment.deviceId, inputConfig.altAssignment.axisCode, inputConfig.altAssignment.direction)
                 }
             )
         }
@@ -57,6 +63,11 @@ data class InputConfigDto(
                 is AssignmentDto.None -> InputConfig.Assignment.None
                 is AssignmentDto.Key -> InputConfig.Assignment.Key(assignment.deviceId, assignment.keyCode)
                 is AssignmentDto.Axis -> InputConfig.Assignment.Axis(assignment.deviceId, assignment.axisCode, assignment.direction)
+            },
+            altAssignment = when (altAssignment) {
+                is AssignmentDto.None -> InputConfig.Assignment.None
+                is AssignmentDto.Key -> InputConfig.Assignment.Key(altAssignment.deviceId, altAssignment.keyCode)
+                is AssignmentDto.Axis -> InputConfig.Assignment.Axis(altAssignment.deviceId, altAssignment.axisCode, altAssignment.direction)
             }
         )
     }

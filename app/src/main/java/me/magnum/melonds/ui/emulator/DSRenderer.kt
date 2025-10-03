@@ -4,14 +4,17 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.opengl.GLES30
 import android.opengl.GLUtils
+import javax.microedition.khronos.egl.EGL10
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
+import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.layout.BackgroundMode
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
+import me.magnum.melonds.domain.model.render.FrameRenderEvent
 import me.magnum.melonds.domain.model.render.PresentFrameWrapper
 import me.magnum.melonds.utils.BitmapUtils
 import java.nio.ByteBuffer
@@ -19,7 +22,10 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.roundToInt
 
-class DSRenderer(private val context: Context) {
+class DSRenderer(
+    private val context: Context,
+    private val onGlContextReady: (glContext: Long) -> Unit,
+) {
     companion object {
         private const val SCREEN_WIDTH = 256
         private const val SCREEN_HEIGHT = 384
@@ -46,8 +52,10 @@ class DSRenderer(private val context: Context) {
     private var screenShader: Shader? = null
     private lateinit var backgroundShader: Shader
 
-    private lateinit var posBuffer: FloatBuffer
-    private lateinit var uvBuffer: FloatBuffer
+    private var posTop: FloatBuffer? = null
+    private var posBottom: FloatBuffer? = null
+    private lateinit var uvTop: FloatBuffer
+    private lateinit var uvBottom: FloatBuffer
 
     private lateinit var backgroundPosBuffer: FloatBuffer
     private lateinit var backgroundUvBuffer: FloatBuffer
@@ -58,6 +66,10 @@ class DSRenderer(private val context: Context) {
     private var mustLoadBackground = false
     private var topScreenRect: Rect? = null
     private var bottomScreenRect: Rect? = null
+    private var topAlpha: Float = 1f
+    private var bottomAlpha: Float = 1f
+    private var topOnTop: Boolean = false
+    private var bottomOnTop: Boolean = false
 
     private var width = 0f
     private var height = 0f
@@ -68,14 +80,37 @@ class DSRenderer(private val context: Context) {
     private var backgroundWidth = 0
     private var backgroundHeight = 0
 
+    // EGL context used to share textures with secondary renderers
+    private var eglContext: javax.microedition.khronos.egl.EGLContext? = null
+
+    private var frameRenderEventListener: ((FrameRenderEvent) -> Unit)? = null
+
+    /** Return the EGL context associated with this renderer when available. */
+    fun getSharedEglContext(): javax.microedition.khronos.egl.EGLContext? = eglContext
+
+    fun setOnFrameRenderedListener(listener: ((FrameRenderEvent) -> Unit)?) {
+        frameRenderEventListener = listener
+    }
+
     fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
         rendererConfiguration = newRendererConfiguration
         mustUpdateConfiguration = true
     }
 
-    fun updateScreenAreas(topScreenRect: Rect?, bottomScreenRect: Rect?) {
+    fun updateScreenAreas(
+        topScreenRect: Rect?,
+        bottomScreenRect: Rect?,
+        topAlpha: Float = this.topAlpha,
+        bottomAlpha: Float = this.bottomAlpha,
+        topOnTop: Boolean = this.topOnTop,
+        bottomOnTop: Boolean = this.bottomOnTop,
+    ) {
         this.topScreenRect = topScreenRect
         this.bottomScreenRect = bottomScreenRect
+        this.topAlpha = topAlpha
+        this.bottomAlpha = bottomAlpha
+        this.topOnTop = topOnTop
+        this.bottomOnTop = bottomOnTop
         mustUpdateConfiguration = true
         isBackgroundPositionDirty = true
     }
@@ -98,6 +133,10 @@ class DSRenderer(private val context: Context) {
     }
 
     fun onSurfaceCreated() {
+        // Cache EGL context so other renderers can share textures
+        val egl = javax.microedition.khronos.egl.EGLContext.getEGL() as EGL10
+        eglContext = egl.eglGetCurrentContext()
+
         GLES30.glClearColor(0f, 0f, 0f, 1f)
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
         GLES30.glDisable(GLES30.GL_CULL_FACE)
@@ -128,113 +167,68 @@ class DSRenderer(private val context: Context) {
     }
 
     private fun updateScreenCoordinates() {
-        val uvs = mutableListOf<Float>()
-        val coords = mutableListOf<Float>()
 
-        // Indices:
-        // 1                         2
-        //   +-----------------------+ 4
-        //   |                       |
-        //   |                       |
-        //   |                       |
-        //   |                       |
-        // 0 +-----------------------+
-        //   3                         5
-        // Texture is vertically flipped
-
-        // The texture will have 2 lines between the screens. Take that into account when computing UVs
         val lineRelativeSize = 1 / (SCREEN_HEIGHT + 1).toFloat()
-        topScreenRect?.let {
-            uvs.add(0f)
-            uvs.add(0.5f - lineRelativeSize)
 
-            uvs.add(0f)
-            uvs.add(0f)
+        val topUvs = floatArrayOf(
+            0f, 0.5f - lineRelativeSize,
+            0f, 0f,
+            1f, 0f,
+            0f, 0.5f - lineRelativeSize,
+            1f, 0f,
+            1f, 0.5f - lineRelativeSize,
+        )
 
-            uvs.add(1f)
-            uvs.add(0f)
+        val bottomUvs = floatArrayOf(
+            0f, 1f,
+            0f, 0.5f + lineRelativeSize,
+            1f, 0.5f + lineRelativeSize,
+            0f, 1f,
+            1f, 0.5f + lineRelativeSize,
+            1f, 1f,
+        )
 
-            uvs.add(0f)
-            uvs.add(0.5f - lineRelativeSize)
+        uvTop = ByteBuffer.allocateDirect(topUvs.size * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(topUvs)
 
-            uvs.add(1f)
-            uvs.add(0f)
+        uvBottom = ByteBuffer.allocateDirect(bottomUvs.size * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(bottomUvs)
 
-            uvs.add(1f)
-            uvs.add(0.5f - lineRelativeSize)
+        posTop = topScreenRect?.let { rectToBuffer(it) }
+        posBottom = bottomScreenRect?.let { rectToBuffer(it) }
+    }
 
-            coords.add(screenXToViewportX(it.x))
-            coords.add(screenYToViewportY(it.y + it.height))
 
-            coords.add(screenXToViewportX(it.x))
-            coords.add(screenYToViewportY(it.y))
 
-            coords.add(screenXToViewportX(it.x + it.width))
-            coords.add(screenYToViewportY(it.y))
-
-            coords.add(screenXToViewportX(it.x))
-            coords.add(screenYToViewportY(it.y + it.height))
-
-            coords.add(screenXToViewportX(it.x + it.width))
-            coords.add(screenYToViewportY(it.y))
-
-            coords.add(screenXToViewportX(it.x + it.width))
-            coords.add(screenYToViewportY(it.y + it.height))
-        }
-        bottomScreenRect?.let {
-            uvs.add(0f)
-            uvs.add(1f)
-
-            uvs.add(0f)
-            uvs.add(0.5f + lineRelativeSize)
-
-            uvs.add(1f)
-            uvs.add(0.5f + lineRelativeSize)
-
-            uvs.add(0f)
-            uvs.add(1f)
-
-            uvs.add(1f)
-            uvs.add(0.5f + lineRelativeSize)
-
-            uvs.add(1f)
-            uvs.add(1f)
-
-            coords.add(screenXToViewportX(it.x))
-            coords.add(screenYToViewportY(it.y + it.height))
-
-            coords.add(screenXToViewportX(it.x))
-            coords.add(screenYToViewportY(it.y))
-
-            coords.add(screenXToViewportX(it.x + it.width))
-            coords.add(screenYToViewportY(it.y))
-
-            coords.add(screenXToViewportX(it.x))
-            coords.add(screenYToViewportY(it.y + it.height))
-
-            coords.add(screenXToViewportX(it.x + it.width))
-            coords.add(screenYToViewportY(it.y))
-
-            coords.add(screenXToViewportX(it.x + it.width))
-            coords.add(screenYToViewportY(it.y + it.height))
-        }
-
-        uvBuffer = ByteBuffer.allocateDirect(4 * uvs.size)
-                .order(ByteOrder.nativeOrder())
-                .asFloatBuffer()
-                .put(uvs.toFloatArray())
-
-        posBuffer = ByteBuffer.allocateDirect(4 * coords.size)
-                .order(ByteOrder.nativeOrder())
-                .asFloatBuffer()
-                .put(coords.toFloatArray())
+    private fun rectToBuffer(rect: Rect): FloatBuffer {
+        val left = rect.x / width * 2f - 1f
+        val right = (rect.x + rect.width) / width * 2f - 1f
+        val top = 1f - rect.y / height * 2f
+        val bottom = 1f - (rect.y + rect.height) / height * 2f
+        val coords = floatArrayOf(
+            left, bottom,
+            left, top,
+            right, top,
+            left, bottom,
+            right, top,
+            right, bottom,
+        )
+        return ByteBuffer.allocateDirect(coords.size * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(coords)
     }
 
     private fun updateShader() {
         // Delete previous shader
         screenShader?.delete()
 
-        val shaderSource = FILTERING_SHADER_MAP[rendererConfiguration?.videoFiltering ?: VideoFiltering.NONE] ?: throw Exception("Invalid video filtering")
+        val filtering = rendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
+        val shaderSource = VideoFilterShaderProvider.getShaderSource(filtering)
         screenShader = ShaderFactory.createShaderProgram(shaderSource)
     }
 
@@ -256,35 +250,62 @@ class DSRenderer(private val context: Context) {
         }
 
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
+
         if (!presentFrameWrapper.isValidFrame) {
+            frameRenderEventListener?.invoke(
+                FrameRenderEvent(
+                    isValidFrame = false,
+                    textureId = presentFrameWrapper.textureId,
+                    renderFenceHandle = presentFrameWrapper.renderFenceHandle,
+                    presentFenceHandle = presentFrameWrapper.presentFenceHandle,
+                )
+            )
             return
         }
 
         GLES30.glWaitSync(presentFrameWrapper.renderFenceHandle, 0, GLES30.GL_TIMEOUT_IGNORED)
 
-        posBuffer.position(0)
-        uvBuffer.position(0)
+        synchronized(backgroundLock) {
+            renderBackground()
+        }
 
-        val indices = posBuffer.capacity() / 2
         screenShader?.let { shader ->
             shader.use()
 
-            GLES30.glEnable(GLES30.GL_DEPTH_TEST)
-            GLES30.glDepthFunc(GLES30.GL_NOTEQUAL)
+            GLES30.glDisable(GLES30.GL_DEPTH_TEST)
             GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
             GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, presentFrameWrapper.textureId)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, shader.textureFiltering)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, shader.textureFiltering)
 
-            GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, posBuffer)
-            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBuffer)
-            GLES30.glUniform1i(shader.uniformTex, 0)
-            GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, indices)
+            val screens = listOfNotNull(
+                posTop?.let { Triple(it, uvTop, Pair(topAlpha, topOnTop)) },
+                posBottom?.let { Triple(it, uvBottom, Pair(bottomAlpha, bottomOnTop)) },
+            ).sortedBy { if (it.third.second) 1 else 0 }
+
+            screens.forEach { (buf, uv, info) ->
+                val alpha = info.first
+                buf.position(0)
+                uv.position(0)
+                GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
+                GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uv)
+                GLES30.glUniform1i(shader.uniformTex, 0)
+                GLES30.glEnable(GLES30.GL_BLEND)
+                GLES30.glBlendColor(0f, 0f, 0f, alpha)
+                GLES30.glBlendFunc(GLES30.GL_CONSTANT_ALPHA, GLES30.GL_ONE_MINUS_CONSTANT_ALPHA)
+                GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6)
+                GLES30.glDisable(GLES30.GL_BLEND)
+            }
         }
 
-        synchronized(backgroundLock) {
-            renderBackground()
-        }
+        frameRenderEventListener?.invoke(
+            FrameRenderEvent(
+                isValidFrame = true,
+                textureId = presentFrameWrapper.textureId,
+                renderFenceHandle = presentFrameWrapper.renderFenceHandle,
+                presentFenceHandle = presentFrameWrapper.presentFenceHandle,
+            )
+        )
     }
 
     private fun renderBackground() {
