@@ -167,6 +167,10 @@
             tools:node="merge">
 
             <meta-data
+                    android:name="me.magnum.melonds.initializer.AppForegroundStateTrackerInitializer"
+                    android:value="androidx.startup" />
+
+            <meta-data
                 android:name="me.magnum.melonds.initializer.CoilInitializer"
                 android:value="androidx.startup" />
 

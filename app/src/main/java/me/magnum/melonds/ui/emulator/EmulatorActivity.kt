@@ -5,10 +5,10 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.hardware.display.DisplayManager
 import android.os.Bundle
-import android.util.Log
 import android.util.DisplayMetrics
-import android.view.Display
+import android.util.Log
 import android.view.Choreographer
+import android.view.Display
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -39,9 +39,9 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import androidx.core.graphics.toColorInt
-import me.magnum.melonds.ui.ExternalLayoutRender
-import me.magnum.melonds.ui.ExternalScreenRender
 import androidx.core.net.toUri
 import androidx.core.os.ConfigurationCompat
 import androidx.core.view.WindowInsetsCompat
@@ -77,25 +77,25 @@ import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.SaveStateSlot
+import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.layout.ScreenFold
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.ui.Orientation
+import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.insetsControllerCompat
-import me.magnum.melonds.impl.DefaultLayoutProvider
 import me.magnum.melonds.extensions.parcelable
 import me.magnum.melonds.extensions.setLayoutOrientation
+import me.magnum.melonds.impl.DefaultLayoutProvider
 import me.magnum.melonds.impl.emulator.LifecycleOwnerProvider
+import me.magnum.melonds.impl.system.AppForegroundStateObserver
 import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
-import me.magnum.melonds.ui.ExternalDisplayManager
+import me.magnum.melonds.ui.ExternalLayoutRender
 import me.magnum.melonds.ui.ExternalPresentation
 import me.magnum.melonds.ui.ExternalRenderer
-import me.magnum.melonds.ui.launchedFromExternalDisplay
-import me.magnum.melonds.ui.ensureOnPrimaryDisplay
-import me.magnum.melonds.domain.model.VideoFiltering
-import me.magnum.melonds.domain.repositories.LayoutsRepository
+import me.magnum.melonds.ui.ExternalScreenRender
 import me.magnum.melonds.ui.cheats.CheatsActivity
 import me.magnum.melonds.ui.emulator.component.EmulatorOverlayTracker
 import me.magnum.melonds.ui.emulator.input.FrontendInputHandler
@@ -114,11 +114,11 @@ import me.magnum.melonds.ui.emulator.rewind.RewindSaveStateAdapter
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 import me.magnum.melonds.ui.emulator.rom.SaveStateAdapter
 import me.magnum.melonds.ui.emulator.ui.AchievementListDialog
-import me.magnum.melonds.ui.emulator.ui.QuickSettingsDialog
-import me.magnum.melonds.ui.layouts.LayoutListActivity
-import me.magnum.melonds.ui.layouts.ExternalLayoutListActivity
 import me.magnum.melonds.ui.emulator.ui.AchievementPopupUi
+import me.magnum.melonds.ui.emulator.ui.QuickSettingsDialog
 import me.magnum.melonds.ui.emulator.ui.RAIntegrationEventUi
+import me.magnum.melonds.ui.layouts.ExternalLayoutListActivity
+import me.magnum.melonds.ui.layouts.LayoutListActivity
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.theme.MelonTheme
 import java.text.SimpleDateFormat
@@ -162,6 +162,9 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     @Inject
     lateinit var lifecycleOwnerProvider: LifecycleOwnerProvider
 
+    @Inject
+    lateinit var appForegroundStateObserver: AppForegroundStateObserver
+
     /**
      * Repository for managing and accessing layout configurations.
      * This is injected to allow the activity to retrieve layout information.
@@ -171,6 +174,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
 
     @Inject
     lateinit var defaultLayoutProvider: DefaultLayoutProvider
+
+    private var presentation: ExternalPresentation? = null
 
     /**
      * Renderer for displaying the top screen on an external display.
@@ -226,10 +231,10 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
          */
         override fun onDisplayRemoved(displayId: Int) {
             runOnUiThread {
-                ExternalDisplayManager.presentation?.let { pres ->
+                presentation?.let { pres ->
                     if (pres.display.displayId == displayId) {
                         pres.dismiss()
-                        ExternalDisplayManager.presentation = null
+                        presentation = null
                         externalScreenRender = null
                         currentExternalDisplayScreen = null
                     }
@@ -340,8 +345,6 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        ensureOnPrimaryDisplay()
-        if (isFinishing) return
         lifecycleOwnerProvider.setCurrentLifecycleOwner(this)
         binding = ActivityEmulatorBinding.inflate(layoutInflater)
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -356,7 +359,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             onGlContextReady = {
                 runOnUiThread {
                     currentOpenGlContext.value = it
-                    ExternalDisplayManager.presentation?.setSharedContext(dsRenderer.getSharedEglContext())
+                    presentation?.setSharedContext(dsRenderer.getSharedEglContext())
                     setupExternalScreen(true)
                 }
             }
@@ -369,9 +372,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             }
         }
 
-        displayManager = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+        displayManager = getSystemService<DisplayManager>()!!
         displayManager.registerDisplayListener(displayListener, null)
-        showExternalDisplay()
 
         binding.textFps.visibility = View.INVISIBLE
         binding.viewLayoutControls.setLayoutComponentViewBuilderFactory(RuntimeLayoutComponentViewBuilderFactory())
@@ -511,8 +513,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                         onKeepAspectRatioChanged = { enabled ->
                             viewModel.setExternalDisplayKeepAspectRatioEnabled(enabled)
                             (externalScreenRender as? ExternalScreenRender)?.let { renderer ->
-                                ExternalDisplayManager.presentation?.queueEvent { renderer.setKeepAspectRatio(enabled) }
-                                ExternalDisplayManager.presentation?.requestRender()
+                                presentation?.queueEvent { renderer.setKeepAspectRatio(enabled) }
+                                presentation?.requestRender()
                             }
                         },
                         onDismiss = {
@@ -537,7 +539,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 viewModel.frameRenderEvent.collect { event ->
                     externalScreenRender?.prepareNextFrame(event)
                     if (event.isValidFrame) {
-                        ExternalDisplayManager.presentation?.requestRender()
+                        presentation?.requestRender()
                     }
                 }
             }
@@ -612,7 +614,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                             when (it) {
                                 EmulatorUiEvent.CloseEmulator -> {
                                     Choreographer.getInstance().removeFrameCallback(this@EmulatorActivity)
-                                    ExternalDisplayManager.presentation?.apply {
+                                    presentation?.apply {
                                         setBackground("black".toColorInt())
                                         show()
                                     }
@@ -711,6 +713,14 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 }
             }
         }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                appForegroundStateObserver.onAppMovedToBackgroundEvent.collect {
+                    presentation?.dismiss()
+                    presentation = null
+                }
+            }
+        }
     }
 
     override fun onStart() {
@@ -729,7 +739,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
      * is already available, it will also share it with the new presentation.
      */
     private fun showExternalDisplay() {
-        if (ExternalDisplayManager.presentation != null) return
+        if (presentation != null) return
 
         val displays = displayManager.displays
         Log.d("DualScreenEmulator", "Found ${displays.size} displays.")
@@ -737,7 +747,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             Log.d("DualScreenEmulator", "Display ID: ${display.displayId}, Name: ${display.name}")
         }
 
-        val targetDisplay = if (launchedFromExternalDisplay) {
+        val currentDisplay = ContextCompat.getDisplayOrDefault(this)
+        val targetDisplay = if (currentDisplay.displayId != Display.DEFAULT_DISPLAY) {
             displayManager.getDisplay(Display.DEFAULT_DISPLAY)
         } else {
             displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION)
@@ -749,7 +760,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 "Using external display: ID=${targetDisplay.displayId}, Name=${targetDisplay.name}"
             )
 
-            ExternalDisplayManager.presentation = ExternalPresentation(
+            presentation = ExternalPresentation(
                 this,
                 targetDisplay,
                 settingsRepository.isExternalDisplayRotateLeftEnabled(),
@@ -794,7 +805,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         retryDelay: Long = 1000L,
         maxRetries: Int = 120
     ) {
-        if (ExternalDisplayManager.presentation == null) {
+        if (presentation == null) {
             showExternalDisplay()
         }
 
@@ -809,7 +820,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             return
         }
 
-        ExternalDisplayManager.presentation?.let { pres ->
+        presentation?.let { pres ->
             pres.setSharedContext(sharedContext)
             val screen = viewModel.getExternalDisplayScreen()
             if (force || screen != currentExternalDisplayScreen || screen == DsExternalScreen.CUSTOM) {
@@ -1074,7 +1085,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     }
 
     private fun updateExternalScreen() {
-        val presentation = ExternalDisplayManager.presentation ?: return
+        val presentation = presentation ?: return
 
         val swapped = binding.viewLayoutControls.areScreensSwapped()
         val screen = viewModel.getExternalDisplayScreen()
@@ -1318,9 +1329,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     override fun onDestroy() {
         super.onDestroy()
         binding.surfaceMain.stop()
-        if (::displayManager.isInitialized) {
-            displayManager.unregisterDisplayListener(displayListener)
-        }
+        presentation?.dismiss()
+        displayManager.unregisterDisplayListener(displayListener)
     }
-
 }
