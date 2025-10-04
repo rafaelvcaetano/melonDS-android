@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.domain.repositories.LayoutsRepository
 import java.util.UUID
 import javax.inject.Inject
@@ -16,8 +17,8 @@ class LayoutSelectorViewModel @Inject constructor(layoutsRepository: LayoutsRepo
         currentSelectedLayout = savedStateHandle.get<String?>(LayoutSelectorActivity.KEY_SELECTED_LAYOUT_ID)?.let { UUID.fromString(it) }
 
         viewModelScope.launch {
-            layoutsRepository.getLayouts().collect {
-                val layoutList = it.toMutableList()
+            layoutsRepository.getLayouts().collect { layouts ->
+                val layoutList = layouts.filter { it.target == LayoutConfiguration.LayoutTarget.INTERNAL }.toMutableList()
                 layoutList.add(0, layoutsRepository.getGlobalLayoutPlaceholder())
                 _layouts.value = layoutList
             }
