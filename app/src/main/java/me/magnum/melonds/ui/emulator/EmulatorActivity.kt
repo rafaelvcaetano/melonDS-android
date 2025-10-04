@@ -354,16 +354,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         onBackPressedDispatcher.addCallback(backPressedCallback)
 
         melonTouchHandler = MelonTouchHandler()
-        dsRenderer = DSRenderer(
-            context = this,
-            onGlContextReady = {
-                runOnUiThread {
-                    currentOpenGlContext.value = it
-                    presentation?.setSharedContext(dsRenderer.getSharedEglContext())
-                    setupExternalScreen(true)
-                }
-            }
-        )
+        dsRenderer = DSRenderer(this)
         dsRenderer.setOnFrameRenderedListener(viewModel::onFrameRendered)
         binding.surfaceMain.apply {
             setRenderer(dsRenderer)
