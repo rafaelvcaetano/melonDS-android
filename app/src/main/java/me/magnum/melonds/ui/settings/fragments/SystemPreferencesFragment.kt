@@ -27,48 +27,6 @@ class SystemPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragment
     @Inject lateinit var directoryAccessValidator: DirectoryAccessValidator
     @Inject lateinit var settingsBackupManager: SettingsBackupManager
 
-    private val backupLauncher = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-        if (uri != null) {
-            lifecycleScope.launch(Dispatchers.IO) {
-                runCatching { settingsBackupManager.backup(uri) }
-                    .onSuccess {
-                        withContext(Dispatchers.Main) {
-                            AlertDialog.Builder(requireContext())
-                                .setMessage(R.string.settings_backup_success)
-                                .setPositiveButton(android.R.string.ok, null)
-                                .show()
-                        }
-                    }
-                    .onFailure {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(requireContext(), R.string.settings_backup_error, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-            }
-        }
-    }
-
-    private val restoreLauncher = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-        if (uri != null) {
-            lifecycleScope.launch(Dispatchers.IO) {
-                runCatching { settingsBackupManager.restore(uri) }
-                    .onSuccess {
-                        withContext(Dispatchers.Main) {
-                            AlertDialog.Builder(requireContext())
-                                .setMessage(R.string.settings_restore_success)
-                                .setPositiveButton(android.R.string.ok, null)
-                                .show()
-                        }
-                    }
-                    .onFailure {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(requireContext(), R.string.settings_restore_error, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-            }
-        }
-    }
-
     private val backupInternalLayoutLauncher = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         if (uri != null) {
             lifecycleScope.launch(Dispatchers.IO) {
@@ -165,14 +123,6 @@ class SystemPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragment
             jitPreference.setSummary(R.string.jit_not_supported)
         }
 
-        findPreference<Preference>("backup_settings")?.setOnPreferenceClickListener {
-            backupLauncher.launch(null)
-            true
-        }
-        findPreference<Preference>("restore_settings")?.setOnPreferenceClickListener {
-            restoreLauncher.launch(null)
-            true
-        }
         findPreference<Preference>("backup_internal_layout")?.setOnPreferenceClickListener {
             backupInternalLayoutLauncher.launch(null)
             true

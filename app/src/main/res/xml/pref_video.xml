@@ -37,6 +37,11 @@
             android:entryValues="@array/video_filtering_values"
             android:defaultValue="none"/>
 
+    <Preference
+        android:key="input_layouts"
+        android:title="@string/internal_screen_layout"
+        app:iconSpaceReserved="false" />
+
     <ListPreference
         android:key="external_display_screen"
         android:title="@string/external_display_screen"
@@ -46,21 +51,16 @@
         android:entryValues="@array/external_display_screen_values"
         android:defaultValue="top"/>
 
-    <SwitchPreference
-        android:key="external_display_rotate_left"
-        android:title="@string/external_display_rotate_left"
-        app:iconSpaceReserved="false"
-        android:defaultValue="false"/>
-
     <Preference
         android:key="external_layouts"
         android:title="@string/external_screen_layout"
         app:iconSpaceReserved="false" />
 
-    <Preference
-        android:key="input_layouts"
-        android:title="@string/internal_screen_layout"
-        app:iconSpaceReserved="false" />
+    <SwitchPreference
+        android:key="external_display_rotate_left"
+        android:title="@string/external_display_rotate_left"
+        app:iconSpaceReserved="false"
+        android:defaultValue="false"/>
 
     <ListPreference
             android:key="fps_counter_position"

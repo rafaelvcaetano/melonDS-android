@@ -42,4 +42,14 @@
             android:summary="@string/sustained_performance_mode_summary"
             app:iconSpaceReserved="false"
             android:defaultValue="false" />
+
+    <Preference
+            android:key="backup_settings"
+            android:title="@string/backup_settings"
+            app:iconSpaceReserved="false" />
+
+    <Preference
+            android:key="restore_settings"
+            android:title="@string/restore_settings"
+            app:iconSpaceReserved="false" />
 </PreferenceScreen>
