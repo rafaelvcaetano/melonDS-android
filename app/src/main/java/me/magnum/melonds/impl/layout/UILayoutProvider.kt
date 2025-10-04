@@ -1,20 +1,15 @@
 package me.magnum.melonds.impl.layout
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.onSubscription
-import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.domain.model.Point
-import me.magnum.melonds.domain.model.layout.UILayout
-import me.magnum.melonds.domain.model.ui.Orientation
-import me.magnum.melonds.domain.model.layout.ScreenFold
-import me.magnum.melonds.domain.model.layout.UILayoutVariant
 import me.magnum.melonds.domain.model.Rect
+import me.magnum.melonds.domain.model.layout.LayoutConfiguration
+import me.magnum.melonds.domain.model.layout.ScreenFold
+import me.magnum.melonds.domain.model.layout.UILayout
+import me.magnum.melonds.domain.model.layout.UILayoutVariant
+import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.impl.DefaultLayoutProvider
 import kotlin.math.roundToInt
 
@@ -96,22 +91,23 @@ class UILayoutProvider(private val defaultLayoutProvider: DefaultLayoutProvider)
     }
 
     /**
-     * Attempts to find a layout variant compatible with the given [variant].
-     *
-     * If an exact match isn't available, this method falls back to any variant
-     * that shares the same orientation, ignoring size differences. As a last
-     * resort it returns the first variant in the configuration. This allows a
-     * custom layout to be applied even when running on displays with different
-     * resolutions (e.g. when the app is launched on an external screen).
+     * Attempts to find a layout variant compatible with the given [variant]. If an exact match isn't available, this method falls back to any variant that shares the same orientation, ignoring size differences.
      */
     private fun findSimilarLayoutVariant(
         layoutConfiguration: LayoutConfiguration,
         variant: UILayoutVariant,
     ): Map.Entry<UILayoutVariant, UILayout>? {
-        val sameOrientation = layoutConfiguration.layoutVariants.entries.firstOrNull {
-            it.key.orientation == variant.orientation
+        val bestVariant = layoutConfiguration.layoutVariants.entries.firstOrNull {
+            it.key.orientation == variant.orientation && it.key.uiSize == variant.uiSize
         }
-        return sameOrientation ?: layoutConfiguration.layoutVariants.entries.firstOrNull()
+        return if (bestVariant != null) {
+            bestVariant
+        } else {
+            // Find a variant in the same orientation
+            layoutConfiguration.layoutVariants.entries.firstOrNull {
+                it.key.orientation == variant.orientation
+            }
+        }
     }
 
     private fun scaleLayout(layout: UILayout, fromSize: Point, toSize: Point): UILayout {
