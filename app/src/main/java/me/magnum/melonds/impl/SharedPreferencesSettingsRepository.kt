@@ -51,6 +51,7 @@ import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.impl.dtos.input.ControllerConfigurationDto
+import me.magnum.melonds.impl.input.ControllerConfigurationFactory
 import me.magnum.melonds.ui.Theme
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import java.io.File
@@ -60,6 +61,7 @@ import kotlin.math.pow
 class SharedPreferencesSettingsRepository(
     private val context: Context,
     private val preferences: SharedPreferences,
+    private val controllerConfigurationFactory: ControllerConfigurationFactory,
     private val json: Json,
     private val uriHandler: UriHandler,
     preferencesCoroutineScope: CoroutineScope,
@@ -423,9 +425,8 @@ class SharedPreferencesSettingsRepository(
                     val loadedConfiguration = json.decodeFromStream<ControllerConfigurationDto>(it)
                     controllerConfiguration = loadedConfiguration.toControllerConfiguration()
                 }
-            } catch (e: Exception) {
-                Log.w(TAG, "Failed to load controller configuration", e)
-                controllerConfiguration = ControllerConfiguration.empty()
+            } catch (_: Exception) {
+                controllerConfiguration = controllerConfigurationFactory.buildDefaultControllerConfiguration()
             }
         }
         return controllerConfiguration!!

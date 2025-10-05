@@ -27,6 +27,8 @@ import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.domain.services.DSiNandManager
 import me.magnum.melonds.impl.AndroidDSiNandManager
 import me.magnum.melonds.impl.*
+import me.magnum.melonds.impl.input.ControllerConfigurationFactory
+import me.magnum.melonds.impl.input.DefaultControllerConfigurationFactory
 import me.magnum.melonds.impl.layout.UILayoutProvider
 import me.magnum.melonds.impl.romprocessors.Api24RomFileProcessorFactory
 import me.magnum.melonds.ui.romdetails.RomDetailsUiMapper
@@ -37,10 +39,16 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object MelonModule {
+
+    @Provides
+    fun provideControllerConfigurationFactory(): ControllerConfigurationFactory {
+        return DefaultControllerConfigurationFactory()
+    }
+
     @Provides
     @Singleton
-    fun provideSettingsRepository(@ApplicationContext context: Context, sharedPreferences: SharedPreferences, json: Json, uriHandler: UriHandler): SettingsRepository {
-        return SharedPreferencesSettingsRepository(context, sharedPreferences, json, uriHandler, CoroutineScope(Dispatchers.IO))
+    fun provideSettingsRepository(@ApplicationContext context: Context, sharedPreferences: SharedPreferences, controllerConfigurationFactory: ControllerConfigurationFactory, json: Json, uriHandler: UriHandler): SettingsRepository {
+        return SharedPreferencesSettingsRepository(context, sharedPreferences, controllerConfigurationFactory, json, uriHandler, CoroutineScope(Dispatchers.IO))
     }
 
     @Provides
