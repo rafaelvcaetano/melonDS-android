@@ -215,6 +215,7 @@ class ExternalLayoutRender(
         }
 
         shader.use()
+        GLES30.glDisableVertexAttribArray(shader.attribAlpha)
 
         posTop?.let { buf ->
             buf.position(0)

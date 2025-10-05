@@ -4,17 +4,14 @@ import android.opengl.GLES30
 import android.opengl.GLSurfaceView
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
-import me.magnum.melonds.common.opengl.ShaderProgramSource
 import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
+import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.VideoFiltering
+import me.magnum.melonds.domain.model.render.FrameRenderEvent
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import me.magnum.melonds.domain.model.render.FrameRenderEvent
-import me.magnum.melonds.ui.ExternalRenderer
-import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
-import me.magnum.melonds.domain.model.DsExternalScreen
 
 /**
  * Renders a single DS screen (top or bottom) to a GLSurfaceView.
@@ -39,8 +36,9 @@ class ExternalScreenRender(
     }
 
     private lateinit var shader: Shader
-    private lateinit var posBuffer: FloatBuffer
-    private lateinit var uvBuffer: FloatBuffer
+    private var screensVbo = 0
+    private var screensVao = 0
+
     private var nextRenderEvent: FrameRenderEvent? = null
     private var videoFiltering: VideoFiltering = VideoFiltering.NONE
 
@@ -52,6 +50,12 @@ class ExternalScreenRender(
         shader = ShaderFactory.createShaderProgram(
             VideoFilterShaderProvider.getShaderSource(videoFiltering)
         )
+
+        val buffers = IntArray(2)
+        GLES30.glGenBuffers(1, buffers, 0)
+        GLES30.glGenVertexArrays(1, buffers, 1)
+        screensVbo = buffers[0]
+        screensVao = buffers[1]
 
         val coords = floatArrayOf(
             -1f, -1f,
@@ -87,14 +91,25 @@ class ExternalScreenRender(
             )
         }
 
-        posBuffer = ByteBuffer.allocateDirect(coords.size * 4)
+        val vertexData = floatArrayOf(
+            coords[0], coords[1],   uvs[0], uvs[1],
+            coords[2], coords[3],   uvs[2], uvs[3],
+            coords[4], coords[5],   uvs[4], uvs[5],
+            coords[6], coords[7],   uvs[6], uvs[7],
+            coords[8], coords[9],   uvs[8], uvs[9],
+            coords[10], coords[11], uvs[10], uvs[11],
+        )
+
+        val vertexBufferSize = vertexData.size * Float.SIZE_BYTES
+        val vertexBuffer = ByteBuffer.allocateDirect(vertexBufferSize)
             .order(ByteOrder.nativeOrder())
             .asFloatBuffer()
-            .put(coords)
-        uvBuffer = ByteBuffer.allocateDirect(uvs.size * 4)
-            .order(ByteOrder.nativeOrder())
-            .asFloatBuffer()
-            .put(uvs)
+            .put(vertexData)
+            .position(0)
+
+        GLES30.glBindVertexArray(screensVao)
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, screensVbo)
+        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, vertexBufferSize, vertexBuffer, GLES30.GL_STATIC_DRAW)
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
@@ -114,13 +129,14 @@ class ExternalScreenRender(
 
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
         shader.use()
-        posBuffer.position(0)
-        uvBuffer.position(0)
+        GLES30.glDisableVertexAttribArray(shader.attribAlpha)
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
-        GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, posBuffer)
-        GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBuffer)
+        GLES30.glBindVertexArray(screensVao)
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, screensVbo)
+        GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 4 * Float.SIZE_BYTES, 0)
+        GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 4 * Float.SIZE_BYTES, 2 * Float.SIZE_BYTES)
         GLES30.glUniform1i(shader.uniformTex, 0)
-        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, posBuffer.capacity() / 2)
+        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6)
     }
 
     override fun prepareNextFrame(frameRenderEvent: FrameRenderEvent) {
