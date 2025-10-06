@@ -59,6 +59,7 @@ interface SettingsRepository {
     fun getExternalLayoutId(): UUID
     fun isTouchHapticFeedbackEnabled(): Flow<Boolean>
     fun getTouchHapticFeedbackStrength(): Int
+    fun getGbaRumbleIntensity(): Int
     fun getSoftInputOpacity(): Flow<Int>
 
     fun isRetroAchievementsRichPresenceEnabled(): Boolean

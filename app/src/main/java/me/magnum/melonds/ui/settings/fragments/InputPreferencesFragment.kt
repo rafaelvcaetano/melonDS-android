@@ -8,6 +8,7 @@ import androidx.preference.SeekBarPreference
 import androidx.preference.SwitchPreference
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.R
+import me.magnum.melonds.common.rumble.GbaRumbleManager
 import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.ui.inputsetup.InputSetupActivity
 import me.magnum.melonds.ui.layouts.LayoutListActivity
@@ -25,12 +26,21 @@ class InputPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         setPreferencesFromResource(R.xml.pref_input, rootKey)
         val touchVibratePreference = findPreference<SwitchPreference>("input_touch_haptic_feedback_enabled")!!
         val vibrationStrengthPreference = findPreference<SeekBarPreference>("input_touch_haptic_feedback_strength")!!
+        val gbaRumbleIntensityPreference = findPreference<SeekBarPreference>("gba_rumble_intensity")!!
         val keyMappingPreference = findPreference<Preference>("input_key_mapping")!!
 
         if (!vibrator.supportsVibration()) {
             touchVibratePreference.isVisible = false
+            gbaRumbleIntensityPreference.isVisible = false
         }
         vibrationStrengthPreference.isVisible = false
+
+        gbaRumbleIntensityPreference.setOnPreferenceChangeListener { _, newValue ->
+            val intensity = newValue as Int
+            val amplitude = GbaRumbleManager.intensityToAmplitude(intensity)
+            vibrator.performTouchHapticFeedback(amplitude)
+            true
+        }
 
         vibrationStrengthPreference.setOnPreferenceChangeListener { _, newValue ->
             val strength = newValue as Int

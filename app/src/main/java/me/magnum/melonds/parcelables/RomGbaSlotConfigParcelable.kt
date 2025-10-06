@@ -18,6 +18,7 @@ class RomGbaSlotConfigParcelable : Parcelable {
             TYPE_NONE -> RomGbaSlotConfig.None
             TYPE_GBA_ROM -> RomGbaSlotConfig.GbaRom(parcel.readString()?.toUri(), parcel.readString()?.toUri())
             TYPE_MEMORY_EXPANSION -> RomGbaSlotConfig.MemoryExpansion
+            TYPE_RUMBLE_PAK -> RomGbaSlotConfig.RumblePak
             else -> throw UnsupportedOperationException("Unsupported GBA slot type: $type")
         }
     }
@@ -31,6 +32,7 @@ class RomGbaSlotConfigParcelable : Parcelable {
                 parcel.writeString(gbaSlotConfig.savePath?.toString())
             }
             is RomGbaSlotConfig.MemoryExpansion -> parcel.writeInt(TYPE_MEMORY_EXPANSION)
+            is RomGbaSlotConfig.RumblePak -> parcel.writeInt(TYPE_RUMBLE_PAK)
         }
     }
 
@@ -42,6 +44,7 @@ class RomGbaSlotConfigParcelable : Parcelable {
         private const val TYPE_NONE = 0
         private const val TYPE_GBA_ROM = 1
         private const val TYPE_MEMORY_EXPANSION = 2
+        private const val TYPE_RUMBLE_PAK = 3
 
         override fun createFromParcel(parcel: Parcel): RomGbaSlotConfigParcelable {
             return RomGbaSlotConfigParcelable(parcel)

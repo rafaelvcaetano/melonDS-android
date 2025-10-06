@@ -14,6 +14,7 @@ import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.common.RetroAchievementsCallback
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
+import me.magnum.melonds.common.rumble.GbaRumbleManager
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
@@ -44,6 +45,7 @@ class AndroidEmulatorManager(
     private val romFileProcessorFactory: RomFileProcessorFactory,
     private val permissionHandler: PermissionHandler,
     private val cameraManager: DSiCameraSourceMultiplexer,
+    private val gbaRumbleManager: GbaRumbleManager,
 ) : EmulatorManager {
 
     private val achievementsSharedFlow = MutableSharedFlow<RAEvent>(replay = 0, extraBufferCapacity = Int.MAX_VALUE)
@@ -69,6 +71,7 @@ class AndroidEmulatorManager(
                 RomGbaSlotConfig.None -> MelonEmulator.GbaSlotType.NONE
                 is RomGbaSlotConfig.GbaRom -> MelonEmulator.GbaSlotType.GBA_ROM
                 RomGbaSlotConfig.MemoryExpansion -> MelonEmulator.GbaSlotType.MEMORY_EXPANSION
+                RomGbaSlotConfig.RumblePak -> MelonEmulator.GbaSlotType.RUMBLE_PAK
             }
 
             val loadResult = MelonEmulator.loadRom(
@@ -80,6 +83,7 @@ class AndroidEmulatorManager(
             )
             if (loadResult.isTerminal || !isActive) {
                 cameraManager.stopCurrentCameraSource()
+                gbaRumbleManager.stopRumble()
                 MelonEmulator.stopEmulation()
                 RomLaunchResult.LaunchFailed(loadResult)
             } else {
@@ -97,6 +101,7 @@ class AndroidEmulatorManager(
             val result = MelonEmulator.bootFirmware()
             if (result != MelonEmulator.FirmwareLoadResult.SUCCESS) {
                 cameraManager.stopCurrentCameraSource()
+                gbaRumbleManager.stopRumble()
                 MelonEmulator.stopEmulation()
                 FirmwareLaunchResult.LaunchFailed(result)
             } else {
@@ -173,6 +178,7 @@ class AndroidEmulatorManager(
     override fun stopEmulator() {
         MelonEmulator.stopEmulation()
         cameraManager.stopCurrentCameraSource()
+        gbaRumbleManager.stopRumble()
         loadedAchievements.clear()
     }
 
@@ -188,6 +194,7 @@ class AndroidEmulatorManager(
         MelonEmulator.setupEmulator(
             emulatorConfiguration = emulatorConfiguration,
             dsiCameraSource = cameraManager,
+            gbaRumbleManager = gbaRumbleManager,
             retroAchievementsCallback = object : RetroAchievementsCallback {
                 override fun onAchievementPrimed(achievementId: Long) {
                     achievementsSharedFlow.tryEmit(RAEvent.OnAchievementPrimed(achievementId))
