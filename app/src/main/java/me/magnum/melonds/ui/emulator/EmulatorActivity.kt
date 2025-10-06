@@ -744,6 +744,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         } else {
             displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION)
                 .firstOrNull { it.displayId != Display.DEFAULT_DISPLAY && it.name != "Built-in Screen" }
+                ?:
+                displayManager.displays.firstOrNull { it.displayId != Display.DEFAULT_DISPLAY }
         }
         if (targetDisplay != null) {
             Log.d(
