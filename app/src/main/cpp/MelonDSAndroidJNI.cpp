@@ -15,6 +15,7 @@
 #include "MelonDSAndroidInterface.h"
 #include "MelonDSAndroidConfiguration.h"
 #include "MelonDSAndroidCameraHandler.h"
+#include "MelonDSAndroidRumbleManager.h"
 #include "RAAchievementMapper.h"
 
 #include "Platform.h"
@@ -23,6 +24,7 @@ enum GbaSlotType {
     NONE = 0,
     GBA_ROM = 1,
     MEMORY_EXPANSION = 2,
+    RUMBLE_PAK = 3,
 };
 
 void* emulate(void*);
@@ -44,27 +46,31 @@ bool limitFps = true;
 bool isFastForwardEnabled = false;
 
 jobject globalCameraManager;
+jobject globalGbaRumbleManager;
 jobject androidRaCallback;
 MelonDSAndroidCameraHandler* androidCameraHandler;
+MelonDSAndroidRumbleManager* androidRumbleManager;
 AndroidRACallback* raCallback;
 
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject cameraManager, jobject retroAchievementsCallback, jobject screenshotBuffer, jlong glContext)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject cameraManager, jobject rumbleManager, jobject retroAchievementsCallback, jobject screenshotBuffer, jlong glContext)
 {
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
     fastForwardSpeedMultiplier = finalEmulatorConfiguration.fastForwardSpeedMultiplier;
 
     globalCameraManager = env->NewGlobalRef(cameraManager);
+    globalGbaRumbleManager = rumbleManager != nullptr ? env->NewGlobalRef(rumbleManager) : nullptr;
     androidRaCallback = env->NewGlobalRef(retroAchievementsCallback);
 
     androidCameraHandler = new MelonDSAndroidCameraHandler(jniEnvHandler, globalCameraManager);
+    androidRumbleManager = globalGbaRumbleManager != nullptr ? new MelonDSAndroidRumbleManager(jniEnvHandler, globalGbaRumbleManager) : nullptr;
     raCallback = new AndroidRACallback(jniEnvHandler, androidRaCallback);
     u32* screenshotBufferPointer = (u32*) env->GetDirectBufferAddress(screenshotBuffer);
 
     MelonDSAndroid::setConfiguration(std::move(finalEmulatorConfiguration));
-    MelonDSAndroid::setup(androidCameraHandler, raCallback, screenshotBufferPointer, glContext, 0);
+    MelonDSAndroid::setup(androidCameraHandler, androidRumbleManager, raCallback, screenshotBufferPointer, glContext, 0);
     paused = false;
 }
 
@@ -422,13 +428,22 @@ Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
     MelonDSAndroid::cleanup();
 
     env->DeleteGlobalRef(globalCameraManager);
+    if (globalGbaRumbleManager != nullptr)
+    {
+        env->DeleteGlobalRef(globalGbaRumbleManager);
+    }
     env->DeleteGlobalRef(androidRaCallback);
 
     globalCameraManager = nullptr;
+    globalGbaRumbleManager = nullptr;
     androidRaCallback = nullptr;
 
     delete androidCameraHandler;
+    delete androidRumbleManager;
     delete raCallback;
+    androidCameraHandler = nullptr;
+    androidRumbleManager = nullptr;
+    raCallback = nullptr;
 }
 
 JNIEXPORT void JNICALL
@@ -506,6 +521,10 @@ MelonDSAndroid::RomGbaSlotConfig* buildGbaSlotConfig(GbaSlotType slotType, const
     else if (slotType == GbaSlotType::MEMORY_EXPANSION)
     {
         return (MelonDSAndroid::RomGbaSlotConfig*) new MelonDSAndroid::RomGbaSlotConfigMemoryExpansion;
+    }
+    else if (slotType == GbaSlotType::RUMBLE_PAK)
+    {
+        return (MelonDSAndroid::RomGbaSlotConfig*) new MelonDSAndroid::RomGbaSlotConfigRumblePak;
     }
     else
     {

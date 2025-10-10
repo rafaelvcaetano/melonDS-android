@@ -743,7 +743,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             displayManager.getDisplay(Display.DEFAULT_DISPLAY)
         } else {
             displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION)
-                .firstOrNull { it.displayId != Display.DEFAULT_DISPLAY && it.name != "Built-in Screen" }
+                .firstOrNull { it.displayId != Display.DEFAULT_DISPLAY && it.name != "HiddenDisplay" }
         }
         if (targetDisplay != null) {
             Log.d(

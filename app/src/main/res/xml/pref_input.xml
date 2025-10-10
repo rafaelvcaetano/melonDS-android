@@ -35,6 +35,15 @@
             android:max="100" />
 
     <SeekBarPreference
+            android:key="gba_rumble_intensity"
+            android:title="@string/gba_rumble_intensity"
+            app:iconSpaceReserved="false"
+            app:updatesContinuously="true"
+            android:defaultValue="100"
+            app:min="1"
+            android:max="100" />
+
+    <SeekBarPreference
             android:key="input_opacity"
             android:title="@string/soft_input_opacity"
             android:dependency="input_show_soft"

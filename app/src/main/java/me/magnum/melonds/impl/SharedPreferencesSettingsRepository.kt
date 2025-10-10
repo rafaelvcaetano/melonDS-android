@@ -458,6 +458,11 @@ class SharedPreferencesSettingsRepository(
         return strength.coerceIn(1, 100)
     }
 
+    override fun getGbaRumbleIntensity(): Int {
+        val intensity = preferences.getInt("gba_rumble_intensity", 100)
+        return intensity.coerceIn(1, 100)
+    }
+
     override fun getSoftInputOpacity(): Flow<Int> {
         return getOrCreatePreferenceSharedFlow("input_opacity") {
             preferences.getInt("input_opacity", 50)

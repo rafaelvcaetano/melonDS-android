@@ -248,6 +248,7 @@
     <string name="show_soft_input">Show soft input</string>
     <string name="vibrate_on_touch">Vibrate on touch</string>
     <string name="vibration_strength">Vibration strength</string>
+    <string name="gba_rumble_intensity">GBA rumble intensity</string>
     <string name="soft_input_opacity">Soft input opacity</string>
     <string name="retroachievements">RetroAchievements</string> <!-- Keep words together because this is the official name -->
     <string name="retroachievements_summary">Login &amp; manage RetroAchievements integration</string> <!-- Keep words together because this is the official name -->
@@ -461,6 +462,7 @@
         <item>None</item>
         <item>GBA ROM</item>
         <item>Memory expansion</item>
+        <item>Rumble Pak</item>
     </string-array>
 
     <string-array name="console_type_options">
