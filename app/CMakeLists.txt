@@ -3,6 +3,7 @@ project(melonDS-android-frontend)
 cmake_minimum_required(VERSION 3.4.1)
 
 add_compile_definitions(MELONDS_GL_HEADER=<GLES3/gl32.h>)
+add_compile_definitions(EGL_EGLEXT_PROTOTYPES)
 
 set(CORE-LIB ../melonDS-android-lib)
 add_subdirectory(${CORE-LIB} ./melonDS-android-lib)

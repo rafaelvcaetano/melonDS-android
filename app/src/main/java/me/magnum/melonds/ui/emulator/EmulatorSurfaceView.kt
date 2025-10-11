@@ -2,13 +2,13 @@ package me.magnum.melonds.ui.emulator
 
 import android.content.Context
 import android.opengl.EGLSurface
-import android.opengl.GLES30
 import android.util.AttributeSet
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.domain.model.render.PresentFrameWrapper
+import me.magnum.melonds.ui.emulator.render.FrameRenderCallback
 import me.magnum.melonds.ui.emulator.render.GlContext
 
 class EmulatorSurfaceView(context: Context, attrs: AttributeSet? = null) : SurfaceView(context, attrs), SurfaceHolder.Callback {
@@ -27,6 +27,17 @@ class EmulatorSurfaceView(context: Context, attrs: AttributeSet? = null) : Surfa
     private var glContext: GlContext? = null
     private var windowSurface: EGLSurface? = null
     private var dsRenderer: DSRenderer? = null
+
+    private val frameRenderCallback = object : FrameRenderCallback {
+        override fun renderFrame(isValidFrame: Boolean, frameTextureId: Int) {
+            presentFrameWrapper.apply {
+                this.isValidFrame = isValidFrame
+                this.textureId = frameTextureId
+            }
+            dsRenderer?.drawFrame(presentFrameWrapper)
+            glContext?.swapBuffers(windowSurface!!)
+        }
+    }
 
     private enum class SurfaceState {
         UNINITIALIZED,
@@ -103,26 +114,7 @@ class EmulatorSurfaceView(context: Context, attrs: AttributeSet? = null) : Surfa
                 surfaceState = SurfaceState.READY
             }
 
-            MelonEmulator.presentFrame { isValidFrame, frameTextureId, renderFenceHandle ->
-                presentFrameWrapper.apply {
-                    this.isValidFrame = isValidFrame
-                    this.textureId = frameTextureId
-                    this.renderFenceHandle = renderFenceHandle
-                    this.presentFenceHandle = 0L
-                }
-                dsRenderer?.drawFrame(presentFrameWrapper)
-
-                if (isValidFrame) {
-                    val presentFence = GLES30.glFenceSync(GLES30.GL_SYNC_GPU_COMMANDS_COMPLETE, 0)
-                    presentFrameWrapper.presentFenceHandle = presentFence
-                    presentFence
-                } else {
-                    presentFrameWrapper.presentFenceHandle = 0L
-                    0L
-                }
-            }
-
-            glContext?.swapBuffers(windowSurface!!)
+            MelonEmulator.presentFrame(frameRenderCallback)
         }
     }
 

@@ -58,8 +58,8 @@ class GlContext {
 
     fun destroy() {
         EGL14.eglDestroyContext(display, context)
-        EGL14.eglReleaseThread()
         EGL14.eglTerminate(display)
+        EGL14.eglReleaseThread()
 
         display = EGL14.EGL_NO_DISPLAY
         context = EGL14.EGL_NO_CONTEXT

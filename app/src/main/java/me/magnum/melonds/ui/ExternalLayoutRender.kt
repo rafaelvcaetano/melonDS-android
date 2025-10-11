@@ -5,16 +5,15 @@ import android.graphics.BitmapFactory
 import android.opengl.GLES30
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
-import me.magnum.melonds.domain.model.render.FrameRenderEvent
-import me.magnum.melonds.ui.ExternalRenderer
-import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
 import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
-import me.magnum.melonds.domain.model.VideoFiltering
+import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
+import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.layout.BackgroundMode
+import me.magnum.melonds.domain.model.render.FrameRenderEvent
 import me.magnum.melonds.utils.BitmapUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -205,7 +204,6 @@ class ExternalLayoutRender(
             return
         }
 
-        GLES30.glWaitSync(event.renderFenceHandle, 0, GLES30.GL_TIMEOUT_IGNORED)
         val textureId = event.textureId
 
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)

@@ -1,3 +1,5 @@
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <jni.h>
 #include <string>
 #include <sstream>
@@ -232,17 +234,20 @@ JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_presentFrame(JNIEnv* env, jobject thiz, jobject renderFrameCallback)
 {
     jclass presentFrameWrapperClass = env->GetObjectClass(renderFrameCallback);
-    jmethodID renderFrameMethodId = env->GetMethodID(presentFrameWrapperClass, "renderFrame", "(ZIJ)J");
+    jmethodID renderFrameMethodId = env->GetMethodID(presentFrameWrapperClass, "renderFrame", "(ZI)V");
 
     Frame* presentationFrame = MelonDSAndroid::getPresentationFrame();
+    EGLDisplay currentDisplay = eglGetCurrentDisplay();
     if (presentationFrame != nullptr)
     {
-        jlong presentFence = env->CallLongMethod(renderFrameCallback, renderFrameMethodId, true, (jint) presentationFrame->frameTexture, (jlong) presentationFrame->renderFence);
-        presentationFrame->presentFence = reinterpret_cast<GLsync >(presentFence);
+        eglWaitSyncKHR(currentDisplay, presentationFrame->renderFence, 0);
+        env->CallVoidMethod(renderFrameCallback, renderFrameMethodId, true, (jint) presentationFrame->frameTexture);
+        EGLSyncKHR presentFence = eglCreateSyncKHR(currentDisplay, EGL_SYNC_FENCE_KHR, nullptr);
+        presentationFrame->presentFence = presentFence;
     }
     else
     {
-        env->CallLongMethod(renderFrameCallback, renderFrameMethodId, false, 0, 0L);
+        env->CallVoidMethod(renderFrameCallback, renderFrameMethodId, false, 0);
     }
 }
 

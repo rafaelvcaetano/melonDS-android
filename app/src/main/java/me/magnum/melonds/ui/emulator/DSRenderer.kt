@@ -269,14 +269,10 @@ class DSRenderer(private val context: Context) {
                 FrameRenderEvent(
                     isValidFrame = false,
                     textureId = presentFrameWrapper.textureId,
-                    renderFenceHandle = presentFrameWrapper.renderFenceHandle,
-                    presentFenceHandle = presentFrameWrapper.presentFenceHandle,
                 )
             )
             return
         }
-
-        GLES30.glWaitSync(presentFrameWrapper.renderFenceHandle, 0, GLES30.GL_TIMEOUT_IGNORED)
 
         synchronized(backgroundLock) {
             renderBackground()
@@ -311,8 +307,6 @@ class DSRenderer(private val context: Context) {
             FrameRenderEvent(
                 isValidFrame = true,
                 textureId = presentFrameWrapper.textureId,
-                renderFenceHandle = presentFrameWrapper.renderFenceHandle,
-                presentFenceHandle = presentFrameWrapper.presentFenceHandle,
             )
         )
     }

@@ -124,7 +124,6 @@ class ExternalScreenRender(
             return
         }
 
-        GLES30.glWaitSync(event.renderFenceHandle, 0, GLES30.GL_TIMEOUT_IGNORED)
         val textureId = event.textureId
 
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
