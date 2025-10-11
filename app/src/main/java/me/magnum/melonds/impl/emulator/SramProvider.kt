@@ -24,7 +24,7 @@ class SramProvider(
         return if (sramDocument != null) {
             sramDocument.uri
         } else {
-            val newSramUri = rootDocument.createFile("application/octet-stream", sramFileName)?.uri
+            val newSramUri = rootDocument.createFile("application/*", sramFileName)?.uri
             if (newSramUri == null) {
                 // It looks like some devices create the file just fine but return null. As a fallback, check if the SRAM file was actually created or not
                 // Reference: https://www.ghisler.ch/board/viewtopic.php?p=370089#p370089

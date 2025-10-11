@@ -87,7 +87,7 @@ import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.insetsControllerCompat
 import me.magnum.melonds.extensions.parcelable
 import me.magnum.melonds.extensions.setLayoutOrientation
-import me.magnum.melonds.impl.DefaultLayoutProvider
+import me.magnum.melonds.impl.layout.DefaultLayoutProvider
 import me.magnum.melonds.impl.emulator.LifecycleOwnerProvider
 import me.magnum.melonds.impl.system.AppForegroundStateObserver
 import me.magnum.melonds.parcelables.RomInfoParcelable
@@ -957,6 +957,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
 
                 if (romParcelable?.rom != null) {
                     viewModel.loadRom(romParcelable.rom, glContext)
+                } else if (intent.data != null) {
+                    viewModel.loadRom(intent.data!!, glContext)
                 } else {
                     if (extras?.containsKey(KEY_PATH) == true) {
                         val romPath = extras.getString(KEY_PATH)!!

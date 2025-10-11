@@ -387,7 +387,18 @@ class SharedPreferencesSettingsRepository(
         return if (!saveNextToRomFile() && getSaveFileDirectory() != null) {
             getSaveFileDirectory()!!
         } else {
-            getRomParentDirectory(rom)
+            if (rom.parentTreeUri != null) {
+                getRomParentDirectory(rom)
+            } else {
+                // We don't know the ROM's directory, so we can't save next to it. Put save file in an app folder
+                val externalFilesDir = context.getExternalFilesDir(null)
+                val saveFileDirectory = File(externalFilesDir, "saves")
+                if (!saveFileDirectory.isDirectory && !saveFileDirectory.mkdirs()) {
+                    throw Exception("Could not create internal save directory")
+                }
+
+                Uri.fromFile(saveFileDirectory)
+            }
         }
     }
 
@@ -413,7 +424,9 @@ class SharedPreferencesSettingsRepository(
     }
 
     private fun getRomParentDirectory(rom: Rom): Uri {
-        return uriHandler.getUriTreeDocument(rom.parentTreeUri)?.uri ?: throw Exception("Could not determine ROMs parent document")
+        return rom.parentTreeUri?.let {
+            uriHandler.getUriTreeDocument(rom.parentTreeUri)?.uri
+        } ?: throw Exception("Could not determine ROMs parent document")
     }
 
     @OptIn(ExperimentalSerializationApi::class)

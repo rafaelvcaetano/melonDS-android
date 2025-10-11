@@ -10,7 +10,7 @@ data class Rom(
     val developerName: String,
     val fileName: String,
     val uri: Uri,
-    val parentTreeUri: Uri,
+    val parentTreeUri: Uri?,
     var config: RomConfig,
     var lastPlayed: Date? = null,
     val isDsiWareTitle: Boolean,

@@ -26,7 +26,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
         val SUPPORTED_ROM_EXTENSIONS = listOf("nds", "dsi", "ids")
     }
 
-    override fun getRomFromUri(romUri: Uri, parentUri: Uri): Rom? {
+    override fun getRomFromUri(romUri: Uri, parentUri: Uri?): Rom? {
         return try {
             context.contentResolver.openInputStream(romUri)?.use { stream ->
                 getNdsEntryStreamInFileStream(stream)?.use { romFileStream ->

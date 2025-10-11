@@ -16,7 +16,7 @@ data class RomDto(
     @SerializedName("uri")
     val uri: String,
     @SerializedName("parentTreeUri")
-    val parentTreeUri: String,
+    val parentTreeUri: String?,
     @SerializedName("config")
     var config: RomConfigDto,
     @SerializedName("lastPlayed")
@@ -26,7 +26,7 @@ data class RomDto(
     @SerializedName("retroAchievementsHash")
     val retroAchievementsHash: String,
     @SerializedName("totalPlayTime")
-    var totalPlayTime: Long = 0,
+    val totalPlayTime: Long = 0,
 ) {
 
     companion object {
@@ -36,7 +36,7 @@ data class RomDto(
                 rom.developerName,
                 rom.fileName,
                 rom.uri.toString(),
-                rom.parentTreeUri.toString(),
+                rom.parentTreeUri?.toString(),
                 RomConfigDto.fromModel(rom.config),
                 rom.lastPlayed,
                 rom.isDsiWareTitle,
@@ -52,7 +52,7 @@ data class RomDto(
             developerName,
             fileName,
             uri.toUri(),
-            parentTreeUri.toUri(),
+            parentTreeUri?.toUri(),
             config.toModel(),
             lastPlayed,
             isDsiWareTitle,

@@ -15,7 +15,7 @@ import me.magnum.melonds.utils.RomProcessor
 
 class NdsRomFileProcessor(private val context: Context, private val uriHandler: UriHandler) : RomFileProcessor {
 
-    override fun getRomFromUri(romUri: Uri, parentUri: Uri): Rom? {
+    override fun getRomFromUri(romUri: Uri, parentUri: Uri?): Rom? {
         return try {
             getRomMetadata(romUri)?.let { metadata ->
                 val romDocument = uriHandler.getUriDocument(romUri)
