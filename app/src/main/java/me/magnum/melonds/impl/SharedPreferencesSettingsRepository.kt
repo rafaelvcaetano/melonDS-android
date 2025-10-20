@@ -307,12 +307,26 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
-    override fun isExternalDisplayKeepAspectRatioEnabled(): Boolean {
+    override fun observeExternalDisplayScreen(): Flow<DsExternalScreen> {
+        return getOrCreatePreferenceSharedFlow("external_display_screen") {
+            getExternalDisplayScreen()
+        }
+    }
+
+    override fun isExternalDisplayKeepAspectRationEnabled(): Boolean {
         return preferences.getBoolean("external_display_keep_ratio", false)
     }
 
-    override fun isExternalDisplayRotateLeftEnabled(): Boolean {
-        return preferences.getBoolean("external_display_rotate_left", false)
+    override fun observeExternalDisplayKeepAspectRationEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow("external_display_keep_ratio") {
+            isExternalDisplayKeepAspectRationEnabled()
+        }
+    }
+
+    override fun isExternalDisplayRotateLeftEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow("external_display_rotate_left") {
+            preferences.getBoolean("external_display_rotate_left", false)
+        }
     }
 
     override fun getDSiCameraSource(): DSiCameraSourceType {

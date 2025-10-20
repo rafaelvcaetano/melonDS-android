@@ -8,12 +8,13 @@ import android.opengl.EGLExt
 import android.opengl.EGLSurface
 import android.view.Surface
 
-class GlContext {
+class GlContext(sharedGlContext: GlContext? = null) {
 
     private var display: EGLDisplay
     private var config: EGLConfig
     private var context: EGLContext
 
+    val glContext get() = context
     val contextNativeHandle get() = context.nativeHandle
 
     init {
@@ -33,7 +34,7 @@ class GlContext {
             EGL14.EGL_CONTEXT_CLIENT_VERSION, 3,
             EGL14.EGL_NONE
         )
-        context = EGL14.eglCreateContext(display, config, EGL14.EGL_NO_CONTEXT, contextAttributes, 0)
+        context = EGL14.eglCreateContext(display, config, sharedGlContext?.context ?: EGL14.EGL_NO_CONTEXT, contextAttributes, 0)
         if (context == EGL14.EGL_NO_CONTEXT) {
             throw GlContextException("Failed to create context: ${EGL14.eglGetError()}")
         }

@@ -36,8 +36,10 @@ interface SettingsRepository {
     fun isThreadedRenderingEnabled(): Flow<Boolean>
     fun getFpsCounterPosition(): FpsCounterPosition
     fun getExternalDisplayScreen(): DsExternalScreen
-    fun isExternalDisplayKeepAspectRatioEnabled(): Boolean
-    fun isExternalDisplayRotateLeftEnabled(): Boolean
+    fun observeExternalDisplayScreen(): Flow<DsExternalScreen>
+    fun isExternalDisplayKeepAspectRationEnabled(): Boolean
+    fun observeExternalDisplayKeepAspectRationEnabled(): Flow<Boolean>
+    fun isExternalDisplayRotateLeftEnabled(): Flow<Boolean>
     fun getDSiCameraSource(): DSiCameraSourceType
     fun getDSiCameraStaticImage(): Uri?
 

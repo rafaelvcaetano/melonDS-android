@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
@@ -56,7 +57,6 @@ import me.magnum.melonds.domain.model.retroachievements.RAEvent
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.ui.Orientation
-import me.magnum.melonds.domain.model.render.FrameRenderEvent
 import me.magnum.melonds.domain.repositories.BackgroundRepository
 import me.magnum.melonds.domain.repositories.CheatsRepository
 import me.magnum.melonds.domain.repositories.LayoutsRepository
@@ -70,6 +70,7 @@ import me.magnum.melonds.impl.layout.UILayoutProvider
 import me.magnum.melonds.ui.emulator.firmware.FirmwarePauseMenuOption
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
+import me.magnum.melonds.ui.emulator.model.ExternalDisplayConfiguration
 import me.magnum.melonds.ui.emulator.model.PauseMenu
 import me.magnum.melonds.ui.emulator.model.RAIntegrationEvent
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration
@@ -118,6 +119,9 @@ class EmulatorViewModel @Inject constructor(
     private val _runtimeRendererConfiguration = MutableStateFlow<RuntimeRendererConfiguration?>(null)
     val runtimeRendererConfiguration = _runtimeRendererConfiguration.asStateFlow()
 
+    private val _externalDisplayConfiguration = MutableStateFlow(ExternalDisplayConfiguration())
+    val externalDisplayConfiguration = _externalDisplayConfiguration.asStateFlow()
+
     private val _background = MutableStateFlow(RuntimeBackground.None)
     val background = _background.asStateFlow()
 
@@ -139,9 +143,6 @@ class EmulatorViewModel @Inject constructor(
     private val _uiEvent = EventSharedFlow<EmulatorUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
-    private val _frameRenderEvent = MutableSharedFlow<FrameRenderEvent>(replay = 0, extraBufferCapacity = 1)
-    val frameRenderEvent = _frameRenderEvent.asSharedFlow()
-
     private var currentRom: Rom? = null
 
     init {
@@ -150,10 +151,7 @@ class EmulatorViewModel @Inject constructor(
                 uiLayoutProvider.setCurrentLayoutConfiguration(it)
             }
         }
-    }
-
-    fun onFrameRendered(frameRenderEvent: FrameRenderEvent) {
-        _frameRenderEvent.tryEmit(frameRenderEvent)
+        startObservingExternalDisplayConfiguration()
     }
 
     fun loadRom(rom: Rom, glContext: Long) {
@@ -522,6 +520,22 @@ class EmulatorViewModel @Inject constructor(
         return emulatorManager.loadState(slotUri)
     }
 
+    private fun startObservingExternalDisplayConfiguration() {
+        viewModelScope.launch {
+            combine(
+                settingsRepository.observeExternalDisplayScreen(),
+                settingsRepository.isExternalDisplayRotateLeftEnabled(),
+                settingsRepository.observeExternalDisplayKeepAspectRationEnabled(),
+            ) { displayMode, rotateLeft, keepAspectRatio ->
+                ExternalDisplayConfiguration(
+                    displayMode = displayMode,
+                    rotateLeft = rotateLeft,
+                    keepAspectRatio = keepAspectRatio,
+                )
+            }.collect(_externalDisplayConfiguration)
+        }
+    }
+
     private fun startObservingRuntimeInputLayoutConfiguration() {
         sessionCoroutineScope.launch {
             combine(
@@ -718,7 +732,7 @@ class EmulatorViewModel @Inject constructor(
     }
 
     fun isExternalDisplayKeepAspectRatioEnabled(): Boolean {
-        return settingsRepository.isExternalDisplayKeepAspectRatioEnabled()
+        return settingsRepository.isExternalDisplayKeepAspectRationEnabled()
     }
 
     fun setExternalDisplayKeepAspectRatioEnabled(enabled: Boolean) {

@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui
+package me.magnum.melonds.ui.emulator.render
 
 import android.content.Context
 import android.graphics.BitmapFactory
@@ -13,13 +13,13 @@ import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.layout.BackgroundMode
-import me.magnum.melonds.domain.model.render.FrameRenderEvent
+import me.magnum.melonds.domain.model.render.PresentFrameWrapper
+import me.magnum.melonds.ui.RdsRotation
+import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
 import me.magnum.melonds.utils.BitmapUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
-import javax.microedition.khronos.egl.EGLConfig
-import javax.microedition.khronos.opengles.GL10
 
 /**
  * Renders the emulator's top and bottom screens onto a [GLSurfaceView]
@@ -53,7 +53,7 @@ class ExternalLayoutRender(
     private var bottomOnTop: Boolean = false,
     private var background: RuntimeBackground = RuntimeBackground.None,
     private val rotateLeft: Boolean,
-) : GLSurfaceView.Renderer, ExternalRenderer {
+) : EmulatorRenderer {
 
     companion object {
         private const val TOTAL_SCREEN_HEIGHT = 384
@@ -67,7 +67,6 @@ class ExternalLayoutRender(
     private lateinit var uvTop: FloatBuffer
     private lateinit var uvBottom: FloatBuffer
 
-    private var nextRenderEvent: FrameRenderEvent? = null
     private var videoFiltering: VideoFiltering = VideoFiltering.NONE
 
     private var viewWidth = 0
@@ -146,7 +145,13 @@ class ExternalLayoutRender(
         }
     }
 
-    override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
+    override fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
+    }
+
+    override fun setLeftRotationEnabled(enabled: Boolean) {
+    }
+
+    override fun onSurfaceCreated() {
         shader = ShaderFactory.createShaderProgram(
             VideoFilterShaderProvider.getShaderSource(videoFiltering)
         )
@@ -188,8 +193,7 @@ class ExternalLayoutRender(
             .put(bottomUvs)
     }
 
-    override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
-        GLES30.glViewport(0, 0, width, height)
+    override fun onSurfaceChanged(width: Int, height: Int) {
         viewWidth = width
         viewHeight = height
         updateBuffers()
@@ -198,14 +202,14 @@ class ExternalLayoutRender(
         }
     }
 
-    override fun onDrawFrame(gl: GL10?) {
-        val event = nextRenderEvent ?: return
-        if (!event.isValidFrame) {
+    override fun drawFrame(presentFrameWrapper: PresentFrameWrapper) {
+        if (!presentFrameWrapper.isValidFrame) {
             return
         }
 
-        val textureId = event.textureId
+        val textureId = presentFrameWrapper.textureId
 
+        GLES30.glViewport(0, 0, viewWidth, viewHeight)
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
 
         synchronized(backgroundLock) {
@@ -243,14 +247,6 @@ class ExternalLayoutRender(
         }
     }
 
-    override fun prepareNextFrame(frameRenderEvent: FrameRenderEvent) {
-        nextRenderEvent = if (frameRenderEvent.isValidFrame) {
-            frameRenderEvent
-        } else {
-            null
-        }
-    }
-
     /**
      * Updates the video filtering setting used by the renderer.
      *
@@ -259,7 +255,7 @@ class ExternalLayoutRender(
      *
      * @param videoFiltering The new [VideoFiltering] setting to apply.
      */
-    override fun updateVideoFiltering(videoFiltering: VideoFiltering) {
+    fun updateVideoFiltering(videoFiltering: VideoFiltering) {
         this.videoFiltering = videoFiltering
         if (this::shader.isInitialized) {
             shader.delete()
@@ -297,9 +293,7 @@ class ExternalLayoutRender(
     }
 
     private fun loadBackground() {
-        val bg = background ?: return
-
-        bg.background?.uri?.let {
+        background.background?.uri?.let {
             val sample = BitmapUtils.calculateMinimumSampleSize(context, it, viewWidth, viewHeight)
 
             val bitmapResult = runCatching {
@@ -341,8 +335,7 @@ class ExternalLayoutRender(
     }
 
     private fun updateBackgroundPosition() {
-        val bg = background ?: return
-        val coords = getBackgroundCoords(bg.mode, backgroundWidth, backgroundHeight)
+        val coords = getBackgroundCoords(background.mode, backgroundWidth, backgroundHeight)
         val array = coords.toFloatArray()
         if (rotateLeft) {
             RdsRotation.rotateLeft(array)

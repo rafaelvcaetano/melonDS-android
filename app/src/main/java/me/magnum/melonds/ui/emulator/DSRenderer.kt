@@ -10,22 +10,18 @@ import me.magnum.melonds.common.opengl.ShaderProgramSource
 import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
+import me.magnum.melonds.domain.model.SCREEN_HEIGHT
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.layout.BackgroundMode
-import me.magnum.melonds.domain.model.render.FrameRenderEvent
 import me.magnum.melonds.domain.model.render.PresentFrameWrapper
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
+import me.magnum.melonds.ui.emulator.render.EmulatorRenderer
 import me.magnum.melonds.utils.BitmapUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import javax.microedition.khronos.egl.EGL10
 import kotlin.math.roundToInt
 
-class DSRenderer(private val context: Context) {
-    companion object {
-        private const val SCREEN_WIDTH = 256
-        private const val SCREEN_HEIGHT = 384
-    }
+class DSRenderer(private val context: Context) : EmulatorRenderer {
 
     private var rendererConfiguration: RuntimeRendererConfiguration? = null
     private var mustUpdateConfiguration = false
@@ -58,27 +54,15 @@ class DSRenderer(private val context: Context) {
     private var width = 0f
     private var height = 0f
 
-    private var internalWidth = 0
-    private var internalHeight = 0
-
     private var backgroundWidth = 0
     private var backgroundHeight = 0
 
-    // EGL context used to share textures with secondary renderers
-    private var eglContext: javax.microedition.khronos.egl.EGLContext? = null
-
-    private var frameRenderEventListener: ((FrameRenderEvent) -> Unit)? = null
-
-    /** Return the EGL context associated with this renderer when available. */
-    fun getSharedEglContext(): javax.microedition.khronos.egl.EGLContext? = eglContext
-
-    fun setOnFrameRenderedListener(listener: ((FrameRenderEvent) -> Unit)?) {
-        frameRenderEventListener = listener
-    }
-
-    fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
+    override fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
         rendererConfiguration = newRendererConfiguration
         mustUpdateConfiguration = true
+    }
+
+    override fun setLeftRotationEnabled(enabled: Boolean) {
     }
 
     fun updateScreenAreas(
@@ -115,11 +99,7 @@ class DSRenderer(private val context: Context) {
         return 1f - y / height * 2f
     }
 
-    fun onSurfaceCreated() {
-        // Cache EGL context so other renderers can share textures
-        val egl = javax.microedition.khronos.egl.EGLContext.getEGL() as EGL10
-        eglContext = egl.eglGetCurrentContext()
-
+    override fun onSurfaceCreated() {
         GLES30.glClearColor(0f, 0f, 0f, 1f)
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
         GLES30.glDisable(GLES30.GL_CULL_FACE)
@@ -153,9 +133,6 @@ class DSRenderer(private val context: Context) {
     }
 
     private fun applyRendererConfiguration() {
-        internalWidth = SCREEN_WIDTH * (rendererConfiguration?.resolutionScaling ?: 1)
-        internalHeight = SCREEN_HEIGHT * (rendererConfiguration?.resolutionScaling ?: 1)
-
         updateScreenCoordinates()
         updateShader()
     }
@@ -225,6 +202,7 @@ class DSRenderer(private val context: Context) {
         val top = screenYToViewportY(rect.y)
         val bottom = screenYToViewportY(rect.y + rect.height)
 
+        // TODO: Apply rotation, like in ExternalScreenRender. Apply to background as well. Rename this class to something more generic
         return floatArrayOf(
             // Position    UVs               Alpha
             left, bottom,  uvs[0], uvs[1],   alpha,
@@ -245,10 +223,9 @@ class DSRenderer(private val context: Context) {
         screenShader = ShaderFactory.createShaderProgram(shaderSource)
     }
 
-    fun onSurfaceChanged(width: Int, height: Int) {
+    override fun onSurfaceChanged(width: Int, height: Int) {
         this.width = width.toFloat()
         this.height = height.toFloat()
-        GLES30.glViewport(0, 0, width, height)
         mustUpdateConfiguration = true
 
         synchronized(backgroundLock) {
@@ -256,7 +233,7 @@ class DSRenderer(private val context: Context) {
         }
     }
 
-    fun drawFrame(presentFrameWrapper: PresentFrameWrapper) {
+    override fun drawFrame(presentFrameWrapper: PresentFrameWrapper) {
         if (mustUpdateConfiguration) {
             applyRendererConfiguration()
             mustUpdateConfiguration = false
@@ -265,12 +242,6 @@ class DSRenderer(private val context: Context) {
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
 
         if (!presentFrameWrapper.isValidFrame) {
-            frameRenderEventListener?.invoke(
-                FrameRenderEvent(
-                    isValidFrame = false,
-                    textureId = presentFrameWrapper.textureId,
-                )
-            )
             return
         }
 
@@ -302,13 +273,6 @@ class DSRenderer(private val context: Context) {
             GLES30.glBindVertexArray(0)
             GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0)
         }
-
-        frameRenderEventListener?.invoke(
-            FrameRenderEvent(
-                isValidFrame = true,
-                textureId = presentFrameWrapper.textureId,
-            )
-        )
     }
 
     private fun renderBackground() {
