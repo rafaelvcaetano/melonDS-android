@@ -152,9 +152,7 @@ private fun Content(
 
         val externalScreenOptions = listOf(
             stringResource(id = R.string.use_global_preference),
-            stringResource(id = R.string.top_screen),
-            stringResource(id = R.string.bottom_screen),
-            stringResource(id = R.string.custom_layout),
+            *stringArrayResource(R.array.external_display_screen_options),
         )
         val selectedExternalScreenIndex = romConfig.externalScreen?.ordinal?.plus(1) ?: 0
         SingleChoiceItem(
@@ -173,7 +171,8 @@ private fun Content(
             }
         )
 
-        val externalLayoutSelectorLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        // Custom external layouts are disabled for now
+        /*val externalLayoutSelectorLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val layoutId = result.data?.getStringExtra(LayoutSelectorActivity.KEY_SELECTED_LAYOUT_ID)?.let { UUID.fromString(it) }
                 onConfigUpdate(RomConfigUpdateEvent.ExternalLayoutUpdate(layoutId))
@@ -188,7 +187,7 @@ private fun Content(
                 }
                 externalLayoutSelectorLauncher.launch(intent)
             }
-        )
+        )*/
 
         val gbaSlotOptions = stringArrayResource(id = R.array.gba_slot_options)
         SingleChoiceItem(

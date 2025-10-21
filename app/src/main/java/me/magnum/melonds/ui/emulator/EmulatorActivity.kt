@@ -420,13 +420,6 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                         onScreenSelected = {
                             viewModel.setExternalDisplayScreen(it)
                         },
-                        onOpenInternalLayout = {
-                            startActivity(Intent(this@EmulatorActivity, LayoutListActivity::class.java))
-                        },
-                        onOpenExternalLayout = {
-                            startActivity(Intent(this@EmulatorActivity, ExternalLayoutListActivity::class.java))
-                        },
-                        onRefreshExternalScreen = { },
                         keepAspectRatio = viewModel.isExternalDisplayKeepAspectRatioEnabled(),
                         onKeepAspectRatioChanged = { enabled ->
                             viewModel.setExternalDisplayKeepAspectRatioEnabled(enabled)

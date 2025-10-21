@@ -51,9 +51,11 @@
         android:entryValues="@array/external_display_screen_values"
         android:defaultValue="top"/>
 
+    <!-- Disable custom layouts for external screens -->
     <Preference
         android:key="external_layouts"
         android:title="@string/external_screen_layout"
+        app:isPreferenceVisible="false"
         app:iconSpaceReserved="false" />
 
     <SwitchPreference

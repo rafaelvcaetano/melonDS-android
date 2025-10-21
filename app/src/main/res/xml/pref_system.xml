@@ -30,6 +30,7 @@
     <Preference
             android:key="backup_external_layout"
             android:title="@string/backup_external_layout"
+            app:isPreferenceVisible="false"
             app:iconSpaceReserved="false" />
 
     <Preference
@@ -40,5 +41,6 @@
     <Preference
             android:key="restore_external_layout"
             android:title="@string/restore_external_layout"
+            app:isPreferenceVisible="false"
             app:iconSpaceReserved="false" />
 </PreferenceScreen>

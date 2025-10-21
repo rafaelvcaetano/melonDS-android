@@ -513,7 +513,6 @@
     <string-array name="external_display_screen_options">
         <item>@string/top_screen</item>
         <item>@string/bottom_screen</item>
-        <item>@string/custom_layout</item>
     </string-array>
 
     <string-array name="audio_interpolation_options">

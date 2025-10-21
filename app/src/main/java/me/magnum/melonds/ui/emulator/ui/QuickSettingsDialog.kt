@@ -1,8 +1,20 @@
 package me.magnum.melonds.ui.emulator.ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.material.*
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material.Card
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.RadioButton
+import androidx.compose.material.Switch
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,97 +24,128 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.ui.theme.MelonTheme
 
-/**
- * A dialog that allows the user to quickly change some emulator settings.
- *
- * @param currentScreen The currently selected external screen.
- * @param onScreenSelected Called when the user selects a new external screen.
- * @param onOpenInternalLayout Called when the user clicks the "Internal screen layout" button.
- * @param onOpenExternalLayout Called when the user clicks the "External screen layout" button.
- * @param onDismiss Called when the user dismisses the dialog.
- */
 @Composable
 fun QuickSettingsDialog(
     currentScreen: DsExternalScreen,
     onScreenSelected: (DsExternalScreen) -> Unit,
-    onOpenInternalLayout: () -> Unit,
-    onOpenExternalLayout: () -> Unit,
-    onRefreshExternalScreen: () -> Unit,
     keepAspectRatio: Boolean,
     onKeepAspectRatioChanged: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
+    Dialog(onDismissRequest = onDismiss) {
         (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(0.8f)
-        MelonTheme(isDarkTheme = true) {
-            Surface {
-                var selectedScreen by remember { mutableStateOf(currentScreen) }
-                var keepAspect by remember { mutableStateOf(keepAspectRatio) }
-                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                    Text(stringResource(R.string.quick_settings), style = MaterialTheme.typography.h6)
-                    Spacer(Modifier.height(8.dp))
-                    Text(stringResource(R.string.external_display_screen))
-                    val options = listOf(DsExternalScreen.TOP, DsExternalScreen.BOTTOM, DsExternalScreen.CUSTOM)
-                    options.forEach { screen ->
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .selectable(selected = selectedScreen == screen, onClick = {
+        Content(
+            currentScreen = currentScreen,
+            onScreenSelected = onScreenSelected,
+            keepAspectRatio = keepAspectRatio,
+            onKeepAspectRatioChanged = onKeepAspectRatioChanged,
+        )
+    }
+}
+
+@Composable
+private fun Content(
+    currentScreen: DsExternalScreen,
+    onScreenSelected: (DsExternalScreen) -> Unit,
+    keepAspectRatio: Boolean,
+    onKeepAspectRatioChanged: (Boolean) -> Unit,
+) {
+    Card {
+        var selectedScreen by remember { mutableStateOf(currentScreen) }
+        var keepAspect by remember { mutableStateOf(keepAspectRatio) }
+        Column(modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp)) {
+            Text(
+                modifier = Modifier.padding(horizontal = 24.dp),
+                text = stringResource(R.string.quick_settings),
+                style = MaterialTheme.typography.h6,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                modifier = Modifier.padding(horizontal = 24.dp),
+                text = stringResource(R.string.external_display_screen),
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.height(8.dp))
+            val options = listOf(DsExternalScreen.TOP, DsExternalScreen.BOTTOM)
+            Column(Modifier.selectableGroup()) {
+                options.forEach { screen ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .selectable(
+                                selected = selectedScreen == screen,
+                                onClick = {
                                     selectedScreen = screen
                                     onScreenSelected(screen)
-                                })
-                        ) {
-                            RadioButton(selected = selectedScreen == screen, onClick = null)
-                            Spacer(Modifier.width(8.dp))
-                            val text = when (screen) {
-                                DsExternalScreen.TOP -> R.string.top_screen
-                                DsExternalScreen.BOTTOM -> R.string.bottom_screen
-                                DsExternalScreen.CUSTOM -> R.string.custom_layout
-                            }
-                            Text(stringResource(text), modifier = Modifier.align(Alignment.CenterVertically))
-                        }
-                    }
-                    if (selectedScreen != DsExternalScreen.CUSTOM) {
-                        Spacer(Modifier.height(16.dp))
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(stringResource(R.string.keep_ds_ratio), modifier = Modifier.weight(1f))
-                            Switch(
-                                checked = keepAspect,
-                                onCheckedChange = {
-                                    keepAspect = it
-                                    onKeepAspectRatioChanged(it)
-                                }
+                                },
                             )
+                            .padding(horizontal = 24.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        RadioButton(selected = selectedScreen == screen, onClick = null)
+
+                        val text = when (screen) {
+                            DsExternalScreen.TOP -> R.string.top_screen
+                            DsExternalScreen.BOTTOM -> R.string.bottom_screen
+                            DsExternalScreen.CUSTOM -> R.string.custom_layout
                         }
-                    }
-                    Spacer(Modifier.height(16.dp))
-                    Button(onClick = onOpenInternalLayout, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.internal_screen_layout))
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Button(onClick = onOpenExternalLayout, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.external_screen_layout))
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Button(onClick = onRefreshExternalScreen, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.refresh_external_screen))
+                        Text(
+                            text = stringResource(text),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                 }
             }
+            if (selectedScreen != DsExternalScreen.CUSTOM) {
+                Spacer(Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .toggleable(keepAspect) {
+                            keepAspect = it
+                            onKeepAspectRatioChanged(it)
+                        }
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = stringResource(id = R.string.keep_ds_ratio),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Switch(
+                        checked = keepAspect,
+                        onCheckedChange = null,
+                    )
+                }
+            }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewQuickSettingsDialog() {
+    MelonTheme {
+        Content(
+            currentScreen = DsExternalScreen.TOP,
+            onScreenSelected = { },
+            keepAspectRatio = true,
+            onKeepAspectRatioChanged = { },
+        )
     }
 }

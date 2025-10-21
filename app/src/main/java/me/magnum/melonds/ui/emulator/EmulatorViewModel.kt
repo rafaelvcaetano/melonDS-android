@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
@@ -119,6 +118,8 @@ class EmulatorViewModel @Inject constructor(
     private val _runtimeRendererConfiguration = MutableStateFlow<RuntimeRendererConfiguration?>(null)
     val runtimeRendererConfiguration = _runtimeRendererConfiguration.asStateFlow()
 
+    private val _externalDisplayScreen = MutableStateFlow<DsExternalScreen>(DsExternalScreen.TOP)
+
     private val _externalDisplayConfiguration = MutableStateFlow(ExternalDisplayConfiguration())
     val externalDisplayConfiguration = _externalDisplayConfiguration.asStateFlow()
 
@@ -199,6 +200,7 @@ class EmulatorViewModel @Inject constructor(
         startObservingRuntimeInputLayoutConfiguration()
         startObservingRendererConfiguration()
         startObservingAchievementEvents()
+        startObservingExternalDisplayScreenForRom(rom)
         startObservingLayoutForRom(rom)
         startRetroAchievementsSession(rom)
 
@@ -230,6 +232,7 @@ class EmulatorViewModel @Inject constructor(
                 startObservingExternalBackground()
                 startObservingRuntimeInputLayoutConfiguration()
                 startObservingRendererConfiguration()
+                startObservingExternalDisplayScreenForFirmware()
                 startObservingLayoutForFirmware()
 
                 val result = emulatorManager.loadFirmware(consoleType, glContext)
@@ -523,7 +526,7 @@ class EmulatorViewModel @Inject constructor(
     private fun startObservingExternalDisplayConfiguration() {
         viewModelScope.launch {
             combine(
-                settingsRepository.observeExternalDisplayScreen(),
+                _externalDisplayScreen,
                 settingsRepository.isExternalDisplayRotateLeftEnabled(),
                 settingsRepository.observeExternalDisplayKeepAspectRationEnabled(),
             ) { displayMode, rotateLeft, keepAspectRatio ->
@@ -632,9 +635,15 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    fun getExternalLayoutId(): UUID {
-        val romLayoutId = currentRom?.config?.externalLayoutId
-        return romLayoutId ?: settingsRepository.getExternalLayoutId()
+    private fun startObservingExternalDisplayScreenForRom(rom: Rom) {
+        val externalScreen = rom.config.externalScreen
+        if (externalScreen != null) {
+            _externalDisplayScreen.value = externalScreen
+        } else {
+            sessionCoroutineScope.launch {
+                settingsRepository.observeExternalDisplayScreen().collect(_externalDisplayScreen)
+            }
+        }
     }
 
     private fun startObservingLayoutForRom(rom: Rom) {
@@ -661,6 +670,12 @@ class EmulatorViewModel @Inject constructor(
             settingsRepository.observeRenderConfiguration().collectLatest {
                 _runtimeRendererConfiguration.value = RuntimeRendererConfiguration(it.videoFiltering, it.resolutionScaling)
             }
+        }
+    }
+
+    private fun startObservingExternalDisplayScreenForFirmware() {
+        sessionCoroutineScope.launch {
+            settingsRepository.observeExternalDisplayScreen().collect(_externalDisplayScreen)
         }
     }
 
@@ -724,11 +739,11 @@ class EmulatorViewModel @Inject constructor(
     }
 
     fun getExternalDisplayScreen(): DsExternalScreen {
-        return currentRom?.config?.externalScreen ?: settingsRepository.getExternalDisplayScreen()
+        return _externalDisplayScreen.value
     }
 
     fun setExternalDisplayScreen(screen: DsExternalScreen) {
-        settingsRepository.setExternalDisplayScreen(screen)
+        _externalDisplayScreen.value = screen
     }
 
     fun isExternalDisplayKeepAspectRatioEnabled(): Boolean {
