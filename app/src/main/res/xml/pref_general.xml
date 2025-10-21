@@ -46,10 +46,12 @@
     <Preference
             android:key="backup_settings"
             android:title="@string/backup_settings"
+            app:isPreferenceVisible="@bool/settings_backup_restore_enabled"
             app:iconSpaceReserved="false" />
 
     <Preference
             android:key="restore_settings"
             android:title="@string/restore_settings"
+            app:isPreferenceVisible="@bool/settings_backup_restore_enabled"
             app:iconSpaceReserved="false" />
 </PreferenceScreen>

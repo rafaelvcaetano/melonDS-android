@@ -25,6 +25,7 @@
     <Preference
             android:key="backup_internal_layout"
             android:title="@string/backup_internal_layout"
+            app:isPreferenceVisible="@bool/settings_backup_restore_enabled"
             app:iconSpaceReserved="false" />
 
     <Preference
@@ -36,6 +37,7 @@
     <Preference
             android:key="restore_internal_layout"
             android:title="@string/restore_internal_layout"
+            app:isPreferenceVisible="@bool/settings_backup_restore_enabled"
             app:iconSpaceReserved="false" />
 
     <Preference
