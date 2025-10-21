@@ -7,6 +7,9 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
     }
 
     companion object {
+        private const val TEXTURE_WIDTH = 256
+        private const val TEXTURE_HEIGHT = 192 * 2 + 2
+
         private const val DEFAULT_VERT_SHADER = "attribute vec2 vUV;\n" +
                 "attribute vec2 vPos;\n" +
                 "attribute float vAlpha;\n" +
@@ -76,7 +79,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                     "    uv = vUV;\n" +
                     "    alpha = vAlpha;\n" +
-                    "    omega = 3.141592654 * 2.0 * vec2(256, 384);\n" +
+                    "    omega = 3.141592654 * 2.0 * vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
                     "}",
             "#ifdef GL_FRAGMENT_PRECISION_HIGH\n" +
                     "precision highp float;\n" +
@@ -116,14 +119,14 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "varying float alpha;\n" +
                     "varying vec2 omega;\n" +
                     "" +
-                    "vec2 inputSize = vec2(256, 384);\n" + // What is this?
-                    "vec2 outputSize = vec2(256, 384);\n" + // What is this?
+                    "vec2 inputSize = vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" + // What is this?
+                    "vec2 outputSize = vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" + // What is this?
                     "" +
                     "void main()\n" +
                     "{\n" +
                     "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                     "    uv = vUV;\n" +
-                    "    vec2 textureSize = vec2(256, 384);\n" +
+                    "    vec2 textureSize = vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
                     "    alpha = vAlpha;\n" +
                     "    omega = vec2(3.1415 * outputSize.x * textureSize.x / inputSize.x, 2.0 * 3.1415 * textureSize.y);\n" +
                     "}",
@@ -176,7 +179,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "varying float alpha;\n" +
                     "" +
                     "void main() {\n" +
-                    "    vec2 ps = 1.0 / vec2(256, 384);\n" +
+                    "    vec2 ps = 1.0 / vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
                     "    uv[0] = vUV;\n" +
                     "    uv[1] = vec2(0.0, -ps.y);\n" +
                     "    uv[2] = vec2(-ps.x, 0.0);\n" +
@@ -200,7 +203,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "}\n" +
                     "" +
                     "void main() {\n" +
-                    "    vec2 fp = fract(uv[0] * vec2(256, 384));\n" +
+                    "    vec2 fp = fract(uv[0] * vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT));\n" +
                     "" +
                     "    vec2 g1 = uv[1] * (step(0.5, fp.x) + step(0.5, fp.y) - 1.0) +\n" +
                     "            uv[2] * (step(0.5, fp.x) - step(0.5, fp.y));\n" +
@@ -231,7 +234,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "    {\n" +
                     "        gl_FragColor.rgb = mix(E, F, 0.5);\n" +
                     "    }\n" +
-                    "    gl_fragColor.a = alpha;\n" +
+                    "    gl_FragColor.a = alpha;\n" +
                     "}"
         )
 
@@ -244,7 +247,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "varying float alpha;\n" +
                     "" +
                     "void main() {\n" +
-                    "    vec2 dg1 = 0.5 / vec2(256, 384);\n" +
+                    "    vec2 dg1 = 0.5 / vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
                     "    vec2 dg2 = vec2(-dg1.x, dg1.y);\n" +
                     "    vec2 dx = vec2(dg1.x, 0.0);\n" +
                     "    vec2 dy = vec2(0.0, dg1.y);\n" +
@@ -343,7 +346,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "" +
                     "void main()\n" +
                     "{\n" +
-                    "    vec2 dg1 = 0.5 / vec2(256, 384);\n" +
+                    "    vec2 dg1 = 0.5 / vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
                     "    vec2 dg2 = vec2(-dg1.x, dg1.y);\n" +
                     "    vec2 sd1 = dg1 * 0.5;\n" +
                     "    vec2 sd2 = dg2 * 0.5;\n" +
@@ -443,7 +446,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "varying vec2 uv;\n" +
                     "" +
                     "vec4 getTexel(vec2 p) {\n" +
-                    "    vec2 textureSize = vec2(256, 384);\n" +
+                    "    vec2 textureSize = vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
                     "    p = p * textureSize + vec2(0.5);\n" +
                     "" +
                     "    vec2 i = floor(p);\n" +
