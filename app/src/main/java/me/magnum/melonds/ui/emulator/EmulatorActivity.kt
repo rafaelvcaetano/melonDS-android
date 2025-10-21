@@ -425,6 +425,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                             viewModel.setExternalDisplayKeepAspectRatioEnabled(enabled)
                         },
                         onDismiss = {
+                            activeOverlays.removeActiveOverlay(EmulatorOverlay.QUICK_SETTINGS_DIALOG)
                             viewModel.resumeEmulator()
                             showQuickSettings.value = false
                         }
@@ -513,16 +514,16 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         }
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                        viewModel.uiEvent.collectLatest {
-                            when (it) {
-                                EmulatorUiEvent.CloseEmulator -> {
-                                    Choreographer.getInstance().removeFrameCallback(this@EmulatorActivity)
-                                    presentation?.apply {
-                                        show()
-                                    }
-                                    finish()
-                                }
-                                is EmulatorUiEvent.OpenScreen.CheatsScreen -> {
+                viewModel.uiEvent.collectLatest {
+                    when (it) {
+                        EmulatorUiEvent.CloseEmulator -> {
+                            Choreographer.getInstance().removeFrameCallback(this@EmulatorActivity)
+                            presentation?.apply {
+                                show()
+                            }
+                            finish()
+                        }
+                        is EmulatorUiEvent.OpenScreen.CheatsScreen -> {
                             val intent = Intent(this@EmulatorActivity, CheatsActivity::class.java)
                             intent.putExtra(CheatsActivity.KEY_ROM_INFO, RomInfoParcelable.fromRomInfo(it.romInfo))
                             cheatsLauncher.launch(intent)
@@ -546,7 +547,10 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                             activeOverlays.addActiveOverlay(EmulatorOverlay.ACHIEVEMENTS_DIALOG)
                             showAchievementList.value = true
                         }
-                        EmulatorUiEvent.ShowQuickSettings -> showQuickSettings.value = true
+                        EmulatorUiEvent.ShowQuickSettings -> {
+                            activeOverlays.addActiveOverlay(EmulatorOverlay.QUICK_SETTINGS_DIALOG)
+                            showQuickSettings.value = true
+                        }
                     }
                 }
             }
