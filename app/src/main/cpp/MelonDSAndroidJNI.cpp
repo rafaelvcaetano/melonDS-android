@@ -238,6 +238,13 @@ Java_me_magnum_melonds_MelonEmulator_presentFrame(JNIEnv* env, jobject thiz, job
 
     Frame* presentationFrame = MelonDSAndroid::getPresentationFrame();
     EGLDisplay currentDisplay = eglGetCurrentDisplay();
+
+    if (presentationFrame != nullptr && presentationFrame->presentFence)
+    {
+        eglDestroySyncKHR(currentDisplay, presentationFrame->presentFence);
+        presentationFrame->presentFence = 0;
+    }
+
     if (presentationFrame != nullptr)
     {
         eglWaitSyncKHR(currentDisplay, presentationFrame->renderFence, 0);
