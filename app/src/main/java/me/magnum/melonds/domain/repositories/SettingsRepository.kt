@@ -70,7 +70,7 @@ interface SettingsRepository {
 
     fun observeTheme(): Observable<Theme>
     fun observeRomIconFiltering(): Flow<RomIconFiltering>
-    fun observeRomSearchDirectories(): Observable<Array<Uri>>
+    fun observeRomSearchDirectories(): Flow<Array<Uri>>
     fun observeSelectedLayoutId(): Observable<UUID>
     fun observeExternalLayoutId(): Observable<UUID>
     fun observeDSiCameraSource(): Flow<DSiCameraSourceType>

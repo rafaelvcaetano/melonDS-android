@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -14,20 +13,17 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.domain.model.RomScanningStatus
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
-import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.impl.dtos.rom.RomDto
 import me.magnum.melonds.utils.FileUtils
 import me.magnum.melonds.utils.SubjectSharedFlow
@@ -52,8 +48,7 @@ class FileSystemRomsRepository(
         private const val ROM_DATA_FILE = "rom_data.json"
     }
 
-    private val coroutineScope = CoroutineScope(Dispatchers.Main)
-    private val disposables = CompositeDisposable()
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private val romListType: Type = object : TypeToken<List<RomDto>>(){}.type
     private val romsChannel = SubjectSharedFlow<List<Rom>>()
     private val scanningStatusSubject = MutableStateFlow(RomScanningStatus.NOT_SCANNING)
@@ -62,14 +57,16 @@ class FileSystemRomsRepository(
 
     init {
         coroutineScope.launch {
-            romsChannel.onEach {
+            romsChannel.collect {
                 saveRomData(it)
-            }.collect()
+            }
         }
 
-        settingsRepository.observeRomSearchDirectories()
-                .subscribe { directories -> onRomSearchDirectoriesChanged(directories) }
-                .addTo(disposables)
+        coroutineScope.launch {
+            settingsRepository.observeRomSearchDirectories().collectLatest { directories ->
+                onRomSearchDirectoriesChanged(directories)
+            }
+        }
     }
 
     private fun onRomSearchDirectoriesChanged(searchDirectories: Array<Uri>) {
@@ -156,7 +153,7 @@ class FileSystemRomsRepository(
     }
 
     override fun rescanRoms() {
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch {
             scanningStatusSubject.emit(RomScanningStatus.SCANNING)
 
             scanForNewRoms().collect {
@@ -201,7 +198,7 @@ class FileSystemRomsRepository(
         romsChannel.tryEmit(roms)
     }
 
-    private suspend fun loadCachedRoms() = withContext(Dispatchers.IO) {
+    private suspend fun loadCachedRoms() {
         scanningStatusSubject.emit(RomScanningStatus.SCANNING)
 
         val cachedRoms = getCachedRoms().filter {
@@ -262,9 +259,9 @@ class FileSystemRomsRepository(
             }
             val romsJson = gson.toJson(romDtos)
 
-            val output = OutputStreamWriter(cacheFile.outputStream())
-            output.write(romsJson)
-            output.close()
+            OutputStreamWriter(cacheFile.outputStream()).use {
+                it.write(romsJson)
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to save ROM data", e)
         }

@@ -504,8 +504,8 @@ class SharedPreferencesSettingsRepository(
         return preferences.getBoolean("cheats_enabled", false)
     }
 
-    override fun observeRomSearchDirectories(): Observable<Array<Uri>> {
-        return getOrCreatePreferenceObservable("rom_search_dirs") {
+    override fun observeRomSearchDirectories(): Flow<Array<Uri>> {
+        return getOrCreatePreferenceSharedFlow("rom_search_dirs") {
             getRomSearchDirectories()
         }
     }

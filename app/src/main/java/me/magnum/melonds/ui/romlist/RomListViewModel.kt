@@ -4,14 +4,15 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.Permission
@@ -25,7 +26,6 @@ import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
-import me.magnum.melonds.extensions.addTo
 import me.magnum.melonds.impl.RomIconProvider
 import me.magnum.melonds.utils.EventSharedFlow
 import me.magnum.melonds.utils.SubjectSharedFlow
@@ -42,8 +42,6 @@ class RomListViewModel @Inject constructor(
     private val uriPermissionManager: UriPermissionManager,
     private val directoryAccessValidator: DirectoryAccessValidator
 ) : ViewModel() {
-
-    private val disposables: CompositeDisposable = CompositeDisposable()
 
     private val _searchQuery = MutableStateFlow("")
     private val _sortingMode = MutableStateFlow(settingsRepository.getRomSortingMode())
@@ -63,11 +61,13 @@ class RomListViewModel @Inject constructor(
     val romScanningStatus = romsRepository.getRomScanningStatus()
 
     init {
-        settingsRepository.observeRomSearchDirectories()
-            .startWith(settingsRepository.getRomSearchDirectories())
-            .distinctUntilChanged()
-            .subscribe { directories -> _hasSearchDirectories.tryEmit(directories.isNotEmpty()) }
-            .addTo(disposables)
+        viewModelScope.launch {
+            settingsRepository.observeRomSearchDirectories()
+                .distinctUntilChanged()
+                .collect { directories ->
+                    _hasSearchDirectories.tryEmit(directories.isNotEmpty())
+                }
+        }
 
         combine(romsRepository.getRoms(), _searchQuery) { roms, query ->
             val romList = if (query.isEmpty()) {
@@ -228,10 +228,5 @@ class RomListViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        disposables.dispose()
     }
 }
