@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
-import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.os.bundleOf
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -138,7 +138,7 @@ class RomListFragment : Fragment() {
 
     private fun displayEmptyListViewIfRequired() {
         val isScanning = binding.swipeRefreshRoms.isRefreshing
-        val emptyViewVisible = !isScanning && romListViewModel.roms.value?.size == 0
+        val emptyViewVisible = !isScanning && romListViewModel.roms.value?.isEmpty() == true
         binding.textRomListEmpty.isVisible = emptyViewVisible
     }
 
@@ -241,7 +241,7 @@ class RomListFragment : Fragment() {
 
                 romIconLoadJob = coroutineScope.launch {
                     val romIcon = romListViewModel.getRomIcon(rom)
-                    val iconDrawable = BitmapDrawable(itemView.resources, romIcon.bitmap).apply {
+                    val iconDrawable = romIcon.bitmap?.toDrawable(itemView.resources)?.apply {
                         paint.isFilterBitmap = romIcon.filtering == RomIconFiltering.LINEAR
                         if (isEnabled) {
                             colorFilter = null
@@ -287,7 +287,7 @@ class RomListFragment : Fragment() {
             override fun getNewListSize(): Int = newRoms.size
 
             override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                return oldRoms[oldItemPosition] == newRoms[newItemPosition]
+                return oldRoms[oldItemPosition].uri == newRoms[newItemPosition].uri
             }
 
             override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
