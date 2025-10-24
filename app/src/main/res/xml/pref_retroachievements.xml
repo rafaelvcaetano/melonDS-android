@@ -8,18 +8,18 @@
         app:iconSpaceReserved="false" />
 
     <SwitchPreference
-        android:key="ra_rich_presence"
-        android:title="@string/enable_rich_presence"
-        android:summary="@string/rich_presence_summary"
-        app:iconSpaceReserved="false"
-        app:dependency="ra_login"
-        android:defaultValue="true" />
-
-    <SwitchPreference
         android:key="ra_hardcore_enabled"
         android:title="@string/hardcore_mode"
         android:summary="@string/hardcore_mode_summary"
         app:iconSpaceReserved="false"
         app:dependency="ra_login"
         android:defaultValue="false" />
+
+    <SwitchPreference
+        android:key="ra_rich_presence"
+        android:title="@string/enable_rich_presence"
+        android:summary="@string/rich_presence_summary"
+        app:iconSpaceReserved="false"
+        app:dependency="ra_login"
+        android:defaultValue="true" />
 </PreferenceScreen>

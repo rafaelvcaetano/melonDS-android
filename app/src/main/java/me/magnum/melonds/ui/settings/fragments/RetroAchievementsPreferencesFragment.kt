@@ -10,9 +10,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
 import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.DialogRetroachievementsLoginBinding
+import me.magnum.melonds.extensions.addOnPreferenceChangeListener
 import me.magnum.melonds.ui.common.LoadingDialog
 import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
 import me.magnum.melonds.ui.settings.RetroAchievementsSettingsViewModel
@@ -22,14 +24,26 @@ class RetroAchievementsPreferencesFragment : PreferenceFragmentCompat(), Prefere
 
     private val viewModel by activityViewModels<RetroAchievementsSettingsViewModel>()
 
-    private lateinit var accountPreference: Preference
-
     private var loginProgressDialog: LoadingDialog? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.pref_retroachievements, rootKey)
 
-        accountPreference = findPreference("ra_login")!!
+        val accountPreference = findPreference<Preference>("ra_login")!!
+        val hardcoreModePreference = findPreference<SwitchPreference>("ra_hardcore_enabled")!!
+        val richPresencePreference = findPreference<SwitchPreference>("ra_rich_presence")!!
+
+        hardcoreModePreference.addOnPreferenceChangeListener { _, newValue ->
+            val isEnabled = newValue as Boolean
+
+            // Rich preference must be on when hardcore mode is enabled. As such, when hardcore is enabled, disable the preference and force it to be checked
+            richPresencePreference.isEnabled = !isEnabled
+            if (isEnabled) {
+                richPresencePreference.isChecked = true
+            }
+            true
+        }
+
         accountPreference.setOnPreferenceClickListener {
             val accountState = viewModel.accountState.value
             when (accountState) {
