@@ -15,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -72,7 +73,20 @@ class SharedPreferencesSettingsRepository(
         private const val CONTROLLER_CONFIG_FILE = "controller_config.json"
     }
 
-    private var controllerConfiguration: ControllerConfiguration? = null
+    @OptIn(ExperimentalSerializationApi::class)
+    private val controllerConfiguration by lazy {
+        val initialConfiguration = try {
+            val configFile = File(context.filesDir, CONTROLLER_CONFIG_FILE)
+            configFile.inputStream().use {
+                val loadedConfiguration = json.decodeFromStream<ControllerConfigurationDto>(it)
+                loadedConfiguration.toControllerConfiguration()
+            }
+        } catch (_: Exception) {
+            controllerConfigurationFactory.buildDefaultControllerConfiguration()
+        }
+
+        MutableStateFlow(initialConfiguration)
+    }
     private val preferenceObservers: HashMap<String, PublishSubject<Any>> = HashMap()
     private val preferenceSharedFlows = mutableMapOf<String, MutableSharedFlow<Unit>>()
     private val renderConfigurationFlow: SharedFlow<RendererConfiguration>
@@ -443,20 +457,12 @@ class SharedPreferencesSettingsRepository(
         } ?: throw Exception("Could not determine ROMs parent document")
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
     override fun getControllerConfiguration(): ControllerConfiguration {
-        if (controllerConfiguration == null) {
-            try {
-                val configFile = File(context.filesDir, CONTROLLER_CONFIG_FILE)
-                configFile.inputStream().use {
-                    val loadedConfiguration = json.decodeFromStream<ControllerConfigurationDto>(it)
-                    controllerConfiguration = loadedConfiguration.toControllerConfiguration()
-                }
-            } catch (_: Exception) {
-                controllerConfiguration = controllerConfigurationFactory.buildDefaultControllerConfiguration()
-            }
-        }
-        return controllerConfiguration!!
+        return controllerConfiguration.value
+    }
+
+    override fun observeControllerConfiguration(): Flow<ControllerConfiguration> {
+        return controllerConfiguration
     }
 
     override fun getSelectedLayoutId(): UUID {
@@ -554,7 +560,7 @@ class SharedPreferencesSettingsRepository(
 
     @OptIn(ExperimentalSerializationApi::class)
     override fun setControllerConfiguration(controllerConfiguration: ControllerConfiguration) {
-        this.controllerConfiguration = controllerConfiguration
+        this.controllerConfiguration.value = controllerConfiguration
 
         try {
             val configFile = File(context.filesDir, CONTROLLER_CONFIG_FILE)

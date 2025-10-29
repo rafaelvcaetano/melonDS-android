@@ -56,6 +56,7 @@ interface SettingsRepository {
     fun getSaveStateDirectory(rom: Rom): Uri?
 
     fun getControllerConfiguration(): ControllerConfiguration
+    fun observeControllerConfiguration(): Flow<ControllerConfiguration>
     fun getSelectedLayoutId(): UUID
     fun showSoftInput(): Flow<Boolean>
     fun getExternalLayoutId(): UUID
