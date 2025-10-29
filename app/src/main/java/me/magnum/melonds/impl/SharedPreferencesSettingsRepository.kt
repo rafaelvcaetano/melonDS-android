@@ -314,7 +314,7 @@ class SharedPreferencesSettingsRepository(
     }
 
     override fun isExternalDisplayKeepAspectRationEnabled(): Boolean {
-        return preferences.getBoolean("external_display_keep_ratio", false)
+        return preferences.getBoolean("external_display_keep_ratio", true)
     }
 
     override fun observeExternalDisplayKeepAspectRationEnabled(): Flow<Boolean> {
