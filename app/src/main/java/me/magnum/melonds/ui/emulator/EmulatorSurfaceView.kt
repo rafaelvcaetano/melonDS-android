@@ -75,10 +75,9 @@ class EmulatorSurfaceView(context: Context, attrs: AttributeSet? = null) : Surfa
                     windowSurface = null
                 }
                 return
-            } else {
-                glContext.use(windowSurface!!)
             }
 
+            glContext.use(windowSurface!!)
             GLES30.glViewport(0, 0, width, height)
 
             if (surfaceState == SurfaceState.UNINITIALIZED && renderer != null) {
@@ -98,10 +97,7 @@ class EmulatorSurfaceView(context: Context, attrs: AttributeSet? = null) : Surfa
 
     private fun setupWindowSurface(glContext: GlContext): Boolean {
         val currentSurface = surface ?: return false
-        val windowSurface = glContext.createWindowSurface(currentSurface)
-
-        glContext.use(windowSurface)
-        this.windowSurface = windowSurface
+        windowSurface = glContext.createWindowSurface(currentSurface)
         return true
     }
 

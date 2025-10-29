@@ -14,9 +14,9 @@ import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 
 interface EmulatorManager {
 
-    suspend fun loadRom(rom: Rom, cheats: List<Cheat>, glContext: Long): RomLaunchResult
+    suspend fun loadRom(rom: Rom, cheats: List<Cheat>): RomLaunchResult
 
-    suspend fun loadFirmware(consoleType: ConsoleType, glContext: Long): FirmwareLaunchResult
+    suspend fun loadFirmware(consoleType: ConsoleType): FirmwareLaunchResult
 
     suspend fun updateRomEmulatorConfiguration(rom: Rom)
 

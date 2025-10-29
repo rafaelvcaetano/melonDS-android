@@ -3,13 +3,14 @@ package me.magnum.melonds.ui.emulator.render
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Message
+import me.magnum.melonds.MelonDSAndroidInterface
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.domain.model.render.PresentFrameWrapper
 import me.magnum.melonds.ui.emulator.EmulatorSurfaceView
 
 class FrameRenderCoordinator {
 
-    private val glContext = GlContext()
+    private val glContext: GlContext
     private val frameRenderThread = FrameRenderThread()
     private val presentFrameWrapper = PresentFrameWrapper()
     private val surfacesLock = Any()
@@ -17,11 +18,8 @@ class FrameRenderCoordinator {
     private val surfacesPendingRemoval = mutableListOf<EmulatorSurfaceView>()
 
     init {
+        glContext = GlContext(MelonDSAndroidInterface.getEmulatorGlContext())
         frameRenderThread.start()
-    }
-
-    fun getSharedGlContext(): GlContext {
-        return glContext
     }
 
     fun addSurface(surface: EmulatorSurfaceView) {

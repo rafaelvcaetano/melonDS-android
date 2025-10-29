@@ -2,20 +2,16 @@ package me.magnum.melonds.ui.emulator.render
 
 import android.opengl.EGL14
 import android.opengl.EGLConfig
-import android.opengl.EGLContext
 import android.opengl.EGLDisplay
 import android.opengl.EGLExt
 import android.opengl.EGLSurface
 import android.view.Surface
 
-class GlContext(sharedGlContext: GlContext? = null) {
+class GlContext(sharedEglContext: Long? = null) {
 
     private var display: EGLDisplay
     private var config: EGLConfig
-    private var context: EGLContext
-
-    val glContext get() = context
-    val contextNativeHandle get() = context.nativeHandle
+    private var context: Long
 
     init {
         display = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY)
@@ -29,19 +25,14 @@ class GlContext(sharedGlContext: GlContext? = null) {
         }
 
         config = createGlConfig()
-
-        val contextAttributes = intArrayOf(
-            EGL14.EGL_CONTEXT_CLIENT_VERSION, 3,
-            EGL14.EGL_NONE
-        )
-        context = EGL14.eglCreateContext(display, config, sharedGlContext?.context ?: EGL14.EGL_NO_CONTEXT, contextAttributes, 0)
-        if (context == EGL14.EGL_NO_CONTEXT) {
+        context = createContext(display.nativeHandle, config.nativeHandle, sharedEglContext ?: 0)
+        if (context == 0L) {
             throw GlContextException("Failed to create context: ${EGL14.eglGetError()}")
         }
     }
 
     fun use(surface: EGLSurface) {
-        if (!EGL14.eglMakeCurrent(display, surface, surface, context)) {
+        if (!makeCurrent(display.nativeHandle, surface.nativeHandle, context)) {
             throw GlContextException("Failed to make current: ${EGL14.eglGetError()}")
         }
 
@@ -58,12 +49,12 @@ class GlContext(sharedGlContext: GlContext? = null) {
     }
 
     fun destroy() {
-        EGL14.eglDestroyContext(display, context)
+        destroyContext(display.nativeHandle, context)
         EGL14.eglTerminate(display)
         EGL14.eglReleaseThread()
 
         display = EGL14.EGL_NO_DISPLAY
-        context = EGL14.EGL_NO_CONTEXT
+        context = 0L
     }
 
     fun createWindowSurface(surface: Surface): EGLSurface {
@@ -99,6 +90,13 @@ class GlContext(sharedGlContext: GlContext? = null) {
 
         return eglConfig[0]!!
     }
+
+    // Because we need to use a shared EGL context, and we can't build an EGLContext instance from a native context instance, we need to perform context manipulation
+    // operations on the native side instead of using the Java wrappers
+
+    private external fun createContext(display: Long, config: Long, sharedGlContext: Long): Long
+    private external fun makeCurrent(display: Long, surface: Long, context: Long): Boolean
+    private external fun destroyContext(display: Long, context: Long)
 
     class GlContextException(message: String) : Exception(message)
 }

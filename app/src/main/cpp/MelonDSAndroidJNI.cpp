@@ -53,7 +53,7 @@ AndroidRACallback* raCallback;
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject cameraManager, jobject retroAchievementsCallback, jobject screenshotBuffer, jlong glContext)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject cameraManager, jobject retroAchievementsCallback, jobject screenshotBuffer)
 {
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
     fastForwardSpeedMultiplier = finalEmulatorConfiguration.fastForwardSpeedMultiplier;
@@ -66,7 +66,7 @@ Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jo
     u32* screenshotBufferPointer = (u32*) env->GetDirectBufferAddress(screenshotBuffer);
 
     MelonDSAndroid::setConfiguration(std::move(finalEmulatorConfiguration));
-    MelonDSAndroid::setup(androidCameraHandler, raCallback, screenshotBufferPointer, glContext, 0);
+    MelonDSAndroid::setup(androidCameraHandler, raCallback, screenshotBufferPointer, 0);
     paused = false;
 }
 

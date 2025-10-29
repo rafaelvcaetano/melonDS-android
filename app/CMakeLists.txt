@@ -18,6 +18,7 @@ add_library(
         src/main/cpp/MelonDSAndroidConfiguration.cpp
         src/main/cpp/MelonDSAndroidInterface.cpp
         src/main/cpp/MelonDSNandJNI.cpp
+        src/main/cpp/NativeGlContext.cpp
         src/main/cpp/UriFileHandler.cpp
         src/main/cpp/JniEnvHandler.cpp
         src/main/cpp/MelonDSAndroidCameraHandler.cpp

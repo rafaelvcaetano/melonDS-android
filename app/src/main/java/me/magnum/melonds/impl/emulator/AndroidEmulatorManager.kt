@@ -50,13 +50,13 @@ class AndroidEmulatorManager(
 
     private val loadedAchievements = mutableListOf<RASimpleAchievement>()
 
-    override suspend fun loadRom(rom: Rom, cheats: List<Cheat>, glContext: Long): RomLaunchResult {
+    override suspend fun loadRom(rom: Rom, cheats: List<Cheat>): RomLaunchResult {
         return withContext(Dispatchers.IO) {
             val fileRomDocument = DocumentFile.fromSingleUri(context, rom.uri) ?: return@withContext RomLaunchResult.LaunchFailedRomNotFound
             val fileRomProcessor = romFileProcessorFactory.getFileRomProcessorForDocument(fileRomDocument)
             val romUri = fileRomProcessor?.getRealRomUri(rom)?.await() ?: throw RomLoadException("Unsupported ROM file extension: ${fileRomDocument.extension}")
 
-            setupEmulator(getRomEmulatorConfiguration(rom), glContext)
+            setupEmulator(getRomEmulatorConfiguration(rom))
 
             val sram = try {
                 sramProvider.getSramForRom(rom)
@@ -91,9 +91,9 @@ class AndroidEmulatorManager(
         }
     }
 
-    override suspend fun loadFirmware(consoleType: ConsoleType, glContext: Long): FirmwareLaunchResult {
+    override suspend fun loadFirmware(consoleType: ConsoleType): FirmwareLaunchResult {
         return withContext(Dispatchers.IO) {
-            setupEmulator(getFirmwareEmulatorConfiguration(consoleType), glContext)
+            setupEmulator(getFirmwareEmulatorConfiguration(consoleType))
             val result = MelonEmulator.bootFirmware()
             if (result != MelonEmulator.FirmwareLoadResult.SUCCESS) {
                 cameraManager.stopCurrentCameraSource()
@@ -184,7 +184,7 @@ class AndroidEmulatorManager(
         return achievementsSharedFlow.asSharedFlow()
     }
 
-    private fun setupEmulator(emulatorConfiguration: EmulatorConfiguration, glContext: Long) {
+    private fun setupEmulator(emulatorConfiguration: EmulatorConfiguration) {
         MelonEmulator.setupEmulator(
             emulatorConfiguration = emulatorConfiguration,
             dsiCameraSource = cameraManager,
@@ -202,7 +202,6 @@ class AndroidEmulatorManager(
                 }
             },
             screenshotBuffer = screenshotFrameBufferProvider.frameBuffer(),
-            glContext = glContext,
         )
     }
 

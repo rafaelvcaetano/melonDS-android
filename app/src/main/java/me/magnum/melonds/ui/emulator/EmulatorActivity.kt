@@ -40,16 +40,17 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
-import androidx.core.net.toUri
 import androidx.core.os.ConfigurationCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import androidx.lifecycle.DEFAULT_ARGS_KEY
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewmodel.MutableCreationExtras
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -76,7 +77,6 @@ import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.insetsControllerCompat
-import me.magnum.melonds.extensions.parcelable
 import me.magnum.melonds.extensions.setLayoutOrientation
 import me.magnum.melonds.impl.emulator.LifecycleOwnerProvider
 import me.magnum.melonds.impl.system.AppForegroundStateObserver
@@ -91,6 +91,7 @@ import me.magnum.melonds.ui.emulator.input.MelonTouchHandler
 import me.magnum.melonds.ui.emulator.model.EmulatorOverlay
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
+import me.magnum.melonds.ui.emulator.model.LaunchArgs
 import me.magnum.melonds.ui.emulator.model.PauseMenu
 import me.magnum.melonds.ui.emulator.model.PopupEvent
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration
@@ -105,8 +106,6 @@ import me.magnum.melonds.ui.emulator.ui.AchievementListDialog
 import me.magnum.melonds.ui.emulator.ui.AchievementPopupUi
 import me.magnum.melonds.ui.emulator.ui.QuickSettingsDialog
 import me.magnum.melonds.ui.emulator.ui.RAIntegrationEventUi
-import me.magnum.melonds.ui.layouts.ExternalLayoutListActivity
-import me.magnum.melonds.ui.layouts.LayoutListActivity
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.theme.MelonTheme
 import java.text.SimpleDateFormat
@@ -136,7 +135,18 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     }
 
     private lateinit var binding: ActivityEmulatorBinding
-    val viewModel: EmulatorViewModel by viewModels()
+    val viewModel: EmulatorViewModel by viewModels(
+        extrasProducer = {
+            val extras = MutableCreationExtras(defaultViewModelCreationExtras)
+            // Inject intent data into view-model creation extras to make it accessible through the SavedStateHandle
+            intent.data?.let {
+                val existingExtras = extras[DEFAULT_ARGS_KEY]?.deepCopy() ?: Bundle()
+                existingExtras.putString(KEY_URI, it.toString())
+                extras[DEFAULT_ARGS_KEY] = existingExtras
+            }
+            extras
+        }
+    )
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
@@ -264,8 +274,6 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     private val showAchievementList = mutableStateOf(false)
     private val showQuickSettings = mutableStateOf(false)
 
-    private var emulatorReady = false
-
     private val activeOverlays = EmulatorOverlayTracker(
         onOverlaysCleared = {
             disableScreenTimeOut()
@@ -329,7 +337,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
 
         setupInputHandling()
         updateOrientation(resources.configuration)
-        launchEmulator()
+        disableScreenTimeOut()
+        showExternalDisplay()
 
         binding.layoutAchievement.setContent {
             MelonTheme {
@@ -576,7 +585,6 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                             setupFpsCounter()
                             binding.textLoading.isGone = true
                             binding.viewLayoutControls.isVisible = true
-                            emulatorReady = true
                             backPressedCallback.isEnabled = true
                         }
                         is EmulatorState.RomLoadError -> {
@@ -692,6 +700,11 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
+        val launchArgs = LaunchArgs.fromIntent(intent)
+        // Invalid arguments. Ignore completely
+        if (launchArgs == null)
+            return
+
         if (viewModel.emulatorState.value.isRunning()) {
             viewModel.pauseEmulator(false)
             backPressedCallback.isEnabled = false
@@ -701,9 +714,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                     .setTitle(getString(R.string.title_emulator_running))
                     .setMessage(getString(R.string.message_stop_emulation))
                     .setPositiveButton(R.string.ok) { _, _ ->
-                        viewModel.stopEmulator()
                         setIntent(intent)
-                        launchEmulator()
+                        viewModel.relaunchWithNewArgs(launchArgs)
                     }
                     .setNegativeButton(R.string.no) { dialog, _ ->
                         dialog.cancel()
@@ -732,52 +744,6 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     override fun doFrame(frameTimeNanos: Long) {
         frameRenderCoordinator.renderFrame()
         Choreographer.getInstance().postFrameCallback(this)
-    }
-
-    private fun launchEmulator() {
-        val extras = intent?.extras
-        val bootFirmwareOnly = extras?.getBoolean(KEY_BOOT_FIRMWARE_ONLY) ?: false
-
-        lifecycleScope.launch {
-            val glContext = frameRenderCoordinator.getSharedGlContext().contextNativeHandle
-
-            disableScreenTimeOut()
-            if (bootFirmwareOnly) {
-                val consoleTypeParameter = extras.getInt(KEY_BOOT_FIRMWARE_CONSOLE, -1)
-                if (consoleTypeParameter == -1) {
-                    throw RuntimeException("No console type specified")
-                }
-
-                val firmwareConsoleType = ConsoleType.entries[consoleTypeParameter]
-                viewModel.loadFirmware(firmwareConsoleType, glContext)
-            } else {
-                val romParcelable = extras?.parcelable<RomParcelable>(KEY_ROM)
-
-                if (romParcelable?.rom != null) {
-                    viewModel.loadRom(romParcelable.rom, glContext)
-                } else if (intent.data != null) {
-                    viewModel.loadRom(intent.data!!, glContext)
-                } else {
-                    if (extras?.containsKey(KEY_PATH) == true) {
-                        val romPath = extras.getString(KEY_PATH)!!
-                        viewModel.loadRom(romPath, glContext)
-                    } else if (extras?.containsKey(KEY_URI) == true) {
-                        val romUri = extras.getString(KEY_URI)!!
-                        viewModel.loadRom(romUri.toUri(), glContext)
-                    } else {
-                        throw RuntimeException("No ROM was specified")
-                    }
-                }
-            }
-
-            // Ensure the external display is correctly configured when launching
-            // the emulator from external intents such as LAUNCH_ROM. When the
-            // activity is started directly from a front-end, the external
-            // presentation might not yet be set up. Calling both
-            // `showExternalDisplay` here guarantees that the presentation is created
-            // (if needed) and configured with the proper screen before emulation begins.
-            showExternalDisplay()
-        }
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
