@@ -14,6 +14,7 @@ import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.common.camera.BlackDSiCameraSource
 import me.magnum.melonds.common.camera.DSiCameraSource
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
+import me.magnum.melonds.common.rumble.GbaRumbleManager
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
@@ -23,6 +24,7 @@ import me.magnum.melonds.impl.camera.DSiCameraSourceMultiplexer
 import me.magnum.melonds.impl.camera.PhysicalDSiCameraSource
 import me.magnum.melonds.impl.camera.StaticImageDSiCameraSource
 import me.magnum.melonds.impl.emulator.AndroidEmulatorManager
+import me.magnum.melonds.impl.emulator.AndroidGbaRumbleManager
 import me.magnum.melonds.impl.emulator.EmulatorSession
 import me.magnum.melonds.impl.emulator.LifecycleOwnerProvider
 import me.magnum.melonds.impl.emulator.SramProvider
@@ -109,6 +111,15 @@ object EmulatorRuntimeModule {
 
     @Provides
     @ActivityRetainedScoped
+    fun provideGbaRumbleManager(
+        @ApplicationContext context: Context,
+        settingsRepository: SettingsRepository,
+    ): GbaRumbleManager {
+        return AndroidGbaRumbleManager(context, settingsRepository)
+    }
+
+    @Provides
+    @ActivityRetainedScoped
     fun provideEmulatorManager(
         @ApplicationContext context: Context,
         settingsRepository: SettingsRepository,
@@ -117,6 +128,7 @@ object EmulatorRuntimeModule {
         romFileProcessorFactory: RomFileProcessorFactory,
         permissionHandler: PermissionHandler,
         cameraManagerMultiplexer: DSiCameraSourceMultiplexer,
+        gbaRumbleManager: GbaRumbleManager,
     ): EmulatorManager {
         return AndroidEmulatorManager(
             context,
@@ -126,6 +138,7 @@ object EmulatorRuntimeModule {
             romFileProcessorFactory,
             permissionHandler,
             cameraManagerMultiplexer,
+            gbaRumbleManager,
         )
     }
 

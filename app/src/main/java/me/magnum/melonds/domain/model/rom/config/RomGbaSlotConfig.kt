@@ -6,4 +6,5 @@ sealed class RomGbaSlotConfig {
     data object None : RomGbaSlotConfig()
     data class GbaRom(val romPath: Uri?, val savePath: Uri?) : RomGbaSlotConfig()
     data object MemoryExpansion : RomGbaSlotConfig()
+    data object RumblePak : RomGbaSlotConfig()
 }

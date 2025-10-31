@@ -17,7 +17,7 @@ data class RomGbaSlotConfigDto(
 ) {
 
     enum class Type {
-        None, GbaRom, MemoryExpansion
+        None, GbaRom, MemoryExpansion, RumblePak
     }
 
     fun toModel(): RomGbaSlotConfig {
@@ -28,6 +28,7 @@ data class RomGbaSlotConfigDto(
                 savePath = gbaSavePath?.let { Uri.parse(it) },
             )
             Type.MemoryExpansion -> RomGbaSlotConfig.MemoryExpansion
+            Type.RumblePak -> RomGbaSlotConfig.RumblePak
         }
     }
 
@@ -45,6 +46,7 @@ data class RomGbaSlotConfigDto(
                 is RomGbaSlotConfig.None -> Type.None
                 is RomGbaSlotConfig.GbaRom -> Type.GbaRom
                 is RomGbaSlotConfig.MemoryExpansion -> Type.MemoryExpansion
+                is RomGbaSlotConfig.RumblePak -> Type.RumblePak
             }
         }
     }

@@ -219,6 +219,7 @@
     <string name="show_soft_input">Mostrar entrada suave</string>
     <string name="vibrate_on_touch">Vibrar al tacto</string>
     <string name="vibration_strength">Fuerza de vibración</string>
+    <string name="gba_rumble_intensity">Intensidad de vibración GBA</string>
     <string name="soft_input_opacity">Opacidad de entrada suave</string>
     <string name="retroachievements">RetroAchievements</string> <!-- Mantén las palabras unidas porque este es el nombre oficial -->
     <string name="retroachievements_summary">Inicio de sesión &amp; Gestionar la conexión de RetroAchievements</string> <!-- Mantén las palabras unidas porque este es el nombre oficial -->
