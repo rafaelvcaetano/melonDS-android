@@ -1,0 +1,41 @@
+name: Scanlines
+textureFiltering: NEAREST
+
+[vertex]
+attribute vec2 vPos;
+attribute vec2 vUV;
+attribute float vAlpha;
+varying vec2 uv;
+varying float alpha;
+varying vec2 omega;
+vec2 inputSize = vec2(256, 384);
+vec2 outputSize = vec2(256, 384);
+void main()
+{
+    gl_Position = vec4(vPos, 0.0, 1.0);
+    uv = vUV;
+    vec2 textureSize = vec2(256, 384);
+    alpha = vAlpha;
+    omega = vec2(3.1415 * outputSize.x * textureSize.x / inputSize.x, 2.0 * 3.1415 * textureSize.y);
+}
+[/vertex]
+
+[fragment]
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform sampler2D tex;
+varying float alpha;
+varying vec2 uv;
+varying vec2 omega;
+const float base_brightness = 0.95;
+const vec2 sine_comp = vec2(0.05, 0.15);
+void main ()
+{
+    vec4 color = vec4(texture2D(tex, uv).bgr, alpha);
+    vec4 scanline = color * (base_brightness + dot(sine_comp * sin(uv * omega), vec2(1.0)));
+    gl_FragColor = clamp(scanline, 0.0, 1.0);
+}
+[/fragment]
