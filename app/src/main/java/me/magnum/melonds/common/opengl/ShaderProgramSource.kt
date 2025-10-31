@@ -7,9 +7,6 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
     }
 
     companion object {
-        private const val TEXTURE_WIDTH = 256
-        private const val TEXTURE_HEIGHT = 192 * 2 + 2
-
         private const val DEFAULT_VERT_SHADER = "attribute vec2 vUV;\n" +
                 "attribute vec2 vPos;\n" +
                 "attribute float vAlpha;\n" +
@@ -79,7 +76,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                     "    uv = vUV;\n" +
                     "    alpha = vAlpha;\n" +
-                    "    omega = 3.141592654 * 2.0 * vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
+                    "    omega = 3.141592654 * 2.0 * vec2(256, 384);\n" +
                     "}",
             "#ifdef GL_FRAGMENT_PRECISION_HIGH\n" +
                     "precision highp float;\n" +
@@ -108,6 +105,171 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "}"
         )
 
+        val LcdGridDsLiteShader = ShaderProgramSource(
+            TextureFiltering.NEAREST,
+            DEFAULT_VERT_SHADER,
+            "#ifdef GL_FRAGMENT_PRECISION_HIGH\n" +
+                "precision highp float;\n" +
+                "#else\n" +
+                "precision mediump float;\n" +
+                "#endif\n" +
+                "uniform sampler2D tex;\n" +
+                "uniform sampler2D prevTex;\n" +
+                "uniform vec2 texSize;\n" +
+                "uniform vec2 viewportSize;\n" +
+                "uniform vec4 screenUvBounds;\n" +
+                "uniform float responseWeight;\n" +
+                "varying vec2 uv;\n" +
+                "varying float alpha;\n" +
+                "const float brighten_scanlines = 16.0;\n" +
+                "const float brighten_lcd = 4.0;\n" +
+                "const vec3 offsets = 3.141592654 * vec3(0.5, 0.5 - 0.6666667, 0.5 - 1.3333333);\n" +
+                "const float gain = 1.0;\n" +
+                "const float gamma = 2.2;\n" +
+                "const float blacklevel = 0.0;\n" +
+                "const float ambient = 0.0;\n" +
+                "const float outgamma = 2.2;\n" +
+                "const float maskContrast = 0.8;\n" +
+                "const float detailBlend = 0.3;\n" +
+                "const vec3 postBias = vec3(0.0);\n" +
+                "const vec2 lowerScreenPhase = vec2(0.15, 0.10);\n" +
+                "const vec3 channelGain = vec3(1.07, 0.97, 1.05);\n" +
+                "const float saturationBoost = 1.12;\n" +
+                "const vec3 rSubpixel = vec3(1.0, 0.0, 0.0);\n" +
+                "const vec3 gSubpixel = vec3(0.0, 1.0, 0.0);\n" +
+                "const vec3 bSubpixel = vec3(0.0, 0.0, 1.0);\n" +
+                "const float useBgr = 1.0;\n" +
+                "const float targetGamma = 2.2;\n" +
+                "const float displayGamma = 2.2;\n" +
+                "const float dslLuminance = 0.955;\n" +
+                "const mat3 dslMatrix = mat3(\n" +
+                "    0.965, 0.11, -0.065,\n" +
+                "    0.02, 0.925, 0.055,\n" +
+                "    0.01, -0.02, 1.03\n" +
+                ");\n" +
+                "float intsmear_func_x(float z) {\n" +
+                "    float z2 = z * z;\n" +
+                "    float zn = z;\n" +
+                "    float ret = 0.0;\n" +
+                "    ret += zn * 1.0;\n" +
+                "    zn *= z2;\n" +
+                "    ret += zn * -0.6666667;\n" +
+                "    zn *= z2;\n" +
+                "    ret += zn * -0.2;\n" +
+                "    zn *= z2;\n" +
+                "    ret += zn * 0.5714286;\n" +
+                "    zn *= z2;\n" +
+                "    ret += zn * -0.1111111;\n" +
+                "    zn *= z2;\n" +
+                "    ret += zn * -0.1818182;\n" +
+                "    zn *= z2;\n" +
+                "    ret += zn * 0.0769231;\n" +
+                "    return ret;\n" +
+                "}\n" +
+                "float intsmear_func_y(float z) {\n" +
+                "    float z2 = z * z;\n" +
+                "    float zn = z;\n" +
+                "    float ret = 0.0;\n" +
+                "    ret += zn * 1.0;\n" +
+                "    zn *= z2;\n" +
+                "    ret += zn * 0.0;\n" +
+                "    zn *= z2;\n" +
+                "    ret += zn * -0.8;\n" +
+                "    zn *= z2;\n" +
+                "    ret += zn * 0.2857143;\n" +
+                "    zn *= z2;\n" +
+                "    ret += zn * 0.4444444;\n" +
+                "    zn *= z2;\n" +
+                "    ret += zn * -0.3636364;\n" +
+                "    zn *= z2;\n" +
+                "    ret += zn * 0.0769231;\n" +
+                "    return ret;\n" +
+                "}\n" +
+                "float intsmear_x(float x, float dx, float d) {\n" +
+                "    float zl = clamp((x - dx * 0.5) / d, -1.0, 1.0);\n" +
+                "    float zh = clamp((x + dx * 0.5) / d, -1.0, 1.0);\n" +
+                "    return d * (intsmear_func_x(zh) - intsmear_func_x(zl)) / dx;\n" +
+                "}\n" +
+                "float intsmear_y(float x, float dx, float d) {\n" +
+                "    float zl = clamp((x - dx * 0.5) / d, -1.0, 1.0);\n" +
+                "    float zh = clamp((x + dx * 0.5) / d, -1.0, 1.0);\n" +
+                "    return d * (intsmear_func_y(zh) - intsmear_func_y(zl)) / dx;\n" +
+                "}\n" +
+                "vec3 fetchBlended(ivec2 baseCoord, ivec2 offset, vec2 texelSize) {\n" +
+                "    vec2 coord = (vec2(baseCoord + offset) + vec2(0.5)) * texelSize;\n" +
+                "    vec3 curr = texture2D(tex, coord).bgr;\n" +
+                "    vec3 prev = texture2D(prevTex, coord).bgr;\n" +
+                "    vec3 blended = mix(curr, prev, responseWeight);\n" +
+                "    return pow(gain * blended + vec3(blacklevel), vec3(gamma)) + vec3(ambient);\n" +
+                "}\n" +
+                "void main() {\n" +
+                "    vec2 safeTexSize = max(texSize, vec2(1.0));\n" +
+                "    vec2 texelSize = 1.0 / safeTexSize;\n" +
+                "    vec2 uvMin = screenUvBounds.xy;\n" +
+                "    vec2 uvMax = screenUvBounds.zw;\n" +
+                "    vec2 uvRange = max(uvMax - uvMin, vec2(1e-6));\n" +
+                "    float screenTexWidth = max(safeTexSize.x * uvRange.x, 1.0);\n" +
+                "    float screenTexHeight = max(safeTexSize.y * uvRange.y, 1.0);\n" +
+                "    float texelWidthScreen = 1.0 / screenTexWidth;\n" +
+                "    float texelHeightScreen = 1.0 / screenTexHeight;\n" +
+                "    vec2 viewport = max(viewportSize, vec2(1.0));\n" +
+                "    float localX = clamp((uv.x - uvMin.x) / uvRange.x, 0.0, 1.0);\n" +
+                "    float localY = clamp((uv.y - uvMin.y) / uvRange.y, 0.0, 1.0);\n" +
+                "    vec2 screenPixelCoord = vec2(localX * screenTexWidth, localY * screenTexHeight);\n" +
+                "    vec2 pixelCoord = uv / texelSize - vec2(0.4999);\n" +
+                "    ivec2 tli = ivec2(floor(pixelCoord));\n" +
+                "    float subpix = (uv.x / texelSize.x - 0.4999 - float(tli.x)) * 3.0;\n" +
+                "    float rsubpix = (screenTexWidth / viewport.x) * 3.0;\n" +
+                "    vec3 lcol = vec3(\n" +
+                "        intsmear_x(subpix + 1.0, rsubpix, 1.5),\n" +
+                "        intsmear_x(subpix, rsubpix, 1.5),\n" +
+                "        intsmear_x(subpix - 1.0, rsubpix, 1.5)\n" +
+                "    );\n" +
+                "    vec3 rcol = vec3(\n" +
+                "        intsmear_x(subpix - 2.0, rsubpix, 1.5),\n" +
+                "        intsmear_x(subpix - 3.0, rsubpix, 1.5),\n" +
+                "        intsmear_x(subpix - 4.0, rsubpix, 1.5)\n" +
+                "    );\n" +
+                "    if (useBgr > 0.5) {\n" +
+                "        lcol = lcol.bgr;\n" +
+                "        rcol = rcol.bgr;\n" +
+                "    }\n" +
+                "    float subpixY = uv.y / texelSize.y - 0.4999 - float(tli.y);\n" +
+                "    float rsubpixY = screenTexHeight / viewport.y;\n" +
+                "    float tcol = intsmear_y(subpixY, rsubpixY, 0.63);\n" +
+                "    float bcol = intsmear_y(subpixY - 1.0, rsubpixY, 0.63);\n" +
+                "    vec3 topLeftColor = fetchBlended(tli, ivec2(0, 0), texelSize) * lcol * vec3(tcol);\n" +
+                "    vec3 bottomRightColor = fetchBlended(tli, ivec2(1, 1), texelSize) * rcol * vec3(bcol);\n" +
+                "    vec3 bottomLeftColor = fetchBlended(tli, ivec2(0, 1), texelSize) * lcol * vec3(bcol);\n" +
+                "    vec3 topRightColor = fetchBlended(tli, ivec2(1, 0), texelSize) * rcol * vec3(tcol);\n" +
+                "    vec3 averageColor = topLeftColor + bottomRightColor + bottomLeftColor + topRightColor;\n" +
+                "    vec2 angle = screenPixelCoord * 6.28318530718;\n" +
+                "    float lowerScreen = step(0.5, 0.5 * (uvMin.y + uvMax.y));\n" +
+                "    angle += lowerScreen * lowerScreenPhase;\n" +
+                "    float yfactor = (brighten_scanlines + sin(angle.y)) / (brighten_scanlines + 1.0);\n" +
+                "    vec3 xfactors = (brighten_lcd + sin(angle.x + offsets)) / (brighten_lcd + 1.0);\n" +
+                "    vec3 rawAverage = averageColor;\n" +
+                "    vec3 mask = yfactor * xfactors;\n" +
+                "    vec3 softenedMask = mix(vec3(1.0), mask, maskContrast);\n" +
+                "    vec3 maskedColor = rawAverage * softenedMask;\n" +
+                "    averageColor = mix(maskedColor, rawAverage, detailBlend);\n" +
+                "    vec3 cred = pow(rSubpixel, vec3(outgamma));\n" +
+                "    vec3 cgreen = pow(gSubpixel, vec3(outgamma));\n" +
+                "    vec3 cblue = pow(bSubpixel, vec3(outgamma));\n" +
+                "    averageColor = mat3(cred, cgreen, cblue) * averageColor;\n" +
+                "    vec3 baseColor = pow(averageColor, vec3(1.0 / outgamma));\n" +
+                "    vec3 dslLinear = pow(baseColor, vec3(targetGamma));\n" +
+                "    dslLinear = clamp(dslLinear * dslLuminance, 0.0, 1.0);\n" +
+                "    vec3 corrected = dslMatrix * dslLinear;\n" +
+                "    corrected *= channelGain;\n" +
+                "    float gray = dot(corrected, vec3(0.299, 0.587, 0.114));\n" +
+                "    corrected = mix(vec3(gray), corrected, saturationBoost);\n" +
+                "    vec3 finalColor = pow(corrected, vec3(1.0 / displayGamma));\n" +
+                "    finalColor = clamp(finalColor + postBias, 0.0, 1.0);\n" +
+                "    gl_FragColor = vec4(finalColor, alpha);\n" +
+                "}"
+        )
+
         // Author: Themaister
         // This code is hereby placed in the public domain.
         val ScanlinesShader = ShaderProgramSource(
@@ -119,14 +281,14 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "varying float alpha;\n" +
                     "varying vec2 omega;\n" +
                     "" +
-                    "vec2 inputSize = vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" + // What is this?
-                    "vec2 outputSize = vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" + // What is this?
+                    "vec2 inputSize = vec2(256, 384);\n" + // What is this?
+                    "vec2 outputSize = vec2(256, 384);\n" + // What is this?
                     "" +
                     "void main()\n" +
                     "{\n" +
                     "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                     "    uv = vUV;\n" +
-                    "    vec2 textureSize = vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
+                    "    vec2 textureSize = vec2(256, 384);\n" +
                     "    alpha = vAlpha;\n" +
                     "    omega = vec2(3.1415 * outputSize.x * textureSize.x / inputSize.x, 2.0 * 3.1415 * textureSize.y);\n" +
                     "}",
@@ -179,7 +341,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "varying float alpha;\n" +
                     "" +
                     "void main() {\n" +
-                    "    vec2 ps = 1.0 / vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
+                    "    vec2 ps = 1.0 / vec2(256, 384);\n" +
                     "    uv[0] = vUV;\n" +
                     "    uv[1] = vec2(0.0, -ps.y);\n" +
                     "    uv[2] = vec2(-ps.x, 0.0);\n" +
@@ -203,7 +365,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "}\n" +
                     "" +
                     "void main() {\n" +
-                    "    vec2 fp = fract(uv[0] * vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT));\n" +
+                    "    vec2 fp = fract(uv[0] * vec2(256, 384));\n" +
                     "" +
                     "    vec2 g1 = uv[1] * (step(0.5, fp.x) + step(0.5, fp.y) - 1.0) +\n" +
                     "            uv[2] * (step(0.5, fp.x) - step(0.5, fp.y));\n" +
@@ -234,7 +396,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "    {\n" +
                     "        gl_FragColor.rgb = mix(E, F, 0.5);\n" +
                     "    }\n" +
-                    "    gl_FragColor.a = alpha;\n" +
+                    "    gl_fragColor.a = alpha;\n" +
                     "}"
         )
 
@@ -247,7 +409,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "varying float alpha;\n" +
                     "" +
                     "void main() {\n" +
-                    "    vec2 dg1 = 0.5 / vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
+                    "    vec2 dg1 = 0.5 / vec2(256, 384);\n" +
                     "    vec2 dg2 = vec2(-dg1.x, dg1.y);\n" +
                     "    vec2 dx = vec2(dg1.x, 0.0);\n" +
                     "    vec2 dy = vec2(0.0, dg1.y);\n" +
@@ -346,7 +508,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "" +
                     "void main()\n" +
                     "{\n" +
-                    "    vec2 dg1 = 0.5 / vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
+                    "    vec2 dg1 = 0.5 / vec2(256, 384);\n" +
                     "    vec2 dg2 = vec2(-dg1.x, dg1.y);\n" +
                     "    vec2 sd1 = dg1 * 0.5;\n" +
                     "    vec2 sd2 = dg2 * 0.5;\n" +
@@ -446,7 +608,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "varying vec2 uv;\n" +
                     "" +
                     "vec4 getTexel(vec2 p) {\n" +
-                    "    vec2 textureSize = vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
+                    "    vec2 textureSize = vec2(256, 384);\n" +
                     "    p = p * textureSize + vec2(0.5);\n" +
                     "" +
                     "    vec2 i = floor(p);\n" +

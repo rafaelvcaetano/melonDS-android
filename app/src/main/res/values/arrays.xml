@@ -53,6 +53,7 @@
         <item>hq4x</item>
         <item>quilez</item>
         <item>lcd</item>
+        <item>lcd_grid_dslite</item>
     </string-array>
 
     <string-array name="dsi_camera_source_values">

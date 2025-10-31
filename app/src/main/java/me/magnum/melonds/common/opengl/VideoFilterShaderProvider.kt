@@ -11,6 +11,7 @@ object VideoFilterShaderProvider {
         VideoFiltering.HQ4X to ShaderProgramSource.Hq4xShader,
         VideoFiltering.QUILEZ to ShaderProgramSource.QuilezShader,
         VideoFiltering.LCD to ShaderProgramSource.LcdShader,
+        VideoFiltering.LCD_GRID_DSLITE to ShaderProgramSource.LcdGridDsLiteShader,
         VideoFiltering.SCANLINES to ShaderProgramSource.ScanlinesShader,
     )
 

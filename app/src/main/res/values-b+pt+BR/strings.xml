@@ -342,6 +342,7 @@
         <item>HQ4X</item>
         <item>Quilez</item>
         <item>LCD</item>
+        <item>LCD Grid (DS Lite motion blur)</item>
     </string-array>
 
     <string-array name="audio_interpolation_options">

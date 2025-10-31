@@ -14,6 +14,11 @@ class Shader(
     val attribPos: Int
     val attribAlpha: Int
     val uniformTex: Int
+    val uniformPrevTex: Int
+    val uniformPrevWeight: Int
+    val uniformTexSize: Int
+    val uniformViewportSize: Int
+    val uniformUvBounds: Int
 
     init {
         GLES30.glUseProgram(programId)
@@ -21,6 +26,11 @@ class Shader(
         attribPos = GLES30.glGetAttribLocation(programId, "vPos")
         attribAlpha = GLES30.glGetAttribLocation(programId, "vAlpha")
         uniformTex = GLES30.glGetUniformLocation(programId, "tex")
+        uniformPrevTex = GLES30.glGetUniformLocation(programId, "prevTex")
+        uniformPrevWeight = GLES30.glGetUniformLocation(programId, "responseWeight")
+        uniformTexSize = GLES30.glGetUniformLocation(programId, "texSize")
+        uniformViewportSize = GLES30.glGetUniformLocation(programId, "viewportSize")
+        uniformUvBounds = GLES30.glGetUniformLocation(programId, "screenUvBounds")
         GLES30.glUseProgram(0)
     }
 
