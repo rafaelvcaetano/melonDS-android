@@ -26,6 +26,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
+import me.magnum.melonds.common.opengl.ShaderProgramSource
+import me.magnum.melonds.common.opengl.ShaderProgramSourceLoader
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.AudioBitrate
 import me.magnum.melonds.domain.model.AudioInterpolation
@@ -57,6 +59,7 @@ import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import java.io.File
 import java.util.UUID
 import kotlin.math.pow
+import kotlin.jvm.Volatile
 
 class SharedPreferencesSettingsRepository(
     private val context: Context,
@@ -76,6 +79,7 @@ class SharedPreferencesSettingsRepository(
     private val preferenceObservers: HashMap<String, PublishSubject<Any>> = HashMap()
     private val preferenceSharedFlows = mutableMapOf<String, MutableSharedFlow<Unit>>()
     private val renderConfigurationFlow: SharedFlow<RendererConfiguration>
+    @Volatile private var cachedCustomShader: Pair<Uri, ShaderProgramSourceLoader.Result>? = null
 
     init {
         preferences.registerOnSharedPreferenceChangeListener(this)
@@ -87,8 +91,10 @@ class SharedPreferencesSettingsRepository(
             getVideoFiltering(),
             isThreadedRenderingEnabled(),
             getVideoInternalResolutionScaling(),
-        ) { renderer, filtering, threadedRenderingEnabled, resolutionScaling ->
-            RendererConfiguration(renderer, filtering, threadedRenderingEnabled, resolutionScaling)
+            observeVideoCustomShader(),
+        ) { renderer, filtering, threadedRenderingEnabled, resolutionScaling, customShaderUri ->
+            val customShader = loadCustomShader(customShaderUri)
+            RendererConfiguration(renderer, filtering, threadedRenderingEnabled, resolutionScaling, customShader)
         }.conflate().shareIn(preferencesCoroutineScope, SharingStarted.Lazily, replay = 1)
     }
 
@@ -284,6 +290,46 @@ class SharedPreferencesSettingsRepository(
         return getOrCreatePreferenceSharedFlow("video_filtering") {
             val filteringPreference = preferences.getString("video_filtering", "none")!!
             VideoFiltering.valueOf(filteringPreference.uppercase())
+        }
+    }
+
+    private fun observeVideoCustomShader(): Flow<Uri?> {
+        return getOrCreatePreferenceSharedFlow("video_custom_shader") {
+            getVideoCustomShaderUri()
+        }
+    }
+
+    private fun getVideoCustomShaderUri(): Uri? {
+        val shaderPreference = preferences.getStringSet("video_custom_shader", null)?.firstOrNull()
+        return shaderPreference?.toUri()
+    }
+
+    private fun loadCustomShader(uri: Uri?): ShaderProgramSource? {
+        if (uri == null) {
+            cachedCustomShader = null
+            return null
+        }
+
+        cachedCustomShader?.let { (cachedUri, cachedResult) ->
+            if (cachedUri == uri) {
+                return cachedResult.source
+            }
+        }
+
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                val result = ShaderProgramSourceLoader.load(stream)
+                cachedCustomShader = uri to result
+                result.source
+            } ?: run {
+                Log.w(TAG, "Unable to open custom shader URI: $uri")
+                cachedCustomShader = null
+                null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to load custom shader from $uri", e)
+            cachedCustomShader = null
+            null
         }
     }
 

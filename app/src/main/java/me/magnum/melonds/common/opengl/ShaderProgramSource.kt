@@ -1,6 +1,23 @@
 package me.magnum.melonds.common.opengl
 
-class ShaderProgramSource private constructor(val textureFiltering: TextureFiltering, val vertexShaderSource: String, val fragmentShaderSource: String) {
+class ShaderProgramSource private constructor(
+    val textureFiltering: TextureFiltering,
+    val vertexShaderSource: String,
+    val fragmentShaderSource: String,
+    val bindings: Bindings = Bindings(),
+) {
+    data class Bindings(
+        val attribUv: String = "vUV",
+        val attribPos: String = "vPos",
+        val attribAlpha: String = "vAlpha",
+        val uniformTex: String = "tex",
+        val uniformPrevTex: String = "prevTex",
+        val uniformPrevWeight: String = "responseWeight",
+        val uniformTexSize: String = "texSize",
+        val uniformViewportSize: String = "viewportSize",
+        val uniformScreenUvBounds: String = "screenUvBounds",
+    )
+
     enum class TextureFiltering {
         NEAREST,
         LINEAR
@@ -28,6 +45,15 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                 "    vec4 color = texture2D(tex, uv);\n" +
                 "    gl_FragColor = vec4(color.bgr, alpha);\n" +
                 "}"
+
+        fun from(
+            textureFiltering: TextureFiltering,
+            vertexShaderSource: String,
+            fragmentShaderSource: String,
+            bindings: Bindings = Bindings(),
+        ): ShaderProgramSource {
+            return ShaderProgramSource(textureFiltering, vertexShaderSource, fragmentShaderSource, bindings)
+        }
 
         val BackgroundShader = ShaderProgramSource(
             TextureFiltering.LINEAR,

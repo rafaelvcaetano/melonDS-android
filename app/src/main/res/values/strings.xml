@@ -505,7 +505,11 @@
         <item>Quilez</item>
         <item>LCD</item>
         <item>LCD Grid (DS Lite motion blur)</item>
+        <item>Custom (msha)</item>
     </string-array>
+
+    <string name="video_custom_shader_title">Custom shader (.msha)</string>
+    <string name="video_custom_shader_summary">Select a melon shader (.msha) file to use when Custom filtering is selected.</string>
 
     <string-array name="dsi_camera_source_options">
         <item>Black screen</item>

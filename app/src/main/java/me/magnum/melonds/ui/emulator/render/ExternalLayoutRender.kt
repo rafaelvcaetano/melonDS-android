@@ -74,6 +74,7 @@ class ExternalLayoutRender(
     private val bottomUvBounds = FloatArray(4)
 
     private var videoFiltering: VideoFiltering = VideoFiltering.NONE
+    private var customShader: ShaderProgramSource? = null
 
     private var viewWidth = 0
     private var viewHeight = 0
@@ -178,6 +179,9 @@ class ExternalLayoutRender(
     }
 
     override fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
+        val newFiltering = newRendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
+        val newCustomShader = newRendererConfiguration?.customShader
+        updateVideoFiltering(newFiltering, newCustomShader)
     }
 
     override fun setLeftRotationEnabled(enabled: Boolean) {
@@ -185,7 +189,7 @@ class ExternalLayoutRender(
 
     override fun onSurfaceCreated() {
         shader = ShaderFactory.createShaderProgram(
-            VideoFilterShaderProvider.getShaderSource(videoFiltering)
+            VideoFilterShaderProvider.getShaderSource(videoFiltering, customShader)
         )
 
         val textures = IntArray(1)
@@ -251,7 +255,9 @@ class ExternalLayoutRender(
         }
 
         shader.use()
-        GLES30.glDisableVertexAttribArray(shader.attribAlpha)
+        if (shader.attribAlpha >= 0) {
+            GLES30.glDisableVertexAttribArray(shader.attribAlpha)
+        }
 
         val requiresHistory = shader.uniformPrevTex >= 0 || shader.uniformPrevWeight >= 0
         val requiresTexSize = shader.uniformTexSize >= 0
@@ -288,9 +294,15 @@ class ExternalLayoutRender(
             GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, shader.textureFiltering)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, shader.textureFiltering)
-            GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
-            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvTop)
-            GLES30.glUniform1i(shader.uniformTex, 0)
+            if (shader.attribPos >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
+            }
+            if (shader.attribUv >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvTop)
+            }
+            if (shader.uniformTex >= 0) {
+                GLES30.glUniform1i(shader.uniformTex, 0)
+            }
             topScreen?.let { rect ->
                 if (shader.uniformViewportSize >= 0) {
                     val (viewportWidth, viewportHeight) = if (rotateLeft) {
@@ -327,9 +339,15 @@ class ExternalLayoutRender(
             GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, shader.textureFiltering)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, shader.textureFiltering)
-            GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
-            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBottom)
-            GLES30.glUniform1i(shader.uniformTex, 0)
+            if (shader.attribPos >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
+            }
+            if (shader.attribUv >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBottom)
+            }
+            if (shader.uniformTex >= 0) {
+                GLES30.glUniform1i(shader.uniformTex, 0)
+            }
             bottomScreen?.let { rect ->
                 if (shader.uniformViewportSize >= 0) {
                     val (viewportWidth, viewportHeight) = if (rotateLeft) {
@@ -381,12 +399,14 @@ class ExternalLayoutRender(
      *
      * @param videoFiltering The new [VideoFiltering] setting to apply.
      */
-    fun updateVideoFiltering(videoFiltering: VideoFiltering) {
+    fun updateVideoFiltering(videoFiltering: VideoFiltering, customShader: ShaderProgramSource? = null) {
+        val shouldRecreate = this.videoFiltering != videoFiltering || this.customShader !== customShader
         this.videoFiltering = videoFiltering
-        if (this::shader.isInitialized) {
+        this.customShader = customShader
+        if (shouldRecreate && this::shader.isInitialized) {
             shader.delete()
             shader = ShaderFactory.createShaderProgram(
-                VideoFilterShaderProvider.getShaderSource(videoFiltering)
+                VideoFilterShaderProvider.getShaderSource(videoFiltering, customShader)
             )
             historyReady = false
         }

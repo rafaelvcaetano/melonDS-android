@@ -54,6 +54,7 @@
         <item>quilez</item>
         <item>lcd</item>
         <item>lcd_grid_dslite</item>
+        <item>custom</item>
     </string-array>
 
     <string-array name="dsi_camera_source_values">

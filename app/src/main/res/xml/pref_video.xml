@@ -37,6 +37,16 @@
             android:entryValues="@array/video_filtering_values"
             android:defaultValue="none"/>
 
+    <me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
+            android:key="video_custom_shader"
+            android:title="@string/video_custom_shader_title"
+            android:summary="@string/video_custom_shader_summary"
+            app:iconSpaceReserved="false"
+            app:type="file"
+            app:permissions="read"
+            app:persistPermissions="true"
+            app:mimeType="application/octet-stream|text/plain" />
+
     <Preference
         android:key="input_layouts"
         android:title="@string/internal_screen_layout"

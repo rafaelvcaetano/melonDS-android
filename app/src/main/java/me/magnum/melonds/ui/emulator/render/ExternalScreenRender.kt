@@ -4,6 +4,7 @@ import android.opengl.GLES30
 import android.opengl.GLES31
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
+import me.magnum.melonds.common.opengl.ShaderProgramSource
 import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
 import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.SCREEN_HEIGHT
@@ -32,6 +33,7 @@ class ExternalScreenRender(
     private val screenUvBounds = FloatArray(4)
 
     private var videoFiltering: VideoFiltering = VideoFiltering.NONE
+    private var customShader: ShaderProgramSource? = null
 
     private var surfaceWidth = 0
     private var surfaceHeight = 0
@@ -50,8 +52,13 @@ class ExternalScreenRender(
 
     override fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
         synchronized(viewportLock) {
-            videoFiltering = newRendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
-            areRenderSettingsDirty = true
+            val newFiltering = newRendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
+            val newCustomShader = newRendererConfiguration?.customShader
+            if (videoFiltering != newFiltering || customShader !== newCustomShader) {
+                videoFiltering = newFiltering
+                customShader = newCustomShader
+                areRenderSettingsDirty = true
+            }
         }
     }
 
@@ -64,7 +71,7 @@ class ExternalScreenRender(
 
     override fun onSurfaceCreated() {
         shader = ShaderFactory.createShaderProgram(
-            VideoFilterShaderProvider.getShaderSource(videoFiltering)
+            VideoFilterShaderProvider.getShaderSource(videoFiltering, customShader)
         )
 
         val buffers = IntArray(2)
@@ -198,7 +205,7 @@ class ExternalScreenRender(
         // Delete previous shader
         shader?.delete()
 
-        val shaderSource = VideoFilterShaderProvider.getShaderSource(videoFiltering)
+        val shaderSource = VideoFilterShaderProvider.getShaderSource(videoFiltering, customShader)
         shader = ShaderFactory.createShaderProgram(shaderSource)
         historyReady = false
     }
@@ -284,10 +291,18 @@ class ExternalScreenRender(
 
             GLES30.glBindVertexArray(screensVao)
             GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, screensVbo)
-            GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 0)
-            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 2 * Float.SIZE_BYTES)
-            GLES30.glVertexAttribPointer(shader.attribAlpha, 1, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, (2 + 2) * Float.SIZE_BYTES)
-            GLES30.glUniform1i(shader.uniformTex, 0)
+            if (shader.attribPos >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 0)
+            }
+            if (shader.attribUv >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 2 * Float.SIZE_BYTES)
+            }
+            if (shader.attribAlpha >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribAlpha, 1, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, (2 + 2) * Float.SIZE_BYTES)
+            }
+            if (shader.uniformTex >= 0) {
+                GLES30.glUniform1i(shader.uniformTex, 0)
+            }
             GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6)
 
             if (requiresHistory) {

@@ -56,8 +56,10 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         }
 
         val rendererPreference = findPreference<ListPreference>("video_renderer")!!
+        val videoFilteringPreference = findPreference<ListPreference>("video_filtering")!!
         val dsiCameraSourcePreference = findPreference<ListPreference>("dsi_camera_source")!!
         val dsiCameraImagePreference = findPreference<StoragePickerPreference>("dsi_camera_static_image")!!
+        val customShaderPreference = findPreference<StoragePickerPreference>("video_custom_shader")!!
         externalLayoutsPreference = findPreference("external_layouts")!!
         internalLayoutsPreference = findPreference("input_layouts")!!
 
@@ -94,6 +96,13 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         }
 
         helper.setupStoragePickerPreference(dsiCameraImagePreference)
+        helper.setupStoragePickerPreference(customShaderPreference)
+
+        customShaderPreference.isEnabled = videoFilteringPreference.value == "custom"
+        videoFilteringPreference.setOnPreferenceChangeListener { _, newValue ->
+            customShaderPreference.isEnabled = (newValue as String) == "custom"
+            true
+        }
 
         onRendererPreferenceChanged(rendererPreference.value)
         updateDsiCameraImagePreference(dsiCameraImagePreference, dsiCameraSourcePreference.value)

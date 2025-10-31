@@ -301,7 +301,8 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
         screenShader?.delete()
 
         val filtering = rendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
-        val shaderSource = VideoFilterShaderProvider.getShaderSource(filtering)
+        val customShaderSource = rendererConfiguration?.customShader
+        val shaderSource = VideoFilterShaderProvider.getShaderSource(filtering, customShaderSource)
         screenShader = ShaderFactory.createShaderProgram(shaderSource)
         historyReady = false
     }
@@ -375,10 +376,18 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
             GLES30.glBindVertexArray(screensVao)
             GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, screensVbo)
 
-            GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 0)
-            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 2 * Float.SIZE_BYTES)
-            GLES30.glVertexAttribPointer(shader.attribAlpha, 1, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 4 * Float.SIZE_BYTES)
-            GLES30.glUniform1i(shader.uniformTex, 0)
+            if (shader.attribPos >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 0)
+            }
+            if (shader.attribUv >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 2 * Float.SIZE_BYTES)
+            }
+            if (shader.attribAlpha >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribAlpha, 1, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 4 * Float.SIZE_BYTES)
+            }
+            if (shader.uniformTex >= 0) {
+                GLES30.glUniform1i(shader.uniformTex, 0)
+            }
 
             screenDrawCalls.forEach { drawCall ->
                 if (shader.uniformViewportSize >= 0) {

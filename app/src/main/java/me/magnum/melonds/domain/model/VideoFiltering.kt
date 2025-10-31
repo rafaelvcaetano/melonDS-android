@@ -9,5 +9,6 @@ enum class VideoFiltering {
     QUILEZ,
     LCD,
     LCD_GRID_DSLITE,
-    SCANLINES
+    SCANLINES,
+    CUSTOM
 }

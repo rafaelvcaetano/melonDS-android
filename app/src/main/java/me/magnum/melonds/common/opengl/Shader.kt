@@ -9,6 +9,7 @@ class Shader(
     private val fragmentShaderId: Int,
     private val programId: Int,
     val textureFiltering: Int,
+    private val bindings: ShaderProgramSource.Bindings,
 ) {
     val attribUv: Int
     val attribPos: Int
@@ -22,22 +23,26 @@ class Shader(
 
     init {
         GLES30.glUseProgram(programId)
-        attribUv = GLES30.glGetAttribLocation(programId, "vUV")
-        attribPos = GLES30.glGetAttribLocation(programId, "vPos")
-        attribAlpha = GLES30.glGetAttribLocation(programId, "vAlpha")
-        uniformTex = GLES30.glGetUniformLocation(programId, "tex")
-        uniformPrevTex = GLES30.glGetUniformLocation(programId, "prevTex")
-        uniformPrevWeight = GLES30.glGetUniformLocation(programId, "responseWeight")
-        uniformTexSize = GLES30.glGetUniformLocation(programId, "texSize")
-        uniformViewportSize = GLES30.glGetUniformLocation(programId, "viewportSize")
-        uniformUvBounds = GLES30.glGetUniformLocation(programId, "screenUvBounds")
+        attribUv = getAttributeLocation(bindings.attribUv)
+        attribPos = getAttributeLocation(bindings.attribPos)
+        attribAlpha = getAttributeLocation(bindings.attribAlpha)
+        uniformTex = getUniformLocation(bindings.uniformTex)
+        uniformPrevTex = getUniformLocation(bindings.uniformPrevTex)
+        uniformPrevWeight = getUniformLocation(bindings.uniformPrevWeight)
+        uniformTexSize = getUniformLocation(bindings.uniformTexSize)
+        uniformViewportSize = getUniformLocation(bindings.uniformViewportSize)
+        uniformUvBounds = getUniformLocation(bindings.uniformScreenUvBounds)
         GLES30.glUseProgram(0)
     }
 
     fun use() {
         GLES30.glUseProgram(programId)
-        GLES30.glEnableVertexAttribArray(attribUv)
-        GLES30.glEnableVertexAttribArray(attribPos)
+        if (attribUv != INVALID_ATTRIBUTE) {
+            GLES30.glEnableVertexAttribArray(attribUv)
+        }
+        if (attribPos != INVALID_ATTRIBUTE) {
+            GLES30.glEnableVertexAttribArray(attribPos)
+        }
         if (attribAlpha != INVALID_ATTRIBUTE) {
             GLES30.glEnableVertexAttribArray(attribAlpha)
         }
@@ -47,5 +52,19 @@ class Shader(
         GLES30.glDeleteShader(vertexShaderId)
         GLES30.glDeleteShader(fragmentShaderId)
         GLES30.glDeleteProgram(programId)
+    }
+
+    private fun getAttributeLocation(name: String): Int {
+        if (name.isBlank()) {
+            return INVALID_ATTRIBUTE
+        }
+        return GLES30.glGetAttribLocation(programId, name)
+    }
+
+    private fun getUniformLocation(name: String): Int {
+        if (name.isBlank()) {
+            return INVALID_ATTRIBUTE
+        }
+        return GLES30.glGetUniformLocation(programId, name)
     }
 }

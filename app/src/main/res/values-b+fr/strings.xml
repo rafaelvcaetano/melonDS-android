@@ -395,6 +395,7 @@
         <item>Quilez</item>
         <item>LCD</item>
         <item>LCD Grid (DS Lite motion blur)</item>
+        <item>Personnalisé (msha)</item>
     </string-array>
 
     <string-array name="dsi_camera_source_options">

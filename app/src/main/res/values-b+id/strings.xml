@@ -307,6 +307,7 @@
         <item>Quilez</item>
         <item>LCD</item>
         <item>LCD Grid (DS Lite motion blur)</item>
+        <item>Kustom (msha)</item>
     </string-array>
 
     <string-array name="audio_interpolation_options">
