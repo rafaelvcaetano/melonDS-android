@@ -91,6 +91,13 @@
         <item>device</item>
     </string-array>
 
+    <string-array name="soft_input_behaviour">
+        <item>always_visible</item>
+        <item>hide_system_buttons_when_controller_connected</item>
+        <item>hide_mapped_buttons_when_controller_connected</item>
+        <item>always_invisible</item>
+    </string-array>
+
     <string-array name="theme_values">
         <item>light</item>
         <item>dark</item>

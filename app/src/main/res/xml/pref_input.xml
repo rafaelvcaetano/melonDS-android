@@ -9,16 +9,19 @@
             android:summary="@string/key_mapping_summary"
             app:iconSpaceReserved="false" />
 
-    <SwitchPreference
-            android:key="input_show_soft"
-            android:title="@string/show_soft_input"
-            app:iconSpaceReserved="false"
-            android:defaultValue="true" />
+    <me.magnum.melonds.ui.settings.preferences.SoftwareInputBehaviourPreference
+        android:key="soft_input_behaviour"
+        android:title="@string/soft_input_behaviour"
+        android:summary="%s"
+        android:entries="@array/soft_input_behaviour_options"
+        android:entryValues="@array/soft_input_behaviour"
+        android:defaultValue="hide_system_buttons_when_controller_connected"
+        app:fragment="me.magnum.melonds.ui.settings.fragments.SoftInputBehaviourPreferencesFragment"
+        app:iconSpaceReserved="false" />
 
     <SwitchPreference
             android:key="input_touch_haptic_feedback_enabled"
             android:title="@string/vibrate_on_touch"
-            android:dependency="input_show_soft"
             app:iconSpaceReserved="false"
             android:defaultValue="true" />
 
@@ -37,7 +40,6 @@
     <SeekBarPreference
             android:key="input_opacity"
             android:title="@string/soft_input_opacity"
-            android:dependency="input_show_soft"
             app:iconSpaceReserved="false"
             android:defaultValue="50"
             android:max="100" />

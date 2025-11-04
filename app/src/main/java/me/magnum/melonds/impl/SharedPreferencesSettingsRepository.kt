@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.first
@@ -48,6 +49,7 @@ import me.magnum.melonds.domain.model.SortingOrder
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.VideoRenderer
 import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
+import me.magnum.melonds.domain.model.input.SoftInputBehaviour
 import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.repositories.SettingsRepository
@@ -461,7 +463,7 @@ class SharedPreferencesSettingsRepository(
         return controllerConfiguration.value
     }
 
-    override fun observeControllerConfiguration(): Flow<ControllerConfiguration> {
+    override fun observeControllerConfiguration(): StateFlow<ControllerConfiguration> {
         return controllerConfiguration
     }
 
@@ -475,9 +477,17 @@ class SharedPreferencesSettingsRepository(
         return id?.let { UUID.fromString(it) } ?: LayoutConfiguration.DEFAULT_EXTERNAL_ID
     }
 
-    override fun showSoftInput(): Flow<Boolean> {
-        return getOrCreatePreferenceSharedFlow("input_show_soft") {
-            preferences.getBoolean("input_show_soft", true)
+    override fun getSoftInputBehaviour(): Flow<SoftInputBehaviour> {
+        return getOrCreatePreferenceSharedFlow("soft_input_behaviour") {
+            val preference = preferences.getString("soft_input_behaviour", "hide_system_buttons_when_controller_connected")
+
+            when (preference) {
+                "always_visible" -> SoftInputBehaviour.ALWAYS_VISIBLE
+                "hide_system_buttons_when_controller_connected" -> SoftInputBehaviour.HIDE_SYSTEM_BUTTONS_WHEN_CONTROLLERS_CONNECTED
+                "hide_mapped_buttons_when_controller_connected" -> SoftInputBehaviour.HIDE_ALL_BUTTONS_ASSIGNED_TO_CONNECTED_CONTROLLERS
+                "always_invisible" -> SoftInputBehaviour.ALWAYS_INVISIBLE
+                else -> SoftInputBehaviour.HIDE_SYSTEM_BUTTONS_WHEN_CONTROLLERS_CONNECTED
+            }
         }
     }
 

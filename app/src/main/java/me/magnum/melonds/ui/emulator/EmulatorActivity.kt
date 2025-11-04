@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.hardware.display.DisplayManager
+import android.hardware.input.InputManager
 import android.os.Bundle
 import android.util.Log
 import android.view.Choreographer
@@ -84,6 +85,7 @@ import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
 import me.magnum.melonds.ui.emulator.component.EmulatorOverlayTracker
+import me.magnum.melonds.ui.emulator.input.ConnectedControllerManager
 import me.magnum.melonds.ui.emulator.input.FrontendInputHandler
 import me.magnum.melonds.ui.emulator.input.INativeInputListener
 import me.magnum.melonds.ui.emulator.input.InputProcessor
@@ -187,6 +189,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         }
     }
 
+    private val connectedControllerManager = ConnectedControllerManager()
     private lateinit var frameRenderCoordinator: FrameRenderCoordinator
     private lateinit var mainScreenRenderer: DSRenderer
     private lateinit var melonTouchHandler: MelonTouchHandler
@@ -457,6 +460,14 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.controllerConfiguration.collect {
                     setupInputHandling(it)
+                    connectedControllerManager.setCurrentControllerConfiguration(it)
+                }
+            }
+        }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                connectedControllerManager.controllersState.collect {
+                    binding.viewLayoutControls.setConnectedControllersState(it)
                 }
             }
         }
@@ -642,6 +653,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     override fun onStart() {
         super.onStart()
         showExternalDisplay()
+        getSystemService<InputManager>()?.registerInputDeviceListener(connectedControllerManager, null)
+        connectedControllerManager.startTrackingControllers()
     }
 
     /**
@@ -1021,6 +1034,12 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         updateOrientation(newConfig)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        getSystemService<InputManager>()?.unregisterInputDeviceListener(connectedControllerManager)
+        connectedControllerManager.stopTrackingControllers()
     }
 
     override fun onDestroy() {

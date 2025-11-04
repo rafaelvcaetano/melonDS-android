@@ -37,6 +37,15 @@ class ControllerConfiguration(configList: List<InputConfig>) {
         }
     }
 
+    fun getInputAssignments(input: Input): List<InputConfig.Assignment>? {
+        return inputMapper.firstOrNull { it.input == input && it.hasKeyAssigned() }?.let {
+            listOfNotNull(
+                it.assignment.takeIf { it != InputConfig.Assignment.None },
+                it.altAssignment.takeIf { it != InputConfig.Assignment.None },
+            )
+        }
+    }
+
     fun keyToInput(key: Int): Input? {
         for (config in inputMapper) {
             val assignments = listOf(config.assignment, config.altAssignment)

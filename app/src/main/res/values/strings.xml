@@ -246,6 +246,7 @@
     <string name="key_mapping">Key mapping</string>
     <string name="key_mapping_summary">Assign keys to controller inputs</string>
     <string name="show_soft_input">Show soft input</string>
+    <string name="soft_input_behaviour">Soft input behaviour</string>
     <string name="vibrate_on_touch">Vibrate on touch</string>
     <string name="vibration_strength">Vibration strength</string>
     <string name="soft_input_opacity">Soft input opacity</string>
@@ -538,6 +539,20 @@
         <item>None</item>
         <item>Blow</item>
         <item>Device microphone</item>
+    </string-array>
+
+    <string-array name="soft_input_behaviour_options">
+        <item>Always visible</item>
+        <item>Hide console buttons when a controller is connected</item>
+        <item>Hide assigned input when a controller is connected</item>
+        <item>Always invisible</item>
+    </string-array>
+
+    <string-array name="soft_input_behaviour_descriptions">
+        <item>The soft input is always visible, as set in the current input layout.</item>
+        <item>When a controller is connected, console buttons (A B X Y, D-Pad, L, R, Start, and Select) are hidden. Other buttons in the current input layout remain visible.</item>
+        <item>When a controller is connected, all inputs assigned to that controller are hidden. Other inputs present in the current input layout that are not assigned to the connected controllers remain visible.</item>
+        <item>The soft input is always invisible, independently of the buttons found in the current input layout.</item>
     </string-array>
 
     <string-array name="save_state_locations">
