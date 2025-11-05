@@ -11,6 +11,7 @@ import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.SCREEN_HEIGHT
+import me.magnum.melonds.domain.model.SCREEN_WIDTH
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.layout.BackgroundMode
 import me.magnum.melonds.domain.model.render.PresentFrameWrapper
@@ -150,7 +151,7 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
         // Texture is vertically flipped
 
         // The texture will have 2 empty lines between the screens. Take that into account when computing UVs
-        val lineRelativeSize = 1 / (SCREEN_HEIGHT + 1).toFloat()
+        val lineRelativeSize = 1f / (SCREEN_HEIGHT * 2 + 2).toFloat()
 
         val topUvs = floatArrayOf(
             0f, 0.5f - lineRelativeSize,
