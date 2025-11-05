@@ -32,6 +32,7 @@
         android:supportsRtl="true"
         android:appCategory="game"
         android:isGame="true"
+        android:largeHeap="true"
         android:theme="@style/AppTheme">
 
         <meta-data
