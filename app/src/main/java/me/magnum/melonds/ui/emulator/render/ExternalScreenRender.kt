@@ -139,7 +139,7 @@ class ExternalScreenRender(
             RdsRotation.rotateLeft(coords)
         }
 
-        val lineRelativeSize = 1f / (SCREEN_HEIGHT + 1).toFloat()
+        val lineRelativeSize = 1f / (SCREEN_HEIGHT * 2 + 2).toFloat()
         val uvs = if (screen == DsExternalScreen.TOP) {
             floatArrayOf(
                 0f, 0.5f - lineRelativeSize,

@@ -1,61 +1,49 @@
 package me.magnum.melonds.domain.model
 
-import java.util.*
-
 class ControllerConfiguration(configList: List<InputConfig>) {
     companion object {
-        private val configurableInput = arrayOf(
-                Input.A,
-                Input.B,
-                Input.X,
-                Input.Y,
-                Input.LEFT,
-                Input.RIGHT,
-                Input.UP,
-                Input.DOWN,
-                Input.L,
-                Input.R,
-                Input.START,
-                Input.SELECT,
-                Input.HINGE,
-                Input.PAUSE,
-                Input.FAST_FORWARD,
-                Input.MICROPHONE,
-                Input.RESET,
-                Input.SWAP_SCREENS,
-                Input.QUICK_SAVE,
-                Input.QUICK_LOAD,
-                Input.REWIND,
-                Input.REFRESH_EXTERNAL_SCREEN
+        private val configurableInput = listOf(
+            Input.A,
+            Input.B,
+            Input.X,
+            Input.Y,
+            Input.LEFT,
+            Input.RIGHT,
+            Input.UP,
+            Input.DOWN,
+            Input.L,
+            Input.R,
+            Input.START,
+            Input.SELECT,
+            Input.HINGE,
+            Input.PAUSE,
+            Input.FAST_FORWARD,
+            Input.MICROPHONE,
+            Input.RESET,
+            Input.SWAP_SCREENS,
+            Input.QUICK_SAVE,
+            Input.QUICK_LOAD,
+            Input.REWIND,
+            Input.REFRESH_EXTERNAL_SCREEN
         )
-
-        fun empty(): ControllerConfiguration {
-            val inputConfigs = ArrayList<InputConfig>()
-            for (input in configurableInput) {
-                inputConfigs.add(InputConfig(input))
-            }
-            return ControllerConfiguration(inputConfigs)
-        }
     }
 
     val inputMapper: List<InputConfig>
 
     init {
-        val actualConfig = ArrayList<InputConfig>()
-        for (input in configurableInput) {
-            var inputConfig: InputConfig? = null
-            for (config in configList) {
-                if (config.input === input) {
-                    inputConfig = config
-                    break
-                }
-            }
-            if (inputConfig != null)
-                actualConfig.add(inputConfig)
-            else
-                actualConfig.add(InputConfig(input))
+        inputMapper = configurableInput.map { input ->
+            // Find config in the config list, or fallback to a default config without assignments
+            configList.firstOrNull { it.input == input } ?: InputConfig(input)
         }
-        this.inputMapper = actualConfig
+    }
+
+    fun getInputAssignments(input: Input): List<InputConfig.Assignment>? {
+        return inputMapper.firstOrNull { it.input == input && it.hasKeyAssigned() }?.let {
+            listOfNotNull(
+                it.assignment.takeIf { it != InputConfig.Assignment.None },
+                it.altAssignment.takeIf { it != InputConfig.Assignment.None },
+            )
+        }
     }
 
     fun keyToInput(key: Int): Input? {

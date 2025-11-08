@@ -202,7 +202,7 @@ class ExternalLayoutRender(
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_LINEAR)
 
         backgroundShader = ShaderFactory.createShaderProgram(ShaderProgramSource.BackgroundShader)
-        val lineRelativeSize = 1f / (TOTAL_SCREEN_HEIGHT + 1).toFloat()
+        val lineRelativeSize = 1f / (TOTAL_SCREEN_HEIGHT + 2).toFloat()
         val topUvs = floatArrayOf(
             0f, 0.5f - lineRelativeSize,
             0f, 0f,

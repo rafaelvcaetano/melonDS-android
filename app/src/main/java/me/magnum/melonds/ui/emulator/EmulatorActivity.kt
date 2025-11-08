@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.hardware.display.DisplayManager
+import android.hardware.input.InputManager
 import android.os.Bundle
 import android.util.Log
 import android.view.Choreographer
@@ -68,6 +69,7 @@ import me.magnum.melonds.R
 import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
 import me.magnum.melonds.domain.model.ConsoleType
+import me.magnum.melonds.domain.model.ControllerConfiguration
 import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.SaveStateSlot
@@ -75,7 +77,6 @@ import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.layout.ScreenFold
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.ui.Orientation
-import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.extensions.insetsControllerCompat
 import me.magnum.melonds.extensions.setLayoutOrientation
 import me.magnum.melonds.impl.emulator.LifecycleOwnerProvider
@@ -84,6 +85,7 @@ import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
 import me.magnum.melonds.ui.emulator.component.EmulatorOverlayTracker
+import me.magnum.melonds.ui.emulator.input.ConnectedControllerManager
 import me.magnum.melonds.ui.emulator.input.FrontendInputHandler
 import me.magnum.melonds.ui.emulator.input.INativeInputListener
 import me.magnum.melonds.ui.emulator.input.InputProcessor
@@ -139,17 +141,14 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         extrasProducer = {
             val extras = MutableCreationExtras(defaultViewModelCreationExtras)
             // Inject intent data into view-model creation extras to make it accessible through the SavedStateHandle
-            intent.data?.let {
-                val existingExtras = extras[DEFAULT_ARGS_KEY]?.deepCopy() ?: Bundle()
-                existingExtras.putString(KEY_URI, it.toString())
+            intent.data?.let { dataUri ->
+                val existingExtras = extras[DEFAULT_ARGS_KEY]?.let { Bundle(it) } ?: Bundle()
+                existingExtras.putString(KEY_URI, dataUri.toString())
                 extras[DEFAULT_ARGS_KEY] = existingExtras
             }
             extras
         }
     )
-
-    @Inject
-    lateinit var settingsRepository: SettingsRepository
 
     @Inject
     lateinit var picasso: Picasso
@@ -190,6 +189,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         }
     }
 
+    private val connectedControllerManager = ConnectedControllerManager()
     private lateinit var frameRenderCoordinator: FrameRenderCoordinator
     private lateinit var mainScreenRenderer: DSRenderer
     private lateinit var melonTouchHandler: MelonTouchHandler
@@ -245,7 +245,6 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     }
     private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         viewModel.onSettingsChanged()
-        setupInputHandling()
         setupSustainedPerformanceMode()
         setupFpsCounter()
         viewModel.resumeEmulator()
@@ -335,7 +334,6 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         }
         binding.root.addOnLayoutChangeListener(layoutChangeListener)
 
-        setupInputHandling()
         updateOrientation(resources.configuration)
         disableScreenTimeOut()
         showExternalDisplay()
@@ -455,6 +453,21 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.runtimeLayout.collectLatest {
                     setupSoftInput(it)
+                }
+            }
+        }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.controllerConfiguration.collect {
+                    setupInputHandling(it)
+                    connectedControllerManager.setCurrentControllerConfiguration(it)
+                }
+            }
+        }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                connectedControllerManager.controllersState.collect {
+                    binding.viewLayoutControls.setConnectedControllersState(it)
                 }
             }
         }
@@ -640,6 +653,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     override fun onStart() {
         super.onStart()
         showExternalDisplay()
+        getSystemService<InputManager>()?.registerInputDeviceListener(connectedControllerManager, null)
+        connectedControllerManager.startTrackingControllers()
     }
 
     /**
@@ -842,8 +857,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         )
     }
 
-    private fun setupInputHandling() {
-        nativeInputListener = InputProcessor(settingsRepository.getControllerConfiguration(), melonTouchHandler, frontendInputHandler)
+    private fun setupInputHandling(controllerConfiguration: ControllerConfiguration) {
+        nativeInputListener = InputProcessor(controllerConfiguration, melonTouchHandler, frontendInputHandler)
     }
 
     private fun handleBackPressed() {
@@ -1019,6 +1034,12 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         updateOrientation(newConfig)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        getSystemService<InputManager>()?.unregisterInputDeviceListener(connectedControllerManager)
+        connectedControllerManager.stopTrackingControllers()
     }
 
     override fun onDestroy() {

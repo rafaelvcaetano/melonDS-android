@@ -16,10 +16,11 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
+import me.magnum.melonds.domain.model.consoleAspectRatio
 import me.magnum.melonds.ui.emulator.DSRenderer
 import me.magnum.melonds.ui.emulator.EmulatorSurfaceView
+import me.magnum.melonds.ui.emulator.input.ExternalTouchscreenInputHandler
 import me.magnum.melonds.ui.emulator.input.IInputListener
-import me.magnum.melonds.ui.emulator.input.TouchscreenInputHandler
 import me.magnum.melonds.ui.emulator.model.ExternalDisplayConfiguration
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
 
@@ -110,12 +111,17 @@ class ExternalPresentation(
         val renderer = ExternalScreenRender(
             screen = screen,
             rotateLeft = currentExternalDisplayConfiguration?.rotateLeft ?: false,
-            keepAspectRatio = currentExternalDisplayConfiguration?.keepAspectRatio ?: false,
+            keepAspectRatio = currentExternalDisplayConfiguration?.keepAspectRatio ?: true,
         )
         emulatorRenderer = renderer
         val view = createSurfaceView(renderer)
         if (screen == DsExternalScreen.BOTTOM) {
-            view.setOnTouchListener(TouchscreenInputHandler(inputListener))
+            val screenAspectRatio = if (currentExternalDisplayConfiguration?.keepAspectRatio == false) {
+                null
+            } else {
+                consoleAspectRatio
+            }
+            view.setOnTouchListener(ExternalTouchscreenInputHandler(inputListener, screenAspectRatio))
         }
         attachView(view)
     }
@@ -166,6 +172,12 @@ class ExternalPresentation(
                 DsExternalScreen.CUSTOM -> { /* showCustomLayout() */ }
             }
         } else {
+            val screenAspectRatio = if (currentExternalDisplayConfiguration?.keepAspectRatio == false) {
+                null
+            } else {
+                consoleAspectRatio
+            }
+            surfaceView?.setOnTouchListener(ExternalTouchscreenInputHandler(inputListener, screenAspectRatio))
             emulatorRenderer?.setLeftRotationEnabled(newExternalDisplayConfiguration.rotateLeft)
             (emulatorRenderer as? ExternalScreenRender)?.setKeepAspectRatio(newExternalDisplayConfiguration.keepAspectRatio)
         }

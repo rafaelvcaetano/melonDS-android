@@ -37,4 +37,8 @@ enum class Input(val keyCode: Int) {
 
     val isSystemInput: Boolean
         get() = keyCode != -1
+
+    companion object {
+        val SYSTEM_BUTTONS = listOf(A, B, X, Y, L, R, START, SELECT, LEFT, RIGHT, UP, DOWN)
+    }
 }
