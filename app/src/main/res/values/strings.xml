@@ -377,6 +377,8 @@
     <string name="aspect_ratio_unrestricted">Unrestricted</string>
     <string name="keep_ds_ratio">Keep DS aspect ratio</string>
     <string name="dual_screen_presets">Presets</string>
+    <string name="dual_screen_presets_settings_title">Dual screen presets</string>
+    <string name="dual_screen_presets_summary">Preset: %1$s\nKeep DS ratio: %2$s • Integer scale: %3$s</string>
     <string name="dual_screen_preset_off">Disabled (manual layout)</string>
     <string name="dual_screen_preset_internal_top_external_bottom">Internal: Top, External: Bottom</string>
     <string name="dual_screen_preset_internal_bottom_external_top">Internal: Bottom, External: Top</string>

@@ -52,6 +52,11 @@
         android:title="@string/internal_screen_layout"
         app:iconSpaceReserved="false" />
 
+    <Preference
+        android:key="dual_screen_presets"
+        android:title="@string/dual_screen_presets_settings_title"
+        app:iconSpaceReserved="false" />
+
     <ListPreference
         android:key="external_display_screen"
         android:title="@string/external_display_screen"
