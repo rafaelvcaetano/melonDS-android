@@ -128,6 +128,18 @@
     <string name="error_invalid_directory">Invalid directory</string>
     <string name="error_invalid_directory_description">It\'s not possible to write to the selected directory. Please select a different one. If you are selecting a compressed file, try extracting its contents.</string>
     <string name="no_roms_found">No ROMs found</string>
+    <string name="rom_browser_virtual_root">All ROM folders</string>
+    <string name="rom_browser_search_results">Search results</string>
+    <string name="rom_browser_navigate_up">Go to parent folder</string>
+    <string name="manage_rom_directories">Manage ROM directories</string>
+    <string name="remove_rom_directory_title">Remove directory?</string>
+    <string name="remove_rom_directory_message">Remove %1$s from the ROM search directories?</string>
+    <string name="action_remove">Remove</string>
+    <string name="add_directory">Add directory</string>
+    <string name="rom_cache_status_updated">Updated %1$s</string>
+    <string name="rom_cache_status_cached">Checked %1$s (cached)</string>
+    <string name="rom_cache_status_never">Not scanned yet</string>
+    <string name="rom_cache_status_just_now">just now</string>
     <string name="dsiware_title_cannot_be_launched_directly_title">DSiWare titles cannot be launched</string>
     <string name="dsiware_title_cannot_be_launched_directly_message">DSiWare titles cannot be launched directly. They must be installed to the NAND (through the DSiWare Manager) and launched from the DSi firmware.</string>
 

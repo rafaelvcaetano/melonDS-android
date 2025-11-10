@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.rom.config.RomConfig
+import me.magnum.melonds.domain.model.rom.RomDirectoryScanStatus
 import me.magnum.melonds.domain.model.RomScanningStatus
 import java.util.*
 import kotlin.time.Duration
@@ -12,6 +13,7 @@ import kotlin.time.Duration
 interface RomsRepository {
     fun getRoms(): Flow<List<Rom>>
     fun getRomScanningStatus(): StateFlow<RomScanningStatus>
+    fun observeRomDirectoryScanStatuses(): Flow<List<RomDirectoryScanStatus>>
     suspend fun getRomAtPath(path: String): Rom?
     suspend fun getRomAtUri(uri: Uri): Rom?
 

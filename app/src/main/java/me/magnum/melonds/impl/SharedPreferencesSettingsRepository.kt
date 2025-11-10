@@ -639,7 +639,9 @@ class SharedPreferencesSettingsRepository(
 
     override fun addRomSearchDirectory(directoryUri: Uri) {
         preferences.edit {
-            putStringSet("rom_search_dirs", setOf(directoryUri.toString()))
+            val existingDirectories = preferences.getStringSet("rom_search_dirs", emptySet())?.toMutableSet() ?: mutableSetOf()
+            existingDirectories.add(directoryUri.toString())
+            putStringSet("rom_search_dirs", existingDirectories)
         }
     }
 
