@@ -66,6 +66,7 @@
     <string-array name="external_display_screen_values">
         <item>top</item>
         <item>bottom</item>
+        <item>custom</item>
     </string-array>
 
     <string-array name="audio_interpolation_values">

@@ -42,10 +42,12 @@ import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.DsExternalScreen
+import me.magnum.melonds.domain.model.DualScreenPreset
 import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.SaveStateSlot
+import me.magnum.melonds.domain.model.ScreenAlignment
 import me.magnum.melonds.domain.model.emulator.EmulatorSessionUpdateAction
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
@@ -127,6 +129,14 @@ class EmulatorViewModel @Inject constructor(
 
     private val _externalDisplayConfiguration = MutableStateFlow(ExternalDisplayConfiguration())
     val externalDisplayConfiguration = _externalDisplayConfiguration.asStateFlow()
+    private val _externalDisplayKeepAspectRatioEnabled = MutableStateFlow(settingsRepository.isExternalDisplayKeepAspectRationEnabled())
+    val externalDisplayKeepAspectRatioEnabled = _externalDisplayKeepAspectRatioEnabled.asStateFlow()
+
+    private val _dualScreenPreset = MutableStateFlow(settingsRepository.getDualScreenPreset())
+    val dualScreenPreset = _dualScreenPreset.asStateFlow()
+
+    private val _dualScreenIntegerScaleEnabled = MutableStateFlow(settingsRepository.isDualScreenIntegerScaleEnabled())
+    val dualScreenIntegerScaleEnabled = _dualScreenIntegerScaleEnabled.asStateFlow()
 
     private val _background = MutableStateFlow(RuntimeBackground.None)
     val background = _background.asStateFlow()
@@ -155,6 +165,17 @@ class EmulatorViewModel @Inject constructor(
         viewModelScope.launch {
             _layout.filterNotNull().collect {
                 uiLayoutProvider.setCurrentLayoutConfiguration(it)
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenPreset().collect(_dualScreenPreset)
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenIntegerScaleEnabled().collect(_dualScreenIntegerScaleEnabled)
+        }
+        viewModelScope.launch {
+            settingsRepository.observeExternalDisplayKeepAspectRationEnabled().collect {
+                _externalDisplayKeepAspectRatioEnabled.value = it
             }
         }
         startObservingExternalDisplayConfiguration()
@@ -406,6 +427,7 @@ class EmulatorViewModel @Inject constructor(
                     }
                     RomPauseMenuOption.VIEW_ACHIEVEMENTS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowAchievementList)
                     RomPauseMenuOption.QUICK_SETTINGS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowQuickSettings)
+                    RomPauseMenuOption.PRESETS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowDualScreenPresets)
                     RomPauseMenuOption.RESET -> resetEmulator()
                     RomPauseMenuOption.EXIT -> {
                         emulatorManager.stopEmulator()
@@ -556,12 +578,21 @@ class EmulatorViewModel @Inject constructor(
             combine(
                 _externalDisplayScreen,
                 settingsRepository.isExternalDisplayRotateLeftEnabled(),
-                settingsRepository.observeExternalDisplayKeepAspectRationEnabled(),
-            ) { displayMode, rotateLeft, keepAspectRatio ->
+                _externalDisplayKeepAspectRatioEnabled,
+                _dualScreenPreset,
+                _dualScreenIntegerScaleEnabled,
+            ) { displayMode, rotateLeft, keepAspectRatio, preset, integerScale ->
+                val alignment = when (preset) {
+                    DualScreenPreset.INTERNAL_TOP_EXTERNAL_BOTTOM -> ScreenAlignment.TOP
+                    DualScreenPreset.INTERNAL_BOTTOM_EXTERNAL_TOP -> ScreenAlignment.BOTTOM
+                    DualScreenPreset.OFF -> ScreenAlignment.TOP
+                }
                 ExternalDisplayConfiguration(
                     displayMode = displayMode,
                     rotateLeft = rotateLeft,
                     keepAspectRatio = keepAspectRatio,
+                    integerScale = integerScale && preset != DualScreenPreset.OFF,
+                    verticalAlignment = alignment,
                 )
             }.collect(_externalDisplayConfiguration)
         }
@@ -776,14 +807,29 @@ class EmulatorViewModel @Inject constructor(
 
     fun setExternalDisplayScreen(screen: DsExternalScreen) {
         _externalDisplayScreen.value = screen
-    }
-
-    fun isExternalDisplayKeepAspectRatioEnabled(): Boolean {
-        return settingsRepository.isExternalDisplayKeepAspectRationEnabled()
+        if (currentRom?.config?.externalScreen == null) {
+            settingsRepository.setExternalDisplayScreen(screen)
+        }
     }
 
     fun setExternalDisplayKeepAspectRatioEnabled(enabled: Boolean) {
+        _externalDisplayKeepAspectRatioEnabled.value = enabled
         settingsRepository.setExternalDisplayKeepAspectRatioEnabled(enabled)
+    }
+
+    fun setDualScreenPreset(preset: DualScreenPreset) {
+        _dualScreenPreset.value = preset
+        settingsRepository.setDualScreenPreset(preset)
+        when (preset) {
+            DualScreenPreset.INTERNAL_TOP_EXTERNAL_BOTTOM -> setExternalDisplayScreen(DsExternalScreen.BOTTOM)
+            DualScreenPreset.INTERNAL_BOTTOM_EXTERNAL_TOP -> setExternalDisplayScreen(DsExternalScreen.TOP)
+            DualScreenPreset.OFF -> { /* Keep current selection */ }
+        }
+    }
+
+    fun setDualScreenIntegerScaleEnabled(enabled: Boolean) {
+        _dualScreenIntegerScaleEnabled.value = enabled
+        settingsRepository.setDualScreenIntegerScaleEnabled(enabled)
     }
 
     private suspend fun getRomEnabledCheats(romInfo: RomInfo): List<Cheat> {

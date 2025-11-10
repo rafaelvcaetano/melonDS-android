@@ -42,6 +42,10 @@ interface SettingsRepository {
     fun isExternalDisplayKeepAspectRationEnabled(): Boolean
     fun observeExternalDisplayKeepAspectRationEnabled(): Flow<Boolean>
     fun isExternalDisplayRotateLeftEnabled(): Flow<Boolean>
+    fun getDualScreenPreset(): DualScreenPreset
+    fun observeDualScreenPreset(): Flow<DualScreenPreset>
+    fun isDualScreenIntegerScaleEnabled(): Boolean
+    fun observeDualScreenIntegerScaleEnabled(): Flow<Boolean>
     fun getDSiCameraSource(): DSiCameraSourceType
     fun getDSiCameraStaticImage(): Uri?
 
@@ -91,6 +95,8 @@ interface SettingsRepository {
     fun setExternalDisplayScreen(screen: DsExternalScreen)
     fun setExternalDisplayKeepAspectRatioEnabled(enabled: Boolean)
     fun setExternalDisplayRotateLeftEnabled(enabled: Boolean)
+    fun setDualScreenPreset(preset: DualScreenPreset)
+    fun setDualScreenIntegerScaleEnabled(enabled: Boolean)
 
     fun observeRenderConfiguration(): Flow<RendererConfiguration>
 }

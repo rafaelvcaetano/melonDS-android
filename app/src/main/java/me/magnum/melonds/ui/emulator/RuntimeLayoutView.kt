@@ -2,13 +2,19 @@ package me.magnum.melonds.ui.emulator
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.View
+import androidx.core.view.doOnLayout
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import dagger.hilt.android.AndroidEntryPoint
 import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.domain.model.Input
+import me.magnum.melonds.domain.model.Point
 import me.magnum.melonds.domain.model.input.SoftInputBehaviour
 import me.magnum.melonds.domain.model.layout.LayoutComponent
+import me.magnum.melonds.domain.model.ScreenAlignment
+import me.magnum.melonds.domain.model.SCREEN_HEIGHT
+import me.magnum.melonds.domain.model.SCREEN_WIDTH
 import me.magnum.melonds.ui.common.LayoutView
 import me.magnum.melonds.ui.emulator.input.ButtonsInputHandler
 import me.magnum.melonds.ui.emulator.input.DpadInputHandler
@@ -20,9 +26,18 @@ import me.magnum.melonds.ui.emulator.input.view.ToggleableImageView
 import me.magnum.melonds.ui.emulator.model.ConnectedControllersState
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration
 import javax.inject.Inject
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(context, attrs) {
+
+    data class EasyModeConfiguration(
+        val screenComponent: LayoutComponent,
+        val alignment: ScreenAlignment,
+        val integerScale: Boolean,
+        val keepAspectRatio: Boolean,
+    )
 
     @Inject
     lateinit var touchVibrator: TouchVibrator
@@ -33,6 +48,7 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
     private var isSoftInputVisible = true
     private var areScreensSwapped = false
     private var connectedControllersState: ConnectedControllersState = ConnectedControllersState.NoControllers
+    private var easyModeConfiguration: EasyModeConfiguration? = null
 
     fun setFrontendInputHandler(frontendInputHandler: FrontendInputHandler) {
         this.frontendInputHandler = frontendInputHandler
@@ -49,6 +65,18 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
         updateVisibility()
     }
 
+    fun setEasyModeConfiguration(configuration: EasyModeConfiguration?) {
+        if (easyModeConfiguration == configuration) {
+            return
+        }
+        easyModeConfiguration = configuration
+        if (configuration == null) {
+            currentRuntimeLayout?.let { instantiateLayout(it) }
+        } else {
+            applyEasyModeConfiguration()
+        }
+    }
+
     fun toggleSoftInputVisibility() {
         isSoftInputVisible = !isSoftInputVisible
         setLayoutComponentToggleState(LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT, isSoftInputVisible)
@@ -56,6 +84,9 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
     }
 
     fun swapScreens() {
+        if (easyModeConfiguration != null) {
+            return
+        }
         areScreensSwapped = !areScreensSwapped
         updateScreenInputs()
     }
@@ -75,6 +106,7 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
         updateInputs()
         updateVisibility()
         setLayoutComponentToggleState(LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT, isSoftInputVisible)
+        applyEasyModeConfiguration()
     }
 
     private fun updateInputs() {
@@ -118,6 +150,75 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
         }
 
         updateScreenInputs()
+    }
+
+    private fun applyEasyModeConfiguration() {
+        val configuration = easyModeConfiguration ?: return
+        if (!isLaidOut) {
+            doOnLayout { applyEasyModeConfiguration() }
+            return
+        }
+
+        val availableWidth = width
+        val availableHeight = height
+        if (availableWidth <= 0 || availableHeight <= 0) {
+            return
+        }
+
+        val targetView = getLayoutComponentView(configuration.screenComponent) ?: return
+        val otherComponent = if (configuration.screenComponent == LayoutComponent.TOP_SCREEN) {
+            LayoutComponent.BOTTOM_SCREEN
+        } else {
+            LayoutComponent.TOP_SCREEN
+        }
+        val otherView = getLayoutComponentView(otherComponent)
+
+        val (scaledWidth, scaledHeight) = when {
+            configuration.integerScale -> {
+                val widthScale = availableWidth / SCREEN_WIDTH
+                val heightScale = availableHeight / SCREEN_HEIGHT
+                val maxIntegerScale = min(widthScale, heightScale)
+                val scale = if (maxIntegerScale <= 0) {
+                    min(
+                        availableWidth.toFloat() / SCREEN_WIDTH,
+                        availableHeight.toFloat() / SCREEN_HEIGHT,
+                    )
+                } else {
+                    maxIntegerScale.toFloat()
+                }
+                val width = (SCREEN_WIDTH * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableWidth)
+                val height = (SCREEN_HEIGHT * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableHeight)
+                width to height
+            }
+            configuration.keepAspectRatio -> {
+                val scale = min(
+                    availableWidth.toFloat() / SCREEN_WIDTH,
+                    availableHeight.toFloat() / SCREEN_HEIGHT,
+                )
+                val width = (SCREEN_WIDTH * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableWidth)
+                val height = (SCREEN_HEIGHT * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableHeight)
+                width to height
+            }
+            else -> {
+                availableWidth to availableHeight
+            }
+        }
+
+        val left = ((availableWidth - scaledWidth) / 2f).roundToInt().coerceAtLeast(0)
+        val top = when (configuration.alignment) {
+            ScreenAlignment.TOP -> 0
+            ScreenAlignment.BOTTOM -> (availableHeight - scaledHeight).coerceAtLeast(0)
+        }
+
+        targetView.setPositionAndSize(Point(left, top), scaledWidth, scaledHeight)
+        targetView.view.visibility = View.VISIBLE
+        targetView.baseAlpha = 1f
+
+        otherView?.apply {
+            setPositionAndSize(Point(0, 0), 0, 0)
+            view.visibility = View.GONE
+            baseAlpha = 0f
+        }
     }
 
     private fun updateScreenInputs() {

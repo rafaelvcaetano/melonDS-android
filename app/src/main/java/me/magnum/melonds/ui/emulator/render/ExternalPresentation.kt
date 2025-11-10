@@ -16,6 +16,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
+import me.magnum.melonds.domain.model.ScreenAlignment
 import me.magnum.melonds.domain.model.consoleAspectRatio
 import me.magnum.melonds.ui.emulator.DSRenderer
 import me.magnum.melonds.ui.emulator.EmulatorSurfaceView
@@ -112,6 +113,8 @@ class ExternalPresentation(
             screen = screen,
             rotateLeft = currentExternalDisplayConfiguration?.rotateLeft ?: false,
             keepAspectRatio = currentExternalDisplayConfiguration?.keepAspectRatio ?: true,
+            integerScale = currentExternalDisplayConfiguration?.integerScale ?: false,
+            verticalAlignment = currentExternalDisplayConfiguration?.verticalAlignment ?: ScreenAlignment.TOP,
         )
         emulatorRenderer = renderer
         val view = createSurfaceView(renderer)
@@ -179,7 +182,11 @@ class ExternalPresentation(
             }
             surfaceView?.setOnTouchListener(ExternalTouchscreenInputHandler(inputListener, screenAspectRatio))
             emulatorRenderer?.setLeftRotationEnabled(newExternalDisplayConfiguration.rotateLeft)
-            (emulatorRenderer as? ExternalScreenRender)?.setKeepAspectRatio(newExternalDisplayConfiguration.keepAspectRatio)
+            (emulatorRenderer as? ExternalScreenRender)?.apply {
+                setKeepAspectRatio(newExternalDisplayConfiguration.keepAspectRatio)
+                setIntegerScale(newExternalDisplayConfiguration.integerScale)
+                setVerticalAlignment(newExternalDisplayConfiguration.verticalAlignment)
+            }
         }
     }
 

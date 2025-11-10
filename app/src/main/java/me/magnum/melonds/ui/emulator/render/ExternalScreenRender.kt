@@ -9,6 +9,7 @@ import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
 import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.SCREEN_HEIGHT
 import me.magnum.melonds.domain.model.SCREEN_WIDTH
+import me.magnum.melonds.domain.model.ScreenAlignment
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.consoleAspectRatio
 import me.magnum.melonds.domain.model.render.PresentFrameWrapper
@@ -16,11 +17,14 @@ import me.magnum.melonds.ui.RdsRotation
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.min
 
 class ExternalScreenRender(
     private val screen: DsExternalScreen,
     private var rotateLeft: Boolean,
     private var keepAspectRatio: Boolean,
+    private var integerScale: Boolean,
+    private var verticalAlignment: ScreenAlignment,
 ) : EmulatorRenderer {
 
     companion object {
@@ -89,50 +93,19 @@ class ExternalScreenRender(
             surfaceWidth to surfaceHeight
         }
 
-        val coords = if (keepAspectRatio) {
-            val surfaceAspectRatio = actualWidth.toFloat() / actualHeight
-            if (surfaceAspectRatio > consoleAspectRatio) {
-                val screenScale = actualHeight.toFloat() / SCREEN_HEIGHT
-                val scaledWidth = SCREEN_WIDTH * screenScale
-                val relativeWidth = scaledWidth * 2f / actualWidth
-                val halfWidth = relativeWidth / 2f
-                viewportWidth = scaledWidth.toInt()
-                viewportHeight = actualHeight
-                floatArrayOf(
-                    -halfWidth, -1f,
-                    -halfWidth, 1f,
-                    halfWidth, 1f,
-                    -halfWidth, -1f,
-                    halfWidth, 1f,
-                    halfWidth, -1f,
-                )
-            } else {
-                val screenScale = actualWidth.toFloat() / SCREEN_WIDTH
-                val scaledHeight = SCREEN_HEIGHT * screenScale
-                val relativeHeight = scaledHeight * 2f / actualHeight
-                val halfHeight = relativeHeight / 2f
-                viewportWidth = actualWidth
-                viewportHeight = scaledHeight.toInt()
-                floatArrayOf(
-                    -1f, -halfHeight,
-                    -1f, halfHeight,
-                    1f, halfHeight,
-                    -1f, -halfHeight,
-                    1f, halfHeight,
-                    1f, -halfHeight,
-                )
+        val coords = when {
+            integerScale -> {
+                val widthScale = actualWidth / SCREEN_WIDTH
+                val heightScale = actualHeight / SCREEN_HEIGHT
+                val maxScale = min(widthScale, heightScale)
+                if (maxScale <= 0) {
+                    buildKeepAspectCoords(actualWidth, actualHeight)
+                } else {
+                    buildIntegerScaleCoords(actualWidth, actualHeight, maxScale)
+                }
             }
-        } else {
-            viewportWidth = actualWidth
-            viewportHeight = actualHeight
-            floatArrayOf(
-                -1f, -1f,
-                -1f, 1f,
-                1f, 1f,
-                -1f, -1f,
-                1f, 1f,
-                1f, -1f
-            )
+            keepAspectRatio -> buildKeepAspectCoords(actualWidth, actualHeight)
+            else -> buildFillCoords(actualWidth, actualHeight)
         }
 
         if (rotateLeft) {
@@ -180,6 +153,94 @@ class ExternalScreenRender(
         GLES30.glBindVertexArray(screensVao)
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, screensVbo)
         GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, vertexBufferSize, vertexBuffer, GLES30.GL_STATIC_DRAW)
+    }
+
+    private fun buildKeepAspectCoords(actualWidth: Int, actualHeight: Int): FloatArray {
+        val surfaceAspectRatio = actualWidth.toFloat() / actualHeight
+        return if (surfaceAspectRatio > consoleAspectRatio) {
+            val screenScale = actualHeight.toFloat() / SCREEN_HEIGHT
+            val scaledWidth = SCREEN_WIDTH * screenScale
+            val relativeWidth = scaledWidth * 2f / actualWidth
+            val halfWidth = relativeWidth / 2f
+            viewportWidth = scaledWidth.toInt()
+            viewportHeight = actualHeight
+            floatArrayOf(
+                -halfWidth, -1f,
+                -halfWidth, 1f,
+                halfWidth, 1f,
+                -halfWidth, -1f,
+                halfWidth, 1f,
+                halfWidth, -1f,
+            )
+        } else {
+            val screenScale = actualWidth.toFloat() / SCREEN_WIDTH
+            val scaledHeight = SCREEN_HEIGHT * screenScale
+            val relativeHeight = scaledHeight * 2f / actualHeight
+            viewportWidth = actualWidth
+            viewportHeight = scaledHeight.toInt()
+            val (topCoord, bottomCoord) = when (verticalAlignment) {
+                ScreenAlignment.TOP -> {
+                    val top = 1f
+                    val bottom = top - relativeHeight
+                    top to bottom
+                }
+                ScreenAlignment.BOTTOM -> {
+                    val bottom = -1f
+                    val top = bottom + relativeHeight
+                    top to bottom
+                }
+            }
+            floatArrayOf(
+                -1f, bottomCoord,
+                -1f, topCoord,
+                1f, topCoord,
+                -1f, bottomCoord,
+                1f, topCoord,
+                1f, bottomCoord,
+            )
+        }
+    }
+
+    private fun buildFillCoords(actualWidth: Int, actualHeight: Int): FloatArray {
+        viewportWidth = actualWidth
+        viewportHeight = actualHeight
+        return floatArrayOf(
+            -1f, -1f,
+            -1f, 1f,
+            1f, 1f,
+            -1f, -1f,
+            1f, 1f,
+            1f, -1f,
+        )
+    }
+
+    private fun buildIntegerScaleCoords(actualWidth: Int, actualHeight: Int, scale: Int): FloatArray {
+        val scaledWidth = SCREEN_WIDTH * scale
+        val scaledHeight = SCREEN_HEIGHT * scale
+        viewportWidth = scaledWidth
+        viewportHeight = scaledHeight
+
+        val leftMargin = (actualWidth - scaledWidth) / 2f
+        val topMargin = when (verticalAlignment) {
+            ScreenAlignment.TOP -> 0f
+            ScreenAlignment.BOTTOM -> (actualHeight - scaledHeight).toFloat()
+        }.coerceAtLeast(0f)
+
+        val relativeWidth = scaledWidth * 2f / actualWidth
+        val relativeHeight = scaledHeight * 2f / actualHeight
+        val left = -1f + (leftMargin * 2f / actualWidth)
+        val right = left + relativeWidth
+        val top = 1f - (topMargin * 2f / actualHeight)
+        val bottom = top - relativeHeight
+
+        return floatArrayOf(
+            left, bottom,
+            left, top,
+            right, top,
+            left, bottom,
+            right, top,
+            right, bottom,
+        )
     }
 
     private fun fillUvBounds(uvs: FloatArray, dest: FloatArray) {
@@ -321,8 +382,28 @@ class ExternalScreenRender(
 
     fun setKeepAspectRatio(keep: Boolean) {
         synchronized(viewportLock) {
-            keepAspectRatio = keep
-            areVerticesDirty = true
+            if (keepAspectRatio != keep) {
+                keepAspectRatio = keep
+                areVerticesDirty = true
+            }
+        }
+    }
+
+    fun setIntegerScale(enabled: Boolean) {
+        synchronized(viewportLock) {
+            if (integerScale != enabled) {
+                integerScale = enabled
+                areVerticesDirty = true
+            }
+        }
+    }
+
+    fun setVerticalAlignment(alignment: ScreenAlignment) {
+        synchronized(viewportLock) {
+            if (verticalAlignment != alignment) {
+                verticalAlignment = alignment
+                areVerticesDirty = true
+            }
         }
     }
 

@@ -36,6 +36,7 @@ import me.magnum.melonds.domain.model.AudioInterpolation
 import me.magnum.melonds.domain.model.AudioLatency
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.ControllerConfiguration
+import me.magnum.melonds.domain.model.DualScreenPreset
 import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.FirmwareConfiguration
@@ -76,6 +77,8 @@ class SharedPreferencesSettingsRepository(
     companion object {
         private const val TAG = "SPSettingsRepository"
         private const val CONTROLLER_CONFIG_FILE = "controller_config.json"
+        private const val KEY_DUAL_SCREEN_PRESET = "dual_screen_preset"
+        private const val KEY_DUAL_SCREEN_INTEGER_SCALE = "dual_screen_integer_scale"
     }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -391,6 +394,27 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
+    override fun getDualScreenPreset(): DualScreenPreset {
+        val value = preferences.getString(KEY_DUAL_SCREEN_PRESET, DualScreenPreset.OFF.name.lowercase())
+        return value?.let { enumValueOfIgnoreCase<DualScreenPreset>(it) } ?: DualScreenPreset.OFF
+    }
+
+    override fun observeDualScreenPreset(): Flow<DualScreenPreset> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_PRESET) {
+            getDualScreenPreset()
+        }
+    }
+
+    override fun isDualScreenIntegerScaleEnabled(): Boolean {
+        return preferences.getBoolean(KEY_DUAL_SCREEN_INTEGER_SCALE, false)
+    }
+
+    override fun observeDualScreenIntegerScaleEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_INTEGER_SCALE) {
+            isDualScreenIntegerScaleEnabled()
+        }
+    }
+
     override fun getDSiCameraSource(): DSiCameraSourceType {
         val dsiCameraSource = preferences.getString("dsi_camera_source", "physical_cameras")!!
         return DSiCameraSourceType.valueOf(dsiCameraSource.uppercase())
@@ -678,6 +702,18 @@ class SharedPreferencesSettingsRepository(
     override fun setExternalDisplayRotateLeftEnabled(enabled: Boolean) {
         preferences.edit {
             putBoolean("external_display_rotate_left", enabled)
+        }
+    }
+
+    override fun setDualScreenPreset(preset: DualScreenPreset) {
+        preferences.edit {
+            putString(KEY_DUAL_SCREEN_PRESET, preset.name.lowercase())
+        }
+    }
+
+    override fun setDualScreenIntegerScaleEnabled(enabled: Boolean) {
+        preferences.edit {
+            putBoolean(KEY_DUAL_SCREEN_INTEGER_SCALE, enabled)
         }
     }
 

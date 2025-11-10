@@ -171,8 +171,7 @@ private fun Content(
             }
         )
 
-        // Custom external layouts are disabled for now
-        /*val externalLayoutSelectorLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val externalLayoutSelectorLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val layoutId = result.data?.getStringExtra(LayoutSelectorActivity.KEY_SELECTED_LAYOUT_ID)?.let { UUID.fromString(it) }
                 onConfigUpdate(RomConfigUpdateEvent.ExternalLayoutUpdate(layoutId))
@@ -187,7 +186,7 @@ private fun Content(
                 }
                 externalLayoutSelectorLauncher.launch(intent)
             }
-        )*/
+        )
 
         val gbaSlotOptions = stringArrayResource(id = R.array.gba_slot_options)
         SingleChoiceItem(

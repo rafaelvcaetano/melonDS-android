@@ -9,11 +9,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material.Button
 import androidx.compose.material.Card
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.RadioButton
-import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,14 +33,17 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogWindowProvider
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.DsExternalScreen
+import me.magnum.melonds.domain.model.DualScreenPreset
 import me.magnum.melonds.ui.theme.MelonTheme
 
 @Composable
 fun QuickSettingsDialog(
     currentScreen: DsExternalScreen,
     onScreenSelected: (DsExternalScreen) -> Unit,
-    keepAspectRatio: Boolean,
-    onKeepAspectRatioChanged: (Boolean) -> Unit,
+    dualScreenPreset: DualScreenPreset,
+    onOpenInternalLayout: () -> Unit,
+    onOpenExternalLayout: () -> Unit,
+    onRefreshExternalScreen: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     Dialog(onDismissRequest = onDismiss) {
@@ -47,8 +51,10 @@ fun QuickSettingsDialog(
         Content(
             currentScreen = currentScreen,
             onScreenSelected = onScreenSelected,
-            keepAspectRatio = keepAspectRatio,
-            onKeepAspectRatioChanged = onKeepAspectRatioChanged,
+            dualScreenPreset = dualScreenPreset,
+            onOpenInternalLayout = onOpenInternalLayout,
+            onOpenExternalLayout = onOpenExternalLayout,
+            onRefreshExternalScreen = onRefreshExternalScreen,
         )
     }
 }
@@ -57,12 +63,14 @@ fun QuickSettingsDialog(
 private fun Content(
     currentScreen: DsExternalScreen,
     onScreenSelected: (DsExternalScreen) -> Unit,
-    keepAspectRatio: Boolean,
-    onKeepAspectRatioChanged: (Boolean) -> Unit,
+    dualScreenPreset: DualScreenPreset,
+    onOpenInternalLayout: () -> Unit,
+    onOpenExternalLayout: () -> Unit,
+    onRefreshExternalScreen: () -> Unit,
 ) {
     Card {
-        var selectedScreen by remember { mutableStateOf(currentScreen) }
-        var keepAspect by remember { mutableStateOf(keepAspectRatio) }
+        var selectedScreen by remember(currentScreen) { mutableStateOf(currentScreen) }
+        val selectedPreset = dualScreenPreset
         Column(modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp)) {
             Text(
                 modifier = Modifier.padding(horizontal = 24.dp),
@@ -71,20 +79,24 @@ private fun Content(
                 fontWeight = FontWeight.Bold,
             )
             Spacer(Modifier.height(16.dp))
+
             Text(
                 modifier = Modifier.padding(horizontal = 24.dp),
                 text = stringResource(R.string.external_display_screen),
                 fontWeight = FontWeight.Bold,
             )
             Spacer(Modifier.height(8.dp))
-            val options = listOf(DsExternalScreen.TOP, DsExternalScreen.BOTTOM)
+            val options = listOf(DsExternalScreen.TOP, DsExternalScreen.BOTTOM, DsExternalScreen.CUSTOM)
+            val screenSelectionEnabled = selectedPreset == DualScreenPreset.OFF
             Column(Modifier.selectableGroup()) {
                 options.forEach { screen ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .alpha(if (screenSelectionEnabled) 1f else 0.5f)
                             .selectable(
                                 selected = selectedScreen == screen,
+                                enabled = screenSelectionEnabled,
                                 onClick = {
                                     selectedScreen = screen
                                     onScreenSelected(screen)
@@ -94,7 +106,11 @@ private fun Content(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        RadioButton(selected = selectedScreen == screen, onClick = null)
+                        RadioButton(
+                            selected = selectedScreen == screen,
+                            onClick = null,
+                            enabled = screenSelectionEnabled,
+                        )
 
                         val text = when (screen) {
                             DsExternalScreen.TOP -> R.string.top_screen
@@ -109,30 +125,40 @@ private fun Content(
                     }
                 }
             }
-            if (selectedScreen != DsExternalScreen.CUSTOM) {
-                Spacer(Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                        .toggleable(keepAspect) {
-                            keepAspect = it
-                            onKeepAspectRatioChanged(it)
-                        }
-                        .padding(horizontal = 24.dp, vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+            Spacer(Modifier.height(24.dp))
+            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                val layoutEditorsEnabled = selectedPreset == DualScreenPreset.OFF
+                Button(
+                    onClick = onOpenInternalLayout,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = layoutEditorsEnabled,
                 ) {
+                    Text(stringResource(R.string.internal_screen_layout))
+                }
+                if (selectedScreen == DsExternalScreen.CUSTOM) {
+                    Spacer(Modifier.height(8.dp))
+                    Button(
+                        onClick = onOpenExternalLayout,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = layoutEditorsEnabled,
+                    ) {
+                        Text(stringResource(R.string.external_screen_layout))
+                    }
+                }
+                if (!layoutEditorsEnabled) {
+                    Spacer(Modifier.height(8.dp))
                     Text(
-                        modifier = Modifier.weight(1f),
-                        text = stringResource(id = R.string.keep_ds_ratio),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Switch(
-                        checked = keepAspect,
-                        onCheckedChange = null,
+                        text = stringResource(R.string.layout_editing_disabled_by_presets),
+                        style = MaterialTheme.typography.body2,
+                        color = MaterialTheme.colors.onSurface.copy(alpha = ContentAlpha.medium),
                     )
                 }
+                Spacer(Modifier.height(8.dp))
+                Button(onClick = onRefreshExternalScreen, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.refresh_external_screen))
+                }
             }
+
         }
     }
 }
@@ -144,8 +170,10 @@ private fun PreviewQuickSettingsDialog() {
         Content(
             currentScreen = DsExternalScreen.TOP,
             onScreenSelected = { },
-            keepAspectRatio = true,
-            onKeepAspectRatioChanged = { },
+            dualScreenPreset = DualScreenPreset.OFF,
+            onOpenInternalLayout = { },
+            onOpenExternalLayout = { },
+            onRefreshExternalScreen = { },
         )
     }
 }

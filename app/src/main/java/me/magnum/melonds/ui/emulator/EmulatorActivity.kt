@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,6 +62,7 @@ import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
@@ -71,10 +73,12 @@ import me.magnum.melonds.databinding.ActivityEmulatorBinding
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.ControllerConfiguration
 import me.magnum.melonds.domain.model.FpsCounterPosition
+import me.magnum.melonds.domain.model.DualScreenPreset
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.layout.ScreenFold
+import me.magnum.melonds.domain.model.ScreenAlignment
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.extensions.insetsControllerCompat
@@ -107,7 +111,10 @@ import me.magnum.melonds.ui.emulator.rom.SaveStateAdapter
 import me.magnum.melonds.ui.emulator.ui.AchievementListDialog
 import me.magnum.melonds.ui.emulator.ui.AchievementPopupUi
 import me.magnum.melonds.ui.emulator.ui.QuickSettingsDialog
+import me.magnum.melonds.ui.emulator.ui.DualScreenPresetsDialog
 import me.magnum.melonds.ui.emulator.ui.RAIntegrationEventUi
+import me.magnum.melonds.ui.layouts.ExternalLayoutListActivity
+import me.magnum.melonds.ui.layouts.LayoutListActivity
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.theme.MelonTheme
 import java.text.SimpleDateFormat
@@ -272,6 +279,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     }
     private val showAchievementList = mutableStateOf(false)
     private val showQuickSettings = mutableStateOf(false)
+    private val showDualScreenPresets = mutableStateOf(false)
 
     private val activeOverlays = EmulatorOverlayTracker(
         onOverlaysCleared = {
@@ -421,20 +429,53 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                     )
                 }
 
+                val dualScreenPreset by viewModel.dualScreenPreset.collectAsState()
+                val dualScreenIntegerScaleEnabled by viewModel.dualScreenIntegerScaleEnabled.collectAsState()
+                val keepDsAspectRatio by viewModel.externalDisplayKeepAspectRatioEnabled.collectAsState()
+
                 if (showQuickSettings.value) {
                     QuickSettingsDialog(
                         currentScreen = viewModel.getExternalDisplayScreen(),
                         onScreenSelected = {
                             viewModel.setExternalDisplayScreen(it)
                         },
-                        keepAspectRatio = viewModel.isExternalDisplayKeepAspectRatioEnabled(),
-                        onKeepAspectRatioChanged = { enabled ->
-                            viewModel.setExternalDisplayKeepAspectRatioEnabled(enabled)
+                        dualScreenPreset = dualScreenPreset,
+                        onOpenInternalLayout = {
+                            startActivity(Intent(this@EmulatorActivity, LayoutListActivity::class.java))
+                        },
+                        onOpenExternalLayout = {
+                            startActivity(Intent(this@EmulatorActivity, ExternalLayoutListActivity::class.java))
+                        },
+                        onRefreshExternalScreen = {
+                            refreshExternalPresentation()
                         },
                         onDismiss = {
                             activeOverlays.removeActiveOverlay(EmulatorOverlay.QUICK_SETTINGS_DIALOG)
                             viewModel.resumeEmulator()
                             showQuickSettings.value = false
+                        }
+                    )
+                }
+                if (showDualScreenPresets.value) {
+                    DualScreenPresetsDialog(
+                        dualScreenPreset = dualScreenPreset,
+                        onDualScreenPresetSelected = { preset ->
+                            viewModel.setDualScreenPreset(preset)
+                            applyDualScreenPreset(preset)
+                        },
+                        keepAspectRatio = keepDsAspectRatio,
+                        onKeepAspectRatioChanged = { enabled ->
+                            viewModel.setExternalDisplayKeepAspectRatioEnabled(enabled)
+                        },
+                        isDualScreenIntegerScaleEnabled = dualScreenIntegerScaleEnabled,
+                        onDualScreenIntegerScaleChanged = { enabled ->
+                            viewModel.setDualScreenIntegerScaleEnabled(enabled)
+                            applyDualScreenIntegerScale(enabled)
+                        },
+                        onDismiss = {
+                            activeOverlays.removeActiveOverlay(EmulatorOverlay.PRESETS_DIALOG)
+                            viewModel.resumeEmulator()
+                            showDualScreenPresets.value = false
                         }
                     )
                 }
@@ -499,6 +540,20 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                     val areScreensSwapped = binding.viewLayoutControls.areScreensSwapped()
                     presentation?.updateExternalDisplayConfiguration(it, areScreensSwapped)
                 }
+            }
+        }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                combine(
+                    viewModel.dualScreenPreset,
+                    viewModel.dualScreenIntegerScaleEnabled,
+                    viewModel.externalDisplayKeepAspectRatioEnabled,
+                ) { preset, integerScale, keepAspect -> Triple(preset, integerScale, keepAspect) }
+                    .collect { (preset, integerScale, keepAspect) ->
+                        val configuration = createEasyModeConfiguration(preset, integerScale, keepAspect)
+                        binding.viewLayoutControls.setEasyModeConfiguration(configuration)
+                        updateRendererScreenAreas()
+                    }
             }
         }
         lifecycleScope.launch {
@@ -572,6 +627,10 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                         EmulatorUiEvent.ShowQuickSettings -> {
                             activeOverlays.addActiveOverlay(EmulatorOverlay.QUICK_SETTINGS_DIALOG)
                             showQuickSettings.value = true
+                        }
+                        EmulatorUiEvent.ShowDualScreenPresets -> {
+                            activeOverlays.addActiveOverlay(EmulatorOverlay.PRESETS_DIALOG)
+                            showDualScreenPresets.value = true
                         }
                     }
                 }
@@ -855,6 +914,58 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             topView?.onTop ?: false,
             bottomView?.onTop ?: false,
         )
+    }
+
+    private fun refreshExternalPresentation() {
+        presentation?.updateExternalDisplayConfiguration(
+            newExternalDisplayConfiguration = viewModel.externalDisplayConfiguration.value,
+            areScreensSwapped = binding.viewLayoutControls.areScreensSwapped(),
+        )
+    }
+
+    private fun applyDualScreenPreset(preset: DualScreenPreset) {
+        val configuration = createEasyModeConfiguration(
+            preset,
+            viewModel.dualScreenIntegerScaleEnabled.value,
+            currentKeepAspectRatio(),
+        )
+        binding.viewLayoutControls.setEasyModeConfiguration(configuration)
+        updateRendererScreenAreas()
+    }
+
+    private fun applyDualScreenIntegerScale(enabled: Boolean) {
+        val preset = viewModel.dualScreenPreset.value
+        val configuration = createEasyModeConfiguration(preset, enabled, currentKeepAspectRatio())
+        if (configuration != null || preset == DualScreenPreset.OFF) {
+            binding.viewLayoutControls.setEasyModeConfiguration(configuration)
+            updateRendererScreenAreas()
+        }
+    }
+
+    private fun createEasyModeConfiguration(
+        preset: DualScreenPreset,
+        integerScale: Boolean,
+        keepAspectRatio: Boolean,
+    ): RuntimeLayoutView.EasyModeConfiguration? {
+        return when (preset) {
+            DualScreenPreset.OFF -> null
+            DualScreenPreset.INTERNAL_TOP_EXTERNAL_BOTTOM -> RuntimeLayoutView.EasyModeConfiguration(
+                LayoutComponent.TOP_SCREEN,
+                ScreenAlignment.BOTTOM,
+                integerScale,
+                keepAspectRatio,
+            )
+            DualScreenPreset.INTERNAL_BOTTOM_EXTERNAL_TOP -> RuntimeLayoutView.EasyModeConfiguration(
+                LayoutComponent.BOTTOM_SCREEN,
+                ScreenAlignment.TOP,
+                integerScale,
+                keepAspectRatio,
+            )
+        }
+    }
+
+    private fun currentKeepAspectRatio(): Boolean {
+        return viewModel.externalDisplayKeepAspectRatioEnabled.value
     }
 
     private fun setupInputHandling(controllerConfiguration: ControllerConfiguration) {
