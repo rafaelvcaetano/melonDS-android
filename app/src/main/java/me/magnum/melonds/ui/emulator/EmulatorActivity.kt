@@ -74,6 +74,7 @@ import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.ControllerConfiguration
 import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.DualScreenPreset
+import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.domain.model.layout.LayoutComponent
@@ -186,6 +187,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                     if (pres.display.displayId == displayId) {
                         pres.dismiss()
                         presentation = null
+                        updateTouchGestureExclusionTargets()
                     }
                 }
             }
@@ -539,6 +541,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 viewModel.externalDisplayConfiguration.collect {
                     val areScreensSwapped = binding.viewLayoutControls.areScreensSwapped()
                     presentation?.updateExternalDisplayConfiguration(it, areScreensSwapped)
+                    updateTouchGestureExclusionTargets()
                 }
             }
         }
@@ -553,6 +556,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                         val configuration = createEasyModeConfiguration(preset, integerScale, keepAspect)
                         binding.viewLayoutControls.setEasyModeConfiguration(configuration)
                         updateRendererScreenAreas()
+                        updateTouchGestureExclusionTargets()
                     }
             }
         }
@@ -704,6 +708,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 appForegroundStateObserver.onAppMovedToBackgroundEvent.collect {
                     presentation?.dismiss()
                     presentation = null
+                    updateTouchGestureExclusionTargets()
                 }
             }
         }
@@ -766,6 +771,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 }
 
             }
+            updateTouchGestureExclusionTargets()
         }else {
             Log.w("DualScreenEmulator", "No external display found.")
         }
@@ -885,8 +891,9 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 setLayoutComponentToggleState(LayoutComponent.BUTTON_MICROPHONE_TOGGLE, frontendInputHandler.microphoneEnabled)
             }
         } else {
-            binding.viewLayoutControls.destroyLayout()
+            binding.viewLayoutControls.destroyRuntimeLayout()
         }
+        updateTouchGestureExclusionTargets()
     }
 
     private fun swapScreen() {
@@ -896,6 +903,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             newExternalDisplayConfiguration = viewModel.externalDisplayConfiguration.value,
             areScreensSwapped = binding.viewLayoutControls.areScreensSwapped(),
         )
+        updateTouchGestureExclusionTargets()
     }
 
     private fun updateRendererScreenAreas() {
@@ -921,6 +929,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             newExternalDisplayConfiguration = viewModel.externalDisplayConfiguration.value,
             areScreensSwapped = binding.viewLayoutControls.areScreensSwapped(),
         )
+        updateTouchGestureExclusionTargets()
     }
 
     private fun applyDualScreenPreset(preset: DualScreenPreset) {
@@ -931,6 +940,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         )
         binding.viewLayoutControls.setEasyModeConfiguration(configuration)
         updateRendererScreenAreas()
+        updateTouchGestureExclusionTargets()
     }
 
     private fun applyDualScreenIntegerScale(enabled: Boolean) {
@@ -939,6 +949,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         if (configuration != null || preset == DualScreenPreset.OFF) {
             binding.viewLayoutControls.setEasyModeConfiguration(configuration)
             updateRendererScreenAreas()
+            updateTouchGestureExclusionTargets()
         }
     }
 
@@ -966,6 +977,42 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
 
     private fun currentKeepAspectRatio(): Boolean {
         return viewModel.externalDisplayKeepAspectRatioEnabled.value
+    }
+
+    private fun updateTouchGestureExclusionTargets() {
+        val internalHostsTouch = binding.viewLayoutControls.isTouchScreenVisible()
+        val presentationHostsTouch = isBottomScreenRenderedOnPresentation()
+        val preferExternal = shouldPreferExternalTouchHost()
+
+        val hostExternal = presentationHostsTouch && (preferExternal || !internalHostsTouch)
+        val hostInternal = internalHostsTouch && !hostExternal
+
+        binding.viewLayoutControls.setTouchScreenGestureExclusionEnabled(hostInternal)
+        presentation?.setBottomScreenGestureHost(hostExternal)
+    }
+
+    private fun shouldPreferExternalTouchHost(): Boolean {
+        return when (viewModel.dualScreenPreset.value) {
+            DualScreenPreset.INTERNAL_TOP_EXTERNAL_BOTTOM -> true
+            DualScreenPreset.INTERNAL_BOTTOM_EXTERNAL_TOP -> false
+            DualScreenPreset.OFF -> {
+                val config = viewModel.externalDisplayConfiguration.value
+                val effectiveMode = when (config.displayMode) {
+                    DsExternalScreen.TOP -> if (binding.viewLayoutControls.areScreensSwapped()) DsExternalScreen.BOTTOM else DsExternalScreen.TOP
+                    DsExternalScreen.BOTTOM -> if (binding.viewLayoutControls.areScreensSwapped()) DsExternalScreen.TOP else DsExternalScreen.BOTTOM
+                    DsExternalScreen.CUSTOM -> DsExternalScreen.CUSTOM
+                }
+                effectiveMode == DsExternalScreen.BOTTOM
+            }
+        }
+    }
+
+    private fun isBottomScreenRenderedOnPresentation(): Boolean {
+        val currentPresentation = presentation
+        if (currentPresentation?.isShowing != true) {
+            return false
+        }
+        return shouldPreferExternalTouchHost()
     }
 
     private fun setupInputHandling(controllerConfiguration: ControllerConfiguration) {
@@ -1157,6 +1204,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         super.onDestroy()
         frameRenderCoordinator.stop()
         presentation?.dismiss()
+        presentation = null
+        updateTouchGestureExclusionTargets()
         displayManager.unregisterDisplayListener(displayListener)
     }
 }

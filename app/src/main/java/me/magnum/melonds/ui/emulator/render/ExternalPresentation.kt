@@ -24,6 +24,7 @@ import me.magnum.melonds.ui.emulator.input.ExternalTouchscreenInputHandler
 import me.magnum.melonds.ui.emulator.input.IInputListener
 import me.magnum.melonds.ui.emulator.model.ExternalDisplayConfiguration
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
+import me.magnum.melonds.ui.common.SystemGestureExclusionHelper
 
 
 /**
@@ -59,6 +60,8 @@ class ExternalPresentation(
     private var currentBackground: RuntimeBackground? = null
     private var currentRendererConfiguration: RuntimeRendererConfiguration? = null
     private var currentExternalDisplayConfiguration: ExternalDisplayConfiguration? = null
+    private val gestureExclusionHelper = SystemGestureExclusionHelper()
+    private var isGestureHost = false
 
     init {
         window?.setFlags(
@@ -89,15 +92,25 @@ class ExternalPresentation(
         setContentView(container)
     }
 
+    fun setBottomScreenGestureHost(isHost: Boolean) {
+        if (isGestureHost == isHost) {
+            return
+        }
+        isGestureHost = isHost
+        applyGestureExclusion()
+    }
+
     private fun attachView(view: EmulatorSurfaceView) {
         container.removeAllViews()
         surfaceView?.let {
+            gestureExclusionHelper.setGestureExclusion(it, false)
             frameRenderCoordinator.removeSurface(it)
         }
         view.updateRendererConfiguration(currentRendererConfiguration)
         container.addView(view)
         surfaceView = view
         frameRenderCoordinator.addSurface(view)
+        applyGestureExclusion()
     }
 
     private fun createSurfaceView(renderer: EmulatorRenderer): EmulatorSurfaceView {
@@ -118,7 +131,8 @@ class ExternalPresentation(
         )
         emulatorRenderer = renderer
         val view = createSurfaceView(renderer)
-        if (screen == DsExternalScreen.BOTTOM) {
+        val isBottomScreen = screen == DsExternalScreen.BOTTOM
+        if (isBottomScreen) {
             val screenAspectRatio = if (currentExternalDisplayConfiguration?.keepAspectRatio == false) {
                 null
             } else {
@@ -127,6 +141,7 @@ class ExternalPresentation(
             view.setOnTouchListener(ExternalTouchscreenInputHandler(inputListener, screenAspectRatio))
         }
         attachView(view)
+        gestureExclusionHelper.setGestureExclusion(view, isBottomScreen)
     }
 
     private fun showCustomLayout(
@@ -180,7 +195,11 @@ class ExternalPresentation(
             } else {
                 consoleAspectRatio
             }
-            surfaceView?.setOnTouchListener(ExternalTouchscreenInputHandler(inputListener, screenAspectRatio))
+            if (currentExternalDisplayConfiguration?.displayMode == DsExternalScreen.BOTTOM) {
+                surfaceView?.setOnTouchListener(ExternalTouchscreenInputHandler(inputListener, screenAspectRatio))
+            } else {
+                surfaceView?.setOnTouchListener(null)
+            }
             emulatorRenderer?.setLeftRotationEnabled(newExternalDisplayConfiguration.rotateLeft)
             (emulatorRenderer as? ExternalScreenRender)?.apply {
                 setKeepAspectRatio(newExternalDisplayConfiguration.keepAspectRatio)
@@ -188,6 +207,7 @@ class ExternalPresentation(
                 setVerticalAlignment(newExternalDisplayConfiguration.verticalAlignment)
             }
         }
+        applyGestureExclusion()
     }
 
     override fun onStop() {
@@ -195,10 +215,17 @@ class ExternalPresentation(
         surfaceView?.let {
             frameRenderCoordinator.removeSurface(it)
         }
+        gestureExclusionHelper.clearAll()
     }
 
     fun updateBackground(background: RuntimeBackground) {
         currentBackground = background
         (emulatorRenderer as? DSRenderer)?.setBackground(background)
+    }
+
+    private fun applyGestureExclusion() {
+        val isBottomDisplayed = currentExternalDisplayConfiguration?.displayMode == DsExternalScreen.BOTTOM
+        val enable = isGestureHost && isBottomDisplayed
+        gestureExclusionHelper.setGestureExclusion(surfaceView, enable)
     }
 }

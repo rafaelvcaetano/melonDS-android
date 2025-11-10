@@ -25,6 +25,7 @@ import me.magnum.melonds.ui.emulator.input.TouchscreenInputHandler
 import me.magnum.melonds.ui.emulator.input.view.ToggleableImageView
 import me.magnum.melonds.ui.emulator.model.ConnectedControllersState
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration
+import me.magnum.melonds.ui.common.SystemGestureExclusionHelper
 import javax.inject.Inject
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -49,6 +50,9 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
     private var areScreensSwapped = false
     private var connectedControllersState: ConnectedControllersState = ConnectedControllersState.NoControllers
     private var easyModeConfiguration: EasyModeConfiguration? = null
+    private val gestureExclusionHelper = SystemGestureExclusionHelper()
+    private var isGestureExclusionEnabled = true
+    private var currentTouchScreenComponent: LayoutComponent = LayoutComponent.BOTTOM_SCREEN
 
     fun setFrontendInputHandler(frontendInputHandler: FrontendInputHandler) {
         this.frontendInputHandler = frontendInputHandler
@@ -102,6 +106,7 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
 
     fun instantiateLayout(runtimeLayout: RuntimeInputLayoutConfiguration) {
         currentRuntimeLayout = runtimeLayout
+        gestureExclusionHelper.clearAll()
         instantiateLayout(runtimeLayout.layout)
         updateInputs()
         updateVisibility()
@@ -219,6 +224,7 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
             view.visibility = View.GONE
             baseAlpha = 0f
         }
+        updateScreenInputs()
     }
 
     private fun updateScreenInputs() {
@@ -227,10 +233,21 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
         } else {
             LayoutComponent.BOTTOM_SCREEN to LayoutComponent.TOP_SCREEN
         }
+        currentTouchScreenComponent = touchScreenComponent
         systemInputHandler?.let {
             getLayoutComponentView(touchScreenComponent)?.view?.setOnTouchListener(TouchscreenInputHandler(it))
         }
         getLayoutComponentView(nonTouchScreenComponent)?.view?.setOnTouchListener(null)
+
+        applyGestureExclusion(touchScreenComponent, nonTouchScreenComponent)
+    }
+
+    fun isTouchScreenVisible(): Boolean {
+        val view = getLayoutComponentView(currentTouchScreenComponent)?.view ?: return false
+        val params = view.layoutParams
+        val width = params?.width ?: view.width
+        val height = params?.height ?: view.height
+        return view.visibility == View.VISIBLE && width > 0 && height > 0
     }
 
     private fun updateVisibility() {
@@ -285,5 +302,44 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
                 getLayoutComponentView(component)?.view?.isVisible = true
             }
         }
+    }
+
+    fun setTouchScreenGestureExclusionEnabled(enabled: Boolean) {
+        if (isGestureExclusionEnabled == enabled) {
+            return
+        }
+        isGestureExclusionEnabled = enabled
+        updateScreenInputs()
+    }
+
+    fun destroyRuntimeLayout() {
+        gestureExclusionHelper.clearAll()
+        super.destroyLayout()
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        gestureExclusionHelper.clearAll()
+    }
+
+    private fun applyGestureExclusion(
+        touchScreenComponent: LayoutComponent,
+        nonTouchScreenComponent: LayoutComponent
+    ) {
+        if (isGestureExclusionEnabled) {
+            setGestureExclusionForComponent(touchScreenComponent, true)
+            setGestureExclusionForComponent(nonTouchScreenComponent, false)
+        } else {
+            setGestureExclusionForComponent(touchScreenComponent, false)
+            setGestureExclusionForComponent(nonTouchScreenComponent, false)
+        }
+    }
+
+    private fun setGestureExclusionForComponent(component: LayoutComponent, enabled: Boolean) {
+        if (!component.isScreen()) {
+            return
+        }
+        val view = getLayoutComponentView(component)?.view
+        gestureExclusionHelper.setGestureExclusion(view, enabled)
     }
 }
