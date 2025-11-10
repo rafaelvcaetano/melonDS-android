@@ -376,12 +376,12 @@
     <string name="aspect_ratio_16_9">16:9 (Widescreen)</string>
     <string name="aspect_ratio_unrestricted">Unrestricted</string>
     <string name="keep_ds_ratio">Keep DS aspect ratio</string>
-    <string name="dual_screen_presets">Dual screen presets</string>
+    <string name="dual_screen_presets">Presets</string>
     <string name="dual_screen_preset_off">Disabled (manual layout)</string>
-    <string name="dual_screen_preset_internal_top_external_bottom">Option 1: Internal top screen, external bottom screen</string>
-    <string name="dual_screen_preset_internal_bottom_external_top">Option 2: Internal bottom screen, external top screen</string>
-    <string name="dual_screen_integer_scale">Integer scale (easy mode)</string>
-    <string name="presets">Presets</string>
+    <string name="dual_screen_preset_internal_top_external_bottom">Internal: Top, External: Bottom</string>
+    <string name="dual_screen_preset_internal_bottom_external_top">Internal: Bottom, External: Top</string>
+    <string name="dual_screen_integer_scale">Integer scale (Only for Presets)</string>
+    <string name="presets">Dual Screen Presets</string>
     <string name="layout_editing_disabled_by_presets">Layouts can not be edited while a dual screen preset is active.</string>
     <string name="above_other_screen">Above other screen</string>
     <string name="center_horizontal">Center horizontally</string>
