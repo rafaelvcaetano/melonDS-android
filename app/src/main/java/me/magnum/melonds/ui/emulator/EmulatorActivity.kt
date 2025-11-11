@@ -556,6 +556,13 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             }
         }
         lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.externalLayoutState.collect {
+                    presentation?.updateCustomLayout(it)
+                }
+            }
+        }
+        lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.runtimeRendererConfiguration.collectLatest {
                     mainScreenRenderer.updateRendererConfiguration(it)

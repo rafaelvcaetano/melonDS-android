@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.RectF
 import android.opengl.GLSurfaceView
 import android.view.Display
+import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.core.graphics.toColorInt
@@ -15,17 +16,26 @@ import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import me.magnum.melonds.domain.model.DsExternalScreen
+import me.magnum.melonds.domain.model.Point
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.ScreenAlignment
 import me.magnum.melonds.domain.model.consoleAspectRatio
 import me.magnum.melonds.domain.model.SCREEN_WIDTH
 import me.magnum.melonds.domain.model.SCREEN_HEIGHT
+import me.magnum.melonds.domain.model.layout.LayoutComponent
+import me.magnum.melonds.domain.model.layout.ScreenFold
+import me.magnum.melonds.domain.model.layout.UILayout
+import me.magnum.melonds.domain.model.layout.UILayoutVariant
+import me.magnum.melonds.domain.model.ui.Orientation
+import me.magnum.melonds.impl.DefaultLayoutProvider
+import me.magnum.melonds.impl.ScreenUnitsConverter
 import me.magnum.melonds.ui.emulator.DSRenderer
 import me.magnum.melonds.ui.emulator.EmulatorSurfaceView
 import me.magnum.melonds.ui.emulator.input.ExternalTouchscreenInputHandler
 import me.magnum.melonds.ui.emulator.input.IInputListener
 import me.magnum.melonds.ui.emulator.model.ExternalDisplayConfiguration
+import me.magnum.melonds.ui.emulator.model.ExternalLayoutState
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
 import me.magnum.melonds.ui.common.SystemGestureExclusionHelper
 import kotlin.math.min
@@ -67,6 +77,10 @@ class ExternalPresentation(
     private var currentExternalDisplayConfiguration: ExternalDisplayConfiguration? = null
     private val gestureExclusionHelper = SystemGestureExclusionHelper()
     private var isGestureHost = false
+    private var currentCustomLayoutState: ExternalLayoutState? = null
+    private var customLayoutRenderer: ExternalLayoutRender? = null
+    private var currentScreensSwapped = false
+    private val defaultLayoutProvider = DefaultLayoutProvider(ScreenUnitsConverter(context))
 
     init {
         window?.setFlags(
@@ -127,6 +141,7 @@ class ExternalPresentation(
     }
 
     private fun showDsScreen(screen: DsExternalScreen) {
+        customLayoutRenderer = null
         val renderer = ExternalScreenRender(
             screen = screen,
             rotateLeft = currentExternalDisplayConfiguration?.rotateLeft ?: false,
@@ -151,22 +166,22 @@ class ExternalPresentation(
         gestureExclusionHelper.setGestureExclusion(view, isBottomScreen)
     }
 
-    private fun showCustomLayout(
-        topRect: Rect?,
-        bottomRect: Rect?,
-        topAlpha: Float,
-        bottomAlpha: Float,
-        topOnTop: Boolean,
-        bottomOnTop: Boolean,
-    ): EmulatorRenderer {
-        val renderer = DSRenderer(context).apply {
-            updateScreenAreas(topRect, bottomRect, topAlpha, bottomAlpha, topOnTop, bottomOnTop)
-            currentBackground?.let {
-                setBackground(it)
-            }
-        }
-
+    private fun createCustomLayoutRenderer(): ExternalLayoutRender {
+        val renderer = ExternalLayoutRender(
+            context = context,
+            topScreen = null,
+            bottomScreen = null,
+            layoutWidth = 1,
+            layoutHeight = 1,
+            topAlpha = 1f,
+            bottomAlpha = 1f,
+            topOnTop = false,
+            bottomOnTop = false,
+            background = currentBackground ?: RuntimeBackground.None,
+            rotateLeft = currentExternalDisplayConfiguration?.rotateLeft ?: false,
+        )
         emulatorRenderer = renderer
+        customLayoutRenderer = renderer
         val view = createSurfaceView(renderer)
         attachView(view)
         return renderer
@@ -175,6 +190,114 @@ class ExternalPresentation(
     fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
         currentRendererConfiguration = newRendererConfiguration
         surfaceView?.updateRendererConfiguration(newRendererConfiguration)
+    }
+
+    private fun applyCustomLayoutState(state: ExternalLayoutState) {
+        val renderer = customLayoutRenderer ?: createCustomLayoutRenderer()
+        val topState = if (currentScreensSwapped) state.bottomScreen else state.topScreen
+        val bottomState = if (currentScreensSwapped) state.topScreen else state.bottomScreen
+
+        renderer.updateLayout(
+            topState?.rect,
+            bottomState?.rect,
+            state.layoutWidth,
+            state.layoutHeight,
+            topState?.alpha ?: 0f,
+            bottomState?.alpha ?: 0f,
+            topState?.onTop ?: false,
+            bottomState?.onTop ?: false,
+        )
+        updateCustomTouchHandler(renderer, bottomState != null)
+    }
+
+    private fun updateCustomTouchHandler(renderer: ExternalLayoutRender, hasBottomScreen: Boolean) {
+        val view = surfaceView ?: return
+        if (hasBottomScreen) {
+            val viewportProvider = {
+                renderer.getBottomViewport(view.width, view.height)
+            }
+            view.setOnTouchListener(ExternalTouchscreenInputHandler(inputListener, viewportProvider))
+        } else {
+            view.setOnTouchListener(null)
+        }
+        applyGestureExclusion()
+    }
+
+    private fun applyDefaultLayoutOrDefer() {
+        val renderer = customLayoutRenderer ?: createCustomLayoutRenderer()
+        if (!applyDefaultLayout(renderer)) {
+            val view = surfaceView ?: return
+            val listener = object : View.OnLayoutChangeListener {
+                override fun onLayoutChange(
+                    v: View?,
+                    left: Int,
+                    top: Int,
+                    right: Int,
+                    bottom: Int,
+                    oldLeft: Int,
+                    oldTop: Int,
+                    oldRight: Int,
+                    oldBottom: Int,
+                ) {
+                    if (applyDefaultLayout(renderer)) {
+                        v?.removeOnLayoutChangeListener(this)
+                    }
+                }
+            }
+            view.addOnLayoutChangeListener(listener)
+        }
+    }
+
+    private fun applyDefaultLayout(renderer: ExternalLayoutRender): Boolean {
+        val view = surfaceView ?: return false
+        val width = view.width.takeIf { it > 0 } ?: container.width.takeIf { it > 0 } ?: return false
+        val height = view.height.takeIf { it > 0 } ?: container.height.takeIf { it > 0 } ?: return false
+        val defaultState = buildDefaultLayoutState(width, height) ?: return false
+        renderer.updateLayout(
+            top = defaultState.topScreen?.rect,
+            bottom = defaultState.bottomScreen?.rect,
+            width = defaultState.layoutWidth,
+            height = defaultState.layoutHeight,
+            topA = defaultState.topScreen?.alpha ?: 0f,
+            bottomA = defaultState.bottomScreen?.alpha ?: 0f,
+            topOnT = defaultState.topScreen?.onTop ?: false,
+            bottomOnT = defaultState.bottomScreen?.onTop ?: false,
+        )
+        updateCustomTouchHandler(renderer, defaultState.bottomScreen != null)
+        return true
+    }
+
+    private fun buildDefaultLayoutState(width: Int, height: Int): ExternalLayoutState? {
+        if (width <= 0 || height <= 0) return null
+        val orientation = if (width >= height) Orientation.LANDSCAPE else Orientation.PORTRAIT
+        val layout = defaultLayoutProvider.buildDefaultLayout(width, height, orientation, emptyList<ScreenFold>())
+        return layoutToExternalState(layout, width, height)
+    }
+
+    private fun layoutToExternalState(layout: UILayout, width: Int, height: Int): ExternalLayoutState? {
+        val components = layout.components ?: return null
+        val top = components.firstOrNull { it.component == LayoutComponent.TOP_SCREEN }
+        val bottom = components.firstOrNull { it.component == LayoutComponent.BOTTOM_SCREEN }
+        if (top == null && bottom == null) {
+            return null
+        }
+        return ExternalLayoutState(
+            layoutWidth = width,
+            layoutHeight = height,
+            topScreen = top?.let { ExternalLayoutState.Screen(it.rect, it.alpha, it.onTop) },
+            bottomScreen = bottom?.let { ExternalLayoutState.Screen(it.rect, it.alpha, it.onTop) },
+        )
+    }
+
+    fun updateCustomLayout(state: ExternalLayoutState?) {
+        currentCustomLayoutState = state
+        if (currentExternalDisplayConfiguration?.displayMode == DsExternalScreen.CUSTOM) {
+            if (state == null) {
+                applyDefaultLayoutOrDefer()
+            } else {
+                applyCustomLayoutState(state)
+            }
+        }
     }
 
     fun updateExternalDisplayConfiguration(newExternalDisplayConfiguration: ExternalDisplayConfiguration, areScreensSwapped: Boolean) {
@@ -187,14 +310,25 @@ class ExternalPresentation(
         }
 
         currentExternalDisplayConfiguration = newExternalDisplayConfiguration.copy(displayMode = newDisplayMode)
+        currentScreensSwapped = areScreensSwapped
 
         if (oldDisplayMode != newDisplayMode) {
+            if (newDisplayMode != DsExternalScreen.CUSTOM) {
+                customLayoutRenderer = null
+            }
             // When the display mode changes, a new renderer will be created, so we don't need to manually apply the new configuration since when creating the new renderer,
             // the new configuration will be used by default
             when (newDisplayMode) {
                 DsExternalScreen.TOP -> showDsScreen(DsExternalScreen.TOP)
                 DsExternalScreen.BOTTOM -> showDsScreen(DsExternalScreen.BOTTOM)
-                DsExternalScreen.CUSTOM -> { /* showCustomLayout() */ }
+                DsExternalScreen.CUSTOM -> {
+                    val layoutState = currentCustomLayoutState
+                    if (layoutState != null) {
+                        applyCustomLayoutState(layoutState)
+                    } else {
+                        applyDefaultLayoutOrDefer()
+                    }
+                }
             }
         } else {
             if (currentExternalDisplayConfiguration?.displayMode == DsExternalScreen.BOTTOM) {
@@ -204,15 +338,30 @@ class ExternalPresentation(
                 }
                 surfaceView?.setOnTouchListener(ExternalTouchscreenInputHandler(inputListener, provider))
             } else {
-                surfaceView?.setOnTouchListener(null)
+                if (currentExternalDisplayConfiguration?.displayMode != DsExternalScreen.CUSTOM) {
+                    surfaceView?.setOnTouchListener(null)
+                }
             }
             emulatorRenderer?.setLeftRotationEnabled(newExternalDisplayConfiguration.rotateLeft)
-            (emulatorRenderer as? ExternalScreenRender)?.apply {
-                setKeepAspectRatio(newExternalDisplayConfiguration.keepAspectRatio)
-                setIntegerScale(newExternalDisplayConfiguration.integerScale)
-                setVerticalAlignment(newExternalDisplayConfiguration.verticalAlignment)
-                setFillHeight(newExternalDisplayConfiguration.fillHeight)
-                setFillWidth(newExternalDisplayConfiguration.fillWidth)
+            when (val renderer = emulatorRenderer) {
+                is ExternalScreenRender -> {
+                    renderer.setKeepAspectRatio(newExternalDisplayConfiguration.keepAspectRatio)
+                    renderer.setIntegerScale(newExternalDisplayConfiguration.integerScale)
+                    renderer.setVerticalAlignment(newExternalDisplayConfiguration.verticalAlignment)
+                    renderer.setFillHeight(newExternalDisplayConfiguration.fillHeight)
+                    renderer.setFillWidth(newExternalDisplayConfiguration.fillWidth)
+                }
+                is ExternalLayoutRender -> {
+                    renderer.setLeftRotationEnabled(newExternalDisplayConfiguration.rotateLeft)
+                }
+            }
+            if (currentExternalDisplayConfiguration?.displayMode == DsExternalScreen.CUSTOM) {
+                val layoutState = currentCustomLayoutState
+                if (layoutState != null) {
+                    applyCustomLayoutState(layoutState)
+                } else {
+                    applyDefaultLayoutOrDefer()
+                }
             }
         }
         applyGestureExclusion()
@@ -228,12 +377,19 @@ class ExternalPresentation(
 
     fun updateBackground(background: RuntimeBackground) {
         currentBackground = background
-        (emulatorRenderer as? DSRenderer)?.setBackground(background)
+        when (val renderer = emulatorRenderer) {
+            is DSRenderer -> renderer.setBackground(background)
+            is ExternalLayoutRender -> renderer.setBackground(background)
+        }
     }
 
     private fun applyGestureExclusion() {
-        val isBottomDisplayed = currentExternalDisplayConfiguration?.displayMode == DsExternalScreen.BOTTOM
-        val enable = isGestureHost && isBottomDisplayed
+        val displayMode = currentExternalDisplayConfiguration?.displayMode
+        val enable = when (displayMode) {
+            DsExternalScreen.BOTTOM -> isGestureHost
+            DsExternalScreen.CUSTOM -> isGestureHost && (customLayoutRenderer?.hasBottomScreen() == true)
+            else -> false
+        }
         gestureExclusionHelper.setGestureExclusion(surfaceView, enable)
     }
 

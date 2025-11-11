@@ -48,12 +48,17 @@ import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.domain.model.ScreenAlignment
+import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.emulator.EmulatorSessionUpdateAction
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
 import me.magnum.melonds.domain.model.layout.BackgroundMode
+import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.layout.LayoutConfiguration
+import me.magnum.melonds.domain.model.layout.PositionedLayoutComponent
 import me.magnum.melonds.domain.model.layout.ScreenFold
+import me.magnum.melonds.domain.model.layout.UILayout
+import me.magnum.melonds.domain.model.layout.UILayoutVariant
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
@@ -73,6 +78,7 @@ import me.magnum.melonds.ui.emulator.firmware.FirmwarePauseMenuOption
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
 import me.magnum.melonds.ui.emulator.model.ExternalDisplayConfiguration
+import me.magnum.melonds.ui.emulator.model.ExternalLayoutState
 import me.magnum.melonds.ui.emulator.model.LaunchArgs
 import me.magnum.melonds.ui.emulator.model.PauseMenu
 import me.magnum.melonds.ui.emulator.model.RAIntegrationEvent
@@ -151,6 +157,8 @@ class EmulatorViewModel @Inject constructor(
 
     private val _externalBackground = MutableStateFlow(RuntimeBackground.None)
     val externalBackground = _externalBackground.asStateFlow()
+    private val _externalLayoutState = MutableStateFlow<ExternalLayoutState?>(null)
+    val externalLayoutState = _externalLayoutState.asStateFlow()
 
     private val _achievementTriggeredEvent = MutableSharedFlow<RAAchievement>(extraBufferCapacity = 5, onBufferOverflow = BufferOverflow.SUSPEND)
     val achievementTriggeredEvent = _achievementTriggeredEvent.asSharedFlow()
@@ -716,13 +724,13 @@ class EmulatorViewModel @Inject constructor(
         }
 
         sessionCoroutineScope.launch {
-            layoutFlow
-                .map { layout ->
-                    val entry = layout.layoutVariants.entries.firstOrNull()
-                    entry?.let { loadBackground(it.value.backgroundId, it.value.backgroundMode) }
-                        ?: RuntimeBackground.None
-                }
-                .collect(_externalBackground)
+            layoutFlow.collect { layout ->
+                val entry = layout.layoutVariants.entries.firstOrNull()
+                val background = entry?.let { loadBackground(it.value.backgroundId, it.value.backgroundMode) }
+                    ?: RuntimeBackground.None
+                _externalBackground.value = background
+                _externalLayoutState.value = entry?.let { buildExternalLayoutState(it.key, it.value) }
+            }
         }
     }
 
@@ -817,6 +825,30 @@ class EmulatorViewModel @Inject constructor(
         return rxMaybe {
             romsRepository.getRomAtPath(path)
         }
+    }
+
+    private fun buildExternalLayoutState(variant: UILayoutVariant, layout: UILayout): ExternalLayoutState? {
+        val layoutWidth = variant.uiSize.x.coerceAtLeast(1)
+        val layoutHeight = variant.uiSize.y.coerceAtLeast(1)
+        val components = layout.components ?: return null
+
+        val top = components.firstOrNull { it.component == LayoutComponent.TOP_SCREEN }
+        val bottom = components.firstOrNull { it.component == LayoutComponent.BOTTOM_SCREEN }
+
+        if (top == null && bottom == null) {
+            return null
+        }
+
+        return ExternalLayoutState(
+            layoutWidth = layoutWidth,
+            layoutHeight = layoutHeight,
+            topScreen = top?.toExternalScreenState(),
+            bottomScreen = bottom?.toExternalScreenState(),
+        )
+    }
+
+    private fun PositionedLayoutComponent.toExternalScreenState(): ExternalLayoutState.Screen {
+        return ExternalLayoutState.Screen(rect, alpha, onTop)
     }
 
     private fun getRomAtUri(uri: Uri): Maybe<Rom> {

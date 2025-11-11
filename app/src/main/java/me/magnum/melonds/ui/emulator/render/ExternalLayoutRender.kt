@@ -2,6 +2,7 @@ package me.magnum.melonds.ui.emulator.render
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.graphics.RectF
 import android.opengl.GLES30
 import android.opengl.GLES31
 import android.opengl.GLSurfaceView
@@ -21,6 +22,8 @@ import me.magnum.melonds.utils.BitmapUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Renders the emulator's top and bottom screens onto a [GLSurfaceView]
@@ -53,7 +56,7 @@ class ExternalLayoutRender(
     private var topOnTop: Boolean = false,
     private var bottomOnTop: Boolean = false,
     private var background: RuntimeBackground = RuntimeBackground.None,
-    private val rotateLeft: Boolean,
+    private var rotateLeft: Boolean,
 ) : EmulatorRenderer {
 
     companion object {
@@ -121,19 +124,17 @@ class ExternalLayoutRender(
         }
     }
 
+    fun hasBottomScreen(): Boolean {
+        return bottomScreen != null
+    }
+
+    fun getBottomViewport(viewWidth: Int, viewHeight: Int): RectF? {
+        val rect = bottomScreen ?: return null
+        return computeViewport(rect, viewWidth, viewHeight)
+    }
+
     private fun rectToBuffer(rect: Rect): FloatBuffer {
-        val left = rect.x / layoutWidth.toFloat() * 2f - 1f
-        val right = (rect.x + rect.width) / layoutWidth.toFloat() * 2f - 1f
-        val top = 1f - rect.y / layoutHeight.toFloat() * 2f
-        val bottom = 1f - (rect.y + rect.height) / layoutHeight.toFloat() * 2f
-        val coords = floatArrayOf(
-            left, bottom,
-            left, top,
-            right, top,
-            left, bottom,
-            right, top,
-            right, bottom,
-        )
+        val coords = rectToClipCoords(rect)
 
         if (rotateLeft) {
             RdsRotation.rotateLeft(coords)
@@ -143,6 +144,51 @@ class ExternalLayoutRender(
             .order(ByteOrder.nativeOrder())
             .asFloatBuffer()
             .put(coords)
+    }
+
+    private fun rectToClipCoords(rect: Rect): FloatArray {
+        val width = layoutWidth.takeIf { it > 0 } ?: 1
+        val height = layoutHeight.takeIf { it > 0 } ?: 1
+        val left = rect.x / width.toFloat() * 2f - 1f
+        val right = (rect.x + rect.width) / width.toFloat() * 2f - 1f
+        val top = 1f - rect.y / height.toFloat() * 2f
+        val bottom = 1f - (rect.y + rect.height) / height.toFloat() * 2f
+        return floatArrayOf(
+            left, bottom,
+            left, top,
+            right, top,
+            left, bottom,
+            right, top,
+            right, bottom,
+        )
+    }
+
+    private fun computeViewport(rect: Rect, viewWidth: Int, viewHeight: Int): RectF? {
+        if (viewWidth <= 0 || viewHeight <= 0) {
+            return null
+        }
+        val coords = rectToClipCoords(rect)
+        if (rotateLeft) {
+            RdsRotation.rotateLeft(coords)
+        }
+        var minX = Float.POSITIVE_INFINITY
+        var maxX = Float.NEGATIVE_INFINITY
+        var minY = Float.POSITIVE_INFINITY
+        var maxY = Float.NEGATIVE_INFINITY
+        for (i in coords.indices step 2) {
+            val clipX = coords[i]
+            val clipY = coords[i + 1]
+            val px = ((clipX + 1f) * 0.5f) * viewWidth
+            val py = ((1f - clipY) * 0.5f) * viewHeight
+            minX = min(minX, px)
+            maxX = max(maxX, px)
+            minY = min(minY, py)
+            maxY = max(maxY, py)
+        }
+        if (!minX.isFinite() || !minY.isFinite() || !maxX.isFinite() || !maxY.isFinite()) {
+            return null
+        }
+        return RectF(minX, minY, maxX, maxY)
     }
 
     private fun updateBuffers() {
@@ -185,6 +231,14 @@ class ExternalLayoutRender(
     }
 
     override fun setLeftRotationEnabled(enabled: Boolean) {
+        if (rotateLeft == enabled) {
+            return
+        }
+        rotateLeft = enabled
+        updateBuffers()
+        synchronized(backgroundLock) {
+            isBackgroundPositionDirty = true
+        }
     }
 
     override fun onSurfaceCreated() {
