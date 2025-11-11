@@ -47,12 +47,13 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
     private var frontendInputHandler: IInputListener? = null
     private var systemInputHandler: IInputListener? = null
     private var isSoftInputVisible = true
-    private var areScreensSwapped = false
+    private var manualScreensSwapped = false
     private var connectedControllersState: ConnectedControllersState = ConnectedControllersState.NoControllers
     private var easyModeConfiguration: EasyModeConfiguration? = null
     private val gestureExclusionHelper = SystemGestureExclusionHelper()
     private var isGestureExclusionEnabled = true
     private var currentTouchScreenComponent: LayoutComponent = LayoutComponent.BOTTOM_SCREEN
+    private var isEasyModeSwapped = false
 
     fun setFrontendInputHandler(frontendInputHandler: FrontendInputHandler) {
         this.frontendInputHandler = frontendInputHandler
@@ -73,6 +74,7 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
         if (easyModeConfiguration == configuration) {
             return
         }
+        isEasyModeSwapped = false
         easyModeConfiguration = configuration
         if (configuration == null) {
             currentRuntimeLayout?.let { instantiateLayout(it) }
@@ -88,15 +90,20 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
     }
 
     fun swapScreens() {
+        manualScreensSwapped = !manualScreensSwapped
         if (easyModeConfiguration != null) {
-            return
+            isEasyModeSwapped = !isEasyModeSwapped
+            applyEasyModeConfiguration()
         }
-        areScreensSwapped = !areScreensSwapped
         updateScreenInputs()
     }
 
     fun areScreensSwapped(): Boolean {
-        return areScreensSwapped
+        return manualScreensSwapped
+    }
+
+    fun shouldRendererSwapScreens(): Boolean {
+        return easyModeConfiguration == null && manualScreensSwapped
     }
 
     fun setLayoutComponentToggleState(layoutComponent: LayoutComponent, isEnabled: Boolean) {
@@ -170,13 +177,23 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
             return
         }
 
-        val targetView = getLayoutComponentView(configuration.screenComponent) ?: return
         val otherComponent = if (configuration.screenComponent == LayoutComponent.TOP_SCREEN) {
             LayoutComponent.BOTTOM_SCREEN
         } else {
             LayoutComponent.TOP_SCREEN
         }
-        val otherView = getLayoutComponentView(otherComponent)
+        val displayComponent: LayoutComponent
+        val hiddenComponent: LayoutComponent
+        if (isEasyModeSwapped) {
+            displayComponent = otherComponent
+            hiddenComponent = configuration.screenComponent
+        } else {
+            displayComponent = configuration.screenComponent
+            hiddenComponent = otherComponent
+        }
+
+        val targetView = getLayoutComponentView(displayComponent) ?: return
+        val otherView = getLayoutComponentView(hiddenComponent)
 
         val (scaledWidth, scaledHeight) = when {
             configuration.integerScale -> {
@@ -228,7 +245,7 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
     }
 
     private fun updateScreenInputs() {
-        val (touchScreenComponent, nonTouchScreenComponent) = if (areScreensSwapped) {
+        val (touchScreenComponent, nonTouchScreenComponent) = if (shouldRendererSwapScreens()) {
             LayoutComponent.TOP_SCREEN to LayoutComponent.BOTTOM_SCREEN
         } else {
             LayoutComponent.BOTTOM_SCREEN to LayoutComponent.TOP_SCREEN

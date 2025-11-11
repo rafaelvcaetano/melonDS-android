@@ -907,7 +907,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     }
 
     private fun updateRendererScreenAreas() {
-        val (topScreen, bottomScreen) = if (binding.viewLayoutControls.areScreensSwapped()) {
+        val (topScreen, bottomScreen) = if (binding.viewLayoutControls.shouldRendererSwapScreens()) {
             LayoutComponent.BOTTOM_SCREEN to LayoutComponent.TOP_SCREEN
         } else {
             LayoutComponent.TOP_SCREEN to LayoutComponent.BOTTOM_SCREEN
