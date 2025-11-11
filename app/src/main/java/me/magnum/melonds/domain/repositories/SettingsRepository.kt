@@ -54,6 +54,10 @@ interface SettingsRepository {
     fun observeDualScreenExternalFillHeightEnabled(): Flow<Boolean>
     fun isDualScreenExternalFillWidthEnabled(): Boolean
     fun observeDualScreenExternalFillWidthEnabled(): Flow<Boolean>
+    fun getDualScreenInternalVerticalAlignmentOverride(): ScreenAlignment?
+    fun observeDualScreenInternalVerticalAlignmentOverride(): Flow<ScreenAlignment?>
+    fun getDualScreenExternalVerticalAlignmentOverride(): ScreenAlignment?
+    fun observeDualScreenExternalVerticalAlignmentOverride(): Flow<ScreenAlignment?>
     fun getDSiCameraSource(): DSiCameraSourceType
     fun getDSiCameraStaticImage(): Uri?
 
@@ -109,6 +113,8 @@ interface SettingsRepository {
     fun setDualScreenInternalFillWidthEnabled(enabled: Boolean)
     fun setDualScreenExternalFillHeightEnabled(enabled: Boolean)
     fun setDualScreenExternalFillWidthEnabled(enabled: Boolean)
+    fun setDualScreenInternalVerticalAlignmentOverride(alignment: ScreenAlignment?)
+    fun setDualScreenExternalVerticalAlignmentOverride(alignment: ScreenAlignment?)
 
     fun observeRenderConfiguration(): Flow<RendererConfiguration>
 }

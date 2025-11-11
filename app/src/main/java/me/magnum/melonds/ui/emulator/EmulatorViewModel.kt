@@ -48,6 +48,8 @@ import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.domain.model.ScreenAlignment
+import me.magnum.melonds.domain.model.defaultExternalAlignment
+import me.magnum.melonds.domain.model.defaultInternalAlignment
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.emulator.EmulatorSessionUpdateAction
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
@@ -151,6 +153,10 @@ class EmulatorViewModel @Inject constructor(
     val dualScreenExternalFillHeightEnabled = _dualScreenExternalFillHeightEnabled.asStateFlow()
     private val _dualScreenExternalFillWidthEnabled = MutableStateFlow(settingsRepository.isDualScreenExternalFillWidthEnabled())
     val dualScreenExternalFillWidthEnabled = _dualScreenExternalFillWidthEnabled.asStateFlow()
+    private val _dualScreenInternalVerticalAlignmentOverride = MutableStateFlow(settingsRepository.getDualScreenInternalVerticalAlignmentOverride())
+    val dualScreenInternalVerticalAlignmentOverride = _dualScreenInternalVerticalAlignmentOverride.asStateFlow()
+    private val _dualScreenExternalVerticalAlignmentOverride = MutableStateFlow(settingsRepository.getDualScreenExternalVerticalAlignmentOverride())
+    val dualScreenExternalVerticalAlignmentOverride = _dualScreenExternalVerticalAlignmentOverride.asStateFlow()
 
     private val _background = MutableStateFlow(RuntimeBackground.None)
     val background = _background.asStateFlow()
@@ -200,6 +206,12 @@ class EmulatorViewModel @Inject constructor(
         }
         viewModelScope.launch {
             settingsRepository.observeDualScreenExternalFillWidthEnabled().collect(_dualScreenExternalFillWidthEnabled)
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenInternalVerticalAlignmentOverride().collect(_dualScreenInternalVerticalAlignmentOverride)
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenExternalVerticalAlignmentOverride().collect(_dualScreenExternalVerticalAlignmentOverride)
         }
         viewModelScope.launch {
             settingsRepository.observeExternalDisplayKeepAspectRationEnabled().collect {
@@ -610,11 +622,7 @@ class EmulatorViewModel @Inject constructor(
                 _dualScreenPreset,
                 _dualScreenIntegerScaleEnabled,
             ) { displayMode, rotateLeft, keepAspectRatio, preset, integerScale ->
-                val alignment = when (preset) {
-                    DualScreenPreset.INTERNAL_TOP_EXTERNAL_BOTTOM -> ScreenAlignment.TOP
-                    DualScreenPreset.INTERNAL_BOTTOM_EXTERNAL_TOP -> ScreenAlignment.BOTTOM
-                    DualScreenPreset.OFF -> ScreenAlignment.TOP
-                }
+                val alignment = preset.defaultExternalAlignment()
                 val presetEnabled = preset != DualScreenPreset.OFF
                 val effectiveIntegerScale = integerScale && presetEnabled
                 val fillAvailable = presetEnabled && (effectiveIntegerScale || keepAspectRatio)
@@ -626,6 +634,11 @@ class EmulatorViewModel @Inject constructor(
                     integerScale = effectiveIntegerScale,
                     verticalAlignment = alignment,
                 ) to fillAvailable
+            }.combine(_dualScreenExternalVerticalAlignmentOverride) { (configuration, fillAvailable), alignmentOverride ->
+                val updatedConfig = configuration.copy(
+                    verticalAlignment = alignmentOverride ?: configuration.verticalAlignment,
+                )
+                updatedConfig to fillAvailable
             }.combine(_dualScreenExternalFillHeightEnabled) { (configuration, fillAvailable), externalFillHeight ->
                 configuration.copy(
                     fillHeight = fillAvailable && externalFillHeight,
@@ -914,6 +927,16 @@ class EmulatorViewModel @Inject constructor(
     fun setDualScreenExternalFillWidthEnabled(enabled: Boolean) {
         _dualScreenExternalFillWidthEnabled.value = enabled
         settingsRepository.setDualScreenExternalFillWidthEnabled(enabled)
+    }
+
+    fun setDualScreenInternalVerticalAlignmentOverride(alignment: ScreenAlignment?) {
+        _dualScreenInternalVerticalAlignmentOverride.value = alignment
+        settingsRepository.setDualScreenInternalVerticalAlignmentOverride(alignment)
+    }
+
+    fun setDualScreenExternalVerticalAlignmentOverride(alignment: ScreenAlignment?) {
+        _dualScreenExternalVerticalAlignmentOverride.value = alignment
+        settingsRepository.setDualScreenExternalVerticalAlignmentOverride(alignment)
     }
 
     private suspend fun getRomEnabledCheats(romInfo: RomInfo): List<Cheat> {

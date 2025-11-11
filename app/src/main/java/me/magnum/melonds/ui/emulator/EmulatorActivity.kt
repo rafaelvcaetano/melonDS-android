@@ -80,6 +80,7 @@ import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.layout.ScreenFold
 import me.magnum.melonds.domain.model.ScreenAlignment
+import me.magnum.melonds.domain.model.defaultInternalAlignment
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.extensions.insetsControllerCompat
@@ -129,6 +130,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         val keepAspectRatio: Boolean,
         val fillHeight: Boolean,
         val fillWidth: Boolean,
+        val internalAlignmentOverride: ScreenAlignment? = null,
     )
     companion object {
         const val KEY_ROM = "rom"
@@ -445,6 +447,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 val internalFillWidth by viewModel.dualScreenInternalFillWidthEnabled.collectAsState()
                 val externalFillHeight by viewModel.dualScreenExternalFillHeightEnabled.collectAsState()
                 val externalFillWidth by viewModel.dualScreenExternalFillWidthEnabled.collectAsState()
+                val internalVerticalAlignmentOverride by viewModel.dualScreenInternalVerticalAlignmentOverride.collectAsState()
+                val externalVerticalAlignmentOverride by viewModel.dualScreenExternalVerticalAlignmentOverride.collectAsState()
 
                 if (showQuickSettings.value) {
                     QuickSettingsDialog(
@@ -500,6 +504,14 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                         externalFillWidth = externalFillWidth,
                         onExternalFillWidthChanged = { enabled ->
                             viewModel.setDualScreenExternalFillWidthEnabled(enabled)
+                        },
+                        internalVerticalAlignmentOverride = internalVerticalAlignmentOverride,
+                        onInternalVerticalAlignmentOverrideChanged = { alignment ->
+                            viewModel.setDualScreenInternalVerticalAlignmentOverride(alignment)
+                        },
+                        externalVerticalAlignmentOverride = externalVerticalAlignmentOverride,
+                        onExternalVerticalAlignmentOverrideChanged = { alignment ->
+                            viewModel.setDualScreenExternalVerticalAlignmentOverride(alignment)
                         },
                         onDismiss = {
                             activeOverlays.removeActiveOverlay(EmulatorOverlay.PRESETS_DIALOG)
@@ -589,12 +601,14 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                     viewModel.dualScreenInternalFillWidthEnabled,
                 ) { preset, integerScale, keepAspect, fillHeight, fillWidth ->
                     DualScreenLayoutConfig(preset, integerScale, keepAspect, fillHeight, fillWidth)
-                }.collect { (preset, integerScale, keepAspect, fillHeight, fillWidth) ->
-                        val configuration = createEasyModeConfiguration(preset, integerScale, keepAspect, fillHeight, fillWidth)
-                        binding.viewLayoutControls.setEasyModeConfiguration(configuration)
-                        updateRendererScreenAreas()
-                        updateTouchGestureExclusionTargets()
-                    }
+                }.combine(viewModel.dualScreenInternalVerticalAlignmentOverride) { config, internalAlignmentOverride ->
+                    config.copy(internalAlignmentOverride = internalAlignmentOverride)
+                }.collect { (preset, integerScale, keepAspect, fillHeight, fillWidth, internalAlignmentOverride) ->
+                    val configuration = createEasyModeConfiguration(preset, integerScale, keepAspect, fillHeight, fillWidth, internalAlignmentOverride)
+                    binding.viewLayoutControls.setEasyModeConfiguration(configuration)
+                    updateRendererScreenAreas()
+                    updateTouchGestureExclusionTargets()
+                }
             }
         }
         lifecycleScope.launch {
@@ -976,6 +990,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             currentKeepAspectRatio(),
             viewModel.dualScreenInternalFillHeightEnabled.value,
             viewModel.dualScreenInternalFillWidthEnabled.value,
+            viewModel.dualScreenInternalVerticalAlignmentOverride.value,
         )
         binding.viewLayoutControls.setEasyModeConfiguration(configuration)
         updateRendererScreenAreas()
@@ -990,6 +1005,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             currentKeepAspectRatio(),
             viewModel.dualScreenInternalFillHeightEnabled.value,
             viewModel.dualScreenInternalFillWidthEnabled.value,
+            viewModel.dualScreenInternalVerticalAlignmentOverride.value,
         )
         if (configuration != null || preset == DualScreenPreset.OFF) {
             binding.viewLayoutControls.setEasyModeConfiguration(configuration)
@@ -1004,15 +1020,17 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         keepAspectRatio: Boolean,
         fillHeight: Boolean,
         fillWidth: Boolean,
+        internalAlignmentOverride: ScreenAlignment?,
     ): RuntimeLayoutView.EasyModeConfiguration? {
         val canFill = integerScale || keepAspectRatio
         val effectiveFillHeight = fillHeight && canFill
         val effectiveFillWidth = fillWidth && canFill
+        val alignment = internalAlignmentOverride ?: preset.defaultInternalAlignment()
         return when (preset) {
             DualScreenPreset.OFF -> null
             DualScreenPreset.INTERNAL_TOP_EXTERNAL_BOTTOM -> RuntimeLayoutView.EasyModeConfiguration(
                 LayoutComponent.TOP_SCREEN,
-                ScreenAlignment.BOTTOM,
+                alignment,
                 integerScale,
                 keepAspectRatio,
                 effectiveFillHeight,
@@ -1020,7 +1038,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             )
             DualScreenPreset.INTERNAL_BOTTOM_EXTERNAL_TOP -> RuntimeLayoutView.EasyModeConfiguration(
                 LayoutComponent.BOTTOM_SCREEN,
-                ScreenAlignment.TOP,
+                alignment,
                 integerScale,
                 keepAspectRatio,
                 effectiveFillHeight,

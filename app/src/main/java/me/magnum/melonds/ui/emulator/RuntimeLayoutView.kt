@@ -210,6 +210,7 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
         val left = ((availableWidth - scaledWidth) / 2f).roundToInt().coerceAtLeast(0)
         val top = when (configuration.alignment) {
             ScreenAlignment.TOP -> 0
+            ScreenAlignment.CENTER -> ((availableHeight - scaledHeight) / 2f).roundToInt().coerceAtLeast(0)
             ScreenAlignment.BOTTOM -> (availableHeight - scaledHeight).coerceAtLeast(0)
         }
 

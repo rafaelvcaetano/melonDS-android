@@ -170,6 +170,7 @@ class ExternalScreenRender(
         val leftMargin = ((actualWidth - targetWidth) / 2f).coerceAtLeast(0f)
         val topMargin = when (verticalAlignment) {
             ScreenAlignment.TOP -> 0f
+            ScreenAlignment.CENTER -> ((actualHeight - targetHeight) / 2f).coerceAtLeast(0f)
             ScreenAlignment.BOTTOM -> (actualHeight - targetHeight).toFloat().coerceAtLeast(0f)
         }
         val relativeWidth = targetWidth * 2f / actualWidth

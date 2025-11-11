@@ -2,4 +2,5 @@
 <resources>
     <bool name="lightNavigationBar">true</bool>
     <integer name="fragment_translate_duration">250</integer>
+    <dimen name="dual_screen_dialog_min_width">360dp</dimen>
 </resources>

@@ -46,6 +46,7 @@ import me.magnum.melonds.domain.model.MicSource
 import me.magnum.melonds.domain.model.RendererConfiguration
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.domain.model.SaveStateLocation
+import me.magnum.melonds.domain.model.ScreenAlignment
 import me.magnum.melonds.domain.model.SizeUnit
 import me.magnum.melonds.domain.model.SortingMode
 import me.magnum.melonds.domain.model.SortingOrder
@@ -83,6 +84,8 @@ class SharedPreferencesSettingsRepository(
         private const val KEY_DUAL_SCREEN_EXTERNAL_FILL = "dual_screen_external_fill_height"
         private const val KEY_DUAL_SCREEN_INTERNAL_FILL_WIDTH = "dual_screen_internal_fill_width"
         private const val KEY_DUAL_SCREEN_EXTERNAL_FILL_WIDTH = "dual_screen_external_fill_width"
+        private const val KEY_DUAL_SCREEN_INTERNAL_VERTICAL_ALIGNMENT = "dual_screen_internal_vertical_alignment"
+        private const val KEY_DUAL_SCREEN_EXTERNAL_VERTICAL_ALIGNMENT = "dual_screen_external_vertical_alignment"
     }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -459,6 +462,28 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
+    override fun getDualScreenInternalVerticalAlignmentOverride(): ScreenAlignment? {
+        val value = preferences.getString(KEY_DUAL_SCREEN_INTERNAL_VERTICAL_ALIGNMENT, null) ?: return null
+        return enumValueOfIgnoreCase<ScreenAlignment>(value)
+    }
+
+    override fun observeDualScreenInternalVerticalAlignmentOverride(): Flow<ScreenAlignment?> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_INTERNAL_VERTICAL_ALIGNMENT) {
+            getDualScreenInternalVerticalAlignmentOverride()
+        }
+    }
+
+    override fun getDualScreenExternalVerticalAlignmentOverride(): ScreenAlignment? {
+        val value = preferences.getString(KEY_DUAL_SCREEN_EXTERNAL_VERTICAL_ALIGNMENT, null) ?: return null
+        return enumValueOfIgnoreCase<ScreenAlignment>(value)
+    }
+
+    override fun observeDualScreenExternalVerticalAlignmentOverride(): Flow<ScreenAlignment?> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_EXTERNAL_VERTICAL_ALIGNMENT) {
+            getDualScreenExternalVerticalAlignmentOverride()
+        }
+    }
+
     override fun getDSiCameraSource(): DSiCameraSourceType {
         val dsiCameraSource = preferences.getString("dsi_camera_source", "physical_cameras")!!
         return DSiCameraSourceType.valueOf(dsiCameraSource.uppercase())
@@ -784,6 +809,26 @@ class SharedPreferencesSettingsRepository(
     override fun setDualScreenExternalFillWidthEnabled(enabled: Boolean) {
         preferences.edit {
             putBoolean(KEY_DUAL_SCREEN_EXTERNAL_FILL_WIDTH, enabled)
+        }
+    }
+
+    override fun setDualScreenInternalVerticalAlignmentOverride(alignment: ScreenAlignment?) {
+        preferences.edit {
+            if (alignment == null) {
+                remove(KEY_DUAL_SCREEN_INTERNAL_VERTICAL_ALIGNMENT)
+            } else {
+                putString(KEY_DUAL_SCREEN_INTERNAL_VERTICAL_ALIGNMENT, alignment.name.lowercase())
+            }
+        }
+    }
+
+    override fun setDualScreenExternalVerticalAlignmentOverride(alignment: ScreenAlignment?) {
+        preferences.edit {
+            if (alignment == null) {
+                remove(KEY_DUAL_SCREEN_EXTERNAL_VERTICAL_ALIGNMENT)
+            } else {
+                putString(KEY_DUAL_SCREEN_EXTERNAL_VERTICAL_ALIGNMENT, alignment.name.lowercase())
+            }
         }
     }
 

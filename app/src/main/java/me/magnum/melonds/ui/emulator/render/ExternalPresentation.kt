@@ -422,7 +422,11 @@ class ExternalPresentation(
 
         val offsetX = ((viewWidth - width) / 2f).coerceAtLeast(0f)
         val extraHeight = (viewHeight - height).coerceAtLeast(0)
-        val offsetY = if (config.verticalAlignment == ScreenAlignment.BOTTOM) extraHeight.toFloat() else 0f
+        val offsetY = when (config.verticalAlignment) {
+            ScreenAlignment.TOP -> 0f
+            ScreenAlignment.CENTER -> (extraHeight / 2f).coerceAtLeast(0f)
+            ScreenAlignment.BOTTOM -> extraHeight.toFloat()
+        }
 
         return RectF(
             offsetX,
