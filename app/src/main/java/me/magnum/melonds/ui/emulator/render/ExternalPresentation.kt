@@ -270,7 +270,7 @@ class ExternalPresentation(
     private fun buildDefaultLayoutState(width: Int, height: Int): ExternalLayoutState? {
         if (width <= 0 || height <= 0) return null
         val orientation = if (width >= height) Orientation.LANDSCAPE else Orientation.PORTRAIT
-        val layout = defaultLayoutProvider.buildDefaultLayout(width, height, orientation, emptyList<ScreenFold>())
+        val layout = defaultLayoutProvider.buildDefaultLayout(width, height, orientation, emptyList(), includeControls = false)
         return layoutToExternalState(layout, width, height)
     }
 

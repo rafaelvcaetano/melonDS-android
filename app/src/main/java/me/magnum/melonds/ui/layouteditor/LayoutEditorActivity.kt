@@ -31,9 +31,12 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ActivityLayoutEditorBinding
+import me.magnum.melonds.domain.model.Point
 import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
+import me.magnum.melonds.domain.model.layout.PositionedLayoutComponent
+import me.magnum.melonds.domain.model.layout.UILayout
 import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.model.layout.ScreenFold
 import me.magnum.melonds.extensions.insetsControllerCompat
@@ -41,6 +44,7 @@ import me.magnum.melonds.extensions.setBackgroundMode
 import me.magnum.melonds.extensions.setLayoutOrientation
 import me.magnum.melonds.impl.ScreenUnitsConverter
 import me.magnum.melonds.ui.common.TextInputDialog
+import me.magnum.melonds.ui.layouteditor.model.CurrentLayoutState
 import me.magnum.melonds.utils.getLayoutComponentName
 import kotlin.math.min
 import javax.inject.Inject
@@ -79,6 +83,11 @@ class LayoutEditorActivity : AppCompatActivity() {
     private var currentHeightScale = 0f
     private var selectedViewIsScreen = false
     private var selectedScreenComponent: LayoutComponent? = null
+    private var previewController: LayoutEditorPreviewController? = null
+    private var latestLayoutState: CurrentLayoutState? = null
+    private var currentPreviewLayout: UILayout? = null
+    private var currentLayoutSize: Point? = null
+    private var currentBackground: RuntimeBackground? = null
     private enum class ScreenAspectRatio {
         RATIO_4_3,
         RATIO_16_9,
@@ -100,6 +109,9 @@ class LayoutEditorActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         isExternalLayout = intent?.getBooleanExtra(KEY_IS_EXTERNAL, false) ?: false
+        if (isExternalLayout) {
+            previewController = LayoutEditorPreviewController(this, picasso)
+        }
 
         binding.textLayoutType.text = if (isExternalLayout) {
             getString(R.string.editing_external_layout)
@@ -167,6 +179,11 @@ class LayoutEditorActivity : AppCompatActivity() {
         binding.viewLayoutEditor.setOnViewDeselectedListener {
             storeLayoutChanges()
             hideScalingControls()
+        }
+        binding.viewLayoutEditor.setOnLayoutChangedListener { components, width, height ->
+            currentLayoutSize = Point(width, height)
+            currentPreviewLayout = copyPreviewLayout(components)
+            dispatchPreviewLayout()
         }
         binding.seekBarWidth.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -343,6 +360,10 @@ class LayoutEditorActivity : AppCompatActivity() {
             if (viewWidth != oldWith || viewHeight != oldHeight) {
                 storeLayoutChanges()
                 viewModel.setCurrentUiSize(viewWidth, viewHeight)
+                if (viewWidth > 0 && viewHeight > 0) {
+                    currentLayoutSize = Point(viewWidth, viewHeight)
+                    dispatchPreviewLayout()
+                }
             }
         }
 
@@ -352,15 +373,23 @@ class LayoutEditorActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.currentLayout.collect {
-                    if (it == null) {
-                        binding.viewLayoutEditor.destroyLayout()
+                viewModel.currentLayout.collect { currentLayoutState ->
+                    latestLayoutState = currentLayoutState
+                    currentPreviewLayout = currentLayoutState?.layout
+                    dispatchPreviewLayout()
+                    if (currentLayoutState == null) {
+                        binding.viewLayoutEditor.destroyEditorLayout()
                     } else {
                         Log.d("LayoutEditorActivity", "Instantiating layout. On main thread: ${mainLooper.isCurrentThread}")
                         handler.removeCallbacksAndMessages(null)
                         handler.post {
-                            binding.viewLayoutEditor.instantiateLayout(it.layout)
-                            setLayoutOrientation(it.orientation)
+                            binding.viewLayoutEditor.instantiateLayout(currentLayoutState.layout)
+                            setLayoutOrientation(currentLayoutState.orientation)
+                            binding.viewLayoutEditor.post {
+                                if (ensurePreviewStateFromEditor()) {
+                                    dispatchPreviewLayout()
+                                }
+                            }
                         }
                     }
                 }
@@ -368,10 +397,12 @@ class LayoutEditorActivity : AppCompatActivity() {
         }
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.background.collect {
-                    it?.let {
+                viewModel.background.collect { background ->
+                    currentBackground = background
+                    background?.let {
                         updateBackground(it)
                     }
+                    dispatchPreviewBackground()
                 }
             }
         }
@@ -395,6 +426,20 @@ class LayoutEditorActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (isExternalLayout) {
+            previewController?.start()
+            dispatchPreviewBackground()
+            dispatchPreviewLayout()
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        previewController?.stop()
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -439,6 +484,41 @@ class LayoutEditorActivity : AppCompatActivity() {
             it.hide(WindowInsetsCompat.Type.navigationBars())
             it.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
+    }
+
+    private fun dispatchPreviewLayout() {
+        if (!isExternalLayout) return
+        if (!ensurePreviewStateFromEditor()) {
+            return
+        }
+        previewController?.updateLayout(currentPreviewLayout, currentLayoutSize)
+    }
+
+    private fun dispatchPreviewBackground() {
+        if (!isExternalLayout) return
+        previewController?.updateBackground(currentBackground)
+    }
+
+    private fun ensurePreviewStateFromEditor(): Boolean {
+        if (currentPreviewLayout == null) {
+            val components = binding.viewLayoutEditor.buildCurrentLayout()
+            if (components.isNotEmpty()) {
+                currentPreviewLayout = copyPreviewLayout(components)
+            }
+        }
+        if (currentLayoutSize == null) {
+            val width = binding.viewLayoutEditor.width
+            val height = binding.viewLayoutEditor.height
+            if (width > 0 && height > 0) {
+                currentLayoutSize = Point(width, height)
+            }
+        }
+        return currentPreviewLayout != null && currentLayoutSize != null
+    }
+
+    private fun copyPreviewLayout(components: List<PositionedLayoutComponent>): UILayout {
+        val template = currentPreviewLayout ?: latestLayoutState?.layout ?: UILayout(components)
+        return template.copy(components = components)
     }
 
     private fun updateBackground(background: RuntimeBackground) {

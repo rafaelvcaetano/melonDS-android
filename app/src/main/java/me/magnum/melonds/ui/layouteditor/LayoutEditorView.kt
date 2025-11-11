@@ -38,6 +38,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
     private var selectedView: LayoutComponentView? = null
     private var selectedViewAnchor = Anchor.TOP_LEFT
     private var modifiedByUser = false
+    private var onLayoutChangedListener: ((List<PositionedLayoutComponent>, Int, Int) -> Unit)? = null
 
     init {
         super.setOnClickListener {
@@ -52,6 +53,19 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
     override fun instantiateLayout(layoutConfiguration: UILayout) {
         super.instantiateLayout(layoutConfiguration)
         modifiedByUser = false
+        notifyLayoutChanged()
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (w > 0 && h > 0 && (w != oldw || h != oldh)) {
+            notifyLayoutChanged()
+        }
+    }
+
+    fun destroyEditorLayout() {
+        super.destroyLayout()
+        notifyLayoutChanged()
     }
 
     fun setOnViewSelectedListener(listener: ViewSelectedListener) {
@@ -62,12 +76,17 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         onViewDeselectedListener = listener
     }
 
+    fun setOnLayoutChangedListener(listener: ((List<PositionedLayoutComponent>, Int, Int) -> Unit)?) {
+        onLayoutChangedListener = listener
+    }
+
     fun addLayoutComponent(component: LayoutComponent) {
         val componentBuilder = viewBuilderFactory.getLayoutComponentViewBuilder(component)
         val componentHeight = defaultComponentWidth / componentBuilder.getAspectRatio()
         val componentView = addPositionedLayoutComponent(PositionedLayoutComponent(Rect(0, 0, defaultComponentWidth, componentHeight.toInt()), component))
         views[component] = componentView
         modifiedByUser = true
+        notifyLayoutChanged()
     }
 
     fun isModifiedByUser(): Boolean {
@@ -194,6 +213,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         views.remove(currentlySelectedView.component)
         deselectCurrentView()
         modifiedByUser = true
+        notifyLayoutChanged()
     }
 
     private fun dragView(view: LayoutComponentView, offsetX: Float, offsetY: Float) {
@@ -202,6 +222,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         val finalY = min(max(currentPosition.y + offsetY, 0f), height - view.getHeight().toFloat())
         view.setPosition(Point(finalX.toInt(), finalY.toInt()))
         modifiedByUser = true
+        notifyLayoutChanged()
     }
 
     fun setSelectedViewAlpha(alpha: Float) {
@@ -209,6 +230,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
             it.baseAlpha = alpha
             it.setHighlighted(true)
             modifiedByUser = true
+            notifyLayoutChanged()
         }
     }
 
@@ -217,6 +239,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
             it.onTop = onTop
             rearrangeScreens()
             modifiedByUser = true
+            notifyLayoutChanged()
         }
     }
 
@@ -245,6 +268,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         val position = view.getPosition()
         view.setPosition(Point(centerX, position.y))
         modifiedByUser = true
+        notifyLayoutChanged()
     }
 
     fun centerSelectedViewVertically() {
@@ -253,6 +277,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         val position = view.getPosition()
         view.setPosition(Point(position.x, centerY))
         modifiedByUser = true
+        notifyLayoutChanged()
     }
 
     fun centerSelectedView() {
@@ -309,5 +334,14 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         }
         currentlySelectedView.setPositionAndSize(Point(viewX, viewY), newViewWidth, newViewHeight)
         modifiedByUser = true
+        notifyLayoutChanged()
+    }
+
+    private fun notifyLayoutChanged() {
+        if (width <= 0 || height <= 0) {
+            return
+        }
+        val currentLayout = buildCurrentLayout()
+        onLayoutChangedListener?.invoke(currentLayout, width, height)
     }
 }
