@@ -2,6 +2,7 @@ package me.magnum.melonds.ui.emulator.render
 
 import android.app.Presentation
 import android.content.Context
+import android.graphics.RectF
 import android.opengl.GLSurfaceView
 import android.view.Display
 import android.view.WindowManager
@@ -18,6 +19,8 @@ import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.ScreenAlignment
 import me.magnum.melonds.domain.model.consoleAspectRatio
+import me.magnum.melonds.domain.model.SCREEN_WIDTH
+import me.magnum.melonds.domain.model.SCREEN_HEIGHT
 import me.magnum.melonds.ui.emulator.DSRenderer
 import me.magnum.melonds.ui.emulator.EmulatorSurfaceView
 import me.magnum.melonds.ui.emulator.input.ExternalTouchscreenInputHandler
@@ -25,6 +28,7 @@ import me.magnum.melonds.ui.emulator.input.IInputListener
 import me.magnum.melonds.ui.emulator.model.ExternalDisplayConfiguration
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
 import me.magnum.melonds.ui.common.SystemGestureExclusionHelper
+import kotlin.math.min
 
 
 /**
@@ -133,12 +137,12 @@ class ExternalPresentation(
         val view = createSurfaceView(renderer)
         val isBottomScreen = screen == DsExternalScreen.BOTTOM
         if (isBottomScreen) {
-            val screenAspectRatio = if (currentExternalDisplayConfiguration?.keepAspectRatio == false) {
-                null
-            } else {
-                consoleAspectRatio
+            val viewportProvider = {
+                computeBottomScreenViewport(view.width, view.height)
             }
-            view.setOnTouchListener(ExternalTouchscreenInputHandler(inputListener, screenAspectRatio))
+            view.setOnTouchListener(ExternalTouchscreenInputHandler(inputListener, viewportProvider))
+        } else {
+            view.setOnTouchListener(null)
         }
         attachView(view)
         gestureExclusionHelper.setGestureExclusion(view, isBottomScreen)
@@ -190,13 +194,12 @@ class ExternalPresentation(
                 DsExternalScreen.CUSTOM -> { /* showCustomLayout() */ }
             }
         } else {
-            val screenAspectRatio = if (currentExternalDisplayConfiguration?.keepAspectRatio == false) {
-                null
-            } else {
-                consoleAspectRatio
-            }
             if (currentExternalDisplayConfiguration?.displayMode == DsExternalScreen.BOTTOM) {
-                surfaceView?.setOnTouchListener(ExternalTouchscreenInputHandler(inputListener, screenAspectRatio))
+                val provider = {
+                    val view = surfaceView
+                    if (view == null) null else computeBottomScreenViewport(view.width, view.height)
+                }
+                surfaceView?.setOnTouchListener(ExternalTouchscreenInputHandler(inputListener, provider))
             } else {
                 surfaceView?.setOnTouchListener(null)
             }
@@ -227,5 +230,73 @@ class ExternalPresentation(
         val isBottomDisplayed = currentExternalDisplayConfiguration?.displayMode == DsExternalScreen.BOTTOM
         val enable = isGestureHost && isBottomDisplayed
         gestureExclusionHelper.setGestureExclusion(surfaceView, enable)
+    }
+
+    private fun computeBottomScreenViewport(viewWidth: Int, viewHeight: Int): RectF? {
+        if (viewWidth <= 0 || viewHeight <= 0) {
+            return null
+        }
+        val config = currentExternalDisplayConfiguration ?: return null
+        if (config.displayMode != DsExternalScreen.BOTTOM || config.rotateLeft) {
+            // Rotation not supported for touch mapping. Fallback to full view.
+            return RectF(0f, 0f, viewWidth.toFloat(), viewHeight.toFloat())
+        }
+
+        val viewport = when {
+            config.integerScale -> computeIntegerScaleViewport(viewWidth, viewHeight, config.verticalAlignment)
+            config.keepAspectRatio -> computeAspectViewport(viewWidth, viewHeight, config.verticalAlignment)
+            else -> RectF(0f, 0f, viewWidth.toFloat(), viewHeight.toFloat())
+        }
+
+        return viewport
+    }
+
+    private fun computeIntegerScaleViewport(viewWidth: Int, viewHeight: Int, alignment: ScreenAlignment): RectF {
+        val widthScale = viewWidth / SCREEN_WIDTH
+        val heightScale = viewHeight / SCREEN_HEIGHT
+        val maxScale = min(widthScale, heightScale).coerceAtLeast(1)
+        val scaledWidth = SCREEN_WIDTH * maxScale
+        val scaledHeight = SCREEN_HEIGHT * maxScale
+        val offsetX = (viewWidth - scaledWidth) / 2f
+        val offsetY = when (alignment) {
+            ScreenAlignment.TOP -> 0f
+            ScreenAlignment.BOTTOM -> (viewHeight - scaledHeight).toFloat()
+        }
+        return RectF(
+            offsetX,
+            offsetY,
+            offsetX + scaledWidth,
+            offsetY + scaledHeight,
+        )
+    }
+
+    private fun computeAspectViewport(viewWidth: Int, viewHeight: Int, alignment: ScreenAlignment): RectF {
+        val viewRatio = viewWidth.toFloat() / viewHeight.toFloat()
+        val viewportWidth: Float
+        val viewportHeight: Float
+        val offsetX: Float
+        val offsetY: Float
+
+        if (viewRatio > consoleAspectRatio) {
+            viewportHeight = viewHeight.toFloat()
+            viewportWidth = viewportHeight * consoleAspectRatio
+            offsetX = (viewWidth - viewportWidth) / 2f
+            offsetY = 0f
+        } else {
+            viewportWidth = viewWidth.toFloat()
+            viewportHeight = viewportWidth / consoleAspectRatio
+            offsetX = 0f
+            offsetY = when (alignment) {
+                ScreenAlignment.TOP -> 0f
+                ScreenAlignment.BOTTOM -> viewHeight - viewportHeight
+            }
+        }
+
+        return RectF(
+            offsetX,
+            offsetY,
+            offsetX + viewportWidth,
+            offsetY + viewportHeight,
+        )
     }
 }

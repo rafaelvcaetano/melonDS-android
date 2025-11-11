@@ -4,13 +4,14 @@ import android.annotation.SuppressLint
 import android.view.MotionEvent
 import android.view.MotionEvent.PointerCoords
 import android.view.View
+import android.graphics.RectF
 import me.magnum.melonds.MelonEmulator.onScreenRelease
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.Point
 
 class ExternalTouchscreenInputHandler(
     inputListener: IInputListener,
-    private val screenAspectRatio: Float?,
+    private val viewportProvider: (() -> RectF?)? = null,
 ) : BaseInputHandler(inputListener) {
 
     private val touchPoint: Point = Point()
@@ -46,40 +47,18 @@ class ExternalTouchscreenInputHandler(
         avgX /= event.pointerCount
         avgY /= event.pointerCount
 
-        if (screenAspectRatio == null) {
-            // No aspect ratio. Image fills the entire view
-            touchPoint.x = (avgX / viewWidth * 256).toInt().coerceIn(0, 255)
-            touchPoint.y = (avgY / viewHeight * 192).toInt().coerceIn(0, 191)
-        } else {
-            // Aspect ratio is enforced. Compute letterboxed image area
-            val viewRatio = viewWidth.toFloat() / viewHeight.toFloat()
-
-            val screenWidth: Float
-            val screenHeight: Float
-            val offsetX: Float
-            val offsetY: Float
-
-            if (viewRatio > screenAspectRatio) {
-                // View is wider than screen
-                screenHeight = viewHeight.toFloat()
-                screenWidth = screenHeight * screenAspectRatio
-                offsetX = (viewWidth - screenWidth) / 2f
-                offsetY = 0f
-            } else {
-                // View is taller than screen
-                screenWidth = viewWidth.toFloat()
-                screenHeight = screenWidth / screenAspectRatio
-                offsetX = 0f
-                offsetY = (viewHeight - screenHeight) / 2f
-            }
-
-            // Convert touch to screen space
-            val screenX = ((avgX - offsetX) / screenWidth) * 256f
-            val screenY = ((avgY - offsetY) / screenHeight) * 192f
-
-            touchPoint.x = screenX.toInt().coerceIn(0, 255)
-            touchPoint.y = screenY.toInt().coerceIn(0, 191)
+        val viewport = viewportProvider?.invoke()
+        if (viewport == null || viewport.width() <= 0f || viewport.height() <= 0f) {
+            touchPoint.x = (avgX / viewWidth * 256f).toInt().coerceIn(0, 255)
+            touchPoint.y = (avgY / viewHeight * 192f).toInt().coerceIn(0, 191)
+            return touchPoint
         }
+
+        val clampedX = ((avgX - viewport.left) / viewport.width()) * 256f
+        val clampedY = ((avgY - viewport.top) / viewport.height()) * 192f
+
+        touchPoint.x = clampedX.toInt().coerceIn(0, 255)
+        touchPoint.y = clampedY.toInt().coerceIn(0, 191)
 
         return touchPoint
     }
