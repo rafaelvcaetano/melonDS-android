@@ -137,6 +137,14 @@ class EmulatorViewModel @Inject constructor(
 
     private val _dualScreenIntegerScaleEnabled = MutableStateFlow(settingsRepository.isDualScreenIntegerScaleEnabled())
     val dualScreenIntegerScaleEnabled = _dualScreenIntegerScaleEnabled.asStateFlow()
+    private val _dualScreenInternalFillHeightEnabled = MutableStateFlow(settingsRepository.isDualScreenInternalFillHeightEnabled())
+    val dualScreenInternalFillHeightEnabled = _dualScreenInternalFillHeightEnabled.asStateFlow()
+    private val _dualScreenInternalFillWidthEnabled = MutableStateFlow(settingsRepository.isDualScreenInternalFillWidthEnabled())
+    val dualScreenInternalFillWidthEnabled = _dualScreenInternalFillWidthEnabled.asStateFlow()
+    private val _dualScreenExternalFillHeightEnabled = MutableStateFlow(settingsRepository.isDualScreenExternalFillHeightEnabled())
+    val dualScreenExternalFillHeightEnabled = _dualScreenExternalFillHeightEnabled.asStateFlow()
+    private val _dualScreenExternalFillWidthEnabled = MutableStateFlow(settingsRepository.isDualScreenExternalFillWidthEnabled())
+    val dualScreenExternalFillWidthEnabled = _dualScreenExternalFillWidthEnabled.asStateFlow()
 
     private val _background = MutableStateFlow(RuntimeBackground.None)
     val background = _background.asStateFlow()
@@ -172,6 +180,18 @@ class EmulatorViewModel @Inject constructor(
         }
         viewModelScope.launch {
             settingsRepository.observeDualScreenIntegerScaleEnabled().collect(_dualScreenIntegerScaleEnabled)
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenInternalFillHeightEnabled().collect(_dualScreenInternalFillHeightEnabled)
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenInternalFillWidthEnabled().collect(_dualScreenInternalFillWidthEnabled)
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenExternalFillHeightEnabled().collect(_dualScreenExternalFillHeightEnabled)
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenExternalFillWidthEnabled().collect(_dualScreenExternalFillWidthEnabled)
         }
         viewModelScope.launch {
             settingsRepository.observeExternalDisplayKeepAspectRationEnabled().collect {
@@ -587,12 +607,24 @@ class EmulatorViewModel @Inject constructor(
                     DualScreenPreset.INTERNAL_BOTTOM_EXTERNAL_TOP -> ScreenAlignment.BOTTOM
                     DualScreenPreset.OFF -> ScreenAlignment.TOP
                 }
+                val presetEnabled = preset != DualScreenPreset.OFF
+                val effectiveIntegerScale = integerScale && presetEnabled
+                val fillAvailable = presetEnabled && (effectiveIntegerScale || keepAspectRatio)
+
                 ExternalDisplayConfiguration(
                     displayMode = displayMode,
                     rotateLeft = rotateLeft,
                     keepAspectRatio = keepAspectRatio,
-                    integerScale = integerScale && preset != DualScreenPreset.OFF,
+                    integerScale = effectiveIntegerScale,
                     verticalAlignment = alignment,
+                ) to fillAvailable
+            }.combine(_dualScreenExternalFillHeightEnabled) { (configuration, fillAvailable), externalFillHeight ->
+                configuration.copy(
+                    fillHeight = fillAvailable && externalFillHeight,
+                ) to fillAvailable
+            }.combine(_dualScreenExternalFillWidthEnabled) { (configuration, fillAvailable), externalFillWidth ->
+                configuration.copy(
+                    fillWidth = fillAvailable && externalFillWidth,
                 )
             }.collect(_externalDisplayConfiguration)
         }
@@ -830,6 +862,26 @@ class EmulatorViewModel @Inject constructor(
     fun setDualScreenIntegerScaleEnabled(enabled: Boolean) {
         _dualScreenIntegerScaleEnabled.value = enabled
         settingsRepository.setDualScreenIntegerScaleEnabled(enabled)
+    }
+
+    fun setDualScreenInternalFillHeightEnabled(enabled: Boolean) {
+        _dualScreenInternalFillHeightEnabled.value = enabled
+        settingsRepository.setDualScreenInternalFillHeightEnabled(enabled)
+    }
+
+    fun setDualScreenInternalFillWidthEnabled(enabled: Boolean) {
+        _dualScreenInternalFillWidthEnabled.value = enabled
+        settingsRepository.setDualScreenInternalFillWidthEnabled(enabled)
+    }
+
+    fun setDualScreenExternalFillHeightEnabled(enabled: Boolean) {
+        _dualScreenExternalFillHeightEnabled.value = enabled
+        settingsRepository.setDualScreenExternalFillHeightEnabled(enabled)
+    }
+
+    fun setDualScreenExternalFillWidthEnabled(enabled: Boolean) {
+        _dualScreenExternalFillWidthEnabled.value = enabled
+        settingsRepository.setDualScreenExternalFillWidthEnabled(enabled)
     }
 
     private suspend fun getRomEnabledCheats(romInfo: RomInfo): List<Cheat> {

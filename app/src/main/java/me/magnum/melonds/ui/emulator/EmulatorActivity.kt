@@ -123,6 +123,13 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
+    private data class DualScreenLayoutConfig(
+        val preset: DualScreenPreset,
+        val integerScale: Boolean,
+        val keepAspectRatio: Boolean,
+        val fillHeight: Boolean,
+        val fillWidth: Boolean,
+    )
     companion object {
         const val KEY_ROM = "rom"
         const val KEY_PATH = "PATH"
@@ -434,6 +441,10 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 val dualScreenPreset by viewModel.dualScreenPreset.collectAsState()
                 val dualScreenIntegerScaleEnabled by viewModel.dualScreenIntegerScaleEnabled.collectAsState()
                 val keepDsAspectRatio by viewModel.externalDisplayKeepAspectRatioEnabled.collectAsState()
+                val internalFillHeight by viewModel.dualScreenInternalFillHeightEnabled.collectAsState()
+                val internalFillWidth by viewModel.dualScreenInternalFillWidthEnabled.collectAsState()
+                val externalFillHeight by viewModel.dualScreenExternalFillHeightEnabled.collectAsState()
+                val externalFillWidth by viewModel.dualScreenExternalFillWidthEnabled.collectAsState()
 
                 if (showQuickSettings.value) {
                     QuickSettingsDialog(
@@ -473,6 +484,22 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                         onDualScreenIntegerScaleChanged = { enabled ->
                             viewModel.setDualScreenIntegerScaleEnabled(enabled)
                             applyDualScreenIntegerScale(enabled)
+                        },
+                        internalFillHeight = internalFillHeight,
+                        onInternalFillHeightChanged = { enabled ->
+                            viewModel.setDualScreenInternalFillHeightEnabled(enabled)
+                        },
+                        internalFillWidth = internalFillWidth,
+                        onInternalFillWidthChanged = { enabled ->
+                            viewModel.setDualScreenInternalFillWidthEnabled(enabled)
+                        },
+                        externalFillHeight = externalFillHeight,
+                        onExternalFillHeightChanged = { enabled ->
+                            viewModel.setDualScreenExternalFillHeightEnabled(enabled)
+                        },
+                        externalFillWidth = externalFillWidth,
+                        onExternalFillWidthChanged = { enabled ->
+                            viewModel.setDualScreenExternalFillWidthEnabled(enabled)
                         },
                         onDismiss = {
                             activeOverlays.removeActiveOverlay(EmulatorOverlay.PRESETS_DIALOG)
@@ -551,9 +578,12 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                     viewModel.dualScreenPreset,
                     viewModel.dualScreenIntegerScaleEnabled,
                     viewModel.externalDisplayKeepAspectRatioEnabled,
-                ) { preset, integerScale, keepAspect -> Triple(preset, integerScale, keepAspect) }
-                    .collect { (preset, integerScale, keepAspect) ->
-                        val configuration = createEasyModeConfiguration(preset, integerScale, keepAspect)
+                    viewModel.dualScreenInternalFillHeightEnabled,
+                    viewModel.dualScreenInternalFillWidthEnabled,
+                ) { preset, integerScale, keepAspect, fillHeight, fillWidth ->
+                    DualScreenLayoutConfig(preset, integerScale, keepAspect, fillHeight, fillWidth)
+                }.collect { (preset, integerScale, keepAspect, fillHeight, fillWidth) ->
+                        val configuration = createEasyModeConfiguration(preset, integerScale, keepAspect, fillHeight, fillWidth)
                         binding.viewLayoutControls.setEasyModeConfiguration(configuration)
                         updateRendererScreenAreas()
                         updateTouchGestureExclusionTargets()
@@ -937,6 +967,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
             preset,
             viewModel.dualScreenIntegerScaleEnabled.value,
             currentKeepAspectRatio(),
+            viewModel.dualScreenInternalFillHeightEnabled.value,
+            viewModel.dualScreenInternalFillWidthEnabled.value,
         )
         binding.viewLayoutControls.setEasyModeConfiguration(configuration)
         updateRendererScreenAreas()
@@ -945,7 +977,13 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
 
     private fun applyDualScreenIntegerScale(enabled: Boolean) {
         val preset = viewModel.dualScreenPreset.value
-        val configuration = createEasyModeConfiguration(preset, enabled, currentKeepAspectRatio())
+        val configuration = createEasyModeConfiguration(
+            preset,
+            enabled,
+            currentKeepAspectRatio(),
+            viewModel.dualScreenInternalFillHeightEnabled.value,
+            viewModel.dualScreenInternalFillWidthEnabled.value,
+        )
         if (configuration != null || preset == DualScreenPreset.OFF) {
             binding.viewLayoutControls.setEasyModeConfiguration(configuration)
             updateRendererScreenAreas()
@@ -957,7 +995,12 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         preset: DualScreenPreset,
         integerScale: Boolean,
         keepAspectRatio: Boolean,
+        fillHeight: Boolean,
+        fillWidth: Boolean,
     ): RuntimeLayoutView.EasyModeConfiguration? {
+        val canFill = integerScale || keepAspectRatio
+        val effectiveFillHeight = fillHeight && canFill
+        val effectiveFillWidth = fillWidth && canFill
         return when (preset) {
             DualScreenPreset.OFF -> null
             DualScreenPreset.INTERNAL_TOP_EXTERNAL_BOTTOM -> RuntimeLayoutView.EasyModeConfiguration(
@@ -965,12 +1008,16 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 ScreenAlignment.BOTTOM,
                 integerScale,
                 keepAspectRatio,
+                effectiveFillHeight,
+                effectiveFillWidth,
             )
             DualScreenPreset.INTERNAL_BOTTOM_EXTERNAL_TOP -> RuntimeLayoutView.EasyModeConfiguration(
                 LayoutComponent.BOTTOM_SCREEN,
                 ScreenAlignment.TOP,
                 integerScale,
                 keepAspectRatio,
+                effectiveFillHeight,
+                effectiveFillWidth,
             )
         }
     }

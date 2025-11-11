@@ -79,6 +79,10 @@ class SharedPreferencesSettingsRepository(
         private const val CONTROLLER_CONFIG_FILE = "controller_config.json"
         private const val KEY_DUAL_SCREEN_PRESET = "dual_screen_preset"
         private const val KEY_DUAL_SCREEN_INTEGER_SCALE = "dual_screen_integer_scale"
+        private const val KEY_DUAL_SCREEN_INTERNAL_FILL = "dual_screen_internal_fill_height"
+        private const val KEY_DUAL_SCREEN_EXTERNAL_FILL = "dual_screen_external_fill_height"
+        private const val KEY_DUAL_SCREEN_INTERNAL_FILL_WIDTH = "dual_screen_internal_fill_width"
+        private const val KEY_DUAL_SCREEN_EXTERNAL_FILL_WIDTH = "dual_screen_external_fill_width"
     }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -415,6 +419,46 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
+    override fun isDualScreenInternalFillHeightEnabled(): Boolean {
+        return preferences.getBoolean(KEY_DUAL_SCREEN_INTERNAL_FILL, false)
+    }
+
+    override fun observeDualScreenInternalFillHeightEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_INTERNAL_FILL) {
+            isDualScreenInternalFillHeightEnabled()
+        }
+    }
+
+    override fun isDualScreenInternalFillWidthEnabled(): Boolean {
+        return preferences.getBoolean(KEY_DUAL_SCREEN_INTERNAL_FILL_WIDTH, false)
+    }
+
+    override fun observeDualScreenInternalFillWidthEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_INTERNAL_FILL_WIDTH) {
+            isDualScreenInternalFillWidthEnabled()
+        }
+    }
+
+    override fun isDualScreenExternalFillHeightEnabled(): Boolean {
+        return preferences.getBoolean(KEY_DUAL_SCREEN_EXTERNAL_FILL, false)
+    }
+
+    override fun observeDualScreenExternalFillHeightEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_EXTERNAL_FILL) {
+            isDualScreenExternalFillHeightEnabled()
+        }
+    }
+
+    override fun isDualScreenExternalFillWidthEnabled(): Boolean {
+        return preferences.getBoolean(KEY_DUAL_SCREEN_EXTERNAL_FILL_WIDTH, false)
+    }
+
+    override fun observeDualScreenExternalFillWidthEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_EXTERNAL_FILL_WIDTH) {
+            isDualScreenExternalFillWidthEnabled()
+        }
+    }
+
     override fun getDSiCameraSource(): DSiCameraSourceType {
         val dsiCameraSource = preferences.getString("dsi_camera_source", "physical_cameras")!!
         return DSiCameraSourceType.valueOf(dsiCameraSource.uppercase())
@@ -716,6 +760,30 @@ class SharedPreferencesSettingsRepository(
     override fun setDualScreenIntegerScaleEnabled(enabled: Boolean) {
         preferences.edit {
             putBoolean(KEY_DUAL_SCREEN_INTEGER_SCALE, enabled)
+        }
+    }
+
+    override fun setDualScreenInternalFillHeightEnabled(enabled: Boolean) {
+        preferences.edit {
+            putBoolean(KEY_DUAL_SCREEN_INTERNAL_FILL, enabled)
+        }
+    }
+
+    override fun setDualScreenInternalFillWidthEnabled(enabled: Boolean) {
+        preferences.edit {
+            putBoolean(KEY_DUAL_SCREEN_INTERNAL_FILL_WIDTH, enabled)
+        }
+    }
+
+    override fun setDualScreenExternalFillHeightEnabled(enabled: Boolean) {
+        preferences.edit {
+            putBoolean(KEY_DUAL_SCREEN_EXTERNAL_FILL, enabled)
+        }
+    }
+
+    override fun setDualScreenExternalFillWidthEnabled(enabled: Boolean) {
+        preferences.edit {
+            putBoolean(KEY_DUAL_SCREEN_EXTERNAL_FILL_WIDTH, enabled)
         }
     }
 

@@ -27,8 +27,11 @@ import me.magnum.melonds.ui.layouts.ExternalLayoutListActivity
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import me.magnum.melonds.ui.layouts.LayoutListActivity
 import androidx.appcompat.app.AlertDialog
+import android.widget.Button
 import android.widget.RadioGroup
+import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
+import androidx.core.view.isVisible
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -173,6 +176,11 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         val preset = settingsRepository.getDualScreenPreset()
         val keepAspect = settingsRepository.isExternalDisplayKeepAspectRationEnabled()
         val integerScale = settingsRepository.isDualScreenIntegerScaleEnabled() && preset != DualScreenPreset.OFF
+        val fillModesActive = preset != DualScreenPreset.OFF && (integerScale || keepAspect)
+        val internalFillHeight = settingsRepository.isDualScreenInternalFillHeightEnabled() && fillModesActive
+        val internalFillWidth = settingsRepository.isDualScreenInternalFillWidthEnabled() && fillModesActive
+        val externalFillHeight = settingsRepository.isDualScreenExternalFillHeightEnabled() && fillModesActive
+        val externalFillWidth = settingsRepository.isDualScreenExternalFillWidthEnabled() && fillModesActive
 
         val presetTextRes = when (preset) {
             DualScreenPreset.OFF -> R.string.dual_screen_preset_off
@@ -184,7 +192,11 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
             R.string.dual_screen_presets_summary,
             getString(presetTextRes),
             if (keepAspect) getString(R.string.on) else getString(R.string.off),
-            if (preset == DualScreenPreset.OFF) getString(R.string.off) else if (integerScale) getString(R.string.on) else getString(R.string.off)
+            if (preset == DualScreenPreset.OFF) getString(R.string.off) else if (integerScale) getString(R.string.on) else getString(R.string.off),
+            if (internalFillHeight) getString(R.string.on) else getString(R.string.off),
+            if (internalFillWidth) getString(R.string.on) else getString(R.string.off),
+            if (externalFillHeight) getString(R.string.on) else getString(R.string.off),
+            if (externalFillWidth) getString(R.string.on) else getString(R.string.off),
         )
     }
 
@@ -192,11 +204,17 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         val currentPreset = settingsRepository.getDualScreenPreset()
         val keepAspectRatioInitial = settingsRepository.isExternalDisplayKeepAspectRationEnabled()
         val integerScaleInitial = settingsRepository.isDualScreenIntegerScaleEnabled()
+        val internalFillInitial = settingsRepository.isDualScreenInternalFillHeightEnabled()
+        val internalFillWidthInitial = settingsRepository.isDualScreenInternalFillWidthEnabled()
+        val externalFillInitial = settingsRepository.isDualScreenExternalFillHeightEnabled()
+        val externalFillWidthInitial = settingsRepository.isDualScreenExternalFillWidthEnabled()
 
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_dual_screen_presets, null)
         val radioGroup = dialogView.findViewById<RadioGroup>(R.id.radioGroupPresets)
         val keepAspectSwitch = dialogView.findViewById<SwitchCompat>(R.id.switchKeepAspectRatio)
         val integerScaleSwitch = dialogView.findViewById<SwitchCompat>(R.id.switchIntegerScale)
+        val fillAreaButton = dialogView.findViewById<Button>(R.id.buttonFillAreaOptions)
+        val fillAreaSummary = dialogView.findViewById<TextView>(R.id.textFillAreaSummary)
 
         val presetToButtonId = mapOf(
             DualScreenPreset.OFF to R.id.radioPresetOff,
@@ -206,11 +224,33 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         var selectedPreset = currentPreset
         var keepAspectRatio = keepAspectRatioInitial
         var integerScale = integerScaleInitial && currentPreset != DualScreenPreset.OFF
+        var internalFill = internalFillInitial
+        var internalFillWidth = internalFillWidthInitial
+        var externalFill = externalFillInitial
+        var externalFillWidth = externalFillWidthInitial
 
         radioGroup.check(presetToButtonId.getValue(currentPreset))
         keepAspectSwitch.isChecked = keepAspectRatio
         integerScaleSwitch.isChecked = integerScale
         integerScaleSwitch.isEnabled = currentPreset != DualScreenPreset.OFF
+
+        fun updateFillAreaSummary() {
+            fillAreaSummary.text = getString(
+                R.string.dual_screen_fill_area_summary,
+                if (internalFill) getString(R.string.on) else getString(R.string.off),
+                if (internalFillWidth) getString(R.string.on) else getString(R.string.off),
+                if (externalFill) getString(R.string.on) else getString(R.string.off),
+                if (externalFillWidth) getString(R.string.on) else getString(R.string.off),
+            )
+            fillAreaSummary.isVisible = true
+        }
+
+        fun updateFillButtonState() {
+            val enabled = selectedPreset != DualScreenPreset.OFF && (integerScale || keepAspectRatio)
+            fillAreaButton.isEnabled = enabled
+        }
+        updateFillAreaSummary()
+        updateFillButtonState()
 
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
             selectedPreset = presetToButtonId.entries.first { it.value == checkedId }.key
@@ -220,14 +260,34 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
                 integerScaleSwitch.isChecked = false
                 integerScale = false
             }
+            updateFillButtonState()
         }
 
         keepAspectSwitch.setOnCheckedChangeListener { _, isChecked ->
             keepAspectRatio = isChecked
+            updateFillButtonState()
         }
 
         integerScaleSwitch.setOnCheckedChangeListener { _, isChecked ->
             integerScale = isChecked
+            updateFillButtonState()
+        }
+
+        fillAreaButton.setOnClickListener {
+            val fillOptionsEnabled = selectedPreset != DualScreenPreset.OFF && (integerScale || keepAspectRatio)
+            showFillAreaOptionsDialog(
+                fillOptionsEnabled = fillOptionsEnabled,
+                initialInternalFillHeight = internalFill,
+                initialInternalFillWidth = internalFillWidth,
+                initialExternalFillHeight = externalFill,
+                initialExternalFillWidth = externalFillWidth,
+            ) { newInternalFill, newInternalFillWidth, newExternalFill, newExternalFillWidth ->
+                internalFill = newInternalFill
+                internalFillWidth = newInternalFillWidth
+                externalFill = newExternalFill
+                externalFillWidth = newExternalFillWidth
+                updateFillAreaSummary()
+            }
         }
 
         AlertDialog.Builder(requireContext())
@@ -242,7 +302,54 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
                 }
                 settingsRepository.setExternalDisplayKeepAspectRatioEnabled(keepAspectRatio)
                 settingsRepository.setDualScreenIntegerScaleEnabled(integerScale && selectedPreset != DualScreenPreset.OFF)
+                settingsRepository.setDualScreenInternalFillHeightEnabled(internalFill)
+                settingsRepository.setDualScreenInternalFillWidthEnabled(internalFillWidth)
+                settingsRepository.setDualScreenExternalFillHeightEnabled(externalFill)
+                settingsRepository.setDualScreenExternalFillWidthEnabled(externalFillWidth)
                 updateDualScreenPresetSummary()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun showFillAreaOptionsDialog(
+        fillOptionsEnabled: Boolean,
+        initialInternalFillHeight: Boolean,
+        initialInternalFillWidth: Boolean,
+        initialExternalFillHeight: Boolean,
+        initialExternalFillWidth: Boolean,
+        onValuesConfirmed: (Boolean, Boolean, Boolean, Boolean) -> Unit,
+    ) {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_dual_screen_fill_area, null)
+        val description = dialogView.findViewById<TextView>(R.id.textFillAreaDescription)
+        val disabledText = dialogView.findViewById<TextView>(R.id.textFillAreaDisabled)
+        val internalHeightSwitch = dialogView.findViewById<SwitchCompat>(R.id.switchInternalFillHeight)
+        val internalWidthSwitch = dialogView.findViewById<SwitchCompat>(R.id.switchInternalFillWidth)
+        val externalHeightSwitch = dialogView.findViewById<SwitchCompat>(R.id.switchExternalFillHeight)
+        val externalWidthSwitch = dialogView.findViewById<SwitchCompat>(R.id.switchExternalFillWidth)
+
+        description.text = getString(R.string.dual_screen_fill_area_description)
+        internalHeightSwitch.isChecked = initialInternalFillHeight
+        internalWidthSwitch.isChecked = initialInternalFillWidth
+        externalHeightSwitch.isChecked = initialExternalFillHeight
+        externalWidthSwitch.isChecked = initialExternalFillWidth
+
+        internalHeightSwitch.isEnabled = fillOptionsEnabled
+        internalWidthSwitch.isEnabled = fillOptionsEnabled
+        externalHeightSwitch.isEnabled = fillOptionsEnabled
+        externalWidthSwitch.isEnabled = fillOptionsEnabled
+        disabledText.isVisible = !fillOptionsEnabled
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.dual_screen_fill_area_title)
+            .setView(dialogView)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                onValuesConfirmed(
+                    internalHeightSwitch.isChecked,
+                    internalWidthSwitch.isChecked,
+                    externalHeightSwitch.isChecked,
+                    externalWidthSwitch.isChecked,
+                )
             }
             .setNegativeButton(R.string.cancel, null)
             .show()

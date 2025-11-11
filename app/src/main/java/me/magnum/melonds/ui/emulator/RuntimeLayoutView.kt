@@ -38,6 +38,8 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
         val alignment: ScreenAlignment,
         val integerScale: Boolean,
         val keepAspectRatio: Boolean,
+        val fillHeight: Boolean,
+        val fillWidth: Boolean,
     )
 
     @Inject
@@ -195,36 +197,15 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
         val targetView = getLayoutComponentView(displayComponent) ?: return
         val otherView = getLayoutComponentView(hiddenComponent)
 
-        val (scaledWidth, scaledHeight) = when {
-            configuration.integerScale -> {
-                val widthScale = availableWidth / SCREEN_WIDTH
-                val heightScale = availableHeight / SCREEN_HEIGHT
-                val maxIntegerScale = min(widthScale, heightScale)
-                val scale = if (maxIntegerScale <= 0) {
-                    min(
-                        availableWidth.toFloat() / SCREEN_WIDTH,
-                        availableHeight.toFloat() / SCREEN_HEIGHT,
-                    )
-                } else {
-                    maxIntegerScale.toFloat()
-                }
-                val width = (SCREEN_WIDTH * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableWidth)
-                val height = (SCREEN_HEIGHT * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableHeight)
-                width to height
-            }
-            configuration.keepAspectRatio -> {
-                val scale = min(
-                    availableWidth.toFloat() / SCREEN_WIDTH,
-                    availableHeight.toFloat() / SCREEN_HEIGHT,
-                )
-                val width = (SCREEN_WIDTH * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableWidth)
-                val height = (SCREEN_HEIGHT * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableHeight)
-                width to height
-            }
-            else -> {
-                availableWidth to availableHeight
-            }
+        val (baseWidth, baseHeight) = when {
+            configuration.integerScale -> computeIntegerScaleDimensions(availableWidth, availableHeight)
+            configuration.keepAspectRatio -> computeAspectRatioDimensions(availableWidth, availableHeight)
+            else -> availableWidth to availableHeight
         }
+
+        val canFill = configuration.integerScale || configuration.keepAspectRatio
+        val scaledWidth = if (canFill && configuration.fillWidth) availableWidth else baseWidth
+        val scaledHeight = if (canFill && configuration.fillHeight) availableHeight else baseHeight
 
         val left = ((availableWidth - scaledWidth) / 2f).roundToInt().coerceAtLeast(0)
         val top = when (configuration.alignment) {
@@ -242,6 +223,32 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
             baseAlpha = 0f
         }
         updateScreenInputs()
+    }
+
+    private fun computeIntegerScaleDimensions(availableWidth: Int, availableHeight: Int): Pair<Int, Int> {
+        val widthScale = availableWidth / SCREEN_WIDTH
+        val heightScale = availableHeight / SCREEN_HEIGHT
+        val maxIntegerScale = min(widthScale, heightScale)
+        val scale = if (maxIntegerScale <= 0) {
+            min(
+                availableWidth.toFloat() / SCREEN_WIDTH,
+                availableHeight.toFloat() / SCREEN_HEIGHT,
+            )
+        } else {
+            maxIntegerScale.toFloat()
+        }
+        val width = (SCREEN_WIDTH * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableWidth)
+        val height = (SCREEN_HEIGHT * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableHeight)
+        return width to height
+    }
+
+    private fun computeAspectRatioDimensions(availableWidth: Int, availableHeight: Int): Pair<Int, Int> {
+        val widthRatio = availableWidth.toFloat() / SCREEN_WIDTH
+        val heightRatio = availableHeight.toFloat() / SCREEN_HEIGHT
+        val scale = min(widthRatio, heightRatio)
+        val width = (SCREEN_WIDTH * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableWidth)
+        val height = (SCREEN_HEIGHT * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableHeight)
+        return width to height
     }
 
     private fun updateScreenInputs() {

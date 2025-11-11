@@ -9,4 +9,6 @@ data class ExternalDisplayConfiguration(
     val keepAspectRatio: Boolean = true,
     val integerScale: Boolean = false,
     val verticalAlignment: ScreenAlignment = ScreenAlignment.TOP,
+    val fillHeight: Boolean = false,
+    val fillWidth: Boolean = false,
 )

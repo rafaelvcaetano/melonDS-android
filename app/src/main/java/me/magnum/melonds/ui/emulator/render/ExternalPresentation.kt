@@ -29,6 +29,7 @@ import me.magnum.melonds.ui.emulator.model.ExternalDisplayConfiguration
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
 import me.magnum.melonds.ui.common.SystemGestureExclusionHelper
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 
 /**
@@ -132,6 +133,8 @@ class ExternalPresentation(
             keepAspectRatio = currentExternalDisplayConfiguration?.keepAspectRatio ?: true,
             integerScale = currentExternalDisplayConfiguration?.integerScale ?: false,
             verticalAlignment = currentExternalDisplayConfiguration?.verticalAlignment ?: ScreenAlignment.TOP,
+            fillHeight = currentExternalDisplayConfiguration?.fillHeight ?: false,
+            fillWidth = currentExternalDisplayConfiguration?.fillWidth ?: false,
         )
         emulatorRenderer = renderer
         val view = createSurfaceView(renderer)
@@ -208,6 +211,8 @@ class ExternalPresentation(
                 setKeepAspectRatio(newExternalDisplayConfiguration.keepAspectRatio)
                 setIntegerScale(newExternalDisplayConfiguration.integerScale)
                 setVerticalAlignment(newExternalDisplayConfiguration.verticalAlignment)
+                setFillHeight(newExternalDisplayConfiguration.fillHeight)
+                setFillWidth(newExternalDisplayConfiguration.fillWidth)
             }
         }
         applyGestureExclusion()
@@ -242,61 +247,54 @@ class ExternalPresentation(
             return RectF(0f, 0f, viewWidth.toFloat(), viewHeight.toFloat())
         }
 
-        val viewport = when {
-            config.integerScale -> computeIntegerScaleViewport(viewWidth, viewHeight, config.verticalAlignment)
-            config.keepAspectRatio -> computeAspectViewport(viewWidth, viewHeight, config.verticalAlignment)
-            else -> RectF(0f, 0f, viewWidth.toFloat(), viewHeight.toFloat())
+        if (!config.integerScale && !config.keepAspectRatio) {
+            return RectF(0f, 0f, viewWidth.toFloat(), viewHeight.toFloat())
         }
 
-        return viewport
+        val (baseWidth, baseHeight) = if (config.integerScale) {
+            computeIntegerScaleDimensions(viewWidth, viewHeight)
+        } else {
+            computeAspectDimensions(viewWidth, viewHeight)
+        }
+
+        val width = (if ((config.integerScale || config.keepAspectRatio) && config.fillWidth) viewWidth else baseWidth)
+            .coerceAtLeast(1)
+            .coerceAtMost(viewWidth)
+        val height = (if ((config.integerScale || config.keepAspectRatio) && config.fillHeight) viewHeight else baseHeight)
+            .coerceAtLeast(1)
+            .coerceAtMost(viewHeight)
+
+        val offsetX = ((viewWidth - width) / 2f).coerceAtLeast(0f)
+        val extraHeight = (viewHeight - height).coerceAtLeast(0)
+        val offsetY = if (config.verticalAlignment == ScreenAlignment.BOTTOM) extraHeight.toFloat() else 0f
+
+        return RectF(
+            offsetX,
+            offsetY,
+            offsetX + width,
+            offsetY + height,
+        )
     }
 
-    private fun computeIntegerScaleViewport(viewWidth: Int, viewHeight: Int, alignment: ScreenAlignment): RectF {
+    private fun computeIntegerScaleDimensions(viewWidth: Int, viewHeight: Int): Pair<Int, Int> {
         val widthScale = viewWidth / SCREEN_WIDTH
         val heightScale = viewHeight / SCREEN_HEIGHT
         val maxScale = min(widthScale, heightScale).coerceAtLeast(1)
-        val scaledWidth = SCREEN_WIDTH * maxScale
-        val scaledHeight = SCREEN_HEIGHT * maxScale
-        val offsetX = (viewWidth - scaledWidth) / 2f
-        val offsetY = when (alignment) {
-            ScreenAlignment.TOP -> 0f
-            ScreenAlignment.BOTTOM -> (viewHeight - scaledHeight).toFloat()
-        }
-        return RectF(
-            offsetX,
-            offsetY,
-            offsetX + scaledWidth,
-            offsetY + scaledHeight,
-        )
+        val width = SCREEN_WIDTH * maxScale
+        val height = SCREEN_HEIGHT * maxScale
+        return width to height
     }
 
-    private fun computeAspectViewport(viewWidth: Int, viewHeight: Int, alignment: ScreenAlignment): RectF {
+    private fun computeAspectDimensions(viewWidth: Int, viewHeight: Int): Pair<Int, Int> {
         val viewRatio = viewWidth.toFloat() / viewHeight.toFloat()
-        val viewportWidth: Float
-        val viewportHeight: Float
-        val offsetX: Float
-        val offsetY: Float
-
-        if (viewRatio > consoleAspectRatio) {
-            viewportHeight = viewHeight.toFloat()
-            viewportWidth = viewportHeight * consoleAspectRatio
-            offsetX = (viewWidth - viewportWidth) / 2f
-            offsetY = 0f
+        return if (viewRatio > consoleAspectRatio) {
+            val height = viewHeight
+            val width = (height * consoleAspectRatio).roundToInt().coerceAtLeast(1).coerceAtMost(viewWidth)
+            width to height
         } else {
-            viewportWidth = viewWidth.toFloat()
-            viewportHeight = viewportWidth / consoleAspectRatio
-            offsetX = 0f
-            offsetY = when (alignment) {
-                ScreenAlignment.TOP -> 0f
-                ScreenAlignment.BOTTOM -> viewHeight - viewportHeight
-            }
+            val width = viewWidth
+            val height = (width / consoleAspectRatio).roundToInt().coerceAtLeast(1).coerceAtMost(viewHeight)
+            width to height
         }
-
-        return RectF(
-            offsetX,
-            offsetY,
-            offsetX + viewportWidth,
-            offsetY + viewportHeight,
-        )
     }
 }

@@ -46,6 +46,14 @@ interface SettingsRepository {
     fun observeDualScreenPreset(): Flow<DualScreenPreset>
     fun isDualScreenIntegerScaleEnabled(): Boolean
     fun observeDualScreenIntegerScaleEnabled(): Flow<Boolean>
+    fun isDualScreenInternalFillHeightEnabled(): Boolean
+    fun observeDualScreenInternalFillHeightEnabled(): Flow<Boolean>
+    fun isDualScreenInternalFillWidthEnabled(): Boolean
+    fun observeDualScreenInternalFillWidthEnabled(): Flow<Boolean>
+    fun isDualScreenExternalFillHeightEnabled(): Boolean
+    fun observeDualScreenExternalFillHeightEnabled(): Flow<Boolean>
+    fun isDualScreenExternalFillWidthEnabled(): Boolean
+    fun observeDualScreenExternalFillWidthEnabled(): Flow<Boolean>
     fun getDSiCameraSource(): DSiCameraSourceType
     fun getDSiCameraStaticImage(): Uri?
 
@@ -97,6 +105,10 @@ interface SettingsRepository {
     fun setExternalDisplayRotateLeftEnabled(enabled: Boolean)
     fun setDualScreenPreset(preset: DualScreenPreset)
     fun setDualScreenIntegerScaleEnabled(enabled: Boolean)
+    fun setDualScreenInternalFillHeightEnabled(enabled: Boolean)
+    fun setDualScreenInternalFillWidthEnabled(enabled: Boolean)
+    fun setDualScreenExternalFillHeightEnabled(enabled: Boolean)
+    fun setDualScreenExternalFillWidthEnabled(enabled: Boolean)
 
     fun observeRenderConfiguration(): Flow<RendererConfiguration>
 }

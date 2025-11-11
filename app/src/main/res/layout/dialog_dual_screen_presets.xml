@@ -49,5 +49,22 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="@string/dual_screen_integer_scale" />
+
+        <Button
+            android:id="@+id/buttonFillAreaOptions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/dual_screen_fill_area_button" />
+
+        <TextView
+            android:id="@+id/textFillAreaSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="?android:attr/textColorSecondary"
+            android:alpha="0.8"
+            android:text="" />
     </LinearLayout>
 </ScrollView>
