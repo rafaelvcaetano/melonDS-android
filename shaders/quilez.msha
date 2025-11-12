@@ -1,0 +1,40 @@
+name: Quilez
+textureFiltering: LINEAR
+
+[vertex]
+attribute vec2 vUV;
+attribute vec2 vPos;
+attribute float vAlpha;
+varying vec2 uv;
+varying float alpha;
+void main()
+{
+    gl_Position = vec4(vPos, 0.0, 1.0);
+    uv = vUV;
+    alpha = vAlpha;
+}
+[/vertex]
+
+[fragment]
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform sampler2D tex;
+varying float alpha;
+varying vec2 uv;
+vec4 getTexel(vec2 p) {
+    vec2 textureSize = vec2(256, 384);
+    p = p * textureSize + vec2(0.5);
+    vec2 i = floor(p);
+    vec2 f = p - i;
+    f = f * f * f * (f * (f * 6.0 - vec2(15.0)) + vec2(10.0));
+    p = i + f;
+    p = (p - vec2(0.5)) / textureSize;
+    return texture2D(tex, p);
+}
+void main() {
+    gl_FragColor = vec4(getTexel(uv).bgr, alpha);
+}
+[/fragment]

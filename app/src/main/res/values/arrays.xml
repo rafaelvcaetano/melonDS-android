@@ -53,6 +53,8 @@
         <item>hq4x</item>
         <item>quilez</item>
         <item>lcd</item>
+        <item>lcd_grid_dslite</item>
+        <item>custom</item>
     </string-array>
 
     <string-array name="dsi_camera_source_values">
@@ -64,6 +66,7 @@
     <string-array name="external_display_screen_values">
         <item>top</item>
         <item>bottom</item>
+        <item>custom</item>
     </string-array>
 
     <string-array name="audio_interpolation_values">

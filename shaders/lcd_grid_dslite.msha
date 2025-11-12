@@ -1,0 +1,179 @@
+name: LCD Grid DS Lite
+textureFiltering: NEAREST
+
+[vertex]
+attribute vec2 vUV;
+attribute vec2 vPos;
+attribute float vAlpha;
+varying vec2 uv;
+varying float alpha;
+void main()
+{
+    gl_Position = vec4(vPos, 0.0, 1.0);
+    uv = vUV;
+    alpha = vAlpha;
+}
+[/vertex]
+
+[fragment]
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform sampler2D tex;
+uniform sampler2D prevTex;
+uniform vec2 texSize;
+uniform vec2 viewportSize;
+uniform vec4 screenUvBounds;
+uniform float responseWeight;
+varying vec2 uv;
+varying float alpha;
+const float brighten_scanlines = 16.0;
+const float brighten_lcd = 4.0;
+const vec3 offsets = 3.141592654 * vec3(0.5, 0.5 - 0.6666667, 0.5 - 1.3333333);
+const float gain = 1.0;
+const float gamma = 2.2;
+const float blacklevel = 0.0;
+const float ambient = 0.0;
+const float outgamma = 2.2;
+const float maskContrast = 0.8;
+const float detailBlend = 0.3;
+const vec3 postBias = vec3(0.0);
+const vec2 lowerScreenPhase = vec2(0.15, 0.10);
+const vec3 channelGain = vec3(1.07, 0.97, 1.05);
+const float saturationBoost = 1.12;
+const vec3 rSubpixel = vec3(1.0, 0.0, 0.0);
+const vec3 gSubpixel = vec3(0.0, 1.0, 0.0);
+const vec3 bSubpixel = vec3(0.0, 0.0, 1.0);
+const float useBgr = 1.0;
+const float targetGamma = 2.2;
+const float displayGamma = 2.2;
+const float dslLuminance = 0.955;
+const mat3 dslMatrix = mat3(
+    0.965, 0.11, -0.065,
+    0.02, 0.925, 0.055,
+    0.01, -0.02, 1.03
+);
+float intsmear_func_x(float z) {
+    float z2 = z * z;
+    float zn = z;
+    float ret = 0.0;
+    ret += zn * 1.0;
+    zn *= z2;
+    ret += zn * -0.6666667;
+    zn *= z2;
+    ret += zn * -0.2;
+    zn *= z2;
+    ret += zn * 0.5714286;
+    zn *= z2;
+    ret += zn * -0.1111111;
+    zn *= z2;
+    ret += zn * -0.1818182;
+    zn *= z2;
+    ret += zn * 0.0769231;
+    return ret;
+}
+float intsmear_func_y(float z) {
+    float z2 = z * z;
+    float zn = z;
+    float ret = 0.0;
+    ret += zn * 1.0;
+    zn *= z2;
+    ret += zn * 0.0;
+    zn *= z2;
+    ret += zn * -0.8;
+    zn *= z2;
+    ret += zn * 0.2857143;
+    zn *= z2;
+    ret += zn * 0.4444444;
+    zn *= z2;
+    ret += zn * -0.3636364;
+    zn *= z2;
+    ret += zn * 0.0769231;
+    return ret;
+}
+float intsmear_x(float x, float dx, float d) {
+    float zl = clamp((x - dx * 0.5) / d, -1.0, 1.0);
+    float zh = clamp((x + dx * 0.5) / d, -1.0, 1.0);
+    return d * (intsmear_func_x(zh) - intsmear_func_x(zl)) / dx;
+}
+float intsmear_y(float x, float dx, float d) {
+    float zl = clamp((x - dx * 0.5) / d, -1.0, 1.0);
+    float zh = clamp((x + dx * 0.5) / d, -1.0, 1.0);
+    return d * (intsmear_func_y(zh) - intsmear_func_y(zl)) / dx;
+}
+vec3 fetchBlended(ivec2 baseCoord, ivec2 offset, vec2 texelSize) {
+    vec2 coord = (vec2(baseCoord + offset) + vec2(0.5)) * texelSize;
+    vec3 curr = texture2D(tex, coord).bgr;
+    vec3 prev = texture2D(prevTex, coord).bgr;
+    vec3 blended = mix(curr, prev, responseWeight);
+    return pow(gain * blended + vec3(blacklevel), vec3(gamma)) + vec3(ambient);
+}
+void main() {
+    vec2 safeTexSize = max(texSize, vec2(1.0));
+    vec2 texelSize = 1.0 / safeTexSize;
+    vec2 uvMin = screenUvBounds.xy;
+    vec2 uvMax = screenUvBounds.zw;
+    vec2 uvRange = max(uvMax - uvMin, vec2(1e-6));
+    float screenTexWidth = max(safeTexSize.x * uvRange.x, 1.0);
+    float screenTexHeight = max(safeTexSize.y * uvRange.y, 1.0);
+    float texelWidthScreen = 1.0 / screenTexWidth;
+    float texelHeightScreen = 1.0 / screenTexHeight;
+    vec2 viewport = max(viewportSize, vec2(1.0));
+    float localX = clamp((uv.x - uvMin.x) / uvRange.x, 0.0, 1.0);
+    float localY = clamp((uv.y - uvMin.y) / uvRange.y, 0.0, 1.0);
+    vec2 screenPixelCoord = vec2(localX * screenTexWidth, localY * screenTexHeight);
+    vec2 pixelCoord = uv / texelSize - vec2(0.4999);
+    ivec2 tli = ivec2(floor(pixelCoord));
+    float subpix = (uv.x / texelSize.x - 0.4999 - float(tli.x)) * 3.0;
+    float rsubpix = (screenTexWidth / viewport.x) * 3.0;
+    vec3 lcol = vec3(
+        intsmear_x(subpix + 1.0, rsubpix, 1.5),
+        intsmear_x(subpix, rsubpix, 1.5),
+        intsmear_x(subpix - 1.0, rsubpix, 1.5)
+    );
+    vec3 rcol = vec3(
+        intsmear_x(subpix - 2.0, rsubpix, 1.5),
+        intsmear_x(subpix - 3.0, rsubpix, 1.5),
+        intsmear_x(subpix - 4.0, rsubpix, 1.5)
+    );
+    if (useBgr > 0.5) {
+        lcol = lcol.bgr;
+        rcol = rcol.bgr;
+    }
+    float subpixY = uv.y / texelSize.y - 0.4999 - float(tli.y);
+    float rsubpixY = screenTexHeight / viewport.y;
+    float tcol = intsmear_y(subpixY, rsubpixY, 0.63);
+    float bcol = intsmear_y(subpixY - 1.0, rsubpixY, 0.63);
+    vec3 topLeftColor = fetchBlended(tli, ivec2(0, 0), texelSize) * lcol * vec3(tcol);
+    vec3 bottomRightColor = fetchBlended(tli, ivec2(1, 1), texelSize) * rcol * vec3(bcol);
+    vec3 bottomLeftColor = fetchBlended(tli, ivec2(0, 1), texelSize) * lcol * vec3(bcol);
+    vec3 topRightColor = fetchBlended(tli, ivec2(1, 0), texelSize) * rcol * vec3(tcol);
+    vec3 averageColor = topLeftColor + bottomRightColor + bottomLeftColor + topRightColor;
+    vec2 angle = screenPixelCoord * 6.28318530718;
+    float lowerScreen = step(0.5, 0.5 * (uvMin.y + uvMax.y));
+    angle += lowerScreen * lowerScreenPhase;
+    float yfactor = (brighten_scanlines + sin(angle.y)) / (brighten_scanlines + 1.0);
+    vec3 xfactors = (brighten_lcd + sin(angle.x + offsets)) / (brighten_lcd + 1.0);
+    vec3 rawAverage = averageColor;
+    vec3 mask = yfactor * xfactors;
+    vec3 softenedMask = mix(vec3(1.0), mask, maskContrast);
+    vec3 maskedColor = rawAverage * softenedMask;
+    averageColor = mix(maskedColor, rawAverage, detailBlend);
+    vec3 cred = pow(rSubpixel, vec3(outgamma));
+    vec3 cgreen = pow(gSubpixel, vec3(outgamma));
+    vec3 cblue = pow(bSubpixel, vec3(outgamma));
+    averageColor = mat3(cred, cgreen, cblue) * averageColor;
+    vec3 baseColor = pow(averageColor, vec3(1.0 / outgamma));
+    vec3 dslLinear = pow(baseColor, vec3(targetGamma));
+    dslLinear = clamp(dslLinear * dslLuminance, 0.0, 1.0);
+    vec3 corrected = dslMatrix * dslLinear;
+    corrected *= channelGain;
+    float gray = dot(corrected, vec3(0.299, 0.587, 0.114));
+    corrected = mix(vec3(gray), corrected, saturationBoost);
+    vec3 finalColor = pow(corrected, vec3(1.0 / displayGamma));
+    finalColor = clamp(finalColor + postBias, 0.0, 1.0);
+    gl_FragColor = vec4(finalColor, alpha);
+}
+[/fragment]

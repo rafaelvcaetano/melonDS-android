@@ -4,14 +4,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import me.magnum.melonds.domain.model.Point
-import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.domain.model.layout.ScreenFold
 import me.magnum.melonds.domain.model.layout.UILayout
 import me.magnum.melonds.domain.model.layout.UILayoutVariant
 import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.impl.DefaultLayoutProvider
-import kotlin.math.roundToInt
+import me.magnum.melonds.domain.model.layout.scaleToSize
 
 class UILayoutProvider(private val defaultLayoutProvider: DefaultLayoutProvider) {
 
@@ -55,9 +54,16 @@ class UILayoutProvider(private val defaultLayoutProvider: DefaultLayoutProvider)
 
     private fun getOptimalLayoutForVariant(layoutConfiguration: LayoutConfiguration, variant: UILayoutVariant): UILayout {
         val exactLayoutMatch = layoutConfiguration.layoutVariants[variant]
+        val includeControls = layoutConfiguration.target == LayoutConfiguration.LayoutTarget.INTERNAL
         if (exactLayoutMatch != null) {
             return if (exactLayoutMatch.components == null) {
-                val defaultLayout = defaultLayoutProvider.buildDefaultLayout(variant.uiSize.x, variant.uiSize.y, variant.orientation, variant.folds)
+                val defaultLayout = defaultLayoutProvider.buildDefaultLayout(
+                    variant.uiSize.x,
+                    variant.uiSize.y,
+                    variant.orientation,
+                    variant.folds,
+                    includeControls,
+                )
                 return exactLayoutMatch.copy(components = defaultLayout.components)
             } else {
                 exactLayoutMatch
@@ -74,6 +80,7 @@ class UILayoutProvider(private val defaultLayoutProvider: DefaultLayoutProvider)
                     variant.uiSize.y,
                     variant.orientation,
                     variant.folds,
+                    includeControls,
                 )
                 layout.copy(components = defaultLayout.components)
             } else {
@@ -81,13 +88,13 @@ class UILayoutProvider(private val defaultLayoutProvider: DefaultLayoutProvider)
             }
 
             return if (matchedVariant.uiSize != variant.uiSize) {
-                scaleLayout(filledLayout, matchedVariant.uiSize, variant.uiSize)
+                filledLayout.scaleToSize(matchedVariant.uiSize, variant.uiSize)
             } else {
                 filledLayout
             }
         }
 
-        return defaultLayoutProvider.buildDefaultLayout(variant.uiSize.x, variant.uiSize.y, variant.orientation, variant.folds)
+        return defaultLayoutProvider.buildDefaultLayout(variant.uiSize.x, variant.uiSize.y, variant.orientation, variant.folds, includeControls)
     }
 
     /**
@@ -110,23 +117,4 @@ class UILayoutProvider(private val defaultLayoutProvider: DefaultLayoutProvider)
         }
     }
 
-    private fun scaleLayout(layout: UILayout, fromSize: Point, toSize: Point): UILayout {
-        val components = layout.components ?: return layout
-
-        val scaleX = toSize.x.toFloat() / fromSize.x
-        val scaleY = toSize.y.toFloat() / fromSize.y
-
-        val scaledComponents = components.map {
-            val rect = it.rect
-            val scaledRect = Rect(
-                (rect.x * scaleX).roundToInt(),
-                (rect.y * scaleY).roundToInt(),
-                (rect.width * scaleX).roundToInt(),
-                (rect.height * scaleY).roundToInt(),
-            )
-            it.copy(rect = scaledRect)
-        }
-
-        return layout.copy(components = scaledComponents)
-    }
 }

@@ -14,8 +14,14 @@ class DefaultLayoutProvider(private val screenUnitsConverter: ScreenUnitsConvert
         private const val DS_ASPECT_RATIO = 256f / 192f
     }
 
-    fun buildDefaultLayout(width: Int, height: Int, orientation: Orientation, folds: List<ScreenFold>): UILayout {
-        return when(orientation) {
+    fun buildDefaultLayout(
+        width: Int,
+        height: Int,
+        orientation: Orientation,
+        folds: List<ScreenFold>,
+        includeControls: Boolean = true,
+    ): UILayout {
+        val layout = when (orientation) {
             Orientation.PORTRAIT -> {
                 if (folds.any { it.orientation == Orientation.LANDSCAPE }) {
                     // Flip-phone layout
@@ -38,6 +44,11 @@ class DefaultLayoutProvider(private val screenUnitsConverter: ScreenUnitsConvert
                 }
             }
         }
+        if (includeControls) {
+            return layout
+        }
+        val filteredComponents = layout.components?.filter { it.component.isScreen() }
+        return layout.copy(components = filteredComponents)
     }
 
     private fun buildDefaultPortraitLayout(width: Int, height: Int): UILayout {

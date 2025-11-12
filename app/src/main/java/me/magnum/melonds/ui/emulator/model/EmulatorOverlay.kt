@@ -10,4 +10,5 @@ enum class EmulatorOverlay {
     SWITCH_NEW_ROM_DIALOG,
     ACHIEVEMENTS_DIALOG,
     QUICK_SETTINGS_DIALOG,
+    PRESETS_DIALOG,
 }

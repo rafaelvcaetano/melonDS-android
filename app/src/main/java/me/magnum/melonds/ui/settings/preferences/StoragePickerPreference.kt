@@ -40,14 +40,28 @@ open class StoragePickerPreference(context: Context, attrs: AttributeSet?) : Pre
     }
 
     open fun onDirectoryPicked(uri: Uri?) {
-        // TODO: properly add support for multi directory selection
-        val dirs = if (uri == null) return else setOf(uri.toString())
-
-        if (isPersistent) {
-            persistStringSet(dirs)
+        if (uri == null) {
+            return
         }
 
-        onPreferenceChangeListener?.onPreferenceChange(this, dirs)
+        val directory = uri.toString()
+        val currentDirectories = getPersistedStringSet(emptySet())?.toMutableSet() ?: mutableSetOf()
+        val updatedDirectories = if (multiSelection) {
+            currentDirectories.apply { add(directory) }
+        } else {
+            mutableSetOf(directory)
+        }
+
+        updatePersistedDirectories(updatedDirectories)
+    }
+
+    fun updatePersistedDirectories(directories: Set<String>) {
+        val updatedDirectories = directories.toMutableSet()
+        if (isPersistent) {
+            persistStringSet(updatedDirectories)
+        }
+
+        onPreferenceChangeListener?.onPreferenceChange(this, updatedDirectories)
     }
 
     protected open fun initAttributes(attrs: AttributeSet?) {

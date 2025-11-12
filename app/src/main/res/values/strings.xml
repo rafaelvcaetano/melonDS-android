@@ -128,6 +128,18 @@
     <string name="error_invalid_directory">Invalid directory</string>
     <string name="error_invalid_directory_description">It\'s not possible to write to the selected directory. Please select a different one. If you are selecting a compressed file, try extracting its contents.</string>
     <string name="no_roms_found">No ROMs found</string>
+    <string name="rom_browser_virtual_root">All ROM folders</string>
+    <string name="rom_browser_search_results">Search results</string>
+    <string name="rom_browser_navigate_up">Go to parent folder</string>
+    <string name="manage_rom_directories">Manage ROM directories</string>
+    <string name="remove_rom_directory_title">Remove directory?</string>
+    <string name="remove_rom_directory_message">Remove %1$s from the ROM search directories?</string>
+    <string name="action_remove">Remove</string>
+    <string name="add_directory">Add directory</string>
+    <string name="rom_cache_status_updated">Updated %1$s</string>
+    <string name="rom_cache_status_cached">Checked %1$s (cached)</string>
+    <string name="rom_cache_status_never">Not scanned yet</string>
+    <string name="rom_cache_status_just_now">just now</string>
     <string name="dsiware_title_cannot_be_launched_directly_title">DSiWare titles cannot be launched</string>
     <string name="dsiware_title_cannot_be_launched_directly_message">DSiWare titles cannot be launched directly. They must be installed to the NAND (through the DSiWare Manager) and launched from the DSi firmware.</string>
 
@@ -249,6 +261,7 @@
     <string name="soft_input_behaviour">Soft input behaviour</string>
     <string name="vibrate_on_touch">Vibrate on touch</string>
     <string name="vibration_strength">Vibration strength</string>
+    <string name="gba_rumble_intensity">GBA rumble intensity</string>
     <string name="soft_input_opacity">Soft input opacity</string>
     <string name="retroachievements">RetroAchievements</string> <!-- Keep words together because this is the official name -->
     <string name="retroachievements_summary">Login &amp; manage RetroAchievements integration</string> <!-- Keep words together because this is the official name -->
@@ -351,7 +364,6 @@
     <string name="use_global_layout">Use global layout</string>
     <string name="use_global_preference">Use global setting</string>
     <string name="layout_deleted">Layout deleted</string>
-
     <string name="layout_editor">Layout editor</string>
     <string name="add_component">Add component</string>
     <string name="no_more_components">No more components to add</string>
@@ -364,6 +376,38 @@
     <string name="aspect_ratio_16_9">16:9 (Widescreen)</string>
     <string name="aspect_ratio_unrestricted">Unrestricted</string>
     <string name="keep_ds_ratio">Keep DS aspect ratio</string>
+    <string name="dual_screen_presets">Presets</string>
+    <string name="dual_screen_presets_settings_title">Dual screen presets</string>
+    <string name="dual_screen_presets_summary">Preset: %1$s\nKeep DS ratio: %2$s • Integer scale: %3$s\nInternal H: %4$s • Internal W: %5$s\nExternal H: %6$s • External W: %7$s</string>
+    <string name="dual_screen_preset_off">Disabled (manual layout)</string>
+    <string name="dual_screen_preset_internal_top_external_bottom">Internal: Top, External: Bottom</string>
+    <string name="dual_screen_preset_internal_bottom_external_top">Internal: Bottom, External: Top</string>
+    <string name="dual_screen_integer_scale">Integer scale</string>
+    <string name="dual_screen_internal_fill_height">Fill internal height</string>
+    <string name="dual_screen_external_fill_height">Fill external height</string>
+    <string name="dual_screen_internal_fill_width">Fill internal width</string>
+    <string name="dual_screen_external_fill_width">Fill external width</string>
+    <string name="dual_screen_fill_area_button">Fill area options</string>
+    <string name="dual_screen_fill_area_title">Fill area options</string>
+    <string name="dual_screen_fill_area_description">Choose which DS screens stretch vertically or horizontally when Integer scale or Keep DS ratio is active.</string>
+    <string name="dual_screen_fill_area_requires_integer">Enable Integer scale or Keep DS ratio to adjust these options.</string>
+    <string name="dual_screen_fill_section_internal">Internal Screen</string>
+    <string name="dual_screen_fill_section_external">External Screen</string>
+    <string name="dual_screen_fill_height_label">Height</string>
+    <string name="dual_screen_fill_width_label">Width</string>
+    <string name="dual_screen_vertical_alignment_button">Vertical alignment options</string>
+    <string name="dual_screen_vertical_alignment_title">Vertical alignment</string>
+    <string name="dual_screen_vertical_alignment_description">Override the vertical position of each screen. Turn all toggles off to fall back to the preset defaults.</string>
+    <string name="dual_screen_vertical_alignment_internal_label">Internal</string>
+    <string name="dual_screen_vertical_alignment_external_label">External</string>
+    <string name="dual_screen_vertical_alignment_option_top">Top</string>
+    <string name="dual_screen_vertical_alignment_option_center">Center</string>
+    <string name="dual_screen_vertical_alignment_option_bottom">Bottom</string>
+    <string name="dual_screen_vertical_alignment_summary">Internal: %1$s • External: %2$s</string>
+    <string name="dual_screen_vertical_alignment_preset_value">Preset (%1$s)</string>
+    <string name="dual_screen_vertical_alignment_default_hint">Preset defaults — Internal: %1$s • External: %2$s</string>
+    <string name="presets">Dual Screen Presets</string>
+    <string name="layout_editing_disabled_by_presets">Layouts can not be edited while a dual screen preset is active.</string>
     <string name="above_other_screen">Above other screen</string>
     <string name="center_horizontal">Center horizontally</string>
     <string name="center_vertical">Center vertically</string>
@@ -462,6 +506,7 @@
         <item>None</item>
         <item>GBA ROM</item>
         <item>Memory expansion</item>
+        <item>Rumble Pak</item>
     </string-array>
 
     <string-array name="console_type_options">
@@ -503,7 +548,12 @@
         <item>HQ4X</item>
         <item>Quilez</item>
         <item>LCD</item>
+        <item>LCD Grid (DS Lite motion blur)</item>
+        <item>Custom (msha)</item>
     </string-array>
+
+    <string name="video_custom_shader_title">Custom shader (.msha)</string>
+    <string name="video_custom_shader_summary">Select a melon shader (.msha) file to use when Custom filtering is selected.</string>
 
     <string-array name="dsi_camera_source_options">
         <item>Black screen</item>
@@ -514,6 +564,7 @@
     <string-array name="external_display_screen_options">
         <item>@string/top_screen</item>
         <item>@string/bottom_screen</item>
+        <item>@string/custom_layout</item>
     </string-array>
 
     <string-array name="audio_interpolation_options">

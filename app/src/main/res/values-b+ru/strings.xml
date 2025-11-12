@@ -449,6 +449,7 @@
         <item>HQ4X</item>
         <item>Quilez</item>
         <item>LCD</item>
+        <item>Пользовательский (msha)</item>
     </string-array>
 
     <string-array name="dsi_camera_source_options">
