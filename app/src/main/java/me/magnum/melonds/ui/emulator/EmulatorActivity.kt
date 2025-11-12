@@ -940,9 +940,13 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 instantiateLayout(layoutConfiguration)
                 setLayoutComponentToggleState(LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE, frontendInputHandler.fastForwardEnabled)
                 setLayoutComponentToggleState(LayoutComponent.BUTTON_MICROPHONE_TOGGLE, frontendInputHandler.microphoneEnabled)
+                setOnEasyModeLayoutAppliedListener {
+                    updateRendererScreenAreas()
+                }
             }
         } else {
             binding.viewLayoutControls.destroyRuntimeLayout()
+            binding.viewLayoutControls.setOnEasyModeLayoutAppliedListener(null)
         }
         updateTouchGestureExclusionTargets()
     }
@@ -958,20 +962,32 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     }
 
     private fun updateRendererScreenAreas() {
-        val (topScreen, bottomScreen) = if (binding.viewLayoutControls.shouldRendererSwapScreens()) {
-            LayoutComponent.BOTTOM_SCREEN to LayoutComponent.TOP_SCREEN
-        } else {
-            LayoutComponent.TOP_SCREEN to LayoutComponent.BOTTOM_SCREEN
+        val topView = binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.TOP_SCREEN)
+        val bottomView = binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BOTTOM_SCREEN)
+        var topRect = binding.viewLayoutControls.getScreenRectForRenderer(LayoutComponent.TOP_SCREEN) ?: topView?.getRect()
+        var bottomRect = binding.viewLayoutControls.getScreenRectForRenderer(LayoutComponent.BOTTOM_SCREEN) ?: bottomView?.getRect()
+        var topAlpha = binding.viewLayoutControls.getScreenAlphaForRenderer(LayoutComponent.TOP_SCREEN) ?: topView?.baseAlpha ?: 1f
+        var bottomAlpha = binding.viewLayoutControls.getScreenAlphaForRenderer(LayoutComponent.BOTTOM_SCREEN) ?: bottomView?.baseAlpha ?: 1f
+        var topOnTop = topView?.onTop ?: false
+        var bottomOnTop = bottomView?.onTop ?: false
+        if (binding.viewLayoutControls.shouldRendererSwapScreens()) {
+            val tempRect = topRect
+            val tempAlpha = topAlpha
+            val tempOnTop = topOnTop
+            topRect = bottomRect
+            topAlpha = bottomAlpha
+            topOnTop = bottomOnTop
+            bottomRect = tempRect
+            bottomAlpha = tempAlpha
+            bottomOnTop = tempOnTop
         }
-        val topView = binding.viewLayoutControls.getLayoutComponentView(topScreen)
-        val bottomView = binding.viewLayoutControls.getLayoutComponentView(bottomScreen)
         mainScreenRenderer.updateScreenAreas(
-            topView?.getRect(),
-            bottomView?.getRect(),
-            topView?.baseAlpha ?: 1f,
-            bottomView?.baseAlpha ?: 1f,
-            topView?.onTop ?: false,
-            bottomView?.onTop ?: false,
+            topRect,
+            bottomRect,
+            topAlpha,
+            bottomAlpha,
+            topOnTop,
+            bottomOnTop,
         )
     }
 

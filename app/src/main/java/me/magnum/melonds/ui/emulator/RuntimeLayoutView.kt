@@ -15,6 +15,8 @@ import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.ScreenAlignment
 import me.magnum.melonds.domain.model.SCREEN_HEIGHT
 import me.magnum.melonds.domain.model.SCREEN_WIDTH
+import me.magnum.melonds.domain.model.Rect
+import me.magnum.melonds.domain.model.layout.PositionedLayoutComponent
 import me.magnum.melonds.ui.common.LayoutView
 import me.magnum.melonds.ui.emulator.input.ButtonsInputHandler
 import me.magnum.melonds.ui.emulator.input.DpadInputHandler
@@ -56,6 +58,11 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
     private var isGestureExclusionEnabled = true
     private var currentTouchScreenComponent: LayoutComponent = LayoutComponent.BOTTOM_SCREEN
     private var isEasyModeSwapped = false
+    private var easyModeLayoutAppliedListener: (() -> Unit)? = null
+    private var easyModeTopRectOverride: Rect? = null
+    private var easyModeBottomRectOverride: Rect? = null
+    private var easyModeTopAlphaOverride: Float? = null
+    private var easyModeBottomAlphaOverride: Float? = null
 
     fun setFrontendInputHandler(frontendInputHandler: FrontendInputHandler) {
         this.frontendInputHandler = frontendInputHandler
@@ -82,10 +89,16 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
         isEasyModeSwapped = false
         easyModeConfiguration = configuration
         if (configuration == null) {
+            clearEasyModeOverrides()
             currentRuntimeLayout?.let { instantiateLayout(it) }
         } else {
+            ensureEasyModeScreenComponents()
             applyEasyModeConfiguration()
         }
+    }
+
+    fun setOnEasyModeLayoutAppliedListener(listener: (() -> Unit)?) {
+        easyModeLayoutAppliedListener = listener
     }
 
     fun toggleSoftInputVisibility() {
@@ -176,6 +189,8 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
             return
         }
 
+        ensureEasyModeScreenComponents()
+
         val availableWidth = width
         val availableHeight = height
         if (availableWidth <= 0 || availableHeight <= 0) {
@@ -197,8 +212,14 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
             hiddenComponent = otherComponent
         }
 
-        val targetView = getLayoutComponentView(displayComponent) ?: return
-        val otherView = getLayoutComponentView(hiddenComponent)
+        var targetView = getLayoutComponentView(displayComponent)
+        var otherView = getLayoutComponentView(hiddenComponent)
+        if (targetView == null && otherView != null) {
+            // Fallback to the other component if the desired one is missing
+            targetView = otherView
+            otherView = null
+        }
+        targetView ?: return
 
         val (baseWidth, baseHeight) = when {
             configuration.integerScale -> computeIntegerScaleDimensions(availableWidth, availableHeight)
@@ -226,7 +247,66 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
             view.visibility = View.GONE
             baseAlpha = 0f
         }
+        val displayRect = Rect(left, top, scaledWidth, scaledHeight)
+        if (displayComponent == LayoutComponent.TOP_SCREEN) {
+            easyModeTopRectOverride = displayRect
+            easyModeBottomRectOverride = Rect(0, 0, 0, 0)
+            easyModeTopAlphaOverride = 1f
+            easyModeBottomAlphaOverride = 0f
+        } else {
+            easyModeBottomRectOverride = displayRect
+            easyModeTopRectOverride = Rect(0, 0, 0, 0)
+            easyModeBottomAlphaOverride = 1f
+            easyModeTopAlphaOverride = 0f
+        }
         updateScreenInputs()
+        easyModeLayoutAppliedListener?.invoke()
+    }
+
+    private fun ensureEasyModeScreenComponents() {
+        val hasTop = getLayoutComponentView(LayoutComponent.TOP_SCREEN) != null
+        val hasBottom = getLayoutComponentView(LayoutComponent.BOTTOM_SCREEN) != null
+        if (hasTop && hasBottom) {
+            return
+        }
+
+        val fallbackWidth = width.takeIf { it > 0 } ?: SCREEN_WIDTH
+        val fallbackHeight = height.takeIf { it > 0 } ?: SCREEN_HEIGHT
+
+        fun addScreen(component: LayoutComponent) {
+            val rect = Rect(0, 0, fallbackWidth, fallbackHeight)
+            addPositionedLayoutComponent(PositionedLayoutComponent(rect, component))
+        }
+
+        if (!hasTop) {
+            addScreen(LayoutComponent.TOP_SCREEN)
+        }
+        if (!hasBottom) {
+            addScreen(LayoutComponent.BOTTOM_SCREEN)
+        }
+    }
+
+    private fun clearEasyModeOverrides() {
+        easyModeTopRectOverride = null
+        easyModeBottomRectOverride = null
+        easyModeTopAlphaOverride = null
+        easyModeBottomAlphaOverride = null
+    }
+
+    fun getScreenRectForRenderer(component: LayoutComponent): Rect? {
+        return when (component) {
+            LayoutComponent.TOP_SCREEN -> easyModeTopRectOverride
+            LayoutComponent.BOTTOM_SCREEN -> easyModeBottomRectOverride
+            else -> null
+        }
+    }
+
+    fun getScreenAlphaForRenderer(component: LayoutComponent): Float? {
+        return when (component) {
+            LayoutComponent.TOP_SCREEN -> easyModeTopAlphaOverride
+            LayoutComponent.BOTTOM_SCREEN -> easyModeBottomAlphaOverride
+            else -> null
+        }
     }
 
     private fun computeIntegerScaleDimensions(availableWidth: Int, availableHeight: Int): Pair<Int, Int> {
