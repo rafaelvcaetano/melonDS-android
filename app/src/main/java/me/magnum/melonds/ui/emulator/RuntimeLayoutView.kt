@@ -76,6 +76,9 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
         if (easyModeConfiguration == configuration) {
             return
         }
+        if (configuration != null) {
+            manualScreensSwapped = false
+        }
         isEasyModeSwapped = false
         easyModeConfiguration = configuration
         if (configuration == null) {
