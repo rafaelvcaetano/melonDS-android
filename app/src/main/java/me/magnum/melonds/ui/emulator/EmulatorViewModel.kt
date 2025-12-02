@@ -771,7 +771,7 @@ class EmulatorViewModel @Inject constructor(
     }
 
     fun setExternalDisplayScreen(screen: DsExternalScreen) {
-        _externalDisplayScreen.value = screen
+        settingsRepository.setExternalDisplayScreen(screen)
     }
 
     fun isExternalDisplayKeepAspectRatioEnabled(): Boolean {
