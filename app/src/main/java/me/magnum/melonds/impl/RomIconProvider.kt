@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.domain.model.rom.Rom
@@ -27,7 +28,9 @@ class RomIconProvider(private val context: Context, private val romFileProcessor
     private val memoryIconCache = mutableMapOf<String, Bitmap>()
     private val romIconLocks = Collections.synchronizedMap(mutableMapOf<String, ReentrantLock>())
 
-    suspend fun getRomIcon(rom: Rom): Bitmap? = withContext(Dispatchers.IO) {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val romIconsDispatcher = Dispatchers.IO.limitedParallelism(1)
+    suspend fun getRomIcon(rom: Rom): Bitmap? = withContext(romIconsDispatcher) {
         val romHash = rom.uri.hashCode().toString()
         getRomIconLock(romHash).withLock {
             loadIconFromMemory(romHash, rom)
