@@ -5,11 +5,13 @@ import android.content.Intent
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.os.Bundle
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.os.bundleOf
@@ -28,7 +30,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ItemRomConfigurableBinding
@@ -37,6 +38,7 @@ import me.magnum.melonds.databinding.RomListFragmentBinding
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.domain.model.RomScanningStatus
 import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.rom.RomDirectoryScanStatus
 import me.magnum.melonds.extensions.setViewEnabledRecursive
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.romdetails.RomDetailsActivity
@@ -47,6 +49,9 @@ class RomListFragment : Fragment() {
     companion object {
         private const val KEY_ALLOW_ROM_CONFIGURATION = "allow_rom_configuration"
         private const val KEY_ROM_ENABLE_CRITERIA = "rom_enable_criteria"
+        private const val VIEW_TYPE_FOLDER = 0
+        private const val VIEW_TYPE_ROM_SIMPLE = 1
+        private const val VIEW_TYPE_ROM_CONFIGURABLE = 2
 
         fun newInstance(allowRomConfiguration: Boolean, enableCriteria: RomEnableCriteria): RomListFragment {
             return RomListFragment().also {
@@ -66,6 +71,9 @@ class RomListFragment : Fragment() {
     private lateinit var binding: RomListFragmentBinding
     private val romListViewModel: RomListViewModel by activityViewModels()
     private lateinit var romListAdapter: RomListAdapter
+    private lateinit var backPressedCallback: OnBackPressedCallback
+    private var lastBrowserState: RomBrowserUiState? = null
+    private var lastDirectoryStatusUi: List<RomListViewModel.DirectoryCacheStatusUi> = emptyList()
 
     private var romSelectedListener: ((Rom) -> Unit)? = null
 
@@ -86,7 +94,11 @@ class RomListFragment : Fragment() {
             allowRomConfiguration = allowRomConfiguration,
             context = requireContext(),
             coroutineScope = lifecycleScope,
-            listener = object : RomClickListener {
+            listener = object : RomBrowserClickListener {
+                override fun onFolderClicked(folder: RomBrowserEntry.Folder) {
+                    romListViewModel.openFolder(folder.docId)
+                }
+
                 override fun onRomClicked(rom: Rom) {
                     romListViewModel.setRomLastPlayedNow(rom)
                     romSelectedListener?.invoke(rom)
@@ -109,20 +121,33 @@ class RomListFragment : Fragment() {
             adapter = romListAdapter
         }
 
+        backPressedCallback = object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                romListViewModel.navigateUp()
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPressedCallback)
+
+        binding.buttonNavigateUp.setOnClickListener {
+            romListViewModel.navigateUp()
+        }
+
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 romListViewModel.romScanningStatus.collectLatest { status ->
                     binding.swipeRefreshRoms.isRefreshing = status == RomScanningStatus.SCANNING
-                    displayEmptyListViewIfRequired()
+                    lastBrowserState?.let { updateEmptyListView(it) }
                 }
             }
         }
 
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                romListViewModel.roms.filterNotNull().collectLatest { roms ->
-                    romListAdapter.setRoms(roms)
-                    displayEmptyListViewIfRequired()
+                romListViewModel.browserState.collectLatest { state ->
+                    lastBrowserState = state
+                    romListAdapter.setEntries(state.entries)
+                    updateNavigationUi(state)
+                    updateEmptyListView(state)
                 }
             }
         }
@@ -134,12 +159,67 @@ class RomListFragment : Fragment() {
                 }
             }
         }
+
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                romListViewModel.directoryStatusUi.collectLatest {
+                    lastDirectoryStatusUi = it
+                    renderDirectoryCacheStatus()
+                }
+            }
+        }
     }
 
-    private fun displayEmptyListViewIfRequired() {
+    private fun updateEmptyListView(state: RomBrowserUiState) {
         val isScanning = binding.swipeRefreshRoms.isRefreshing
-        val emptyViewVisible = !isScanning && romListViewModel.roms.value?.isEmpty() == true
+        val emptyViewVisible = !isScanning && state.entries.isEmpty()
         binding.textRomListEmpty.isVisible = emptyViewVisible
+    }
+
+    private fun renderDirectoryCacheStatus() {
+        val state = lastBrowserState
+        val statuses = lastDirectoryStatusUi
+        val shouldShow = state?.isAtVirtualRoot == true && state.isSearchActive.not() && statuses.isNotEmpty()
+
+        if (!shouldShow) {
+            binding.textDirectoryCacheStatus.isGone = true
+            return
+        }
+
+        val now = System.currentTimeMillis()
+        val cacheLines = statuses.map { status ->
+            val timeText = status.lastScanTimestamp?.let {
+                DateUtils.getRelativeTimeSpanString(it, now, DateUtils.MINUTE_IN_MILLIS).toString()
+            } ?: getString(R.string.rom_cache_status_just_now)
+
+            val statusText = when (status.result) {
+                RomDirectoryScanStatus.ScanResult.UPDATED -> getString(R.string.rom_cache_status_updated, timeText)
+                RomDirectoryScanStatus.ScanResult.UNCHANGED -> getString(R.string.rom_cache_status_cached, timeText)
+                RomDirectoryScanStatus.ScanResult.NOT_SCANNED -> getString(R.string.rom_cache_status_never)
+            }
+
+            "${status.directoryName} • $statusText"
+        }
+
+        binding.textDirectoryCacheStatus.isVisible = true
+        binding.textDirectoryCacheStatus.text = cacheLines.joinToString("\n")
+    }
+
+    private fun updateNavigationUi(state: RomBrowserUiState) {
+        val isSearch = state.isSearchActive
+        val canNavigate = state.canNavigateUp && !isSearch
+        binding.buttonNavigateUp.isVisible = canNavigate
+        binding.buttonNavigateUp.isEnabled = canNavigate
+        backPressedCallback.isEnabled = canNavigate
+
+        val pathText = when {
+            isSearch -> getString(R.string.rom_browser_search_results)
+            state.isAtVirtualRoot -> getString(R.string.rom_browser_virtual_root)
+            state.breadcrumbs.isEmpty() -> getString(R.string.rom_browser_virtual_root)
+            else -> state.breadcrumbs.joinToString(" / ")
+        }
+        binding.textCurrentFolder.text = pathText
+        renderDirectoryCacheStatus()
     }
 
     private fun buildRomEnabledFilter(romEnableCriteria: RomEnableCriteria): RomEnabledFilter {
@@ -157,47 +237,86 @@ class RomListFragment : Fragment() {
         private val allowRomConfiguration: Boolean,
         private val context: Context,
         private val coroutineScope: CoroutineScope,
-        private val listener: RomClickListener,
+        private val listener: RomBrowserClickListener,
         private val romEnabledFilter: RomEnabledFilter,
-    ) : RecyclerView.Adapter<RomViewHolder>() {
+    ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-        private val roms: ArrayList<Rom> = ArrayList()
+        private val entries: ArrayList<RomBrowserEntry> = ArrayList()
 
-        fun setRoms(roms: List<Rom>) {
-            val result = DiffUtil.calculateDiff(RomsDiffUtilCallback(this.roms, roms))
-            result.dispatchUpdatesTo(this)
-
-            this.roms.clear()
-            this.roms.addAll(roms)
-        }
-
-        fun updateIcons() {
-            val diff = DiffUtil.calculateDiff(RomIconDiffUtilCallback(this.roms.size))
+        fun setEntries(entries: List<RomBrowserEntry>) {
+            val oldEntries = ArrayList(this.entries)
+            val diff = DiffUtil.calculateDiff(BrowserEntriesDiffCallback(oldEntries, entries))
+            this.entries.clear()
+            this.entries.addAll(entries)
             diff.dispatchUpdatesTo(this)
         }
 
-        override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RomViewHolder {
-            return if (allowRomConfiguration) {
-                val binding = ItemRomConfigurableBinding.inflate(LayoutInflater.from(context), viewGroup, false)
-                ConfigurableRomViewHolder(binding.root, lifecycleScope, listener::onRomClicked, listener::onRomConfigClicked)
-            } else {
-                val binding = ItemRomSimpleBinding.inflate(LayoutInflater.from(context), viewGroup, false)
-                RomViewHolder(binding.root, coroutineScope, listener::onRomClicked)
+        fun updateIcons() {
+            notifyDataSetChanged()
+        }
+
+        override fun getItemCount(): Int = entries.size
+
+        override fun getItemViewType(position: Int): Int {
+            return when (entries[position]) {
+                is RomBrowserEntry.Folder -> VIEW_TYPE_FOLDER
+                is RomBrowserEntry.RomItem -> if (allowRomConfiguration) VIEW_TYPE_ROM_CONFIGURABLE else VIEW_TYPE_ROM_SIMPLE
             }
         }
 
-        override fun onBindViewHolder(romViewHolder: RomViewHolder, i: Int) {
-            val rom = roms[i]
-            val isRomEnabled = romEnabledFilter.isRomEnabled(rom)
-            romViewHolder.setRom(rom, isRomEnabled)
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+            val inflater = LayoutInflater.from(context)
+            return when (viewType) {
+                VIEW_TYPE_FOLDER -> {
+                    val binding = ItemRomSimpleBinding.inflate(inflater, parent, false)
+                    FolderViewHolder(binding.root, listener::onFolderClicked)
+                }
+                VIEW_TYPE_ROM_CONFIGURABLE -> {
+                    val binding = ItemRomConfigurableBinding.inflate(inflater, parent, false)
+                    ConfigurableRomViewHolder(binding.root, lifecycleScope, listener::onRomClicked, listener::onRomConfigClicked)
+                }
+                else -> {
+                    val binding = ItemRomSimpleBinding.inflate(inflater, parent, false)
+                    RomViewHolder(binding.root, coroutineScope, listener::onRomClicked)
+                }
+            }
         }
 
-        override fun onViewRecycled(holder: RomViewHolder) {
-            holder.cleanup()
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+            val entry = entries[position]
+            when {
+                holder is FolderViewHolder && entry is RomBrowserEntry.Folder -> holder.bind(entry)
+                holder is RomViewHolder && entry is RomBrowserEntry.RomItem -> holder.setRom(entry.rom, romEnabledFilter.isRomEnabled(entry.rom))
+            }
         }
 
-        override fun getItemCount(): Int {
-            return roms.size
+        override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
+            if (holder is RomViewHolder) {
+                holder.cleanup()
+            }
+        }
+
+        private inner class FolderViewHolder(itemView: View, private val onFolderClick: (RomBrowserEntry.Folder) -> Unit) : RecyclerView.ViewHolder(itemView) {
+            private val imageViewRomIcon = itemView.findViewById<ImageView>(R.id.imageRomIcon)
+            private val textViewRomName = itemView.findViewById<TextView>(R.id.textRomName)
+            private val textViewRomPath = itemView.findViewById<TextView>(R.id.textRomPath)
+            private val imagePlatformLogo = itemView.findViewById<ImageView>(R.id.logoPlatform)
+
+            private lateinit var folder: RomBrowserEntry.Folder
+
+            init {
+                itemView.setOnClickListener { onFolderClick(folder) }
+            }
+
+            fun bind(entry: RomBrowserEntry.Folder) {
+                folder = entry
+                imagePlatformLogo.isGone = true
+                val folderDrawable = ResourcesCompat.getDrawable(itemView.resources, R.drawable.ic_folder, null)
+                imageViewRomIcon.setImageDrawable(folderDrawable)
+                textViewRomName.text = entry.name
+                textViewRomPath.text = entry.relativePath
+                itemView.setViewEnabledRecursive(true)
+            }
         }
 
         open inner class RomViewHolder(itemView: View, private val coroutineScope: CoroutineScope, onRomClick: (Rom) -> Unit) : RecyclerView.ViewHolder(itemView) {
@@ -281,36 +400,32 @@ class RomListFragment : Fragment() {
             }
         }
 
-        inner class RomsDiffUtilCallback(private val oldRoms: List<Rom>, private val newRoms: List<Rom>) : DiffUtil.Callback() {
-            override fun getOldListSize(): Int = oldRoms.size
+        inner class BrowserEntriesDiffCallback(
+            private val oldEntries: List<RomBrowserEntry>,
+            private val newEntries: List<RomBrowserEntry>
+        ) : DiffUtil.Callback() {
+            override fun getOldListSize(): Int = oldEntries.size
 
-            override fun getNewListSize(): Int = newRoms.size
+            override fun getNewListSize(): Int = newEntries.size
 
             override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                return oldRoms[oldItemPosition].uri == newRoms[newItemPosition].uri
+                val oldItem = oldEntries[oldItemPosition]
+                val newItem = newEntries[newItemPosition]
+                return when {
+                    oldItem is RomBrowserEntry.Folder && newItem is RomBrowserEntry.Folder -> oldItem.docId == newItem.docId
+                    oldItem is RomBrowserEntry.RomItem && newItem is RomBrowserEntry.RomItem -> oldItem.rom.uri == newItem.rom.uri
+                    else -> false
+                }
             }
 
             override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                return oldRoms[oldItemPosition] == newRoms[newItemPosition]
+                return oldEntries[oldItemPosition] == newEntries[newItemPosition]
             }
-        }
-
-        /**
-         * [DiffUtil] callback used to update the ROM icons in the adapter. This callback doesn't compare any item and has a fixed output. To force the icons to update, the
-         * items are always assume to be the same but with different content.
-         */
-        inner class RomIconDiffUtilCallback(private val romCount: Int) : DiffUtil.Callback() {
-            override fun getOldListSize(): Int = romCount
-
-            override fun getNewListSize(): Int = romCount
-
-            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean = true
-
-            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean = false
         }
     }
 
-    private interface RomClickListener {
+    private interface RomBrowserClickListener {
+        fun onFolderClicked(folder: RomBrowserEntry.Folder)
         fun onRomClicked(rom: Rom)
         fun onRomConfigClicked(rom: Rom)
     }

@@ -28,12 +28,15 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
+import me.magnum.melonds.common.opengl.ShaderProgramSource
+import me.magnum.melonds.common.opengl.ShaderProgramSourceLoader
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.AudioBitrate
 import me.magnum.melonds.domain.model.AudioInterpolation
 import me.magnum.melonds.domain.model.AudioLatency
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.ControllerConfiguration
+import me.magnum.melonds.domain.model.DualScreenPreset
 import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.FirmwareConfiguration
@@ -43,6 +46,7 @@ import me.magnum.melonds.domain.model.MicSource
 import me.magnum.melonds.domain.model.RendererConfiguration
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.domain.model.SaveStateLocation
+import me.magnum.melonds.domain.model.ScreenAlignment
 import me.magnum.melonds.domain.model.SizeUnit
 import me.magnum.melonds.domain.model.SortingMode
 import me.magnum.melonds.domain.model.SortingOrder
@@ -60,6 +64,7 @@ import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import java.io.File
 import java.util.UUID
 import kotlin.math.pow
+import kotlin.jvm.Volatile
 
 class SharedPreferencesSettingsRepository(
     private val context: Context,
@@ -73,6 +78,14 @@ class SharedPreferencesSettingsRepository(
     companion object {
         private const val TAG = "SPSettingsRepository"
         private const val CONTROLLER_CONFIG_FILE = "controller_config.json"
+        private const val KEY_DUAL_SCREEN_PRESET = "dual_screen_preset"
+        private const val KEY_DUAL_SCREEN_INTEGER_SCALE = "dual_screen_integer_scale"
+        private const val KEY_DUAL_SCREEN_INTERNAL_FILL = "dual_screen_internal_fill_height"
+        private const val KEY_DUAL_SCREEN_EXTERNAL_FILL = "dual_screen_external_fill_height"
+        private const val KEY_DUAL_SCREEN_INTERNAL_FILL_WIDTH = "dual_screen_internal_fill_width"
+        private const val KEY_DUAL_SCREEN_EXTERNAL_FILL_WIDTH = "dual_screen_external_fill_width"
+        private const val KEY_DUAL_SCREEN_INTERNAL_VERTICAL_ALIGNMENT = "dual_screen_internal_vertical_alignment"
+        private const val KEY_DUAL_SCREEN_EXTERNAL_VERTICAL_ALIGNMENT = "dual_screen_external_vertical_alignment"
     }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -92,6 +105,7 @@ class SharedPreferencesSettingsRepository(
     private val preferenceObservers: HashMap<String, PublishSubject<Any>> = HashMap()
     private val preferenceSharedFlows = mutableMapOf<String, MutableSharedFlow<Unit>>()
     private val renderConfigurationFlow: SharedFlow<RendererConfiguration>
+    @Volatile private var cachedCustomShader: Pair<Uri, ShaderProgramSourceLoader.Result>? = null
 
     init {
         preferences.registerOnSharedPreferenceChangeListener(this)
@@ -103,8 +117,10 @@ class SharedPreferencesSettingsRepository(
             getVideoFiltering(),
             isThreadedRenderingEnabled(),
             getVideoInternalResolutionScaling(),
-        ) { renderer, filtering, threadedRenderingEnabled, resolutionScaling ->
-            RendererConfiguration(renderer, filtering, threadedRenderingEnabled, resolutionScaling)
+            observeVideoCustomShader(),
+        ) { renderer, filtering, threadedRenderingEnabled, resolutionScaling, customShaderUri ->
+            val customShader = loadCustomShader(customShaderUri)
+            RendererConfiguration(renderer, filtering, threadedRenderingEnabled, resolutionScaling, customShader)
         }.conflate().shareIn(preferencesCoroutineScope, SharingStarted.Lazily, replay = 1)
     }
 
@@ -303,6 +319,46 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
+    private fun observeVideoCustomShader(): Flow<Uri?> {
+        return getOrCreatePreferenceSharedFlow("video_custom_shader") {
+            getVideoCustomShaderUri()
+        }
+    }
+
+    private fun getVideoCustomShaderUri(): Uri? {
+        val shaderPreference = preferences.getStringSet("video_custom_shader", null)?.firstOrNull()
+        return shaderPreference?.toUri()
+    }
+
+    private fun loadCustomShader(uri: Uri?): ShaderProgramSource? {
+        if (uri == null) {
+            cachedCustomShader = null
+            return null
+        }
+
+        cachedCustomShader?.let { (cachedUri, cachedResult) ->
+            if (cachedUri == uri) {
+                return cachedResult.source
+            }
+        }
+
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                val result = ShaderProgramSourceLoader.load(stream)
+                cachedCustomShader = uri to result
+                result.source
+            } ?: run {
+                Log.w(TAG, "Unable to open custom shader URI: $uri")
+                cachedCustomShader = null
+                null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to load custom shader from $uri", e)
+            cachedCustomShader = null
+            null
+        }
+    }
+
     override fun isThreadedRenderingEnabled(): Flow<Boolean> {
         return getOrCreatePreferenceSharedFlow("enable_threaded_rendering") {
             preferences.getBoolean("enable_threaded_rendering", true)
@@ -342,6 +398,89 @@ class SharedPreferencesSettingsRepository(
     override fun isExternalDisplayRotateLeftEnabled(): Flow<Boolean> {
         return getOrCreatePreferenceSharedFlow("external_display_rotate_left") {
             preferences.getBoolean("external_display_rotate_left", false)
+        }
+    }
+
+    override fun getDualScreenPreset(): DualScreenPreset {
+        val value = preferences.getString(KEY_DUAL_SCREEN_PRESET, DualScreenPreset.OFF.name.lowercase())
+        return value?.let { enumValueOfIgnoreCase<DualScreenPreset>(it) } ?: DualScreenPreset.OFF
+    }
+
+    override fun observeDualScreenPreset(): Flow<DualScreenPreset> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_PRESET) {
+            getDualScreenPreset()
+        }
+    }
+
+    override fun isDualScreenIntegerScaleEnabled(): Boolean {
+        return preferences.getBoolean(KEY_DUAL_SCREEN_INTEGER_SCALE, false)
+    }
+
+    override fun observeDualScreenIntegerScaleEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_INTEGER_SCALE) {
+            isDualScreenIntegerScaleEnabled()
+        }
+    }
+
+    override fun isDualScreenInternalFillHeightEnabled(): Boolean {
+        return preferences.getBoolean(KEY_DUAL_SCREEN_INTERNAL_FILL, false)
+    }
+
+    override fun observeDualScreenInternalFillHeightEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_INTERNAL_FILL) {
+            isDualScreenInternalFillHeightEnabled()
+        }
+    }
+
+    override fun isDualScreenInternalFillWidthEnabled(): Boolean {
+        return preferences.getBoolean(KEY_DUAL_SCREEN_INTERNAL_FILL_WIDTH, false)
+    }
+
+    override fun observeDualScreenInternalFillWidthEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_INTERNAL_FILL_WIDTH) {
+            isDualScreenInternalFillWidthEnabled()
+        }
+    }
+
+    override fun isDualScreenExternalFillHeightEnabled(): Boolean {
+        return preferences.getBoolean(KEY_DUAL_SCREEN_EXTERNAL_FILL, false)
+    }
+
+    override fun observeDualScreenExternalFillHeightEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_EXTERNAL_FILL) {
+            isDualScreenExternalFillHeightEnabled()
+        }
+    }
+
+    override fun isDualScreenExternalFillWidthEnabled(): Boolean {
+        return preferences.getBoolean(KEY_DUAL_SCREEN_EXTERNAL_FILL_WIDTH, false)
+    }
+
+    override fun observeDualScreenExternalFillWidthEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_EXTERNAL_FILL_WIDTH) {
+            isDualScreenExternalFillWidthEnabled()
+        }
+    }
+
+    override fun getDualScreenInternalVerticalAlignmentOverride(): ScreenAlignment? {
+        val value = preferences.getString(KEY_DUAL_SCREEN_INTERNAL_VERTICAL_ALIGNMENT, null) ?: return null
+        return enumValueOfIgnoreCase<ScreenAlignment>(value)
+    }
+
+    override fun observeDualScreenInternalVerticalAlignmentOverride(): Flow<ScreenAlignment?> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_INTERNAL_VERTICAL_ALIGNMENT) {
+            getDualScreenInternalVerticalAlignmentOverride()
+        }
+    }
+
+    override fun getDualScreenExternalVerticalAlignmentOverride(): ScreenAlignment? {
+        val value = preferences.getString(KEY_DUAL_SCREEN_EXTERNAL_VERTICAL_ALIGNMENT, null) ?: return null
+        return enumValueOfIgnoreCase<ScreenAlignment>(value)
+    }
+
+    override fun observeDualScreenExternalVerticalAlignmentOverride(): Flow<ScreenAlignment?> {
+        return getOrCreatePreferenceSharedFlow(KEY_DUAL_SCREEN_EXTERNAL_VERTICAL_ALIGNMENT) {
+            getDualScreenExternalVerticalAlignmentOverride()
         }
     }
 
@@ -502,6 +641,11 @@ class SharedPreferencesSettingsRepository(
         return strength.coerceIn(1, 100)
     }
 
+    override fun getGbaRumbleIntensity(): Int {
+        val intensity = preferences.getInt("gba_rumble_intensity", 100)
+        return intensity.coerceIn(1, 100)
+    }
+
     override fun getSoftInputOpacity(): Flow<Int> {
         return getOrCreatePreferenceSharedFlow("input_opacity") {
             preferences.getInt("input_opacity", 50)
@@ -564,7 +708,9 @@ class SharedPreferencesSettingsRepository(
 
     override fun addRomSearchDirectory(directoryUri: Uri) {
         preferences.edit {
-            putStringSet("rom_search_dirs", setOf(directoryUri.toString()))
+            val existingDirectories = preferences.getStringSet("rom_search_dirs", emptySet())?.toMutableSet() ?: mutableSetOf()
+            existingDirectories.add(directoryUri.toString())
+            putStringSet("rom_search_dirs", existingDirectories)
         }
     }
 
@@ -627,6 +773,62 @@ class SharedPreferencesSettingsRepository(
     override fun setExternalDisplayRotateLeftEnabled(enabled: Boolean) {
         preferences.edit {
             putBoolean("external_display_rotate_left", enabled)
+        }
+    }
+
+    override fun setDualScreenPreset(preset: DualScreenPreset) {
+        preferences.edit {
+            putString(KEY_DUAL_SCREEN_PRESET, preset.name.lowercase())
+        }
+    }
+
+    override fun setDualScreenIntegerScaleEnabled(enabled: Boolean) {
+        preferences.edit {
+            putBoolean(KEY_DUAL_SCREEN_INTEGER_SCALE, enabled)
+        }
+    }
+
+    override fun setDualScreenInternalFillHeightEnabled(enabled: Boolean) {
+        preferences.edit {
+            putBoolean(KEY_DUAL_SCREEN_INTERNAL_FILL, enabled)
+        }
+    }
+
+    override fun setDualScreenInternalFillWidthEnabled(enabled: Boolean) {
+        preferences.edit {
+            putBoolean(KEY_DUAL_SCREEN_INTERNAL_FILL_WIDTH, enabled)
+        }
+    }
+
+    override fun setDualScreenExternalFillHeightEnabled(enabled: Boolean) {
+        preferences.edit {
+            putBoolean(KEY_DUAL_SCREEN_EXTERNAL_FILL, enabled)
+        }
+    }
+
+    override fun setDualScreenExternalFillWidthEnabled(enabled: Boolean) {
+        preferences.edit {
+            putBoolean(KEY_DUAL_SCREEN_EXTERNAL_FILL_WIDTH, enabled)
+        }
+    }
+
+    override fun setDualScreenInternalVerticalAlignmentOverride(alignment: ScreenAlignment?) {
+        preferences.edit {
+            if (alignment == null) {
+                remove(KEY_DUAL_SCREEN_INTERNAL_VERTICAL_ALIGNMENT)
+            } else {
+                putString(KEY_DUAL_SCREEN_INTERNAL_VERTICAL_ALIGNMENT, alignment.name.lowercase())
+            }
+        }
+    }
+
+    override fun setDualScreenExternalVerticalAlignmentOverride(alignment: ScreenAlignment?) {
+        preferences.edit {
+            if (alignment == null) {
+                remove(KEY_DUAL_SCREEN_EXTERNAL_VERTICAL_ALIGNMENT)
+            } else {
+                putString(KEY_DUAL_SCREEN_EXTERNAL_VERTICAL_ALIGNMENT, alignment.name.lowercase())
+            }
         }
     }
 

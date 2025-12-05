@@ -8,3 +8,7 @@
 /captures
 .externalNativeBuild
 .kotlin
+common/bin/
+rcheevos-api/bin/
+*.patch
+
