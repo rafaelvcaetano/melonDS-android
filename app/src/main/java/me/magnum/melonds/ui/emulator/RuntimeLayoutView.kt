@@ -19,10 +19,11 @@ import me.magnum.melonds.ui.emulator.input.TouchscreenInputHandler
 import me.magnum.melonds.ui.emulator.input.view.ToggleableImageView
 import me.magnum.melonds.ui.emulator.model.ConnectedControllersState
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration
+import me.magnum.melonds.ui.layouteditor.model.LayoutTarget
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(context, attrs) {
+class RuntimeLayoutView(context: Context, attrs: AttributeSet? = null) : LayoutView(context, attrs) {
 
     @Inject
     lateinit var touchVibrator: TouchVibrator
@@ -69,9 +70,9 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet?) : LayoutView(con
         toggleableImageView.setToggleState(isEnabled)
     }
 
-    fun instantiateLayout(runtimeLayout: RuntimeInputLayoutConfiguration) {
+    fun instantiateLayout(runtimeLayout: RuntimeInputLayoutConfiguration, layoutTarget: LayoutTarget) {
         currentRuntimeLayout = runtimeLayout
-        instantiateLayout(runtimeLayout.layout)
+        instantiateLayout(runtimeLayout.layout, layoutTarget)
         updateInputs()
         updateVisibility()
         setLayoutComponentToggleState(LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT, isSoftInputVisible)

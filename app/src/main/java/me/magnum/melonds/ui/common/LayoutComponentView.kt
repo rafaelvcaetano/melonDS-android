@@ -16,8 +16,6 @@ class LayoutComponentView(val view: View, val aspectRatio: Float, val component:
 
     var onTop: Boolean = false
 
-    private var highlighted = false
-
     fun setPosition(position: Point) {
         view.updateLayoutParams<FrameLayout.LayoutParams> {
             leftMargin = position.x
@@ -66,8 +64,7 @@ class LayoutComponentView(val view: View, val aspectRatio: Float, val component:
     }
 
     fun setHighlighted(value: Boolean) {
-        highlighted = value
-        applyAlpha()
+        view.isSelected = value
     }
 
     private fun applyAlpha() {

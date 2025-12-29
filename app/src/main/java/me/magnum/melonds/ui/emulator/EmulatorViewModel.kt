@@ -41,7 +41,6 @@ import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
-import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RuntimeBackground
@@ -51,6 +50,7 @@ import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
 import me.magnum.melonds.domain.model.layout.BackgroundMode
 import me.magnum.melonds.domain.model.layout.LayoutConfiguration
+import me.magnum.melonds.domain.model.layout.LayoutDisplayPair
 import me.magnum.melonds.domain.model.layout.ScreenFold
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
@@ -70,7 +70,6 @@ import me.magnum.melonds.impl.layout.UILayoutProvider
 import me.magnum.melonds.ui.emulator.firmware.FirmwarePauseMenuOption
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
-import me.magnum.melonds.ui.emulator.model.ExternalDisplayConfiguration
 import me.magnum.melonds.ui.emulator.model.LaunchArgs
 import me.magnum.melonds.ui.emulator.model.PauseMenu
 import me.magnum.melonds.ui.emulator.model.RAIntegrationEvent
@@ -123,16 +122,11 @@ class EmulatorViewModel @Inject constructor(
     private val _runtimeRendererConfiguration = MutableStateFlow<RuntimeRendererConfiguration?>(null)
     val runtimeRendererConfiguration = _runtimeRendererConfiguration.asStateFlow()
 
-    private val _externalDisplayScreen = MutableStateFlow<DsExternalScreen>(DsExternalScreen.TOP)
+    private val _mainScreenBackground = MutableStateFlow(RuntimeBackground.None)
+    val mainScreenBackground = _mainScreenBackground.asStateFlow()
 
-    private val _externalDisplayConfiguration = MutableStateFlow(ExternalDisplayConfiguration())
-    val externalDisplayConfiguration = _externalDisplayConfiguration.asStateFlow()
-
-    private val _background = MutableStateFlow(RuntimeBackground.None)
-    val background = _background.asStateFlow()
-
-    private val _externalBackground = MutableStateFlow(RuntimeBackground.None)
-    val externalBackground = _externalBackground.asStateFlow()
+    private val _secondaryScreenBackground = MutableStateFlow(RuntimeBackground.None)
+    val secondaryScreenBackground = _secondaryScreenBackground.asStateFlow()
 
     private val _achievementTriggeredEvent = MutableSharedFlow<RAAchievement>(extraBufferCapacity = 5, onBufferOverflow = BufferOverflow.SUSPEND)
     val achievementTriggeredEvent = _achievementTriggeredEvent.asSharedFlow()
@@ -157,7 +151,6 @@ class EmulatorViewModel @Inject constructor(
                 uiLayoutProvider.setCurrentLayoutConfiguration(it)
             }
         }
-        startObservingExternalDisplayConfiguration()
 
         val launchArgs = LaunchArgs.fromSavedStateHandle(savedStateHandle)
         if (launchArgs != null) {
@@ -223,12 +216,11 @@ class EmulatorViewModel @Inject constructor(
     private suspend fun launchRom(rom: Rom) = coroutineScope {
         currentRom = rom
         startEmulatorSession(EmulatorSession.SessionType.RomSession(rom))
-        startObservingBackground()
-        startObservingExternalBackground()
+        startObservingMainScreenBackground()
+        startObservingSecondaryScreenBackground()
         startObservingRuntimeInputLayoutConfiguration()
         startObservingRendererConfiguration()
         startObservingAchievementEvents()
-        startObservingExternalDisplayScreenForRom(rom)
         startObservingLayoutForRom(rom)
         startRetroAchievementsSession(rom)
 
@@ -256,11 +248,10 @@ class EmulatorViewModel @Inject constructor(
             resetEmulatorState(EmulatorState.LoadingFirmware)
             startEmulatorSession(EmulatorSession.SessionType.FirmwareSession(consoleType))
             sessionCoroutineScope.launch {
-                startObservingBackground()
-                startObservingExternalBackground()
+                startObservingMainScreenBackground()
+                startObservingSecondaryScreenBackground()
                 startObservingRuntimeInputLayoutConfiguration()
                 startObservingRendererConfiguration()
-                startObservingExternalDisplayScreenForFirmware()
                 startObservingLayoutForFirmware()
 
                 val result = emulatorManager.loadFirmware(consoleType)
@@ -287,6 +278,10 @@ class EmulatorViewModel @Inject constructor(
 
     fun setScreenFolds(folds: List<ScreenFold>) {
         uiLayoutProvider.updateFolds(folds)
+    }
+
+    fun setConnectedDisplays(displays: LayoutDisplayPair) {
+        uiLayoutProvider.updateDisplays(displays)
     }
 
     fun onSettingsChanged() {
@@ -405,7 +400,6 @@ class EmulatorViewModel @Inject constructor(
                         }
                     }
                     RomPauseMenuOption.VIEW_ACHIEVEMENTS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowAchievementList)
-                    RomPauseMenuOption.QUICK_SETTINGS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowQuickSettings)
                     RomPauseMenuOption.RESET -> resetEmulator()
                     RomPauseMenuOption.EXIT -> {
                         emulatorManager.stopEmulator()
@@ -551,22 +545,6 @@ class EmulatorViewModel @Inject constructor(
         return emulatorManager.loadState(slotUri)
     }
 
-    private fun startObservingExternalDisplayConfiguration() {
-        viewModelScope.launch {
-            combine(
-                _externalDisplayScreen,
-                settingsRepository.isExternalDisplayRotateLeftEnabled(),
-                settingsRepository.observeExternalDisplayKeepAspectRationEnabled(),
-            ) { displayMode, rotateLeft, keepAspectRatio ->
-                ExternalDisplayConfiguration(
-                    displayMode = displayMode,
-                    rotateLeft = rotateLeft,
-                    keepAspectRatio = keepAspectRatio,
-                )
-            }.collect(_externalDisplayConfiguration)
-        }
-    }
-
     private fun startObservingRuntimeInputLayoutConfiguration() {
         sessionCoroutineScope.launch {
             combine(
@@ -604,8 +582,8 @@ class EmulatorViewModel @Inject constructor(
         raSessionJob = null
         _currentFps.value = null
         _emulatorState.value = newState
-        _background.value = RuntimeBackground.None
-        _externalBackground.value = RuntimeBackground.None
+        _mainScreenBackground.value = RuntimeBackground.None
+        _secondaryScreenBackground.value = RuntimeBackground.None
         _layout.value = null
         currentRom = null
     }
@@ -622,55 +600,29 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    private fun startObservingBackground() {
+    private fun startObservingMainScreenBackground() {
         sessionCoroutineScope.launch {
             combine(uiLayoutProvider.currentLayout, ensureEmulatorIsRunning()) { variant, _ ->
                 val layout = variant?.second
                 if (layout == null) {
                     RuntimeBackground.None
                 } else {
-                    loadBackground(layout.backgroundId, layout.backgroundMode)
+                    loadBackground(layout.mainScreenLayout.backgroundId, layout.mainScreenLayout.backgroundMode)
                 }
-            }.collect(_background)
+            }.collect(_mainScreenBackground)
         }
     }
 
-    private fun startObservingExternalBackground() {
-        val romLayoutId = currentRom?.config?.externalLayoutId
-        val layoutFlow = if (romLayoutId == null) {
-            settingsRepository.observeExternalLayoutId().asFlow()
-                .onStart { emit(settingsRepository.getExternalLayoutId()) }
-                .flatMapLatest { layoutsRepository.observeLayout(it) }
-        } else {
-            layoutsRepository.observeLayout(romLayoutId)
-                .onCompletion {
-                    emitAll(
-                        settingsRepository.observeExternalLayoutId().asFlow()
-                            .onStart { emit(settingsRepository.getExternalLayoutId()) }
-                            .flatMapLatest { layoutsRepository.observeLayout(it) }
-                    )
-                }
-        }
-
+    private fun startObservingSecondaryScreenBackground() {
         sessionCoroutineScope.launch {
-            layoutFlow
-                .map { layout ->
-                    val entry = layout.layoutVariants.entries.firstOrNull()
-                    entry?.let { loadBackground(it.value.backgroundId, it.value.backgroundMode) }
-                        ?: RuntimeBackground.None
+            combine(uiLayoutProvider.currentLayout, ensureEmulatorIsRunning()) { variant, _ ->
+                val layout = variant?.second
+                if (layout == null) {
+                    RuntimeBackground.None
+                } else {
+                    loadBackground(layout.secondaryScreenLayout.backgroundId, layout.secondaryScreenLayout.backgroundMode)
                 }
-                .collect(_externalBackground)
-        }
-    }
-
-    private fun startObservingExternalDisplayScreenForRom(rom: Rom) {
-        val externalScreen = rom.config.externalScreen
-        if (externalScreen != null) {
-            _externalDisplayScreen.value = externalScreen
-        } else {
-            sessionCoroutineScope.launch {
-                settingsRepository.observeExternalDisplayScreen().collect(_externalDisplayScreen)
-            }
+            }.collect(_secondaryScreenBackground)
         }
     }
 
@@ -698,12 +650,6 @@ class EmulatorViewModel @Inject constructor(
             settingsRepository.observeRenderConfiguration().collectLatest {
                 _runtimeRendererConfiguration.value = RuntimeRendererConfiguration(it.videoFiltering, it.resolutionScaling)
             }
-        }
-    }
-
-    private fun startObservingExternalDisplayScreenForFirmware() {
-        sessionCoroutineScope.launch {
-            settingsRepository.observeExternalDisplayScreen().collect(_externalDisplayScreen)
         }
     }
 
@@ -764,22 +710,6 @@ class EmulatorViewModel @Inject constructor(
 
     fun getFpsCounterPosition(): FpsCounterPosition {
         return settingsRepository.getFpsCounterPosition()
-    }
-
-    fun getExternalDisplayScreen(): DsExternalScreen {
-        return _externalDisplayScreen.value
-    }
-
-    fun setExternalDisplayScreen(screen: DsExternalScreen) {
-        settingsRepository.setExternalDisplayScreen(screen)
-    }
-
-    fun isExternalDisplayKeepAspectRatioEnabled(): Boolean {
-        return settingsRepository.isExternalDisplayKeepAspectRationEnabled()
-    }
-
-    fun setExternalDisplayKeepAspectRatioEnabled(enabled: Boolean) {
-        settingsRepository.setExternalDisplayKeepAspectRatioEnabled(enabled)
     }
 
     private suspend fun getRomEnabledCheats(romInfo: RomInfo): List<Cheat> {

@@ -12,9 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import me.magnum.melonds.R
+import me.magnum.melonds.ui.common.DetachedDialog
 import me.magnum.melonds.ui.common.component.text.CaptionText
 import me.magnum.melonds.ui.common.melonTextButtonColors
 
@@ -25,6 +26,7 @@ fun SingleChoiceItem(
     items: List<String>,
     selectedItemIndex: Int,
     onItemSelected: (Int) -> Unit,
+    horizontalPadding: Dp = 16.dp,
 ) {
     var isDialogShown by remember {
         mutableStateOf(false)
@@ -36,7 +38,7 @@ fun SingleChoiceItem(
             .clickable { isDialogShown = true }
             .focusable()
             .heightIn(min = 64.dp)
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+            .padding(start = horizontalPadding, end = horizontalPadding, top = 8.dp, bottom = 8.dp),
         verticalArrangement = Arrangement.Center
     ) {
         Text(
@@ -71,7 +73,7 @@ private fun SingleChoiceDialog(
     onOptionSelected: (index: Int) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
-    Dialog(
+    DetachedDialog(
         onDismissRequest = onDismissRequest,
     ) {
         Card(

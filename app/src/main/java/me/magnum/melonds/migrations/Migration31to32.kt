@@ -32,7 +32,9 @@ class Migration31to32(
 
         layoutMigrationHelper.migrateJsonArrayData<LayoutConfigurationDto31, LayoutConfigurationDto>(LAYOUTS_DATA_FILE) {
             try {
-                LayoutConfigurationDto(
+                null
+                // TODO
+                /*LayoutConfigurationDto(
                     id = it.id,
                     name = it.name,
                     type = it.type,
@@ -57,7 +59,7 @@ class Migration31to32(
                             layout = it.landscapeLayout,
                         ),
                     )
-                )
+                )*/
             } catch (e: Exception) {
                 null
             }

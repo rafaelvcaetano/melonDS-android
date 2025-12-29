@@ -10,14 +10,12 @@ data class LayoutConfiguration(
     val useCustomOpacity: Boolean,
     val opacity: Int,
     val layoutVariants: Map<UILayoutVariant, UILayout>,
-    val target: LayoutTarget = LayoutTarget.INTERNAL,
 ) {
 
     companion object {
         val DEFAULT_ID = UUID(0, 0)
-        val DEFAULT_EXTERNAL_ID = UUID(0, 1)
 
-        fun newCustom(target: LayoutTarget = LayoutTarget.INTERNAL): LayoutConfiguration {
+        fun newCustom(): LayoutConfiguration {
             return LayoutConfiguration(
                 id = null,
                 name = null,
@@ -26,13 +24,12 @@ data class LayoutConfiguration(
                 useCustomOpacity = false,
                 opacity = 50,
                 layoutVariants = emptyMap(),
-                target = target,
             )
         }
     }
 
     // Empty constructor to include defaults that help in migrations
-    constructor() : this(null, null, LayoutType.CUSTOM, LayoutOrientation.FOLLOW_SYSTEM, false, 50, emptyMap(), LayoutTarget.INTERNAL)
+    constructor() : this(null, null, LayoutType.CUSTOM, LayoutOrientation.FOLLOW_SYSTEM, false, 50, emptyMap())
 
     enum class LayoutType {
         DEFAULT,
@@ -43,10 +40,5 @@ data class LayoutConfiguration(
         FOLLOW_SYSTEM,
         PORTRAIT,
         LANDSCAPE
-    }
-
-    enum class LayoutTarget {
-        INTERNAL,
-        EXTERNAL,
     }
 }
