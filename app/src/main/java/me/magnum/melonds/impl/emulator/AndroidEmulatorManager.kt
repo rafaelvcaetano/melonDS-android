@@ -15,6 +15,7 @@ import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.common.RetroAchievementsCallback
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
+import me.magnum.melonds.common.streaming.TopScreenStreamingServer
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.EmulatorConfiguration
@@ -49,6 +50,7 @@ class AndroidEmulatorManager(
     private val achievementsSharedFlow = MutableSharedFlow<RAEvent>(replay = 0, extraBufferCapacity = Int.MAX_VALUE)
 
     private val loadedAchievements = mutableListOf<RASimpleAchievement>()
+    private val topScreenStreamingServer = TopScreenStreamingServer(screenshotFrameBufferProvider.frameBuffer())
 
     override suspend fun loadRom(rom: Rom, cheats: List<Cheat>): RomLaunchResult {
         return withContext(Dispatchers.IO) {
@@ -171,9 +173,18 @@ class AndroidEmulatorManager(
     }
 
     override fun stopEmulator() {
+        topScreenStreamingServer.stop()
         MelonEmulator.stopEmulation()
         cameraManager.stopCurrentCameraSource()
         loadedAchievements.clear()
+    }
+
+    override fun startTopScreenStreaming(port: Int, fps: Int, quality: Int) {
+        topScreenStreamingServer.start(port, fps, quality)
+    }
+
+    override fun stopTopScreenStreaming() {
+        topScreenStreamingServer.stop()
     }
 
     override fun cleanEmulator() {

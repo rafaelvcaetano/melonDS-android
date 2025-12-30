@@ -44,6 +44,10 @@ interface SettingsRepository {
     fun isExternalDisplayRotateLeftEnabled(): Flow<Boolean>
     fun getDSiCameraSource(): DSiCameraSourceType
     fun getDSiCameraStaticImage(): Uri?
+    fun isTopScreenStreamingEnabled(): Boolean
+    fun getTopScreenStreamingPort(): Int
+    fun getTopScreenStreamingFps(): Int
+    fun getTopScreenStreamingJpegQuality(): Int
 
     fun isSoundEnabled(): Boolean
     fun getAudioLatency(): AudioLatency

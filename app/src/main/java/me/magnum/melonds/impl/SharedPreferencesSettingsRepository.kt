@@ -355,6 +355,25 @@ class SharedPreferencesSettingsRepository(
         return staticImagePreference?.toUri()
     }
 
+    override fun isTopScreenStreamingEnabled(): Boolean {
+        return preferences.getBoolean("stream_top_screen_enabled", false)
+    }
+
+    override fun getTopScreenStreamingPort(): Int {
+        val portValue = preferences.getString("stream_top_screen_port", "7070")?.toIntOrNull()
+        return portValue ?: 7070
+    }
+
+    override fun getTopScreenStreamingFps(): Int {
+        val fpsValue = preferences.getString("stream_top_screen_fps", "20")?.toIntOrNull()
+        return fpsValue ?: 20
+    }
+
+    override fun getTopScreenStreamingJpegQuality(): Int {
+        val qualityValue = preferences.getString("stream_top_screen_quality", "75")?.toIntOrNull()
+        return qualityValue ?: 75
+    }
+
     override fun isSoundEnabled(): Boolean {
         return preferences.getBoolean("sound_enabled", true)
     }

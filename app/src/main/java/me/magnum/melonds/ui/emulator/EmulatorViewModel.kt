@@ -247,6 +247,7 @@ class EmulatorViewModel @Inject constructor(
                 _emulatorState.value = EmulatorState.RunningRom(rom)
                 startTrackingFps()
                 startTrackingPlayTime(rom)
+                updateTopScreenStreaming()
             }
         }
     }
@@ -271,6 +272,7 @@ class EmulatorViewModel @Inject constructor(
                     FirmwareLaunchResult.LaunchSuccessful -> {
                         _emulatorState.value = EmulatorState.RunningFirmware(consoleType)
                         startTrackingFps()
+                        updateTopScreenStreaming()
                     }
                 }
             }
@@ -305,6 +307,7 @@ class EmulatorViewModel @Inject constructor(
                 }
             }
 
+            updateTopScreenStreaming()
             dispatchSessionUpdateActions(sessionUpdateActions)
         }
     }
@@ -317,6 +320,23 @@ class EmulatorViewModel @Inject constructor(
                 val cheats = getRomEnabledCheats(it)
                 emulatorManager.updateCheats(cheats)
             }
+        }
+    }
+
+    private fun updateTopScreenStreaming() {
+        if (!_emulatorState.value.isRunning()) {
+            emulatorManager.stopTopScreenStreaming()
+            return
+        }
+
+        if (settingsRepository.isTopScreenStreamingEnabled()) {
+            emulatorManager.startTopScreenStreaming(
+                port = settingsRepository.getTopScreenStreamingPort(),
+                fps = settingsRepository.getTopScreenStreamingFps(),
+                quality = settingsRepository.getTopScreenStreamingJpegQuality(),
+            )
+        } else {
+            emulatorManager.stopTopScreenStreaming()
         }
     }
 

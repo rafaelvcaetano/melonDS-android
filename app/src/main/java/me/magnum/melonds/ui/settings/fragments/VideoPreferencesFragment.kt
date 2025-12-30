@@ -93,6 +93,10 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
             true
         }
 
+        helper.bindPreferenceSummaryToValue(findPreference("stream_top_screen_port"))
+        helper.bindPreferenceSummaryToValue(findPreference("stream_top_screen_fps"))
+        helper.bindPreferenceSummaryToValue(findPreference("stream_top_screen_quality"))
+
         helper.setupStoragePickerPreference(dsiCameraImagePreference)
 
         onRendererPreferenceChanged(rendererPreference.value)

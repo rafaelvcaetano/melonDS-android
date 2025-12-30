@@ -73,6 +73,46 @@
             android:entryValues="@array/fps_counter_position_values"
             android:defaultValue="hidden" />
 
+    <PreferenceCategory
+            android:title="@string/top_screen_streaming_category"
+            app:iconSpaceReserved="false">
+
+        <SwitchPreference
+                android:key="stream_top_screen_enabled"
+                android:title="@string/top_screen_streaming"
+                android:summary="@string/top_screen_streaming_summary"
+                app:iconSpaceReserved="false"
+                android:defaultValue="false" />
+
+        <EditTextPreference
+                android:key="stream_top_screen_port"
+                android:title="@string/top_screen_streaming_port"
+                android:summary="%s"
+                android:dependency="stream_top_screen_enabled"
+                android:inputType="number"
+                app:iconSpaceReserved="false"
+                android:defaultValue="7070" />
+
+        <EditTextPreference
+                android:key="stream_top_screen_fps"
+                android:title="@string/top_screen_streaming_fps"
+                android:summary="%s"
+                android:dependency="stream_top_screen_enabled"
+                android:inputType="number"
+                app:iconSpaceReserved="false"
+                android:defaultValue="20" />
+
+        <EditTextPreference
+                android:key="stream_top_screen_quality"
+                android:title="@string/top_screen_streaming_quality"
+                android:summary="%s"
+                android:dependency="stream_top_screen_enabled"
+                android:inputType="number"
+                app:iconSpaceReserved="false"
+                android:defaultValue="75" />
+
+    </PreferenceCategory>
+
     <ListPreference
             android:key="dsi_camera_source"
             android:title="@string/dsi_camera_source"

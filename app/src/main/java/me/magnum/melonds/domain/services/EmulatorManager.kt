@@ -47,4 +47,7 @@ interface EmulatorManager {
     fun cleanEmulator()
 
     fun observeRetroAchievementEvents(): Flow<RAEvent>
+
+    fun startTopScreenStreaming(port: Int, fps: Int, quality: Int)
+    fun stopTopScreenStreaming()
 }
