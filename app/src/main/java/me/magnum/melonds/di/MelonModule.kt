@@ -29,7 +29,11 @@ import me.magnum.melonds.impl.AndroidDSiNandManager
 import me.magnum.melonds.impl.*
 import me.magnum.melonds.impl.input.ControllerConfigurationFactory
 import me.magnum.melonds.impl.input.DefaultControllerConfigurationFactory
+import me.magnum.melonds.impl.layout.DeviceLayoutDisplayMapper
+import me.magnum.melonds.impl.layout.DefaultLayoutProvider
 import me.magnum.melonds.impl.layout.UILayoutProvider
+import me.magnum.melonds.impl.layout.devicemapper.AynThorLayoutDisplayMapper
+import me.magnum.melonds.impl.layout.devicemapper.DefaultLayoutDisplayMapper
 import me.magnum.melonds.impl.romprocessors.Api24RomFileProcessorFactory
 import me.magnum.melonds.ui.romdetails.RomDetailsUiMapper
 import me.magnum.rcheevosapi.RAApi
@@ -157,6 +161,16 @@ object MelonModule {
     @Singleton
     fun provideScreenUnitsConverter(@ApplicationContext context: Context): ScreenUnitsConverter {
         return ScreenUnitsConverter(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeviceLayoutDisplayMapper(@ApplicationContext context: Context): DeviceLayoutDisplayMapper {
+        return if (Build.MANUFACTURER == "AYN" && Build.MODEL == "AYN Thor") {
+            AynThorLayoutDisplayMapper(context)
+        } else {
+            DefaultLayoutDisplayMapper(context)
+        }
     }
 
     @Provides

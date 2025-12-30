@@ -3,11 +3,11 @@ package me.magnum.melonds.migrations
 import android.content.Context
 import me.magnum.melonds.domain.model.Point
 import me.magnum.melonds.domain.model.ui.Orientation
-import me.magnum.melonds.impl.dtos.layout.LayoutConfigurationDto
 import me.magnum.melonds.impl.dtos.layout.PointDto
-import me.magnum.melonds.impl.dtos.layout.UILayoutVariantDto
 import me.magnum.melonds.migrations.helper.GenericJsonArrayMigrationHelper
 import me.magnum.melonds.migrations.legacy.layout.LayoutConfigurationDto31
+import me.magnum.melonds.migrations.legacy.layout.LayoutConfigurationDto35
+import me.magnum.melonds.migrations.legacy.layout.UILayoutVariantDto35
 import me.magnum.melonds.utils.WindowManagerCompat
 
 class Migration31to32(
@@ -30,9 +30,9 @@ class Migration31to32(
             Point(windowSize.x, windowSize.y) to Point(windowSize.y, windowSize.x)
         }
 
-        layoutMigrationHelper.migrateJsonArrayData<LayoutConfigurationDto31, LayoutConfigurationDto>(LAYOUTS_DATA_FILE) {
+        layoutMigrationHelper.migrateJsonArrayData<LayoutConfigurationDto31, LayoutConfigurationDto35>(LAYOUTS_DATA_FILE) {
             try {
-                LayoutConfigurationDto(
+                LayoutConfigurationDto35(
                     id = it.id,
                     name = it.name,
                     type = it.type,
@@ -40,16 +40,16 @@ class Migration31to32(
                     useCustomOpacity = it.useCustomOpacity,
                     opacity = it.opacity,
                     layoutVariants = listOf(
-                        LayoutConfigurationDto.LayoutEntryDto(
-                            variant = UILayoutVariantDto(
+                        LayoutConfigurationDto35.LayoutEntryDto35(
+                            variant = UILayoutVariantDto35(
                                 uiSize = PointDto.fromModel(portraitSize),
                                 orientation = Orientation.PORTRAIT.name,
                                 folds = emptyList(),
                             ),
                             layout = it.portraitLayout,
                         ),
-                        LayoutConfigurationDto.LayoutEntryDto(
-                            variant = UILayoutVariantDto(
+                        LayoutConfigurationDto35.LayoutEntryDto35(
+                            variant = UILayoutVariantDto35(
                                 uiSize = PointDto.fromModel(landscapeSize),
                                 orientation = Orientation.LANDSCAPE.name,
                                 folds = emptyList(),
@@ -58,7 +58,7 @@ class Migration31to32(
                         ),
                     )
                 )
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         }

@@ -19,9 +19,6 @@ class RomDetailsUiMapper(
             runtimeMicSource = romConfig.runtimeMicSource,
             layoutId = romConfig.layoutId,
             layoutName = romConfig.layoutId?.let { layoutsRepository.getLayout(it)?.name } ?: layoutsRepository.getGlobalLayoutPlaceholder().name,
-            externalLayoutId = romConfig.externalLayoutId,
-            externalLayoutName = romConfig.externalLayoutId?.let { layoutsRepository.getLayout(it)?.name } ?: layoutsRepository.getGlobalLayoutPlaceholder().name,
-            externalScreen = romConfig.externalScreen,
             gbaSlotConfig = mapGbaSlotConfigToUi(romConfig.gbaSlotConfig),
             customName = romConfig.customName,
         )

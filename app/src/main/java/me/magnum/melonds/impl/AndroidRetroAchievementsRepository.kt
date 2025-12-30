@@ -274,8 +274,8 @@ class AndroidRetroAchievementsRepository(
         val hashLibraryLastUpdateTimestamp = sharedPreferences.getLong(RA_HASH_LIBRARY_LAST_UPDATED, 0)
         val hashLibraryLastUpdate = Instant.ofEpochMilli(hashLibraryLastUpdateTimestamp)
 
-        // Update the game hash library once a month
-        return Duration.between(hashLibraryLastUpdate, Instant.now()) > Duration.ofDays(30)
+        // Update the game hash library once a day
+        return Duration.between(hashLibraryLastUpdate, Instant.now()) > Duration.ofDays(1)
     }
 
     private fun mustRefreshAchievementSet(gameSetMetadata: RAGameSetMetadata?): Boolean {

@@ -11,7 +11,6 @@ import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.SCREEN_HEIGHT
-import me.magnum.melonds.domain.model.SCREEN_WIDTH
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.layout.BackgroundMode
 import me.magnum.melonds.domain.model.render.PresentFrameWrapper
@@ -122,7 +121,7 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
         GLES30.glGenBuffers(2, vbos, 0)
         GLES30.glGenVertexArrays(2, vaos, 0)
         screensVbo = vbos[0]
-        screensVao = vaos[1]
+        screensVao = vaos[0]
 
         backgroundVbo = vbos[1]
         backgroundVao = vaos[1]
@@ -251,19 +250,19 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
         }
 
         screenShader?.let { shader ->
-            shader.use()
-
             GLES30.glDisable(GLES30.GL_DEPTH_TEST)
             GLES30.glEnable(GLES30.GL_BLEND)
             GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA)
+
+            GLES30.glBindVertexArray(screensVao)
+            GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, screensVbo)
+
+            shader.use()
 
             GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
             GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, presentFrameWrapper.textureId)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, shader.textureFiltering)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, shader.textureFiltering)
-
-            GLES30.glBindVertexArray(screensVao)
-            GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, screensVbo)
 
             GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 0)
             GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 2 * Float.SIZE_BYTES)
@@ -290,12 +289,14 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
             updateBackgroundPosition()
         }
 
+        GLES30.glBindVertexArray(backgroundVao)
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, backgroundVbo)
+
         backgroundShader.use()
+
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, backgroundTexture)
 
-        GLES30.glBindVertexArray(backgroundVao)
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, backgroundVbo)
         GLES30.glVertexAttribPointer(backgroundShader.attribPos, 2, GLES30.GL_FLOAT, false, 4 * Float.SIZE_BYTES, 0)
         GLES30.glVertexAttribPointer(backgroundShader.attribUv, 2, GLES30.GL_FLOAT, false, 4 * Float.SIZE_BYTES, 2 * Float.SIZE_BYTES)
         GLES30.glUniform1i(backgroundShader.uniformTex, 0)

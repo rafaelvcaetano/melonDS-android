@@ -19,6 +19,10 @@ class ExternalTouchscreenInputHandler(
     override fun onTouch(v: View, event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
+                if (!isTouchInScreenBounds(event, v.width, v.height)) {
+                    return false
+                }
+
                 inputListener.onKeyPress(Input.TOUCHSCREEN)
                 inputListener.onTouch(normalizeTouchCoordinates(event, v.width, v.height))
             }
@@ -31,6 +35,46 @@ class ExternalTouchscreenInputHandler(
             }
         }
         return true
+    }
+
+    private fun isTouchInScreenBounds(event: MotionEvent, viewWidth: Int, viewHeight: Int): Boolean {
+        return if (screenAspectRatio == null) {
+            true
+        } else {
+            val viewRatio = viewWidth.toFloat() / viewHeight.toFloat()
+            val screenWidth: Float
+            val screenHeight: Float
+            val offsetX: Float
+            val offsetY: Float
+
+            if (viewRatio > screenAspectRatio) {
+                // View is wider than screen
+                screenHeight = viewHeight.toFloat()
+                screenWidth = screenHeight * screenAspectRatio
+                offsetX = (viewWidth - screenWidth) / 2f
+                offsetY = 0f
+            } else {
+                // View is taller than screen
+                screenWidth = viewWidth.toFloat()
+                screenHeight = screenWidth / screenAspectRatio
+                offsetX = 0f
+                offsetY = (viewHeight - screenHeight) / 2f
+            }
+
+            var avgX = 0f
+            var avgY = 0f
+            val coords = PointerCoords()
+
+            for (i in 0 until event.pointerCount) {
+                event.getPointerCoords(i, coords)
+                avgX += coords.x
+                avgY += coords.y
+            }
+            avgX /= event.pointerCount
+            avgY /= event.pointerCount
+
+            return avgX in offsetX..(offsetX + screenWidth) && avgY in offsetY..(offsetY + screenHeight)
+        }
     }
 
     private fun normalizeTouchCoordinates(event: MotionEvent, viewWidth: Int, viewHeight: Int): Point {

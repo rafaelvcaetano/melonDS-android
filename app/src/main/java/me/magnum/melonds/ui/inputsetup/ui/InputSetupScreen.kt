@@ -261,7 +261,6 @@ private fun getInputName(input: Input): String? {
         Input.QUICK_SAVE -> R.string.input_quick_save
         Input.QUICK_LOAD -> R.string.input_quick_load
         Input.REWIND -> R.string.rewind
-        Input.REFRESH_EXTERNAL_SCREEN -> R.string.input_refresh_external_screen
         else -> return null
     }
 

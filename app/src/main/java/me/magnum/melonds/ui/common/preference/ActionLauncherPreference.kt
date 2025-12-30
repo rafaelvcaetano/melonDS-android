@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import me.magnum.melonds.ui.common.component.text.CaptionText
 
@@ -24,6 +25,7 @@ fun ActionLauncherItem(
     value: String,
     enabled: Boolean = true,
     onLaunchAction: () -> Unit,
+    horizontalPadding: Dp = 16.dp,
 ) {
     Column(
         modifier = Modifier
@@ -36,7 +38,7 @@ fun ActionLauncherItem(
                 }
             }
             .heightIn(min = 64.dp)
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+            .padding(start = horizontalPadding, end = horizontalPadding, top = 8.dp, bottom = 8.dp),
         verticalArrangement = Arrangement.Center,
     ) {
         CompositionLocalProvider(LocalContentAlpha provides if (enabled) ContentAlpha.high else ContentAlpha.disabled) {

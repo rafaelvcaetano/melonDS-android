@@ -20,8 +20,6 @@ data class LayoutConfigurationDto(
     val opacity: Int,
     @SerializedName("layoutVariants")
     val layoutVariants: List<LayoutEntryDto>,
-    @SerializedName("target")
-    val target: String? = null,
 ) {
 
     companion object {
@@ -36,13 +34,11 @@ data class LayoutConfigurationDto(
                 layoutConfiguration.layoutVariants.map {
                     LayoutEntryDto(UILayoutVariantDto.fromModel(it.key), UILayoutDto.fromModel(it.value))
                 },
-                layoutConfiguration.target.name,
             )
         }
     }
 
     fun toModel(): LayoutConfiguration {
-        val parsedTarget = target?.let { enumValueOfIgnoreCase<LayoutConfiguration.LayoutTarget>(it) } ?: LayoutConfiguration.LayoutTarget.INTERNAL
         return LayoutConfiguration(
             id?.let { UUID.fromString(it) },
             name,
@@ -53,7 +49,6 @@ data class LayoutConfigurationDto(
             layoutVariants.associate {
                 it.variant.toModel() to it.layout.toModel()
             },
-            parsedTarget,
         )
     }
 

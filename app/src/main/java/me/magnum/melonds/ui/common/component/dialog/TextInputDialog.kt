@@ -2,6 +2,8 @@ package me.magnum.melonds.ui.common.component.dialog
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.MaterialTheme
@@ -18,6 +20,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import me.magnum.melonds.R
 import me.magnum.melonds.ui.common.melonOutlinedTextFieldColors
@@ -48,6 +51,8 @@ fun TextInputDialog(
                         value = dialogState.textField,
                         onValueChange = { dialogState.textField = it },
                         colors = melonOutlinedTextFieldColors(),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { dialogState.confirm() }),
                     )
 
                     LaunchedEffect(Unit) {

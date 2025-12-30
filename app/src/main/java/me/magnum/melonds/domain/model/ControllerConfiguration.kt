@@ -24,7 +24,6 @@ class ControllerConfiguration(configList: List<InputConfig>) {
             Input.QUICK_SAVE,
             Input.QUICK_LOAD,
             Input.REWIND,
-            Input.REFRESH_EXTERNAL_SCREEN
         )
     }
 
