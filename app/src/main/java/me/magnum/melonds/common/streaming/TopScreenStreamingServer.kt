@@ -2,8 +2,10 @@ package me.magnum.melonds.common.streaming
 
 import android.graphics.Bitmap
 import java.io.BufferedOutputStream
+import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.InputStreamReader
 import java.net.ServerSocket
 import java.net.Socket
 import java.nio.ByteBuffer
@@ -50,7 +52,6 @@ class TopScreenStreamingServer(
     private fun runServer(port: Int, fps: Int, quality: Int) {
         val targetFrameMs = max(1, 1000 / max(1, fps))
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val header = ByteArray(16)
         val jpegStream = ByteArrayOutputStream(width * height)
 
         try {
@@ -61,7 +62,7 @@ class TopScreenStreamingServer(
                     val socket = server.accept()
                     clientSocket = socket
                     socket.tcpNoDelay = true
-                    streamClient(socket, bitmap, header, jpegStream, targetFrameMs, quality)
+                    streamClient(socket, bitmap, jpegStream, targetFrameMs, quality)
                     clientSocket = null
                 }
             }
@@ -72,41 +73,79 @@ class TopScreenStreamingServer(
     private fun streamClient(
         socket: Socket,
         bitmap: Bitmap,
-        header: ByteArray,
         jpegStream: ByteArrayOutputStream,
         targetFrameMs: Int,
         quality: Int,
     ) {
         val pixels = IntArray(width * height)
         try {
+            val input = BufferedReader(InputStreamReader(socket.getInputStream()))
+            val requestLine = input.readLine() ?: return
+            val path = requestLine.split(" ").getOrNull(1) ?: "/"
+            while (true) {
+                val line = input.readLine() ?: break
+                if (line.isEmpty()) break
+            }
+
             val output = BufferedOutputStream(socket.getOutputStream(), 64 * 1024)
-            while (running && !socket.isClosed) {
-                val frameStart = System.nanoTime()
-                val dup = screenshotBuffer.duplicate().order(ByteOrder.LITTLE_ENDIAN)
-                // Screenshot buffer stores top screen first, so we only copy the first 256x192 region.
-                dup.position(0)
-                dup.limit(width * height * 4)
-                dup.asIntBuffer().get(pixels, 0, pixels.size)
-                bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+            if (path == "/stream") {
+                writeHttpHeader(output, "multipart/x-mixed-replace; boundary=frame")
+                while (running && !socket.isClosed) {
+                    val frameStart = System.nanoTime()
+                    val dup = screenshotBuffer.duplicate().order(ByteOrder.LITTLE_ENDIAN)
+                    // Screenshot buffer stores top screen first, so we only copy the first 256x192 region.
+                    dup.position(0)
+                    dup.limit(width * height * 4)
+                    dup.asIntBuffer().get(pixels, 0, pixels.size)
+                    bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
 
-                jpegStream.reset()
-                if (!bitmap.compress(Bitmap.CompressFormat.JPEG, quality, jpegStream)) {
-                    continue
-                }
-                val jpegBytes = jpegStream.toByteArray()
-                writeHeader(header, jpegBytes.size)
-                output.write(header)
-                output.write(jpegBytes)
-                output.flush()
+                    jpegStream.reset()
+                    if (!bitmap.compress(Bitmap.CompressFormat.JPEG, quality, jpegStream)) {
+                        continue
+                    }
+                    val jpegBytes = jpegStream.toByteArray()
+                    output.write("--frame\r\n".toByteArray())
+                    output.write("Content-Type: image/jpeg\r\n".toByteArray())
+                    output.write("Content-Length: ${jpegBytes.size}\r\n\r\n".toByteArray())
+                    output.write(jpegBytes)
+                    output.write("\r\n".toByteArray())
+                    output.flush()
 
-                val elapsedMs = (System.nanoTime() - frameStart) / 1_000_000
-                val sleepMs = targetFrameMs - elapsedMs
-                if (sleepMs > 0) {
-                    try {
-                        Thread.sleep(sleepMs.toLong())
-                    } catch (_: InterruptedException) {
+                    val elapsedMs = (System.nanoTime() - frameStart) / 1_000_000
+                    val sleepMs = targetFrameMs - elapsedMs
+                    if (sleepMs > 0) {
+                        try {
+                            Thread.sleep(sleepMs.toLong())
+                        } catch (_: InterruptedException) {
+                        }
                     }
                 }
+            } else {
+                writeHttpHeader(output, "text/html; charset=utf-8")
+                val html = buildString {
+                    append("<!doctype html>")
+                    append("<html><head><meta name='viewport' content='width=device-width, initial-scale=1'>")
+                    append("<style>")
+                    append("html,body{margin:0;height:100%;background:#000;}")
+                    append("img{height:100vh;width:100vw;object-fit:contain;display:block;margin:0 auto;}")
+                    append("button{position:fixed;top:12px;right:12px;z-index:10;padding:8px 12px;border:0;border-radius:6px;background:#222;color:#fff;font:14px sans-serif;opacity:.75;}")
+                    append("button:hover{opacity:1;}")
+                    append("</style></head>")
+                    append("<body>")
+                    append("<button id='fs'>Fullscreen</button>")
+                    append("<img id='stream' src='/stream' alt='Top screen stream'>")
+                    append("<script>")
+                    append("const btn=document.getElementById('fs');")
+                    append("btn.addEventListener('click',()=>{")
+                    append("const el=document.documentElement;")
+                    append("if(!document.fullscreenElement){el.requestFullscreen().catch(()=>{});}")
+                    append("else{document.exitFullscreen().catch(()=>{});}")
+                    append("});")
+                    append("</script>")
+                    append("</body></html>")
+                }
+                output.write(html.toByteArray())
+                output.flush()
             }
         } catch (_: IOException) {
         } finally {
@@ -117,26 +156,12 @@ class TopScreenStreamingServer(
         }
     }
 
-    private fun writeHeader(buffer: ByteArray, jpegSize: Int) {
-        buffer[0] = 'M'.code.toByte()
-        buffer[1] = 'D'.code.toByte()
-        buffer[2] = 'J'.code.toByte()
-        buffer[3] = 'P'.code.toByte()
-        writeIntLE(buffer, 4, 1)
-        writeIntLE(buffer, 8, jpegSize)
-        writeShortLE(buffer, 12, width)
-        writeShortLE(buffer, 14, height)
-    }
-
-    private fun writeIntLE(buffer: ByteArray, offset: Int, value: Int) {
-        buffer[offset] = (value and 0xFF).toByte()
-        buffer[offset + 1] = ((value shr 8) and 0xFF).toByte()
-        buffer[offset + 2] = ((value shr 16) and 0xFF).toByte()
-        buffer[offset + 3] = ((value shr 24) and 0xFF).toByte()
-    }
-
-    private fun writeShortLE(buffer: ByteArray, offset: Int, value: Int) {
-        buffer[offset] = (value and 0xFF).toByte()
-        buffer[offset + 1] = ((value shr 8) and 0xFF).toByte()
+    private fun writeHttpHeader(output: BufferedOutputStream, contentType: String) {
+        output.write("HTTP/1.1 200 OK\r\n".toByteArray())
+        output.write("Cache-Control: no-store, no-cache, must-revalidate\r\n".toByteArray())
+        output.write("Pragma: no-cache\r\n".toByteArray())
+        output.write("Connection: close\r\n".toByteArray())
+        output.write("Content-Type: $contentType\r\n\r\n".toByteArray())
+        output.flush()
     }
 }

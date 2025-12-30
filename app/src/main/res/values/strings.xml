@@ -222,8 +222,8 @@
     <string name="external_display_screen">External display screen</string>
     <string name="external_display_rotate_left">Rotate external screen content left</string>
     <string name="top_screen_streaming_category">Top screen streaming</string>
-    <string name="top_screen_streaming">Stream top screen (TCP + JPEG)</string>
-    <string name="top_screen_streaming_summary">Stream the top screen over the local network for display only.</string>
+    <string name="top_screen_streaming">Stream top screen (HTTP MJPEG)</string>
+    <string name="top_screen_streaming_summary">Open http://&lt;device-ip&gt;:&lt;port&gt;/ in your browser.</string>
     <string name="top_screen_streaming_port">Streaming port</string>
     <string name="top_screen_streaming_fps">Streaming FPS</string>
     <string name="top_screen_streaming_quality">JPEG quality (1-100)</string>
