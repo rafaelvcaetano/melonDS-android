@@ -2,6 +2,7 @@ package me.magnum.melonds.ui.romdetails.ui
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -29,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import me.magnum.melonds.R
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.contracts.FilePickerContract
+import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
 import me.magnum.melonds.domain.model.rom.config.RuntimeMicSource
 import me.magnum.melonds.ui.common.MelonPreviewSet
@@ -42,13 +45,14 @@ import me.magnum.melonds.ui.romdetails.model.RomConfigUiState
 import me.magnum.melonds.ui.romdetails.model.RomConfigUpdateEvent
 import me.magnum.melonds.ui.romdetails.model.RomGbaSlotConfigUiModel
 import me.magnum.melonds.ui.theme.MelonTheme
+import java.util.Date
 import java.util.UUID
 
 @Composable
 fun RomConfigUi(
     modifier: Modifier,
     contentPadding: PaddingValues,
-    romName: String,
+    rom: Rom,
     romConfigUiState: RomConfigUiState,
     onConfigUpdate: (RomConfigUpdateEvent) -> Unit,
 ) {
@@ -57,7 +61,7 @@ fun RomConfigUi(
         is RomConfigUiState.Ready -> Content(
             modifier = modifier,
             contentPadding = contentPadding,
-            romName = romName,
+            rom = rom,
             romConfig = romConfigUiState.romConfigUiModel,
             onConfigUpdate = onConfigUpdate,
         )
@@ -78,7 +82,7 @@ private fun Loading(modifier: Modifier) {
 private fun Content(
     modifier: Modifier,
     contentPadding: PaddingValues,
-    romName: String,
+    rom: Rom,
     romConfig: RomConfigUiModel,
     onConfigUpdate: (RomConfigUpdateEvent) -> Unit,
 ) {
@@ -92,9 +96,9 @@ private fun Content(
         val renameDialogState = rememberTextInputDialogState()
         ActionLauncherItem(
             name = stringResource(id = R.string.label_rom_config_custom_name),
-            value = romConfig.customName ?: romName,
+            value = romConfig.customName ?: rom.name,
             onLaunchAction = {
-                renameDialogState.show(romConfig.customName ?: romName) { newName ->
+                renameDialogState.show(romConfig.customName ?: rom.name) { newName ->
                     onConfigUpdate(RomConfigUpdateEvent.CustomNameUpdate(newName.ifBlank { null }))
                 }
             }
@@ -116,7 +120,8 @@ private fun Content(
             selectedItemIndex = romConfig.runtimeConsoleType.ordinal,
             onItemSelected = {
                 onConfigUpdate(RomConfigUpdateEvent.RuntimeConsoleUpdate(RuntimeConsoleType.entries[it]))
-            }
+            },
+            enabled = !rom.isDsiWareTitle,
         )
 
         val micSourceOptions = stringArrayResource(id = R.array.game_runtime_mic_source_options)
@@ -203,7 +208,17 @@ private fun PreviewRomConfigUi() {
         RomConfigUi(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(0.dp),
-            romName = "Professor Layton and the Unwound Future",
+            rom = Rom(
+                name = "Professor Layton and the Unwound Future",
+                developerName = "Nontendo",
+                fileName = "layton.nds",
+                uri = Uri.EMPTY,
+                parentTreeUri = Uri.EMPTY,
+                config = RomConfig(),
+                lastPlayed = Date(),
+                isDsiWareTitle = false,
+                retroAchievementsHash = "",
+            ),
             romConfigUiState = RomConfigUiState.Ready(
                 RomConfigUiModel(
                     layoutName = "Default",

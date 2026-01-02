@@ -25,6 +25,7 @@ import me.magnum.melonds.database.daos.RAAchievementsDao
 import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.domain.services.DSiNandManager
+import me.magnum.melonds.domain.services.EmulatorLaunchPreconditionChecker
 import me.magnum.melonds.impl.AndroidDSiNandManager
 import me.magnum.melonds.impl.*
 import me.magnum.melonds.impl.input.ControllerConfigurationFactory
@@ -199,5 +200,20 @@ object MelonModule {
     @Singleton
     fun provideRomDetailsUiMapper(@ApplicationContext context: Context, layoutsRepository: LayoutsRepository): RomDetailsUiMapper {
         return RomDetailsUiMapper(context, layoutsRepository)
+    }
+
+    @Provides
+    fun provideRomLaunchPreconditionChecker(
+        configurationDirectoryVerifier: ConfigurationDirectoryVerifier,
+        romFileProcessorFactory: RomFileProcessorFactory,
+        dsiNandManager: DSiNandManager,
+        settingsRepository: SettingsRepository,
+    ): EmulatorLaunchPreconditionChecker {
+        return EmulatorLaunchPreconditionChecker(
+            configurationDirectoryVerifier = configurationDirectoryVerifier,
+            romFileProcessorFactory = romFileProcessorFactory,
+            dsiNandManager = dsiNandManager,
+            settingsRepository = settingsRepository,
+        )
     }
 }

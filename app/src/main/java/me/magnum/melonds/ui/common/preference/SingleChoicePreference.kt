@@ -26,32 +26,35 @@ fun SingleChoiceItem(
     items: List<String>,
     selectedItemIndex: Int,
     onItemSelected: (Int) -> Unit,
+    enabled: Boolean = true,
     horizontalPadding: Dp = 16.dp,
 ) {
     var isDialogShown by remember {
         mutableStateOf(false)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { isDialogShown = true }
-            .focusable()
-            .heightIn(min = 64.dp)
-            .padding(start = horizontalPadding, end = horizontalPadding, top = 8.dp, bottom = 8.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = name,
-            style = MaterialTheme.typography.body1,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        CaptionText(
-            text = value,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+    CompositionLocalProvider(LocalContentAlpha provides if (enabled) ContentAlpha.high else ContentAlpha.disabled) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = enabled) { isDialogShown = true }
+                .focusable(enabled = enabled)
+                .heightIn(min = 64.dp)
+                .padding(start = horizontalPadding, end = horizontalPadding, top = 8.dp, bottom = 8.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.body1,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            CaptionText(
+                text = value,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 
     if (isDialogShown) {

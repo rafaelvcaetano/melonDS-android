@@ -54,6 +54,7 @@ object MigrationModule {
             registerMigration(Migration33to34(context, json))
             registerMigration(Migration34to35(context))
             registerMigration(Migration35to36(context, genericJsonArrayMigrationHelper))
+            registerMigration(Migration36to37(genericJsonArrayMigrationHelper))
         }
     }
 }

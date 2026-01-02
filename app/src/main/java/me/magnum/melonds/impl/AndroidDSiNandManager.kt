@@ -3,6 +3,8 @@ package me.magnum.melonds.impl
 import android.content.Context
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.MelonDSiNand
 import me.magnum.melonds.common.suspendRunCatching
@@ -17,6 +19,7 @@ import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.domain.services.DSiNandManager
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 class AndroidDSiNandManager(
     private val context: Context,
@@ -29,23 +32,33 @@ class AndroidDSiNandManager(
         val DSIWARE_CATEGORY = 0x00030004.toUInt()
     }
 
+    private val nandControlLock = Mutex()
+    private val nandUsageCount = AtomicInteger(0)
     private val isNandOpen = AtomicBoolean(false)
 
     override suspend fun openNand(): OpenDSiNandResult {
-        if (!isNandOpen.compareAndSet(false, true)) {
-            return OpenDSiNandResult.NAND_ALREADY_OPEN
-        }
-        val dsiDirectoryStatus = biosDirectoryVerifier.checkDsiConfigurationDirectory()
-        if (dsiDirectoryStatus.status != ConfigurationDirResult.Status.VALID) {
-            isNandOpen.set(false)
-            return OpenDSiNandResult.INVALID_DSI_SETUP
-        }
+        return nandControlLock.withLock {
+            if (isNandOpen.get()) {
+                nandUsageCount.incrementAndGet()
+                return OpenDSiNandResult.NAND_ALREADY_OPEN
+            }
+            val dsiDirectoryStatus = biosDirectoryVerifier.checkDsiConfigurationDirectory()
+            if (dsiDirectoryStatus.status != ConfigurationDirResult.Status.VALID) {
+                return OpenDSiNandResult.INVALID_DSI_SETUP
+            }
 
-        val result = MelonDSiNand.openNand(settingsRepository.getEmulatorConfiguration())
-        return mapOpenNandReturnCodeToResult(result)
+            val result = MelonDSiNand.openNand(settingsRepository.getEmulatorConfiguration())
+            mapOpenNandReturnCodeToResult(result).also {
+                if (!it.isFailure()) {
+                    if (nandUsageCount.getAndIncrement() == 0) {
+                        isNandOpen.set(true)
+                    }
+                }
+            }
+        }
     }
 
-    override suspend fun listTitles(): List<DSiWareTitle> {
+    override suspend fun listTitles(): List<DSiWareTitle> = nandControlLock.withLock {
         if (!isNandOpen.get()) {
             return emptyList()
         }
@@ -53,37 +66,39 @@ class AndroidDSiNandManager(
         return MelonDSiNand.listTitles()
     }
 
-    override suspend fun importTitle(titleUri: Uri): ImportDSiWareTitleResult = withContext(Dispatchers.IO) {
-        if (!isNandOpen.get()) {
-            return@withContext ImportDSiWareTitleResult.NAND_NOT_OPEN
+    override suspend fun importTitle(titleUri: Uri): ImportDSiWareTitleResult = nandControlLock.withLock {
+        withContext(Dispatchers.IO) {
+            if (!isNandOpen.get()) {
+                return@withContext ImportDSiWareTitleResult.NAND_NOT_OPEN
+            }
+
+            var categoryId: UInt = 0.toUInt()
+            var titleId: UInt = 0.toUInt()
+
+            context.contentResolver.openInputStream(titleUri)?.use {
+                it.skip(0x230)
+                titleId = it.readUInt()
+                categoryId = it.readUInt()
+            } ?: return@withContext ImportDSiWareTitleResult.ERROR_OPENING_FILE
+
+            if (categoryId != DSIWARE_CATEGORY) {
+                return@withContext ImportDSiWareTitleResult.NOT_DSIWARE_TITLE
+            }
+
+            val tmdMetadataResult = suspendRunCatching {
+                dsiWareMetadataRepository.getDSiWareTitleMetadata(categoryId, titleId)
+            }
+
+            if (tmdMetadataResult.isFailure) {
+                return@withContext ImportDSiWareTitleResult.METADATA_FETCH_FAILED
+            }
+
+            val result = MelonDSiNand.importTitle(titleUri.toString(), tmdMetadataResult.getOrThrow())
+            mapImportTitleReturnCodeToResult(result)
         }
-
-        var categoryId: UInt = 0.toUInt()
-        var titleId: UInt = 0.toUInt()
-
-        context.contentResolver.openInputStream(titleUri)?.use {
-            it.skip(0x230)
-            titleId = it.readUInt()
-            categoryId = it.readUInt()
-        } ?: return@withContext ImportDSiWareTitleResult.ERROR_OPENING_FILE
-
-        if (categoryId != DSIWARE_CATEGORY) {
-            return@withContext ImportDSiWareTitleResult.NOT_DSIWARE_TITLE
-        }
-
-        val tmdMetadataResult = suspendRunCatching {
-            dsiWareMetadataRepository.getDSiWareTitleMetadata(categoryId, titleId)
-        }
-
-        if (tmdMetadataResult.isFailure) {
-            return@withContext ImportDSiWareTitleResult.METADATA_FETCH_FAILED
-        }
-
-        val result = MelonDSiNand.importTitle(titleUri.toString(), tmdMetadataResult.getOrThrow())
-        mapImportTitleReturnCodeToResult(result)
     }
 
-    override suspend fun deleteTitle(title: DSiWareTitle) {
+    override suspend fun deleteTitle(title: DSiWareTitle) = nandControlLock.withLock {
         if (!isNandOpen.get()) {
             return
         }
@@ -91,7 +106,7 @@ class AndroidDSiNandManager(
         MelonDSiNand.deleteTitle((title.titleId and 0xFFFFFFFF).toInt())
     }
 
-    override suspend fun importTitleFile(title: DSiWareTitle, fileType: DSiWareTitleFileType, fileUri: Uri): Boolean {
+    override suspend fun importTitleFile(title: DSiWareTitle, fileType: DSiWareTitleFileType, fileUri: Uri): Boolean = nandControlLock.withLock {
         if (!isNandOpen.get()) {
             return false
         }
@@ -99,7 +114,7 @@ class AndroidDSiNandManager(
         return MelonDSiNand.importTitleFile((title.titleId and 0xFFFFFFFF).toInt(), fileType.ordinal, fileUri.toString())
     }
 
-    override suspend fun exportTitleFile(title: DSiWareTitle, fileType: DSiWareTitleFileType, fileUri: Uri): Boolean {
+    override suspend fun exportTitleFile(title: DSiWareTitle, fileType: DSiWareTitleFileType, fileUri: Uri): Boolean = nandControlLock.withLock {
         if (!isNandOpen.get()) {
             return false
         }
@@ -108,11 +123,10 @@ class AndroidDSiNandManager(
     }
 
     override fun closeNand() {
-        if (!isNandOpen.compareAndSet(true, false)) {
-            return
+        if (nandUsageCount.decrementAndGet() == 0) {
+            isNandOpen.set(false)
+            MelonDSiNand.closeNand()
         }
-
-        MelonDSiNand.closeNand()
     }
 
     private fun mapOpenNandReturnCodeToResult(returnCode: Int): OpenDSiNandResult {

@@ -39,7 +39,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
                         fileName = romDocument?.name ?: "",
                         uri = romUri,
                         parentTreeUri = parentUri,
-                        config = RomConfig(),
+                        config = if (romMetadata.isDSiWareTitle) RomConfig.forDsiWareTitle() else RomConfig.default(),
                         lastPlayed = null,
                         isDsiWareTitle = romMetadata.isDSiWareTitle,
                         retroAchievementsHash = romMetadata.retroAchievementsHash
