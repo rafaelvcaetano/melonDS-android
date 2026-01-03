@@ -106,21 +106,85 @@ class SharedPreferencesSettingsRepository(
     private val preferenceSharedFlows = mutableMapOf<String, MutableSharedFlow<Unit>>()
     private val renderConfigurationFlow: SharedFlow<RendererConfiguration>
     @Volatile private var cachedCustomShader: Pair<Uri, ShaderProgramSourceLoader.Result>? = null
+    private data class CoreRenderConfigurationInputs(
+        val renderer: VideoRenderer,
+        val filtering: VideoFiltering,
+        val threadedRenderingEnabled: Boolean,
+        val resolutionScaling: Int,
+    )
+    private data class CoverageFixConfigurationInputs(
+        val enabled: Boolean,
+        val coveragePx: Float,
+        val depthBias: Float,
+        val applyRepeat: Boolean,
+        val applyClamp: Boolean,
+        val debugClearMagenta: Boolean,
+    )
+    private data class RenderConfigurationInputs(
+        val core: CoreRenderConfigurationInputs,
+        val coverageFix: CoverageFixConfigurationInputs,
+    )
 
     init {
         preferences.registerOnSharedPreferenceChangeListener(this)
         setDefaultThemeIfRequired()
         setDefaultMacAddressIfRequired()
 
-        renderConfigurationFlow = combine(
+        val coreRenderInputsFlow = combine(
             getVideoRenderer(),
             getVideoFiltering(),
             isThreadedRenderingEnabled(),
             getVideoInternalResolutionScaling(),
-            observeVideoCustomShader(),
-        ) { renderer, filtering, threadedRenderingEnabled, resolutionScaling, customShaderUri ->
+        ) { renderer, filtering, threadedRenderingEnabled, resolutionScaling ->
+            CoreRenderConfigurationInputs(
+                renderer,
+                filtering,
+                threadedRenderingEnabled,
+                resolutionScaling,
+            )
+        }
+
+        val coverageFixInputsFlow = combine(
+            combine(
+                isConservativeCoverageEnabled(),
+                getConservativeCoveragePx(),
+                getConservativeCoverageDepthBias(),
+                isConservativeCoverageApplyRepeatEnabled(),
+                isConservativeCoverageApplyClampEnabled(),
+            ) { enabled, coveragePx, depthBias, applyRepeat, applyClamp ->
+                CoverageFixConfigurationInputs(
+                    enabled,
+                    coveragePx,
+                    depthBias,
+                    applyRepeat,
+                    applyClamp,
+                    debugClearMagenta = false,
+                )
+            },
+            isDebug3dClearMagentaEnabled(),
+        ) { inputs, debugClearMagenta ->
+            inputs.copy(debugClearMagenta = debugClearMagenta)
+        }
+
+        val renderInputsFlow = combine(coreRenderInputsFlow, coverageFixInputsFlow) { core, coverageFix ->
+            RenderConfigurationInputs(core, coverageFix)
+        }
+
+        renderConfigurationFlow = combine(renderInputsFlow, observeVideoCustomShader()) { renderInputs, customShaderUri ->
             val customShader = loadCustomShader(customShaderUri)
-            RendererConfiguration(renderer, filtering, threadedRenderingEnabled, resolutionScaling, customShader)
+            RendererConfiguration(
+                renderInputs.core.renderer,
+                renderInputs.core.filtering,
+                renderInputs.core.threadedRenderingEnabled,
+                renderInputs.core.resolutionScaling,
+                renderInputs.coverageFix.enabled,
+                renderInputs.coverageFix.coveragePx,
+                renderInputs.coverageFix.depthBias,
+                renderInputs.coverageFix.applyRepeat,
+                renderInputs.coverageFix.applyClamp,
+                renderInputs.coverageFix.debugClearMagenta,
+                customShader,
+            )
         }.conflate().shareIn(preferencesCoroutineScope, SharingStarted.Lazily, replay = 1)
     }
 
@@ -362,6 +426,42 @@ class SharedPreferencesSettingsRepository(
     override fun isThreadedRenderingEnabled(): Flow<Boolean> {
         return getOrCreatePreferenceSharedFlow("enable_threaded_rendering") {
             preferences.getBoolean("enable_threaded_rendering", true)
+        }
+    }
+
+    private fun isConservativeCoverageEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow("video_conservative_coverage_enabled") {
+            preferences.getBoolean("video_conservative_coverage_enabled", false)
+        }
+    }
+
+    private fun getConservativeCoveragePx(): Flow<Float> {
+        return getOrCreatePreferenceSharedFlow("video_conservative_coverage_px") {
+            (preferences.getInt("video_conservative_coverage_px", 150)).toFloat() / 100.0f
+        }
+    }
+
+    private fun getConservativeCoverageDepthBias(): Flow<Float> {
+        return getOrCreatePreferenceSharedFlow("video_conservative_coverage_depth_bias") {
+            (preferences.getInt("video_conservative_coverage_depth_bias", 0)).toFloat() / 1_000_000.0f
+        }
+    }
+
+    private fun isConservativeCoverageApplyRepeatEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow("video_conservative_coverage_apply_repeat") {
+            preferences.getBoolean("video_conservative_coverage_apply_repeat", true)
+        }
+    }
+
+    private fun isConservativeCoverageApplyClampEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow("video_conservative_coverage_apply_clamp") {
+            preferences.getBoolean("video_conservative_coverage_apply_clamp", false)
+        }
+    }
+
+    private fun isDebug3dClearMagentaEnabled(): Flow<Boolean> {
+        return getOrCreatePreferenceSharedFlow("video_debug_3d_clear_magenta") {
+            preferences.getBoolean("video_debug_3d_clear_magenta", false)
         }
     }
 

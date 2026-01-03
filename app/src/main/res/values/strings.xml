@@ -224,6 +224,19 @@
     <string name="threaded_rendering">Threaded rendering</string>
     <string name="fps_counter_position">FPS counter position</string>
     <string name="threaded_rendering_summary">Improves performance on 3D games when enabled but may cause graphical glitches.</string>
+    <string name="video_hacks">Video Hacks</string>
+    <string name="conservative_coverage_enabled">Conservative coverage fix (experimental)</string>
+    <string name="conservative_coverage_enabled_summary">Expands polygon coverage in screen space to reduce 1px-2px cracks between polygons. Pokemon black lines fix. May cause slight overdraw.</string>
+    <string name="conservative_coverage_px">Coverage expand</string>
+    <string name="conservative_coverage_px_summary">Expansion amount in internal-resolution pixels (0–200 = 0.00–2.00px).</string>
+    <string name="conservative_coverage_apply_repeat">Apply to repeat</string>
+    <string name="conservative_coverage_apply_repeat_summary">Applies the coverage fix to REPEAT textures (wrap). Recommended for floors/water that use tiling.</string>
+    <string name="conservative_coverage_apply_clamp">Apply to clamp</string>
+    <string name="conservative_coverage_apply_clamp_summary">Also applies the coverage fix to CLAMP textures. More aggressive and may affect sprites/billboards.</string>
+    <string name="conservative_coverage_depth_bias">Depth bias</string>
+    <string name="conservative_coverage_depth_bias_summary">Depth bias applied to expanded polys (0–2000 = 0.000000–0.002000). Use only if you see z-fighting/flicker.</string>
+    <string name="debug_3d_clear_magenta">Debug: clear 3D to magenta</string>
+    <string name="debug_3d_clear_magenta_summary">If cracks turn magenta, they are coverage gaps. Debug only.</string>
     <string name="category_video">Video</string>
     <string name="category_video_summary">Filter, threaded rendering, FPS counter</string>
     <string name="filter">Filter</string>

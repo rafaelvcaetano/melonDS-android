@@ -143,6 +143,12 @@ std::unique_ptr<MelonDSAndroid::RenderSettings> MelonDSAndroidConfiguration::bui
     jclass renderSettingsClass = env->GetObjectClass(renderSettings);
     jmethodID getResolutionScalingMethod = env->GetMethodID(renderSettingsClass, "getResolutionScaling", "()I");
     jboolean threadedRendering = env->GetBooleanField(renderSettings, env->GetFieldID(renderSettingsClass, "threadedRendering", "Z"));
+    jboolean conservativeCoverageEnabled = env->GetBooleanField(renderSettings, env->GetFieldID(renderSettingsClass, "conservativeCoverageEnabled", "Z"));
+    jfloat conservativeCoveragePx = env->GetFloatField(renderSettings, env->GetFieldID(renderSettingsClass, "conservativeCoveragePx", "F"));
+    jfloat conservativeCoverageDepthBias = env->GetFloatField(renderSettings, env->GetFieldID(renderSettingsClass, "conservativeCoverageDepthBias", "F"));
+    jboolean conservativeCoverageApplyRepeat = env->GetBooleanField(renderSettings, env->GetFieldID(renderSettingsClass, "conservativeCoverageApplyRepeat", "Z"));
+    jboolean conservativeCoverageApplyClamp = env->GetBooleanField(renderSettings, env->GetFieldID(renderSettingsClass, "conservativeCoverageApplyClamp", "Z"));
+    jboolean debug3dClearMagenta = env->GetBooleanField(renderSettings, env->GetFieldID(renderSettingsClass, "debug3dClearMagenta", "Z"));
     jint internalResolutionScaling = env->CallIntMethod(renderSettings, getResolutionScalingMethod);
 
     std::unique_ptr<MelonDSAndroid::RenderSettings> settings;
@@ -152,6 +158,12 @@ std::unique_ptr<MelonDSAndroid::RenderSettings> MelonDSAndroidConfiguration::bui
             MelonDSAndroid::OpenGlRenderSettings {
                 .betterPolygons = false,
                 .scale = internalResolutionScaling,
+                .conservativeCoverageEnabled = conservativeCoverageEnabled != 0,
+                .conservativeCoveragePx = (float)conservativeCoveragePx,
+                .conservativeCoverageDepthBias = (float)conservativeCoverageDepthBias,
+                .conservativeCoverageApplyRepeat = conservativeCoverageApplyRepeat != 0,
+                .conservativeCoverageApplyClamp = conservativeCoverageApplyClamp != 0,
+                .debug3dClearMagenta = debug3dClearMagenta != 0,
             }
         );
     }

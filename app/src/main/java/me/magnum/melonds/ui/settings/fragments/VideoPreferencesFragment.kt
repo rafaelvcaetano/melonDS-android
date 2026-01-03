@@ -67,6 +67,13 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
 
         openGlRendererPreferences.apply {
             add(findPreference("video_internal_resolution")!!)
+            add(findPreference("video_hacks_category")!!)
+            add(findPreference("video_conservative_coverage_enabled")!!)
+            add(findPreference("video_conservative_coverage_px")!!)
+            add(findPreference("video_conservative_coverage_apply_repeat")!!)
+            add(findPreference("video_conservative_coverage_apply_clamp")!!)
+            add(findPreference("video_conservative_coverage_depth_bias")!!)
+            add(findPreference("video_debug_3d_clear_magenta")!!)
         }
 
         val rendererPreference = findPreference<ListPreference>("video_renderer")!!
