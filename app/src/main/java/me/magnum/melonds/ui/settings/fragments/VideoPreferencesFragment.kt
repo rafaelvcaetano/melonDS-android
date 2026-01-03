@@ -1,7 +1,6 @@
 package me.magnum.melonds.ui.settings.fragments
 
 import android.app.ActivityManager
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import androidx.core.content.getSystemService
@@ -9,16 +8,12 @@ import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import dagger.hilt.android.AndroidEntryPoint
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
-import me.magnum.melonds.domain.repositories.LayoutsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.R
 import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.domain.model.VideoRenderer
 import me.magnum.melonds.domain.model.DualScreenPreset
-import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.ScreenAlignment
 import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
 import me.magnum.melonds.domain.model.defaultExternalAlignment
@@ -26,9 +21,7 @@ import me.magnum.melonds.domain.model.defaultInternalAlignment
 import me.magnum.melonds.ui.settings.PreferenceFragmentHelper
 import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
 import me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
-import me.magnum.melonds.ui.layouts.ExternalLayoutListActivity
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
-import me.magnum.melonds.ui.layouts.LayoutListActivity
 import androidx.appcompat.app.AlertDialog
 import android.widget.Button
 import android.widget.RadioButton
@@ -48,14 +41,11 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
     private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager, directoryAccessValidator) }
     @Inject lateinit var uriPermissionManager: UriPermissionManager
     @Inject lateinit var directoryAccessValidator: DirectoryAccessValidator
-    @Inject lateinit var layoutsRepository: LayoutsRepository
     @Inject lateinit var settingsRepository: SettingsRepository
 
     private val softwareRendererPreferences = mutableListOf<Preference>()
     private val openGlRendererPreferences = mutableListOf<Preference>()
 
-    private lateinit var externalLayoutsPreference: Preference
-    private lateinit var internalLayoutsPreference: Preference
     private lateinit var dualScreenPresetsPreference: Preference
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -81,8 +71,6 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         val dsiCameraSourcePreference = findPreference<ListPreference>("dsi_camera_source")!!
         val dsiCameraImagePreference = findPreference<StoragePickerPreference>("dsi_camera_static_image")!!
         val customShaderPreference = findPreference<StoragePickerPreference>("video_custom_shader")!!
-        externalLayoutsPreference = findPreference("external_layouts")!!
-        internalLayoutsPreference = findPreference("input_layouts")!!
         dualScreenPresetsPreference = findPreference("dual_screen_presets")!!
 
         val activityManager = requireContext().getSystemService<ActivityManager>()
@@ -105,18 +93,6 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
             true
         }
 
-        externalLayoutsPreference.setOnPreferenceClickListener {
-            val intent = Intent(requireContext(), ExternalLayoutListActivity::class.java)
-            startActivity(intent)
-            true
-        }
-
-        internalLayoutsPreference.setOnPreferenceClickListener {
-            val intent = Intent(requireContext(), LayoutListActivity::class.java)
-            startActivity(intent)
-            true
-        }
-
         dualScreenPresetsPreference.setOnPreferenceClickListener {
             showDualScreenPresetsDialog()
             true
@@ -133,7 +109,6 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
 
         onRendererPreferenceChanged(rendererPreference.value)
         updateDsiCameraImagePreference(dsiCameraImagePreference, dsiCameraSourcePreference.value)
-        lifecycleScope.launch { updateLayoutPreferenceSummaries() }
         updateDualScreenPresetSummary()
     }
 
@@ -166,17 +141,6 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
 
     override fun onResume() {
         super.onResume()
-        viewLifecycleOwner.lifecycleScope.launch { updateLayoutPreferenceSummaries() }
-        updateDualScreenPresetSummary()
-    }
-
-    private suspend fun updateLayoutPreferenceSummaries() {
-        val internalLayoutId = settingsRepository.getSelectedLayoutId()
-        val externalLayoutId = settingsRepository.getExternalLayoutId()
-        val internalLayout = layoutsRepository.getLayout(internalLayoutId) ?: layoutsRepository.getGlobalLayoutPlaceholder()
-        val externalLayout = layoutsRepository.getLayout(externalLayoutId) ?: layoutsRepository.getGlobalLayoutPlaceholder()
-        internalLayoutsPreference.summary = internalLayout.name
-        externalLayoutsPreference.summary = externalLayout.name
         updateDualScreenPresetSummary()
     }
 
@@ -317,11 +281,6 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
             .setView(dialogView)
             .setPositiveButton(R.string.ok) { _, _ ->
                 settingsRepository.setDualScreenPreset(selectedPreset)
-                when (selectedPreset) {
-                    DualScreenPreset.INTERNAL_TOP_EXTERNAL_BOTTOM -> settingsRepository.setExternalDisplayScreen(DsExternalScreen.BOTTOM)
-                    DualScreenPreset.INTERNAL_BOTTOM_EXTERNAL_TOP -> settingsRepository.setExternalDisplayScreen(DsExternalScreen.TOP)
-                    DualScreenPreset.OFF -> { /* Keep existing selection so manual layouts still work */ }
-                }
                 settingsRepository.setExternalDisplayKeepAspectRatioEnabled(keepAspectRatio)
                 settingsRepository.setDualScreenIntegerScaleEnabled(integerScale && selectedPreset != DualScreenPreset.OFF)
                 settingsRepository.setDualScreenInternalFillHeightEnabled(internalFill)

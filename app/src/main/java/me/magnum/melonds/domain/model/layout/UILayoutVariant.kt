@@ -7,4 +7,5 @@ data class UILayoutVariant(
     val uiSize: Point,
     val orientation: Orientation,
     val folds: List<ScreenFold>,
+    val displays: LayoutDisplayPair,
 )

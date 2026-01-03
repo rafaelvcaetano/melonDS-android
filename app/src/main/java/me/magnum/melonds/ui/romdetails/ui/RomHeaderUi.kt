@@ -40,6 +40,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.platform.LocalContext
@@ -65,6 +67,7 @@ fun RomHeaderUi(
     modifier: Modifier,
     rom: Rom,
     pagerState: PagerState,
+    initialFocusRequester: FocusRequester,
     onLaunchRom: () -> Unit,
     onNavigateBack: () -> Unit,
     onTabClicked: (RomDetailsTab) -> Unit,
@@ -113,7 +116,7 @@ fun RomHeaderUi(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Button(
-                        modifier = Modifier.widthIn(min = 132.dp),
+                        modifier = Modifier.widthIn(min = 132.dp).focusRequester(initialFocusRequester),
                         shape = RoundedCornerShape(50),
                         onClick = onLaunchRom,
                         colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary, contentColor = MaterialTheme.colors.onSecondary),
@@ -201,6 +204,7 @@ private fun PreviewRomHeaderUi() {
                 retroAchievementsHash = "",
             ),
             pagerState = pagerState,
+            initialFocusRequester = FocusRequester(),
             onLaunchRom = { },
             onNavigateBack = { }
         ) {

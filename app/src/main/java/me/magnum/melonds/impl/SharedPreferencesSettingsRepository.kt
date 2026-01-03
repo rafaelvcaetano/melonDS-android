@@ -37,7 +37,6 @@ import me.magnum.melonds.domain.model.AudioLatency
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.ControllerConfiguration
 import me.magnum.melonds.domain.model.DualScreenPreset
-import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.FirmwareConfiguration
 import me.magnum.melonds.domain.model.FpsCounterPosition
@@ -470,21 +469,6 @@ class SharedPreferencesSettingsRepository(
         return FpsCounterPosition.valueOf(fpsCounterPreference.uppercase())
     }
 
-    override fun getExternalDisplayScreen(): DsExternalScreen {
-        val screenPref = preferences.getString("external_display_screen", "top")!!
-        return when (screenPref) {
-            "bottom" -> DsExternalScreen.BOTTOM
-            "custom" -> DsExternalScreen.CUSTOM
-            else -> DsExternalScreen.TOP
-        }
-    }
-
-    override fun observeExternalDisplayScreen(): Flow<DsExternalScreen> {
-        return getOrCreatePreferenceSharedFlow("external_display_screen") {
-            getExternalDisplayScreen()
-        }
-    }
-
     override fun isExternalDisplayKeepAspectRationEnabled(): Boolean {
         return preferences.getBoolean("external_display_keep_ratio", true)
     }
@@ -492,12 +476,6 @@ class SharedPreferencesSettingsRepository(
     override fun observeExternalDisplayKeepAspectRationEnabled(): Flow<Boolean> {
         return getOrCreatePreferenceSharedFlow("external_display_keep_ratio") {
             isExternalDisplayKeepAspectRationEnabled()
-        }
-    }
-
-    override fun isExternalDisplayRotateLeftEnabled(): Flow<Boolean> {
-        return getOrCreatePreferenceSharedFlow("external_display_rotate_left") {
-            preferences.getBoolean("external_display_rotate_left", false)
         }
     }
 
@@ -711,11 +689,6 @@ class SharedPreferencesSettingsRepository(
         return id?.let { UUID.fromString(it) } ?: LayoutConfiguration.DEFAULT_ID
     }
 
-    override fun getExternalLayoutId(): UUID {
-        val id = preferences.getString("external_layout_id", null)
-        return id?.let { UUID.fromString(it) } ?: LayoutConfiguration.DEFAULT_EXTERNAL_ID
-    }
-
     override fun getSoftInputBehaviour(): Flow<SoftInputBehaviour> {
         return getOrCreatePreferenceSharedFlow("soft_input_behaviour") {
             val preference = preferences.getString("soft_input_behaviour", "hide_system_buttons_when_controller_connected")
@@ -773,12 +746,6 @@ class SharedPreferencesSettingsRepository(
     override fun observeSelectedLayoutId(): Observable<UUID> {
         return getOrCreatePreferenceObservable("input_layout_id") {
             getSelectedLayoutId()
-        }
-    }
-
-    override fun observeExternalLayoutId(): Observable<UUID> {
-        return getOrCreatePreferenceObservable("external_layout_id") {
-            getExternalLayoutId()
         }
     }
 
@@ -847,32 +814,9 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
-    override fun setExternalLayoutId(layoutId: UUID) {
-        preferences.edit {
-            putString("external_layout_id", layoutId.toString())
-        }
-    }
-
-    override fun setExternalDisplayScreen(screen: DsExternalScreen) {
-        val value = when (screen) {
-            DsExternalScreen.TOP -> "top"
-            DsExternalScreen.BOTTOM -> "bottom"
-            DsExternalScreen.CUSTOM -> "custom"
-        }
-        preferences.edit {
-            putString("external_display_screen", value)
-        }
-    }
-
     override fun setExternalDisplayKeepAspectRatioEnabled(enabled: Boolean) {
         preferences.edit {
             putBoolean("external_display_keep_ratio", enabled)
-        }
-    }
-
-    override fun setExternalDisplayRotateLeftEnabled(enabled: Boolean) {
-        preferences.edit {
-            putBoolean("external_display_rotate_left", enabled)
         }
     }
 

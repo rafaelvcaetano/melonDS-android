@@ -11,6 +11,7 @@ import me.magnum.melonds.R
 import me.magnum.melonds.common.rumble.GbaRumbleManager
 import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.ui.inputsetup.InputSetupActivity
+import me.magnum.melonds.ui.layouts.LayoutListActivity
 import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
 import me.magnum.melonds.ui.settings.preferences.SoftwareInputBehaviourPreference
 import javax.inject.Inject
@@ -31,6 +32,7 @@ class InputPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         val vibrationStrengthPreference = findPreference<SeekBarPreference>("input_touch_haptic_feedback_strength")!!
         val gbaRumbleIntensityPreference = findPreference<SeekBarPreference>("gba_rumble_intensity")!!
         val keyMappingPreference = findPreference<Preference>("input_key_mapping")!!
+        val layoutsPreference = findPreference<Preference>("input_layouts")!!
 
         if (!vibrator.supportsVibration()) {
             touchVibratePreference.isVisible = false
@@ -52,6 +54,11 @@ class InputPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
         }
         keyMappingPreference.setOnPreferenceClickListener {
             val intent = Intent(requireContext(), InputSetupActivity::class.java)
+            startActivity(intent)
+            true
+        }
+        layoutsPreference.setOnPreferenceClickListener {
+            val intent = Intent(requireContext(), LayoutListActivity::class.java)
             startActivity(intent)
             true
         }

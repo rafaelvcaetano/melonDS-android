@@ -6,7 +6,6 @@ import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
 import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
-import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.SCREEN_HEIGHT
 import me.magnum.melonds.domain.model.SCREEN_WIDTH
 import me.magnum.melonds.domain.model.ScreenAlignment
@@ -21,7 +20,6 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 class ExternalScreenRender(
-    private val screen: DsExternalScreen,
     private var rotateLeft: Boolean,
     private var keepAspectRatio: Boolean,
     private var integerScale: Boolean,
@@ -112,7 +110,7 @@ class ExternalScreenRender(
 
     private fun uploadVertices(coords: FloatArray) {
         val lineRelativeSize = 1f / (SCREEN_HEIGHT * 2 + 2).toFloat()
-        val uvs = if (screen == DsExternalScreen.TOP) {
+        val uvs = if (true /*screen == DsExternalScreen.TOP*/) {
             floatArrayOf(
                 0f, 0.5f - lineRelativeSize,
                 0f, 0f,

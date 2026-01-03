@@ -393,11 +393,6 @@ class RomListFragment : Fragment() {
                     onRomConfigClick(getRom())
                 }
             }
-
-            override fun setRom(rom: Rom, isEnabled: Boolean) {
-                super.setRom(rom, isEnabled)
-                imageViewButtonRomConfig.isGone = rom.isDsiWareTitle
-            }
         }
 
         inner class BrowserEntriesDiffCallback(

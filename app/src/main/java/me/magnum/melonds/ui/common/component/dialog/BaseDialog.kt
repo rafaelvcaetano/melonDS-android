@@ -21,8 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import me.magnum.melonds.ui.common.DetachedDialog
 import me.magnum.melonds.ui.common.melonTextButtonColors
 
 @Composable
@@ -32,9 +31,9 @@ fun BaseDialog(
     content: @Composable (PaddingValues) -> Unit,
     buttons: (@Composable () -> Unit)? = null,
 ) {
-    Dialog(
+    DetachedDialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(decorFitsSystemWindows = false),
+        //properties = DialogProperties(decorFitsSystemWindows = false),
     ) {
         Card(Modifier.fillMaxWidth().safeDrawingPadding()) {
             Column(Modifier.fillMaxWidth()) {

@@ -11,6 +11,8 @@ import me.magnum.melonds.domain.model.layout.PositionedLayoutComponent
 import me.magnum.melonds.domain.model.layout.UILayout
 import me.magnum.melonds.ui.common.LayoutComponentView
 import me.magnum.melonds.ui.common.LayoutView
+import me.magnum.melonds.ui.layouteditor.model.LayoutTarget
+import me.magnum.melonds.impl.dpToPixels
 import kotlin.math.*
 
 typealias ViewSelectedListener = (
@@ -33,8 +35,8 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
     private var onViewSelectedListener: ViewSelectedListener? = null
     private var onViewDeselectedListener: ((LayoutComponentView) -> Unit)? = null
     private var otherClickListener: OnClickListener? = null
-    private val defaultComponentWidth by lazy { screenUnitsConverter.dpToPixels(100f).toInt() }
-    private val minComponentSize by lazy { screenUnitsConverter.dpToPixels(30f).toInt() }
+    private val defaultComponentWidth by lazy { context.dpToPixels(100f).toInt() }
+    private val minComponentSize by lazy { context.dpToPixels(30f).toInt() }
     private var selectedView: LayoutComponentView? = null
     private var selectedViewAnchor = Anchor.TOP_LEFT
     private var modifiedByUser = false
@@ -50,8 +52,8 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         }
     }
 
-    override fun instantiateLayout(layoutConfiguration: UILayout) {
-        super.instantiateLayout(layoutConfiguration)
+    override fun instantiateLayout(layoutConfiguration: UILayout, layoutTarget: LayoutTarget) {
+        super.instantiateLayout(layoutConfiguration, layoutTarget)
         modifiedByUser = false
         notifyLayoutChanged()
     }
@@ -228,7 +230,6 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
     fun setSelectedViewAlpha(alpha: Float) {
         selectedView?.let {
             it.baseAlpha = alpha
-            it.setHighlighted(true)
             modifiedByUser = true
             notifyLayoutChanged()
         }
@@ -278,11 +279,6 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         view.setPosition(Point(position.x, centerY))
         modifiedByUser = true
         notifyLayoutChanged()
-    }
-
-    fun centerSelectedView() {
-        centerSelectedViewHorizontally()
-        centerSelectedViewVertically()
     }
 
     fun scaleSelectedView(widthScale: Float, heightScale: Float) {

@@ -32,6 +32,7 @@ class FrameRenderCoordinator {
         synchronized(surfacesLock) {
             managedSurfaces.remove(surface)
             surfacesPendingRemoval.add(surface)
+            frameRenderThread.requestSurfaceDestruction()
         }
     }
 
@@ -68,6 +69,7 @@ class FrameRenderCoordinator {
                 override fun handleMessage(msg: Message) {
                     when (msg.what) {
                         MSG_RENDER_FRAME -> renderFrame()
+                        MSG_DESTROY_SURFACES -> destroySurfaces()
                         MSG_STOP -> stopThread()
                     }
                 }
@@ -77,6 +79,11 @@ class FrameRenderCoordinator {
         fun requestFrameRender() {
             handler?.removeMessages(MSG_RENDER_FRAME)
             handler?.sendEmptyMessage(MSG_RENDER_FRAME)
+        }
+
+        fun requestSurfaceDestruction() {
+            handler?.removeMessages(MSG_DESTROY_SURFACES)
+            handler?.sendEmptyMessage(MSG_DESTROY_SURFACES)
         }
 
         fun requestStop() {
@@ -89,12 +96,16 @@ class FrameRenderCoordinator {
                 return
 
             synchronized(surfacesLock) {
+                MelonEmulator.presentFrame(frameRenderCallback)
+            }
+        }
+
+        private fun destroySurfaces() {
+            synchronized(surfacesLock) {
                 surfacesPendingRemoval.forEach {
                     it.stop(glContext)
                 }
                 surfacesPendingRemoval.clear()
-
-                MelonEmulator.presentFrame(frameRenderCallback)
             }
         }
 
@@ -115,6 +126,7 @@ class FrameRenderCoordinator {
 
     private companion object {
         const val MSG_RENDER_FRAME = 1
-        const val MSG_STOP = 2
+        const val MSG_DESTROY_SURFACES = 2
+        const val MSG_STOP = 3
     }
 }

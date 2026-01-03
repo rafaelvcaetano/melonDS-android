@@ -16,16 +16,12 @@ import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.UriPermissionManager
-import me.magnum.melonds.domain.model.ConfigurationDirResult
-import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.SortingMode
 import me.magnum.melonds.domain.model.SortingOrder
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.rom.RomDirectoryScanStatus
-import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
 import me.magnum.melonds.domain.repositories.RomsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
-import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.impl.RomIconProvider
 import me.magnum.melonds.utils.EventSharedFlow
 import me.magnum.melonds.utils.SubjectSharedFlow
@@ -40,9 +36,8 @@ class RomListViewModel @Inject constructor(
     private val romsRepository: RomsRepository,
     private val settingsRepository: SettingsRepository,
     private val romIconProvider: RomIconProvider,
-    private val configurationDirectoryVerifier: ConfigurationDirectoryVerifier,
     private val uriPermissionManager: UriPermissionManager,
-    private val directoryAccessValidator: DirectoryAccessValidator
+    private val directoryAccessValidator: DirectoryAccessValidator,
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
@@ -192,20 +187,6 @@ class RomListViewModel @Inject constructor(
         }
     }
 
-    fun getConsoleConfigurationDirResult(consoleType: ConsoleType): ConfigurationDirResult {
-        return configurationDirectoryVerifier.checkConsoleConfigurationDirectory(consoleType)
-    }
-
-    fun getRomConfigurationDirStatus(rom: Rom): ConfigurationDirResult {
-        val willUseInternalFirmware = !settingsRepository.useCustomBios() && rom.config.runtimeConsoleType == RuntimeConsoleType.DEFAULT
-        if (willUseInternalFirmware) {
-            return ConfigurationDirResult(ConsoleType.DS, ConfigurationDirResult.Status.VALID, emptyArray(), emptyArray())
-        }
-
-        val romTargetConsoleType = rom.config.runtimeConsoleType.targetConsoleType ?: settingsRepository.getDefaultConsoleType()
-        return getConsoleConfigurationDirResult(romTargetConsoleType)
-    }
-
     fun addRomSearchDirectory(directoryUri: Uri) {
         val accessValidationResult = directoryAccessValidator.getDirectoryAccessForPermission(directoryUri, Permission.READ_WRITE)
 
@@ -214,42 +195,6 @@ class RomListViewModel @Inject constructor(
             settingsRepository.addRomSearchDirectory(directoryUri)
         } else {
             _invalidDirectoryAccessEvent.tryEmit(Unit)
-        }
-    }
-
-    /**
-     * Sets the DS BIOS directory to the given one if its access is validated.
-     *
-     * @return True if the directory access is validated and the directory is updated. False otherwise.
-     */
-    fun setDsBiosDirectory(uri: Uri): Boolean {
-        val accessValidationResult = directoryAccessValidator.getDirectoryAccessForPermission(uri, Permission.READ_WRITE)
-
-        return if (accessValidationResult == DirectoryAccessValidator.DirectoryAccessResult.OK) {
-            uriPermissionManager.persistDirectoryPermissions(uri, Permission.READ_WRITE)
-            settingsRepository.setDsBiosDirectory(uri)
-            true
-        } else {
-            _invalidDirectoryAccessEvent.tryEmit(Unit)
-            false
-        }
-    }
-
-    /**
-     * Sets the DSi BIOS directory to the given one if its access is validated.
-     *
-     * @return True if the directory access is validated and the directory is updated. False otherwise.
-     */
-    fun setDsiBiosDirectory(uri: Uri): Boolean {
-        val accessValidationResult = directoryAccessValidator.getDirectoryAccessForPermission(uri, Permission.READ_WRITE)
-
-        return if (accessValidationResult == DirectoryAccessValidator.DirectoryAccessResult.OK) {
-            uriPermissionManager.persistDirectoryPermissions(uri, Permission.READ_WRITE)
-            settingsRepository.setDsiBiosDirectory(uri)
-            true
-        } else {
-            _invalidDirectoryAccessEvent.tryEmit(Unit)
-            false
         }
     }
 

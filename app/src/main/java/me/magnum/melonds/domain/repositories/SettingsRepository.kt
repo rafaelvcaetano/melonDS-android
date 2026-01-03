@@ -37,11 +37,10 @@ interface SettingsRepository {
     fun getVideoFiltering(): Flow<VideoFiltering>
     fun isThreadedRenderingEnabled(): Flow<Boolean>
     fun getFpsCounterPosition(): FpsCounterPosition
-    fun getExternalDisplayScreen(): DsExternalScreen
-    fun observeExternalDisplayScreen(): Flow<DsExternalScreen>
+
     fun isExternalDisplayKeepAspectRationEnabled(): Boolean
     fun observeExternalDisplayKeepAspectRationEnabled(): Flow<Boolean>
-    fun isExternalDisplayRotateLeftEnabled(): Flow<Boolean>
+
     fun getDualScreenPreset(): DualScreenPreset
     fun observeDualScreenPreset(): Flow<DualScreenPreset>
     fun isDualScreenIntegerScaleEnabled(): Boolean
@@ -77,7 +76,6 @@ interface SettingsRepository {
     fun observeControllerConfiguration(): StateFlow<ControllerConfiguration>
     fun getSelectedLayoutId(): UUID
     fun getSoftInputBehaviour(): Flow<SoftInputBehaviour>
-    fun getExternalLayoutId(): UUID
     fun isTouchHapticFeedbackEnabled(): Flow<Boolean>
     fun getTouchHapticFeedbackStrength(): Int
     fun getGbaRumbleIntensity(): Int
@@ -92,7 +90,6 @@ interface SettingsRepository {
     fun observeRomIconFiltering(): Flow<RomIconFiltering>
     fun observeRomSearchDirectories(): Flow<Array<Uri>>
     fun observeSelectedLayoutId(): Observable<UUID>
-    fun observeExternalLayoutId(): Observable<UUID>
     fun observeDSiCameraSource(): Flow<DSiCameraSourceType>
     fun observeDSiCameraStaticImage(): Flow<Uri?>
 
@@ -103,10 +100,8 @@ interface SettingsRepository {
     fun setRomSortingMode(sortingMode: SortingMode)
     fun setRomSortingOrder(sortingOrder: SortingOrder)
     fun setSelectedLayoutId(layoutId: UUID)
-    fun setExternalLayoutId(layoutId: UUID)
-    fun setExternalDisplayScreen(screen: DsExternalScreen)
+
     fun setExternalDisplayKeepAspectRatioEnabled(enabled: Boolean)
-    fun setExternalDisplayRotateLeftEnabled(enabled: Boolean)
     fun setDualScreenPreset(preset: DualScreenPreset)
     fun setDualScreenIntegerScaleEnabled(enabled: Boolean)
     fun setDualScreenInternalFillHeightEnabled(enabled: Boolean)

@@ -122,8 +122,6 @@
     <string name="error_invalid_directory">Неправильный каталог</string>
     <string name="error_invalid_directory_description">Невозможно произвести запись в выбранный каталог. Пожалуйста, укажите другой. Если выбран архив, попробуйте извлечь его содержимое.</string>
     <string name="no_roms_found">Игры не найдены</string>
-    <string name="dsiware_title_cannot_be_launched_directly_title">Запуск игр DSiWare невозможен</string>
-    <string name="dsiware_title_cannot_be_launched_directly_message">Игры DSiWare нельзя запускать напрямую. Они должны быть установлены в NAND (с помощью менеджера DSiWare) и запускаться через программное обеспечение DSi.</string>
 
     <string name="press_any_button">Нажмите любую кнопку…</string>
 
@@ -270,7 +268,7 @@
     <string name="label_rom_config_gba_rom_path">Путь к рому GBA</string>
     <string name="label_rom_config_gba_save_path">Путь к сохранению GBA</string>
     <string name="rom_details_configuration_tab">Конфигурация</string>
-    <string name="retro_achievements_tab">Retro Achievements</string> <!-- Keep words separated to help with word wrapping -->
+    <string name="retro_achievements_tab">Retro&#8203;Achievements</string> <!-- Keep zero-width space to allow line breaks in the middle of the word -->
 
     <string name="theme_option_light">Светлая</string>
     <string name="theme_option_dark">Тёмная</string>

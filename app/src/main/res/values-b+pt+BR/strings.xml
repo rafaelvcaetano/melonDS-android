@@ -101,8 +101,6 @@
     <string name="error_invalid_directory">Diretório inválido</string>
     <string name="error_invalid_directory_description">Não é possível escrever para o diretório selecionado. Por favor, selecione um diretório diferente. Se você estiver selecionando um arquivo compactado, tente extrair seu conteúdo.</string>
     <string name="no_roms_found">Não foram encontradas ROMs</string>
-    <string name="dsiware_title_cannot_be_launched_directly_title">Os títulos de DSiWare não podem ser lançados</string>
-    <string name="dsiware_title_cannot_be_launched_directly_message">Os títulos de DSiWare não podem ser lançados diretamente. Eles devem ser instalados na NAND (através do Gerenciador DSiWare) e lançados pelo firmware de DSi.</string>
 
     <string name="press_any_button">Pressione qualquer botão…</string>
 

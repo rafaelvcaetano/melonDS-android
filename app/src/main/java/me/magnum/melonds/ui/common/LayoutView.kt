@@ -3,20 +3,12 @@ package me.magnum.melonds.ui.common
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.FrameLayout
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.android.EntryPointAccessors
-import dagger.hilt.components.SingletonComponent
 import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.layout.PositionedLayoutComponent
 import me.magnum.melonds.domain.model.layout.UILayout
-import me.magnum.melonds.impl.ScreenUnitsConverter
+import me.magnum.melonds.ui.layouteditor.model.LayoutTarget
 
 open class LayoutView(context: Context, attrs: AttributeSet?) : FrameLayout(context, attrs) {
-    protected val screenUnitsConverter: ScreenUnitsConverter by lazy(LazyThreadSafetyMode.NONE) {
-        val appContext = context.applicationContext ?: context
-        EntryPointAccessors.fromApplication(appContext, LayoutViewDependencies::class.java).screenUnitsConverter()
-    }
 
     protected lateinit var viewBuilderFactory: LayoutComponentViewBuilderFactory
     protected val views = mutableMapOf<LayoutComponent, LayoutComponentView>()
@@ -29,9 +21,9 @@ open class LayoutView(context: Context, attrs: AttributeSet?) : FrameLayout(cont
         viewBuilderFactory = factory
     }
 
-    open fun instantiateLayout(layoutConfiguration: UILayout) {
+    open fun instantiateLayout(layoutConfiguration: UILayout, layoutTarget: LayoutTarget = LayoutTarget.MAIN_SCREEN) {
         destroyLayout()
-        loadLayout(layoutConfiguration)
+        loadLayout(layoutConfiguration, layoutTarget)
     }
 
     fun destroyLayout() {
@@ -51,8 +43,12 @@ open class LayoutView(context: Context, attrs: AttributeSet?) : FrameLayout(cont
         return views[layoutComponent]
     }
 
-    private fun loadLayout(layout: UILayout) {
-        val components = layout.components ?: return
+    private fun loadLayout(layout: UILayout, layoutTarget: LayoutTarget) {
+        val components = when(layoutTarget) {
+            LayoutTarget.MAIN_SCREEN -> layout.mainScreenLayout.components
+            LayoutTarget.SECONDARY_SCREEN -> layout.secondaryScreenLayout.components
+        }
+        if (components == null) return
 
         val screens = components.filter { it.isScreen() }.sortedBy { if (it.onTop) 0 else 1 }
         val others = components.filterNot { it.isScreen() }
@@ -89,11 +85,5 @@ open class LayoutView(context: Context, attrs: AttributeSet?) : FrameLayout(cont
     }
 
     protected open fun onLayoutComponentViewAdded(layoutComponentView: LayoutComponentView) {
-    }
-
-    @EntryPoint
-    @InstallIn(SingletonComponent::class)
-    interface LayoutViewDependencies {
-        fun screenUnitsConverter(): ScreenUnitsConverter
     }
 }

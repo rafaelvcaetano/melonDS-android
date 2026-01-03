@@ -122,8 +122,6 @@
     <string name="error_invalid_directory">Cartella non valida</string>
     <string name="error_invalid_directory_description">Non è possibile scrivere nella cartella selezionata. Selezionane un\'altra. Se stai selezionando un file compresso, prova a estrarne il contenuto.</string>
     <string name="no_roms_found">Nessuna ROM trovata</string>
-    <string name="dsiware_title_cannot_be_launched_directly_title">Impossibile avviare i titoli DSiWare</string>
-    <string name="dsiware_title_cannot_be_launched_directly_message">I titoli DSiWare non possono essere avviati direttamente. Devono essere installati su NAND (attraverso la Gestione DSiWare) e avviati dal firmware DSi.</string>
 
     <string name="press_any_button">Premi un pulsante qualsiasi…</string>
 
@@ -270,7 +268,7 @@
     <string name="label_rom_config_gba_rom_path">Cartella ROM GBA</string>
     <string name="label_rom_config_gba_save_path">Cartella salvataggi GBA</string>
     <string name="rom_details_configuration_tab">Impostazioni</string>
-    <string name="retro_achievements_tab">Retro Achievements</string> <!-- Keep words separated to help with word wrapping -->
+    <string name="retro_achievements_tab">Retro&#8203;Achievements</string> <!-- Keep zero-width space to allow line breaks in the middle of the word -->
 
     <string name="theme_option_light">Chiaro</string>
     <string name="theme_option_dark">Scuro</string>
