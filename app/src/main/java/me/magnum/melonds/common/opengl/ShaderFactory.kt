@@ -13,7 +13,7 @@ object ShaderFactory {
             ShaderProgramSource.TextureFiltering.LINEAR -> GLES30.GL_LINEAR
         }
 
-        return Shader(vertexShader, fragmentShader, shaderProgram, textureFilter)
+        return Shader(vertexShader, fragmentShader, shaderProgram, textureFilter, source.bindings)
     }
 
     private fun createShaderProgram(vertexShader: Int, fragmentShader: Int): Int {

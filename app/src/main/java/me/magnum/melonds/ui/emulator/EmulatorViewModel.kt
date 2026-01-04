@@ -41,20 +41,32 @@ import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
+import me.magnum.melonds.domain.model.DualScreenPreset
 import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RuntimeBackground
+import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.SaveStateSlot
+import me.magnum.melonds.domain.model.SCREEN_HEIGHT
+import me.magnum.melonds.domain.model.SCREEN_WIDTH
+import me.magnum.melonds.domain.model.ScreenAlignment
+import me.magnum.melonds.domain.model.defaultExternalAlignment
+import me.magnum.melonds.domain.model.defaultInternalAlignment
 import me.magnum.melonds.domain.model.emulator.EmulatorSessionUpdateAction
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
 import me.magnum.melonds.domain.model.layout.BackgroundMode
 import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.domain.model.layout.LayoutDisplayPair
+import me.magnum.melonds.domain.model.layout.PositionedLayoutComponent
 import me.magnum.melonds.domain.model.layout.ScreenFold
+import me.magnum.melonds.domain.model.layout.ScreenLayout
+import me.magnum.melonds.domain.model.layout.UILayout
+import me.magnum.melonds.domain.model.layout.UILayoutVariant
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
+import me.magnum.melonds.domain.model.input.SoftInputBehaviour
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.repositories.BackgroundRepository
@@ -84,6 +96,8 @@ import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -143,12 +157,85 @@ class EmulatorViewModel @Inject constructor(
     private val _uiEvent = EventSharedFlow<EmulatorUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
+    private val _externalDisplayKeepAspectRatioEnabled = MutableStateFlow(settingsRepository.isExternalDisplayKeepAspectRationEnabled())
+    val externalDisplayKeepAspectRatioEnabled = _externalDisplayKeepAspectRatioEnabled.asStateFlow()
+
+    private val _dualScreenPreset = MutableStateFlow(settingsRepository.getDualScreenPreset())
+    val dualScreenPreset = _dualScreenPreset.asStateFlow()
+
+    private val _dualScreenIntegerScaleEnabled = MutableStateFlow(settingsRepository.isDualScreenIntegerScaleEnabled())
+    val dualScreenIntegerScaleEnabled = _dualScreenIntegerScaleEnabled.asStateFlow()
+
+    private val _dualScreenInternalFillHeightEnabled = MutableStateFlow(settingsRepository.isDualScreenInternalFillHeightEnabled())
+    val dualScreenInternalFillHeightEnabled = _dualScreenInternalFillHeightEnabled.asStateFlow()
+
+    private val _dualScreenInternalFillWidthEnabled = MutableStateFlow(settingsRepository.isDualScreenInternalFillWidthEnabled())
+    val dualScreenInternalFillWidthEnabled = _dualScreenInternalFillWidthEnabled.asStateFlow()
+
+    private val _dualScreenExternalFillHeightEnabled = MutableStateFlow(settingsRepository.isDualScreenExternalFillHeightEnabled())
+    val dualScreenExternalFillHeightEnabled = _dualScreenExternalFillHeightEnabled.asStateFlow()
+
+    private val _dualScreenExternalFillWidthEnabled = MutableStateFlow(settingsRepository.isDualScreenExternalFillWidthEnabled())
+    val dualScreenExternalFillWidthEnabled = _dualScreenExternalFillWidthEnabled.asStateFlow()
+
+    private val _dualScreenInternalVerticalAlignmentOverride = MutableStateFlow(settingsRepository.getDualScreenInternalVerticalAlignmentOverride())
+    val dualScreenInternalVerticalAlignmentOverride = _dualScreenInternalVerticalAlignmentOverride.asStateFlow()
+
+    private val _dualScreenExternalVerticalAlignmentOverride = MutableStateFlow(settingsRepository.getDualScreenExternalVerticalAlignmentOverride())
+    val dualScreenExternalVerticalAlignmentOverride = _dualScreenExternalVerticalAlignmentOverride.asStateFlow()
+
     private var currentRom: Rom? = null
 
     init {
         viewModelScope.launch {
             _layout.filterNotNull().collect {
                 uiLayoutProvider.setCurrentLayoutConfiguration(it)
+            }
+        }
+
+        viewModelScope.launch {
+            settingsRepository.observeExternalDisplayKeepAspectRationEnabled().collectLatest {
+                _externalDisplayKeepAspectRatioEnabled.value = it
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenPreset().collectLatest {
+                _dualScreenPreset.value = it
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenIntegerScaleEnabled().collectLatest {
+                _dualScreenIntegerScaleEnabled.value = it
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenInternalFillHeightEnabled().collectLatest {
+                _dualScreenInternalFillHeightEnabled.value = it
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenInternalFillWidthEnabled().collectLatest {
+                _dualScreenInternalFillWidthEnabled.value = it
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenExternalFillHeightEnabled().collectLatest {
+                _dualScreenExternalFillHeightEnabled.value = it
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenExternalFillWidthEnabled().collectLatest {
+                _dualScreenExternalFillWidthEnabled.value = it
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenInternalVerticalAlignmentOverride().collectLatest {
+                _dualScreenInternalVerticalAlignmentOverride.value = it
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.observeDualScreenExternalVerticalAlignmentOverride().collectLatest {
+                _dualScreenExternalVerticalAlignmentOverride.value = it
             }
         }
 
@@ -284,6 +371,51 @@ class EmulatorViewModel @Inject constructor(
         uiLayoutProvider.updateDisplays(displays)
     }
 
+    fun setExternalDisplayKeepAspectRatioEnabled(enabled: Boolean) {
+        _externalDisplayKeepAspectRatioEnabled.value = enabled
+        settingsRepository.setExternalDisplayKeepAspectRatioEnabled(enabled)
+    }
+
+    fun setDualScreenPreset(preset: DualScreenPreset) {
+        _dualScreenPreset.value = preset
+        settingsRepository.setDualScreenPreset(preset)
+    }
+
+    fun setDualScreenIntegerScaleEnabled(enabled: Boolean) {
+        _dualScreenIntegerScaleEnabled.value = enabled
+        settingsRepository.setDualScreenIntegerScaleEnabled(enabled)
+    }
+
+    fun setDualScreenInternalFillHeightEnabled(enabled: Boolean) {
+        _dualScreenInternalFillHeightEnabled.value = enabled
+        settingsRepository.setDualScreenInternalFillHeightEnabled(enabled)
+    }
+
+    fun setDualScreenInternalFillWidthEnabled(enabled: Boolean) {
+        _dualScreenInternalFillWidthEnabled.value = enabled
+        settingsRepository.setDualScreenInternalFillWidthEnabled(enabled)
+    }
+
+    fun setDualScreenExternalFillHeightEnabled(enabled: Boolean) {
+        _dualScreenExternalFillHeightEnabled.value = enabled
+        settingsRepository.setDualScreenExternalFillHeightEnabled(enabled)
+    }
+
+    fun setDualScreenExternalFillWidthEnabled(enabled: Boolean) {
+        _dualScreenExternalFillWidthEnabled.value = enabled
+        settingsRepository.setDualScreenExternalFillWidthEnabled(enabled)
+    }
+
+    fun setDualScreenInternalVerticalAlignmentOverride(alignment: ScreenAlignment?) {
+        _dualScreenInternalVerticalAlignmentOverride.value = alignment
+        settingsRepository.setDualScreenInternalVerticalAlignmentOverride(alignment)
+    }
+
+    fun setDualScreenExternalVerticalAlignmentOverride(alignment: ScreenAlignment?) {
+        _dualScreenExternalVerticalAlignmentOverride.value = alignment
+        settingsRepository.setDualScreenExternalVerticalAlignmentOverride(alignment)
+    }
+
     fun onSettingsChanged() {
         val currentState = _emulatorState.value
         sessionCoroutineScope.launch {
@@ -400,6 +532,7 @@ class EmulatorViewModel @Inject constructor(
                         }
                     }
                     RomPauseMenuOption.VIEW_ACHIEVEMENTS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowAchievementList)
+                    RomPauseMenuOption.PRESETS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowDualScreenPresets)
                     RomPauseMenuOption.RESET -> resetEmulator()
                     RomPauseMenuOption.EXIT -> {
                         emulatorManager.stopEmulator()
@@ -547,33 +680,224 @@ class EmulatorViewModel @Inject constructor(
 
     private fun startObservingRuntimeInputLayoutConfiguration() {
         sessionCoroutineScope.launch {
-            combine(
+            val dualScreenPresetConfiguration = combine(
+                _dualScreenPreset,
+                _dualScreenIntegerScaleEnabled,
+                _externalDisplayKeepAspectRatioEnabled,
+                _dualScreenInternalFillHeightEnabled,
+                _dualScreenInternalFillWidthEnabled,
+                _dualScreenExternalFillHeightEnabled,
+                _dualScreenExternalFillWidthEnabled,
+                _dualScreenInternalVerticalAlignmentOverride,
+                _dualScreenExternalVerticalAlignmentOverride,
+            ) { values: Array<Any?> ->
+                @Suppress("UNCHECKED_CAST")
+                DualScreenPresetConfiguration(
+                    preset = values[0] as DualScreenPreset,
+                    integerScale = values[1] as Boolean,
+                    keepAspectRatio = values[2] as Boolean,
+                    internalFillHeight = values[3] as Boolean,
+                    internalFillWidth = values[4] as Boolean,
+                    externalFillHeight = values[5] as Boolean,
+                    externalFillWidth = values[6] as Boolean,
+                    internalAlignmentOverride = values[7] as ScreenAlignment?,
+                    externalAlignmentOverride = values[8] as ScreenAlignment?,
+                )
+            }
+
+            val layoutConfiguration = combine(
                 _layout,
                 uiLayoutProvider.currentLayout,
                 settingsRepository.getSoftInputBehaviour(),
                 settingsRepository.isTouchHapticFeedbackEnabled(),
                 settingsRepository.getSoftInputOpacity(),
-            ) { layoutConfiguration, variant, softInputBehaviour, isHapticFeedbackEnabled, inputOpacity ->
-                val layout = variant?.second
-                if (layoutConfiguration == null || layout == null) {
+            ) { globalLayoutConfiguration, variant, softInputBehaviour, isHapticFeedbackEnabled, inputOpacity ->
+                RuntimeLayoutConfiguration(
+                    layoutConfiguration = globalLayoutConfiguration,
+                    layoutVariant = variant,
+                    softInputBehaviour = softInputBehaviour,
+                    isHapticFeedbackEnabled = isHapticFeedbackEnabled,
+                    inputOpacity = inputOpacity,
+                )
+            }
+
+            combine(layoutConfiguration, dualScreenPresetConfiguration) { config, dualScreenConfig ->
+                val currentLayoutConfiguration = config.layoutConfiguration
+                val currentLayoutVariant = config.layoutVariant
+                val currentVariant = currentLayoutVariant?.first
+                val currentLayout = currentLayoutVariant?.second
+                if (currentLayoutConfiguration == null || currentLayout == null || currentVariant == null) {
                     null
                 } else {
-                    val opacity = if (layoutConfiguration.useCustomOpacity) {
-                        layoutConfiguration.opacity
+                    val opacity = if (currentLayoutConfiguration.useCustomOpacity) {
+                        currentLayoutConfiguration.opacity
                     } else {
-                        inputOpacity
+                        config.inputOpacity
                     }
 
+                    val adjustedLayout = applyDualScreenPresetLayoutOverrides(currentLayout, currentVariant, dualScreenConfig)
                     RuntimeInputLayoutConfiguration(
-                        softInputBehaviour = softInputBehaviour,
+                        softInputBehaviour = config.softInputBehaviour,
                         softInputOpacity = opacity,
-                        isHapticFeedbackEnabled = isHapticFeedbackEnabled,
-                        layoutOrientation = layoutConfiguration.orientation,
-                        layout = layout,
+                        isHapticFeedbackEnabled = config.isHapticFeedbackEnabled,
+                        layoutOrientation = currentLayoutConfiguration.orientation,
+                        layout = adjustedLayout,
                     )
                 }
             }.collect(_runtimeLayout)
         }
+    }
+
+    private data class RuntimeLayoutConfiguration(
+        val layoutConfiguration: LayoutConfiguration?,
+        val layoutVariant: Pair<UILayoutVariant, UILayout>?,
+        val softInputBehaviour: SoftInputBehaviour,
+        val isHapticFeedbackEnabled: Boolean,
+        val inputOpacity: Int,
+    )
+
+    private data class DualScreenPresetConfiguration(
+        val preset: DualScreenPreset,
+        val integerScale: Boolean,
+        val keepAspectRatio: Boolean,
+        val internalFillHeight: Boolean,
+        val internalFillWidth: Boolean,
+        val externalFillHeight: Boolean,
+        val externalFillWidth: Boolean,
+        val internalAlignmentOverride: ScreenAlignment?,
+        val externalAlignmentOverride: ScreenAlignment?,
+    )
+
+    private fun applyDualScreenPresetLayoutOverrides(layout: UILayout, variant: UILayoutVariant, config: DualScreenPresetConfiguration): UILayout {
+        if (config.preset == DualScreenPreset.OFF || variant.displays.secondaryScreenDisplay == null) {
+            return layout
+        }
+
+        val canFill = config.integerScale || config.keepAspectRatio
+        val internalAlignment = config.internalAlignmentOverride ?: config.preset.defaultInternalAlignment()
+        val externalAlignment = config.externalAlignmentOverride ?: config.preset.defaultExternalAlignment()
+
+        val adjustedInternalLayout = applyScreenScaleToLayout(
+            screenLayout = layout.mainScreenLayout,
+            availableWidth = variant.uiSize.x,
+            availableHeight = variant.uiSize.y,
+            integerScale = config.integerScale,
+            keepAspectRatio = config.keepAspectRatio,
+            fillHeight = config.internalFillHeight && canFill,
+            fillWidth = config.internalFillWidth && canFill,
+            alignment = internalAlignment,
+        )
+
+        val secondaryDisplay = variant.displays.secondaryScreenDisplay
+        val adjustedSecondaryLayout = applyScreenScaleToLayout(
+            screenLayout = layout.secondaryScreenLayout,
+            availableWidth = secondaryDisplay.width,
+            availableHeight = secondaryDisplay.height,
+            integerScale = config.integerScale,
+            keepAspectRatio = config.keepAspectRatio,
+            fillHeight = config.externalFillHeight && canFill,
+            fillWidth = config.externalFillWidth && canFill,
+            alignment = externalAlignment,
+        )
+
+        return layout.copy(
+            mainScreenLayout = adjustedInternalLayout,
+            secondaryScreenLayout = adjustedSecondaryLayout,
+        )
+    }
+
+    private fun applyScreenScaleToLayout(
+        screenLayout: ScreenLayout,
+        availableWidth: Int,
+        availableHeight: Int,
+        integerScale: Boolean,
+        keepAspectRatio: Boolean,
+        fillHeight: Boolean,
+        fillWidth: Boolean,
+        alignment: ScreenAlignment,
+    ): ScreenLayout {
+        val currentComponents = screenLayout.components ?: return screenLayout
+        val screenComponents = currentComponents.filter { it.isScreen() }
+        if (screenComponents.size != 1) {
+            return screenLayout
+        }
+        if (availableWidth <= 0 || availableHeight <= 0) {
+            return screenLayout
+        }
+
+        val screenComponent = screenComponents.single()
+        val scaledRect = computeScaledScreenRect(
+            availableWidth = availableWidth,
+            availableHeight = availableHeight,
+            integerScale = integerScale,
+            keepAspectRatio = keepAspectRatio,
+            fillHeight = fillHeight,
+            fillWidth = fillWidth,
+            alignment = alignment,
+        )
+
+        val updatedComponents = currentComponents.map {
+            if (it == screenComponent) {
+                it.copy(rect = scaledRect)
+            } else {
+                it
+            }
+        }
+        return screenLayout.copy(components = updatedComponents)
+    }
+
+    private fun computeScaledScreenRect(
+        availableWidth: Int,
+        availableHeight: Int,
+        integerScale: Boolean,
+        keepAspectRatio: Boolean,
+        fillHeight: Boolean,
+        fillWidth: Boolean,
+        alignment: ScreenAlignment,
+    ): Rect {
+        val (baseWidth, baseHeight) = when {
+            integerScale -> computeIntegerScaleDimensions(availableWidth, availableHeight)
+            keepAspectRatio -> computeAspectRatioDimensions(availableWidth, availableHeight)
+            else -> availableWidth to availableHeight
+        }
+
+        val scaledWidth = if (fillWidth) availableWidth else baseWidth
+        val scaledHeight = if (fillHeight) availableHeight else baseHeight
+
+        val left = ((availableWidth - scaledWidth) / 2f).roundToInt().coerceAtLeast(0)
+        val top = when (alignment) {
+            ScreenAlignment.TOP -> 0
+            ScreenAlignment.CENTER -> ((availableHeight - scaledHeight) / 2f).roundToInt().coerceAtLeast(0)
+            ScreenAlignment.BOTTOM -> (availableHeight - scaledHeight).coerceAtLeast(0)
+        }
+
+        return Rect(left, top, scaledWidth.coerceAtLeast(1), scaledHeight.coerceAtLeast(1))
+    }
+
+    private fun computeIntegerScaleDimensions(availableWidth: Int, availableHeight: Int): Pair<Int, Int> {
+        val widthScale = availableWidth / SCREEN_WIDTH
+        val heightScale = availableHeight / SCREEN_HEIGHT
+        val maxIntegerScale = min(widthScale, heightScale)
+        val scale = if (maxIntegerScale <= 0) {
+            min(
+                availableWidth.toFloat() / SCREEN_WIDTH,
+                availableHeight.toFloat() / SCREEN_HEIGHT,
+            )
+        } else {
+            maxIntegerScale.toFloat()
+        }
+        val width = (SCREEN_WIDTH * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableWidth)
+        val height = (SCREEN_HEIGHT * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableHeight)
+        return width to height
+    }
+
+    private fun computeAspectRatioDimensions(availableWidth: Int, availableHeight: Int): Pair<Int, Int> {
+        val widthRatio = availableWidth.toFloat() / SCREEN_WIDTH
+        val heightRatio = availableHeight.toFloat() / SCREEN_HEIGHT
+        val scale = min(widthRatio, heightRatio)
+        val width = (SCREEN_WIDTH * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableWidth)
+        val height = (SCREEN_HEIGHT * scale).roundToInt().coerceAtLeast(1).coerceAtMost(availableHeight)
+        return width to height
     }
 
     private fun resetEmulatorState(newState: EmulatorState) {
@@ -648,7 +972,7 @@ class EmulatorViewModel @Inject constructor(
     private fun startObservingRendererConfiguration() {
         sessionCoroutineScope.launch {
             settingsRepository.observeRenderConfiguration().collectLatest {
-                _runtimeRendererConfiguration.value = RuntimeRendererConfiguration(it.videoFiltering, it.resolutionScaling)
+                _runtimeRendererConfiguration.value = RuntimeRendererConfiguration(it.videoFiltering, it.resolutionScaling, it.customShader)
             }
         }
     }

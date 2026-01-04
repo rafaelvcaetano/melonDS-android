@@ -2,7 +2,9 @@ package me.magnum.melonds.ui.emulator.render
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.graphics.RectF
 import android.opengl.GLES30
+import android.opengl.GLES31
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import me.magnum.melonds.common.opengl.Shader
@@ -20,6 +22,8 @@ import me.magnum.melonds.utils.BitmapUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Renders the emulator's top and bottom screens onto a [GLSurfaceView]
@@ -52,12 +56,15 @@ class ExternalLayoutRender(
     private var topOnTop: Boolean = false,
     private var bottomOnTop: Boolean = false,
     private var background: RuntimeBackground = RuntimeBackground.None,
-    private val rotateLeft: Boolean,
+    private var rotateLeft: Boolean,
 ) : EmulatorRenderer {
 
     companion object {
         private const val TOTAL_SCREEN_HEIGHT = 384
+        private const val RESPONSE_WEIGHT = 0.333f
     }
+
+    private data class TextureSize(val width: Int, val height: Int)
 
     private lateinit var shader: Shader
 
@@ -66,8 +73,11 @@ class ExternalLayoutRender(
 
     private lateinit var uvTop: FloatBuffer
     private lateinit var uvBottom: FloatBuffer
+    private val topUvBounds = FloatArray(4)
+    private val bottomUvBounds = FloatArray(4)
 
     private var videoFiltering: VideoFiltering = VideoFiltering.NONE
+    private var customShader: ShaderProgramSource? = null
 
     private var viewWidth = 0
     private var viewHeight = 0
@@ -82,6 +92,13 @@ class ExternalLayoutRender(
     private var isBackgroundPositionDirty = false
     private var backgroundWidth = 0
     private var backgroundHeight = 0
+
+    private var historyTexture = 0
+    private var historyWidth = 0
+    private var historyHeight = 0
+    private var historyReadFramebuffer = 0
+    private var historyDrawFramebuffer = 0
+    private var historyReady = false
 
     fun updateLayout(
         top: Rect?,
@@ -107,19 +124,17 @@ class ExternalLayoutRender(
         }
     }
 
+    fun hasBottomScreen(): Boolean {
+        return bottomScreen != null
+    }
+
+    fun getBottomViewport(viewWidth: Int, viewHeight: Int): RectF? {
+        val rect = bottomScreen ?: return null
+        return computeViewport(rect, viewWidth, viewHeight)
+    }
+
     private fun rectToBuffer(rect: Rect): FloatBuffer {
-        val left = rect.x / layoutWidth.toFloat() * 2f - 1f
-        val right = (rect.x + rect.width) / layoutWidth.toFloat() * 2f - 1f
-        val top = 1f - rect.y / layoutHeight.toFloat() * 2f
-        val bottom = 1f - (rect.y + rect.height) / layoutHeight.toFloat() * 2f
-        val coords = floatArrayOf(
-            left, bottom,
-            left, top,
-            right, top,
-            left, bottom,
-            right, top,
-            right, bottom,
-        )
+        val coords = rectToClipCoords(rect)
 
         if (rotateLeft) {
             RdsRotation.rotateLeft(coords)
@@ -131,9 +146,73 @@ class ExternalLayoutRender(
             .put(coords)
     }
 
+    private fun rectToClipCoords(rect: Rect): FloatArray {
+        val width = layoutWidth.takeIf { it > 0 } ?: 1
+        val height = layoutHeight.takeIf { it > 0 } ?: 1
+        val left = rect.x / width.toFloat() * 2f - 1f
+        val right = (rect.x + rect.width) / width.toFloat() * 2f - 1f
+        val top = 1f - rect.y / height.toFloat() * 2f
+        val bottom = 1f - (rect.y + rect.height) / height.toFloat() * 2f
+        return floatArrayOf(
+            left, bottom,
+            left, top,
+            right, top,
+            left, bottom,
+            right, top,
+            right, bottom,
+        )
+    }
+
+    private fun computeViewport(rect: Rect, viewWidth: Int, viewHeight: Int): RectF? {
+        if (viewWidth <= 0 || viewHeight <= 0) {
+            return null
+        }
+        val coords = rectToClipCoords(rect)
+        if (rotateLeft) {
+            RdsRotation.rotateLeft(coords)
+        }
+        var minX = Float.POSITIVE_INFINITY
+        var maxX = Float.NEGATIVE_INFINITY
+        var minY = Float.POSITIVE_INFINITY
+        var maxY = Float.NEGATIVE_INFINITY
+        for (i in coords.indices step 2) {
+            val clipX = coords[i]
+            val clipY = coords[i + 1]
+            val px = ((clipX + 1f) * 0.5f) * viewWidth
+            val py = ((1f - clipY) * 0.5f) * viewHeight
+            minX = min(minX, px)
+            maxX = max(maxX, px)
+            minY = min(minY, py)
+            maxY = max(maxY, py)
+        }
+        if (!minX.isFinite() || !minY.isFinite() || !maxX.isFinite() || !maxY.isFinite()) {
+            return null
+        }
+        return RectF(minX, minY, maxX, maxY)
+    }
+
     private fun updateBuffers() {
         posTop = topScreen?.let { rectToBuffer(it) }
         posBottom = bottomScreen?.let { rectToBuffer(it) }
+    }
+
+    private fun fillUvBounds(uvs: FloatArray, dest: FloatArray) {
+        var minU = 1f
+        var minV = 1f
+        var maxU = 0f
+        var maxV = 0f
+        for (i in uvs.indices step 2) {
+            val u = uvs[i]
+            val v = uvs[i + 1]
+            if (u < minU) minU = u
+            if (v < minV) minV = v
+            if (u > maxU) maxU = u
+            if (v > maxV) maxV = v
+        }
+        dest[0] = minU
+        dest[1] = minV
+        dest[2] = maxU
+        dest[3] = maxV
     }
 
     fun setBackground(background: RuntimeBackground) {
@@ -146,14 +225,25 @@ class ExternalLayoutRender(
     }
 
     override fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
+        val newFiltering = newRendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
+        val newCustomShader = newRendererConfiguration?.customShader
+        updateVideoFiltering(newFiltering, newCustomShader)
     }
 
     override fun setLeftRotationEnabled(enabled: Boolean) {
+        if (rotateLeft == enabled) {
+            return
+        }
+        rotateLeft = enabled
+        updateBuffers()
+        synchronized(backgroundLock) {
+            isBackgroundPositionDirty = true
+        }
     }
 
     override fun onSurfaceCreated() {
         shader = ShaderFactory.createShaderProgram(
-            VideoFilterShaderProvider.getShaderSource(videoFiltering)
+            VideoFilterShaderProvider.getShaderSource(videoFiltering, customShader)
         )
 
         val textures = IntArray(1)
@@ -175,6 +265,7 @@ class ExternalLayoutRender(
             1f, 0f,
             1f, 0.5f - lineRelativeSize,
         )
+        fillUvBounds(topUvs, topUvBounds)
         val bottomUvs = floatArrayOf(
             0f, 1f,
             0f, 0.5f + lineRelativeSize,
@@ -183,6 +274,7 @@ class ExternalLayoutRender(
             1f, 0.5f + lineRelativeSize,
             1f, 1f,
         )
+        fillUvBounds(bottomUvs, bottomUvBounds)
         uvTop = ByteBuffer.allocateDirect(topUvs.size * 4)
             .order(ByteOrder.nativeOrder())
             .asFloatBuffer()
@@ -217,15 +309,77 @@ class ExternalLayoutRender(
         }
 
         shader.use()
-        GLES30.glDisableVertexAttribArray(shader.attribAlpha)
+        if (shader.attribAlpha >= 0) {
+            GLES30.glDisableVertexAttribArray(shader.attribAlpha)
+        }
+
+        val requiresHistory = shader.uniformPrevTex >= 0 || shader.uniformPrevWeight >= 0
+        val requiresTexSize = shader.uniformTexSize >= 0
+        val textureInfo = if ((requiresHistory || requiresTexSize) && textureId != 0) {
+            ensureHistoryResources(textureId)
+        } else {
+            null
+        }
+
+        textureInfo?.let {
+            if (shader.uniformTexSize >= 0) {
+                GLES30.glUniform2f(shader.uniformTexSize, it.width.toFloat(), it.height.toFloat())
+            }
+        }
+
+        if (requiresHistory) {
+            historyReady = historyReady && historyTexture != 0 && textureInfo != null
+            if (shader.uniformPrevWeight >= 0) {
+                val weight = if (historyReady) RESPONSE_WEIGHT else 0f
+                GLES30.glUniform1f(shader.uniformPrevWeight, weight)
+            }
+
+            if (shader.uniformPrevTex >= 0 && historyTexture != 0) {
+                GLES30.glActiveTexture(GLES30.GL_TEXTURE1)
+                GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, historyTexture)
+                GLES30.glUniform1i(shader.uniformPrevTex, 1)
+            }
+        }
 
         posTop?.let { buf ->
             buf.position(0)
             uvTop.position(0)
+            GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
             GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
-            GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
-            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvTop)
-            GLES30.glUniform1i(shader.uniformTex, 0)
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, shader.textureFiltering)
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, shader.textureFiltering)
+            if (shader.attribPos >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
+            }
+            if (shader.attribUv >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvTop)
+            }
+            if (shader.uniformTex >= 0) {
+                GLES30.glUniform1i(shader.uniformTex, 0)
+            }
+            topScreen?.let { rect ->
+                if (shader.uniformViewportSize >= 0) {
+                    val (viewportWidth, viewportHeight) = if (rotateLeft) {
+                        rect.height to rect.width
+                    } else {
+                        rect.width to rect.height
+                    }
+                    GLES30.glUniform2f(
+                        shader.uniformViewportSize,
+                        viewportWidth.coerceAtLeast(1).toFloat(),
+                        viewportHeight.coerceAtLeast(1).toFloat()
+                    )
+                }
+            }
+            if (shader.uniformUvBounds >= 0) {
+                GLES30.glUniform4f(
+                    shader.uniformUvBounds,
+                    topUvBounds[0],
+                    topUvBounds[1],
+                    topUvBounds[2],
+                    topUvBounds[3],
+                )
+            }
             GLES30.glEnable(GLES30.GL_BLEND)
             GLES30.glBlendColor(0f, 0f, 0f, topAlpha)
             GLES30.glBlendFunc(GLES30.GL_CONSTANT_ALPHA, GLES30.GL_ONE_MINUS_CONSTANT_ALPHA)
@@ -235,15 +389,59 @@ class ExternalLayoutRender(
         posBottom?.let { buf ->
             buf.position(0)
             uvBottom.position(0)
+            GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
             GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
-            GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
-            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBottom)
-            GLES30.glUniform1i(shader.uniformTex, 0)
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, shader.textureFiltering)
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, shader.textureFiltering)
+            if (shader.attribPos >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 0, buf)
+            }
+            if (shader.attribUv >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 0, uvBottom)
+            }
+            if (shader.uniformTex >= 0) {
+                GLES30.glUniform1i(shader.uniformTex, 0)
+            }
+            bottomScreen?.let { rect ->
+                if (shader.uniformViewportSize >= 0) {
+                    val (viewportWidth, viewportHeight) = if (rotateLeft) {
+                        rect.height to rect.width
+                    } else {
+                        rect.width to rect.height
+                    }
+                    GLES30.glUniform2f(
+                        shader.uniformViewportSize,
+                        viewportWidth.coerceAtLeast(1).toFloat(),
+                        viewportHeight.coerceAtLeast(1).toFloat()
+                    )
+                }
+            }
+            if (shader.uniformUvBounds >= 0) {
+                GLES30.glUniform4f(
+                    shader.uniformUvBounds,
+                    bottomUvBounds[0],
+                    bottomUvBounds[1],
+                    bottomUvBounds[2],
+                    bottomUvBounds[3],
+                )
+            }
             GLES30.glEnable(GLES30.GL_BLEND)
             GLES30.glBlendColor(0f, 0f, 0f, bottomAlpha)
             GLES30.glBlendFunc(GLES30.GL_CONSTANT_ALPHA, GLES30.GL_ONE_MINUS_CONSTANT_ALPHA)
             GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6)
             GLES30.glDisable(GLES30.GL_BLEND)
+        }
+
+        if (requiresHistory) {
+            GLES30.glActiveTexture(GLES30.GL_TEXTURE1)
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, 0)
+            GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
+        }
+
+        if (textureInfo != null) {
+            copyFrameToHistory(textureId, textureInfo)
+        } else if (requiresHistory) {
+            historyReady = false
         }
     }
 
@@ -255,14 +453,129 @@ class ExternalLayoutRender(
      *
      * @param videoFiltering The new [VideoFiltering] setting to apply.
      */
-    fun updateVideoFiltering(videoFiltering: VideoFiltering) {
+    fun updateVideoFiltering(videoFiltering: VideoFiltering, customShader: ShaderProgramSource? = null) {
+        val shouldRecreate = this.videoFiltering != videoFiltering || this.customShader !== customShader
         this.videoFiltering = videoFiltering
-        if (this::shader.isInitialized) {
+        this.customShader = customShader
+        if (shouldRecreate && this::shader.isInitialized) {
             shader.delete()
             shader = ShaderFactory.createShaderProgram(
-                VideoFilterShaderProvider.getShaderSource(videoFiltering)
+                VideoFilterShaderProvider.getShaderSource(videoFiltering, customShader)
             )
+            historyReady = false
         }
+    }
+
+    private fun ensureHistoryResources(sourceTextureId: Int): TextureSize? {
+        val size = getTextureDimensions(sourceTextureId) ?: return null
+
+        if (historyTexture == 0 || size.width != historyWidth || size.height != historyHeight) {
+            if (historyTexture != 0) {
+                val textures = intArrayOf(historyTexture)
+                GLES30.glDeleteTextures(1, textures, 0)
+                historyTexture = 0
+            }
+
+            val textures = IntArray(1)
+            GLES30.glGenTextures(1, textures, 0)
+            historyTexture = textures[0]
+
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, historyTexture)
+            GLES30.glTexImage2D(
+                GLES30.GL_TEXTURE_2D,
+                0,
+                GLES30.GL_RGBA,
+                size.width,
+                size.height,
+                0,
+                GLES30.GL_RGBA,
+                GLES30.GL_UNSIGNED_BYTE,
+                null
+            )
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_NEAREST)
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_NEAREST)
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_CLAMP_TO_EDGE)
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE)
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, 0)
+
+            historyWidth = size.width
+            historyHeight = size.height
+            historyReady = false
+        }
+
+        if (historyReadFramebuffer == 0 || historyDrawFramebuffer == 0) {
+            val framebuffers = IntArray(2)
+            GLES30.glGenFramebuffers(2, framebuffers, 0)
+            historyReadFramebuffer = framebuffers[0]
+            historyDrawFramebuffer = framebuffers[1]
+        }
+
+        return size
+    }
+
+    private fun copyFrameToHistory(sourceTextureId: Int, size: TextureSize) {
+        if (historyTexture == 0 || historyReadFramebuffer == 0 || historyDrawFramebuffer == 0) {
+            historyReady = false
+            return
+        }
+
+        GLES30.glBindFramebuffer(GLES30.GL_READ_FRAMEBUFFER, historyReadFramebuffer)
+        GLES30.glFramebufferTexture2D(
+            GLES30.GL_READ_FRAMEBUFFER,
+            GLES30.GL_COLOR_ATTACHMENT0,
+            GLES30.GL_TEXTURE_2D,
+            sourceTextureId,
+            0
+        )
+
+        GLES30.glBindFramebuffer(GLES30.GL_DRAW_FRAMEBUFFER, historyDrawFramebuffer)
+        GLES30.glFramebufferTexture2D(
+            GLES30.GL_DRAW_FRAMEBUFFER,
+            GLES30.GL_COLOR_ATTACHMENT0,
+            GLES30.GL_TEXTURE_2D,
+            historyTexture,
+            0
+        )
+
+        GLES30.glBlitFramebuffer(
+            0,
+            0,
+            size.width,
+            size.height,
+            0,
+            0,
+            size.width,
+            size.height,
+            GLES30.GL_COLOR_BUFFER_BIT,
+            GLES30.GL_NEAREST
+        )
+
+        GLES30.glBindFramebuffer(GLES30.GL_READ_FRAMEBUFFER, 0)
+        GLES30.glBindFramebuffer(GLES30.GL_DRAW_FRAMEBUFFER, 0)
+
+        historyReady = true
+    }
+
+    private fun getTextureDimensions(textureId: Int): TextureSize? {
+        if (textureId == 0) {
+            return null
+        }
+
+        val previousBinding = IntArray(1)
+        GLES30.glGetIntegerv(GLES30.GL_TEXTURE_BINDING_2D, previousBinding, 0)
+
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
+        val width = IntArray(1)
+        val height = IntArray(1)
+        GLES31.glGetTexLevelParameteriv(GLES30.GL_TEXTURE_2D, 0, GLES31.GL_TEXTURE_WIDTH, width, 0)
+        GLES31.glGetTexLevelParameteriv(GLES30.GL_TEXTURE_2D, 0, GLES31.GL_TEXTURE_HEIGHT, height, 0)
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, previousBinding[0])
+
+        if (width[0] <= 0 || height[0] <= 0) {
+            return null
+        }
+
+        return TextureSize(width[0], height[0])
     }
 
     private fun renderBackground() {

@@ -4,11 +4,15 @@ import android.annotation.SuppressLint
 import android.view.MotionEvent
 import android.view.MotionEvent.PointerCoords
 import android.view.View
+import android.graphics.RectF
 import me.magnum.melonds.MelonEmulator.onScreenRelease
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.Point
 
-class TouchscreenInputHandler(inputListener: IInputListener) : BaseInputHandler(inputListener) {
+class TouchscreenInputHandler(
+    inputListener: IInputListener,
+    private val viewRectProvider: (() -> RectF)? = null,
+) : BaseInputHandler(inputListener) {
     private val touchPoint: Point = Point()
 
     @SuppressLint("ClickableViewAccessibility")
@@ -34,9 +38,6 @@ class TouchscreenInputHandler(inputListener: IInputListener) : BaseInputHandler(
         var averageTouchY = 0f
         val pointerCoordinates = PointerCoords()
 
-        // Average out touch positions. Even though the DS has a resistive touch screen, some games rely on the nuances
-        // of this technology for some mechanics. Averaging out the coordinates of the touch position allows us to
-        // simulate those nuances to some degree
         for (i in 0 until event.pointerCount) {
             event.getPointerCoords(i, pointerCoordinates)
             averageTouchX += pointerCoordinates.x
@@ -45,8 +46,18 @@ class TouchscreenInputHandler(inputListener: IInputListener) : BaseInputHandler(
         averageTouchX /= event.pointerCount
         averageTouchY /= event.pointerCount
 
-        touchPoint.x = (averageTouchX / viewWidth * 256).toInt().coerceIn(0, 255)
-        touchPoint.y = (averageTouchY / viewHeight * 192).toInt().coerceIn(0, 191)
+        val rect = viewRectProvider?.invoke()
+        if (rect == null || rect.width() <= 0f || rect.height() <= 0f) {
+            touchPoint.x = (averageTouchX / viewWidth * 256).toInt().coerceIn(0, 255)
+            touchPoint.y = (averageTouchY / viewHeight * 192).toInt().coerceIn(0, 191)
+            return touchPoint
+        }
+
+        val normalizedX = ((averageTouchX - rect.left) / rect.width() * 256f)
+        val normalizedY = ((averageTouchY - rect.top) / rect.height() * 192f)
+
+        touchPoint.x = normalizedX.toInt().coerceIn(0, 255)
+        touchPoint.y = normalizedY.toInt().coerceIn(0, 191)
         return touchPoint
     }
 }

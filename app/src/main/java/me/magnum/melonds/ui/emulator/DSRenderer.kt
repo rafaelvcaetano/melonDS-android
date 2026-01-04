@@ -3,6 +3,7 @@ package me.magnum.melonds.ui.emulator
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.opengl.GLES30
+import android.opengl.GLES31
 import android.opengl.GLUtils
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
@@ -19,9 +20,39 @@ import me.magnum.melonds.ui.emulator.render.EmulatorRenderer
 import me.magnum.melonds.utils.BitmapUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 class DSRenderer(private val context: Context) : EmulatorRenderer {
+
+    companion object {
+        private const val RESPONSE_WEIGHT = 0.333f
+    }
+
+    private data class TextureSize(val width: Int, val height: Int)
+
+    private data class ScreenVertexData(
+        val vertices: FloatArray,
+        val vertexCount: Int,
+        val viewportWidth: Float,
+        val viewportHeight: Float,
+        val uvMinX: Float,
+        val uvMinY: Float,
+        val uvMaxX: Float,
+        val uvMaxY: Float,
+    )
+
+    private data class ScreenDrawCall(
+        val firstVertex: Int,
+        val vertexCount: Int,
+        val viewportWidth: Float,
+        val viewportHeight: Float,
+        val uvMinX: Float,
+        val uvMinY: Float,
+        val uvMaxX: Float,
+        val uvMaxY: Float,
+    )
 
     private var rendererConfiguration: RuntimeRendererConfiguration? = null
     private var mustUpdateConfiguration = false
@@ -35,7 +66,14 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
 
     private var screensVbo = 0
     private var screensVao = 0
-    private var screenIndices = 0
+    private val screenDrawCalls = mutableListOf<ScreenDrawCall>()
+
+    private var historyTexture = 0
+    private var historyWidth = 0
+    private var historyHeight = 0
+    private var historyReadFramebuffer = 0
+    private var historyDrawFramebuffer = 0
+    private var historyReady = false
 
     private var backgroundVbo = 0
     private var backgroundVao = 0
@@ -92,11 +130,13 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
     }
 
     private fun screenXToViewportX(x: Int): Float {
-        return (x / width) * 2f - 1f
+        val safeWidth = width.takeIf { it > 0f } ?: 1f
+        return (x / safeWidth) * 2f - 1f
     }
 
     private fun screenYToViewportY(y: Int): Float {
-        return 1f - y / height * 2f
+        val safeHeight = height.takeIf { it > 0f } ?: 1f
+        return 1f - y / safeHeight * 2f
     }
 
     override fun onSurfaceCreated() {
@@ -170,40 +210,59 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
             1f, 1f,
         )
 
-        val (overScreenVertexData, underScreenVertexData) = if (bottomOnTop) {
-            val over = bottomScreenRect?.let { buildScreenVertexData(it, bottomUvs, bottomAlpha) }
-            val under = topScreenRect?.let { buildScreenVertexData(it, topUvs, topAlpha) }
-            over to under
+        val screenDataList = mutableListOf<ScreenVertexData>()
+        if (bottomOnTop) {
+            topScreenRect?.let { screenDataList.add(buildScreenVertexData(it, topUvs, topAlpha)) }
+            bottomScreenRect?.let { screenDataList.add(buildScreenVertexData(it, bottomUvs, bottomAlpha)) }
         } else {
-            val over = topScreenRect?.let { buildScreenVertexData(it, topUvs, topAlpha) }
-            val under = bottomScreenRect?.let { buildScreenVertexData(it, bottomUvs, bottomAlpha) }
-            over to under
+            bottomScreenRect?.let { screenDataList.add(buildScreenVertexData(it, bottomUvs, bottomAlpha)) }
+            topScreenRect?.let { screenDataList.add(buildScreenVertexData(it, topUvs, topAlpha)) }
         }
 
-        val vertexBufferSize = ((overScreenVertexData?.size ?: 0) + (underScreenVertexData?.size ?: 0)) * Float.SIZE_BYTES
-        val vertexBuffer = ByteBuffer.allocateDirect(vertexBufferSize)
-            .order(ByteOrder.nativeOrder())
-            .asFloatBuffer()
-            .apply {
-                underScreenVertexData?.let { put(it) }
-                overScreenVertexData?.let { put(it) }
-                position(0)
-            }
-
+        val vertexElementCount = screenDataList.sumOf { it.vertices.size }
+        val vertexBufferSize = vertexElementCount * Float.SIZE_BYTES
         GLES30.glBindVertexArray(screensVao)
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, screensVbo)
-        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, vertexBufferSize, vertexBuffer, GLES30.GL_STATIC_DRAW)
-        screenIndices = vertexBuffer.capacity() / 5 // Each vertex has 5 values
+        if (vertexBufferSize > 0) {
+            val vertexBuffer = ByteBuffer.allocateDirect(vertexBufferSize)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer()
+                .apply {
+                    screenDataList.forEach { put(it.vertices) }
+                    position(0)
+                }
+            GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, vertexBufferSize, vertexBuffer, GLES30.GL_STATIC_DRAW)
+        } else {
+            GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, 0, null, GLES30.GL_STATIC_DRAW)
+        }
+
+        screenDrawCalls.clear()
+        var firstVertex = 0
+        screenDataList.forEach { data ->
+            screenDrawCalls.add(
+                ScreenDrawCall(
+                    firstVertex = firstVertex,
+                    vertexCount = data.vertexCount,
+                    viewportWidth = data.viewportWidth,
+                    viewportHeight = data.viewportHeight,
+                    uvMinX = data.uvMinX,
+                    uvMinY = data.uvMinY,
+                    uvMaxX = data.uvMaxX,
+                    uvMaxY = data.uvMaxY,
+                )
+            )
+            firstVertex += data.vertexCount
+        }
     }
 
-    private fun buildScreenVertexData(rect: Rect, uvs: FloatArray, alpha: Float): FloatArray {
+    private fun buildScreenVertexData(rect: Rect, uvs: FloatArray, alpha: Float): ScreenVertexData {
         val left = screenXToViewportX(rect.x)
         val right = screenXToViewportX(rect.x + rect.width)
         val top = screenYToViewportY(rect.y)
         val bottom = screenYToViewportY(rect.y + rect.height)
 
         // TODO: Apply rotation, like in ExternalScreenRender. Apply to background as well. Rename this class to something more generic
-        return floatArrayOf(
+        val vertices = floatArrayOf(
             // Position    UVs               Alpha
             left, bottom,  uvs[0], uvs[1],   alpha,
             left, top,     uvs[2], uvs[3],   alpha,
@@ -212,6 +271,32 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
             right, top,    uvs[8], uvs[9],   alpha,
             right, bottom, uvs[10], uvs[11], alpha,
         )
+
+        val viewportWidth = rect.width.toFloat().coerceAtLeast(1f)
+        val viewportHeight = rect.height.toFloat().coerceAtLeast(1f)
+        var uvMinX = 1f
+        var uvMinY = 1f
+        var uvMaxX = 0f
+        var uvMaxY = 0f
+        for (i in uvs.indices step 2) {
+            val u = uvs[i]
+            val v = uvs[i + 1]
+            uvMinX = min(uvMinX, u)
+            uvMinY = min(uvMinY, v)
+            uvMaxX = max(uvMaxX, u)
+            uvMaxY = max(uvMaxY, v)
+        }
+
+        return ScreenVertexData(
+            vertices = vertices,
+            vertexCount = vertices.size / 5,
+            viewportWidth = viewportWidth,
+            viewportHeight = viewportHeight,
+            uvMinX = uvMinX,
+            uvMinY = uvMinY,
+            uvMaxX = uvMaxX,
+            uvMaxY = uvMaxY,
+        )
     }
 
     private fun updateShader() {
@@ -219,8 +304,10 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
         screenShader?.delete()
 
         val filtering = rendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
-        val shaderSource = VideoFilterShaderProvider.getShaderSource(filtering)
+        val customShaderSource = rendererConfiguration?.customShader
+        val shaderSource = VideoFilterShaderProvider.getShaderSource(filtering, customShaderSource)
         screenShader = ShaderFactory.createShaderProgram(shaderSource)
+        historyReady = false
     }
 
     override fun onSurfaceChanged(width: Int, height: Int) {
@@ -254,25 +341,200 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
             GLES30.glEnable(GLES30.GL_BLEND)
             GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA)
 
+            val textureId = presentFrameWrapper.textureId
+            val requiresHistory = shader.uniformPrevTex >= 0 || shader.uniformPrevWeight >= 0
+            val requiresTexSize = shader.uniformTexSize >= 0
+            val textureInfo = if ((requiresHistory || requiresTexSize) && textureId != 0) {
+                getTextureDimensions(textureId)
+            } else {
+                null
+            }
+
             GLES30.glBindVertexArray(screensVao)
             GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, screensVbo)
-
             shader.use()
 
+            textureInfo?.let { info ->
+                if (shader.uniformTexSize >= 0) {
+                    GLES30.glUniform2f(shader.uniformTexSize, info.width.toFloat(), info.height.toFloat())
+                }
+            }
+
+            if (requiresHistory && textureInfo != null) {
+                ensureHistoryResources(textureInfo)
+                historyReady = historyReady && historyTexture != 0
+                if (shader.uniformPrevWeight >= 0) {
+                    val weight = if (historyReady) RESPONSE_WEIGHT else 0f
+                    GLES30.glUniform1f(shader.uniformPrevWeight, weight)
+                }
+                if (shader.uniformPrevTex >= 0 && historyTexture != 0) {
+                    GLES30.glActiveTexture(GLES30.GL_TEXTURE1)
+                    GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, historyTexture)
+                    GLES30.glUniform1i(shader.uniformPrevTex, 1)
+                }
+            } else if (requiresHistory) {
+                historyReady = false
+            }
+
             GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
-            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, presentFrameWrapper.textureId)
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, shader.textureFiltering)
             GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, shader.textureFiltering)
 
-            GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 0)
-            GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 2 * Float.SIZE_BYTES)
-            GLES30.glVertexAttribPointer(shader.attribAlpha, 1, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 4 * Float.SIZE_BYTES)
-            GLES30.glUniform1i(shader.uniformTex, 0)
-            GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, screenIndices)
+            if (shader.attribPos >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribPos, 2, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 0)
+            }
+            if (shader.attribUv >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribUv, 2, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 2 * Float.SIZE_BYTES)
+            }
+            if (shader.attribAlpha >= 0) {
+                GLES30.glVertexAttribPointer(shader.attribAlpha, 1, GLES30.GL_FLOAT, false, 5 * Float.SIZE_BYTES, 4 * Float.SIZE_BYTES)
+            }
+            if (shader.uniformTex >= 0) {
+                GLES30.glUniform1i(shader.uniformTex, 0)
+            }
+
+            screenDrawCalls.forEach { drawCall ->
+                if (shader.uniformViewportSize >= 0) {
+                    GLES30.glUniform2f(
+                        shader.uniformViewportSize,
+                        drawCall.viewportWidth,
+                        drawCall.viewportHeight,
+                    )
+                }
+                if (shader.uniformUvBounds >= 0) {
+                    GLES30.glUniform4f(
+                        shader.uniformUvBounds,
+                        drawCall.uvMinX,
+                        drawCall.uvMinY,
+                        drawCall.uvMaxX,
+                        drawCall.uvMaxY,
+                    )
+                }
+                GLES30.glDrawArrays(GLES30.GL_TRIANGLES, drawCall.firstVertex, drawCall.vertexCount)
+            }
+
+            if (requiresHistory) {
+                GLES30.glActiveTexture(GLES30.GL_TEXTURE1)
+                GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, 0)
+                GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
+            }
 
             GLES30.glBindVertexArray(0)
             GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0)
+
+            if (requiresHistory && textureInfo != null) {
+                copyFrameToHistory(textureId, textureInfo)
+            }
         }
+    }
+
+    private fun ensureHistoryResources(size: TextureSize) {
+        if (historyTexture == 0 || size.width != historyWidth || size.height != historyHeight) {
+            if (historyTexture != 0) {
+                val textures = intArrayOf(historyTexture)
+                GLES30.glDeleteTextures(1, textures, 0)
+                historyTexture = 0
+            }
+
+            val textures = IntArray(1)
+            GLES30.glGenTextures(1, textures, 0)
+            historyTexture = textures[0]
+
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, historyTexture)
+            GLES30.glTexImage2D(
+                GLES30.GL_TEXTURE_2D,
+                0,
+                GLES30.GL_RGBA,
+                size.width,
+                size.height,
+                0,
+                GLES30.GL_RGBA,
+                GLES30.GL_UNSIGNED_BYTE,
+                null
+            )
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_NEAREST)
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_NEAREST)
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_CLAMP_TO_EDGE)
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE)
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, 0)
+
+            historyWidth = size.width
+            historyHeight = size.height
+            historyReady = false
+        }
+
+        if (historyReadFramebuffer == 0 || historyDrawFramebuffer == 0) {
+            val framebuffers = IntArray(2)
+            GLES30.glGenFramebuffers(2, framebuffers, 0)
+            historyReadFramebuffer = framebuffers[0]
+            historyDrawFramebuffer = framebuffers[1]
+        }
+    }
+
+    private fun copyFrameToHistory(sourceTextureId: Int, size: TextureSize) {
+        if (historyTexture == 0 || historyReadFramebuffer == 0 || historyDrawFramebuffer == 0) {
+            historyReady = false
+            return
+        }
+
+        GLES30.glBindFramebuffer(GLES30.GL_READ_FRAMEBUFFER, historyReadFramebuffer)
+        GLES30.glFramebufferTexture2D(
+            GLES30.GL_READ_FRAMEBUFFER,
+            GLES30.GL_COLOR_ATTACHMENT0,
+            GLES30.GL_TEXTURE_2D,
+            sourceTextureId,
+            0
+        )
+
+        GLES30.glBindFramebuffer(GLES30.GL_DRAW_FRAMEBUFFER, historyDrawFramebuffer)
+        GLES30.glFramebufferTexture2D(
+            GLES30.GL_DRAW_FRAMEBUFFER,
+            GLES30.GL_COLOR_ATTACHMENT0,
+            GLES30.GL_TEXTURE_2D,
+            historyTexture,
+            0
+        )
+
+        GLES30.glBlitFramebuffer(
+            0,
+            0,
+            size.width,
+            size.height,
+            0,
+            0,
+            size.width,
+            size.height,
+            GLES30.GL_COLOR_BUFFER_BIT,
+            GLES30.GL_NEAREST
+        )
+
+        GLES30.glBindFramebuffer(GLES30.GL_READ_FRAMEBUFFER, 0)
+        GLES30.glBindFramebuffer(GLES30.GL_DRAW_FRAMEBUFFER, 0)
+
+        historyReady = true
+    }
+
+    private fun getTextureDimensions(textureId: Int): TextureSize? {
+        if (textureId == 0) {
+            return null
+        }
+
+        val previousBinding = IntArray(1)
+        GLES30.glGetIntegerv(GLES30.GL_TEXTURE_BINDING_2D, previousBinding, 0)
+
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId)
+        val width = IntArray(1)
+        val height = IntArray(1)
+        GLES31.glGetTexLevelParameteriv(GLES30.GL_TEXTURE_2D, 0, GLES31.GL_TEXTURE_WIDTH, width, 0)
+        GLES31.glGetTexLevelParameteriv(GLES30.GL_TEXTURE_2D, 0, GLES31.GL_TEXTURE_HEIGHT, height, 0)
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, previousBinding[0])
+
+        if (width[0] <= 0 || height[0] <= 0) {
+            return null
+        }
+
+        return TextureSize(width[0], height[0])
     }
 
     private fun renderBackground() {

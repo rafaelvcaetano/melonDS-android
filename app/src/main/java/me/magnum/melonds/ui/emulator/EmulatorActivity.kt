@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,6 +71,7 @@ import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.databinding.ActivityEmulatorBinding
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.ControllerConfiguration
+import me.magnum.melonds.domain.model.DualScreenPreset
 import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.SaveStateSlot
@@ -108,6 +110,7 @@ import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 import me.magnum.melonds.ui.emulator.rom.SaveStateAdapter
 import me.magnum.melonds.ui.emulator.ui.AchievementListDialog
 import me.magnum.melonds.ui.emulator.ui.AchievementPopupUi
+import me.magnum.melonds.ui.emulator.ui.DualScreenPresetsDialog
 import me.magnum.melonds.ui.emulator.ui.RAIntegrationEventUi
 import me.magnum.melonds.ui.layouteditor.model.LayoutTarget
 import me.magnum.melonds.ui.settings.SettingsActivity
@@ -275,6 +278,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         closeRewindWindow()
     }
     private val showAchievementList = mutableStateOf(false)
+    private val showDualScreenPresets = mutableStateOf(false)
 
     private val activeOverlays = EmulatorOverlayTracker(
         onOverlaysCleared = {
@@ -423,6 +427,62 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                         }
                     )
                 }
+
+                if (showDualScreenPresets.value) {
+                    val preset by viewModel.dualScreenPreset.collectAsState()
+                    val keepAspectRatio by viewModel.externalDisplayKeepAspectRatioEnabled.collectAsState()
+                    val integerScaleEnabled by viewModel.dualScreenIntegerScaleEnabled.collectAsState()
+                    val internalFillHeight by viewModel.dualScreenInternalFillHeightEnabled.collectAsState()
+                    val internalFillWidth by viewModel.dualScreenInternalFillWidthEnabled.collectAsState()
+                    val externalFillHeight by viewModel.dualScreenExternalFillHeightEnabled.collectAsState()
+                    val externalFillWidth by viewModel.dualScreenExternalFillWidthEnabled.collectAsState()
+                    val internalAlignmentOverride by viewModel.dualScreenInternalVerticalAlignmentOverride.collectAsState()
+                    val externalAlignmentOverride by viewModel.dualScreenExternalVerticalAlignmentOverride.collectAsState()
+
+                    DualScreenPresetsDialog(
+                        dualScreenPreset = preset,
+                        onDualScreenPresetSelected = { selectedPreset ->
+                            viewModel.setDualScreenPreset(selectedPreset)
+                        },
+                        keepAspectRatio = keepAspectRatio,
+                        onKeepAspectRatioChanged = { enabled ->
+                            viewModel.setExternalDisplayKeepAspectRatioEnabled(enabled)
+                        },
+                        isDualScreenIntegerScaleEnabled = integerScaleEnabled,
+                        onDualScreenIntegerScaleChanged = { enabled ->
+                            viewModel.setDualScreenIntegerScaleEnabled(enabled)
+                        },
+                        internalFillHeight = internalFillHeight,
+                        onInternalFillHeightChanged = { enabled ->
+                            viewModel.setDualScreenInternalFillHeightEnabled(enabled)
+                        },
+                        internalFillWidth = internalFillWidth,
+                        onInternalFillWidthChanged = { enabled ->
+                            viewModel.setDualScreenInternalFillWidthEnabled(enabled)
+                        },
+                        externalFillHeight = externalFillHeight,
+                        onExternalFillHeightChanged = { enabled ->
+                            viewModel.setDualScreenExternalFillHeightEnabled(enabled)
+                        },
+                        externalFillWidth = externalFillWidth,
+                        onExternalFillWidthChanged = { enabled ->
+                            viewModel.setDualScreenExternalFillWidthEnabled(enabled)
+                        },
+                        internalVerticalAlignmentOverride = internalAlignmentOverride,
+                        onInternalVerticalAlignmentOverrideChanged = { alignment ->
+                            viewModel.setDualScreenInternalVerticalAlignmentOverride(alignment)
+                        },
+                        externalVerticalAlignmentOverride = externalAlignmentOverride,
+                        onExternalVerticalAlignmentOverrideChanged = { alignment ->
+                            viewModel.setDualScreenExternalVerticalAlignmentOverride(alignment)
+                        },
+                        onDismiss = {
+                            activeOverlays.removeActiveOverlay(EmulatorOverlay.PRESETS_DIALOG)
+                            viewModel.resumeEmulator()
+                            showDualScreenPresets.value = false
+                        },
+                    )
+                }
             }
         }
 
@@ -546,6 +606,10 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                         EmulatorUiEvent.ShowAchievementList -> {
                             activeOverlays.addActiveOverlay(EmulatorOverlay.ACHIEVEMENTS_DIALOG)
                             showAchievementList.value = true
+                        }
+                        EmulatorUiEvent.ShowDualScreenPresets -> {
+                            activeOverlays.addActiveOverlay(EmulatorOverlay.PRESETS_DIALOG)
+                            showDualScreenPresets.value = true
                         }
                     }
                 }
@@ -796,18 +860,57 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 setLayoutComponentToggleState(LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE, frontendInputHandler.fastForwardEnabled)
                 setLayoutComponentToggleState(LayoutComponent.BUTTON_MICROPHONE_TOGGLE, frontendInputHandler.microphoneEnabled)
             }
-            handler.post {
-                updateRendererScreenAreas()
-            }
-
             presentation?.apply {
                 updateLayout(layoutConfiguration)
                 layoutView.setLayoutComponentToggleState(LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE, frontendInputHandler.fastForwardEnabled)
                 layoutView.setLayoutComponentToggleState(LayoutComponent.BUTTON_MICROPHONE_TOGGLE, frontendInputHandler.microphoneEnabled)
             }
+
+            handler.post {
+                applyDualScreenPresetSwapState()
+                updateRendererScreenAreas()
+                presentation?.updateRendererScreenAreas()
+            }
         } else {
             binding.viewLayoutControls.destroyLayout()
             presentation?.layoutView?.destroyLayout()
+        }
+    }
+
+    private fun applyDualScreenPresetSwapState() {
+        val preset = viewModel.dualScreenPreset.value
+        if (preset == DualScreenPreset.OFF) {
+            return
+        }
+
+        val desiredInternalScreen = when (preset) {
+            DualScreenPreset.INTERNAL_TOP_EXTERNAL_BOTTOM -> LayoutComponent.TOP_SCREEN
+            DualScreenPreset.INTERNAL_BOTTOM_EXTERNAL_TOP -> LayoutComponent.BOTTOM_SCREEN
+            DualScreenPreset.OFF -> return
+        }
+
+        val baselineInternalScreen = getBaselineInternalScreenComponent() ?: return
+        val shouldSwap = baselineInternalScreen != desiredInternalScreen
+
+        if (binding.viewLayoutControls.areScreensSwapped() != shouldSwap) {
+            binding.viewLayoutControls.swapScreens()
+        }
+        presentation?.layoutView?.let { layoutView ->
+            if (layoutView.areScreensSwapped() != shouldSwap) {
+                layoutView.swapScreens()
+            }
+        }
+    }
+
+    private fun getBaselineInternalScreenComponent(): LayoutComponent? {
+        val hasTop = binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.TOP_SCREEN) != null
+        val hasBottom = binding.viewLayoutControls.getLayoutComponentView(LayoutComponent.BOTTOM_SCREEN) != null
+        return when {
+            hasTop && !hasBottom -> LayoutComponent.TOP_SCREEN
+            hasBottom && !hasTop -> LayoutComponent.BOTTOM_SCREEN
+            hasBottom -> LayoutComponent.BOTTOM_SCREEN
+            hasTop -> LayoutComponent.TOP_SCREEN
+            else -> null
         }
     }
 

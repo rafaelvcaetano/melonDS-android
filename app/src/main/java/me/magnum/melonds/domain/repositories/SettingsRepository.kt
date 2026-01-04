@@ -37,6 +37,26 @@ interface SettingsRepository {
     fun getVideoFiltering(): Flow<VideoFiltering>
     fun isThreadedRenderingEnabled(): Flow<Boolean>
     fun getFpsCounterPosition(): FpsCounterPosition
+
+    fun isExternalDisplayKeepAspectRationEnabled(): Boolean
+    fun observeExternalDisplayKeepAspectRationEnabled(): Flow<Boolean>
+
+    fun getDualScreenPreset(): DualScreenPreset
+    fun observeDualScreenPreset(): Flow<DualScreenPreset>
+    fun isDualScreenIntegerScaleEnabled(): Boolean
+    fun observeDualScreenIntegerScaleEnabled(): Flow<Boolean>
+    fun isDualScreenInternalFillHeightEnabled(): Boolean
+    fun observeDualScreenInternalFillHeightEnabled(): Flow<Boolean>
+    fun isDualScreenInternalFillWidthEnabled(): Boolean
+    fun observeDualScreenInternalFillWidthEnabled(): Flow<Boolean>
+    fun isDualScreenExternalFillHeightEnabled(): Boolean
+    fun observeDualScreenExternalFillHeightEnabled(): Flow<Boolean>
+    fun isDualScreenExternalFillWidthEnabled(): Boolean
+    fun observeDualScreenExternalFillWidthEnabled(): Flow<Boolean>
+    fun getDualScreenInternalVerticalAlignmentOverride(): ScreenAlignment?
+    fun observeDualScreenInternalVerticalAlignmentOverride(): Flow<ScreenAlignment?>
+    fun getDualScreenExternalVerticalAlignmentOverride(): ScreenAlignment?
+    fun observeDualScreenExternalVerticalAlignmentOverride(): Flow<ScreenAlignment?>
     fun getDSiCameraSource(): DSiCameraSourceType
     fun getDSiCameraStaticImage(): Uri?
 
@@ -58,6 +78,7 @@ interface SettingsRepository {
     fun getSoftInputBehaviour(): Flow<SoftInputBehaviour>
     fun isTouchHapticFeedbackEnabled(): Flow<Boolean>
     fun getTouchHapticFeedbackStrength(): Int
+    fun getGbaRumbleIntensity(): Int
     fun getSoftInputOpacity(): Flow<Int>
 
     fun isRetroAchievementsRichPresenceEnabled(): Boolean
@@ -79,6 +100,16 @@ interface SettingsRepository {
     fun setRomSortingMode(sortingMode: SortingMode)
     fun setRomSortingOrder(sortingOrder: SortingOrder)
     fun setSelectedLayoutId(layoutId: UUID)
+
+    fun setExternalDisplayKeepAspectRatioEnabled(enabled: Boolean)
+    fun setDualScreenPreset(preset: DualScreenPreset)
+    fun setDualScreenIntegerScaleEnabled(enabled: Boolean)
+    fun setDualScreenInternalFillHeightEnabled(enabled: Boolean)
+    fun setDualScreenInternalFillWidthEnabled(enabled: Boolean)
+    fun setDualScreenExternalFillHeightEnabled(enabled: Boolean)
+    fun setDualScreenExternalFillWidthEnabled(enabled: Boolean)
+    fun setDualScreenInternalVerticalAlignmentOverride(alignment: ScreenAlignment?)
+    fun setDualScreenExternalVerticalAlignmentOverride(alignment: ScreenAlignment?)
 
     fun observeRenderConfiguration(): Flow<RendererConfiguration>
 }
