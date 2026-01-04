@@ -21,65 +21,6 @@
             android:entryValues="@array/video_internal_resolution_values"
             android:defaultValue="1"/>
 
-    <PreferenceCategory
-            android:key="video_hacks_category"
-            android:title="@string/video_hacks"
-            app:iconSpaceReserved="false">
-
-        <SwitchPreference
-                android:key="video_conservative_coverage_enabled"
-                android:title="@string/conservative_coverage_enabled"
-                android:summary="@string/conservative_coverage_enabled_summary"
-                app:iconSpaceReserved="false"
-                android:defaultValue="false" />
-
-        <SeekBarPreference
-                android:key="video_conservative_coverage_px"
-                android:title="@string/conservative_coverage_px"
-                android:summary="@string/conservative_coverage_px_summary"
-                android:dependency="video_conservative_coverage_enabled"
-                app:iconSpaceReserved="false"
-                android:defaultValue="150"
-                app:min="0"
-                android:max="200"
-                app:showSeekBarValue="true" />
-
-        <SwitchPreference
-                android:key="video_conservative_coverage_apply_repeat"
-                android:title="@string/conservative_coverage_apply_repeat"
-                android:summary="@string/conservative_coverage_apply_repeat_summary"
-                android:dependency="video_conservative_coverage_enabled"
-                app:iconSpaceReserved="false"
-                android:defaultValue="true" />
-
-        <SwitchPreference
-                android:key="video_conservative_coverage_apply_clamp"
-                android:title="@string/conservative_coverage_apply_clamp"
-                android:summary="@string/conservative_coverage_apply_clamp_summary"
-                android:dependency="video_conservative_coverage_enabled"
-                app:iconSpaceReserved="false"
-                android:defaultValue="false" />
-
-        <SeekBarPreference
-                android:key="video_conservative_coverage_depth_bias"
-                android:title="@string/conservative_coverage_depth_bias"
-                android:summary="@string/conservative_coverage_depth_bias_summary"
-                android:dependency="video_conservative_coverage_enabled"
-                app:iconSpaceReserved="false"
-                android:defaultValue="0"
-                app:min="0"
-                android:max="2000"
-                app:showSeekBarValue="true" />
-
-    </PreferenceCategory>
-
-    <SwitchPreference
-            android:key="video_debug_3d_clear_magenta"
-            android:title="@string/debug_3d_clear_magenta"
-            android:summary="@string/debug_3d_clear_magenta_summary"
-            app:iconSpaceReserved="false"
-            android:defaultValue="false" />
-
     <SwitchPreference
             android:key="enable_threaded_rendering"
             android:title="@string/threaded_rendering"
@@ -137,4 +78,63 @@
             app:permissions="read"
             app:persistPermissions="true"
             app:mimeType="image/jpeg|image/png" />
+
+    <PreferenceCategory
+            android:key="video_hacks_category"
+            android:title="@string/video_hacks"
+            app:iconSpaceReserved="false">
+
+        <SwitchPreference
+                android:key="video_conservative_coverage_enabled"
+                android:title="@string/conservative_coverage_enabled"
+                android:summary="@string/conservative_coverage_enabled_summary"
+                app:iconSpaceReserved="false"
+                android:defaultValue="false" />
+
+        <SeekBarPreference
+                android:key="video_conservative_coverage_px"
+                android:title="@string/conservative_coverage_px"
+                android:summary="@string/conservative_coverage_px_summary"
+                android:dependency="video_conservative_coverage_enabled"
+                app:iconSpaceReserved="false"
+                android:defaultValue="150"
+                app:min="0"
+                android:max="200"
+                app:showSeekBarValue="true" />
+
+        <SwitchPreference
+                android:key="video_conservative_coverage_apply_repeat"
+                android:title="@string/conservative_coverage_apply_repeat"
+                android:summary="@string/conservative_coverage_apply_repeat_summary"
+                android:dependency="video_conservative_coverage_enabled"
+                app:iconSpaceReserved="false"
+                android:defaultValue="true" />
+
+        <SwitchPreference
+                android:key="video_conservative_coverage_apply_clamp"
+                android:title="@string/conservative_coverage_apply_clamp"
+                android:summary="@string/conservative_coverage_apply_clamp_summary"
+                android:dependency="video_conservative_coverage_enabled"
+                app:iconSpaceReserved="false"
+                android:defaultValue="false" />
+
+        <SeekBarPreference
+                android:key="video_conservative_coverage_depth_bias"
+                android:title="@string/conservative_coverage_depth_bias"
+                android:summary="@string/conservative_coverage_depth_bias_summary"
+                android:dependency="video_conservative_coverage_enabled"
+                app:iconSpaceReserved="false"
+                android:defaultValue="0"
+                app:min="0"
+                android:max="2000"
+                app:showSeekBarValue="true" />
+
+        <SwitchPreference
+                android:key="video_debug_3d_clear_magenta"
+                android:title="@string/debug_3d_clear_magenta"
+                android:summary="@string/debug_3d_clear_magenta_summary"
+                app:iconSpaceReserved="false"
+                android:defaultValue="false" />
+
+    </PreferenceCategory>
 </PreferenceScreen>
