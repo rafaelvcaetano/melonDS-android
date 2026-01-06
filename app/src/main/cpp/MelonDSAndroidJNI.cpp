@@ -579,7 +579,11 @@ void* emulate(void*)
 
             if (round(frameLimitError) > 0.0)
             {
-                usleep(frameLimitError * 1000);
+                timespec sleepTime = {
+                    .tv_sec = 0,
+                    .tv_nsec = (long) (frameLimitError * 1000000),
+                };
+                clock_nanosleep(CLOCK_MONOTONIC, 0, &sleepTime, nullptr);
                 double timeBeforeSleep = currentTick;
                 currentTick = getCurrentMillis();
                 frameLimitError -= currentTick - timeBeforeSleep;
@@ -596,7 +600,7 @@ void* emulate(void*)
         observedFrames++;
         if (observedFrames >= 30) {
             double currentFpsTick = getCurrentMillis();
-            fps = (int) (observedFrames * 1000.0) / (currentFpsTick - lastMeasureFpsTick);
+            fps = round((observedFrames * 1000.0) / (currentFpsTick - lastMeasureFpsTick));
             lastMeasureFpsTick = currentFpsTick;
             observedFrames = 0;
         }
