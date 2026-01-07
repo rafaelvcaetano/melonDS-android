@@ -13,7 +13,6 @@ import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.os.bundleOf
-import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -273,11 +272,6 @@ class RomListFragment : Fragment() {
                 imageViewButtonRomConfig.setOnClickListener {
                     onRomConfigClick(getRom())
                 }
-            }
-
-            override fun setRom(rom: Rom, isEnabled: Boolean) {
-                super.setRom(rom, isEnabled)
-                imageViewButtonRomConfig.isGone = rom.isDsiWareTitle
             }
         }
 

@@ -111,8 +111,6 @@
     <string name="error_invalid_directory">Directorio no válido</string>
     <string name="error_invalid_directory_description">No es posible escribir en el directorio seleccionado. Seleccione uno diferente. Si está seleccionando un archivo comprimido, intente extraerlo.</string>
     <string name="no_roms_found">No se han encontrado ROMs</string>
-    <string name="dsiware_title_cannot_be_launched_directly_title">No se pueden iniciar títulos de DSiWare</string>
-    <string name="dsiware_title_cannot_be_launched_directly_message">Los títulos de DSiWare no se pueden iniciar directamente. Deben instalarse en la NAND (a través de DSiWare Manager) y iniciarse por el firmware de DSi.</string>
     
     <string name="press_any_button">Pulse cualquier botón…</string>
 
@@ -259,7 +257,7 @@
     <string name="label_rom_config_gba_rom_path">Ruta de acceso de la ROM de GBA</string>
     <string name="label_rom_config_gba_save_path">Ruta de guardado de GBA</string>
     <string name="rom_details_configuration_tab">Configuración</string>
-    <string name="retro_achievements_tab">Retro Achievements</string> <!-- Mantén las palabras separadas para ayudar con el ajuste de palabras -->
+    <string name="retro_achievements_tab">Retro&#8203;Achievements</string> <!-- Mantén las palabras separadas para ayudar con el ajuste de palabras -->
 
     <string name="theme_option_light">Claro</string>
     <string name="theme_option_dark">Oscuro</string>

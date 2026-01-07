@@ -127,7 +127,7 @@ class DSiWareManagerViewModel @Inject constructor(
             viewModelScope.launch {
                 withContext(Dispatchers.Default) {
                     val openNandResult = dsiNandManager.openNand()
-                    if (openNandResult == OpenDSiNandResult.SUCCESS) {
+                    if (openNandResult.isSuccess()) {
                         val titles = dsiNandManager.listTitles()
                         withContext(Dispatchers.Main) {
                             _state.value = DSiWareManagerUiState.Ready(titles)

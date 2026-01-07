@@ -4,7 +4,6 @@ import android.opengl.GLES30
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
-import me.magnum.melonds.domain.model.DsExternalScreen
 import me.magnum.melonds.domain.model.SCREEN_HEIGHT
 import me.magnum.melonds.domain.model.SCREEN_WIDTH
 import me.magnum.melonds.domain.model.VideoFiltering
@@ -16,7 +15,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 class ExternalScreenRender(
-    private val screen: DsExternalScreen,
     private var rotateLeft: Boolean,
     private var keepAspectRatio: Boolean,
 ) : EmulatorRenderer {
@@ -112,7 +110,7 @@ class ExternalScreenRender(
         }
 
         val lineRelativeSize = 1f / (SCREEN_HEIGHT * 2 + 2).toFloat()
-        val uvs = if (screen == DsExternalScreen.TOP) {
+        val uvs = if (true /*screen == DsExternalScreen.TOP*/) {
             floatArrayOf(
                 0f, 0.5f - lineRelativeSize,
                 0f, 0f,

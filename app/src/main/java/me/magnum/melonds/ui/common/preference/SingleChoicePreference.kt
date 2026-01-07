@@ -12,9 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import me.magnum.melonds.R
+import me.magnum.melonds.ui.common.DetachedDialog
 import me.magnum.melonds.ui.common.component.text.CaptionText
 import me.magnum.melonds.ui.common.melonTextButtonColors
 
@@ -25,31 +26,35 @@ fun SingleChoiceItem(
     items: List<String>,
     selectedItemIndex: Int,
     onItemSelected: (Int) -> Unit,
+    enabled: Boolean = true,
+    horizontalPadding: Dp = 16.dp,
 ) {
     var isDialogShown by remember {
         mutableStateOf(false)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { isDialogShown = true }
-            .focusable()
-            .heightIn(min = 64.dp)
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = name,
-            style = MaterialTheme.typography.body1,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        CaptionText(
-            text = value,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+    CompositionLocalProvider(LocalContentAlpha provides if (enabled) ContentAlpha.high else ContentAlpha.disabled) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = enabled) { isDialogShown = true }
+                .focusable(enabled = enabled)
+                .heightIn(min = 64.dp)
+                .padding(start = horizontalPadding, end = horizontalPadding, top = 8.dp, bottom = 8.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.body1,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            CaptionText(
+                text = value,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 
     if (isDialogShown) {
@@ -71,7 +76,7 @@ private fun SingleChoiceDialog(
     onOptionSelected: (index: Int) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
-    Dialog(
+    DetachedDialog(
         onDismissRequest = onDismissRequest,
     ) {
         Card(

@@ -10,6 +10,8 @@ data class UILayoutVariantDto(
     val orientation: String,
     @SerializedName("folds")
     val folds: List<ScreenFoldDto>,
+    @SerializedName("displays")
+    val displays: LayoutDisplayPairDto,
 ) {
 
     fun toModel(): UILayoutVariant {
@@ -19,6 +21,7 @@ data class UILayoutVariantDto(
             folds.map {
                 it.toModel()
             },
+            displays.toModel(),
         )
     }
 
@@ -30,6 +33,7 @@ data class UILayoutVariantDto(
                 uiLayoutVariant.folds.map {
                     ScreenFoldDto.fromModel(it)
                 },
+                LayoutDisplayPairDto.fromModel(uiLayoutVariant.displays),
             )
         }
     }

@@ -1,14 +1,26 @@
 package me.magnum.melonds.domain.model.rom.config
 
 import java.util.*
-import me.magnum.melonds.domain.model.DsExternalScreen
 
 data class RomConfig(
-    var runtimeConsoleType: RuntimeConsoleType = RuntimeConsoleType.DEFAULT,
-    var runtimeMicSource: RuntimeMicSource = RuntimeMicSource.DEFAULT,
-    var layoutId: UUID? = null,
-    var externalLayoutId: UUID? = null,
-    var externalScreen: DsExternalScreen? = null,
+    val runtimeConsoleType: RuntimeConsoleType = RuntimeConsoleType.DEFAULT,
+    val runtimeMicSource: RuntimeMicSource = RuntimeMicSource.DEFAULT,
+    val layoutId: UUID? = null,
     val gbaSlotConfig: RomGbaSlotConfig = RomGbaSlotConfig.None,
-    var customName: String? = null,
-)
+    val customName: String? = null,
+) {
+
+    companion object {
+        fun default() = RomConfig()
+
+        fun forDsiWareTitle(): RomConfig {
+            return RomConfig(
+                runtimeConsoleType = RuntimeConsoleType.DSi,
+                runtimeMicSource = RuntimeMicSource.DEFAULT,
+                layoutId = null,
+                gbaSlotConfig = RomGbaSlotConfig.None,
+                customName = null,
+            )
+        }
+    }
+}

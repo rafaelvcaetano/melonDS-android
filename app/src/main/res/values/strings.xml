@@ -128,8 +128,14 @@
     <string name="error_invalid_directory">Invalid directory</string>
     <string name="error_invalid_directory_description">It\'s not possible to write to the selected directory. Please select a different one. If you are selecting a compressed file, try extracting its contents.</string>
     <string name="no_roms_found">No ROMs found</string>
-    <string name="dsiware_title_cannot_be_launched_directly_title">DSiWare titles cannot be launched</string>
-    <string name="dsiware_title_cannot_be_launched_directly_message">DSiWare titles cannot be launched directly. They must be installed to the NAND (through the DSiWare Manager) and launched from the DSi firmware.</string>
+    <string name="rom_launch_failed">Failed to launch ROM</string>
+    <string name="rom_launch_custom_bios_firmware_bad_setup">This ROM is set to run using a custom BIOS and firmware, but it\'s not properly configured.</string>
+    <string name="firmware_launch_failed">Failed to launch the firmware</string>
+    <string name="firmware_launch_bad_setup">To launch this firmware, a custom BIOS and firmware is required, but it\'s not properly configured.</string>
+    <string name="failed_launch_dsiware_title">Failed to launch DSiWare title</string>
+    <string name="failed_launch_dsiware_title_check_failed">Could not verify if the DSiWare title is installed. Check the DSiWare Manager for more information.</string>
+    <string name="failed_launch_dsiware_title_rom_failed">Could not parse the ROM file. Check if the ROM file is valid and it\'s not corrupted.</string>
+    <string name="failed_launch_dsiware_title_not_installed">To launch a DSiWare title, it must first be installed to the NAND. You can install it in the DSiWare Manager.</string>
 
     <string name="press_any_button">Press any button…</string>
     <string name="waiting_for_input">Waiting for input…</string>
@@ -304,7 +310,7 @@
     <string name="label_rom_config_gba_rom_path">GBA ROM path</string>
     <string name="label_rom_config_gba_save_path">GBA save path</string>
     <string name="rom_details_configuration_tab">Configuration</string>
-    <string name="retro_achievements_tab">Retro Achievements</string> <!-- Keep words separated to help with word wrapping -->
+    <string name="retro_achievements_tab">Retro&#8203;Achievements</string> <!-- Keep zero-width space to allow line breaks in the middle of the word -->
 
     <string name="theme_option_light">Light</string>
     <string name="theme_option_dark">Dark</string>

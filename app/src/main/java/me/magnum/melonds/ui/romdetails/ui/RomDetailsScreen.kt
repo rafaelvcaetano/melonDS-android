@@ -10,8 +10,11 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 import me.magnum.melonds.domain.model.rom.Rom
@@ -43,6 +46,7 @@ fun RomDetailsScreen(
         initialPage = RomDetailsTab.CONFIG.tabIndex,
         pageCount = { RomDetailsTab.entries.size },
     )
+    val focusRequester = remember { FocusRequester() }
     val coroutineScope = rememberCoroutineScope()
 
     systemUiController.isNavigationBarContrastEnforced = false
@@ -53,6 +57,7 @@ fun RomDetailsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 rom = rom,
                 pagerState = pagerState,
+                initialFocusRequester = focusRequester,
                 onLaunchRom = { onLaunchRom(rom) },
                 onNavigateBack = onNavigateBack
             ) {
@@ -73,7 +78,7 @@ fun RomDetailsScreen(
                     RomConfigUi(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = padding,
-                        romName = rom.name,
+                        rom = rom,
                         romConfigUiState = romConfigUiState,
                         onConfigUpdate = onRomConfigUpdate,
                     )
@@ -89,6 +94,10 @@ fun RomDetailsScreen(
                     )
                 }
             }
+        }
+
+        LaunchedEffect(focusRequester) {
+            focusRequester.requestFocus()
         }
     }
 }

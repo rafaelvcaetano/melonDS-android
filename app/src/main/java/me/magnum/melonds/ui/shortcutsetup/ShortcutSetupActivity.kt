@@ -36,7 +36,7 @@ class ShortcutSetupActivity : AppCompatActivity() {
         setContentView(R.layout.activity_shortcut_setup)
 
         val fragment = if (savedInstanceState == null) {
-            RomListFragment.newInstance(false, RomListFragment.RomEnableCriteria.ENABLE_NON_DSIWARE).also {
+            RomListFragment.newInstance(false, RomListFragment.RomEnableCriteria.ENABLE_ALL).also {
                 supportFragmentManager.commit {
                     replace(R.id.layout_root, it, FRAGMENT_ROM_LIST)
                 }

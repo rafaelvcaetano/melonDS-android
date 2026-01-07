@@ -9,6 +9,12 @@
             android:summary="@string/key_mapping_summary"
             app:iconSpaceReserved="false" />
 
+    <Preference
+        android:key="input_layouts"
+        android:title="@string/layouts"
+        android:summary="@string/layouts_summary"
+        app:iconSpaceReserved="false" />
+
     <me.magnum.melonds.ui.settings.preferences.SoftwareInputBehaviourPreference
         android:key="soft_input_behaviour"
         android:title="@string/soft_input_behaviour"

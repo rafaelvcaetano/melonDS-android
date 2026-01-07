@@ -13,8 +13,12 @@ private:
 
 public:
     UriFileHandler(JniEnvHandler* jniEnvHandler, jobject uriFileHandler);
-    FILE* open(const char* path, const char* mode);
+    FILE* open(const char* path, melonDS::Platform::FileMode mode);
     virtual ~UriFileHandler();
+
+private:
+    std::string getNativeAccessMode(melonDS::Platform::FileMode mode, bool fileExists);
+    std::string getAccessMode(melonDS::Platform::FileMode mode, bool fileExists);
 };
 
 #endif //MELONDS_ANDROID_URIFILEHANDLER_H

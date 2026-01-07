@@ -25,11 +25,16 @@ import me.magnum.melonds.database.daos.RAAchievementsDao
 import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.domain.services.DSiNandManager
+import me.magnum.melonds.domain.services.EmulatorLaunchPreconditionChecker
 import me.magnum.melonds.impl.AndroidDSiNandManager
 import me.magnum.melonds.impl.*
 import me.magnum.melonds.impl.input.ControllerConfigurationFactory
 import me.magnum.melonds.impl.input.DefaultControllerConfigurationFactory
+import me.magnum.melonds.impl.layout.DeviceLayoutDisplayMapper
+import me.magnum.melonds.impl.layout.DefaultLayoutProvider
 import me.magnum.melonds.impl.layout.UILayoutProvider
+import me.magnum.melonds.impl.layout.devicemapper.AynThorLayoutDisplayMapper
+import me.magnum.melonds.impl.layout.devicemapper.DefaultLayoutDisplayMapper
 import me.magnum.melonds.impl.romprocessors.Api24RomFileProcessorFactory
 import me.magnum.melonds.ui.romdetails.RomDetailsUiMapper
 import me.magnum.rcheevosapi.RAApi
@@ -161,6 +166,16 @@ object MelonModule {
 
     @Provides
     @Singleton
+    fun provideDeviceLayoutDisplayMapper(@ApplicationContext context: Context): DeviceLayoutDisplayMapper {
+        return if (Build.MANUFACTURER == "AYN" && Build.MODEL == "AYN Thor") {
+            AynThorLayoutDisplayMapper(context)
+        } else {
+            DefaultLayoutDisplayMapper(context)
+        }
+    }
+
+    @Provides
+    @Singleton
     fun provideDefaultLayoutBuilder(screenUnitsConverter: ScreenUnitsConverter): DefaultLayoutProvider {
         return DefaultLayoutProvider(screenUnitsConverter)
     }
@@ -185,5 +200,20 @@ object MelonModule {
     @Singleton
     fun provideRomDetailsUiMapper(@ApplicationContext context: Context, layoutsRepository: LayoutsRepository): RomDetailsUiMapper {
         return RomDetailsUiMapper(context, layoutsRepository)
+    }
+
+    @Provides
+    fun provideRomLaunchPreconditionChecker(
+        configurationDirectoryVerifier: ConfigurationDirectoryVerifier,
+        romFileProcessorFactory: RomFileProcessorFactory,
+        dsiNandManager: DSiNandManager,
+        settingsRepository: SettingsRepository,
+    ): EmulatorLaunchPreconditionChecker {
+        return EmulatorLaunchPreconditionChecker(
+            configurationDirectoryVerifier = configurationDirectoryVerifier,
+            romFileProcessorFactory = romFileProcessorFactory,
+            dsiNandManager = dsiNandManager,
+            settingsRepository = settingsRepository,
+        )
     }
 }

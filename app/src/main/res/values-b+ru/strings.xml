@@ -250,7 +250,7 @@
     <string name="vibrate_on_touch">Сенсорный отклик</string>
     <string name="vibration_strength">Интенсивность вибрации</string>
     <string name="soft_input_opacity">Видимость экранных кнопок</string>
-    <string name="retroachievements">RetroAchievements</string> <!-- Keep words together because this is the official name -->
+    <string name="retro_achievements_tab">Retro&#8203;Achievements</string> <!-- Keep zero-width space to allow line breaks in the middle of the word -->
     <string name="retroachievements_summary">Авторизация и настройки RetroAchievements</string> <!-- Keep words together because this is the official name -->
     <string name="enable_rich_presence">Статус активности</string>
     <string name="rich_presence_summary">Позволяет другим пользователям RetroAchievements видеть запущенную вами игру.</string>
@@ -304,7 +304,7 @@
     <string name="label_rom_config_gba_rom_path">Путь к рому GBA</string>
     <string name="label_rom_config_gba_save_path">Путь к сохранению GBA</string>
     <string name="rom_details_configuration_tab">Конфигурация</string>
-    <string name="retro_achievements_tab">Retro Achievements</string> <!-- Keep words separated to help with word wrapping -->
+    <string name="retro_achievements_tab">Retro&#8203;Achievements</string> <!-- Keep zero-width space to allow line breaks in the middle of the word -->
 
     <string name="theme_option_light">Светлая</string>
     <string name="theme_option_dark">Тёмная</string>

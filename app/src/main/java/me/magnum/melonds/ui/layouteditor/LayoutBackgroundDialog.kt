@@ -20,6 +20,7 @@ import me.magnum.melonds.R
 import me.magnum.melonds.databinding.DialogLayoutBackgroundsBinding
 import me.magnum.melonds.domain.model.layout.BackgroundMode
 import me.magnum.melonds.ui.backgrounds.BackgroundsActivity
+import me.magnum.melonds.ui.layouteditor.model.LayoutTarget
 import java.util.UUID
 
 @AndroidEntryPoint
@@ -38,7 +39,7 @@ class LayoutBackgroundDialog : DialogFragment() {
     private val portraitBackgroundSelector = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == AppCompatActivity.RESULT_OK) {
             val backgroundId = result.data?.getStringExtra(BackgroundsActivity.KEY_SELECTED_BACKGROUND_ID)?.let { UUID.fromString(it) }
-            viewModel.setBackgroundPropertiesBackgroundId(backgroundId)
+            viewModel.setBackgroundPropertiesBackgroundId(LayoutTarget.MAIN_SCREEN, backgroundId)
         }
     }
 
@@ -46,7 +47,7 @@ class LayoutBackgroundDialog : DialogFragment() {
         super.onCreate(savedInstanceState)
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.layoutBackgroundProperties.collectLatest {
+                viewModel.mainScreenBackgroundProperties.collectLatest {
                     it?.let {
                         onBackgroundSelected(it.backgroundId)
                         onBackgroundModeSelected(it.backgroundMode)
@@ -67,7 +68,7 @@ class LayoutBackgroundDialog : DialogFragment() {
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
-        viewModel.resetBackgroundProperties()
+        viewModel.resetBackgroundProperties(LayoutTarget.MAIN_SCREEN)
     }
 
     override fun onStart() {
@@ -76,17 +77,17 @@ class LayoutBackgroundDialog : DialogFragment() {
 
         binding.layoutBackgroundName.setOnClickListener {
             val intent = Intent(requireContext(), BackgroundsActivity::class.java).apply {
-                putExtra(BackgroundsActivity.KEY_INITIAL_BACKGROUND_ID, viewModel.layoutBackgroundProperties.value?.backgroundId?.toString())
+                putExtra(BackgroundsActivity.KEY_INITIAL_BACKGROUND_ID, viewModel.mainScreenBackgroundProperties.value?.backgroundId?.toString())
             }
             portraitBackgroundSelector.launch(intent)
         }
         binding.layoutBackgroundMode.setOnClickListener {
-            val currentBackgroundMode = viewModel.layoutBackgroundProperties.value?.backgroundMode
+            val currentBackgroundMode = viewModel.mainScreenBackgroundProperties.value?.backgroundMode
             AlertDialog.Builder(requireContext())
                 .setTitle(R.string.background_mode)
                 .setSingleChoiceItems(R.array.background_portrait_mode_options, BackgroundMode.entries.indexOf(currentBackgroundMode)) { dialog, which ->
                     val newMode = BackgroundMode.entries[which]
-                    viewModel.setBackgroundPropertiesBackgroundMode(newMode)
+                    viewModel.setBackgroundPropertiesBackgroundMode(LayoutTarget.MAIN_SCREEN, newMode)
                     dialog.dismiss()
                 }
                 .setNegativeButton(R.string.cancel) { dialog, _ ->
@@ -96,7 +97,7 @@ class LayoutBackgroundDialog : DialogFragment() {
         }
 
         binding.buttonBackgroundConfigOk.setOnClickListener {
-            viewModel.saveBackgroundToCurrentConfiguration()
+            //viewModel.saveBackgroundToCurrentConfiguration()
             dismiss()
         }
         binding.buttonBackgroundConfigCancel.setOnClickListener { dismiss() }
@@ -114,7 +115,7 @@ class LayoutBackgroundDialog : DialogFragment() {
                     binding.textBackgroundName.text = backgroundName
                 } else {
                     // If no background was found, the it was probably deleted. Revert to None
-                    viewModel.setBackgroundPropertiesBackgroundId(null)
+                    viewModel.setBackgroundPropertiesBackgroundId(LayoutTarget.MAIN_SCREEN, null)
                 }
             }
         }

@@ -133,26 +133,15 @@
             android:exported="false">
         </activity>
         <activity
-            android:name=".ui.layouts.ExternalLayoutListActivity"
-            android:label="@string/external_screen_layout"
-            android:parentActivityName=".ui.settings.SettingsActivity"
-            android:exported="false">
-        </activity>
-        <activity
             android:name=".ui.layouts.LayoutSelectorActivity"
             android:label="@string/layouts"
-            android:exported="false">
-        </activity>
-        <activity
-            android:name=".ui.layouts.ExternalLayoutSelectorActivity"
-            android:label="@string/external_screen_layout"
             android:exported="false">
         </activity>
         <activity
             android:name=".ui.layouteditor.LayoutEditorActivity"
             android:theme="@style/EmulatorTheme"
             android:label="@string/layout_editor"
-            android:configChanges="orientation|screenSize|screenSize">
+            android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|keyboard|uiMode">
         </activity>
         <activity
             android:name=".ui.backgrounds.BackgroundsActivity"

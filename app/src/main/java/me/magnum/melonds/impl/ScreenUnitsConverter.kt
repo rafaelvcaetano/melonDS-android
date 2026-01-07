@@ -12,3 +12,11 @@ class ScreenUnitsConverter(private val context: Context) {
         return dp * (context.resources.displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
     }
 }
+
+fun Context.pixelsToDp(pixels: Float): Float {
+    return pixels / (resources.displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
+}
+
+fun Context.dpToPixels(dp: Float): Float {
+    return dp * (resources.displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
+}
