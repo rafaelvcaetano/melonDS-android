@@ -14,6 +14,10 @@ import androidx.compose.material.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -44,12 +48,17 @@ fun RomAchievementUi(
     onViewAchievement: () -> Unit,
     badgeSize: Dp = 52.dp,
 ) {
+    val (bodyFocusRequester, linkFocusRequester) = remember { FocusRequester.createRefs() }
     var expanded by remember(userAchievement) {
         mutableStateOf(false)
     }
 
     Column(
         modifier = modifier
+            .focusRequester(bodyFocusRequester)
+            .focusProperties {
+                end = if (expanded) linkFocusRequester else FocusRequester.Default
+            }
             .clickable { expanded = !expanded }
             .padding(8.dp)
             .animateContentSize()
@@ -166,7 +175,11 @@ fun RomAchievementUi(
             }
 
             TextButton(
-                modifier = Modifier.align(Alignment.End),
+                modifier = Modifier.align(Alignment.End)
+                    .focusRequester(linkFocusRequester)
+                    .focusProperties {
+                        start = bodyFocusRequester
+                    },
                 onClick = onViewAchievement,
                 colors = melonTextButtonColors(),
             ) {

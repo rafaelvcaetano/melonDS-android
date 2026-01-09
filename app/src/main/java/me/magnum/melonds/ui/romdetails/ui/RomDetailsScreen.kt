@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.romdetails.ui
 
 import android.net.Uri
+import android.view.KeyEvent
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +16,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 import me.magnum.melonds.domain.model.rom.Rom
@@ -47,11 +52,41 @@ fun RomDetailsScreen(
         pageCount = { RomDetailsTab.entries.size },
     )
     val focusRequester = remember { FocusRequester() }
+    val pageFocusRequesters = remember { listOf(FocusRequester(), FocusRequester()) }
     val coroutineScope = rememberCoroutineScope()
+    val navigateToTab = remember(coroutineScope, pagerState) {
+        { tab: RomDetailsTab ->
+            coroutineScope.launch {
+                pagerState.animateScrollToPage(tab.tabIndex)
+                pageFocusRequesters[tab.tabIndex].requestFocus()
+            }
+            Unit
+        }
+    }
 
     systemUiController.isNavigationBarContrastEnforced = false
 
     Scaffold(
+        modifier = Modifier.onPreviewKeyEvent {
+            if (it.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
+                when (it.key) {
+                    Key.ButtonL1 -> {
+                        if (pagerState.currentPage > 0) {
+                            navigateToTab(RomDetailsTab.entries[pagerState.currentPage - 1])
+                            return@onPreviewKeyEvent true
+                        }
+                    }
+                    Key.ButtonR1 -> {
+                        if (pagerState.currentPage < RomDetailsTab.entries.lastIndex) {
+                            navigateToTab(RomDetailsTab.entries[pagerState.currentPage + 1])
+                            return@onPreviewKeyEvent true
+                        }
+                    }
+                    Key.ButtonStart -> onLaunchRom(rom)
+                }
+            }
+            false
+        },
         topBar = {
             RomHeaderUi(
                 modifier = Modifier.fillMaxWidth(),
@@ -59,12 +94,9 @@ fun RomDetailsScreen(
                 pagerState = pagerState,
                 initialFocusRequester = focusRequester,
                 onLaunchRom = { onLaunchRom(rom) },
-                onNavigateBack = onNavigateBack
-            ) {
-                coroutineScope.launch {
-                    pagerState.animateScrollToPage(it.tabIndex)
-                }
-            }
+                onNavigateBack = onNavigateBack,
+                onTabClicked = navigateToTab,
+            )
         },
         backgroundColor = MaterialTheme.colors.surface,
         contentWindowInsets = WindowInsets.safeDrawing,
@@ -73,10 +105,11 @@ fun RomDetailsScreen(
             modifier = Modifier.fillMaxSize(),
             state = pagerState,
         ) {
+            val focusRequester = pageFocusRequesters[it]
             when (it) {
                 RomDetailsTab.CONFIG.tabIndex -> {
                     RomConfigUi(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize().focusRequester(focusRequester),
                         contentPadding = padding,
                         rom = rom,
                         romConfigUiState = romConfigUiState,
@@ -85,7 +118,7 @@ fun RomDetailsScreen(
                 }
                 RomDetailsTab.RETRO_ACHIEVEMENTS.tabIndex -> {
                     RomRetroAchievementsUi(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize().focusRequester(focusRequester),
                         contentPadding = padding,
                         retroAchievementsUiState = retroAchievementsUiState,
                         onLogin = onRetroAchievementsLogin,
