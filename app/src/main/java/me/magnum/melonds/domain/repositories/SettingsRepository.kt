@@ -62,6 +62,8 @@ interface SettingsRepository {
 
     fun isRetroAchievementsRichPresenceEnabled(): Boolean
     fun isRetroAchievementsHardcoreEnabled(): Boolean
+    fun areRetroAchievementsActiveChallengeIndicatorsEnabled(): Boolean
+    fun areRetroAchievementsProgressIndicatorsEnabled(): Boolean
 
     fun areCheatsEnabled(): Boolean
 

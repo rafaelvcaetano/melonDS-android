@@ -777,10 +777,12 @@ class EmulatorViewModel @Inject constructor(
     }
 
     private fun onAchievementPrimed(achievementId: Long) {
-        sessionCoroutineScope.launch {
-            retroAchievementsRepository.getAchievement(achievementId).onSuccess { achievement ->
-                if (achievement != null) {
-                    _achievementsEvent.emit(RAEventUi.AchievementPrimed(achievement))
+        if (settingsRepository.areRetroAchievementsActiveChallengeIndicatorsEnabled()) {
+            sessionCoroutineScope.launch {
+                retroAchievementsRepository.getAchievement(achievementId).onSuccess { achievement ->
+                    if (achievement != null) {
+                        _achievementsEvent.emit(RAEventUi.AchievementPrimed(achievement))
+                    }
                 }
             }
         }
@@ -797,10 +799,12 @@ class EmulatorViewModel @Inject constructor(
     }
 
     private fun onAchievementProgressUpdated(achievementId: Long, progress: String) {
-        sessionCoroutineScope.launch {
-            retroAchievementsRepository.getAchievement(achievementId).onSuccess { achievement ->
-                if (achievement != null) {
-                    _achievementsEvent.emit(RAEventUi.AchievementProgressUpdated(achievement, progress))
+        if (settingsRepository.areRetroAchievementsProgressIndicatorsEnabled()) {
+            sessionCoroutineScope.launch {
+                retroAchievementsRepository.getAchievement(achievementId).onSuccess { achievement ->
+                    if (achievement != null) {
+                        _achievementsEvent.emit(RAEventUi.AchievementProgressUpdated(achievement, progress))
+                    }
                 }
             }
         }

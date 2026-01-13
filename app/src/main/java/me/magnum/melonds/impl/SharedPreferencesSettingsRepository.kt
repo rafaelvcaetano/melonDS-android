@@ -479,6 +479,14 @@ class SharedPreferencesSettingsRepository(
         return preferences.getBoolean("ra_hardcore_enabled", false)
     }
 
+    override fun areRetroAchievementsActiveChallengeIndicatorsEnabled(): Boolean {
+        return preferences.getBoolean("ra_active_challenge_indicators", true)
+    }
+
+    override fun areRetroAchievementsProgressIndicatorsEnabled(): Boolean {
+        return preferences.getBoolean("ra_progress_indicators", true)
+    }
+
     override fun areCheatsEnabled(): Boolean {
         return preferences.getBoolean("cheats_enabled", false)
     }
