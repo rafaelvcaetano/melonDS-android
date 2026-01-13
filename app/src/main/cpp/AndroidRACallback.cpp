@@ -32,3 +32,13 @@ void AndroidRACallback::onAchievementUnprimed(long achievementId)
     jmethodID onAchievementUnprimedMethod = env->GetMethodID(handlerClass, "onAchievementUnprimed", "(J)V");
     env->CallVoidMethod(this->callback, onAchievementUnprimedMethod, achievementId);
 }
+
+void AndroidRACallback::onAchievementProgressUpdated(long achievementId, std::string progress)
+{
+    JNIEnv* env = this->jniEnvHandler->getCurrentThreadEnv();
+
+    jclass handlerClass = env->GetObjectClass(this->callback);
+    jmethodID onAchievementProgressUpdatedMethod = env->GetMethodID(handlerClass, "onAchievementProgressUpdated", "(JLjava/lang/String;)V");
+    jstring progressString = env->NewStringUTF(progress.c_str());
+    env->CallVoidMethod(this->callback, onAchievementProgressUpdatedMethod, achievementId, progressString);
+}

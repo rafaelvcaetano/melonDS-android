@@ -72,6 +72,7 @@ import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
 import me.magnum.melonds.ui.emulator.model.LaunchArgs
 import me.magnum.melonds.ui.emulator.model.PauseMenu
+import me.magnum.melonds.ui.emulator.model.RAEventUi
 import me.magnum.melonds.ui.emulator.model.RAIntegrationEvent
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
@@ -79,7 +80,6 @@ import me.magnum.melonds.ui.emulator.model.ToastEvent
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rom.RomPauseMenuOption
 import me.magnum.melonds.utils.EventSharedFlow
-import me.magnum.rcheevosapi.model.RAAchievement
 import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -128,8 +128,8 @@ class EmulatorViewModel @Inject constructor(
     private val _secondaryScreenBackground = MutableStateFlow(RuntimeBackground.None)
     val secondaryScreenBackground = _secondaryScreenBackground.asStateFlow()
 
-    private val _achievementTriggeredEvent = MutableSharedFlow<RAAchievement>(extraBufferCapacity = 5, onBufferOverflow = BufferOverflow.SUSPEND)
-    val achievementTriggeredEvent = _achievementTriggeredEvent.asSharedFlow()
+    private val _achievementsEvent = MutableSharedFlow<RAEventUi>(extraBufferCapacity = 5, onBufferOverflow = BufferOverflow.SUSPEND)
+    val achievementsEvent = _achievementsEvent.asSharedFlow()
 
     private val _currentFps = MutableStateFlow<Int?>(null)
     val currentFps = _currentFps.asStateFlow()
@@ -348,11 +348,15 @@ class EmulatorViewModel @Inject constructor(
         if (_emulatorState.value.isRunning()) {
             sessionCoroutineScope.launch {
                 emulatorManager.resetEmulator()
+                _achievementsEvent.emit(RAEventUi.Reset)
             }
         }
     }
 
     fun stopEmulator() {
+        viewModelScope.launch {
+            _achievementsEvent.emit(RAEventUi.Reset)
+        }
         emulatorManager.stopEmulator()
         screenshotFrameBufferProvider.clearBuffer()
     }
@@ -592,9 +596,10 @@ class EmulatorViewModel @Inject constructor(
         sessionCoroutineScope.launch {
             emulatorManager.observeRetroAchievementEvents().collect {
                 when (it) {
-                    is RAEvent.OnAchievementPrimed -> { /* TODO: Show primed achievement */ }
-                    is RAEvent.OnAchievementUnPrimed -> { /* TODO: Remove primed achievement */ }
+                    is RAEvent.OnAchievementPrimed -> onAchievementPrimed(it.achievementId)
+                    is RAEvent.OnAchievementUnPrimed -> onAchievementUnPrimed(it.achievementId)
                     is RAEvent.OnAchievementTriggered -> onAchievementTriggered(it.achievementId)
+                    is RAEvent.OnAchievementProgressUpdated -> onAchievementProgressUpdated(it.achievementId, it.progress)
                 }
             }
         }
@@ -760,12 +765,42 @@ class EmulatorViewModel @Inject constructor(
     }
 
     private fun onAchievementTriggered(achievementId: Long) {
-        viewModelScope.launch(Dispatchers.IO) {
+        sessionCoroutineScope.launch {
             retroAchievementsRepository.getAchievement(achievementId).onSuccess { achievement ->
                 if (achievement != null) {
                     retroAchievementsRepository.awardAchievement(achievement, emulatorSession.isRetroAchievementsHardcoreModeEnabled).onSuccess {
-                        _achievementTriggeredEvent.emit(achievement)
+                        _achievementsEvent.emit(RAEventUi.AchievementTriggered(achievement))
                     }
+                }
+            }
+        }
+    }
+
+    private fun onAchievementPrimed(achievementId: Long) {
+        sessionCoroutineScope.launch {
+            retroAchievementsRepository.getAchievement(achievementId).onSuccess { achievement ->
+                if (achievement != null) {
+                    _achievementsEvent.emit(RAEventUi.AchievementPrimed(achievement))
+                }
+            }
+        }
+    }
+
+    private fun onAchievementUnPrimed(achievementId: Long) {
+        sessionCoroutineScope.launch {
+            retroAchievementsRepository.getAchievement(achievementId).onSuccess { achievement ->
+                if (achievement != null) {
+                    _achievementsEvent.emit(RAEventUi.AchievementUnPrimed(achievement))
+                }
+            }
+        }
+    }
+
+    private fun onAchievementProgressUpdated(achievementId: Long, progress: String) {
+        sessionCoroutineScope.launch {
+            retroAchievementsRepository.getAchievement(achievementId).onSuccess { achievement ->
+                if (achievement != null) {
+                    _achievementsEvent.emit(RAEventUi.AchievementProgressUpdated(achievement, progress))
                 }
             }
         }
@@ -852,6 +887,7 @@ class EmulatorViewModel @Inject constructor(
         actions.forEach {
             when (it) {
                 EmulatorSessionUpdateAction.DisableRetroAchievements -> {
+                    _achievementsEvent.tryEmit(RAEventUi.Reset)
                     emulatorManager.unloadAchievements()
                     raSessionJob?.cancel()
                     raSessionJob = null

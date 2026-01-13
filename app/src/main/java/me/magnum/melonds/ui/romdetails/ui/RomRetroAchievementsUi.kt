@@ -183,7 +183,8 @@ private fun Ready(
         ) { userAchievement ->
             RomAchievementUi(
                 modifier = Modifier.fillMaxWidth(),
-                userAchievement = userAchievement,
+                achievement = userAchievement.achievement,
+                showLocked = !userAchievement.isUnlocked,
                 onViewAchievement = { onViewAchievement(userAchievement.achievement) },
             )
         }

@@ -22,22 +22,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
@@ -59,10 +45,8 @@ import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
@@ -97,7 +81,7 @@ import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
 import me.magnum.melonds.ui.emulator.model.LaunchArgs
 import me.magnum.melonds.ui.emulator.model.PauseMenu
-import me.magnum.melonds.ui.emulator.model.PopupEvent
+import me.magnum.melonds.ui.emulator.model.RAEventUi
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration
 import me.magnum.melonds.ui.emulator.model.ToastEvent
 import me.magnum.melonds.ui.emulator.render.ExternalPresentation
@@ -107,8 +91,7 @@ import me.magnum.melonds.ui.emulator.rewind.RewindSaveStateAdapter
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 import me.magnum.melonds.ui.emulator.rom.SaveStateAdapter
 import me.magnum.melonds.ui.emulator.ui.AchievementListDialog
-import me.magnum.melonds.ui.emulator.ui.AchievementPopupUi
-import me.magnum.melonds.ui.emulator.ui.RAIntegrationEventUi
+import me.magnum.melonds.ui.emulator.ui.AchievementUpdatesUi
 import me.magnum.melonds.ui.layouteditor.model.LayoutTarget
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.theme.MelonTheme
@@ -139,7 +122,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     }
 
     private lateinit var binding: ActivityEmulatorBinding
-    val viewModel: EmulatorViewModel by viewModels(
+    private val viewModel: EmulatorViewModel by viewModels(
         extrasProducer = {
             val extras = MutableCreationExtras(defaultViewModelCreationExtras)
             // Inject intent data into view-model creation extras to make it accessible through the SavedStateHandle
@@ -343,77 +326,17 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
 
         binding.layoutAchievement.setContent {
             MelonTheme {
-                var popupEvent by remember {
-                    mutableStateOf<PopupEvent?>(null)
-                }
-                var popupOffset by remember {
-                    mutableStateOf(-1f)
-                }
-                var popupHeight by remember {
-                    mutableStateOf<Int?>(null)
-                }
+                val achievementsViewModel = viewModels<EmulatorRetroAchievementsViewModel>().value
 
-                LaunchedEffect(null) {
-                    val achievementsFlow = viewModel.achievementTriggeredEvent.map { PopupEvent.AchievementUnlockPopup(it) }
-                    val integrationFlow = viewModel.integrationEvent.map { PopupEvent.RAIntegrationPopup(it) }
-
-                    merge(achievementsFlow, integrationFlow).collect {
-                        popupEvent = it
-                        animate(
-                            initialValue = -1f,
-                            targetValue = 0f,
-                            animationSpec = tween(easing = LinearEasing),
-                        ) { value, _ ->
-                            popupOffset = value
-                        }
-                        delay(5500)
-                        animate(
-                            initialValue = 0f,
-                            targetValue = -1f,
-                            animationSpec = tween(easing = LinearEasing),
-                        ) { value, _ ->
-                            popupOffset = value
-                        }
-                        popupEvent = null
+                LaunchedEffect(Unit) {
+                    viewModel.achievementsEvent.filterIsInstance<RAEventUi.Reset>().collect {
+                        achievementsViewModel.onSessionReset()
                     }
                 }
 
-                Box(Modifier.fillMaxWidth()) {
-                    val currentPopupEvent = popupEvent
-                    when (currentPopupEvent) {
-                        is PopupEvent.AchievementUnlockPopup -> {
-                            AchievementPopupUi(
-                                modifier = Modifier
-                                    .align(Alignment.TopCenter)
-                                    .offset {
-                                        val y = (popupOffset * (popupHeight ?: Int.MAX_VALUE)).dp
-                                        IntOffset(0, y.roundToPx())
-                                    }
-                                    .onSizeChanged { popupHeight = it.height },
-                                achievement = currentPopupEvent.achievement,
-                            )
-                        }
-                        is PopupEvent.RAIntegrationPopup -> {
-                            RAIntegrationEventUi(
-                                modifier = Modifier
-                                    .align(Alignment.TopCenter)
-                                    .offset {
-                                        val y = (popupOffset * (popupHeight ?: Int.MAX_VALUE)).dp
-                                        IntOffset(0, y.roundToPx())
-                                    }
-                                    .onSizeChanged { popupHeight = it.height },
-                                event = currentPopupEvent.event,
-                            )
-                        }
-                        null -> {
-                            // Do nothing
-                        }
-                    }
-                }
+                AchievementUpdatesUi(viewModel)
 
                 if (showAchievementList.value) {
-                    val achievementsViewModel = viewModels<EmulatorRetroAchievementsViewModel>().value
-
                     AchievementListDialog(
                         viewModel = achievementsViewModel,
                         onDismiss = {
