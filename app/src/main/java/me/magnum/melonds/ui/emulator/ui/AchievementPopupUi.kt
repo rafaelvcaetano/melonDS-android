@@ -1,15 +1,18 @@
 package me.magnum.melonds.ui.emulator.ui
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.expandIn
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -29,7 +32,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -71,8 +73,7 @@ fun AchievementPopupUi(
         shape = RoundedCornerShape(8.dp),
     ) {
         Row(
-            modifier = Modifier.padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(8.dp).height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AsyncImage(
@@ -85,10 +86,11 @@ fun AchievementPopupUi(
             )
 
             AnimatedContent(
+                modifier = Modifier.fillMaxHeight(),
                 targetState = popupState,
                 transitionSpec = {
                     if (targetState == PopupState.SHOW_TITLE) {
-                        expandIn { IntSize(0, it.height) } togetherWith fadeOut()
+                        expandHorizontally(expandFrom = Alignment.Start) togetherWith fadeOut()
                     } else {
                         slideInVertically { it } + fadeIn() togetherWith slideOutVertically { -it } + fadeOut()
                     }
@@ -97,10 +99,10 @@ fun AchievementPopupUi(
             ) {
                 when (it) {
                     PopupState.SHOW_ICON -> {
-                        // No extra content is shown
+                        Box(Modifier.fillMaxHeight())
                     }
                     PopupState.SHOW_TITLE -> {
-                        Column {
+                        Column(Modifier.padding(start = 8.dp)) {
                             Text(
                                 text = stringResource(id = R.string.achievement_unlocked),
                                 style = MaterialTheme.typography.body2,
@@ -116,6 +118,7 @@ fun AchievementPopupUi(
                     }
                     PopupState.SHOW_DESCRIPTION -> {
                         Text(
+                            modifier = Modifier.padding(start = 8.dp),
                             text = achievement.description,
                             style = MaterialTheme.typography.body2,
                         )

@@ -50,8 +50,8 @@ import coil.request.ImageRequest
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import me.magnum.melonds.extensions.removeFirst
 import me.magnum.melonds.ui.common.MelonPreviewSet
@@ -69,7 +69,13 @@ fun AchievementUpdatesUi(
     viewModel: EmulatorViewModel,
 ) {
     val popupEventFlow = remember(viewModel) {
-        val achievementsFlow = viewModel.achievementsEvent.filterIsInstance<RAEventUi.AchievementTriggered>().map { PopupEvent.AchievementUnlockPopup(it.achievement) }
+        val achievementsFlow = viewModel.achievementsEvent.mapNotNull {
+            when (it) {
+                is RAEventUi.AchievementTriggered -> PopupEvent.AchievementUnlockPopup(it.achievement)
+                is RAEventUi.GameMastered -> PopupEvent.GameMasteredPopup(it)
+                else -> null
+            }
+        }
         val integrationFlow = viewModel.integrationEvent.map { PopupEvent.RAIntegrationPopup(it) }
         merge(achievementsFlow, integrationFlow)
     }
@@ -113,6 +119,7 @@ private fun MainAchievementPopup(
                 popupOffset = value
             }
             delay(5500)
+if (popupEvent is PopupEvent.GameMasteredPopup) return@collect
             animate(
                 initialValue = 0f,
                 targetValue = -1f,
@@ -126,29 +133,31 @@ private fun MainAchievementPopup(
 
     Box(modifier) {
         val currentPopupEvent = popupEvent
+        val modifier = Modifier
+            .align(Alignment.TopCenter)
+            .offset {
+                val y = (popupOffset * (popupHeight ?: Int.MAX_VALUE)).dp
+                IntOffset(0, y.roundToPx())
+            }
+            .onSizeChanged { popupHeight = it.height }
+
         when (currentPopupEvent) {
             is PopupEvent.AchievementUnlockPopup -> {
                 AchievementPopupUi(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset {
-                            val y = (popupOffset * (popupHeight ?: Int.MAX_VALUE)).dp
-                            IntOffset(0, y.roundToPx())
-                        }
-                        .onSizeChanged { popupHeight = it.height },
+                    modifier = modifier,
                     achievement = currentPopupEvent.achievement,
                 )
             }
             is PopupEvent.RAIntegrationPopup -> {
                 RAIntegrationEventUi(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset {
-                            val y = (popupOffset * (popupHeight ?: Int.MAX_VALUE)).dp
-                            IntOffset(0, y.roundToPx())
-                        }
-                        .onSizeChanged { popupHeight = it.height },
+                    modifier = modifier,
                     event = currentPopupEvent.event,
+                )
+            }
+            is PopupEvent.GameMasteredPopup ->{
+                GameMasteredPopupUi(
+                    modifier = modifier,
+                    masteryEvent = currentPopupEvent.event,
                 )
             }
             null -> {
@@ -203,7 +212,8 @@ private fun AchievementUpdatesList(
                         visibleAchievementInfos.add(0, AchievementInfo.AchievementProgress(event.achievement, event.progress, achievementInfoState))
                     }
                 }
-                is RAEventUi.AchievementTriggered -> { /* no-op */}
+                is RAEventUi.AchievementTriggered -> { /* no-op */ }
+                is RAEventUi.GameMastered -> { /* no-op */ }
             }
         }
     }

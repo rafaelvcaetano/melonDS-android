@@ -768,8 +768,15 @@ class EmulatorViewModel @Inject constructor(
         sessionCoroutineScope.launch {
             retroAchievementsRepository.getAchievement(achievementId).onSuccess { achievement ->
                 if (achievement != null) {
-                    retroAchievementsRepository.awardAchievement(achievement, emulatorSession.isRetroAchievementsHardcoreModeEnabled).onSuccess {
-                        _achievementsEvent.emit(RAEventUi.AchievementTriggered(achievement))
+                    val isHardcoreModeEnabled = emulatorSession.isRetroAchievementsHardcoreModeEnabled
+                    retroAchievementsRepository.awardAchievement(achievement, isHardcoreModeEnabled).onSuccess {
+                        if (it.achievementAwarded) {
+                            _achievementsEvent.emit(RAEventUi.AchievementTriggered(achievement))
+
+                            if (it.isGameMastered()) {
+                                showGameMastery(isHardcoreModeEnabled)
+                            }
+                        }
                     }
                 }
             }
@@ -806,6 +813,26 @@ class EmulatorViewModel @Inject constructor(
                         _achievementsEvent.emit(RAEventUi.AchievementProgressUpdated(achievement, progress))
                     }
                 }
+            }
+        }
+    }
+
+    private suspend fun showGameMastery(forHardcoreMode: Boolean) {
+        val rom = (emulatorSession.currentSessionType() as? EmulatorSession.SessionType.RomSession)?.rom
+        if (rom != null) {
+            val gameSummary = retroAchievementsRepository.getGameSummary(rom.retroAchievementsHash)
+            val raUserName = retroAchievementsRepository.getUserAuthentication()?.username
+            val romPlayTime = romsRepository.getRomAtUri(rom.uri)?.totalPlayTime
+
+            if (gameSummary != null) {
+                val masteryEvent = RAEventUi.GameMastered(
+                    gameTitle = gameSummary.title,
+                    gameIcon = gameSummary.icon,
+                    userName = raUserName,
+                    playTime = romPlayTime,
+                    forHardcodeMode = forHardcoreMode,
+                )
+                _achievementsEvent.emit(masteryEvent)
             }
         }
     }

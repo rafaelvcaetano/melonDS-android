@@ -8,6 +8,7 @@ import androidx.compose.ui.res.colorResource
 import me.magnum.melonds.R
 
 val uncheckedThumbColor: Color @Composable get() = colorResource(id = R.color.switchThumbUnselected)
+val gameMasteryColor: Color get() = Color(0xFFFFD700)
 
 val LightMelonColors @Composable get() = lightColors(
     primary = Color(0xFFF44336),          // R.color.colorPrimary

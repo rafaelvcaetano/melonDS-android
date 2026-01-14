@@ -8,6 +8,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.serializer
 import me.magnum.melonds.common.suspendMapCatching
 import me.magnum.melonds.common.suspendRunCatching
+import me.magnum.rcheevosapi.dto.AwardAchievementResponseDto
 import me.magnum.rcheevosapi.dto.GamePatchDto
 import me.magnum.rcheevosapi.dto.HashLibraryDto
 import me.magnum.rcheevosapi.dto.UserLoginDto
@@ -15,6 +16,7 @@ import me.magnum.rcheevosapi.dto.UserUnlocksDto
 import me.magnum.rcheevosapi.dto.mapper.mapToModel
 import me.magnum.rcheevosapi.exception.UnsuccessfulRequestException
 import me.magnum.rcheevosapi.exception.UserNotAuthenticatedException
+import me.magnum.rcheevosapi.model.RAAwardAchievementResponse
 import me.magnum.rcheevosapi.model.RAGame
 import me.magnum.rcheevosapi.model.RAGameId
 import me.magnum.rcheevosapi.model.RAUserAuth
@@ -135,12 +137,12 @@ class RAApi(
         )
     }
 
-    suspend fun awardAchievement(achievementId: Long, forHardcoreMode: Boolean): Result<Unit> {
+    suspend fun awardAchievement(achievementId: Long, forHardcoreMode: Boolean): Result<RAAwardAchievementResponse> {
         val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
 
         val signature = achievementSignatureProvider.provideAchievementSignature(achievementId, userAuth, forHardcoreMode)
 
-        return get(
+        return get<AwardAchievementResponseDto>(
             mapOf(
                 PARAMETER_REQUEST to REQUEST_AWARD_ACHIEVEMENT,
                 PARAMETER_USER to userAuth.username,
@@ -152,11 +154,16 @@ class RAApi(
             ),
             errorHandler = {
                 // Ignore errors if the achievement has already been awarded to the user
-                if (it != "User already has") {
+                if (it?.startsWith("User already has") != true) {
                     throw UnsuccessfulRequestException(it ?: "Unknown reason")
                 }
             }
-        )
+        ).map {
+            RAAwardAchievementResponse(
+                achievementAwarded = it.success,
+                remainingAchievements = it.achievementsRemaining,
+            )
+        }
     }
 
     suspend fun sendPing(gameId: RAGameId, richPresenceDescription: String?): Result<Unit> {

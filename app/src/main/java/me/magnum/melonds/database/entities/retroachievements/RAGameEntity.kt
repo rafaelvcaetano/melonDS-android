@@ -8,5 +8,6 @@ import androidx.room.PrimaryKey
 data class RAGameEntity(
     @PrimaryKey @ColumnInfo(name = "game_id") val gameId: Long,
     @ColumnInfo(name = "rich_presence_patch") val richPresencePatch: String?,
+    @ColumnInfo(name = "title") val title: String,
     @ColumnInfo(name = "icon") val icon: String,
 )

@@ -14,6 +14,7 @@ import me.magnum.melonds.database.callback.CustomCheatCreationCallback
 import me.magnum.melonds.database.daos.RAAchievementsDao
 import me.magnum.melonds.database.migrations.Migration1to2
 import me.magnum.melonds.database.migrations.Migration4to5
+import me.magnum.melonds.database.migrations.Migration5to6
 import me.magnum.melonds.impl.retroachievements.NoCacheRAAchievementsDao
 import javax.inject.Singleton
 
@@ -36,7 +37,7 @@ object DatabaseModule {
                     addCallback(it)
                 }
             }
-            .addMigrations(Migration1to2(), Migration4to5())
+            .addMigrations(Migration1to2(), Migration4to5(), Migration5to6())
             .build()
     }
 

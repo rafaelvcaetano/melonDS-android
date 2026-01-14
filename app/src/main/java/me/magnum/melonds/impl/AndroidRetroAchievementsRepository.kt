@@ -29,6 +29,7 @@ import me.magnum.melonds.impl.mappers.retroachievements.mapToModel
 import me.magnum.rcheevosapi.RAApi
 import me.magnum.rcheevosapi.RAUserAuthStore
 import me.magnum.rcheevosapi.model.RAAchievement
+import me.magnum.rcheevosapi.model.RAAwardAchievementResponse
 import me.magnum.rcheevosapi.model.RAGameId
 import me.magnum.rcheevosapi.model.RAUserAuth
 import java.net.URL
@@ -107,8 +108,9 @@ class AndroidRetroAchievementsRepository(
         val gameId = getGameIdFromGameHash(gameHash).getOrNull() ?: return null
         return achievementsDao.getGame(gameId.id)?.let {
             RAGameSummary(
-                URL(it.icon),
-                it.richPresencePatch,
+                title = it.title,
+                icon = URL(it.icon),
+                richPresencePatch = it.richPresencePatch,
             )
         }
     }
@@ -121,7 +123,7 @@ class AndroidRetroAchievementsRepository(
         }
     }
 
-    override suspend fun awardAchievement(achievement: RAAchievement, forHardcoreMode: Boolean): Result<Unit> {
+    override suspend fun awardAchievement(achievement: RAAchievement, forHardcoreMode: Boolean): Result<RAAwardAchievementResponse> {
         return submitAchievementAward(achievement.id, achievement.gameId, forHardcoreMode).onFailure {
             scheduleAchievementSubmissionJob()
         }
@@ -132,7 +134,7 @@ class AndroidRetroAchievementsRepository(
             // Do not schedule resubmission if this fails. The current submission job should schedule another attempt
             val submissionResult = submitAchievementAward(it.achievementId, RAGameId(it.gameId), it.forHardcoreMode)
             if (submissionResult.isFailure) {
-                return submissionResult
+                return submissionResult.map { }
             }
 
             achievementsDao.removePendingAchievementSubmission(it)
@@ -151,7 +153,7 @@ class AndroidRetroAchievementsRepository(
         raApi.sendPing(gameId, richPresenceDescription)
     }
 
-    private suspend fun submitAchievementAward(achievementId: Long, gameId: RAGameId, forHardcoreMode: Boolean): Result<Unit> {
+    private suspend fun submitAchievementAward(achievementId: Long, gameId: RAGameId, forHardcoreMode: Boolean): Result<RAAwardAchievementResponse> {
         // Award the achievement immediately locally
         val userAchievement = RAUserAchievementEntity(
             gameId = gameId.id,
@@ -208,7 +210,7 @@ class AndroidRetroAchievementsRepository(
                     it.mapToEntity()
                 }
 
-                val gameEntity = RAGameEntity(game.id.id, game.richPresencePatch, game.icon.toString())
+                val gameEntity = RAGameEntity(game.id.id, game.richPresencePatch, game.title, game.icon.toString())
                 val newMetadata = gameSetMetadata.withNewAchievementSetUpdate()
                 achievementsDao.updateGameData(gameEntity, achievementEntities)
                 achievementsDao.updateGameSetMetadata(newMetadata)
@@ -216,7 +218,7 @@ class AndroidRetroAchievementsRepository(
             }.suspendRecoverCatching { exception ->
                 if (gameSetMetadata.isGameAchievementDataKnown()) {
                     // Load DB data because we know that it was previously loaded
-                    achievementsDao.getGameAchievements(gameId.id).map { it ->
+                    achievementsDao.getGameAchievements(gameId.id).map {
                         it.mapToModel()
                     }
                 } else {
