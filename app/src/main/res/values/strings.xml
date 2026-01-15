@@ -432,6 +432,7 @@
     <string name="achievement_unlocked">Achievement unlocked!</string>
     <string name="achievement_missable">Missable</string>
     <string name="achievement_missable_description">This achievement can be missed during a playthrough</string>
+    <string name="challenge_started">Challenge started</string>
     <string name="game_completed">Completed %1$s</string>
     <string name="game_mastered">Mastered %1$s</string>
 

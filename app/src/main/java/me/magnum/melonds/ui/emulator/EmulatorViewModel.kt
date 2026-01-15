@@ -599,7 +599,7 @@ class EmulatorViewModel @Inject constructor(
                     is RAEvent.OnAchievementPrimed -> onAchievementPrimed(it.achievementId)
                     is RAEvent.OnAchievementUnPrimed -> onAchievementUnPrimed(it.achievementId)
                     is RAEvent.OnAchievementTriggered -> onAchievementTriggered(it.achievementId)
-                    is RAEvent.OnAchievementProgressUpdated -> onAchievementProgressUpdated(it.achievementId, it.progress)
+                    is RAEvent.OnAchievementProgressUpdated -> onAchievementProgressUpdated(it)
                 }
             }
         }
@@ -805,12 +805,12 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    private fun onAchievementProgressUpdated(achievementId: Long, progress: String) {
+    private fun onAchievementProgressUpdated(progressEvent: RAEvent.OnAchievementProgressUpdated) {
         if (settingsRepository.areRetroAchievementsProgressIndicatorsEnabled()) {
             sessionCoroutineScope.launch {
-                retroAchievementsRepository.getAchievement(achievementId).onSuccess { achievement ->
+                retroAchievementsRepository.getAchievement(progressEvent.achievementId).onSuccess { achievement ->
                     if (achievement != null) {
-                        _achievementsEvent.emit(RAEventUi.AchievementProgressUpdated(achievement, progress))
+                        _achievementsEvent.emit(RAEventUi.AchievementProgressUpdated(achievement, progressEvent.current, progressEvent.target, progressEvent.progress))
                     }
                 }
             }

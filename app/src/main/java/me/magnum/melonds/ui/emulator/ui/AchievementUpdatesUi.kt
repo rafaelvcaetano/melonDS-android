@@ -6,6 +6,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
@@ -42,6 +44,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -53,15 +56,18 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
+import me.magnum.melonds.R
 import me.magnum.melonds.extensions.removeFirst
 import me.magnum.melonds.ui.common.MelonPreviewSet
 import me.magnum.melonds.ui.emulator.EmulatorViewModel
 import me.magnum.melonds.ui.emulator.model.PopupEvent
 import me.magnum.melonds.ui.emulator.model.RAEventUi
-import me.magnum.melonds.ui.emulator.ui.AchievementInfo.*
+import me.magnum.melonds.ui.emulator.ui.AchievementInfo.AchievementPrimed
+import me.magnum.melonds.ui.emulator.ui.AchievementInfo.AchievementProgress
 import me.magnum.melonds.ui.romdetails.ui.preview.mockRAAchievementPreview
 import me.magnum.melonds.ui.theme.MelonTheme
 import me.magnum.rcheevosapi.model.RAAchievement
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -119,7 +125,6 @@ private fun MainAchievementPopup(
                 popupOffset = value
             }
             delay(5500)
-if (popupEvent is PopupEvent.GameMasteredPopup) return@collect
             animate(
                 initialValue = 0f,
                 targetValue = -1f,
@@ -172,64 +177,24 @@ private fun AchievementUpdatesList(
     modifier: Modifier = Modifier,
     achievementEventFlow: Flow<RAEventUi>,
 ) {
-    val visibleAchievementInfos = remember {
-        mutableStateListOf<AchievementInfo>()
-    }
+    val listState = remember { AchievementUpdatesListState() }
 
     LaunchedEffect(achievementEventFlow) {
         achievementEventFlow.collect { event ->
-            when (event) {
-                RAEventUi.Reset -> {
-                    visibleAchievementInfos.forEach {
-                        val state = when (it) {
-                            is AchievementPrimed -> it.state
-                            is AchievementProgress -> it.state
-                        }
-                        state.dismiss()
-                    }
-                }
-                is RAEventUi.AchievementPrimed -> {
-                    val achievementInfoState = rememberAchievementInfoState {
-                        visibleAchievementInfos.removeFirst { (it as? AchievementPrimed)?.achievement?.id == event.achievement.id }
-                    }
-
-                    visibleAchievementInfos.add(0, AchievementPrimed(event.achievement, achievementInfoState))
-                }
-                is RAEventUi.AchievementUnPrimed -> {
-                    val primedInfo = visibleAchievementInfos.firstOrNull { (it as? AchievementPrimed)?.achievement?.id == event.achievement.id } as? AchievementPrimed
-                    primedInfo?.state?.dismiss()
-                }
-                is RAEventUi.AchievementProgressUpdated -> {
-                    val existingProgressIndex = visibleAchievementInfos.indexOfFirst { (it as? AchievementProgress)?.achievement?.id == event.achievement.id }
-                    if (existingProgressIndex != -1) {
-                        val existingProgressInfo = visibleAchievementInfos[existingProgressIndex] as AchievementProgress
-                        visibleAchievementInfos[existingProgressIndex] = AchievementInfo.AchievementProgress(event.achievement, event.progress, existingProgressInfo.state)
-                    } else {
-                        val achievementInfoState = rememberAchievementInfoState {
-                            visibleAchievementInfos.removeFirst { (it as? AchievementProgress)?.achievement?.id == event.achievement.id }
-                        }
-
-                        visibleAchievementInfos.add(0, AchievementInfo.AchievementProgress(event.achievement, event.progress, achievementInfoState))
-                    }
-                }
-                is RAEventUi.AchievementTriggered -> { /* no-op */ }
-                is RAEventUi.GameMastered -> { /* no-op */ }
-            }
+            listState.handleEvent(event)
         }
     }
 
     LazyColumn(modifier) {
         items(
-            count = visibleAchievementInfos.size,
+            items = listState.visibleInfos,
             key = {
-                val item = visibleAchievementInfos[it]
-                when (item) {
-                    is AchievementPrimed -> "primed-${item.achievement.id}"
-                    is AchievementProgress -> "progress-${(item.achievement.id)}"
+                when (it) {
+                    is AchievementPrimed -> "primed-${it.achievement.id}"
+                    is AchievementProgress -> "progress-${(it.achievement.id)}"
                 }
             }
-        ) {
-            val info = visibleAchievementInfos[it]
+        ) { info ->
             when (info) {
                 is AchievementPrimed -> PrimedAchievement(info.achievement, info.state)
                 is AchievementProgress -> {
@@ -244,6 +209,96 @@ private fun AchievementUpdatesList(
     }
 }
 
+private class AchievementUpdatesListState {
+
+    val visibleInfos = mutableStateListOf<AchievementInfo>()
+
+    fun handleEvent(event: RAEventUi) {
+        when (event) {
+            RAEventUi.Reset -> handleReset()
+            is RAEventUi.AchievementPrimed -> handleAchievementPrimed(event)
+            is RAEventUi.AchievementUnPrimed -> handleAchievementUnPrimed(event)
+            is RAEventUi.AchievementProgressUpdated -> handleProgressUpdated(event)
+            is RAEventUi.AchievementTriggered -> { /* no-op */ }
+            is RAEventUi.GameMastered -> { /* no-op */ }
+        }
+    }
+
+    private fun handleReset() {
+        visibleInfos.forEach {
+            it.state.dismiss()
+        }
+    }
+
+    private fun handleAchievementPrimed(event: RAEventUi.AchievementPrimed) {
+        val state = AchievementInfoState {
+            visibleInfos.removeFirst { (it as? AchievementPrimed)?.achievement?.id == event.achievement.id }
+        }
+        visibleInfos.add(0, AchievementPrimed(event.achievement, state))
+    }
+
+    private fun handleAchievementUnPrimed(event: RAEventUi.AchievementUnPrimed) {
+        val primedInfo = visibleInfos.firstOrNull { (it as? AchievementPrimed)?.achievement?.id == event.achievement.id }
+        primedInfo?.state?.dismiss()
+    }
+
+    private fun handleProgressUpdated(event: RAEventUi.AchievementProgressUpdated) {
+        val existingProgressIndex = visibleInfos.indexOfFirst { it is AchievementProgress }
+
+        if (existingProgressIndex != -1) {
+            handleExistingProgress(existingProgressIndex, event)
+        } else {
+            addNewProgress(event)
+        }
+    }
+
+    private fun handleExistingProgress(
+        existingIndex: Int,
+        event: RAEventUi.AchievementProgressUpdated
+    ) {
+        val existingProgress = visibleInfos[existingIndex] as AchievementProgress
+        
+        when {
+            existingProgress.achievement.id == event.achievement.id -> {
+                // Update existing progress for same achievement
+                visibleInfos[existingIndex] = existingProgress.copy(
+                    achievement = event.achievement,
+                    current = event.current,
+                    target = event.target,
+                    progress = event.progress,
+                )
+            }
+            shouldReplaceProgress(existingProgress, event) -> {
+                // Replace with new achievement that's closer to completion
+                existingProgress.state.dismiss()
+                addNewProgress(event)
+            }
+        }
+    }
+
+    private fun shouldReplaceProgress(
+        existing: AchievementProgress,
+        newEvent: RAEventUi.AchievementProgressUpdated
+    ): Boolean {
+        val newRelativeProgress = newEvent.current.toFloat() / newEvent.target
+        return newRelativeProgress > existing.relativeProgress()
+    }
+
+    private fun addNewProgress(event: RAEventUi.AchievementProgressUpdated) {
+        val state = AchievementInfoState {
+            visibleInfos.removeFirst { (it as? AchievementProgress)?.achievement?.id == event.achievement.id }
+        }
+        val progressInfo = AchievementProgress(
+            achievement = event.achievement,
+            current = event.current,
+            target = event.target,
+            progress = event.progress,
+            state = state,
+        )
+        visibleInfos.add(0, progressInfo)
+    }
+}
+
 @Composable
 private fun AchievementInfo(
     modifier: Modifier = Modifier,
@@ -252,12 +307,17 @@ private fun AchievementInfo(
     body: (@Composable RowScope.() -> Unit)? = null,
 ) {
     LaunchedEffect(Unit) {
-        state.show()
+        // Check if it was dismissed before it was even shown
+        if (state.dismissed) {
+            state.notifyDismissed()
+        } else {
+            state.show()
+        }
     }
 
     AnimatedVisibility(
         visibleState = state.visibility,
-        enter = fadeIn() + slideInVertically(),
+        enter = fadeIn() + slideInVertically() + expandVertically(clip = false, expandFrom = Alignment.CenterVertically),
         exit = fadeOut() + slideOutHorizontally(),
     ) {
         DisposableEffect(state) {
@@ -312,6 +372,7 @@ private fun PrimedAchievement(
         var isDescriptionVisible by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
+            delay(500.milliseconds)
             isDescriptionVisible = true
             delay(3.seconds)
             isDescriptionVisible = false
@@ -321,7 +382,7 @@ private fun PrimedAchievement(
         AnimatedVisibility(isDescriptionVisible) {
             Column(Modifier.padding(start = 4.dp)) {
                 Text(
-                    text = "Challenge started",
+                    text = stringResource(R.string.challenge_started),
                     style = MaterialTheme.typography.caption.copy(fontWeight = FontWeight.Bold),
                 )
                 Text(
@@ -357,22 +418,33 @@ private fun AchievementProgress(
 }
 
 private sealed class AchievementInfo {
-    data class AchievementPrimed(val achievement: RAAchievement, val state: AchievementInfoState) : AchievementInfo()
-    data class AchievementProgress(val achievement: RAAchievement, val progress: String, val state: AchievementInfoState) : AchievementInfo()
-}
 
-private fun rememberAchievementInfoState(onDismiss: () -> Unit): AchievementInfoState {
-    return AchievementInfoState(onDismiss)
+    abstract val state: AchievementInfoState
+    
+    data class AchievementPrimed(val achievement: RAAchievement, override val state: AchievementInfoState) : AchievementInfo()
+
+    data class AchievementProgress(
+        val achievement: RAAchievement,
+        val current: Int,
+        val target: Int,
+        val progress: String,
+        override val state: AchievementInfoState
+    ) : AchievementInfo() {
+        fun relativeProgress() = current.toFloat() / target
+    }
 }
 
 private class AchievementInfoState(private val onDismiss: () -> Unit) {
     val visibility = MutableTransitionState(false)
+    var dismissed by mutableStateOf(false)
+        private set
 
     fun show() {
         visibility.targetState = true
     }
 
     fun dismiss() {
+        dismissed = true
         visibility.targetState = false
     }
 
@@ -387,7 +459,7 @@ private fun PreviewPrimedAchievement() {
     MelonTheme {
         PrimedAchievement(
             achievement = mockRAAchievementPreview(description = "Do the thing without taking damage"),
-            state = rememberAchievementInfoState {  },
+            state = AchievementInfoState { },
         )
     }
 }

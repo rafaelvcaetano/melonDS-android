@@ -16,7 +16,7 @@ public:
     void onAchievementPrimed(long achievementId);
     void onAchievementTriggered(long achievementId);
     void onAchievementUnprimed(long achievementId);
-    void onAchievementProgressUpdated(long achievementId, std::string progress);
+    void onAchievementProgressUpdated(long achievementId, unsigned int current, unsigned int target, std::string progress);
 };
 
 #endif //ANDROIDRACALLBACK_H

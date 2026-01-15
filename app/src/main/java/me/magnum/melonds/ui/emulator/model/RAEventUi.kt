@@ -9,7 +9,7 @@ sealed class RAEventUi {
     data class AchievementTriggered(val achievement: RAAchievement) : RAEventUi()
     data class AchievementPrimed(val achievement: RAAchievement) : RAEventUi()
     data class AchievementUnPrimed(val achievement: RAAchievement) : RAEventUi()
-    data class AchievementProgressUpdated(val achievement: RAAchievement, val progress: String) : RAEventUi()
+    data class AchievementProgressUpdated(val achievement: RAAchievement, val current: Int, val target: Int, val progress: String) : RAEventUi()
     data class GameMastered(
         val gameTitle: String,
         val gameIcon: URL,

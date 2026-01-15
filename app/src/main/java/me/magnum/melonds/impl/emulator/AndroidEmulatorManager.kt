@@ -201,8 +201,8 @@ class AndroidEmulatorManager(
                     achievementsSharedFlow.tryEmit(RAEvent.OnAchievementUnPrimed(achievementId))
                 }
 
-                override fun onAchievementProgressUpdated(achievementId: Long, progress: String) {
-                    achievementsSharedFlow.tryEmit(RAEvent.OnAchievementProgressUpdated(achievementId, progress))
+                override fun onAchievementProgressUpdated(achievementId: Long, current: Int, target: Int, progress: String) {
+                    achievementsSharedFlow.tryEmit(RAEvent.OnAchievementProgressUpdated(achievementId, current, target, progress))
                 }
             },
             screenshotBuffer = screenshotFrameBufferProvider.frameBuffer(),

@@ -4,5 +4,5 @@ interface RetroAchievementsCallback {
     fun onAchievementPrimed(achievementId: Long)
     fun onAchievementTriggered(achievementId: Long)
     fun onAchievementUnprimed(achievementId: Long)
-    fun onAchievementProgressUpdated(achievementId: Long, progress: String)
+    fun onAchievementProgressUpdated(achievementId: Long, current: Int, target: Int, progress: String)
 }
