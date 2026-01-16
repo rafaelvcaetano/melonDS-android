@@ -33,8 +33,8 @@ interface EmulatorManager {
     suspend fun resetEmulator()
 
     suspend fun updateCheats(cheats: List<Cheat>)
-    suspend fun setupAchievements(achievementData: GameAchievementData)
-    fun unloadAchievements()
+    suspend fun setupRetroAchievements(achievementData: GameAchievementData)
+    fun unloadRetroAchievementsData()
 
     suspend fun loadRewindState(rewindSaveState: RewindSaveState): Boolean
 

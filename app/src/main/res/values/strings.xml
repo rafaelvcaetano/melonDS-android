@@ -266,6 +266,8 @@
     <string name="show_active_challenge_indicators_summary">Shows on-screen indicators while certain achievements can be earned</string>
     <string name="show_progress_indicators">Show progress indicators</string>
     <string name="show_progress_indicators_summary">Shows on-screen indicators when progress is made towards an achievement</string>
+    <string name="show_leaderboard_indicators">Show leaderboard indicators</string>
+    <string name="show_leaderboard_indicators_summary">Shows on-screen indicators when a leaderboard attempt is in progress</string>
 
     <string name="cheats">Cheats</string>
     <string name="cheats_summary">Enable &amp; import cheat codes</string>
@@ -433,6 +435,8 @@
     <string name="achievement_missable">Missable</string>
     <string name="achievement_missable_description">This achievement can be missed during a playthrough</string>
     <string name="challenge_started">Challenge started</string>
+    <string name="leaderboard_attempt_started">Leaderboard attempt started!</string>
+    <string name="leaderboard_submission_info">%1$s • Rank %2$d of %3$d</string> <!-- Eg.: 01:42.95 • Rank 73 of 145 -->
     <string name="game_completed">Completed %1$s</string>
     <string name="game_mastered">Mastered %1$s</string>
 

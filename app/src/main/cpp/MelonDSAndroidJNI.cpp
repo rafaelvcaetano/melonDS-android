@@ -17,7 +17,7 @@
 #include "MelonDSAndroidInterface.h"
 #include "MelonDSAndroidConfiguration.h"
 #include "MelonDSAndroidCameraHandler.h"
-#include "RAAchievementMapper.h"
+#include "RetroAchievementsMapper.h"
 
 #include "Platform.h"
 
@@ -146,10 +146,12 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
 }
 
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupAchievements(JNIEnv* env, jobject thiz, jobjectArray achievements, jstring richPresenceScript)
+Java_me_magnum_melonds_MelonEmulator_setupAchievements(JNIEnv* env, jobject thiz, jobjectArray achievements, jobjectArray leaderboards, jstring richPresenceScript)
 {
     std::list<MelonDSAndroid::RetroAchievements::RAAchievement> internalAchievements;
+    std::list<MelonDSAndroid::RetroAchievements::RALeaderboard> internalLeaderboards;
     mapAchievementsFromJava(env, achievements, internalAchievements);
+    mapLeaderboardsFromJava(env, leaderboards, internalLeaderboards);
 
     std::optional<std::string> richPresence = std::nullopt;
 
@@ -163,16 +165,13 @@ Java_me_magnum_melonds_MelonEmulator_setupAchievements(JNIEnv* env, jobject thiz
             env->ReleaseStringUTFChars(richPresenceScript, richPresenceString);
     }
 
-    MelonDSAndroid::setupAchievements(internalAchievements, richPresence);
+    MelonDSAndroid::setupAchievements(internalAchievements, internalLeaderboards, richPresence);
 }
 
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_unloadAchievements(JNIEnv* env, jobject thiz, jobjectArray achievements)
+Java_me_magnum_melonds_MelonEmulator_unloadRetroAchievementsData(JNIEnv* env, jobject thiz)
 {
-    std::list<MelonDSAndroid::RetroAchievements::RAAchievement> internalAchievements;
-    mapAchievementsFromJava(env, achievements, internalAchievements);
-
-    MelonDSAndroid::unloadAchievements(internalAchievements);
+    MelonDSAndroid::unloadRetroAchievementsData();
 }
 
 JNIEXPORT jstring JNICALL

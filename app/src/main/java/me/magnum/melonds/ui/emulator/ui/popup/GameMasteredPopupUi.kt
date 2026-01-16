@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui.emulator.ui
+package me.magnum.melonds.ui.emulator.ui.popup
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExitTransition

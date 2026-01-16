@@ -11,11 +11,11 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import me.magnum.melonds.database.MelonDatabase
 import me.magnum.melonds.database.callback.CustomCheatCreationCallback
-import me.magnum.melonds.database.daos.RAAchievementsDao
+import me.magnum.melonds.database.daos.RetroAchievementsDao
 import me.magnum.melonds.database.migrations.Migration1to2
 import me.magnum.melonds.database.migrations.Migration4to5
 import me.magnum.melonds.database.migrations.Migration5to6
-import me.magnum.melonds.impl.retroachievements.NoCacheRAAchievementsDao
+import me.magnum.melonds.impl.retroachievements.NoCacheRetroAchievementsDao
 import javax.inject.Singleton
 
 @Module
@@ -42,7 +42,7 @@ object DatabaseModule {
     }
 
     @Provides
-    fun provideRAAchievementsDao(database: MelonDatabase): RAAchievementsDao {
-        return NoCacheRAAchievementsDao(database.achievementsDao())
+    fun provideRAAchievementsDao(database: MelonDatabase): RetroAchievementsDao {
+        return NoCacheRetroAchievementsDao(database.achievementsDao())
     }
 }

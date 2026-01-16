@@ -11,6 +11,7 @@ import me.magnum.melonds.common.suspendRunCatching
 import me.magnum.rcheevosapi.dto.AwardAchievementResponseDto
 import me.magnum.rcheevosapi.dto.GamePatchDto
 import me.magnum.rcheevosapi.dto.HashLibraryDto
+import me.magnum.rcheevosapi.dto.RASubmitLeaderboardEntryResponseDto
 import me.magnum.rcheevosapi.dto.UserLoginDto
 import me.magnum.rcheevosapi.dto.UserUnlocksDto
 import me.magnum.rcheevosapi.dto.mapper.mapToModel
@@ -19,6 +20,7 @@ import me.magnum.rcheevosapi.exception.UserNotAuthenticatedException
 import me.magnum.rcheevosapi.model.RAAwardAchievementResponse
 import me.magnum.rcheevosapi.model.RAGame
 import me.magnum.rcheevosapi.model.RAGameId
+import me.magnum.rcheevosapi.model.RASubmitLeaderboardEntryResponse
 import me.magnum.rcheevosapi.model.RAUserAuth
 import okhttp3.Call
 import okhttp3.Callback
@@ -38,7 +40,7 @@ class RAApi(
     private val okHttpClient: OkHttpClient,
     private val json: Json,
     private val userAuthStore: RAUserAuthStore,
-    private val achievementSignatureProvider: RAAchievementSignatureProvider,
+    private val signatureProvider: RASignatureProvider,
 ) {
 
     companion object {
@@ -55,6 +57,8 @@ class RAApi(
         private const val PARAMETER_ACTIVITY_TYPE = "a"
         private const val PARAMETER_RICH_PRESENCE = "m"
         private const val PARAMETER_SIGNATURE = "v"
+        private const val PARAMETER_LEADERBOARD_ID = "i"
+        private const val PARAMETER_SCORE = "s"
 
         private const val VALUE_HARDMODE_DISABLED = "0"
         private const val VALUE_HARDMODE_ENABLED = "1"
@@ -65,6 +69,7 @@ class RAApi(
         private const val REQUEST_USER_UNLOCKED_ACHIEVEMENTS = "unlocks"
         private const val REQUEST_POST_ACTIVITY = "postactivity"
         private const val REQUEST_AWARD_ACHIEVEMENT = "awardachievement"
+        private const val REQUEST_SUBMIT_LEADERBOARD_ENTRY = "submitlbentry"
         private const val REQUEST_PING = "ping"
 
         private const val ACTIVITY_TYPE_START_SESSION = "3"
@@ -140,7 +145,7 @@ class RAApi(
     suspend fun awardAchievement(achievementId: Long, forHardcoreMode: Boolean): Result<RAAwardAchievementResponse> {
         val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
 
-        val signature = achievementSignatureProvider.provideAchievementSignature(achievementId, userAuth, forHardcoreMode)
+        val signature = signatureProvider.provideAchievementSignature(achievementId, userAuth, forHardcoreMode)
 
         return get<AwardAchievementResponseDto>(
             mapOf(
@@ -162,6 +167,32 @@ class RAApi(
             RAAwardAchievementResponse(
                 achievementAwarded = it.success,
                 remainingAchievements = it.achievementsRemaining,
+            )
+        }
+    }
+
+    suspend fun submitLeaderboardEntry(leaderboardId: Long, value: Int): Result<RASubmitLeaderboardEntryResponse> {
+        val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
+
+        val signature = signatureProvider.provideLeaderboardSignature(leaderboardId, value, userAuth)
+
+        return get<RASubmitLeaderboardEntryResponseDto>(
+            mapOf(
+                PARAMETER_REQUEST to REQUEST_SUBMIT_LEADERBOARD_ENTRY,
+                PARAMETER_USER to userAuth.username,
+                PARAMETER_TOKEN to userAuth.token,
+                PARAMETER_LEADERBOARD_ID to leaderboardId.toString(),
+                PARAMETER_SCORE to value.toString(),
+                // TODO: Maybe send game hash?
+                PARAMETER_SIGNATURE to signature,
+            ),
+        ).map {
+            RASubmitLeaderboardEntryResponse(
+                gameId = RAGameId(it.response.leaderboardData.gameId),
+                title = it.response.leaderboardData.title,
+                formattedScore = it.response.scoreFormatted,
+                rank = it.response.rankInfo.rank,
+                numEntries = it.response.rankInfo.numEntries,
             )
         }
     }

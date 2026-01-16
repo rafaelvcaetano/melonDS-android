@@ -23,7 +23,7 @@ add_library(
         src/main/cpp/JniEnvHandler.cpp
         src/main/cpp/MelonDSAndroidCameraHandler.cpp
         src/main/cpp/AndroidRACallback.cpp
-        src/main/cpp/RAAchievementMapper.cpp
+        src/main/cpp/RetroAchievementsMapper.cpp
         src/main/cpp/RomIconBuilder.cpp
 )
 

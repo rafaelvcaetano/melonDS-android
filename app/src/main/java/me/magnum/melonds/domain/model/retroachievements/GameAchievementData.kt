@@ -5,6 +5,7 @@ import java.net.URL
 class GameAchievementData private constructor(
     val retroAchievementsIntegrationStatus: IntegrationStatus,
     val lockedAchievements: List<RASimpleAchievement>,
+    val leaderboards: List<RASimpleLeaderboard>,
     val totalAchievementCount: Int,
     val richPresencePatch: String?,
     val icon: URL?,
@@ -27,10 +28,17 @@ class GameAchievementData private constructor(
     }
 
     companion object {
-        fun withFullRetroAchievementsIntegration(lockedAchievements: List<RASimpleAchievement>, totalAchievementCount: Int, richPresencePatch: String?, icon: URL?): GameAchievementData {
+        fun withFullRetroAchievementsIntegration(
+            lockedAchievements: List<RASimpleAchievement>,
+            leaderboards: List<RASimpleLeaderboard>,
+            totalAchievementCount: Int,
+            richPresencePatch: String?,
+            icon: URL?,
+        ): GameAchievementData {
             return GameAchievementData(
                 retroAchievementsIntegrationStatus = IntegrationStatus.ENABLED_FULL,
                 lockedAchievements = lockedAchievements,
+                leaderboards = leaderboards,
                 totalAchievementCount = totalAchievementCount,
                 richPresencePatch = richPresencePatch,
                 icon = icon,
@@ -41,6 +49,7 @@ class GameAchievementData private constructor(
             return GameAchievementData(
                 retroAchievementsIntegrationStatus = IntegrationStatus.ENABLED_NO_ACHIEVEMENTS,
                 lockedAchievements = emptyList(),
+                leaderboards = emptyList(),
                 totalAchievementCount = 0,
                 richPresencePatch = richPresencePatch,
                 icon = icon,
@@ -49,7 +58,7 @@ class GameAchievementData private constructor(
 
         fun withDisabledRetroAchievementsIntegration(status: IntegrationStatus, icon: URL? = null): GameAchievementData {
             require(status != IntegrationStatus.ENABLED_FULL && status != IntegrationStatus.ENABLED_NO_ACHIEVEMENTS)
-            return GameAchievementData(status, emptyList(), 0, null, icon)
+            return GameAchievementData(status, emptyList(), emptyList(), 0, null, icon)
         }
     }
 }

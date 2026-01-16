@@ -42,3 +42,41 @@ void AndroidRACallback::onAchievementProgressUpdated(long achievementId, unsigne
     jstring progressString = env->NewStringUTF(progress.c_str());
     env->CallVoidMethod(this->callback, onAchievementProgressUpdatedMethod, achievementId, current, target, progressString);
 }
+
+void AndroidRACallback::onLeaderboardAttemptStarted(long leaderboardId)
+{
+    JNIEnv* env = this->jniEnvHandler->getCurrentThreadEnv();
+
+    jclass handlerClass = env->GetObjectClass(this->callback);
+    jmethodID onLeaderboardAttemptStartedMethod = env->GetMethodID(handlerClass, "onLeaderboardAttemptStarted", "(J)V");
+    env->CallVoidMethod(this->callback, onLeaderboardAttemptStartedMethod, leaderboardId);
+}
+
+void AndroidRACallback::onLeaderboardAttemptUpdated(long leaderboardId, std::string formattedValue)
+{
+    JNIEnv* env = this->jniEnvHandler->getCurrentThreadEnv();
+
+    jclass handlerClass = env->GetObjectClass(this->callback);
+    jmethodID onLeaderboardAttemptUpdatedMethod = env->GetMethodID(handlerClass, "onLeaderboardAttemptUpdated", "(JLjava/lang/String;)V");
+    jstring formattedValueString = env->NewStringUTF(formattedValue.c_str());
+    env->CallVoidMethod(this->callback, onLeaderboardAttemptUpdatedMethod, leaderboardId, formattedValueString);
+}
+
+void AndroidRACallback::onLeaderboardAttemptCanceled(long leaderboardId)
+{
+    JNIEnv* env = this->jniEnvHandler->getCurrentThreadEnv();
+
+    jclass handlerClass = env->GetObjectClass(this->callback);
+    jmethodID onLeaderboardAttemptCompletedMethod = env->GetMethodID(handlerClass, "onLeaderboardAttemptCancelled", "(J)V");
+    env->CallVoidMethod(this->callback, onLeaderboardAttemptCompletedMethod, leaderboardId);
+}
+
+void AndroidRACallback::onLeaderboardAttemptCompleted(long leaderboardId, int value)
+{
+    JNIEnv* env = this->jniEnvHandler->getCurrentThreadEnv();
+
+    jclass handlerClass = env->GetObjectClass(this->callback);
+    jmethodID onLeaderboardAttemptCancelledMethod = env->GetMethodID(handlerClass, "onLeaderboardAttemptCompleted", "(JI)V");
+    env->CallVoidMethod(this->callback, onLeaderboardAttemptCancelledMethod, leaderboardId, value);
+}
+

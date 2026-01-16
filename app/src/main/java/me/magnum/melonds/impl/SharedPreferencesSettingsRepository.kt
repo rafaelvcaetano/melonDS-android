@@ -487,6 +487,10 @@ class SharedPreferencesSettingsRepository(
         return preferences.getBoolean("ra_progress_indicators", true)
     }
 
+    override fun areRetroAchievementsLeaderboardIndicatorsEnabled(): Boolean {
+        return preferences.getBoolean("ra_leaderboard_indicators", true)
+    }
+
     override fun areCheatsEnabled(): Boolean {
         return preferences.getBoolean("cheats_enabled", false)
     }

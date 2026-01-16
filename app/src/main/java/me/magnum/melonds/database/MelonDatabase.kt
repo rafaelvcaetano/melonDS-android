@@ -13,7 +13,7 @@ import me.magnum.melonds.database.daos.CheatDao
 import me.magnum.melonds.database.daos.CheatDatabaseDao
 import me.magnum.melonds.database.daos.CheatFolderDao
 import me.magnum.melonds.database.daos.GameDao
-import me.magnum.melonds.database.daos.RAAchievementsDao
+import me.magnum.melonds.database.daos.RetroAchievementsDao
 import me.magnum.melonds.database.entities.CheatDatabaseEntity
 import me.magnum.melonds.database.entities.CheatEntity
 import me.magnum.melonds.database.entities.CheatFolderEntity
@@ -22,11 +22,12 @@ import me.magnum.melonds.database.entities.retroachievements.RAAchievementEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameHashEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameSetMetadata
+import me.magnum.melonds.database.entities.retroachievements.RALeaderboardEntity
 import me.magnum.melonds.database.entities.retroachievements.RAPendingAchievementSubmissionEntity
 import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEntity
 
 @Database(
-    version = 6,
+    version = 7,
     exportSchema = true,
     entities = [
         CheatDatabaseEntity::class,
@@ -36,6 +37,7 @@ import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEn
         RAGameEntity::class,
         RAAchievementEntity::class,
         RAUserAchievementEntity::class,
+        RALeaderboardEntity::class,
         RAGameSetMetadata::class,
         RAGameHashEntity::class,
         RAPendingAchievementSubmissionEntity::class,
@@ -50,6 +52,10 @@ import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEn
             from = 3,
             to = 4,
         ),
+        AutoMigration(
+            from = 6,
+            to = 7,
+        ),
     ]
 )
 @TypeConverters(InstantConverter::class)
@@ -58,7 +64,7 @@ abstract class MelonDatabase : RoomDatabase() {
     abstract fun gameDao(): GameDao
     abstract fun cheatFolderDao(): CheatFolderDao
     abstract fun cheatDao(): CheatDao
-    abstract fun achievementsDao(): RAAchievementsDao
+    abstract fun achievementsDao(): RetroAchievementsDao
 
     class Migration2to3Spec : AutoMigrationSpec {
         override fun onPostMigrate(db: SupportSQLiteDatabase) {

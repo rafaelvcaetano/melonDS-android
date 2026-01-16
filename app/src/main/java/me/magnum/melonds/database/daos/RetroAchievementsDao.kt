@@ -4,7 +4,7 @@ import androidx.room.*
 import me.magnum.melonds.database.entities.retroachievements.*
 
 @Dao
-abstract class RAAchievementsDao {
+abstract class RetroAchievementsDao {
 
     @Query("SELECT * FROM ra_game_set_metadata WHERE game_id = :gameId")
     abstract suspend fun getGameSetMetadata(gameId: Long): RAGameSetMetadata?
@@ -27,13 +27,28 @@ abstract class RAAchievementsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract suspend fun insertGameAchievements(achievements: List<RAAchievementEntity>)
 
+    @Query("SELECT * FROM ra_leaderboard WHERE id = :leaderboardId")
+    abstract suspend fun getLeaderboard(leaderboardId: Long): RALeaderboardEntity?
+
+    @Query("SELECT * FROM ra_leaderboard WHERE game_id = :gameId")
+    abstract suspend fun getGameLeaderboards(gameId: Long): List<RALeaderboardEntity>
+
+    @Query("DELETE FROM ra_leaderboard WHERE game_id = :gameId")
+    protected abstract suspend fun deleteGameLeaderboards(gameId: Long)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    protected abstract suspend fun insertGameLeaderboards(leaderboards: List<RALeaderboardEntity>)
+
     @Upsert
     protected abstract suspend fun updateGameData(gameData: RAGameEntity)
 
     @Transaction
-    open suspend fun updateGameData(gameEntity: RAGameEntity, achievements: List<RAAchievementEntity>) {
+    open suspend fun updateGameData(gameEntity: RAGameEntity, achievements: List<RAAchievementEntity>, leaderboards: List<RALeaderboardEntity>) {
         deleteGameAchievements(gameEntity.gameId)
+        deleteGameLeaderboards(gameEntity.gameId)
+
         insertGameAchievements(achievements)
+        insertGameLeaderboards(leaderboards)
 
         updateGameData(gameEntity)
     }

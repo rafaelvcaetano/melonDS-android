@@ -41,9 +41,9 @@ abstract class RetroAchievementsViewModel (
         achievementLoadJob = viewModelScope.launch {
             if (retroAchievementsRepository.isUserAuthenticated()) {
                 val forHardcoreMode = settingsRepository.isRetroAchievementsHardcoreEnabled()
-                retroAchievementsRepository.getGameUserAchievements(getRom().retroAchievementsHash, forHardcoreMode).fold(
-                    onSuccess = { achievements ->
-                        val sortedAchievements = achievements?.sortedBy {
+                retroAchievementsRepository.getUserGameData(getRom().retroAchievementsHash, forHardcoreMode).fold(
+                    onSuccess = { userGameData ->
+                        val sortedAchievements = userGameData?.achievements?.sortedBy {
                             // Display unlocked achievements first
                             if (it.isUnlocked) 0 else 1
                         }.orEmpty()

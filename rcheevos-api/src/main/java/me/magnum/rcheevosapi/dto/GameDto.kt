@@ -15,4 +15,6 @@ internal data class GameDto(
     val richPresencePatch: String?,
     @SerialName("Achievements")
     val achievements: List<AchievementDto>,
+    @SerialName("Leaderboards")
+    val leaderboards: List<LeaderboardDto>,
 )

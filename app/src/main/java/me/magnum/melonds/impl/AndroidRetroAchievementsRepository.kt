@@ -14,7 +14,7 @@ import me.magnum.melonds.common.suspendMapCatching
 import me.magnum.melonds.common.suspendRecoverCatching
 import me.magnum.melonds.common.suspendRunCatching
 import me.magnum.melonds.common.workers.RetroAchievementsSubmissionWorker
-import me.magnum.melonds.database.daos.RAAchievementsDao
+import me.magnum.melonds.database.daos.RetroAchievementsDao
 import me.magnum.melonds.database.entities.retroachievements.RAGameEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameHashEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameSetMetadata
@@ -22,6 +22,7 @@ import me.magnum.melonds.database.entities.retroachievements.RAPendingAchievemen
 import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEntity
 import me.magnum.melonds.domain.model.retroachievements.RAGameSummary
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
+import me.magnum.melonds.domain.model.retroachievements.RAUserGameData
 import me.magnum.melonds.domain.model.retroachievements.exception.RAGameNotExist
 import me.magnum.melonds.domain.repositories.RetroAchievementsRepository
 import me.magnum.melonds.impl.mappers.retroachievements.mapToEntity
@@ -30,7 +31,10 @@ import me.magnum.rcheevosapi.RAApi
 import me.magnum.rcheevosapi.RAUserAuthStore
 import me.magnum.rcheevosapi.model.RAAchievement
 import me.magnum.rcheevosapi.model.RAAwardAchievementResponse
+import me.magnum.rcheevosapi.model.RAGame
 import me.magnum.rcheevosapi.model.RAGameId
+import me.magnum.rcheevosapi.model.RALeaderboard
+import me.magnum.rcheevosapi.model.RASubmitLeaderboardEntryResponse
 import me.magnum.rcheevosapi.model.RAUserAuth
 import java.net.URL
 import java.time.Duration
@@ -39,7 +43,7 @@ import java.util.concurrent.TimeUnit
 
 class AndroidRetroAchievementsRepository(
     private val raApi: RAApi,
-    private val achievementsDao: RAAchievementsDao,
+    private val retroAchievementsDao: RetroAchievementsDao,
     private val raUserAuthStore: RAUserAuthStore,
     private val sharedPreferences: SharedPreferences,
     private val context: Context,
@@ -63,11 +67,11 @@ class AndroidRetroAchievementsRepository(
     }
 
     override suspend fun logout() {
-        achievementsDao.deleteAllAchievementUserData()
+        retroAchievementsDao.deleteAllAchievementUserData()
         raUserAuthStore.clearUserAuth()
     }
 
-    override suspend fun getGameUserAchievements(gameHash: String, forHardcoreMode: Boolean): Result<List<RAUserAchievement>?> {
+    override suspend fun getUserGameData(gameHash: String, forHardcoreMode: Boolean): Result<RAUserGameData?> {
         val gameIdResult = getGameIdFromGameHash(gameHash)
         if (gameIdResult.isFailure) {
             return Result.failure(gameIdResult.exceptionOrNull()!!)
@@ -78,12 +82,12 @@ class AndroidRetroAchievementsRepository(
             return Result.success(null)
         }
 
-        val gameSetMetadata = achievementsDao.getGameSetMetadata(gameId.id)
+        val gameSetMetadata = retroAchievementsDao.getGameSetMetadata(gameId.id)
         val currentMetadata = CurrentGameSetMetadata(gameId, gameSetMetadata)
 
-        val gameAchievementsResult = fetchGameAchievements(gameId, currentMetadata)
-        if (gameAchievementsResult.isFailure) {
-            return Result.failure(gameAchievementsResult.exceptionOrNull()!!)
+        val gameDataResult = fetchGameData(gameId, currentMetadata)
+        if (gameDataResult.isFailure) {
+            return Result.failure(gameDataResult.exceptionOrNull()!!)
         }
 
         val userUnlocksResult = fetchGameUserUnlockedAchievements(gameId, forHardcoreMode, currentMetadata)
@@ -91,22 +95,39 @@ class AndroidRetroAchievementsRepository(
             return Result.failure(userUnlocksResult.exceptionOrNull()!!)
         }
 
-        val gameAchievements = gameAchievementsResult.getOrThrow()
+        val gameData = gameDataResult.getOrThrow()
         val userUnlocks = userUnlocksResult.getOrThrow()
 
-        val userAchievements = gameAchievements.map {
-            RAUserAchievement(
-                achievement = it,
-                isUnlocked = userUnlocks.contains(it.id),
-                forHardcoreMode = forHardcoreMode,
+        val userGameData = gameData?.let {
+            val userAchievements = it.achievements
+                .filter { it.type == RAAchievement.Type.CORE }
+                .map { achievement ->
+                    RAUserAchievement(
+                        achievement = achievement,
+                        isUnlocked = userUnlocks.contains(achievement.id),
+                        forHardcoreMode = forHardcoreMode,
+                    )
+                }
+
+            RAUserGameData(
+                id = it.id,
+                title = it.title,
+                icon = it.icon,
+                richPresencePatch = it.richPresencePatch,
+                achievements = userAchievements,
+                leaderboards = it.leaderboards.filter { !it.hidden },
             )
         }
-        return Result.success(userAchievements)
+        return Result.success(userGameData)
     }
 
     override suspend fun getGameSummary(gameHash: String): RAGameSummary? {
         val gameId = getGameIdFromGameHash(gameHash).getOrNull() ?: return null
-        return achievementsDao.getGame(gameId.id)?.let {
+        return getGameSummary(gameId)
+    }
+
+    override suspend fun getGameSummary(gameId: RAGameId): RAGameSummary? {
+        return retroAchievementsDao.getGame(gameId.id)?.let {
             RAGameSummary(
                 title = it.title,
                 icon = URL(it.icon),
@@ -117,7 +138,7 @@ class AndroidRetroAchievementsRepository(
 
     override suspend fun getAchievement(achievementId: Long): Result<RAAchievement?> {
         return suspendRunCatching {
-            achievementsDao.getAchievement(achievementId)
+            retroAchievementsDao.getAchievement(achievementId)
         }.map {
             it?.mapToModel()
         }
@@ -130,17 +151,25 @@ class AndroidRetroAchievementsRepository(
     }
 
     override suspend fun submitPendingAchievements(): Result<Unit> {
-        achievementsDao.getPendingAchievementSubmissions().forEach {
+        retroAchievementsDao.getPendingAchievementSubmissions().forEach {
             // Do not schedule resubmission if this fails. The current submission job should schedule another attempt
             val submissionResult = submitAchievementAward(it.achievementId, RAGameId(it.gameId), it.forHardcoreMode)
             if (submissionResult.isFailure) {
                 return submissionResult.map { }
             }
 
-            achievementsDao.removePendingAchievementSubmission(it)
+            retroAchievementsDao.removePendingAchievementSubmission(it)
         }
 
         return Result.success(Unit)
+    }
+
+    override suspend fun getLeaderboard(leaderboardId: Long): RALeaderboard? {
+        return retroAchievementsDao.getLeaderboard(leaderboardId)?.mapToModel()
+    }
+
+    override suspend fun submitLeaderboardEntry(leaderboardId: Long, value: Int): Result<RASubmitLeaderboardEntryResponse> {
+        return raApi.submitLeaderboardEntry(leaderboardId, value)
     }
 
     override suspend fun startSession(gameHash: String): Result<Unit> {
@@ -161,7 +190,7 @@ class AndroidRetroAchievementsRepository(
             isUnlocked = true,
             isHardcore = forHardcoreMode,
         )
-        achievementsDao.addUserAchievement(userAchievement)
+        retroAchievementsDao.addUserAchievement(userAchievement)
 
         return raApi.awardAchievement(achievementId, forHardcoreMode).onFailure {
             // On failure, insert it into the pending achievements to be re-submitted later
@@ -170,7 +199,7 @@ class AndroidRetroAchievementsRepository(
                 gameId = gameId.id,
                 forHardcoreMode = forHardcoreMode,
             )
-            achievementsDao.addPendingAchievementSubmission(pendingAchievementSubmissionEntity)
+            retroAchievementsDao.addPendingAchievementSubmission(pendingAchievementSubmissionEntity)
         }
     }
 
@@ -181,7 +210,7 @@ class AndroidRetroAchievementsRepository(
                     val gameHashEntities = gameHashes.map {
                         RAGameHashEntity(it.key, it.value.id)
                     }
-                    achievementsDao.updateGameHashLibrary(gameHashEntities)
+                    retroAchievementsDao.updateGameHashLibrary(gameHashEntities)
                     sharedPreferences.edit {
                         putLong(RA_HASH_LIBRARY_LAST_UPDATED, Instant.now().toEpochMilli())
                     }
@@ -190,37 +219,45 @@ class AndroidRetroAchievementsRepository(
                     it[gameHash]
                 }
                 .suspendRecoverCatching {
-                    achievementsDao.getGameHashEntity(gameHash)?.let {
+                    retroAchievementsDao.getGameHashEntity(gameHash)?.let {
                         RAGameId(it.gameId)
                     }
                 }
         } else {
             suspendRunCatching {
-                achievementsDao.getGameHashEntity(gameHash)?.let {
+                retroAchievementsDao.getGameHashEntity(gameHash)?.let {
                     RAGameId(it.gameId)
                 }
             }
         }
     }
 
-    private suspend fun fetchGameAchievements(gameId: RAGameId, gameSetMetadata: CurrentGameSetMetadata): Result<List<RAAchievement>> {
+    private suspend fun fetchGameData(gameId: RAGameId, gameSetMetadata: CurrentGameSetMetadata): Result<RAGame?> {
         return if (mustRefreshAchievementSet(gameSetMetadata.currentMetadata)) {
             raApi.getGameInfo(gameId).suspendMapCatching { game ->
                 val achievementEntities = game.achievements.map {
                     it.mapToEntity()
                 }
+                val leaderboardEntities = game.leaderboards.map {
+                    it.mapToEntity()
+                }
 
                 val gameEntity = RAGameEntity(game.id.id, game.richPresencePatch, game.title, game.icon.toString())
                 val newMetadata = gameSetMetadata.withNewAchievementSetUpdate()
-                achievementsDao.updateGameData(gameEntity, achievementEntities)
-                achievementsDao.updateGameSetMetadata(newMetadata)
-                game.achievements
+                retroAchievementsDao.updateGameData(gameEntity, achievementEntities, leaderboardEntities)
+                retroAchievementsDao.updateGameSetMetadata(newMetadata)
+                game
             }.suspendRecoverCatching { exception ->
                 if (gameSetMetadata.isGameAchievementDataKnown()) {
                     // Load DB data because we know that it was previously loaded
-                    achievementsDao.getGameAchievements(gameId.id).map {
+                    val achievements = retroAchievementsDao.getGameAchievements(gameId.id).map {
                         it.mapToModel()
                     }
+                    val leaderboards = retroAchievementsDao.getGameLeaderboards(gameId.id).map {
+                        it.mapToModel()
+                    }
+
+                    retroAchievementsDao.getGame(gameId.id)?.mapToModel(achievements, leaderboards)
                 } else {
                     // The achievement data has never been downloaded for this game. Rethrow exception
                     throw exception
@@ -228,12 +265,15 @@ class AndroidRetroAchievementsRepository(
             }
         } else {
             suspendRunCatching {
-                achievementsDao.getGameAchievements(gameId.id).map {
+                val achievements = retroAchievementsDao.getGameAchievements(gameId.id).map {
                     it.mapToModel()
                 }
+                val leaderboards = retroAchievementsDao.getGameLeaderboards(gameId.id).map {
+                    it.mapToModel()
+                }
+
+                retroAchievementsDao.getGame(gameId.id)?.mapToModel(achievements, leaderboards)
             }
-        }.map { achievements ->
-            achievements.filter { it.type == RAAchievement.Type.CORE }
         }
     }
 
@@ -250,12 +290,12 @@ class AndroidRetroAchievementsRepository(
                 }
 
                 val newMetadata = gameSetMetadata.withNewUserAchievementsUpdate(forHardcoreMode)
-                achievementsDao.updateGameUserUnlockedAchievements(gameId.id, userAchievementEntities)
-                achievementsDao.updateGameSetMetadata(newMetadata)
+                retroAchievementsDao.updateGameUserUnlockedAchievements(gameId.id, userAchievementEntities)
+                retroAchievementsDao.updateGameSetMetadata(newMetadata)
             }.suspendRecoverCatching { exception ->
                 if (gameSetMetadata.isUserAchievementDataKnown(forHardcoreMode)) {
                     // Load DB data because we know that it was previously loaded
-                    achievementsDao.getGameUserUnlockedAchievements(gameId.id, forHardcoreMode).map {
+                    retroAchievementsDao.getGameUserUnlockedAchievements(gameId.id, forHardcoreMode).map {
                         it.achievementId
                     }
                 } else {
@@ -265,7 +305,7 @@ class AndroidRetroAchievementsRepository(
             }
         } else {
             suspendRunCatching {
-                achievementsDao.getGameUserUnlockedAchievements(gameId.id, forHardcoreMode).map {
+                retroAchievementsDao.getGameUserUnlockedAchievements(gameId.id, forHardcoreMode).map {
                     it.achievementId
                 }
             }

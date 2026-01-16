@@ -9,9 +9,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import me.magnum.melonds.common.network.MelonOkHttpInterceptor
-import me.magnum.melonds.common.retroachievements.AndroidRAAchievementSignatureProvider
+import me.magnum.melonds.common.retroachievements.AndroidRASignatureProvider
 import me.magnum.melonds.common.retroachievements.AndroidRAUserAuthStore
-import me.magnum.rcheevosapi.RAAchievementSignatureProvider
+import me.magnum.rcheevosapi.RASignatureProvider
 import me.magnum.rcheevosapi.RAApi
 import me.magnum.rcheevosapi.RAUserAuthStore
 import okhttp3.OkHttpClient
@@ -43,18 +43,18 @@ object RAModule {
 
     @Provides
     @Singleton
-    fun provideRAAchievementSignatureProvider(): RAAchievementSignatureProvider {
-        return AndroidRAAchievementSignatureProvider()
+    fun provideRAAchievementSignatureProvider(): RASignatureProvider {
+        return AndroidRASignatureProvider()
     }
 
     @Provides
     @Singleton
-    fun provideRAApi(@Named("ra-api-client") client: OkHttpClient, json: Json, userAuthStore: RAUserAuthStore, achievementSignatureProvider: RAAchievementSignatureProvider): RAApi {
+    fun provideRAApi(@Named("ra-api-client") client: OkHttpClient, json: Json, userAuthStore: RAUserAuthStore, achievementSignatureProvider: RASignatureProvider): RAApi {
         return RAApi(
             okHttpClient = client,
             json = json,
             userAuthStore = userAuthStore,
-            achievementSignatureProvider = achievementSignatureProvider,
+            signatureProvider = achievementSignatureProvider,
         )
     }
 }

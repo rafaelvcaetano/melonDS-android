@@ -34,6 +34,8 @@
         android:isGame="true"
         android:theme="@style/AppTheme">
 
+        <profileable android:shell="true"/>
+
         <meta-data
             android:name="android.game_mode_config"
             android:resource="@xml/game_mode_config" />

@@ -1,15 +1,16 @@
 package me.magnum.melonds.impl.retroachievements
 
-import me.magnum.melonds.database.daos.RAAchievementsDao
+import me.magnum.melonds.database.daos.RetroAchievementsDao
 import me.magnum.melonds.database.entities.retroachievements.RAAchievementEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameHashEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameSetMetadata
+import me.magnum.melonds.database.entities.retroachievements.RALeaderboardEntity
 import me.magnum.melonds.database.entities.retroachievements.RAPendingAchievementSubmissionEntity
 import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEntity
 
 /**
- * An [RAAchievementsDao] implementation that disables most functionality related to data caching that should not be stored to guarantee the best integration with the
+ * An [RetroAchievementsDao] implementation that disables most functionality related to data caching that should not be stored to guarantee the best integration with the
  * RetroAchievements platform. This implementation allows the caching implementation to be maintained but not used. If in the future that implementation proves useful, this
  * DAO usage can be replaced with the actual DAO that interacts with the database.
  * The only data that is actually not allowed to be cached is game set metadata and pending achievement submissions. All other data is maintained so that it can be used in an
@@ -17,7 +18,7 @@ import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEn
  *
  * @param actualAchievementsDao The DAO that should be used for operations that are actually supported and actually stores and fetches the data
  */
-class NoCacheRAAchievementsDao(private val actualAchievementsDao: RAAchievementsDao) : RAAchievementsDao() {
+class NoCacheRetroAchievementsDao(private val actualAchievementsDao: RetroAchievementsDao) : RetroAchievementsDao() {
 
     override suspend fun getGameSetMetadata(gameId: Long): RAGameSetMetadata? {
         return null
@@ -43,11 +44,25 @@ class NoCacheRAAchievementsDao(private val actualAchievementsDao: RAAchievements
     override suspend fun insertGameAchievements(achievements: List<RAAchievementEntity>) {
     }
 
+    override suspend fun getLeaderboard(leaderboardId: Long): RALeaderboardEntity? {
+        return actualAchievementsDao.getLeaderboard(leaderboardId)
+    }
+
+    override suspend fun getGameLeaderboards(gameId: Long): List<RALeaderboardEntity> {
+        return actualAchievementsDao.getGameLeaderboards(gameId)
+    }
+
+    override suspend fun deleteGameLeaderboards(gameId: Long) {
+    }
+
+    override suspend fun insertGameLeaderboards(leaderboards: List<RALeaderboardEntity>) {
+    }
+
     override suspend fun updateGameData(gameData: RAGameEntity) {
     }
 
-    override suspend fun updateGameData(gameEntity: RAGameEntity, achievements: List<RAAchievementEntity>) {
-        actualAchievementsDao.updateGameData(gameEntity, achievements)
+    override suspend fun updateGameData(gameEntity: RAGameEntity, achievements: List<RAAchievementEntity>, leaderboards: List<RALeaderboardEntity>) {
+        actualAchievementsDao.updateGameData(gameEntity, achievements, leaderboards)
     }
 
     override suspend fun getGame(gameId: Long): RAGameEntity? {

@@ -15,5 +15,8 @@ internal fun GameDto.mapToModel(): RAGame {
         achievements = achievements.map {
             it.mapToModel(gameId)
         },
+        leaderboards = leaderboards.map {
+            it.mapToModel(gameId)
+        },
     )
 }

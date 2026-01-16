@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui.emulator.ui
+package me.magnum.melonds.ui.emulator.ui.popup
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

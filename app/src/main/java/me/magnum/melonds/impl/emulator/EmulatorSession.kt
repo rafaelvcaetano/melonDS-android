@@ -56,6 +56,11 @@ class EmulatorSession {
         return areRetroAchievementsEnabled && sessionHasAchievements
     }
 
+    fun areLeaderboardsEnabled(): Boolean {
+        // Leaderboards are only enabled in RetroAchievements hardcore mode
+        return isRetroAchievementsHardcoreModeEnabled
+    }
+
     fun areSaveStateLoadsAllowed(): Boolean {
         // Cannot load save-states when RA hardcore is enabled
         return !isRetroAchievementsHardcoreModeEnabled || !areRetroAchievementsEnabled

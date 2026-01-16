@@ -8,4 +8,5 @@ data class RAGame(
     val icon: URL,
     val richPresencePatch: String?,
     val achievements: List<RAAchievement>,
+    val leaderboards: List<RALeaderboard>,
 )

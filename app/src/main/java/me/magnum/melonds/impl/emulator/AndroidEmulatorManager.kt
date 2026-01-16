@@ -23,7 +23,6 @@ import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
-import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.rom.config.RomGbaSlotConfig
 import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
@@ -47,8 +46,6 @@ class AndroidEmulatorManager(
 ) : EmulatorManager {
 
     private val achievementsSharedFlow = MutableSharedFlow<RAEvent>(replay = 0, extraBufferCapacity = Int.MAX_VALUE)
-
-    private val loadedAchievements = mutableListOf<RASimpleAchievement>()
 
     override suspend fun loadRom(rom: Rom, cheats: List<Cheat>): RomLaunchResult {
         return withContext(Dispatchers.IO) {
@@ -140,22 +137,22 @@ class AndroidEmulatorManager(
         MelonEmulator.setupCheats(cheats.toTypedArray())
     }
 
-    override suspend fun setupAchievements(achievementData: GameAchievementData) {
+    override suspend fun setupRetroAchievements(achievementData: GameAchievementData) {
         val richPresencePath = if (settingsRepository.isRetroAchievementsRichPresenceEnabled()) {
             achievementData.richPresencePatch
         } else {
             null
         }
 
-        loadedAchievements.addAll(achievementData.lockedAchievements)
-        MelonEmulator.setupAchievements(achievementData.lockedAchievements.toTypedArray(), richPresencePath)
+        MelonEmulator.setupAchievements(
+            achievements = achievementData.lockedAchievements.toTypedArray(),
+            leaderboards = achievementData.leaderboards.toTypedArray(),
+            richPresenceScript = richPresencePath,
+        )
     }
 
-    override fun unloadAchievements() {
-        if (loadedAchievements.isNotEmpty()) {
-            MelonEmulator.unloadAchievements(loadedAchievements.toTypedArray())
-            loadedAchievements.clear()
-        }
+    override fun unloadRetroAchievementsData() {
+        MelonEmulator.unloadRetroAchievementsData()
     }
 
     override suspend fun loadRewindState(rewindSaveState: RewindSaveState): Boolean {
@@ -173,7 +170,6 @@ class AndroidEmulatorManager(
     override fun stopEmulator() {
         MelonEmulator.stopEmulation()
         cameraManager.stopCurrentCameraSource()
-        loadedAchievements.clear()
     }
 
     override fun cleanEmulator() {
@@ -203,6 +199,22 @@ class AndroidEmulatorManager(
 
                 override fun onAchievementProgressUpdated(achievementId: Long, current: Int, target: Int, progress: String) {
                     achievementsSharedFlow.tryEmit(RAEvent.OnAchievementProgressUpdated(achievementId, current, target, progress))
+                }
+
+                override fun onLeaderboardAttemptStarted(leaderboardId: Long) {
+                    achievementsSharedFlow.tryEmit(RAEvent.OnLeaderboardAttemptStarted(leaderboardId))
+                }
+
+                override fun onLeaderboardAttemptUpdated(leaderboardId: Long, formattedValue: String) {
+                    achievementsSharedFlow.tryEmit(RAEvent.OnLeaderboardAttemptUpdated(leaderboardId, formattedValue))
+                }
+
+                override fun onLeaderboardAttemptCompleted(leaderboardId: Long, value: Int) {
+                    achievementsSharedFlow.tryEmit(RAEvent.OnLeaderboardAttemptCompleted(leaderboardId, value))
+                }
+
+                override fun onLeaderboardAttemptCancelled(leaderboardId: Long) {
+                    achievementsSharedFlow.tryEmit(RAEvent.OnLeaderboardAttemptCancelled(leaderboardId))
                 }
             },
             screenshotBuffer = screenshotFrameBufferProvider.frameBuffer(),
