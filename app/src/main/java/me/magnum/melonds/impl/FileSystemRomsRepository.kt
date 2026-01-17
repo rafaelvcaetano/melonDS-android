@@ -101,25 +101,45 @@ class FileSystemRomsRepository(
     }
 
     override suspend fun getRomAtUri(uri: Uri): Rom? {
-        val exactRom = if (uri.authority == EXTERNAL_STORAGE_PROVIDER_AUTHORITY) {
-            getRoms().first().find { rom ->
-                rom.uri == uri
-            }
+        val allRoms = getRoms().first()
+
+        // Quick exact URI match first (no filename needed)
+        allRoms.find { rom -> rom.uri == uri }?.let { return it }
+
+        // Pre-filter by filename for performance
+        val incomingFileName = DocumentFile.fromSingleUri(context, uri)?.name
+        val candidateRoms = if (incomingFileName != null) {
+            allRoms.filter { it.fileName == incomingFileName }
         } else {
-            // Try to find the ROM by obtaining the file path from the URI and checking against known ROMs. This may not always work since there are multiple entry points to
-            // the user-accessible storage (/storage/emulated/0, /mnt/user/0, /sdcard). This can be explored further in the future to see if different path prefixes can be
-            // removed to make this approach more reliable
-            FileUtils.getAbsolutePathFromSingleUri(context, uri)?.let {
-                getRomAtPath(it)
-            }
+            allRoms
         }
 
-        if (exactRom != null)
-            return exactRom
+        // Try to find matching ROM by path, then by size (filename already pre-filtered)
+        val cachedRom = findRomByPath(candidateRoms, uri)
+            ?: findRomBySize(candidateRoms, uri)
+
+        if (cachedRom != null)
+            return cachedRom
 
         // ROM is not known. Create a new ROM from the URI
-        val externalRom = romFileProcessorFactory.getFileRomProcessorForDocument(uri)?.getRomFromUri(uri, null)
-        return externalRom
+        return romFileProcessorFactory.getFileRomProcessorForDocument(uri)?.getRomFromUri(uri, null)
+    }
+
+    private fun findRomByPath(roms: List<Rom>, uri: Uri): Rom? {
+        val incomingPath = FileUtils.getAbsolutePathFromSingleUri(context, uri) ?: return null
+        return roms.find { rom ->
+            FileUtils.getAbsolutePathFromSingleUri(context, rom.uri) == incomingPath
+        }
+    }
+
+    private fun findRomBySize(roms: List<Rom>, uri: Uri): Rom? {
+        val incomingDoc = DocumentFile.fromSingleUri(context, uri)?.takeIf { it.exists() } ?: return null
+        val incomingSize = incomingDoc.length()
+
+        return roms.find { rom ->
+            val romDoc = DocumentFile.fromSingleUri(context, rom.uri)
+            romDoc?.length() == incomingSize
+        }
     }
 
     override fun updateRomConfig(rom: Rom, romConfig: RomConfig) {
