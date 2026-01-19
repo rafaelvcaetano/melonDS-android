@@ -132,11 +132,15 @@
             android:name=".ui.layouts.LayoutListActivity"
             android:label="@string/layouts"
             android:parentActivityName=".ui.settings.SettingsActivity"
+            android:theme="@style/AppTheme.NoToolbar"
+            android:enableOnBackInvokedCallback="true"
             android:exported="false">
         </activity>
         <activity
             android:name=".ui.layouts.LayoutSelectorActivity"
             android:label="@string/layouts"
+            android:theme="@style/AppTheme.NoToolbar"
+            android:enableOnBackInvokedCallback="true"
             android:exported="false">
         </activity>
         <activity

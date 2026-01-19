@@ -683,8 +683,7 @@ class EmulatorViewModel @Inject constructor(
     }
 
     private fun getGlobalLayoutFlow(): Flow<LayoutConfiguration> {
-        return settingsRepository.observeSelectedLayoutId().asFlow()
-            .onStart { emit(settingsRepository.getSelectedLayoutId()) }
+        return settingsRepository.observeSelectedLayoutId()
             .flatMapLatest {
                 layoutsRepository.observeLayout(it)
                     .onCompletion {

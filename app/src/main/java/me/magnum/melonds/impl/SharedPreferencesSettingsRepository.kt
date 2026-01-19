@@ -501,8 +501,8 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
-    override fun observeSelectedLayoutId(): Observable<UUID> {
-        return getOrCreatePreferenceObservable("input_layout_id") {
+    override fun observeSelectedLayoutId(): Flow<UUID> {
+        return getOrCreatePreferenceSharedFlow("input_layout_id") {
             getSelectedLayoutId()
         }
     }

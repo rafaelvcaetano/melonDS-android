@@ -20,6 +20,7 @@
     <string name="play">Play</string>
     <string name="save">Save</string>
     <string name="ellipsis">…</string>
+    <string name="navigate_back">Back</string>
 
     <string name="version_alpha">Alpha</string>
     <string name="version_beta">Beta</string>
@@ -363,6 +364,7 @@
     <string name="use_global_layout">Use global layout</string>
     <string name="use_global_preference">Use global setting</string>
     <string name="layout_deleted">Layout deleted</string>
+    <string name="named_layout_deleted">Layout \"%1$s\" deleted</string>
 
     <string name="layout_editor">Layout editor</string>
     <string name="add_component">Add component</string>

@@ -1,16 +1,22 @@
 package me.magnum.melonds.ui.layouts
 
-import android.app.Activity
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
-import android.view.MenuItem
+import androidx.activity.SystemBarStyle
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.commit
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import me.magnum.melonds.R
-import me.magnum.melonds.databinding.ActivityLayoutsBinding
-import me.magnum.melonds.ui.layouts.fragments.LayoutSelectorFragment
-import java.util.*
+import kotlinx.coroutines.launch
+import me.magnum.melonds.ui.layouts.model.SelectedLayout
+import me.magnum.melonds.ui.layouts.ui.LayoutsScreen
+import me.magnum.melonds.ui.layouts.viewmodel.LayoutSelectorViewModel
+import me.magnum.melonds.ui.theme.MelonTheme
 
 @AndroidEntryPoint
 class LayoutSelectorActivity : AppCompatActivity() {
@@ -18,42 +24,35 @@ class LayoutSelectorActivity : AppCompatActivity() {
         const val KEY_SELECTED_LAYOUT_ID = "selected_layout_id"
     }
 
+    private val viewModel by viewModels<LayoutSelectorViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge(
+            navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
+        )
         super.onCreate(savedInstanceState)
-        val binding = ActivityLayoutsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        val fragment = LayoutSelectorFragment().apply {
-            setOnLayoutSelectedListener { id, reason ->
-                onLayoutSelected(id, reason)
+        setContent {
+            MelonTheme {
+                LayoutsScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = ::finish,
+                )
             }
         }
 
-        supportFragmentManager.commit {
-            replace(R.id.frame_layout_list, fragment)
-        }
-    }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.selectedLayoutId.collect {
+                    val intent = Intent().apply {
+                        putExtra(KEY_SELECTED_LAYOUT_ID, it.layoutId?.toString())
+                    }
+                    setResult(RESULT_OK, intent)
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            android.R.id.home -> {
-                finish()
+                    if (it.reason == SelectedLayout.SelectionReason.SELECTED_BY_USER) {
+                        finish()
+                    }
+                }
             }
-            else -> return super.onOptionsItemSelected(item)
-        }
-        return true
-    }
-
-    private fun onLayoutSelected(layoutId: UUID?, reason: BaseLayoutsFragment.LayoutSelectionReason) {
-        val intent = Intent().apply {
-            putExtra(KEY_SELECTED_LAYOUT_ID, layoutId?.toString())
-        }
-        setResult(Activity.RESULT_OK, intent)
-
-        // If the layout was selected by the user, close the activity immediately
-        if (reason == BaseLayoutsFragment.LayoutSelectionReason.BY_USER) {
-            finish()
         }
     }
 }
