@@ -6,12 +6,6 @@ import android.graphics.PixelFormat
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionContext
 import androidx.compose.runtime.DisposableEffect
@@ -30,6 +24,7 @@ import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import me.magnum.melonds.R
 import java.util.UUID
 
 @Composable
@@ -65,12 +60,11 @@ fun FullScreen(onDismiss: () -> Unit, content: @Composable () -> Unit) {
 private class FullScreenLayout(
     private val composeView: View,
     initiallyVisible: Boolean,
-    uniqueId: UUID
+    uniqueId: UUID,
 ) : AbstractComposeView(composeView.context) {
 
     private val windowManager = composeView.context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-    private val params = createLayoutParams()
-    private var visible = MutableTransitionState(initiallyVisible).apply { targetState = true }
+    private val params = createLayoutParams(initiallyVisible)
     private var onDismissListener: (() -> Unit)? = null
 
     override var shouldCreateCompositionOnAttachedToWindow: Boolean = false
@@ -89,19 +83,7 @@ private class FullScreenLayout(
 
     @Composable
     override fun Content() {
-        AnimatedVisibility(
-            visibleState = visible,
-            enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-            exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
-        ) {
-            content()
-
-            DisposableEffect(null) {
-                onDispose {
-                    destroy()
-                }
-            }
-        }
+        content()
     }
 
     fun setContent(parent: CompositionContext, content: @Composable () -> Unit) {
@@ -114,10 +96,11 @@ private class FullScreenLayout(
         onDismissListener = listener
     }
 
-    private fun createLayoutParams(): WindowManager.LayoutParams =
+    private fun createLayoutParams(initiallyVisible: Boolean): WindowManager.LayoutParams =
         WindowManager.LayoutParams().apply {
             flags = WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
             type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL
+            windowAnimations = if (initiallyVisible) R.style.FullscreenDialog_Restore else R.style.FullscreenDialog
             token = composeView.applicationWindowToken
             width = WindowManager.LayoutParams.MATCH_PARENT
             height = WindowManager.LayoutParams.MATCH_PARENT
@@ -125,7 +108,7 @@ private class FullScreenLayout(
         }
 
     override fun dispatchKeyEvent(event: KeyEvent?): Boolean {
-        if (event?.keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_DOWN) {
+        if (event?.keyCode == KeyEvent.KEYCODE_BACK || event?.keyCode == KeyEvent.KEYCODE_ESCAPE) {
             onDismissListener?.invoke()
             return true
         }
@@ -138,12 +121,7 @@ private class FullScreenLayout(
     }
 
     fun dismiss() {
-        visible.targetState = false
-    }
-
-    private fun destroy() {
         disposeComposition()
-        setViewTreeLifecycleOwner(null)
-        windowManager.removeViewImmediate(this)
+        windowManager.removeView(this)
     }
 }

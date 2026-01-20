@@ -1,9 +1,13 @@
 package me.magnum.melonds.ui.shortcutsetup
 
-import android.app.Activity
 import android.content.Intent
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.os.Bundle
+import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -11,13 +15,17 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import me.magnum.melonds.R
-import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.databinding.ActivityShortcutSetupBinding
 import me.magnum.melonds.domain.model.RomIconFiltering
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.ui.romlist.RomIcon
 import me.magnum.melonds.ui.romlist.RomListFragment
@@ -33,12 +41,25 @@ class ShortcutSetupActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_shortcut_setup)
+        val binding = ActivityShortcutSetupBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            binding.viewStatusBarBackground.updateLayoutParams {
+                height = insets.top
+            }
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                leftMargin = insets.left
+                rightMargin = insets.right
+            }
+
+            windowInsets.inset(insets.left, insets.top, insets.right, 0)
+        }
 
         val fragment = if (savedInstanceState == null) {
             RomListFragment.newInstance(false, RomListFragment.RomEnableCriteria.ENABLE_ALL).also {
                 supportFragmentManager.commit {
-                    replace(R.id.layout_root, it, FRAGMENT_ROM_LIST)
+                    replace(binding.layoutRoot.id, it, FRAGMENT_ROM_LIST)
                 }
             }
         } else {
@@ -63,7 +84,7 @@ class ShortcutSetupActivity : AppCompatActivity() {
 
             val shortcutIntent = ShortcutManagerCompat.createShortcutResultIntent(this@ShortcutSetupActivity, shortcutInfo)
 
-            setResult(Activity.RESULT_OK, shortcutIntent)
+            setResult(RESULT_OK, shortcutIntent)
             finish()
         }
     }

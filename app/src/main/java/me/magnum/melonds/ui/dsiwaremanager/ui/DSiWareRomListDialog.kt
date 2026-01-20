@@ -11,24 +11,22 @@ import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -36,21 +34,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.window.core.layout.WindowSizeClass
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.ui.common.FullScreen
+import me.magnum.melonds.ui.common.component.dialog.BaseDialog
+import me.magnum.melonds.ui.common.component.dialog.DialogButton
 import me.magnum.melonds.ui.dsiwaremanager.DSiWareRomListViewModel
 import me.magnum.melonds.ui.dsiwaremanager.model.DSiWareMangerRomListUiState
 import me.magnum.melonds.ui.romlist.RomIcon
@@ -79,7 +77,8 @@ private fun DSiWareRomListDialogImpl(
     onRomSelected: (Rom) -> Unit,
     retrieveRomIcon: suspend (Rom) -> RomIcon,
 ) {
-    val isLargeScreen = LocalConfiguration.current.screenWidthDp > 840
+    val windowSizeClass = currentWindowAdaptiveInfo(true).windowSizeClass
+    val isLargeScreen = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)
     if (isLargeScreen) {
         PopupDialog(
             romsUiState = romsUiState,
@@ -162,40 +161,39 @@ private fun PopupDialog(
     onRomSelected: (Rom) -> Unit,
     retrieveRomIcon: suspend (Rom) -> RomIcon
 ) {
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(shape = RoundedCornerShape(2.dp)) {
-            Column {
-                Text(
-                    modifier = Modifier
-                        .paddingFromBaseline(top = 40.dp, bottom = 24.dp)
-                        .padding(start = 24.dp),
-                    text = stringResource(id = R.string.select_dsiware_title),
-                    style = MaterialTheme.typography.h6,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
+    BaseDialog(
+        onDismiss = onDismiss,
+        title = stringResource(id = R.string.select_dsiware_title),
+        allowContentScroll = false,
+        content = {
+            when (romsUiState) {
+                is DSiWareMangerRomListUiState.Loading -> {
+                    Loading(Modifier.fillMaxWidth())
+                }
 
-                when (romsUiState) {
-                    is DSiWareMangerRomListUiState.Loading -> {
-                        Loading(Modifier.fillMaxWidth())
-                    }
-                    is DSiWareMangerRomListUiState.Loaded -> {
-                        DSiWareRomList(
-                            modifier = Modifier,
-                            contentPadding = PaddingValues(0.dp),
-                            roms = romsUiState.roms,
-                            onRomSelected = onRomSelected,
-                            retrieveRomIcon = retrieveRomIcon,
-                            romItemContentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
-                        )
-                    }
-                    is DSiWareMangerRomListUiState.Empty -> {
-                        Empty(Modifier.fillMaxWidth())
-                    }
+                is DSiWareMangerRomListUiState.Loaded -> {
+                    DSiWareRomList(
+                        modifier = Modifier,
+                        contentPadding = PaddingValues(0.dp),
+                        roms = romsUiState.roms,
+                        onRomSelected = onRomSelected,
+                        retrieveRomIcon = retrieveRomIcon,
+                        romItemContentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
+                    )
+                }
+
+                is DSiWareMangerRomListUiState.Empty -> {
+                    Empty(Modifier.fillMaxWidth())
                 }
             }
-        }
-    }
+        },
+        buttons = {
+            DialogButton(
+                text = stringResource(R.string.cancel),
+                onClick = onDismiss,
+            )
+        },
+    )
 }
 
 @Composable
@@ -262,7 +260,7 @@ private fun DSiWareRomList(
 
 @Composable
 private fun Empty(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.padding(16.dp), contentAlignment = Alignment.Center) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Text(text = stringResource(id = R.string.no_dsiware_roms_found))
     }
 }

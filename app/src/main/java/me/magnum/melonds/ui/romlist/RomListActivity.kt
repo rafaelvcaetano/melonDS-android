@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -14,6 +15,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.getSystemService
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.commit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -50,14 +55,25 @@ class RomListActivity : AppCompatActivity() {
 
     private var downloadProgressDialog: AlertDialog? = null
 
-    private var selectedRom: Rom? = null
-    private var selectedFirmwareConsole: ConsoleType? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        WindowCompat.enableEdgeToEdge(window)
         val binding = ActivityRomListBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.viewStatusBarBackground.updateLayoutParams {
+                height = insets.top
+            }
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                leftMargin = insets.left
+                rightMargin = insets.right
+            }
+
+            windowInsets.inset(insets.left, insets.top, insets.right, 0)
+        }
+
         emulatorLauncherValidatorDelegate = EmulatorLaunchValidatorDelegate(this, object : EmulatorLaunchValidatorDelegate.Callback {
             override fun onRomValidated(rom: Rom) {
                 val intent = EmulatorActivity.getRomEmulatorActivityIntent(this@RomListActivity, rom)
@@ -292,16 +308,10 @@ class RomListActivity : AppCompatActivity() {
     }
 
     private fun launchRom(rom: Rom) {
-        selectedRom = rom
-        selectedFirmwareConsole = null
-
         emulatorLauncherValidatorDelegate.validateRom(rom)
     }
 
     private fun launchFirmware(consoleType: ConsoleType) {
-        selectedRom = null
-        selectedFirmwareConsole = consoleType
-
         emulatorLauncherValidatorDelegate.validateFirmware(consoleType)
     }
 

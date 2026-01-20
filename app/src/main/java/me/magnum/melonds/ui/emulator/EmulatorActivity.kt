@@ -28,6 +28,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.core.os.ConfigurationCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isGone
@@ -278,6 +279,17 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
         setContentView(binding.root)
         setupFullscreen()
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            view.setPadding(
+                insets.left,
+                insets.top,
+                insets.right,
+                insets.bottom,
+            )
+
+            WindowInsetsCompat.CONSUMED
+        }
 
         onBackPressedDispatcher.addCallback(backPressedCallback)
 
@@ -319,7 +331,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 viewModel.setUiSize(newWidth, newHeight)
             }
         }
-        binding.root.addOnLayoutChangeListener(layoutChangeListener)
+        binding.viewLayoutControls.addOnLayoutChangeListener(layoutChangeListener)
 
         updateOrientation(resources.configuration)
         disableScreenTimeOut()

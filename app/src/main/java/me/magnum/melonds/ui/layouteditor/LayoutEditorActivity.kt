@@ -7,6 +7,7 @@ import android.hardware.display.DisplayManager
 import android.os.Bundle
 import android.os.Handler
 import android.view.Display
+import android.widget.RelativeLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -14,6 +15,7 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
@@ -46,7 +48,7 @@ class LayoutEditorActivity : AppCompatActivity() {
         const val KEY_IS_EXTERNAL = "is_external"
     }
 
-    enum class MenuOption(@StringRes val stringRes: Int) {
+    enum class MenuOption(@field:StringRes val stringRes: Int) {
         PROPERTIES(R.string.properties),
         BACKGROUNDS(R.string.background),
         REVERT(R.string.revert_changes),
@@ -127,11 +129,25 @@ class LayoutEditorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         handler = Handler(mainLooper)
 
-        layoutEditorManager = LayoutEditorManagerView(LayoutTarget.MAIN_SCREEN, picasso, null, this).apply {
+        val container = RelativeLayout(this).apply {
             setBackgroundColor(Color.BLACK)
+        }
+        layoutEditorManager = LayoutEditorManagerView(LayoutTarget.MAIN_SCREEN, picasso, null, this).apply {
             listener = layoutEditorManagerListener
         }
-        setContentView(layoutEditorManager)
+        container.addView(layoutEditorManager, RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT)
+        setContentView(container)
+        ViewCompat.setOnApplyWindowInsetsListener(container) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            view.setPadding(
+                insets.left,
+                insets.top,
+                insets.right,
+                insets.bottom,
+            )
+
+            WindowInsetsCompat.CONSUMED
+        }
 
         onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {

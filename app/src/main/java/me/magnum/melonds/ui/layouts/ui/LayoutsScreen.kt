@@ -8,10 +8,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -57,6 +59,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -144,6 +147,7 @@ private fun LayoutsScreenContent(
                     title = { Text(stringResource(R.string.layouts)) },
                     backgroundColor = MaterialTheme.colors.primary,
                     contentColor = MaterialTheme.colors.onPrimary,
+                    windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top),
                     actions = {
                         CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
                             IconButton(onClick = onCreateLayout) {
@@ -185,7 +189,7 @@ private fun LayoutsScreenContent(
         }
     }
 
-    val resources = LocalContext.current.resources
+    val resources = LocalResources.current
     LaunchedEffect(deleteLayoutEvent) {
         deleteLayoutEvent.collect { layout ->
             val result = snackbarHostState.showSnackbar(
@@ -220,7 +224,7 @@ private fun LayoutItem(
             }
             .clickable(onClick = onLayoutSelected)
             .onKeyEvent {
-                if (it.type == KeyEventType.KeyDown && it.key == Key.ButtonSelect) {
+                if (it.type == KeyEventType.KeyDown && it.key == Key.Menu) {
                     showMenu = true
                     true
                 } else {

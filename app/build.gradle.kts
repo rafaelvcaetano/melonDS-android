@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.hilt.android)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
@@ -51,7 +50,7 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
         }
         getByName("debug") {
@@ -90,7 +89,7 @@ android {
     }
     sourceSets {
         // Adds exported schema location as test app assets.
-        getByName("androidTest").assets.srcDir("$projectDir/schemas")
+        getByName("androidTest").assets.directories += "$projectDir/schemas"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
@@ -99,8 +98,9 @@ android {
 
         kotlin {
             jvmToolchain(21)
-            kotlinOptions {
-                freeCompilerArgs += "-opt-in=kotlin.ExperimentalUnsignedTypes"
+
+            compilerOptions {
+                freeCompilerArgs.add("-opt-in=kotlin.ExperimentalUnsignedTypes")
             }
         }
     }
@@ -145,6 +145,7 @@ dependencies {
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.compose.foundation)
     implementation(libs.compose.material)
+    implementation(libs.compose.material3)
     implementation(libs.compose.material.icons)
     implementation(libs.compose.navigation)
     implementation(libs.compose.ui)

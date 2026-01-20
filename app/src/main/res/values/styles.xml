@@ -6,10 +6,11 @@
         <item name="colorOnPrimary">@color/colorOnPrimary</item>
         <item name="colorOnSecondary">@color/colorOnSecondary</item>
         <item name="android:navigationBarColor">?android:attr/colorBackground</item>
+        <item name="android:statusBarColor">@color/colorPrimaryDark</item>
+        <item name="statusBarBackground">@color/colorPrimaryDark</item>
         <item name="android:windowLightNavigationBar">@bool/lightNavigationBar</item>
         <item name="actionOverflowMenuStyle">@style/Menu.OverflowUnder</item>
         <item name="preferenceTheme">@style/Preference</item>
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
     </style>
 
     <style name="AppTheme.NoToolbar" parent="Theme.AppCompat.DayNight.NoActionBar">
@@ -37,7 +38,6 @@
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowTranslucentNavigation">true</item>
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
 
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -47,6 +47,15 @@
     <style name="ComposeDialog" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
         <item name="android:windowMinWidthMajor">@android:dimen/dialog_min_width_major</item>
         <item name="android:windowMinWidthMinor">@android:dimen/dialog_min_width_minor</item>
+    </style>
+    
+    <style name="FullscreenDialog">
+        <item name="android:windowEnterAnimation">@anim/dialog_slide_in</item>
+        <item name="android:windowExitAnimation">@anim/dialog_slide_out</item>
+    </style>
+
+    <style name="FullscreenDialog.Restore">
+        <item name="android:windowEnterAnimation">@null</item>
     </style>
 
     <style name="Preference" parent="@style/PreferenceThemeOverlay">

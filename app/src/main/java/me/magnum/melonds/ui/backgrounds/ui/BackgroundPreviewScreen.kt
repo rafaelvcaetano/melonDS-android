@@ -75,7 +75,7 @@ fun BackgroundPreviewScreen(
                 AsyncImage(
                     modifier = Modifier
                         .sharedElement(
-                            state = sharedTransitionScope.rememberSharedContentState(background.id?.toString().orEmpty()),
+                            sharedContentState = sharedTransitionScope.rememberSharedContentState(background.id?.toString().orEmpty()),
                             animatedVisibilityScope = animatedContentScope,
                         )
                         .fillMaxSize()

@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
@@ -58,7 +59,7 @@ class SoftInputBehaviourPreferencesFragment : Fragment(), PreferenceFragmentTitl
 @Composable
 private fun SoftInputBehaviourPreferencesScreen() {
     val context = LocalContext.current
-    val resources = LocalContext.current.resources
+    val resources = LocalResources.current
     val behaviourValues = remember {
         resources.getStringArray(R.array.soft_input_behaviour)
     }

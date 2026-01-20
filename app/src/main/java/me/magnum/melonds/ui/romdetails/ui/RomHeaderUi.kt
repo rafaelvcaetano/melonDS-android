@@ -44,8 +44,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -124,7 +124,7 @@ fun RomHeaderUi(
                         Text(text = stringResource(R.string.play).uppercase())
                     }
 
-                    val resources = LocalContext.current.resources
+                    val resources = LocalResources.current
                     val romPlayTime = remember(rom.totalPlayTime) {
                         rom.totalPlayTime.toComponents { hours, minutes, _, _ ->
                             if (hours > 0) {
@@ -204,7 +204,7 @@ private fun PreviewRomHeaderUi() {
                 retroAchievementsHash = "",
             ),
             pagerState = pagerState,
-            initialFocusRequester = FocusRequester(),
+            initialFocusRequester = remember { FocusRequester() },
             onLaunchRom = { },
             onNavigateBack = { }
         ) {

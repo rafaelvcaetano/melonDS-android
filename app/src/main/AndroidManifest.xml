@@ -31,10 +31,9 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:appCategory="game"
+        android:enableOnBackInvokedCallback="true"
         android:isGame="true"
         android:theme="@style/AppTheme">
-
-        <profileable android:shell="true"/>
 
         <meta-data
             android:name="android.game_mode_config"
@@ -60,6 +59,7 @@
             android:name=".ui.emulator.EmulatorActivity"
             android:theme="@style/EmulatorTheme"
             android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|keyboard|uiMode"
+            android:enableOnBackInvokedCallback="false"
             android:launchMode="singleTask"
             android:exported="true">
             <intent-filter>
@@ -69,11 +69,11 @@
             </intent-filter>
         </activity>
         <activity
-                android:name=".ui.dsiwaremanager.DSiWareManagerActivity"
-                android:label="@string/dsiware_manager"
-                android:parentActivityName=".ui.romlist.RomListActivity"
-                android:theme="@style/AppTheme.NoToolbar"
-                android:exported="false">
+            android:name=".ui.dsiwaremanager.DSiWareManagerActivity"
+            android:label="@string/dsiware_manager"
+            android:parentActivityName=".ui.romlist.RomListActivity"
+            android:theme="@style/AppTheme.NoToolbar"
+            android:exported="false">
         </activity>
         <activity
             android:name=".ui.settings.SettingsActivity"
@@ -89,7 +89,6 @@
             android:label="@string/key_mapping"
             android:parentActivityName=".ui.settings.SettingsActivity"
             android:theme="@style/AppTheme.NoToolbar"
-            android:enableOnBackInvokedCallback="true"
             android:exported="false" >
         </activity>
         <activity
@@ -125,7 +124,6 @@
             android:name=".ui.cheats.CheatsActivity"
             android:label="@string/cheats"
             android:theme="@style/AppTheme.NoToolbar"
-            android:enableOnBackInvokedCallback="true"
             android:exported="false" >
         </activity>
         <activity
@@ -133,21 +131,20 @@
             android:label="@string/layouts"
             android:parentActivityName=".ui.settings.SettingsActivity"
             android:theme="@style/AppTheme.NoToolbar"
-            android:enableOnBackInvokedCallback="true"
             android:exported="false">
         </activity>
         <activity
             android:name=".ui.layouts.LayoutSelectorActivity"
             android:label="@string/layouts"
             android:theme="@style/AppTheme.NoToolbar"
-            android:enableOnBackInvokedCallback="true"
             android:exported="false">
         </activity>
         <activity
             android:name=".ui.layouteditor.LayoutEditorActivity"
             android:theme="@style/EmulatorTheme"
             android:label="@string/layout_editor"
-            android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|keyboard|uiMode">
+            android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|keyboard|uiMode"
+            android:enableOnBackInvokedCallback="false" >
         </activity>
         <activity
             android:name=".ui.backgrounds.BackgroundsActivity"

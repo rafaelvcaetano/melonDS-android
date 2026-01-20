@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -101,7 +102,7 @@ fun GameMasteredPopupUi(
                         Box(Modifier.fillMaxHeight())
                     }
                     MasteryPopupState.SHOW_FULL -> {
-                        val resources = LocalContext.current.resources
+                        val resources = LocalResources.current
                         val masteryText = if (masteryEvent.forHardcodeMode) {
                             stringResource(R.string.game_mastered, masteryEvent.gameTitle)
                         } else {
