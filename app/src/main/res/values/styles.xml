@@ -44,11 +44,6 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="ComposeDialog" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
-        <item name="android:windowMinWidthMajor">@android:dimen/dialog_min_width_major</item>
-        <item name="android:windowMinWidthMinor">@android:dimen/dialog_min_width_minor</item>
-    </style>
-    
     <style name="FullscreenDialog">
         <item name="android:windowEnterAnimation">@anim/dialog_slide_in</item>
         <item name="android:windowExitAnimation">@anim/dialog_slide_out</item>
@@ -60,10 +55,6 @@
 
     <style name="Preference" parent="@style/PreferenceThemeOverlay">
         <item name="android:tint">@color/buttonContrasted</item>
-    </style>
-
-    <style name="Toolbar.Transparent" parent="Widget.AppCompat.Light.ActionBar">
-        <item name="android:windowActionBarOverlay">true</item>
     </style>
 
     <style name="Button.Ripple" parent="android:Widget.ImageButton">
@@ -85,82 +76,9 @@
         <item name="android:overlapAnchor">false</item>
     </style>
 
-    <style name="Layout">
-    </style>
-
-    <style name="Layout.RomSetting">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:minHeight">?android:attr/listPreferredItemHeight</item>
-        <item name="android:background">?android:attr/selectableItemBackground</item>
-        <item name="android:clickable">true</item>
-        <item name="android:focusable">true</item>
-        <item name="android:paddingStart">?android:attr/listPreferredItemPaddingStart</item>
-        <item name="android:paddingEnd">?android:attr/listPreferredItemPaddingEnd</item>
-        <item name="android:orientation">horizontal</item>
-        <item name="android:gravity">center_vertical</item>
-    </style>
-
-    <style name="Layout.RomSetting.SeekBar">
-        <item name="android:clipChildren">false</item>
-        <item name="android:clipToPadding">false</item>
-    </style>
-
-    <style name="Layout.RomSettingContent">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginEnd">6dip</item>
-        <item name="android:layout_marginStart">6dip</item>
-        <item name="android:layout_marginTop">6dip</item>
-        <item name="android:layout_marginBottom">6dip</item>
-        <item name="android:orientation">vertical</item>
-        <item name="android:layout_weight">1</item>
-    </style>
-
-    <style name="Layout.RomSettingContent.SeekBar">
-        <item name="android:paddingEnd">16dp</item>
-        <item name="android:clipChildren">false</item>
-        <item name="android:clipToPadding">false</item>
-    </style>
-
-    <style name="Text.RomSetting.Title" parent="Widget.AppCompat.TextView">
-        <item name="android:singleLine">true</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
-        <item name="android:textColor">?android:attr/textColorPrimary</item>
-        <item name="android:ellipsize">marquee</item>
-        <item name="android:fadingEdge">horizontal</item>
-    </style>
-
-    <style name="Text.RomSetting.Summary" parent="Widget.AppCompat.TextView">
-        <item name="android:textAppearance">?android:attr/textAppearanceSmall</item>
-        <item name="android:textColor">?android:attr/textColorSecondary</item>
-    </style>
-
     <style name="Text.SaveStateSlot" parent="Widget.AppCompat.TextView">
         <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
         <item name="android:textColor">?android:attr/textColorPrimary</item>
-    </style>
-
-    <style name="SeekBar.RomSetting" parent="Widget.AppCompat.SeekBar">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:paddingStart">0dp</item>
-        <item name="android:paddingEnd">0dp</item>
-        <item name="android:paddingTop">15dp</item>
-        <item name="android:paddingBottom">15dp</item>
-        <item name="android:clickable">false</item>
-        <item name="android:focusable">false</item>
-        <item name="android:background">@null</item>
-    </style>
-
-    <style name="Divider">
-        <item name="android:background">@color/divider</item>
-    </style>
-
-    <style name="Divider.Horizontal">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">1dp</item>
     </style>
 
     <style name="ColourTile">
