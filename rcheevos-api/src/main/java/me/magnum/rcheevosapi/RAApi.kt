@@ -233,7 +233,7 @@ class RAApi(
             executeRequest(request)
         }.suspendMapCatching { response ->
             if (response.isSuccessful) {
-                val body = response.body?.charStream()?.readText() ?: throw Exception("Could not retrieve body")
+                val body = response.body.charStream().readText()
                 val responseJson = Json.parseToJsonElement(body).jsonObject
                 val isSuccessful = responseJson["Success"]!!.jsonPrimitive.boolean
                 if (!isSuccessful) {
@@ -272,7 +272,7 @@ class RAApi(
             executeRequest(request)
         }.suspendMapCatching { response ->
             if (response.isSuccessful) {
-                val body = response.body?.charStream()?.readText() ?: throw Exception("Could not retrieve body")
+                val body = response.body.charStream().readText()
                 val responseJson = Json.parseToJsonElement(body).jsonObject
                 val isSuccessful = responseJson["Success"]!!.jsonPrimitive.boolean
                 if (!isSuccessful) {

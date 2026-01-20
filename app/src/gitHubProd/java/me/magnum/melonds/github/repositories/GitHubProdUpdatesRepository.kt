@@ -14,9 +14,9 @@ import me.magnum.melonds.github.PREF_KEY_GITHUB_CHECK_FOR_UPDATES
 import me.magnum.melonds.github.dtos.ReleaseDto
 import me.magnum.melonds.utils.PackageManagerCompat
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
-import java.time.Instant
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
+import kotlin.time.Instant
 
 class GitHubProdUpdatesRepository(private val context: Context, private val api: GitHubApi, private val preferences: SharedPreferences) : UpdatesRepository {
     companion object {

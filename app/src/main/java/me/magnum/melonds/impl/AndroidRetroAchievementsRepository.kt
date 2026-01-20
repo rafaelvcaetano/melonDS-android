@@ -37,9 +37,10 @@ import me.magnum.rcheevosapi.model.RALeaderboard
 import me.magnum.rcheevosapi.model.RASubmitLeaderboardEntryResponse
 import me.magnum.rcheevosapi.model.RAUserAuth
 import java.net.URL
-import java.time.Duration
-import java.time.Instant
 import java.util.concurrent.TimeUnit
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Instant
 
 class AndroidRetroAchievementsRepository(
     private val raApi: RAApi,
@@ -212,7 +213,7 @@ class AndroidRetroAchievementsRepository(
                     }
                     retroAchievementsDao.updateGameHashLibrary(gameHashEntities)
                     sharedPreferences.edit {
-                        putLong(RA_HASH_LIBRARY_LAST_UPDATED, Instant.now().toEpochMilli())
+                        putLong(RA_HASH_LIBRARY_LAST_UPDATED, Clock.System.now().toEpochMilliseconds())
                     }
                 }
                 .map {
@@ -314,10 +315,10 @@ class AndroidRetroAchievementsRepository(
 
     private fun mustRefreshHashLibrary(): Boolean {
         val hashLibraryLastUpdateTimestamp = sharedPreferences.getLong(RA_HASH_LIBRARY_LAST_UPDATED, 0)
-        val hashLibraryLastUpdate = Instant.ofEpochMilli(hashLibraryLastUpdateTimestamp)
+        val hashLibraryLastUpdate = Instant.fromEpochMilliseconds(hashLibraryLastUpdateTimestamp)
 
         // Update the game hash library once a day
-        return Duration.between(hashLibraryLastUpdate, Instant.now()) > Duration.ofDays(1)
+        return (Clock.System.now() - hashLibraryLastUpdate) > 1.days
     }
 
     private fun mustRefreshAchievementSet(gameSetMetadata: RAGameSetMetadata?): Boolean {
@@ -326,7 +327,7 @@ class AndroidRetroAchievementsRepository(
         }
 
         // Update the achievement set once a week
-        return Duration.between(gameSetMetadata.lastAchievementSetUpdated, Instant.now()) >= Duration.ofDays(7)
+        return (Clock.System.now() - gameSetMetadata.lastAchievementSetUpdated) >= 7.days
     }
 
     private fun mustRefreshUserData(gameSetMetadata: RAGameSetMetadata?, forHardcoreMode: Boolean): Boolean {
@@ -341,7 +342,7 @@ class AndroidRetroAchievementsRepository(
         }
 
         // Sync user achievement data once a day
-        return Duration.between(lastUserDataUpdateTimestamp, Instant.now()) >= Duration.ofDays(1)
+        return (Clock.System.now() - lastUserDataUpdateTimestamp) >= 1.days
     }
 
     private fun scheduleAchievementSubmissionJob() {
@@ -363,18 +364,18 @@ class AndroidRetroAchievementsRepository(
             private set
 
         fun withNewAchievementSetUpdate(): RAGameSetMetadata {
-            return (currentMetadata?.copy(lastAchievementSetUpdated = Instant.now()) ?: RAGameSetMetadata(gameId.id, Instant.now(), null, null)).also {
+            return (currentMetadata?.copy(lastAchievementSetUpdated = Clock.System.now()) ?: RAGameSetMetadata(gameId.id, Clock.System.now(), null, null)).also {
                 currentMetadata = it
             }
         }
 
         fun withNewUserAchievementsUpdate(forHardcoreMode: Boolean): RAGameSetMetadata {
             return if (forHardcoreMode) {
-                currentMetadata?.copy(lastHardcoreUserDataUpdated = Instant.now()) ?: RAGameSetMetadata(gameId.id, null, null, Instant.now()).also {
+                currentMetadata?.copy(lastHardcoreUserDataUpdated = Clock.System.now()) ?: RAGameSetMetadata(gameId.id, null, null, Clock.System.now()).also {
                     currentMetadata = it
                 }
             } else {
-                currentMetadata?.copy(lastSoftcoreUserDataUpdated = Instant.now()) ?: RAGameSetMetadata(gameId.id, null, Instant.now(), null).also {
+                currentMetadata?.copy(lastSoftcoreUserDataUpdated = Clock.System.now()) ?: RAGameSetMetadata(gameId.id, null, Clock.System.now(), null).also {
                     currentMetadata = it
                 }
             }

@@ -2,7 +2,7 @@ package me.magnum.melonds.domain.model.appupdate
 
 import android.net.Uri
 import me.magnum.melonds.domain.model.Version
-import java.time.Instant
+import kotlin.time.Instant
 
 data class AppUpdate(
     val type: Type,

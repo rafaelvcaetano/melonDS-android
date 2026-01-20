@@ -12,8 +12,9 @@ import me.magnum.melonds.github.APK_CONTENT_TYPE
 import me.magnum.melonds.github.GitHubApi
 import me.magnum.melonds.github.PREF_KEY_GITHUB_CHECK_FOR_UPDATES
 import me.magnum.melonds.github.dtos.ReleaseDto
-import java.time.Duration
-import java.time.Instant
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Instant
 
 class GitHubNightlyUpdatesRepository(private val api: GitHubApi, private val preferences: SharedPreferences) : UpdatesRepository {
     companion object {
@@ -58,7 +59,7 @@ class GitHubNightlyUpdatesRepository(private val api: GitHubApi, private val pre
         // This doesn't mean that the user has actually installed the update, but we have no way to determine that. As such, just assume that the update will be installed and
         // store the date of the update
         preferences.edit {
-            putLong(KEY_LAST_RELEASE_DATE, update.updateDate.toEpochMilli())
+            putLong(KEY_LAST_RELEASE_DATE, update.updateDate.toEpochMilliseconds())
         }
     }
 
@@ -73,16 +74,16 @@ class GitHubNightlyUpdatesRepository(private val api: GitHubApi, private val pre
             return true
         }
 
-        val now = Instant.now()
-        return now.toEpochMilli() > nextUpdateCheckTime
+        val now = Clock.System.now()
+        return now.toEpochMilliseconds() > nextUpdateCheckTime
     }
 
     private fun scheduleNextUpdate() {
-        val now = Instant.now()
-        val nextUpdateDate = now + Duration.ofDays(1)
+        val now = Clock.System.now()
+        val nextUpdateDate = now + 1.days
 
         preferences.edit {
-            putLong(KEY_NEXT_CHECK_DATE, nextUpdateDate.toEpochMilli())
+            putLong(KEY_NEXT_CHECK_DATE, nextUpdateDate.toEpochMilliseconds())
         }
     }
 
@@ -94,7 +95,7 @@ class GitHubNightlyUpdatesRepository(private val api: GitHubApi, private val pre
 
             val releaseDate = Instant.parse(releaseDto.createdAt)
             preferences.edit {
-                putLong(KEY_LAST_RELEASE_DATE, releaseDate.toEpochMilli())
+                putLong(KEY_LAST_RELEASE_DATE, releaseDate.toEpochMilliseconds())
             }
             scheduleNextUpdate()
             return false
@@ -102,6 +103,6 @@ class GitHubNightlyUpdatesRepository(private val api: GitHubApi, private val pre
 
         val thisReleaseDate = Instant.parse(releaseDto.createdAt)
 
-        return thisReleaseDate.toEpochMilli() > lastReleaseDate
+        return thisReleaseDate.toEpochMilliseconds() > lastReleaseDate
     }
 }
