@@ -94,7 +94,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
-        isCoreLibraryDesugaringEnabled = true
 
         kotlin {
             jvmToolchain(21)
@@ -108,8 +107,6 @@ android {
 
 dependencies {
     val gitHubImplementation by configurations
-
-    coreLibraryDesugaring(libs.android.desugaring)
 
     implementation(projects.masterswitch)
     implementation(projects.rcheevosApi)

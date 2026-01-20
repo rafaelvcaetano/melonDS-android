@@ -1,6 +1,6 @@
 package me.magnum.melonds.impl.dtos.rom
 
-import android.net.Uri
+import androidx.core.net.toUri
 import com.google.gson.annotations.SerializedName
 import me.magnum.melonds.domain.model.rom.config.RomGbaSlotConfig
 
@@ -24,8 +24,8 @@ data class RomGbaSlotConfigDto(
         return when (type) {
             Type.None -> RomGbaSlotConfig.None
             Type.GbaRom -> RomGbaSlotConfig.GbaRom(
-                romPath = gbaRomPath?.let { Uri.parse(it) },
-                savePath = gbaSavePath?.let { Uri.parse(it) },
+                romPath = gbaRomPath?.toUri(),
+                savePath = gbaSavePath?.toUri(),
             )
             Type.MemoryExpansion -> RomGbaSlotConfig.MemoryExpansion
         }

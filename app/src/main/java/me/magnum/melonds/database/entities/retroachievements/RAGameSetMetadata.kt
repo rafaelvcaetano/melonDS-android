@@ -3,7 +3,7 @@ package me.magnum.melonds.database.entities.retroachievements
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.time.Instant
+import kotlin.time.Instant
 
 @Entity(tableName = "ra_game_set_metadata")
 data class RAGameSetMetadata(

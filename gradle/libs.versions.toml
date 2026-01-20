@@ -11,7 +11,6 @@ commonsCompress = "1.28.0"
 composeBom = "2026.01.00"
 constraintLayout = "2.2.1"
 core = "1.17.0"
-desugaring = "2.1.5"
 documentFile = "1.1.0"
 fragment = "1.8.9"
 gradle = "9.0.0"
@@ -72,7 +71,6 @@ androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefre
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
 androidx-work = { module = "androidx.work:work-runtime", version.ref = "work" }
 android-material = { module = "com.google.android.material:material", version.ref = "material" }
-android-desugaring = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugaring" }
 
 # Compose
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
