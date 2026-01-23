@@ -20,7 +20,7 @@ import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
 import me.magnum.melonds.ui.settings.RetroAchievementsSettingsViewModel
 import me.magnum.melonds.ui.settings.model.RetroAchievementsAccountState
 
-class RetroAchievementsPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
+class RetroAchievementsPreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTitleProvider {
 
     private val viewModel by activityViewModels<RetroAchievementsSettingsViewModel>()
 

@@ -13,7 +13,7 @@ import me.magnum.melonds.extensions.isMicrophonePermissionGranted
 import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 
-class AudioPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
+class AudioPreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTitleProvider {
 
     private lateinit var micSourcePreference: ListPreference
 

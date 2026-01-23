@@ -21,6 +21,7 @@
         <item name="colorOnSecondary">@color/colorOnSecondary</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightNavigationBar">@bool/lightNavigationBar</item>
+        <item name="toolbarNavigationButtonStyle">@style/Toolbar.Button.Navigation</item>
         <item name="actionOverflowMenuStyle">@style/Menu.OverflowUnder</item>
         <item name="preferenceTheme">@style/Preference</item>
     </style>
@@ -42,6 +43,15 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="Toolbar.Button.Navigation" parent="Widget.AppCompat.Toolbar.Button.Navigation">
+        <item name="tint">@color/colorOnPrimary</item>
+    </style>
+
+    <style name="Toolbar.TitleText" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textSize">20sp</item>
+        <item name="lineHeight">24sp</item>
     </style>
 
     <style name="FullscreenDialog">

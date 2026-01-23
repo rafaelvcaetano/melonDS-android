@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
@@ -79,7 +80,10 @@ private fun SoftInputBehaviourPreferencesScreen() {
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).selectableGroup(),
+        modifier = Modifier.fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .selectableGroup()
+            .safeDrawingPadding(),
     ) {
         SoftInputBehaviour.entries.forEachIndexed { index, behaviour ->
             if (index > 0) {

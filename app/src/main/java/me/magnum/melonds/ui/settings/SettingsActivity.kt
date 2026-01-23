@@ -2,12 +2,14 @@ package me.magnum.melonds.ui.settings
 
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.fragment.app.commit
 import androidx.fragment.app.commitNow
 import androidx.preference.Preference
@@ -34,19 +36,32 @@ class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPrefere
         WindowCompat.enableEdgeToEdge(window)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setupActionBar()
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        var defaultContentInsetStartWithNavigation = -1
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            if (defaultContentInsetStartWithNavigation == -1) {
+                defaultContentInsetStartWithNavigation = binding.toolbar.contentInsetStartWithNavigation
+            }
+
+            val startInset = if (binding.toolbar.layoutDirection == View.LAYOUT_DIRECTION_LTR) insets.left else insets.right
+            binding.toolbar.contentInsetStartWithNavigation = defaultContentInsetStartWithNavigation + startInset
+            binding.toolbar.updatePadding(
+                left = insets.left,
+                right = insets.right,
+            )
             binding.viewStatusBarBackground.updateLayoutParams {
                 height = insets.top
             }
-            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            binding.settingsContainer.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 leftMargin = insets.left
-                bottomMargin = insets.bottom
                 rightMargin = insets.right
             }
 
-            WindowInsetsCompat.CONSUMED
+            // Leave bottom insets to be consumed by the content fragments
+            windowInsets.inset(insets.left, insets.top, insets.right, 0)
         }
 
         supportFragmentManager.addOnBackStackChangedListener {
@@ -64,11 +79,6 @@ class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPrefere
             }
         }
         updateTitle()
-    }
-
-    private fun setupActionBar() {
-        val actionBar = supportActionBar
-        actionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

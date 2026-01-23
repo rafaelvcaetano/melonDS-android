@@ -628,7 +628,6 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
 
         if (viewModel.emulatorState.value.isRunning()) {
             viewModel.pauseEmulator(false)
-            backPressedCallback.isEnabled = false
 
             activeOverlays.addActiveOverlay(EmulatorOverlay.SWITCH_NEW_ROM_DIALOG)
             AlertDialog.Builder(this)
@@ -645,7 +644,6 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                         activeOverlays.removeActiveOverlay(EmulatorOverlay.SWITCH_NEW_ROM_DIALOG)
                     }
                     .setOnCancelListener {
-                        backPressedCallback.isEnabled = true
                         viewModel.resumeEmulator()
                     }
                     .show()

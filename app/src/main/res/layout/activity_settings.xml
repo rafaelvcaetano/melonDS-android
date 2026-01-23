@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.romlist.RomListActivity">
+    tools:context=".ui.settings.SettingsActivity">
 
     <View
         android:id="@+id/view_status_bar_background"
@@ -13,13 +13,23 @@
         android:layout_height="0dp"
         android:background="@color/colorPrimaryDark"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/settings_container" />
+        app:layout_constraintBottom_toTopOf="@id/toolbar" />
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="4dp"
+        android:background="@color/colorPrimary"
+        app:titleTextColor="@color/colorOnPrimary"
+        app:titleTextAppearance="@style/Toolbar.TitleText"
+        app:layout_constraintTop_toBottomOf="@id/view_status_bar_background" />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/settings_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/view_status_bar_background"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
