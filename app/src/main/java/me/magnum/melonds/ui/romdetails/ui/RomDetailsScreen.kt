@@ -52,7 +52,7 @@ fun RomDetailsScreen(
         pageCount = { RomDetailsTab.entries.size },
     )
     val focusRequester = remember { FocusRequester() }
-    val pageFocusRequesters = remember { listOf(FocusRequester(), FocusRequester()) }
+    val pageFocusRequesters = remember { List(RomDetailsTab.entries.size) { FocusRequester() } }
     val coroutineScope = rememberCoroutineScope()
     val navigateToTab = remember(coroutineScope, pagerState) {
         { tab: RomDetailsTab ->
