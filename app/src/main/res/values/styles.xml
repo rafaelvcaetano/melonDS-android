@@ -1,19 +1,5 @@
 <resources>
-    <style name="AppTheme" parent="Theme.AppCompat.DayNight.DarkActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="colorOnPrimary">@color/colorOnPrimary</item>
-        <item name="colorOnSecondary">@color/colorOnSecondary</item>
-        <item name="android:navigationBarColor">?android:attr/colorBackground</item>
-        <item name="android:statusBarColor">@color/colorPrimaryDark</item>
-        <item name="statusBarBackground">@color/colorPrimaryDark</item>
-        <item name="android:windowLightNavigationBar">@bool/lightNavigationBar</item>
-        <item name="actionOverflowMenuStyle">@style/Menu.OverflowUnder</item>
-        <item name="preferenceTheme">@style/Preference</item>
-    </style>
-
-    <style name="AppTheme.NoToolbar" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
@@ -43,6 +29,14 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="Toolbar">
+        <item name="android:background">@color/colorPrimary</item>
+        <item name="android:elevation">4dp</item>
+        <item name="android:theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="popupTheme">@style/ThemeOverlay.AppCompat.DayNight</item>
+        <item name="titleTextAppearance">@style/Toolbar.TitleText</item>
     </style>
 
     <style name="Toolbar.Button.Navigation" parent="Widget.AppCompat.Toolbar.Button.Navigation">

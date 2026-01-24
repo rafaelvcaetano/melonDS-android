@@ -19,10 +19,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:elevation="4dp"
-        android:background="@color/colorPrimary"
-        app:titleTextColor="@color/colorOnPrimary"
-        app:titleTextAppearance="@style/Toolbar.TitleText"
+        style="@style/Toolbar"
         app:layout_constraintTop_toBottomOf="@id/view_status_bar_background" />
 
     <androidx.fragment.app.FragmentContainerView

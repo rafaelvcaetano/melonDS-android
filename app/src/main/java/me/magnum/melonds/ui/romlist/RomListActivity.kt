@@ -19,6 +19,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.fragment.app.commit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -61,12 +62,24 @@ class RomListActivity : AppCompatActivity() {
         WindowCompat.enableEdgeToEdge(window)
         val binding = ActivityRomListBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+        setSupportActionBar(binding.toolbar)
+
+        var defaultContentInsetLeft = -1
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            if (defaultContentInsetLeft == -1) {
+                defaultContentInsetLeft = binding.toolbar.contentInsetLeft
+            }
+
+            binding.toolbar.setContentInsetsAbsolute(defaultContentInsetLeft + insets.left, binding.toolbar.contentInsetRight)
+            binding.toolbar.updatePadding(
+                left = insets.left,
+                right = insets.right,
+            )
             binding.viewStatusBarBackground.updateLayoutParams {
                 height = insets.top
             }
-            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            binding.layoutMain.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 leftMargin = insets.left
                 rightMargin = insets.right
             }

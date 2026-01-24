@@ -33,7 +33,7 @@
         android:appCategory="game"
         android:enableOnBackInvokedCallback="true"
         android:isGame="true"
-        android:theme="@style/AppTheme.NoToolbar">
+        android:theme="@style/AppTheme">
 
         <meta-data
             android:name="android.game_mode_config"
