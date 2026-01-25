@@ -221,12 +221,19 @@ private class AchievementUpdatesListState {
     }
 
     private fun handleProgressUpdated(event: RAEventUi.AchievementProgressUpdated) {
-        val existingProgressIndex = visibleInfos.indexOfFirst { it is AchievementProgress }
+        // Start by checking if there is an existing progress update for this exact achievement
+        val exactAchievementProgressIndex = visibleInfos.indexOfFirst { (it as? AchievementProgress)?.achievement?.id == event.achievement.id  }
 
-        if (existingProgressIndex != -1) {
-            handleExistingProgress(existingProgressIndex, event)
+        if (exactAchievementProgressIndex != -1) {
+            handleExistingProgress(exactAchievementProgressIndex, event)
         } else {
-            addNewProgress(event)
+            // Check if there is ANY existing progress update
+            val existingProgressIndex = visibleInfos.indexOfFirst { it is AchievementProgress }
+            if (existingProgressIndex != -1) {
+                handleExistingProgress(existingProgressIndex, event)
+            } else {
+                addNewProgress(event)
+            }
         }
     }
 
