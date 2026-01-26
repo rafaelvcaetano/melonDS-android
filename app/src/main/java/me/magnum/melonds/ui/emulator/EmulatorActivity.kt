@@ -58,6 +58,7 @@ import me.magnum.melonds.domain.model.ControllerConfiguration
 import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.SaveStateSlot
+import me.magnum.melonds.domain.model.emulator.EmulatorEvent
 import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.layout.ScreenFold
 import me.magnum.melonds.domain.model.rom.Rom
@@ -77,6 +78,7 @@ import me.magnum.melonds.ui.emulator.input.FrontendInputHandler
 import me.magnum.melonds.ui.emulator.input.INativeInputListener
 import me.magnum.melonds.ui.emulator.input.InputProcessor
 import me.magnum.melonds.ui.emulator.input.MelonTouchHandler
+import me.magnum.melonds.ui.emulator.input.EmulatorRumbleManager
 import me.magnum.melonds.ui.emulator.model.EmulatorOverlay
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
@@ -178,6 +180,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     }
 
     private val connectedControllerManager = ConnectedControllerManager()
+    private lateinit var emulatorRumbleManager: EmulatorRumbleManager
     private lateinit var frameRenderCoordinator: FrameRenderCoordinator
     private lateinit var mainScreenRenderer: DSRenderer
     private lateinit var melonTouchHandler: MelonTouchHandler
@@ -293,6 +296,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
 
         onBackPressedDispatcher.addCallback(backPressedCallback)
 
+        emulatorRumbleManager = EmulatorRumbleManager(this, lifecycleScope, connectedControllerManager)
         frameRenderCoordinator = FrameRenderCoordinator()
         melonTouchHandler = MelonTouchHandler()
         mainScreenRenderer = DSRenderer(this)
@@ -482,6 +486,17 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                             activeOverlays.addActiveOverlay(EmulatorOverlay.ACHIEVEMENTS_DIALOG)
                             showAchievementList.value = true
                         }
+                    }
+                }
+            }
+        }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.emulatorEvents.collect {
+                    when (it) {
+                        is EmulatorEvent.RumbleStart -> emulatorRumbleManager.startRumbling()
+                        EmulatorEvent.RumbleStop -> emulatorRumbleManager.stopRumbling()
+                        EmulatorEvent.Stop -> { /* TODO */ }
                     }
                 }
             }

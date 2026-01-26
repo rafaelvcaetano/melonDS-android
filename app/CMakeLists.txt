@@ -14,6 +14,8 @@ add_library(
 
         SHARED
 
+        src/main/cpp/AndroidMelonEventMessenger.cpp
+        src/main/cpp/EmulatorMessageQueueJNI.cpp
         src/main/cpp/MelonDSAndroidJNI.cpp
         src/main/cpp/MelonDSAndroidConfiguration.cpp
         src/main/cpp/MelonDSAndroidInterface.cpp

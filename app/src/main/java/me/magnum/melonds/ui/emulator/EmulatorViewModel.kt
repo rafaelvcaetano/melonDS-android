@@ -29,11 +29,9 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.rx2.awaitSingleOrNull
 import kotlinx.coroutines.rx2.rxMaybe
 import me.magnum.melonds.MelonEmulator
@@ -128,6 +126,8 @@ class EmulatorViewModel @Inject constructor(
 
     private val _secondaryScreenBackground = MutableStateFlow(RuntimeBackground.None)
     val secondaryScreenBackground = _secondaryScreenBackground.asStateFlow()
+
+    val emulatorEvents = emulatorManager.emulatorEvents
 
     private val _achievementsEvent = MutableSharedFlow<RAEventUi>(extraBufferCapacity = 5, onBufferOverflow = BufferOverflow.SUSPEND)
     val achievementsEvent = _achievementsEvent.asSharedFlow()

@@ -481,6 +481,7 @@
     <string-array name="gba_slot_options">
         <item>None</item>
         <item>GBA ROM</item>
+        <item>Rumble Pak</item>
         <item>Memory expansion</item>
     </string-array>
 

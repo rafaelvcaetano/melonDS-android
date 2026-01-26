@@ -13,6 +13,7 @@
 #include <android/asset_manager_jni.h>
 #include "UriFileHandler.h"
 #include "JniEnvHandler.h"
+#include "AndroidMelonEventMessenger.h"
 #include "AndroidRACallback.h"
 #include "MelonDSAndroidInterface.h"
 #include "MelonDSAndroidConfiguration.h"
@@ -24,7 +25,8 @@
 enum GbaSlotType {
     NONE = 0,
     GBA_ROM = 1,
-    MEMORY_EXPANSION = 2,
+    RUMBLE_PAK = 2,
+    MEMORY_EXPANSION = 3,
 };
 
 void* emulate(void*);
@@ -66,7 +68,7 @@ Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jo
     u32* screenshotBufferPointer = (u32*) env->GetDirectBufferAddress(screenshotBuffer);
 
     MelonDSAndroid::setConfiguration(std::move(finalEmulatorConfiguration));
-    MelonDSAndroid::setup(androidCameraHandler, raCallback, screenshotBufferPointer, 0);
+    MelonDSAndroid::setup(androidCameraHandler, raCallback, new AndroidMelonEventMessenger(), screenshotBufferPointer, 0);
     paused = false;
 }
 
@@ -513,6 +515,10 @@ MelonDSAndroid::RomGbaSlotConfig* buildGbaSlotConfig(GbaSlotType slotType, const
             .savePath = savePath ? std::string(savePath) : "",
         };
         return (MelonDSAndroid::RomGbaSlotConfig*) gbaSlotConfigGbaRom;
+    }
+    else if (slotType == GbaSlotType::RUMBLE_PAK)
+    {
+        return (MelonDSAndroid::RomGbaSlotConfig*) new MelonDSAndroid::RomGbaSlotRumblePak;
     }
     else if (slotType == GbaSlotType::MEMORY_EXPANSION)
     {

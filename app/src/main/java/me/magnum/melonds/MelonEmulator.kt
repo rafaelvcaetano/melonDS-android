@@ -41,6 +41,7 @@ object MelonEmulator {
     enum class GbaSlotType {
         NONE,
         GBA_ROM,
+        RUMBLE_PAK,
         MEMORY_EXPANSION,
     }
 

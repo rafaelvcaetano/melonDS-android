@@ -405,6 +405,7 @@
     <string-array name="gba_slot_options">
         <item>Нет</item>
         <item>Ром GBA</item>
+        <item>Rumble Pak</item>
         <item>Расширение памяти</item>
     </string-array>
     

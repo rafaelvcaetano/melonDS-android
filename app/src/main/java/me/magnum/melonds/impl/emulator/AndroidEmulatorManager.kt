@@ -19,6 +19,7 @@ import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.MicSource
+import me.magnum.melonds.domain.model.emulator.EmulatorEvent
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
@@ -45,7 +46,20 @@ class AndroidEmulatorManager(
     private val cameraManager: DSiCameraSourceMultiplexer,
 ) : EmulatorManager {
 
+    private val _emulatorEvents = MutableSharedFlow<EmulatorEvent>(extraBufferCapacity = Int.MAX_VALUE)
+    override val emulatorEvents: Flow<EmulatorEvent> = _emulatorEvents.asSharedFlow()
+
     private val achievementsSharedFlow = MutableSharedFlow<RAEvent>(replay = 0, extraBufferCapacity = Int.MAX_VALUE)
+
+    private val messageQueue = EmulatorMessageQueue { type, data ->
+        val event = when (type) {
+            EmulatorEventType.EventRumbleStart -> EmulatorEvent.RumbleStart(data.getInt())
+            EmulatorEventType.EventRumbleStop -> EmulatorEvent.RumbleStop
+            EmulatorEventType.EventEmulatorStop -> EmulatorEvent.Stop
+        }
+
+        _emulatorEvents.tryEmit(event)
+    }
 
     override suspend fun loadRom(rom: Rom, cheats: List<Cheat>): RomLaunchResult {
         return withContext(Dispatchers.IO) {
@@ -66,6 +80,7 @@ class AndroidEmulatorManager(
                 RomGbaSlotConfig.None -> MelonEmulator.GbaSlotType.NONE
                 is RomGbaSlotConfig.GbaRom -> MelonEmulator.GbaSlotType.GBA_ROM
                 RomGbaSlotConfig.MemoryExpansion -> MelonEmulator.GbaSlotType.MEMORY_EXPANSION
+                RomGbaSlotConfig.RumblePak -> MelonEmulator.GbaSlotType.RUMBLE_PAK
             }
 
             val loadResult = MelonEmulator.loadRom(
@@ -170,10 +185,12 @@ class AndroidEmulatorManager(
     override fun stopEmulator() {
         MelonEmulator.stopEmulation()
         cameraManager.stopCurrentCameraSource()
+        messageQueue.stop()
     }
 
     override fun cleanEmulator() {
         cameraManager.dispose()
+        messageQueue.cleanup()
     }
 
     override fun observeRetroAchievementEvents(): Flow<RAEvent> {
@@ -181,6 +198,7 @@ class AndroidEmulatorManager(
     }
 
     private fun setupEmulator(emulatorConfiguration: EmulatorConfiguration) {
+        messageQueue.start()
         MelonEmulator.setupEmulator(
             emulatorConfiguration = emulatorConfiguration,
             dsiCameraSource = cameraManager,
