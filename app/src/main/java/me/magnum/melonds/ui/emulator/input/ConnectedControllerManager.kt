@@ -21,8 +21,10 @@ import me.magnum.melonds.ui.emulator.model.ConnectedControllersState
 class ConnectedControllerManager : InputManager.InputDeviceListener {
 
     private var coroutineScope: CoroutineScope? = null
-    private var managedControllers = MutableStateFlow<List<InputDevice>>(emptyList())
     private val currentControllerConfiguration = MutableStateFlow<ControllerConfiguration?>(null)
+
+    private var _managedControllers = MutableStateFlow<List<InputDevice>>(emptyList())
+    val managedControllers = _managedControllers.asStateFlow()
 
     private val _controllerState = MutableStateFlow<ConnectedControllersState>(ConnectedControllersState.NoControllers)
     val controllersState: StateFlow<ConnectedControllersState> = _controllerState.asStateFlow()
@@ -39,7 +41,7 @@ class ConnectedControllerManager : InputManager.InputDeviceListener {
 
     fun stopTrackingControllers() {
         coroutineScope?.cancel()
-        managedControllers.value = emptyList()
+        _managedControllers.value = emptyList()
     }
 
     fun setCurrentControllerConfiguration(controllerConfiguration: ControllerConfiguration) {
@@ -49,7 +51,7 @@ class ConnectedControllerManager : InputManager.InputDeviceListener {
     override fun onInputDeviceAdded(deviceId: Int) {
         InputDevice.getDevice(deviceId)?.let { device ->
             if (isValidController(device)) {
-                managedControllers.update {
+                _managedControllers.update {
                     it.toMutableList().apply {
                         add(device)
                     }
@@ -59,7 +61,7 @@ class ConnectedControllerManager : InputManager.InputDeviceListener {
     }
 
     override fun onInputDeviceRemoved(deviceId: Int) {
-        managedControllers.update {
+        _managedControllers.update {
             val deviceIndex = it.indexOfFirst { it.id == deviceId }
             if (deviceIndex >= 0) {
                 it.toMutableList().apply {
@@ -72,7 +74,7 @@ class ConnectedControllerManager : InputManager.InputDeviceListener {
     }
 
     override fun onInputDeviceChanged(deviceId: Int) {
-        managedControllers.update {
+        _managedControllers.update {
             val mutableList = it.toMutableList()
             mutableList.removeFirst { it.id == deviceId }
             InputDevice.getDevice(deviceId)?.let {
@@ -85,7 +87,7 @@ class ConnectedControllerManager : InputManager.InputDeviceListener {
     }
 
     private suspend fun observeConnectedControllersState() {
-        combine(managedControllers, currentControllerConfiguration) { managedControllers, controllerConfiguration ->
+        combine(_managedControllers, currentControllerConfiguration) { managedControllers, controllerConfiguration ->
             if (managedControllers.isEmpty() || controllerConfiguration == null) {
                 ConnectedControllersState.NoControllers
             } else {
@@ -112,7 +114,7 @@ class ConnectedControllerManager : InputManager.InputDeviceListener {
     }
 
     private fun initializeManagedInputControllers() {
-        managedControllers.update {
+        _managedControllers.update {
             val deviceList = mutableListOf<InputDevice>()
             InputDevice.getDeviceIds().forEach {
                 InputDevice.getDevice(it)?.let { device ->
