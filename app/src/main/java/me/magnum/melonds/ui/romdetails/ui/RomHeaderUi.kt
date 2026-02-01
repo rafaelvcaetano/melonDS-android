@@ -32,6 +32,7 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults
+import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -55,8 +56,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import coil.compose.AsyncImage
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.pagerTabIndicatorOffset
 import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.rom.Rom
@@ -67,7 +66,6 @@ import me.magnum.melonds.ui.theme.MelonTheme
 import java.util.Date
 import kotlin.time.Duration
 
-@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun RomHeaderUi(
     modifier: Modifier,
@@ -110,9 +108,9 @@ fun RomHeaderUi(
                     selectedTabIndex = pagerState.currentPage,
                     backgroundColor = MaterialTheme.colors.surface,
                     contentColor = MaterialTheme.colors.onSurface,
-                    indicator = {
+                    indicator = { tabPositions ->
                         TabRowDefaults.Indicator(
-                            modifier = Modifier.pagerTabIndicatorOffset(pagerState, it),
+                            modifier = Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
                             color = MaterialTheme.colors.secondary,
                         )
                     }

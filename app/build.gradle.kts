@@ -138,7 +138,6 @@ dependencies {
     implementation(libs.android.material)
 
     implementation(platform(libs.compose.bom))
-    implementation(libs.accompanist.pagerindicators)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.compose.foundation)
     implementation(libs.compose.material)
