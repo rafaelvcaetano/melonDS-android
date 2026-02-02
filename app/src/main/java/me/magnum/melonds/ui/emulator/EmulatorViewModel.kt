@@ -5,7 +5,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.reactivex.Maybe
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,8 +31,6 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.awaitSingleOrNull
-import kotlinx.coroutines.rx2.rxMaybe
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
@@ -190,7 +187,7 @@ class EmulatorViewModel @Inject constructor(
         viewModelScope.launch {
             resetEmulatorState(EmulatorState.LoadingRom)
             sessionCoroutineScope.launch {
-                val rom = getRomAtUri(romUri).awaitSingleOrNull()
+                val rom = romsRepository.getRomAtUri(romUri)
                 if (rom != null) {
                     launchRom(rom)
                 } else {
@@ -204,7 +201,7 @@ class EmulatorViewModel @Inject constructor(
         viewModelScope.launch {
             resetEmulatorState(EmulatorState.LoadingRom)
             sessionCoroutineScope.launch {
-                val rom = getRomAtPath(romPath).awaitSingleOrNull()
+                val rom = romsRepository.getRomAtPath(romPath)
                 if (rom != null) {
                     launchRom(rom)
                 } else {
@@ -699,18 +696,6 @@ class EmulatorViewModel @Inject constructor(
 
     private fun getRomSaveStateSlots(rom: Rom): List<SaveStateSlot> {
         return saveStatesRepository.getRomSaveStates(rom)
-    }
-
-    private fun getRomAtPath(path: String): Maybe<Rom> {
-        return rxMaybe {
-            romsRepository.getRomAtPath(path)
-        }
-    }
-
-    private fun getRomAtUri(uri: Uri): Maybe<Rom> {
-        return rxMaybe {
-            romsRepository.getRomAtUri(uri)
-        }
     }
 
     fun isSustainedPerformanceModeEnabled(): Boolean {
