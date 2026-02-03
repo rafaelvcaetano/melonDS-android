@@ -8,12 +8,13 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "ra_achievement",
     indices = [
-        Index("game_id")
+        Index("set_id")
     ]
 )
 data class RAAchievementEntity(
     @PrimaryKey @ColumnInfo(name = "id") val id: Long,
     @ColumnInfo(name = "game_id") val gameId: Long,
+    @ColumnInfo(name = "set_id") val setId: Long,
     @ColumnInfo(name = "total_awards_casual") val totalAwardsCasual: Int,
     @ColumnInfo(name = "total_awards_hardcore") val totalAwardsHardcore: Int,
     @ColumnInfo(name = "title") val title: String,

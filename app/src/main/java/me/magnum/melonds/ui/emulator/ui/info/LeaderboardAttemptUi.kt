@@ -6,9 +6,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -31,6 +28,7 @@ import me.magnum.melonds.ui.emulator.ui.AchievementInfo
 import me.magnum.melonds.ui.theme.MelonTheme
 import me.magnum.rcheevosapi.model.RAGameId
 import me.magnum.rcheevosapi.model.RALeaderboard
+import me.magnum.rcheevosapi.model.RASetId
 import java.net.URL
 import kotlin.time.Duration.Companion.seconds
 
@@ -103,6 +101,7 @@ private fun PreviewLeaderboardAttemptUi() {
                 leaderboard = RALeaderboard(
                     id = 0,
                     gameId = RAGameId(0),
+                    setId = RASetId(0),
                     mem = "",
                     format = "",
                     lowerIsBetter = false,

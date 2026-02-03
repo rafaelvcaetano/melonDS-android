@@ -41,6 +41,7 @@ import me.magnum.melonds.ui.common.MelonPreviewSet
 import me.magnum.melonds.ui.theme.MelonTheme
 import me.magnum.rcheevosapi.model.RAAchievement
 import me.magnum.rcheevosapi.model.RAGameId
+import me.magnum.rcheevosapi.model.RASetId
 import java.net.URL
 
 private enum class PopupState {
@@ -138,6 +139,7 @@ private fun PreviewAchievementPopupUi() {
             achievement = RAAchievement(
                 id = 0,
                 gameId = RAGameId(0),
+                setId = RASetId(0),
                 totalAwardsCasual = 0,
                 totalAwardsHardcore = 0,
                 title = "Super Achievement",

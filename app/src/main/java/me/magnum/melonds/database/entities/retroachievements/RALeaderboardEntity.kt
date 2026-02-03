@@ -8,12 +8,13 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "ra_leaderboard",
     indices = [
-        Index("game_id")
+        Index("set_id")
     ],
 )
 data class RALeaderboardEntity(
     @PrimaryKey @ColumnInfo("id") val id: Long,
     @ColumnInfo(name = "game_id") val gameId: Long,
+    @ColumnInfo(name = "set_id") val setId: Long,
     @ColumnInfo("mem") val mem: String,
     @ColumnInfo("format") val format: String,
     @ColumnInfo("lower_is_better") val lowerIsBetter: Boolean,

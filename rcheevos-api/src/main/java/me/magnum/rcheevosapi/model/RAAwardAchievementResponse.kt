@@ -9,7 +9,7 @@ data class RAAwardAchievementResponse(
     val remainingAchievements: Int,
 ) {
 
-    fun isGameMastered(): Boolean {
+    fun isSetMastered(): Boolean {
         return achievementAwarded && remainingAchievements == 0
     }
 }

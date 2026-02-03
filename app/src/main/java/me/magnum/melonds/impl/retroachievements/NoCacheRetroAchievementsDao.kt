@@ -2,9 +2,11 @@ package me.magnum.melonds.impl.retroachievements
 
 import me.magnum.melonds.database.daos.RetroAchievementsDao
 import me.magnum.melonds.database.entities.retroachievements.RAAchievementEntity
+import me.magnum.melonds.database.entities.retroachievements.RAAchievementSetEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameHashEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameSetMetadata
+import me.magnum.melonds.database.entities.retroachievements.RAGameWithSetsEntity
 import me.magnum.melonds.database.entities.retroachievements.RALeaderboardEntity
 import me.magnum.melonds.database.entities.retroachievements.RAPendingAchievementSubmissionEntity
 import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEntity
@@ -28,6 +30,12 @@ class NoCacheRetroAchievementsDao(private val actualAchievementsDao: RetroAchiev
     }
 
     override suspend fun clearAllGameSetMetadataLastUserDataUpdate() {
+    }
+
+    override suspend fun insertGameSets(sets: List<RAAchievementSetEntity>) {
+    }
+
+    override suspend fun deleteGameSets(gameId: Long) {
     }
 
     override suspend fun getGameAchievements(gameId: Long): List<RAAchievementEntity> {
@@ -61,12 +69,20 @@ class NoCacheRetroAchievementsDao(private val actualAchievementsDao: RetroAchiev
     override suspend fun updateGameData(gameData: RAGameEntity) {
     }
 
-    override suspend fun updateGameData(gameEntity: RAGameEntity, achievements: List<RAAchievementEntity>, leaderboards: List<RALeaderboardEntity>) {
-        actualAchievementsDao.updateGameData(gameEntity, achievements, leaderboards)
+    override suspend fun updateGameData(gameEntity: RAGameEntity, sets: List<RAAchievementSetEntity>, achievements: List<RAAchievementEntity>, leaderboards: List<RALeaderboardEntity>) {
+        actualAchievementsDao.updateGameData(gameEntity, sets, achievements, leaderboards)
     }
 
     override suspend fun getGame(gameId: Long): RAGameEntity? {
         return actualAchievementsDao.getGame(gameId)
+    }
+
+    override suspend fun getAchievementSet(setId: Long): RAAchievementSetEntity? {
+        return actualAchievementsDao.getAchievementSet(setId)
+    }
+
+    override suspend fun getGameWithSets(gameId: Long): RAGameWithSetsEntity? {
+        return actualAchievementsDao.getGameWithSets(gameId)
     }
 
     override suspend fun getGameUserUnlockedAchievements(gameId: Long, forHardcoreMode: Boolean): List<RAUserAchievementEntity> {

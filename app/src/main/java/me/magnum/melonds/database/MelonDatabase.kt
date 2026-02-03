@@ -19,6 +19,7 @@ import me.magnum.melonds.database.entities.CheatEntity
 import me.magnum.melonds.database.entities.CheatFolderEntity
 import me.magnum.melonds.database.entities.GameEntity
 import me.magnum.melonds.database.entities.retroachievements.RAAchievementEntity
+import me.magnum.melonds.database.entities.retroachievements.RAAchievementSetEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameHashEntity
 import me.magnum.melonds.database.entities.retroachievements.RAGameSetMetadata
@@ -27,7 +28,7 @@ import me.magnum.melonds.database.entities.retroachievements.RAPendingAchievemen
 import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEntity
 
 @Database(
-    version = 7,
+    version = 8,
     exportSchema = true,
     entities = [
         CheatDatabaseEntity::class,
@@ -35,6 +36,7 @@ import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEn
         CheatFolderEntity::class,
         CheatEntity::class,
         RAGameEntity::class,
+        RAAchievementSetEntity::class,
         RAAchievementEntity::class,
         RAUserAchievementEntity::class,
         RALeaderboardEntity::class,
@@ -43,19 +45,9 @@ import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEn
         RAPendingAchievementSubmissionEntity::class,
     ],
     autoMigrations = [
-        AutoMigration(
-            from = 2,
-            to = 3,
-            spec = MelonDatabase.Migration2to3Spec::class,
-        ),
-        AutoMigration(
-            from = 3,
-            to = 4,
-        ),
-        AutoMigration(
-            from = 6,
-            to = 7,
-        ),
+        AutoMigration(from = 2, to = 3, spec = MelonDatabase.Migration2to3Spec::class),
+        AutoMigration(from = 3, to = 4),
+        AutoMigration(from = 6, to = 7),
     ]
 )
 @TypeConverters(InstantConverter::class)

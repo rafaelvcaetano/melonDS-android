@@ -76,7 +76,7 @@ fun RomAchievementUi(
                 end = if (expanded) linkFocusRequester else FocusRequester.Default
             }
             .clickable { expanded = !expanded }
-            .padding(8.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .animateContentSize()
     ) {
         Row(Modifier.fillMaxWidth()) {

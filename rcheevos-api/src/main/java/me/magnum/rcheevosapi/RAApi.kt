@@ -9,7 +9,7 @@ import kotlinx.serialization.serializer
 import me.magnum.melonds.common.suspendMapCatching
 import me.magnum.melonds.common.suspendRunCatching
 import me.magnum.rcheevosapi.dto.AwardAchievementResponseDto
-import me.magnum.rcheevosapi.dto.GamePatchDto
+import me.magnum.rcheevosapi.dto.GameAchievementSetsDto
 import me.magnum.rcheevosapi.dto.HashLibraryDto
 import me.magnum.rcheevosapi.dto.RASubmitLeaderboardEntryResponseDto
 import me.magnum.rcheevosapi.dto.UserLoginDto
@@ -51,6 +51,7 @@ class RAApi(
         private const val PARAMETER_TOKEN = "t"
         private const val PARAMETER_REQUEST = "r"
         private const val PARAMETER_GAME_ID = "g"
+        private const val PARAMETER_GAME_HASH = "m"
         private const val PARAMETER_SESSION_GAME_ID = "m"
         private const val PARAMETER_ACHIEVEMENT_ID = "a"
         private const val PARAMETER_IS_HARDMODE = "h"
@@ -65,7 +66,7 @@ class RAApi(
 
         private const val REQUEST_LOGIN = "login2"
         private const val REQUEST_HASH_LIBRARY = "hashlibrary"
-        private const val REQUEST_GAME_DATA = "patch"
+        private const val REQUEST_ACHIEVEMENT_SETS = "achievementsets"
         private const val REQUEST_USER_UNLOCKED_ACHIEVEMENTS = "unlocks"
         private const val REQUEST_POST_ACTIVITY = "postactivity"
         private const val REQUEST_AWARD_ACHIEVEMENT = "awardachievement"
@@ -113,18 +114,18 @@ class RAApi(
         }
     }
 
-    suspend fun getGameInfo(gameId: RAGameId): Result<RAGame> {
+    suspend fun getGameAchievementSets(gameHash: String): Result<RAGame> {
         val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
 
-        return get<GamePatchDto>(
+        return get<GameAchievementSetsDto>(
             mapOf(
-                PARAMETER_REQUEST to REQUEST_GAME_DATA,
+                PARAMETER_REQUEST to REQUEST_ACHIEVEMENT_SETS,
                 PARAMETER_USER to userAuth.username,
                 PARAMETER_TOKEN to userAuth.token,
-                PARAMETER_GAME_ID to gameId.id.toString(),
+                PARAMETER_GAME_HASH to gameHash,
             )
         ).suspendMapCatching {
-            it.game.mapToModel()
+            it.mapToModel()
         }
     }
 

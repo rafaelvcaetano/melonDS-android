@@ -261,7 +261,7 @@ private class AchievementUpdatesListState {
         existingAttempt?.state?.dismiss()
 
         val state = AchievementInfoState {
-            visibleInfos.removeFirst { (it as? AchievementInfo.LeaderboardEntrySubmitted)?.title == event.title }
+            visibleInfos.removeFirst { (it as? AchievementInfo.LeaderboardEntrySubmitted)?.leaderboardId == event.leaderboardId }
         }
         val info = AchievementInfo.LeaderboardEntrySubmitted(event.leaderboardId, event.title, event.gameIcon, event.formattedScore, event.rank, event.numberOfEntries, state)
         visibleInfos.add(0, info)

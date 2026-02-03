@@ -76,6 +76,8 @@ import me.magnum.melonds.ui.emulator.model.ToastEvent
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rom.RomPauseMenuOption
 import me.magnum.melonds.utils.EventSharedFlow
+import me.magnum.rcheevosapi.model.RAAchievementSet
+import me.magnum.rcheevosapi.model.RASetId
 import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -724,17 +726,19 @@ class EmulatorViewModel @Inject constructor(
                 val gameSummary = retroAchievementsRepository.getGameSummary(rom.retroAchievementsHash)
 
                 if (userGameData != null) {
-                    val hasLeaderboards = userGameData.leaderboards.isNotEmpty() && emulatorSession.areLeaderboardsEnabled()
+                    val achievements = userGameData.sets.flatMap { it.achievements }
+                    val leaderboards = userGameData.sets.flatMap { it.leaderboards }
+                    val hasLeaderboards = leaderboards.isNotEmpty() && emulatorSession.areLeaderboardsEnabled()
 
-                    if (userGameData.achievements.isEmpty() && !hasLeaderboards) {
+                    if (achievements.isEmpty() && !hasLeaderboards) {
                         GameAchievementData.withLimitedRetroAchievementsIntegration(
                             richPresencePatch = gameSummary?.richPresencePatch,
                             icon = gameSummary?.icon,
                         )
                     } else {
-                        val lockedAchievements = userGameData.achievements.filter { !it.isUnlocked }.map { RASimpleAchievement(it.achievement.id, it.achievement.memoryAddress) }
+                        val lockedAchievements = achievements.filter { !it.isUnlocked }.map { RASimpleAchievement(it.achievement.id, it.achievement.memoryAddress) }
                         val leaderboards = if (hasLeaderboards) {
-                            userGameData.leaderboards.map { RASimpleLeaderboard(it.id, it.mem, it.format) }
+                            leaderboards.map { RASimpleLeaderboard(it.id, it.mem, it.format) }
                         } else {
                             emptyList()
                         }
@@ -742,7 +746,7 @@ class EmulatorViewModel @Inject constructor(
                         GameAchievementData.withFullRetroAchievementsIntegration(
                             lockedAchievements = lockedAchievements,
                             leaderboards = leaderboards,
-                            totalAchievementCount = userGameData.achievements.size,
+                            totalAchievementCount = achievements.size,
                             richPresencePatch = gameSummary?.richPresencePatch,
                             icon = gameSummary?.icon,
                         )
@@ -771,8 +775,8 @@ class EmulatorViewModel @Inject constructor(
                         if (it.achievementAwarded) {
                             _achievementsEvent.emit(RAEventUi.AchievementTriggered(achievement))
 
-                            if (it.isGameMastered()) {
-                                showGameMastery(isHardcoreModeEnabled)
+                            if (it.isSetMastered()) {
+                                showSetMastery(achievement.setId, isHardcoreModeEnabled)
                             }
                         }
                     }
@@ -820,9 +824,9 @@ class EmulatorViewModel @Inject constructor(
             if (settingsRepository.areRetroAchievementsLeaderboardIndicatorsEnabled()) {
                 val leaderboard = retroAchievementsRepository.getLeaderboard(startEvent.leaderboardId)
                 if (leaderboard != null) {
-                    val gameSummary = retroAchievementsRepository.getGameSummary(leaderboard.gameId)
-                    if (gameSummary != null) {
-                        _achievementsEvent.emit(RAEventUi.LeaderboardAttemptStarted(leaderboard, gameSummary.icon))
+                    val setSummary = retroAchievementsRepository.getAchievementSetSummary(leaderboard.setId)
+                    if (setSummary != null) {
+                        _achievementsEvent.emit(RAEventUi.LeaderboardAttemptStarted(leaderboard, setSummary.iconUrl))
                     }
                 }
             }
@@ -840,17 +844,19 @@ class EmulatorViewModel @Inject constructor(
     private fun onLeaderboardAttemptCompleted(completionEvent: RAEvent.OnLeaderboardAttemptCompleted) {
         sessionCoroutineScope.launch {
             retroAchievementsRepository.submitLeaderboardEntry(completionEvent.leaderboardId, completionEvent.value).fold(
-                onSuccess = {
-                    retroAchievementsRepository.getGameSummary(it.gameId)?.let { gameSummary ->
-                        val submissionEvent = RAEventUi.LeaderboardEntrySubmitted(
-                            leaderboardId = completionEvent.leaderboardId,
-                            title = it.title,
-                            gameIcon = gameSummary.icon,
-                            formattedScore = it.formattedScore,
-                            rank = it.rank,
-                            numberOfEntries = it.numEntries,
-                        )
-                        _achievementsEvent.emit(submissionEvent)
+                onSuccess = { submissionResponse ->
+                    retroAchievementsRepository.getLeaderboard(completionEvent.leaderboardId)?.let { leaderboard ->
+                        retroAchievementsRepository.getAchievementSetSummary(leaderboard.setId)?.let { setSummary ->
+                            val submissionEvent = RAEventUi.LeaderboardEntrySubmitted(
+                                leaderboardId = completionEvent.leaderboardId,
+                                title = submissionResponse.title,
+                                gameIcon = setSummary.iconUrl,
+                                formattedScore = submissionResponse.formattedScore,
+                                rank = submissionResponse.rank,
+                                numberOfEntries = submissionResponse.numEntries,
+                            )
+                            _achievementsEvent.emit(submissionEvent)
+                        }
                     }
                 },
                 onFailure = {
@@ -867,17 +873,24 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    private suspend fun showGameMastery(forHardcoreMode: Boolean) {
+    private suspend fun showSetMastery(setId: RASetId, forHardcoreMode: Boolean) {
         val rom = (emulatorSession.currentSessionType() as? EmulatorSession.SessionType.RomSession)?.rom
         if (rom != null) {
-            val gameSummary = retroAchievementsRepository.getGameSummary(rom.retroAchievementsHash)
+            val setSummary = retroAchievementsRepository.getAchievementSetSummary(setId)
             val raUserName = retroAchievementsRepository.getUserAuthentication()?.username
             val romPlayTime = romsRepository.getRomAtUri(rom.uri)?.totalPlayTime
 
-            if (gameSummary != null) {
+            if (setSummary != null) {
+                val title = if (setSummary.type == RAAchievementSet.Type.Core) {
+                    val gameSummary = retroAchievementsRepository.getGameSummary(rom.retroAchievementsHash)
+                    gameSummary?.title.orEmpty()
+                } else {
+                    setSummary.title.orEmpty()
+                }
+
                 val masteryEvent = RAEventUi.GameMastered(
-                    gameTitle = gameSummary.title,
-                    gameIcon = gameSummary.icon,
+                    gameTitle = title,
+                    gameIcon = setSummary.iconUrl,
                     userName = raUserName,
                     playTime = romPlayTime,
                     forHardcodeMode = forHardcoreMode,
