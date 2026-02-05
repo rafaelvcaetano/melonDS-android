@@ -8,7 +8,6 @@ import me.magnum.melonds.common.cheats.ProgressTrackerInputStream
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RomMetadata
 import me.magnum.melonds.domain.model.rom.Rom
-import java.io.BufferedInputStream
 import java.io.InputStream
 import java.math.BigInteger
 import java.nio.ByteBuffer
@@ -28,7 +27,7 @@ object RomProcessor {
 	private const val KEY_BANNER = "banner"
 
 	@Suppress("NAME_SHADOWING")
-	fun getRomMetadata(inputStream: BufferedInputStream): RomMetadata {
+	fun getRomMetadata(inputStream: InputStream): RomMetadata {
 		val romStreamProcessor = RomStreamDataProcessor().apply {
 			registerProcessor(
 				RomStreamDataProcessor.SectionProcessor.SequentialSectionProcessor(
@@ -136,7 +135,7 @@ object RomProcessor {
 		)
 	}
 
-	fun getRomIcon(inputStream: BufferedInputStream): Bitmap {
+	fun getRomIcon(inputStream: InputStream): Bitmap {
 		// Banner offset is at header offset 0x68
 		inputStream.skipStreamBytes(0x68)
 		// Obtain the banner offset
@@ -287,7 +286,7 @@ object RomProcessor {
 			processors.add(processor)
 		}
 
-		fun process(stream: BufferedInputStream) {
+		fun process(stream: InputStream) {
 			val trackedStream = ProgressTrackerInputStream(stream)
 			val sortedProcessors = processors.sortedBy { it.streamOffset }.toMutableList()
 

@@ -196,10 +196,25 @@ class FileSystemRomsRepository(
     }
 
     private fun addRom(rom: Rom) {
-        if (roms.any { it.hasSameFileAsRom(rom) })
+        val existingRom = roms.find { it.hasSameFileAsRom(rom) }
+        if (existingRom == rom) {
             return
+        }
 
-        roms.add(rom)
+        if (existingRom != null) {
+            // ROM has different metadata. Update it
+            val updatedRom = existingRom.copy(
+                name = rom.name,
+                developerName = rom.developerName,
+                isDsiWareTitle = rom.isDsiWareTitle,
+                retroAchievementsHash = rom.retroAchievementsHash,
+            )
+            roms.remove(existingRom)
+            roms.add(updatedRom)
+        } else {
+            roms.add(rom)
+        }
+
         onRomsChanged()
     }
 
