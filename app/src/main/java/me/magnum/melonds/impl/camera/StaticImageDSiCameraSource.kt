@@ -32,6 +32,8 @@ class StaticImageDSiCameraSource(
     private var imageObserveJob: Job? = null
     private val currentImageBuffer = ByteArray(640 * 480 * 2)
 
+    override fun isAvailable() = true
+
     @RequiresApi(Build.VERSION_CODES.P)
     override fun startCamera(camera: CameraType) {
         imageObserveJob = coroutineScope.launch {
