@@ -82,15 +82,15 @@ fun RomRetroAchievementsUi(
         )
         is RomRetroAchievementsUiState.Loading -> Loading(modifier.padding(contentPadding))
         is RomRetroAchievementsUiState.Ready -> {
-            if (retroAchievementsUiState.sets.isEmpty()) {
-                NoAchievements(modifier.padding(contentPadding))
-            } else {
+            if (retroAchievementsUiState.hasAchievements()) {
                 Ready(
                     modifier = modifier,
                     contentPadding = contentPadding,
                     content = retroAchievementsUiState,
                     onViewAchievement = onViewAchievement,
                 )
+            } else {
+                NoAchievements(modifier.padding(contentPadding))
             }
         }
         is RomRetroAchievementsUiState.LoginError -> LoginError(modifier = modifier.padding(contentPadding), onLogin = onLogin)
