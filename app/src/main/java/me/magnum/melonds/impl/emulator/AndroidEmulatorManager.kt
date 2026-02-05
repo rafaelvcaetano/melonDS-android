@@ -95,6 +95,7 @@ class AndroidEmulatorManager(
                 MelonEmulator.stopEmulation()
                 RomLaunchResult.LaunchFailed(loadResult)
             } else {
+                messageQueue.start()
                 MelonEmulator.setupCheats(cheats.toTypedArray())
                 MelonEmulator.startEmulation()
 
@@ -112,6 +113,7 @@ class AndroidEmulatorManager(
                 MelonEmulator.stopEmulation()
                 FirmwareLaunchResult.LaunchFailed(result)
             } else {
+                messageQueue.start()
                 MelonEmulator.startEmulation()
                 FirmwareLaunchResult.LaunchSuccessful
             }
@@ -198,7 +200,6 @@ class AndroidEmulatorManager(
     }
 
     private fun setupEmulator(emulatorConfiguration: EmulatorConfiguration) {
-        messageQueue.start()
         MelonEmulator.setupEmulator(
             emulatorConfiguration = emulatorConfiguration,
             dsiCameraSource = cameraManager,
