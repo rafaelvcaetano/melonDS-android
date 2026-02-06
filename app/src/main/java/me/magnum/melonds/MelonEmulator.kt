@@ -1,7 +1,6 @@
 package me.magnum.melonds
 
 import android.net.Uri
-import me.magnum.melonds.common.RetroAchievementsCallback
 import me.magnum.melonds.common.camera.DSiCameraSource
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.EmulatorConfiguration
@@ -48,7 +47,6 @@ object MelonEmulator {
 	external fun setupEmulator(
         emulatorConfiguration: EmulatorConfiguration,
         dsiCameraSource: DSiCameraSource?,
-        retroAchievementsCallback: RetroAchievementsCallback,
         screenshotBuffer: ByteBuffer,
     )
 

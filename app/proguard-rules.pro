@@ -43,7 +43,6 @@
     public int open(java.lang.String, java.lang.String);
 }
 -keep interface me.magnum.melonds.common.camera.DSiCameraSource { *; }
--keep interface me.magnum.melonds.common.RetroAchievementsCallback { *; }
 -keep interface me.magnum.melonds.ui.emulator.EmulatorFrameRenderedListener { *; }
 
 # Migration fields. These rules are required for migrations to work properly

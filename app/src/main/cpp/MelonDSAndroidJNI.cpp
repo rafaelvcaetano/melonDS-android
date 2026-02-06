@@ -14,7 +14,6 @@
 #include "UriFileHandler.h"
 #include "JniEnvHandler.h"
 #include "AndroidMelonEventMessenger.h"
-#include "AndroidRACallback.h"
 #include "MelonDSAndroidInterface.h"
 #include "MelonDSAndroidConfiguration.h"
 #include "MelonDSAndroidCameraHandler.h"
@@ -48,27 +47,24 @@ bool limitFps = true;
 bool isFastForwardEnabled = false;
 
 jobject globalCameraManager;
-jobject androidRaCallback;
 MelonDSAndroidCameraHandler* androidCameraHandler;
-AndroidRACallback* raCallback;
 
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject cameraManager, jobject retroAchievementsCallback, jobject screenshotBuffer)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject cameraManager, jobject screenshotBuffer)
 {
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
     fastForwardSpeedMultiplier = finalEmulatorConfiguration.fastForwardSpeedMultiplier;
 
     globalCameraManager = env->NewGlobalRef(cameraManager);
-    androidRaCallback = env->NewGlobalRef(retroAchievementsCallback);
 
+    auto androidEventMessenger = std::make_shared<AndroidMelonEventMessenger>();
     androidCameraHandler = new MelonDSAndroidCameraHandler(jniEnvHandler, globalCameraManager);
-    raCallback = new AndroidRACallback(jniEnvHandler, androidRaCallback);
     u32* screenshotBufferPointer = (u32*) env->GetDirectBufferAddress(screenshotBuffer);
 
     MelonDSAndroid::setConfiguration(std::move(finalEmulatorConfiguration));
-    MelonDSAndroid::setup(androidCameraHandler, raCallback, new AndroidMelonEventMessenger(), screenshotBufferPointer, 0);
+    MelonDSAndroid::setup(androidCameraHandler, std::move(androidEventMessenger), screenshotBufferPointer, 0);
     paused = false;
 }
 
@@ -435,13 +431,10 @@ Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
     MelonDSAndroid::cleanup();
 
     env->DeleteGlobalRef(globalCameraManager);
-    env->DeleteGlobalRef(androidRaCallback);
 
     globalCameraManager = nullptr;
-    androidRaCallback = nullptr;
 
     delete androidCameraHandler;
-    delete raCallback;
 }
 
 JNIEXPORT void JNICALL

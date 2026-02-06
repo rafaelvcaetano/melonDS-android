@@ -12,7 +12,6 @@ import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.common.PermissionHandler
-import me.magnum.melonds.common.RetroAchievementsCallback
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
 import me.magnum.melonds.domain.model.Cheat
@@ -52,13 +51,33 @@ class AndroidEmulatorManager(
     private val achievementsSharedFlow = MutableSharedFlow<RAEvent>(replay = 0, extraBufferCapacity = Int.MAX_VALUE)
 
     private val messageQueue = EmulatorMessageQueue { type, data ->
-        val event = when (type) {
-            EmulatorEventType.EventRumbleStart -> EmulatorEvent.RumbleStart(data.getInt())
-            EmulatorEventType.EventRumbleStop -> EmulatorEvent.RumbleStop
-            EmulatorEventType.EventEmulatorStop -> EmulatorEvent.Stop
+        when (type) {
+            EmulatorEventType.EventRumbleStart -> _emulatorEvents.tryEmit(EmulatorEvent.RumbleStart(data.getInt()))
+            EmulatorEventType.EventRumbleStop -> _emulatorEvents.tryEmit(EmulatorEvent.RumbleStop)
+            EmulatorEventType.EventEmulatorStop -> _emulatorEvents.tryEmit(EmulatorEvent.Stop)
+            EmulatorEventType.EventRAAchievementPrimed -> achievementsSharedFlow.tryEmit(RAEvent.OnAchievementPrimed(data.getLong()))
+            EmulatorEventType.EventRAAchievementTriggered -> achievementsSharedFlow.tryEmit(RAEvent.OnAchievementTriggered(data.getLong()))
+            EmulatorEventType.EventRAAchievementUnprimed -> achievementsSharedFlow.tryEmit(RAEvent.OnAchievementUnPrimed(data.getLong()))
+            EmulatorEventType.EventRAAchievementProgressUpdated -> {
+                val event = RAEvent.OnAchievementProgressUpdated(
+                    achievementId = data.getLong(),
+                    current = data.getInt(),
+                    target = data.getInt(),
+                    progress = String(ByteArray(data.getInt()).apply { data.get(this) }),
+                )
+                achievementsSharedFlow.tryEmit(event)
+            }
+            EmulatorEventType.EventRALeaderboardAttemptStarted -> achievementsSharedFlow.tryEmit(RAEvent.OnLeaderboardAttemptStarted(data.getLong()))
+            EmulatorEventType.EventRALeaderboardAttemptUpdated -> {
+                val event = RAEvent.OnLeaderboardAttemptUpdated(
+                    leaderboardId = data.getLong(),
+                    formattedValue = String(ByteArray(data.getInt()).apply { data.get(this) }),
+                )
+                achievementsSharedFlow.tryEmit(event)
+            }
+            EmulatorEventType.EventRALeaderboardAttemptCanceled -> achievementsSharedFlow.tryEmit(RAEvent.OnLeaderboardAttemptCancelled(data.getLong()))
+            EmulatorEventType.EventRALeaderboardAttemptCompleted -> achievementsSharedFlow.tryEmit(RAEvent.OnLeaderboardAttemptCompleted(data.getLong(), data.getInt()))
         }
-
-        _emulatorEvents.tryEmit(event)
     }
 
     override suspend fun loadRom(rom: Rom, cheats: List<Cheat>): RomLaunchResult {
@@ -203,39 +222,6 @@ class AndroidEmulatorManager(
         MelonEmulator.setupEmulator(
             emulatorConfiguration = emulatorConfiguration,
             dsiCameraSource = cameraManager,
-            retroAchievementsCallback = object : RetroAchievementsCallback {
-                override fun onAchievementPrimed(achievementId: Long) {
-                    achievementsSharedFlow.tryEmit(RAEvent.OnAchievementPrimed(achievementId))
-                }
-
-                override fun onAchievementTriggered(achievementId: Long) {
-                    achievementsSharedFlow.tryEmit(RAEvent.OnAchievementTriggered(achievementId))
-                }
-
-                override fun onAchievementUnprimed(achievementId: Long) {
-                    achievementsSharedFlow.tryEmit(RAEvent.OnAchievementUnPrimed(achievementId))
-                }
-
-                override fun onAchievementProgressUpdated(achievementId: Long, current: Int, target: Int, progress: String) {
-                    achievementsSharedFlow.tryEmit(RAEvent.OnAchievementProgressUpdated(achievementId, current, target, progress))
-                }
-
-                override fun onLeaderboardAttemptStarted(leaderboardId: Long) {
-                    achievementsSharedFlow.tryEmit(RAEvent.OnLeaderboardAttemptStarted(leaderboardId))
-                }
-
-                override fun onLeaderboardAttemptUpdated(leaderboardId: Long, formattedValue: String) {
-                    achievementsSharedFlow.tryEmit(RAEvent.OnLeaderboardAttemptUpdated(leaderboardId, formattedValue))
-                }
-
-                override fun onLeaderboardAttemptCompleted(leaderboardId: Long, value: Int) {
-                    achievementsSharedFlow.tryEmit(RAEvent.OnLeaderboardAttemptCompleted(leaderboardId, value))
-                }
-
-                override fun onLeaderboardAttemptCancelled(leaderboardId: Long) {
-                    achievementsSharedFlow.tryEmit(RAEvent.OnLeaderboardAttemptCancelled(leaderboardId))
-                }
-            },
             screenshotBuffer = screenshotFrameBufferProvider.frameBuffer(),
         )
     }
