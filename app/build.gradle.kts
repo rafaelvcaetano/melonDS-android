@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
@@ -37,9 +38,6 @@ android {
             cmake {
                 cppFlags("-std=c++17 -Wno-write-strings")
             }
-        }
-        ksp {
-            arg("room.schemaLocation", "$projectDir/schemas")
         }
         vectorDrawables.useSupportLibrary = true
     }
@@ -94,14 +92,17 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
+    }
+}
 
-        kotlin {
-            jvmToolchain(21)
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
+        freeCompilerArgs.add("-opt-in=kotlin.ExperimentalUnsignedTypes")
+    }
 
-            compilerOptions {
-                freeCompilerArgs.add("-opt-in=kotlin.ExperimentalUnsignedTypes")
-            }
-        }
+    ksp {
+        arg("room.schemaLocation", "$projectDir/schemas")
     }
 }
 
