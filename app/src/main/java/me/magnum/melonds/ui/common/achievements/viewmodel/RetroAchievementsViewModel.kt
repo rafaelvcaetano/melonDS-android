@@ -1,4 +1,4 @@
-package me.magnum.melonds.ui.common.viewmodel
+package me.magnum.melonds.ui.common.achievements.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,6 +14,7 @@ import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.domain.repositories.RetroAchievementsRepository
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.ui.romdetails.model.AchievementBucketUiModel
 import me.magnum.melonds.ui.romdetails.model.AchievementSetUiModel
 import me.magnum.melonds.ui.romdetails.model.RomAchievementsSummary
 import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
@@ -37,6 +38,8 @@ abstract class RetroAchievementsViewModel (
 
     protected abstract fun getRom(): Rom
 
+    protected abstract suspend fun buildAchievementBuckets(achievements: List<RAUserAchievement>): List<AchievementBucketUiModel>
+
     private fun loadAchievements() {
         achievementLoadJob?.cancel()
         achievementLoadJob = viewModelScope.launch {
@@ -45,18 +48,13 @@ abstract class RetroAchievementsViewModel (
                 retroAchievementsRepository.getUserGameData(getRom().retroAchievementsHash, forHardcoreMode).fold(
                     onSuccess = { userGameData ->
                         val sets = userGameData?.sets?.map { set ->
-                            val sortedAchievements = set.achievements.sortedBy {
-                                // Display unlocked achievements first
-                                if (it.isUnlocked) 0 else 1
-                            }
-
                             AchievementSetUiModel(
                                 setId = set.id.id,
                                 setTitle = set.title,
                                 setType = set.type,
                                 setIcon = set.iconUrl,
-                                setSummary = buildAchievementsSummary(forHardcoreMode, sortedAchievements),
-                                achievements = sortedAchievements,
+                                setSummary = buildAchievementsSummary(forHardcoreMode, set.achievements),
+                                buckets = buildAchievementBuckets(set.achievements),
                             )
                         }
                         _uiState.value = RomRetroAchievementsUiState.Ready(sets.orEmpty())

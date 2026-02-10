@@ -546,7 +546,12 @@ class EmulatorViewModel @Inject constructor(
         }
 
         val slotUri = saveStatesRepository.getRomSaveStateUri(rom, slot)
-        return emulatorManager.loadState(slotUri)
+        val success = emulatorManager.loadState(slotUri)
+        if (success) {
+            _achievementsEvent.emit(RAEventUi.Reset)
+        }
+
+        return success
     }
 
     private fun startObservingRuntimeInputLayoutConfiguration() {

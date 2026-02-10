@@ -7,6 +7,7 @@ import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
 import me.magnum.melonds.domain.model.retroachievements.RASimpleLeaderboard
+import me.magnum.melonds.domain.model.retroachievements.RASimpleRuntimeAchievement
 import me.magnum.melonds.ui.emulator.render.FrameRenderCallback
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
@@ -57,6 +58,8 @@ object MelonEmulator {
     external fun unloadRetroAchievementsData()
 
     external fun getRichPresenceStatus(): String?
+
+    external fun getRuntimeAchievements(): Array<RASimpleRuntimeAchievement>
 
 	fun loadRom(romUri: Uri, sramUri: Uri, gbaSlotType: GbaSlotType, gbaRomUri: Uri?, gbaSramUri: Uri?): LoadResult {
         val loadResult = loadRomInternal(romUri.toString(), sramUri.toString(), gbaSlotType.ordinal, gbaRomUri?.toString(), gbaSramUri?.toString())

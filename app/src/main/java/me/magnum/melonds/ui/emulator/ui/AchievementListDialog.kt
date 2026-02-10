@@ -33,7 +33,6 @@ fun AchievementListDialog(
 
         val context = LocalContext.current
         val achievementListState by viewModel.uiState.collectAsState()
-        val activeChallenges by viewModel.activeChallenges.collectAsState()
 
         LaunchedEffect(Unit) {
             // Perform a load immediately so that the last achievement data is discarded. This is to ensure that the latest up-to-date data is displayed and
@@ -51,7 +50,6 @@ fun AchievementListDialog(
                 AchievementList(
                     modifier = Modifier.fillMaxSize(),
                     state = achievementListState,
-                    activeChallenges = activeChallenges,
                     onViewAchievement = viewModel::viewAchievement,
                     onRetry = viewModel::retryLoadAchievements,
                     onDismiss = onDismiss,

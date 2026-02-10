@@ -10,6 +10,9 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.common.suspendMapCatching
 import me.magnum.melonds.common.suspendRecoverCatching
 import me.magnum.melonds.common.suspendRunCatching
@@ -22,6 +25,7 @@ import me.magnum.melonds.database.entities.retroachievements.RAPendingAchievemen
 import me.magnum.melonds.database.entities.retroachievements.RAUserAchievementEntity
 import me.magnum.melonds.domain.model.retroachievements.RAAchievementSetSummary
 import me.magnum.melonds.domain.model.retroachievements.RAGameSummary
+import me.magnum.melonds.domain.model.retroachievements.RARuntimeUserAchievement
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievementSet
 import me.magnum.melonds.domain.model.retroachievements.RAUserGameData
@@ -133,6 +137,18 @@ class AndroidRetroAchievementsRepository(
             )
         }
         return Result.success(userGameData)
+    }
+
+    override suspend fun getRuntimeUserAchievements(achievements: List<RAUserAchievement>): List<RARuntimeUserAchievement> = withContext(Dispatchers.Default) {
+        val runtimeAchievements = MelonEmulator.getRuntimeAchievements()
+        achievements.map { userAchievement ->
+            val runtimeAchievement = runtimeAchievements.firstOrNull { it.id == userAchievement.achievement.id }
+            RARuntimeUserAchievement(
+                userAchievement = userAchievement,
+                progress = runtimeAchievement?.value ?: 0,
+                target = runtimeAchievement?.target ?: 0,
+            )
+        }
     }
 
     override suspend fun getGameSummary(gameHash: String): RAGameSummary? {

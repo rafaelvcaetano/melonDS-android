@@ -6,7 +6,7 @@ sealed class RomRetroAchievementsUiState {
     data class Ready(val sets: List<AchievementSetUiModel>) : RomRetroAchievementsUiState() {
 
         fun hasAchievements(): Boolean {
-            return sets.any { it.achievements.isNotEmpty() }
+            return sets.any { it.buckets.isNotEmpty() }
         }
     }
     object LoginError : RomRetroAchievementsUiState()

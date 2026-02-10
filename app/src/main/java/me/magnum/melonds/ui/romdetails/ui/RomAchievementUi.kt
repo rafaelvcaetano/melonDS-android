@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.Icon
+import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -28,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
@@ -50,23 +53,30 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import me.magnum.melonds.R
+import me.magnum.melonds.domain.model.retroachievements.RARuntimeUserAchievement
+import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.ui.common.MelonPreviewSet
+import me.magnum.melonds.ui.common.achievements.ui.model.AchievementUiModel
 import me.magnum.melonds.ui.common.melonTextButtonColors
 import me.magnum.melonds.ui.romdetails.ui.preview.mockRAAchievementPreview
 import me.magnum.melonds.ui.theme.MelonTheme
-import me.magnum.rcheevosapi.model.RAAchievement
 
 @Composable
 fun RomAchievementUi(
     modifier: Modifier,
-    achievement: RAAchievement,
-    showLocked: Boolean,
+    achievementModel: AchievementUiModel,
     onViewAchievement: () -> Unit,
     badgeSize: Dp = 52.dp,
 ) {
     val (bodyFocusRequester, linkFocusRequester) = remember { FocusRequester.createRefs() }
-    var expanded by remember(achievement) {
+    var expanded by remember(achievementModel) {
         mutableStateOf(false)
+    }
+
+    val (achievement, isUnlocked) = when (achievementModel) {
+        is AchievementUiModel.RuntimeAchievementUiModel -> achievementModel.runtimeAchievement.userAchievement.achievement to achievementModel.runtimeAchievement.userAchievement.isUnlocked
+        is AchievementUiModel.UserAchievementUiModel -> achievementModel.userAchievement.achievement to achievementModel.userAchievement.isUnlocked
+        is AchievementUiModel.PrimedAchievementUiModel -> achievementModel.achievement to true
     }
 
     Column(
@@ -80,10 +90,10 @@ fun RomAchievementUi(
             .animateContentSize()
     ) {
         Row(Modifier.fillMaxWidth()) {
-            val image = if (showLocked) {
-                achievement.badgeUrlLocked
-            } else {
+            val image = if (isUnlocked) {
                 achievement.badgeUrlUnlocked
+            } else {
+                achievement.badgeUrlLocked
             }
 
             if (LocalInspectionMode.current) {
@@ -137,6 +147,28 @@ fun RomAchievementUi(
                     maxLines = descriptionMaxLines,
                     overflow = TextOverflow.Ellipsis,
                 )
+
+                if (achievementModel is AchievementUiModel.RuntimeAchievementUiModel && achievementModel.hasProgress()) {
+                    Spacer(Modifier.height(4.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            modifier = Modifier.padding(end = 8.dp),
+                            text = stringResource(R.string.achievement_progress, achievementModel.runtimeAchievement.progress, achievementModel.runtimeAchievement.target),
+                            style = MaterialTheme.typography.caption,
+                        )
+
+                        val achievementProgress = achievementModel.runtimeAchievement.relativeProgress()
+                        LinearProgressIndicator(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(50)),
+                            progress = achievementProgress,
+                            color = MaterialTheme.colors.secondary,
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.width(16.dp))
@@ -220,9 +252,36 @@ fun PreviewRomAchievementUi() {
     MelonTheme {
         RomAchievementUi(
             modifier = Modifier.fillMaxWidth(),
-            achievement = mockRAAchievementPreview(),
-            showLocked = false,
-            onViewAchievement = {},
+            achievementModel = AchievementUiModel.UserAchievementUiModel(
+                userAchievement = RAUserAchievement(
+                    achievement = mockRAAchievementPreview(),
+                    isUnlocked = true,
+                    forHardcoreMode = false,
+                ),
+            ),
+            onViewAchievement = { },
+        )
+    }
+}
+
+@MelonPreviewSet
+@Composable
+fun PreviewRuntimeRomAchievementUi() {
+    MelonTheme {
+        RomAchievementUi(
+            modifier = Modifier.fillMaxWidth(),
+            achievementModel = AchievementUiModel.RuntimeAchievementUiModel(
+                runtimeAchievement = RARuntimeUserAchievement(
+                    userAchievement = RAUserAchievement(
+                        achievement = mockRAAchievementPreview(),
+                        isUnlocked = true,
+                        forHardcoreMode = false,
+                    ),
+                    progress = 13,
+                    target = 47,
+                ),
+            ),
+            onViewAchievement = { },
         )
     }
 }

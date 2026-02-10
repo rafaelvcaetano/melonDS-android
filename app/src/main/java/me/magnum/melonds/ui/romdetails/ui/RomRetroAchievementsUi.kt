@@ -52,7 +52,9 @@ import androidx.compose.ui.unit.dp
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
 import me.magnum.melonds.ui.common.MelonPreviewSet
+import me.magnum.melonds.ui.common.achievements.ui.model.AchievementUiModel
 import me.magnum.melonds.ui.common.melonButtonColors
+import me.magnum.melonds.ui.romdetails.model.AchievementBucketUiModel
 import me.magnum.melonds.ui.romdetails.model.AchievementSetUiModel
 import me.magnum.melonds.ui.romdetails.model.RomAchievementsSummary
 import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
@@ -229,14 +231,13 @@ private fun Ready(
         }
 
         items(
-            items = selectedSet.achievements,
+            items = selectedSet.buckets.flatMap { it.achievements },
             contentType = { ACHIEVEMENT_ITEM_TYPE },
         ) { userAchievement ->
             RomAchievementUi(
                 modifier = Modifier.fillMaxWidth(),
-                achievement = userAchievement.achievement,
-                showLocked = !userAchievement.isUnlocked,
-                onViewAchievement = { onViewAchievement(userAchievement.achievement) },
+                achievementModel = userAchievement,
+                onViewAchievement = { onViewAchievement(userAchievement.actualAchievement()) },
             )
         }
     }
@@ -392,9 +393,14 @@ private fun PreviewContent() {
                         setType = RAAchievementSet.Type.Core,
                         setIcon = URL("http://example.com/icon.png"),
                         setSummary = RomAchievementsSummary(true, 50, 20, 85),
-                        achievements = listOf(
-                            RAUserAchievement(mockRAAchievementPreview(id = 1), false, false),
-                            RAUserAchievement(mockRAAchievementPreview(id = 2, title = "This is another amazing achievement", description = "But this one cannot be missed."), false, false),
+                        buckets = listOf(
+                            AchievementBucketUiModel(
+                                bucket = AchievementBucketUiModel.Bucket.Locked,
+                                achievements = listOf(
+                                    AchievementUiModel.UserAchievementUiModel(RAUserAchievement(mockRAAchievementPreview(id = 1), false, false)),
+                                    AchievementUiModel.UserAchievementUiModel(RAUserAchievement(mockRAAchievementPreview(id = 2, title = "This is another amazing achievement", description = "But this one cannot be missed."), false, false)),
+                                ),
+                            )
                         ),
                     ),
                     AchievementSetUiModel(
@@ -403,9 +409,14 @@ private fun PreviewContent() {
                         setType = RAAchievementSet.Type.Bonus,
                         setIcon = URL("http://example.com/icon.png"),
                         setSummary = RomAchievementsSummary(true, 20, 4, 12),
-                        achievements = listOf(
-                            RAUserAchievement(mockRAAchievementPreview(id = 1), false, false),
-                            RAUserAchievement(mockRAAchievementPreview(id = 2, title = "This is a subset achievement", description = "This is part of the special subset"), false, false),
+                        buckets = listOf(
+                            AchievementBucketUiModel(
+                                bucket = AchievementBucketUiModel.Bucket.Locked,
+                                achievements = listOf(
+                                    AchievementUiModel.UserAchievementUiModel(RAUserAchievement(mockRAAchievementPreview(id = 1), false, false)),
+                                    AchievementUiModel.UserAchievementUiModel(RAUserAchievement(mockRAAchievementPreview(id = 2, title = "This is a subset achievement", description = "This is part of the special subset"), false, false)),
+                                ),
+                            )
                         ),
                     ),
                 ),

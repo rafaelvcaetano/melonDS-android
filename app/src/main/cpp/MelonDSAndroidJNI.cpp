@@ -182,6 +182,26 @@ Java_me_magnum_melonds_MelonEmulator_getRichPresenceStatus(JNIEnv* env, jobject 
         return env->NewStringUTF(richPresenceString.c_str());
 }
 
+JNIEXPORT jobjectArray JNICALL
+Java_me_magnum_melonds_MelonEmulator_getRuntimeAchievements(JNIEnv* env, jobject thiz)
+{
+    jclass simpleRuntimeAchievementClass = env->FindClass("me/magnum/melonds/domain/model/retroachievements/RASimpleRuntimeAchievement");
+    jmethodID simpleRuntimeAchievementConstructor = env->GetMethodID(simpleRuntimeAchievementClass, "<init>", "(JII)V");
+
+    auto runtimeAchievements = MelonDSAndroid::getRuntimeAchievements();
+
+    jobjectArray achievements = env->NewObjectArray(runtimeAchievements.size(), simpleRuntimeAchievementClass, nullptr);
+
+    int index = 0;
+    for (const auto &item: runtimeAchievements)
+    {
+        jobject simpleRuntimeAchievement = env->NewObject(simpleRuntimeAchievementClass, simpleRuntimeAchievementConstructor, item.id, (jint) item.value, (jint) item.target);
+        env->SetObjectArrayElement(achievements, index++, simpleRuntimeAchievement);
+    }
+
+    return achievements;
+}
+
 JNIEXPORT jint JNICALL
 Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jobject thiz, jstring romPath, jstring sramPath, jint gbaSlotType, jstring gbaRomPath, jstring gbaSramPath)
 {

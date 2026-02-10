@@ -66,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.ui.common.melonButtonColors
+import me.magnum.melonds.ui.romdetails.model.AchievementBucketUiModel
 import me.magnum.melonds.ui.romdetails.model.AchievementSetUiModel
 import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
 import me.magnum.melonds.ui.romdetails.ui.AchievementsMultiSetTabRow
@@ -79,11 +80,13 @@ private val DISMISS_DISTANCE_THRESHOLD = 150.dp
 private val FLING_DISMISS_VELOCITY_THRESHOLD = 150.dp
 private val LIST_CONTENT_PADDING = 40.dp
 
+private val CONTENT_TYPE_ACHIEVEMENT = "achievement"
+private val CONTENT_TYPE_BUCKET_HEADER = "bucket-header"
+
 @Composable
 fun AchievementList(
     modifier: Modifier,
     state: RomRetroAchievementsUiState,
-    activeChallenges: List<RAAchievement>,
     onViewAchievement: (RAAchievement) -> Unit,
     onRetry: () -> Unit,
     onDismiss: () -> Unit,
@@ -173,7 +176,6 @@ fun AchievementList(
                 Content(
                     modifier = Modifier.widthIn(max = 640.dp),
                     sets = state.sets,
-                    activeChallenges = activeChallenges,
                     onViewAchievement = onViewAchievement,
                     lazyListState = lazyListState,
                 )
@@ -195,7 +197,6 @@ fun AchievementList(
 private fun Content(
     modifier: Modifier,
     sets: List<AchievementSetUiModel>,
-    activeChallenges: List<RAAchievement>,
     onViewAchievement: (RAAchievement) -> Unit,
     lazyListState: LazyListState,
 ) {
@@ -205,9 +206,6 @@ private fun Content(
     val selectedSet = remember(selectedSetId) {
         sets.first { it.setId == selectedSetId }
     }
-    val selectedSetActiveChallenges = remember(selectedSetId) {
-        activeChallenges.filter { it.setId.id == selectedSetId }
-    }
     val backgroundColor = MaterialTheme.colors.background
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
@@ -216,7 +214,7 @@ private fun Content(
         val contentPadding = with(density) { LIST_CONTENT_PADDING.toPx() }
         AchievementListBringIntoViewSpec(contentPadding, contentPadding)
     }
-    val scrollAmountByKeyboard = remember {
+    val scrollAmountByKeyboard = remember(density) {
         with(density) { 80.dp.toPx() }
     }
 
@@ -298,6 +296,7 @@ private fun Content(
                     }
                 },
             state = lazyListState,
+            horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = PaddingValues(vertical = LIST_CONTENT_PADDING),
         ) {
             if (sets.size > 1) {
@@ -311,43 +310,43 @@ private fun Content(
                 }
             }
 
-            if (selectedSetActiveChallenges.isNotEmpty()) {
-                item {
+            selectedSet.buckets.forEachIndexed { index, bucket ->
+                item(contentType = CONTENT_TYPE_BUCKET_HEADER) {
                     Text(
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-                        text = stringResource(R.string.retro_achievements_active_challenges),
-                        style = MaterialTheme.typography.h5,
+                        modifier = Modifier.padding(start = 16.dp, top = if (index == 0) 0.dp else 16.dp, end = 16.dp, bottom = 4.dp).fillMaxWidth(),
+                        text = getBucketTitle(bucket.bucket),
+                        style = MaterialTheme.typography.h6,
                     )
-                }
-
-                items(selectedSetActiveChallenges) {
-                    RomAchievementUi(
-                        modifier = Modifier.fillMaxWidth(),
-                        achievement = it,
-                        showLocked = false,
-                        onViewAchievement = { onViewAchievement(it) },
-                        badgeSize = 52.dp,
-                    )
-                }
-
-                item {
                     Divider(
-                        modifier = Modifier.padding(vertical = 24.dp, horizontal = 16.dp),
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
                         color = MaterialTheme.colors.onSurface,
                     )
                 }
-            }
 
-            items(selectedSet.achievements) {
-                RomAchievementUi(
-                    modifier = Modifier.fillMaxWidth(),
-                    achievement = it.achievement,
-                    showLocked = !it.isUnlocked,
-                    onViewAchievement = { onViewAchievement(it.achievement) },
-                    badgeSize = 52.dp,
-                )
+                items(
+                    items = bucket.achievements,
+                    contentType = { CONTENT_TYPE_ACHIEVEMENT },
+                ) {
+                    RomAchievementUi(
+                        modifier = Modifier.fillMaxWidth(),
+                        achievementModel = it,
+                        onViewAchievement = { onViewAchievement(it.actualAchievement()) },
+                        badgeSize = 52.dp,
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun getBucketTitle(bucket: AchievementBucketUiModel.Bucket): String {
+    return when (bucket) {
+        AchievementBucketUiModel.Bucket.ActiveChallenges -> stringResource(R.string.retro_achievements_active_challenges)
+        AchievementBucketUiModel.Bucket.RecentlyUnlocked -> stringResource(R.string.retro_achievements_recently_unlokced)
+        AchievementBucketUiModel.Bucket.AlmostThere -> stringResource(R.string.retro_achievements_almost_there)
+        AchievementBucketUiModel.Bucket.Locked -> stringResource(R.string.retro_achievements_locked)
+        AchievementBucketUiModel.Bucket.Unlocked -> stringResource(R.string.retro_achievements_unlocked)
     }
 }
 
@@ -355,7 +354,7 @@ private fun Content(
 private fun LoadError(
     modifier: Modifier,
     onRetry: () -> Unit,
-    ) {
+) {
     Column(
         modifier = modifier.background(MaterialTheme.colors.background),
         verticalArrangement = Arrangement.spacedBy(16.dp),

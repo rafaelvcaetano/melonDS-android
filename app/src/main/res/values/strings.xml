@@ -417,6 +417,10 @@
     <string name="retro_achievements_no_achievements">No RetroAchievements were found for this game</string>
     <string name="retro_achievements_relaunch_to_apply_settings">Relaunch the ROM to apply the new RetroAchievements settings</string>
     <string name="retro_achievements_active_challenges">Active Challenges</string>
+    <string name="retro_achievements_recently_unlokced">Recently Unlocked</string>
+    <string name="retro_achievements_almost_there">Almost There</string>
+    <string name="retro_achievements_locked">Locked</string>
+    <string name="retro_achievements_unlocked">Unlocked</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="retry">Retry</string>
@@ -437,6 +441,7 @@
     <string name="achievement_unlocked">Achievement unlocked!</string>
     <string name="achievement_missable">Missable</string>
     <string name="achievement_missable_description">This achievement can be missed during a playthrough</string>
+    <string name="achievement_progress">%1$d/%2$d</string> <!-- Eg.: 12/38 -->
     <string name="challenge_started">Challenge started</string>
     <string name="leaderboard_attempt_started">Leaderboard attempt started!</string>
     <string name="leaderboard_submission_info">%1$s • Rank %2$d of %3$d</string> <!-- Eg.: 01:42.95 • Rank 73 of 145 -->
