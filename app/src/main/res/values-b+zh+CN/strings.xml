@@ -1,0 +1,605 @@
+<resources>
+    <string name="app_name">melonDS</string>
+
+    <string name="ok">确定</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
+    <string name="on">开</string>
+    <string name="off">关</string>
+    <string name="cancel">取消</string>
+    <string name="not_set">未设置</string>
+    <string name="delete">删除</string>
+    <string name="edit">编辑</string>
+    <string name="clear">清除</string>
+    <string name="none">无</string>
+    <string name="options">选项</string>
+    <string name="preview">预览</string>
+    <string name="undo">撤销</string>
+    <string name="update">更新</string>
+    <string name="close">关闭</string>
+    <string name="play">游玩</string>
+    <string name="save">保存</string>
+    <string name="ellipsis">…</string>
+    <string name="navigate_back">返回</string>
+
+    <string name="version_alpha">Alpha</string>
+    <string name="version_beta">Beta</string>
+    <string name="version_nightly">Nightly</string>
+
+    <string name="console_ds">DS</string>
+    <string name="console_dsi">DSi（实验性）</string>
+
+    <string name="console_ds_full">任天堂 DS</string>
+    <string name="console_dsi_full">任天堂 DSi</string>
+
+    <string name="size_bytes">B</string>
+    <string name="size_kb">KB</string>
+    <string name="size_mb">MB</string>
+    <string name="size_gb">GB</string>
+
+    <string name="error_rom_not_found">未找到 ROM</string>
+    <string name="error_rom_not_found_info">未找到所选的 ROM。请确保所选择的 ROM 可以在当前的 ROM 搜索目录中找到。\n%1$s</string>
+    <string name="error_load_rom">无法加载 ROM</string>
+    <string name="error_load_rom_message">加载 ROM 时出错。请确保它未损坏并重试。</string>
+    <string name="error_load_firmware">无法加载固件</string>
+    <string name="error_load_firmware_message">加载固件时出错（%1$s）。请确保 BIOS 和固件转储未损坏，可启动固件并重试。</string>
+    <string name="error_load_rom_report_issue">生成的错误日志有助于解决该问题。您想在 GitHub 上针对该日志打开一个议题吗？您需要一个 GitHub 账号。</string>
+    <string name="title_emulator_running">模拟器运行中</string>
+    <string name="message_stop_emulation">停止模拟并加载新的 ROM？</string>
+    <string name="error_load_gba_rom">无法加载 GBA ROM</string>
+    <string name="action_search_roms">搜索 ROM</string>
+    <string name="action_sort_roms">为 ROM 排序</string>
+    <string name="action_boot_firmware">启动固件</string>
+    <string name="action_refresh_rom_list">刷新 ROM 列表</string>
+    <string name="hint_search_roms">搜索 ROM…</string>
+    <string name="update_available">发现可用更新：%1$s</string>
+    <string name="nightly_update_available">发现可用的 Nightly 版本更新</string>
+    <string name="nightly_update_available_message">您要立即下载吗？</string>
+    <string name="skip_update">忽略此版本</string>
+    <string name="remind_later_update">稍后提醒</string>
+    <string name="downloading_update">正在下载更新…</string>
+    <string name="starting_download">开始下载…</string>
+    <string name="download_progress_sizes">%1$.1fMB/%2$.1fMB</string>
+    <string name="update_download_failed">下载更新失败</string>
+
+    <string name="dsiware_manager">DSiWare 管理器</string>
+    <string name="no_dsiware_titles_installed">您未安装任何 DSiWare 游戏</string>
+    <string name="dsiware_manager_no_dsi_setup">您尚未设置 DSi 系统</string>
+    <string name="dsiware_manager_invalid_dsi_setup">您的 DSi 系统设置无效</string>
+    <string name="import_dsiware_title">导入 DSiWare 游戏</string>
+    <string name="dsiware_manager_setup">设置</string>
+    <string name="dsiware_manager_fix_setup">修复设置</string>
+    <string name="dsiware_manager_load_error">列出您的 DSiWare 游戏时出现问题。请检查您的 DSi 设置</string>
+    <string name="dsiware_manager_import_title_error_open_nand_failed">无法打开 NAND</string>
+    <string name="dsiware_manager_import_title_error_open_file_failed">打开所选文件时出错</string>
+    <string name="dsiware_manager_import_title_error_not_dsiware_title">不是 DSiWare 游戏</string>
+    <string name="dsiware_manager_import_title_error_title_already_imported">已导入 DSiWare 游戏</string>
+    <string name="dsiware_manager_import_title_error_insatll_failed">安装游戏失败</string>
+    <string name="dsiware_manager_import_title_error_metadat_fetch_failed">下载游戏元数据失败。请检查您的互联网连接</string>
+    <string name="dsiware_manager_import_title_error_unknown">发生未知错误</string>
+    <string name="dsiware_manager_import_data">导入数据…</string>
+    <string name="dsiware_manager_export_data">导出数据…</string>
+    <string name="dsiware_manager_import_file_success">%1$s 导入成功</string>
+    <string name="dsiware_manager_import_file_error">导入文件失败</string>
+    <string name="dsiware_manager_export_file_success">%1$s 导出成功</string>
+    <string name="dsiware_manager_export_file_error">导出文件失败</string>
+    <string name="dsiware_import_from_file">从文件导入</string>
+    <string name="dsiware_import_from_rom_list">从 ROM 列表导入</string>
+
+    <string name="select_dsiware_title">选择 DSiWare 游戏</string>
+    <string name="no_dsiware_roms_found">未找到 DSiWare ROM</string>
+
+    <string name="info_fps">FPS：%1$d</string>
+    <string name="info_play_time_hours_minutes">游玩时长：%1$d小时 %2$d分钟</string> <!-- 例如：4小时 28分钟 -->
+    <string name="info_play_time_minutes">游玩时长：%1$d分钟</string> <!-- 例如：28分钟 -->
+    <string name="info_loading">加载中…</string>
+    <string name="save_state_slot">%1$s.</string>
+    <string name="failed_save_state">保存即时存档失败</string>
+    <string name="failed_load_state">读取即时存档失败</string>
+    <string name="cant_load_empty_slot">无法读取空存档槽</string>
+    <string name="failed_reset_emulation">重启模拟失败</string>
+    <string name="save_states_not_supported">运行固件时不支持即时存档</string>
+    <string name="save_states_unavailable_ra_hardcore_enabled">硬核模式开启时无法使用即时存档</string>
+    <string name="rewind_time_seconds">%1$s秒</string> <!-- 例如：43.56秒 -->
+    <string name="rewind_time_minutes_seconds">%1$d分%2$s秒</string> <!-- 例如：2分37.93秒 -->
+    <string name="rewind_not_enabled">倒带未启用</string>
+    <string name="rewind_unavailable_ra_hardcore_enabled">硬核模式开启时无法使用倒带</string>
+    <string name="no_image_selected">未选择图像</string>
+    <string name="failed_to_load_image">加载图像失败</string>
+
+    <string name="action_sort_alphabetically">按字母顺序</string>
+    <string name="action_sort_recently_played">按游玩时间</string>
+
+    <string name="ds_bios_dir_not_set">未设置 DS BIOS 目录</string>
+    <string name="ds_bios_dir_not_set_info">未设置 DS BIOS 目录。请选择包含以下文件的目录：\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="dsi_bios_dir_not_set">未设置 DSi BIOS 目录</string>
+    <string name="dsi_bios_dir_not_set_info">未设置 DSi BIOS 目录。请选择包含以下文件的目录：\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
+    <string name="incorrect_bios_dir">BIOS 目录不正确</string>
+    <string name="ds_incorrect_bios_dir_info">DS 系统的 BIOS 目录不正确。请确保所选目录包含以下文件：\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="dsi_incorrect_bios_dir_info">DSi 系统的 BIOS 目录不正确。请确保所选目录包含以下文件：\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
+    <string name="storage_permission_required">需要存储权限</string>
+    <string name="storage_permission_required_info">从设备上加载 ROM 需要存储权限。请在接下来的对话框中授予存储访问权限。</string>
+    <string name="microphone_permission_required">需要音频录制权限</string>
+    <string name="microphone_permission_required_info">模拟器需要音频录制权限来获取麦克风数据。请在接下来的对话框中授予麦克风权限。</string>
+    <string name="system_file_picker_not_found">您的设备没有文件选择器。没有它，本模拟器将无法运作</string>
+    <string name="system_file_picker_not_enabled">您的设备的文件选择器已被禁用。请启用它</string>
+    <string name="file_picker_settings">文件选择器设置</string>
+    <string name="no_rom_search_directory_specified">未指定 ROM 搜索目录</string>
+    <string name="set_rom_directory">设置 ROM 目录</string>
+    <string name="error_invalid_directory">无效目录</string>
+    <string name="error_invalid_directory_description">无法写入所选目录。请选择另一个目录。如果您选择的是压缩文件，请尝试解压出里面的内容。</string>
+    <string name="no_roms_found">未找到 ROM</string>
+    <string name="rom_launch_failed">启动 ROM 失败</string>
+    <string name="rom_launch_custom_bios_firmware_bad_setup">此 ROM 被设置为使用自定义的 BIOS 与固件运行，但未正确配置。</string>
+    <string name="firmware_launch_failed">启动固件失败</string>
+    <string name="firmware_launch_bad_setup">启动此固件需要自定义的 BIOS 与固件，但未正确配置。</string>
+    <string name="failed_launch_dsiware_title">启动 DSiWare 游戏失败</string>
+    <string name="failed_launch_dsiware_title_check_failed">无法验证 DSiWare 游戏是否已被安装。查看 DSiWare 管理器以获取更多信息。</string>
+    <string name="failed_launch_dsiware_title_rom_failed">无法解析 ROM 文件。请检查 ROM 文件是否有效并且未损坏。</string>
+    <string name="failed_launch_dsiware_title_not_installed">启动 DSiWare 游戏前必须先将其安装到 NAND。您可以在 DSiWare 管理器中安装。</string>
+
+    <string name="press_any_button">按下任意按钮…</string>
+    <string name="waiting_for_input">正在等待输入…</string>
+
+    <string name="choose_component">选择组件</string>
+
+    <string name="pause">暂停</string>
+    <string name="achievements">成就</string>
+    <string name="reset">重启</string>
+    <string name="exit">退出</string>
+
+    <string name="settings">设置</string>
+    <string name="save_state">保存即时存档</string>
+    <string name="load_state">读取即时存档</string>
+    <string name="rewind">倒带</string>
+    <string name="save_slot">存档槽</string>
+    <string name="empty_slot">%1$s. &lt;空&gt;</string>
+    <string name="quick_slot">快速存档槽</string>
+    <string name="saved">已保存</string>
+    <string name="loaded">已读取</string>
+    <string name="title_activity_settings">设置</string>
+    <string name="category_general">通用</string>
+    <string name="category_general_summary">主题，通用设置</string>
+    <string name="category_roms">ROM</string>
+    <string name="category_roms_summary">搜索目录，图标过滤，缓存设置</string>
+    <string name="category_system">系统</string>
+    <string name="category_system_summary">固件设置，自定义 BIOS，JIT</string>
+    <string name="theme">主题</string>
+    <string name="fast_forward_max_speed">快进最高速度</string>
+    <string name="rewind_description">启用后，系统将定期自动保存即时存档。每当您想倒退一段时间时，只需打开倒带界面并选择要恢复的存档。\n\n请注意，启用此功能后，如果您的设备性能不足，可能会偶尔发生卡顿。此外，还会使用大量内存，具体取决于保存存档的频率以及保存的时长。</string>
+    <string name="rewind_save_period">保存间隔</string>
+    <string name="rewind_length">倒带长度</string>
+    <string name="rewind_max_memory_usage">最大内存使用量：%1$s</string>
+    <string name="rewind_memory_usage_above_recommended_limit">内存使用量超过建议限制</string>
+    <string name="sustained_performance_mode">持续性能模式</string>
+    <string name="sustained_performance_mode_summary">启用后，峰值性能会降低，但温度墙问题将没那么明显。</string>
+    <string name="check_for_updates">检查更新</string>
+    <string name="check_for_updates_summary">启用后，应用程序将定期检查可用更新</string>
+    <string name="rom_icon_filtering">图标过滤</string>
+    <string name="max_rom_cache_size">最大 ROM 缓存大小</string>
+    <string name="clear_extracted_rom_cache">清除提取的 ROM 缓存</string>
+    <string name="cache_size">缓存大小：%s</string>
+    <string name="cache_size_calculating">缓存大小：计算中…</string>
+    <string name="rom_search_directory">搜索目录</string>
+    <string name="use_custom_bios">使用自定义 BIOS 和固件</string>
+    <string name="console_type">默认系统</string>
+    <string name="internal_firmware_settings">内置固件设置</string>
+    <string name="internal_firmware_settings_summary">调整内置固件的设置。</string>
+    <string name="custom_bios_firmware">自定义 BIOS 和固件</string>
+    <string name="custom_bios_firmware_description">使用自定义 BIOS 和固件可以在不加载 ROM 的情况下启动并浏览 DS 的固件，就像在实机系统上一样</string>
+    <string name="bios_directory">DS BIOS 目录</string>
+    <string name="dsi_bios_directory">DSi BIOS 目录</string>
+    <string name="show_boot_screen">显示启动界面</string>
+    <string name="mac_address">MAC 地址</string>
+    <string name="randomize_mac_address">随机化 MAC 地址</string>
+    <string name="randomize_mac_address_summary">启用后，每次启动时都会使用随机 MAC 地址。这可能会使某些游戏认为它们在不同的系统上运行，并可能打断基于时间的事件。</string>
+    <string name="generate_new_mac_address">重新生成</string>
+    <string name="generate_new_mac_address_description">生成新的 MAC 地址将使游戏认为它们在不同的系统上运行。</string>
+    <string name="enable_jit">启用 JIT</string>
+    <string name="enable_jit_summary">提高性能，但可能会导致定格或崩溃。</string>
+    <string name="jit_not_supported">JIT 仅支持64位设备。</string>
+    <string name="backup_settings">备份设置</string>
+    <string name="restore_settings">恢复设置</string>
+    <string name="settings_backup_success">设置备份已创建。\n\n已跳过下列设置：\n&#8226; RetroAchievements 会话\n&#8226; ROM/存档目录\n&#8226; DS BIOS 目录\n&#8226; DSi BIOS 目录</string>
+    <string name="settings_backup_error">备份设置失败</string>
+    <string name="settings_restore_success">设置已恢复。\n\n下列设置未改变：\n&#8226; RetroAchievements 会话\n&#8226; ROM/存档目录\n&#8226; DS BIOS 目录\n&#8226; DSi BIOS 目录</string>
+    <string name="settings_restore_error">恢复设置失败</string>
+    <string name="backup_internal_layout">备份内部布局</string>
+    <string name="backup_external_layout">备份外部布局</string>
+    <string name="restore_internal_layout">恢复内部布局</string>
+    <string name="restore_external_layout">恢复外部布局</string>
+    <string name="internal_layout_backup_success">内部布局备份已创建。</string>
+    <string name="internal_layout_backup_error">备份内部布局失败</string>
+    <string name="external_layout_backup_success">外部布局备份已创建。</string>
+    <string name="external_layout_backup_error">备份外部布局失败</string>
+    <string name="internal_layout_restore_success">内部布局已恢复。</string>
+    <string name="internal_layout_restore_error">恢复内部布局失败</string>
+    <string name="external_layout_restore_success">外部布局已恢复。</string>
+    <string name="external_layout_restore_error">恢复外部布局失败</string>
+    <string name="threaded_rendering">线程化渲染</string>
+    <string name="fps_counter_position">FPS 计数器位置</string>
+    <string name="threaded_rendering_summary">启用后可提高 3D 游戏性能，但可能会引起图形故障。</string>
+    <string name="category_video">视频</string>
+    <string name="category_video_summary">过滤器，线程化渲染，FPS 计数器</string>
+    <string name="filter">过滤器</string>
+    <string name="internal_resolution">内部分辨率</string>
+    <string name="renderer">渲染器</string>
+    <string name="dsi_camera_source">DSi 摄像头源</string>
+    <string name="external_screen_layout">外部屏幕布局</string>
+    <string name="external_display_screen">外部显示屏幕</string>
+    <string name="external_display_rotate_left">将外部屏幕内容向左旋转</string>
+    <string name="refresh_external_screen">刷新外部屏幕</string>
+    <string name="dsi_camera_image">DSi 摄像头图像</string>
+    <string name="internal_screen_layout">内部屏幕布局</string>
+    <string name="input_refresh_external_screen">刷新外部屏幕</string>
+    <string name="quick_settings">快速设置</string>
+    <string name="category_audio">音频</string>
+    <string name="category_audio_summary">音量，延迟，麦克风源</string>
+    <string name="enable_sound">开启声音</string>
+    <string name="interpolation">插值</string>
+    <string name="bitrate">比特率</string>
+    <string name="volume">音量</string>
+    <string name="volume_percentage">%1$d%%</string>
+    <string name="audio_latency">音频延迟</string>
+    <string name="microphone_source">麦克风源</string>
+    <string name="controller_layout">控制器布局</string>
+    <string name="category_save_files">存档文件</string>
+    <string name="category_save_files_summary">存档文件与即时存档保存位置</string>
+    <string name="save_next_rom">保存在 ROM 文件旁边</string>
+    <string name="save_file_directory">存档文件目录</string>
+    <string name="save_state_location">即时存档保存位置</string>
+    <string name="input">输入</string>
+    <string name="input_summary">按键映射，布局，触觉反馈</string>
+    <string name="key_mapping">按键映射</string>
+    <string name="key_mapping_summary">为控制器输入分配按键</string>
+    <string name="show_soft_input">显示虚拟按键</string>
+    <string name="soft_input_behaviour">虚拟按键行为</string>
+    <string name="vibrate_on_touch">触摸时振动</string>
+    <string name="vibration_strength">振动强度</string>
+    <string name="soft_input_opacity">虚拟按键不透明度</string>
+    <string name="retroachievements">RetroAchievements</string> <!-- 将单词拼在一起，因为这是官方名称 -->
+    <string name="retroachievements_summary">登录与管理 RetroAchievements 集成</string> <!-- 将单词拼在一起，因为这是官方名称 -->
+    <string name="enable_rich_presence">启用 Rich Presence</string>
+    <string name="rich_presence_summary">允许其他 RetroAchievements 用户看到您正在玩什么游戏</string>
+    <string name="hardcore_mode">硬核模式</string>
+    <string name="hardcore_mode_summary">获得双倍积分，但您无法在游戏中使用即时存档、金手指或慢动作</string>
+    <string name="show_active_challenge_indicators">显示进行中挑战指示器</string>
+    <string name="show_active_challenge_indicators_summary">可取得特定成就时在屏幕上显示指示器</string>
+    <string name="show_progress_indicators">显示进度指示器</string>
+    <string name="show_progress_indicators_summary">进度接近成就时在屏幕上显示指示器</string>
+    <string name="show_leaderboard_indicators">显示排行榜指示器</string>
+    <string name="show_leaderboard_indicators_summary">冲击排行榜时在屏幕上显示指示器</string>
+
+    <string name="cheats">金手指</string>
+    <string name="cheats_summary">启用与导入金手指代码</string>
+    <string name="enable_cheats">启用金手指</string>
+    <string name="cheats_database">金手指数据库（XML 格式）</string>
+    <string name="import_cheats">导入金手指</string>
+    <string name="import_cheats_summary">从数据库文件导入金手指代码以使其可用。目前仅支持 XML 数据库。之前导入的任何金手指都将被删除。</string>
+    <string name="rom_shortcut">ROM 快捷方式</string>
+
+    <string name="firmware_nickname">昵称</string>
+    <string name="firmware_message">消息</string>
+    <string name="firmware_language">语言</string>
+    <string name="firmware_favourite_colour">最喜欢的颜色</string>
+    <string name="firmware_birthday">生日</string>
+
+    <string name="error_clear_rom_cache">清除 ROM 缓存失败</string>
+    <string name="importing_cheats">正在导入金手指…</string>
+    <string name="starting">启动中…</string>
+    <string name="move_to_background">切换到后台</string>
+    <string name="failed_save_cheat_changes">无法保存金手指更改</string>
+    <string name="no_cheats_found">未找到当前 ROM 的金手指代码。尝试导入其它金手指数据库。</string>
+    <string name="enabled_cheats">已启用的金手指</string>
+    <string name="no_enabled_cheats_for_rom">您尚未为该 ROM 启用任何金手指</string>
+    <string name="folder_is_empty">此文件夹为空。尝试添加您自己的金手指代码</string>
+    <string name="add_cheat_folder">新建金手指文件夹</string>
+    <string name="new_cheat">新建金手指</string>
+    <string name="edit_cheat">编辑金手指</string>
+    <string name="cheat_name">金手指名称</string>
+    <string name="description">描述</string>
+    <string name="cheat_code">代码</string>
+    <string name="error_name_cannot_be_empty">金手指名称不能为空</string>
+    <string name="error_code_cannot_be_empty">代码不能为空</string>
+    <string name="error_code_invalid_format">代码格式无效</string>
+    <string name="cheat_deleted">金手指 “%1$s” 已删除</string>
+    <string name="cheat_folder_default_name">我的金手指</string>
+
+    <string name="day">日</string>
+    <string name="month">月</string>
+    <string name="symbol_increase">+</string>
+    <string name="symbol_decrease">-</string>
+
+    <string name="rom_settings">Rom 设置</string> <!-- 无障碍字符串。应避免使用缩写 -->
+    <string name="label_rom_config_console">启动系统</string>
+    <string name="label_rom_config_custom_name">ROM 显示名称</string>
+    <string name="label_rom_config_gba_slot">GBA 卡槽</string>
+    <string name="label_rom_config_gba_rom_path">GBA ROM 路径</string>
+    <string name="label_rom_config_gba_save_path">GBA 存档路径</string>
+    <string name="rom_details_configuration_tab">配置</string>
+    <string name="retro_achievements_tab">Retro Achievements</string> <!-- 将单词分开，方便自动换行 -->
+
+    <string name="theme_option_light">浅色</string>
+    <string name="theme_option_dark">深色</string>
+    <string name="theme_option_system_default">系统默认</string>
+
+    <string name="notification_channel_background_tasks">后台任务</string>
+
+    <string name="top_screen">上屏</string>
+    <string name="bottom_screen">下屏</string>
+    <string name="custom_layout">自定义布局</string>
+    <string name="input_a">A</string>
+    <string name="input_b">B</string>
+    <string name="input_x">X</string>
+    <string name="input_y">Y</string>
+    <string name="input_left">方向键左</string>
+    <string name="input_right">方向键右</string>
+    <string name="input_up">方向键上</string>
+    <string name="input_down">方向键下</string>
+    <string name="input_left_joy">摇杆左</string>
+    <string name="input_right_joy">摇杆右</string>
+    <string name="input_up_joy">摇杆上</string>
+    <string name="input_down_joy">摇杆下</string>
+    <string name="input_l">L</string>
+    <string name="input_r">R</string>
+    <string name="input_start">Start</string>
+    <string name="input_select">Select</string>
+    <string name="input_lid">翻/合盖</string>
+    <string name="input_pause">暂停</string>
+    <string name="input_fast_forward">快进（切换）</string>
+    <string name="input_microphone">切换麦克风</string>
+    <string name="input_toggle_soft_input">切换虚拟按键</string>
+    <string name="input_reset">@string/reset</string>
+    <string name="input_dpad">方向键</string>
+    <string name="input_abxy_buttons">ABXY 按钮</string>
+    <string name="input_swap_screens">交换上下屏</string>
+    <string name="input_quick_save">快速保存</string>
+    <string name="input_quick_load">快速读取</string>
+
+    <string name="layouts">布局</string>
+    <string name="layouts_summary">管理自定义布局配置</string>
+    <string name="action_layouts_new">新建布局</string>
+    <string name="default_layout_name">默认</string>
+    <string name="custom_layout_default_name">我的布局</string>
+    <string name="use_global_layout">使用全局布局</string>
+    <string name="use_global_preference">使用全局设置</string>
+    <string name="layout_deleted">布局已删除</string>
+    <string name="named_layout_deleted">布局 “%1$s” 已删除</string>
+
+    <string name="layout_editor">布局编辑器</string>
+    <string name="add_component">添加组件</string>
+    <string name="no_more_components">没有更多组件可添加</string>
+    <string name="label_size">大小：</string>
+    <string name="label_width">宽度：</string>
+    <string name="label_height">高度：</string>
+    <string name="label_alpha">透明度：</string>
+    <string name="label_aspect_ratio">宽高比：</string>
+    <string name="aspect_ratio_4_3">4:3（原始）</string>
+    <string name="aspect_ratio_16_9">16:9（宽屏）</string>
+    <string name="aspect_ratio_unrestricted">无限制</string>
+    <string name="keep_ds_ratio">保持 DS 宽高比</string>
+    <string name="above_other_screen">在其它界面上方</string>
+    <string name="center_horizontal">水平居中</string>
+    <string name="center_vertical">垂直居中</string>
+    <string name="editing_internal_layout">正在编辑内部布局</string>
+    <string name="editing_external_layout">正在编辑外部布局</string>
+    <string name="menu">菜单</string>
+    <string name="properties">属性</string>
+    <string name="revert_changes">撤销更改</string>
+    <string name="reset_default">重置为默认值</string>
+    <string name="exit_without_saving">退出但不保存</string>
+    <string name="save_and_exit">保存并退出</string>
+    <string name="layout_name">布局名称</string>
+    <string name="layout_orientation">布局方向</string>
+    <string name="layout_use_default_opacity">使用默认不透明度</string>
+    <string name="layout_opacity">布局不透明度</string>
+    <string name="layout_background_load_failed">加载背景失败</string>
+
+    <string name="layout_background_title">布局背景</string>
+    <string name="background">背景</string>
+    <string name="backgrounds">背景</string>
+    <string name="background_mode">背景模式</string>
+    <string name="action_backgrounds_new">新建背景</string>
+    <string name="background_name">背景名称</string>
+    <string name="background_deleted">背景已删除</string>
+    <string name="background_add_processing_failed">处理所选背景图像失败。请确保它未损坏。</string>
+
+    <string name="retro_achievements_login_description">使用 RetroAchievements 登录以查看游玩这个游戏时可解锁的成就！</string>
+    <string name="login_with_retro_achievements">使用 RetroAchievements 登录</string>
+    <string name="login">登录</string>
+    <string name="retroachievements_login_summary">使用 RetroAchievements 登录以在游玩时解锁成就！</string>
+    <string name="retroachievements_login_status">已登录为 %1$s</string>
+    <string name="retroachievements_logout">退出登录</string>
+    <string name="retroachievements_logout_confirmation">您确定要从 RetroAchievements 退出登录吗？您将无法在游玩时解锁成就。</string>
+    <string name="retro_achievements_login_error">尝试登录时出现问题。请确保您的用户名和密码正确，并且您已连接到互联网</string>
+    <string name="retro_achievements_login_error_short">尝试登录时出现问题</string>
+    <string name="retro_achievements_load_error">尝试加载该游戏的成就时出现问题。请确保您已连接到互联网，并在稍后重试</string>
+    <string name="retro_achievements_no_achievements">未找到该游戏的 RetroAchievements</string>
+    <string name="retro_achievements_relaunch_to_apply_settings">重新启动 ROM 以应用新的 RetroAchievements 设置</string>
+    <string name="retro_achievements_active_challenges">进行中的挑战</string>
+    <string name="retro_achievements_recently_unlokced">最近解锁</string>
+    <string name="retro_achievements_almost_there">即将达成</string>
+    <string name="retro_achievements_locked">未解锁</string>
+    <string name="retro_achievements_unlocked">已解锁</string>
+    <string name="username">用户名</string>
+    <string name="password">密码</string>
+    <string name="retry">重试</string>
+    <string name="points_abbreviated">PTS</string>
+    <string name="points">积分</string>
+    <string name="completed">已完成</string>
+    <string name="ra_mode_hardcore">硬核</string>
+    <string name="ra_mode_softcore">软核</string>
+    <string name="ra_base_set">基础集</string>
+    <string name="view_achievement">查看成就</string>
+    <string name="completed_achievements"><b>%1$d</b> / <b>%2$d</b>（%3$d%%）</string>
+    <string name="submitting_achievements">正在登录 RetroAchievements…</string>
+    <string name="achievements_loaded">成就已加载</string>
+    <string name="achievements_unlocked_compact">已解锁：%1$d/%2$d</string>
+    <string name="game_has_no_achievements">此游戏没有成就</string>
+    <string name="achievements_failed_load">加载成就失败！</string>
+    <string name="achievements_failed_load_tip">确保您已联网</string>
+    <string name="achievement_unlocked">成就已解锁！</string>
+    <string name="achievement_missable">可能错过</string>
+    <string name="achievement_missable_description">在闯关过程中可能会错过该成就</string>
+    <string name="achievement_progress">%1$d/%2$d</string> <!-- 例如：12/38 -->
+    <string name="challenge_started">挑战开始</string>
+    <string name="leaderboard_attempt_started">排行榜冲击开始！</string>
+    <string name="leaderboard_submission_info">%1$s • 排名 %2$d / %3$d</string> <!-- 例如：01:42.95 • 排名 73 / 145 -->
+    <string name="game_completed">已通关 %1$s</string>
+    <string name="game_mastered">已精通 %1$s</string>
+
+    <string-array name="fast_forward_speed_multiplier_options">
+        <item>无限制</item>
+        <item>1.5倍</item>
+        <item>2倍</item>
+        <item>3倍</item>
+        <item>4倍</item>
+        <item>8倍</item>
+    </string-array>
+
+    <string-array name="rom_icon_filtering_options">
+        <item>无（像素化）</item>
+        <item>线性（平滑）</item>
+    </string-array>
+
+    <string-array name="game_runtime_console_type_options">
+        <item>默认</item>
+        <item>@string/console_ds</item>
+        <item>@string/console_dsi</item>
+    </string-array>
+
+    <string-array name="firmware_settings_language_options">
+        <item>英语</item>
+        <item>法语</item>
+        <item>德语</item>
+        <item>意大利语</item>
+        <item>西班牙语</item>
+        <item>日语</item>
+    </string-array>
+
+    <string-array name="game_runtime_mic_source_options">
+        <item>默认</item>
+        <item>无</item>
+        <item>吹气</item>
+        <item>设备麦克风</item>
+    </string-array>
+
+    <string-array name="gba_slot_options">
+        <item>无</item>
+        <item>GBA ROM</item>
+        <item>震动包</item>
+        <item>内存扩展卡</item>
+    </string-array>
+
+    <string-array name="console_type_options">
+        <item>@string/console_ds</item>
+        <item>@string/console_dsi</item>
+    </string-array>
+
+    <string-array name="fps_counter_position_options">
+        <item>隐藏</item>
+        <item>左上</item>
+        <item>中上</item>
+        <item>右上</item>
+        <item>左下</item>
+        <item>中下</item>
+        <item>右下</item>
+    </string-array>
+
+    <string-array name="video_renderer_options">
+        <item>软件</item>
+        <item>OpenGL</item>
+    </string-array>
+
+    <string-array name="video_internal_resolution_options">
+        <item>1倍原生（256x192）</item>
+        <item>2倍原生（512x384）</item>
+        <item>3倍原生（768x576）</item>
+        <item>4倍原生（1024x768）</item>
+        <item>5倍原生（1280x960）</item>
+        <item>6倍原生（1536x1152）</item>
+        <item>7倍原生（1792x1344）</item>
+        <item>8倍原生（2048x1536）</item>
+    </string-array>
+
+    <string-array name="video_filtering_options">
+        <item>无</item>
+        <item>线性</item>
+        <item>2xBR</item>
+        <item>HQ2X</item>
+        <item>HQ4X</item>
+        <item>Quilez</item>
+        <item>LCD</item>
+    </string-array>
+
+    <string-array name="dsi_camera_source_options">
+        <item>黑屏</item>
+        <item>物理摄像头</item>
+        <item>静态图像</item>
+    </string-array>
+
+    <string-array name="external_display_screen_options">
+        <item>@string/top_screen</item>
+        <item>@string/bottom_screen</item>
+    </string-array>
+
+    <string-array name="audio_interpolation_options">
+        <item>无</item>
+        <item>线性</item>
+        <item>余弦</item>
+        <item>立方</item>
+    </string-array>
+
+    <string-array name="audio_bitrate_options">
+        <item>自动</item>
+        <item>10比特</item>
+        <item>16比特</item>
+    </string-array>
+
+    <string-array name="audio_latency_options">
+        <item>低（更慢）</item>
+        <item>适中</item>
+        <item>高（更快）</item>
+    </string-array>
+
+    <string-array name="mic_source_options">
+        <item>无</item>
+        <item>吹气</item>
+        <item>设备麦克风</item>
+    </string-array>
+
+    <string-array name="soft_input_behaviour_options">
+        <item>始终可见</item>
+        <item>连接到控制器时隐藏游戏机按钮</item>
+        <item>连接到控制器时隐藏已分配的按键</item>
+        <item>始终不可见</item>
+    </string-array>
+
+    <string-array name="soft_input_behaviour_descriptions">
+        <item>虚拟按键始终可见，与当前输入布局设置一致。</item>
+        <item>当连接到控制器时，游戏机按钮（A B X Y、方向键、L、R、Start 和 Select）被隐藏。当前输入布局中的其它按钮保持可见。</item>
+        <item>当连接到控制器时，所有分配到控制器的按键被隐藏。当前输入布局中未分配到所连接控制器的其它按键保持可见。</item>
+        <item>虚拟按键始终不可见，与在当前输入布局中发现的按钮无关。</item>
+    </string-array>
+
+    <string-array name="save_state_locations">
+        <item>存档文件目录</item>
+        <item>ROM 目录</item>
+        <item>内部目录</item>
+    </string-array>
+
+    <string-array name="layout_orientation_options">
+        <item>跟随系统</item>
+        <item>竖屏</item>
+        <item>横屏</item>
+    </string-array>
+
+    <string-array name="background_portrait_mode_options">
+        <item>拉伸</item>
+        <item>居中</item>
+        <item>顶部</item>
+        <item>左侧</item>
+        <item>底部</item>
+        <item>右侧</item>
+    </string-array>
+</resources>
