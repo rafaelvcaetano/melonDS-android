@@ -20,7 +20,6 @@
         android:title="@string/enable_rich_presence"
         android:summary="@string/rich_presence_summary"
         app:iconSpaceReserved="false"
-        app:dependency="ra_login"
         android:defaultValue="true" />
 
     <SwitchPreference

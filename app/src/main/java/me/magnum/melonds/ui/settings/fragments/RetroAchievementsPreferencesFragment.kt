@@ -11,6 +11,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.DialogRetroachievementsLoginBinding
@@ -18,6 +20,7 @@ import me.magnum.melonds.extensions.addOnPreferenceChangeListener
 import me.magnum.melonds.ui.common.LoadingDialog
 import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
 import me.magnum.melonds.ui.settings.RetroAchievementsSettingsViewModel
+import me.magnum.melonds.ui.settings.flow.observeAsFlow
 import me.magnum.melonds.ui.settings.model.RetroAchievementsAccountState
 
 class RetroAchievementsPreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTitleProvider {
@@ -76,6 +79,17 @@ class RetroAchievementsPreferencesFragment : BasePreferenceFragment(), Preferenc
                             accountPreference.notifyDependencyChange(true)
                         }
                     }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                val isLoggedInFlow = viewModel.accountState.map { it is RetroAchievementsAccountState.LoggedIn }
+                combine(isLoggedInFlow, hardcoreModePreference.observeAsFlow()) { isLoggedIn, isHardcoreEnabled ->
+                    isLoggedIn && !isHardcoreEnabled
+                }.collect { isRichPresenceEnabled ->
+                    richPresencePreference.isEnabled = isRichPresenceEnabled
                 }
             }
         }
