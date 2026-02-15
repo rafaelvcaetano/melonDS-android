@@ -8,6 +8,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,7 +49,9 @@ class FileSystemRomsRepository(
         private const val ROM_DATA_FILE = "rom_data.json"
     }
 
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val fsRomsDispatcher = Dispatchers.IO.limitedParallelism(1)
+    private val coroutineScope = CoroutineScope(fsRomsDispatcher)
     private val romListType: Type = object : TypeToken<List<RomDto>>(){}.type
     private val romsChannel = SubjectSharedFlow<List<Rom>>()
     private val scanningStatusSubject = MutableStateFlow(RomScanningStatus.NOT_SCANNING)
