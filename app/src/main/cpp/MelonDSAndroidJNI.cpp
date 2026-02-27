@@ -40,7 +40,7 @@ bool stop;
 bool paused;
 std::atomic_bool isThreadReallyPaused = false;
 int observedFrames = 0;
-int fps = 0;
+float fps = 0;
 int targetFps;
 float fastForwardSpeedMultiplier;
 bool limitFps = true;
@@ -275,7 +275,7 @@ Java_me_magnum_melonds_MelonEmulator_presentFrame(JNIEnv* env, jobject thiz, job
     }
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT jfloat JNICALL
 Java_me_magnum_melonds_MelonEmulator_getFPS(JNIEnv* env, jobject thiz)
 {
     return fps;
@@ -566,6 +566,8 @@ void* emulate(void*)
             while (paused && !stop)
                 pthread_cond_wait(&emuThreadCond, &emuThreadMutex);
 
+            frameLimitError = 0;
+            lastTick = getCurrentMillis();
             isThreadReallyPaused = false;
         }
 
@@ -602,24 +604,21 @@ void* emulate(void*)
                     .tv_nsec = (long) (frameLimitError * 1000000),
                 };
                 clock_nanosleep(CLOCK_MONOTONIC, 0, &sleepTime, nullptr);
-                double timeBeforeSleep = currentTick;
-                currentTick = getCurrentMillis();
-                frameLimitError -= currentTick - timeBeforeSleep;
+                double timeAfterSleep = getCurrentMillis();
+                frameLimitError -= timeAfterSleep - currentTick;
+                currentTick = timeAfterSleep;
             }
 
             lastTick = currentTick;
         } else {
-            if (delay < 1)
-                usleep(1000);
-
+            frameLimitError = 0;
             lastTick = getCurrentMillis();
         }
 
         observedFrames++;
         if (observedFrames >= 30) {
-            double currentFpsTick = getCurrentMillis();
-            fps = round((observedFrames * 1000.0) / (currentFpsTick - lastMeasureFpsTick));
-            lastMeasureFpsTick = currentFpsTick;
+            fps = (observedFrames * 1000.0) / (lastTick - lastMeasureFpsTick);
+            lastMeasureFpsTick = lastTick;
             observedFrames = 0;
         }
 

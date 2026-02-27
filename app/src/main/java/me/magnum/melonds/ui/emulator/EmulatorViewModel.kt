@@ -82,6 +82,7 @@ import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -953,7 +954,7 @@ class EmulatorViewModel @Inject constructor(
         sessionCoroutineScope.launch {
             while (isActive) {
                 delay(1.seconds)
-                _currentFps.value = emulatorManager.getFps()
+                _currentFps.value = emulatorManager.getFps().roundToInt()
             }
         }
     }

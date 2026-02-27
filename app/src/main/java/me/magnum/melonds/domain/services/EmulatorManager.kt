@@ -27,7 +27,7 @@ interface EmulatorManager {
 
     suspend fun getRewindWindow(): RewindWindow
 
-    fun getFps(): Int
+    fun getFps(): Float
 
     suspend fun pauseEmulator()
 

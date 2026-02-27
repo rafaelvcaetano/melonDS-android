@@ -153,7 +153,7 @@ class AndroidEmulatorManager(
         return MelonEmulator.getRewindWindow()
     }
 
-    override fun getFps(): Int {
+    override fun getFps(): Float {
         return MelonEmulator.getFPS()
     }
 
