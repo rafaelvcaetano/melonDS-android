@@ -123,7 +123,8 @@ class EmulatorMessageQueue(private val eventHandler: EventHandler) {
         val dataLength = eventBuffer.int
 
         if (dataLength > 0) {
-            dataBuffer.clear()
+            dataBuffer.position(0)
+            dataBuffer.limit(dataLength)
             bytesRead = currentInputStream.channel.read(dataBuffer)
             dataBuffer.position(0)
 
