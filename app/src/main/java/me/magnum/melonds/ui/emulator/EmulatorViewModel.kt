@@ -40,6 +40,7 @@ import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.RuntimeBackground
 import me.magnum.melonds.domain.model.SaveStateSlot
+import me.magnum.melonds.domain.model.emulator.EmulatorEvent
 import me.magnum.melonds.domain.model.emulator.EmulatorSessionUpdateAction
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
@@ -64,6 +65,7 @@ import me.magnum.melonds.domain.services.EmulatorManager
 import me.magnum.melonds.impl.emulator.EmulatorSession
 import me.magnum.melonds.impl.layout.UILayoutProvider
 import me.magnum.melonds.ui.emulator.firmware.FirmwarePauseMenuOption
+import me.magnum.melonds.ui.emulator.model.RumbleEvent
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
 import me.magnum.melonds.ui.emulator.model.LaunchArgs
@@ -127,9 +129,10 @@ class EmulatorViewModel @Inject constructor(
     private val _secondaryScreenBackground = MutableStateFlow(RuntimeBackground.None)
     val secondaryScreenBackground = _secondaryScreenBackground.asStateFlow()
 
-    val emulatorEvents = emulatorManager.emulatorEvents
+    private val _rumbleEvent = MutableSharedFlow<RumbleEvent>(extraBufferCapacity = 100, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val rumbleEvent = _rumbleEvent.asSharedFlow()
 
-    private val _achievementsEvent = MutableSharedFlow<RAEventUi>(extraBufferCapacity = 5, onBufferOverflow = BufferOverflow.SUSPEND)
+    private val _achievementsEvent = MutableSharedFlow<RAEventUi>(extraBufferCapacity = 100, onBufferOverflow = BufferOverflow.SUSPEND)
     val achievementsEvent = _achievementsEvent.asSharedFlow()
 
     private val _currentFps = MutableStateFlow<Int?>(null)
@@ -143,8 +146,6 @@ class EmulatorViewModel @Inject constructor(
 
     private val _uiEvent = EventSharedFlow<EmulatorUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
-
-    private var currentRom: Rom? = null
 
     init {
         viewModelScope.launch {
@@ -215,12 +216,12 @@ class EmulatorViewModel @Inject constructor(
     }
 
     private suspend fun launchRom(rom: Rom) = coroutineScope {
-        currentRom = rom
         startEmulatorSession(EmulatorSession.SessionType.RomSession(rom))
         startObservingMainScreenBackground()
         startObservingSecondaryScreenBackground()
         startObservingRuntimeInputLayoutConfiguration()
         startObservingRendererConfiguration()
+        startObservingEmulatorEvents()
         startObservingAchievementEvents()
         startObservingLayoutForRom(rom)
         startRetroAchievementsSession(rom)
@@ -254,6 +255,7 @@ class EmulatorViewModel @Inject constructor(
                 startObservingRuntimeInputLayoutConfiguration()
                 startObservingRendererConfiguration()
                 startObservingLayoutForFirmware()
+                startObservingEmulatorEvents()
 
                 val result = emulatorManager.loadFirmware(consoleType)
                 when (result) {
@@ -362,6 +364,11 @@ class EmulatorViewModel @Inject constructor(
         screenshotFrameBufferProvider.clearBuffer()
     }
 
+    private fun stopEmulatorAndExit() {
+        emulatorManager.stopEmulator()
+        _uiEvent.tryEmit(EmulatorUiEvent.CloseEmulator)
+    }
+
     private fun startTrackingPlayTime(rom: Rom) {
         sessionCoroutineScope.launch {
             var lastTime = System.currentTimeMillis()
@@ -406,10 +413,7 @@ class EmulatorViewModel @Inject constructor(
                     }
                     RomPauseMenuOption.VIEW_ACHIEVEMENTS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowAchievementList)
                     RomPauseMenuOption.RESET -> resetEmulator()
-                    RomPauseMenuOption.EXIT -> {
-                        emulatorManager.stopEmulator()
-                        _uiEvent.tryEmit(EmulatorUiEvent.CloseEmulator)
-                    }
+                    RomPauseMenuOption.EXIT -> stopEmulatorAndExit()
                 }
             }
             is FirmwarePauseMenuOption -> {
@@ -595,7 +599,25 @@ class EmulatorViewModel @Inject constructor(
         _mainScreenBackground.value = RuntimeBackground.None
         _secondaryScreenBackground.value = RuntimeBackground.None
         _layout.value = null
-        currentRom = null
+    }
+
+    private fun startObservingEmulatorEvents() {
+        sessionCoroutineScope.launch {
+            emulatorManager.emulatorEvents.collect {
+                when (it) {
+                    is EmulatorEvent.RumbleStart -> _rumbleEvent.tryEmit(RumbleEvent.RumbleStart(it.duration))
+                    EmulatorEvent.RumbleStop -> _rumbleEvent.tryEmit(RumbleEvent.RumbleStop)
+                    is EmulatorEvent.Stop -> {
+                        when (it.reason) {
+                            EmulatorEvent.Stop.Reason.GBAModeNotSupported -> _toastEvent.tryEmit(ToastEvent.GbaModeNotSupported)
+                            EmulatorEvent.Stop.Reason.BadExceptionRegion -> _toastEvent.tryEmit(ToastEvent.InternalError)
+                            EmulatorEvent.Stop.Reason.PowerOff -> { /* no-op */ }
+                        }
+                        stopEmulatorAndExit()
+                    }
+                }
+            }
+        }
     }
 
     private fun startObservingAchievementEvents() {

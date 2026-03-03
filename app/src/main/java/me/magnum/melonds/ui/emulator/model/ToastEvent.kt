@@ -13,4 +13,6 @@ sealed class ToastEvent {
     data object CannotSaveStateWhenRunningFirmware : ToastEvent()
     data object CannotLoadStateWhenRunningFirmware : ToastEvent()
     data object CannotSwitchRetroAchievementsMode : ToastEvent()
+    data object GbaModeNotSupported : ToastEvent()
+    data object InternalError : ToastEvent()
 }

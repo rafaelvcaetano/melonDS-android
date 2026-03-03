@@ -54,7 +54,7 @@ class AndroidEmulatorManager(
         when (type) {
             EmulatorEventType.EventRumbleStart -> _emulatorEvents.tryEmit(EmulatorEvent.RumbleStart(data.getInt()))
             EmulatorEventType.EventRumbleStop -> _emulatorEvents.tryEmit(EmulatorEvent.RumbleStop)
-            EmulatorEventType.EventEmulatorStop -> _emulatorEvents.tryEmit(EmulatorEvent.Stop)
+            EmulatorEventType.EventEmulatorStop -> getStopReason(data.getInt())?.let { _emulatorEvents.tryEmit(EmulatorEvent.Stop(it)) }
             EmulatorEventType.EventRAAchievementPrimed -> achievementsSharedFlow.tryEmit(RAEvent.OnAchievementPrimed(data.getLong()))
             EmulatorEventType.EventRAAchievementTriggered -> achievementsSharedFlow.tryEmit(RAEvent.OnAchievementTriggered(data.getLong()))
             EmulatorEventType.EventRAAchievementUnprimed -> achievementsSharedFlow.tryEmit(RAEvent.OnAchievementUnPrimed(data.getLong()))
@@ -261,5 +261,23 @@ class AndroidEmulatorManager(
         }
 
         return originalConfiguration
+    }
+
+    private fun getStopReason(internalReason: Int): EmulatorEvent.Stop.Reason? {
+        return when (internalReason) {
+            GBAModeNotSupported -> EmulatorEvent.Stop.Reason.GBAModeNotSupported
+            BadExceptionRegion -> EmulatorEvent.Stop.Reason.BadExceptionRegion
+            PowerOff -> EmulatorEvent.Stop.Reason.PowerOff
+            else -> null
+        }
+    }
+
+    /**
+     * The values of the different stop reasons, as defined in the emulator's core (in `melonDS::Platform::StopReason`)
+     */
+    companion object InternalStopReason {
+        private const val GBAModeNotSupported = 2
+        private const val BadExceptionRegion = 3
+        private const val PowerOff = 4
     }
 }

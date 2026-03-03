@@ -58,7 +58,6 @@ import me.magnum.melonds.domain.model.ControllerConfiguration
 import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.SaveStateSlot
-import me.magnum.melonds.domain.model.emulator.EmulatorEvent
 import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.layout.ScreenFold
 import me.magnum.melonds.domain.model.rom.Rom
@@ -79,6 +78,7 @@ import me.magnum.melonds.ui.emulator.input.INativeInputListener
 import me.magnum.melonds.ui.emulator.input.InputProcessor
 import me.magnum.melonds.ui.emulator.input.MelonTouchHandler
 import me.magnum.melonds.ui.emulator.input.EmulatorRumbleManager
+import me.magnum.melonds.ui.emulator.model.RumbleEvent
 import me.magnum.melonds.ui.emulator.model.EmulatorOverlay
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
@@ -445,6 +445,8 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                         ToastEvent.CannotLoadStateWhenRunningFirmware,
                         ToastEvent.CannotSaveStateWhenRunningFirmware -> R.string.save_states_not_supported to Toast.LENGTH_LONG
                         ToastEvent.CannotSwitchRetroAchievementsMode -> R.string.retro_achievements_relaunch_to_apply_settings to Toast.LENGTH_LONG
+                        ToastEvent.GbaModeNotSupported -> R.string.emulator_stop_gba_mode_unsupported to Toast.LENGTH_SHORT
+                        ToastEvent.InternalError -> R.string.emulator_stop_internal_error to Toast.LENGTH_LONG
                     }
 
                     Toast.makeText(this@EmulatorActivity, message, duration).show()
@@ -492,11 +494,10 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
         }
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.emulatorEvents.collect {
+                viewModel.rumbleEvent.collect {
                     when (it) {
-                        is EmulatorEvent.RumbleStart -> emulatorRumbleManager.startRumbling()
-                        EmulatorEvent.RumbleStop -> emulatorRumbleManager.stopRumbling()
-                        EmulatorEvent.Stop -> { /* TODO */ }
+                        is RumbleEvent.RumbleStart -> emulatorRumbleManager.startRumbling()
+                        RumbleEvent.RumbleStop -> emulatorRumbleManager.stopRumbling()
                     }
                 }
             }
