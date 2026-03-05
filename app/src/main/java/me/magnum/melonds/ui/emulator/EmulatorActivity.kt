@@ -7,7 +7,6 @@ import android.hardware.display.DisplayManager
 import android.hardware.input.InputManager
 import android.os.Bundle
 import android.os.Handler
-import android.view.Choreographer
 import android.view.Display
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -73,20 +72,22 @@ import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
 import me.magnum.melonds.ui.emulator.component.EmulatorOverlayTracker
 import me.magnum.melonds.ui.emulator.input.ConnectedControllerManager
+import me.magnum.melonds.ui.emulator.input.EmulatorRumbleManager
 import me.magnum.melonds.ui.emulator.input.FrontendInputHandler
 import me.magnum.melonds.ui.emulator.input.INativeInputListener
 import me.magnum.melonds.ui.emulator.input.InputProcessor
 import me.magnum.melonds.ui.emulator.input.MelonTouchHandler
-import me.magnum.melonds.ui.emulator.input.EmulatorRumbleManager
-import me.magnum.melonds.ui.emulator.model.RumbleEvent
 import me.magnum.melonds.ui.emulator.model.EmulatorOverlay
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
 import me.magnum.melonds.ui.emulator.model.LaunchArgs
 import me.magnum.melonds.ui.emulator.model.PauseMenu
 import me.magnum.melonds.ui.emulator.model.RAEventUi
+import me.magnum.melonds.ui.emulator.model.RumbleEvent
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration
 import me.magnum.melonds.ui.emulator.model.ToastEvent
+import me.magnum.melonds.ui.emulator.render.ChoreographerFrameRenderer
+import me.magnum.melonds.ui.emulator.render.ChoreographerFrameRendererFactory
 import me.magnum.melonds.ui.emulator.render.ExternalPresentation
 import me.magnum.melonds.ui.emulator.render.FrameRenderCoordinator
 import me.magnum.melonds.ui.emulator.rewind.EdgeSpacingDecorator
@@ -102,7 +103,7 @@ import java.text.SimpleDateFormat
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
+class EmulatorActivity : AppCompatActivity() {
     companion object {
         const val KEY_ROM = "rom"
         const val KEY_PATH = "PATH"
@@ -182,6 +183,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     private val connectedControllerManager = ConnectedControllerManager()
     private lateinit var emulatorRumbleManager: EmulatorRumbleManager
     private lateinit var frameRenderCoordinator: FrameRenderCoordinator
+    private lateinit var choreographerFrameRenderer: ChoreographerFrameRenderer
     private lateinit var mainScreenRenderer: DSRenderer
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
@@ -298,6 +300,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
 
         emulatorRumbleManager = EmulatorRumbleManager(this, lifecycleScope, connectedControllerManager)
         frameRenderCoordinator = FrameRenderCoordinator()
+        choreographerFrameRenderer = ChoreographerFrameRendererFactory.createFrameRenderer(frameRenderCoordinator)
         melonTouchHandler = MelonTouchHandler()
         mainScreenRenderer = DSRenderer(this)
         binding.surfaceMain.apply {
@@ -458,9 +461,9 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
                 viewModel.uiEvent.collectLatest {
                     when (it) {
                         EmulatorUiEvent.CloseEmulator -> {
-                            Choreographer.getInstance().removeFrameCallback(this@EmulatorActivity)
+                            choreographerFrameRenderer.stopRendering()
                             presentation?.apply {
-                                show()
+                                dismiss()
                             }
                             finish()
                         }
@@ -668,17 +671,12 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
 
     override fun onResume() {
         super.onResume()
-        Choreographer.getInstance().postFrameCallback(this)
+        choreographerFrameRenderer.startRendering()
 
         if (!activeOverlays.hasActiveOverlays()) {
             disableScreenTimeOut()
             viewModel.resumeEmulator()
         }
-    }
-
-    override fun doFrame(frameTimeNanos: Long) {
-        frameRenderCoordinator.renderFrame()
-        Choreographer.getInstance().postFrameCallback(this)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -955,7 +953,7 @@ class EmulatorActivity : AppCompatActivity(), Choreographer.FrameCallback {
     override fun onPause() {
         super.onPause()
         enableScreenTimeOut()
-        Choreographer.getInstance().removeFrameCallback(this)
+        choreographerFrameRenderer.stopRendering()
         viewModel.pauseEmulator(false)
     }
 

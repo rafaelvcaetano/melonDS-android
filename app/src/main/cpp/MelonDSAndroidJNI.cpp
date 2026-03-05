@@ -248,12 +248,23 @@ Java_me_magnum_melonds_MelonEmulator_startEmulation(JNIEnv* env, jobject thiz)
 }
 
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_presentFrame(JNIEnv* env, jobject thiz, jobject renderFrameCallback)
+Java_me_magnum_melonds_MelonEmulator_presentFrame(JNIEnv* env, jobject thiz, jlong deadlineNs, jobject renderFrameCallback)
 {
     jclass presentFrameWrapperClass = env->GetObjectClass(renderFrameCallback);
     jmethodID renderFrameMethodId = env->GetMethodID(presentFrameWrapperClass, "renderFrame", "(ZI)V");
 
-    Frame* presentationFrame = MelonDSAndroid::getPresentationFrame();
+    std::optional<std::chrono::time_point<std::chrono::steady_clock>> deadlineTime;
+    if (deadlineNs > 0)
+    {
+        std::chrono::nanoseconds deadline(deadlineNs);
+        deadlineTime = std::make_optional(std::chrono::time_point<std::chrono::steady_clock>(deadline));
+    }
+    else
+    {
+        deadlineTime = std::nullopt;
+    }
+
+    Frame* presentationFrame = MelonDSAndroid::getPresentationFrame(deadlineTime);
     EGLDisplay currentDisplay = eglGetCurrentDisplay();
 
     if (presentationFrame != nullptr && presentationFrame->presentFence)
