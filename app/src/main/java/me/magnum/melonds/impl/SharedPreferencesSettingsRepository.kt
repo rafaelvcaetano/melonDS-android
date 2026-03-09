@@ -163,7 +163,7 @@ class SharedPreferencesSettingsRepository(
             getAudioInterpolation(),
             getAudioBitrate(),
             getVolume(),
-            getAudioLatency(),
+            AudioLatency.LOW,
             getMicSource(),
             getFirmwareConfiguration(),
             renderConfigurationFlow.first(),
