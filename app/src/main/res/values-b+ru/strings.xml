@@ -20,6 +20,7 @@
     <string name="play">Запуск</string>
     <string name="save">Сохранить</string>
     <string name="ellipsis">…</string>
+    <string name="navigate_back">Назад</string>
 
     <string name="version_alpha">Альфа</string>
     <string name="version_beta">Бета</string>
@@ -71,8 +72,8 @@
     <string name="dsiware_manager_load_error">Ошибка при создании списка игр DSiWare. Проверьте настройки DSi</string>
     <string name="dsiware_manager_import_title_error_open_nand_failed">Не удалось открыть NAND</string>
     <string name="dsiware_manager_import_title_error_open_file_failed">Ошибка запуска выбранного файла</string>
-    <string name="dsiware_manager_import_title_error_not_dsiware_title">Не является игрой DSiWare</string>
-    <string name="dsiware_manager_import_title_error_title_already_imported">Данная игра DSiWare уже импортирована</string>
+    <string name="dsiware_manager_import_title_error_not_dsiware_title">Не является образом игры DSiWare</string>
+    <string name="dsiware_manager_import_title_error_title_already_imported">Данный образ DSiWare уже импортирован</string>
     <string name="dsiware_manager_import_title_error_insatll_failed">Не удалось установить игру</string>
     <string name="dsiware_manager_import_title_error_metadat_fetch_failed">Не удалось загрузить метаданные игры. Проверьте соединение с Интернет</string>
     <string name="dsiware_manager_import_title_error_unknown">Произошла неизвестная ошибка</string>
@@ -97,39 +98,47 @@
     <string name="failed_load_state">Не удалось загрузить сохранение</string>
     <string name="cant_load_empty_slot">Невозможно загрузить пустой слот</string>
     <string name="failed_reset_emulation">Не удалось перезапустить эмуляцию</string>
-    <string name="save_states_not_supported">Сохранения недоступны в процессе загрузки прошивки</string>
-    <string name="save_states_unavailable_ra_hardcore_enabled">Сохранения недоступны в режиме хардкора</string>
+    <string name="save_states_not_supported">Сохранения недоступны во время загрузки прошивки</string>
+    <string name="save_states_unavailable_ra_hardcore_enabled">Сохранение недоступно в режиме хардкора</string>
     <string name="rewind_time_seconds">%1$ss</string>
     <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string>
     <string name="rewind_not_enabled">Обратная перемотка не включена</string>
     <string name="rewind_unavailable_ra_hardcore_enabled">Обратная перемотка недоступна в режиме хардкора</string>
     <string name="no_image_selected">Образ не выбран</string>
     <string name="failed_to_load_image">Не удалось загрузить образ</string>
+    <string name="emulator_stop_gba_mode_unsupported">Режим GBA не поддерживается</string>
+    <string name="emulator_stop_internal_error">При запуске игры произошла ошибка</string>
 
     <string name="action_sort_alphabetically">По алфавиту</string>
     <string name="action_sort_recently_played">Недавние</string>
 
-    <string name="ds_bios_dir_not_set">Не задан каталог DS BIOS</string>
-    <string name="ds_bios_dir_not_set_info">Не задан каталог DS BIOS. Укажите путь к каталогу с файлами:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
-    <string name="dsi_bios_dir_not_set">Не задан каталог DSi BIOS</string>
-    <string name="dsi_bios_dir_not_set_info">Не задан каталог DSi BIOS. Укажите путь к каталогу с файлами:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
+    <string name="ds_bios_dir_not_set">Не задан каталог BIOS DS</string>
+    <string name="ds_bios_dir_not_set_info">Не задан каталог BIOS DS. Укажите путь к каталогу с файлами:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="dsi_bios_dir_not_set">Не задан каталог BIOS DSi</string>
+    <string name="dsi_bios_dir_not_set_info">Не задан каталог BIOS DSi. Укажите путь к каталогу с файлами:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
     <string name="incorrect_bios_dir">Неправильный каталог BIOS</string>
-    <string name="ds_incorrect_bios_dir_info">Неправильный каталог DS BIOS. Убедитесь, что выбранный каталог содержит файлы:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
-    <string name="dsi_incorrect_bios_dir_info">Неправильный каталог DSi BIOS. Убедитесь, что выбранный каталог содержит файлы:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
+    <string name="ds_incorrect_bios_dir_info">Неправильный каталог BIOS DS. Убедитесь, что выбранный каталог содержит файлы:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin</string>
+    <string name="dsi_incorrect_bios_dir_info">Неправильный каталог BIOS DSi. Убедитесь, что выбранный каталог содержит файлы:\n&#8226; bios7.bin\n&#8226; bios9.bin\n&#8226; firmware.bin\n&#8226; nand.bin</string>
     <string name="storage_permission_required">Требуется разрешение на доступ к памяти</string>
-    <string name="storage_permission_required_info">Для запуска игр с устройства требуется разрешение на доступ к памяти. Пожалуйста, предоставьте доступ к памяти в следующем окне.</string>
+    <string name="storage_permission_required_info">Для запуска игр требуется разрешение на доступ к памяти устройства. Пожалуйста, предоставьте доступ к хранилищу в следующем окне.</string>
     <string name="microphone_permission_required">Требуется разрешение для записи звука</string>
-    <string name="microphone_permission_required_info">Для передачи данных микрофона эмулятору требуется разрешение на запись звука. Пожалуйста, предоставьте доступ к памяти в следующем окне.</string>
-    <string name="system_file_picker_not_found">На вашем устройстве отсутствует приложение для выбора файлов. Без него работа эмулятора невозможна.</string>
-    <string name="system_file_picker_not_enabled">На вашем устройстве отключено приложение для выбора файлов. Пожалуйста, включите его.</string>
+    <string name="microphone_permission_required_info">Для передачи данных микрофона эмулятору требуется разрешение на запись звука. Пожалуйста, предоставьте доступ к хранилищу в следующем окне.</string>
+    <string name="system_file_picker_not_found">На устройстве не установлено приложение для выбора файлов. Без него работа эмулятора невозможна.</string>
+    <string name="system_file_picker_not_enabled">На устройстве отключено приложение для выбора файлов. Пожалуйста, включите его.</string>
     <string name="file_picker_settings">Настройки выбора файлов</string>
     <string name="no_rom_search_directory_specified">Не указан каталог поиска игр</string>
     <string name="set_rom_directory">Выбрать каталог с играми</string>
     <string name="error_invalid_directory">Неправильный каталог</string>
-    <string name="error_invalid_directory_description">Невозможно произвести запись в выбранный каталог. Пожалуйста, укажите другой путь. Если выбран архив, попробуйте извлечь его содержимое.</string>
+    <string name="error_invalid_directory_description">Не удалось произвести запись в выбранный каталог. Пожалуйста, укажите другой путь. Если выбран сжатый файл, попробуйте извлечь содержимое из архива.</string>
     <string name="no_roms_found">Игры не найдены</string>
-    <string name="dsiware_title_cannot_be_launched_directly_title">Запуск игр DSiWare невозможен</string>
-    <string name="dsiware_title_cannot_be_launched_directly_message">Игры DSiWare нельзя запускать напрямую. Они должны быть установлены в NAND с помощью менеджера DSiWare и запускаться через программное обеспечение DSi.</string>
+    <string name="rom_launch_failed">Не удалось запустить образ игры</string>
+    <string name="rom_launch_custom_bios_firmware_bad_setup">Данный образ игры преднастроен для запуска на кастомной прошивке и BIOS, но неправильно сконфигурирован.</string>
+    <string name="firmware_launch_failed">Не удалось запустить прошивку</string>
+    <string name="firmware_launch_bad_setup">Для запуска данной прошивки требуются кастомные образы BIOS и прошивки, но они неправильно сконфигурированы.</string>
+    <string name="failed_launch_dsiware_title">Не удалось запустить образ игры DSiWare</string>
+    <string name="failed_launch_dsiware_title_check_failed">Не удалось проверить установку образа игры DSiWare. Для дополнительной информации откройте DSiWare Manager.</string>
+    <string name="failed_launch_dsiware_title_rom_failed">Не удалось обработать образ игры. Проверьте заголовок и убедитесь, что файл не повреждён.</string>
+    <string name="failed_launch_dsiware_title_not_installed">Перед запуском DSiWare образ игры необходимо предварительно установить в NAND. Для установки воспользуйтесь DSiWare Manager.</string>
 
     <string name="press_any_button">Нажмите любую кнопку…</string>
     <string name="waiting_for_input">Ожидание нажатия…</string>
@@ -154,18 +163,18 @@
     <string name="category_general">Общие</string>
     <string name="category_general_summary">Тема оформления, общие настройки</string>
     <string name="category_roms">Образы игр</string>
-    <string name="category_roms_summary">Каталог поиска, сглаживание иконок, настройки временных файлов</string>
+    <string name="category_roms_summary">Каталог поиска игр, сглаживание иконок, настройки временных файлов</string>
     <string name="category_system">Система</string>
     <string name="category_system_summary">Настройки прошивки, выбор BIOS, JIT</string>
     <string name="theme">Тема оформления</string>
     <string name="fast_forward_max_speed">Максимальное ускорение</string>
-    <string name="rewind_description">Включает автоматическое сохранение через заданный период времени. Для возврата к любой точке прохождения перейдите в меню обратной перемотки и выберите сохранение, с которого хотите продолжить.\n\nВозможно снижение производительности при недостаточной мощности устройства. В зависимости от установок может потребоваться значительный объём свободной памяти.</string>
+    <string name="rewind_description">Включает автоматическое сохранение через заданный период времени. Для возврата к любой точке прохождения перейдите в меню обратной перемотки и выберите сохранение, с которого хотите продолжить.\n\nВозможно снижение производительности при недостаточной мощности устройства. В зависимости от конфигурации может потребоваться значительный объём свободной памяти.</string>
     <string name="rewind_save_period">Частота сохранений</string>
     <string name="rewind_length">Буфер перемотки</string>
     <string name="rewind_max_memory_usage">Максимальный объём памяти: %1$s.</string>
     <string name="rewind_memory_usage_above_recommended_limit">Превышен рекомендуемый объём памяти</string>
     <string name="sustained_performance_mode">Режим устойчивой производительности</string>
-    <string name="sustained_performance_mode_summary">При включении ограничивает пиковую производительность устройства, снижая троттлинг.</string>
+    <string name="sustained_performance_mode_summary">При включении ограничивает пиковую производительность устройства, предотвращая троттлинг.</string>
     <string name="check_for_updates">Проверять обновления</string>
     <string name="check_for_updates_summary">Если включено, приложение будет периодически проверять наличие обновлений</string>
     <string name="rom_icon_filtering">Сглаживание иконок</string>
@@ -211,10 +220,10 @@
     <string name="external_layout_restore_error">Не удалось восстановить внешнюю раскладку</string>
     <string name="threaded_rendering">Рендеринг в отдельном потоке</string>
     <string name="fps_counter_position">Отображение счётчика кадров</string>
-    <string name="threaded_rendering_summary">Повышает производительность для игр в 3D, но может вызывать ошибки рендерингай.</string>
+    <string name="threaded_rendering_summary">Повышает производительность в 3D-играх, но может вызывать ошибки рендеринга.</string>
     <string name="category_video">Видео</string>
     <string name="category_video_summary">Сглаживание, рендеринг в отдельном потоке, счётчик частоты кадров</string>
-    <string name="filter">Сглаживание изображения</string>
+    <string name="filter">Сглаживание</string>
     <string name="internal_resolution">Внутреннее разрешение</string>
     <string name="renderer">Графический движок</string>
     <string name="dsi_camera_source">Источник камеры DSi</string>
@@ -250,19 +259,25 @@
     <string name="vibrate_on_touch">Сенсорный отклик</string>
     <string name="vibration_strength">Интенсивность вибрации</string>
     <string name="soft_input_opacity">Видимость экранных кнопок</string>
-    <string name="retro_achievements_tab">Retro&#8203;Achievements</string> <!-- Keep zero-width space to allow line breaks in the middle of the word -->
+    <string name="retroachievements">RetroAchievements</string> <!-- Keep words together because this is the official name -->
     <string name="retroachievements_summary">Авторизация и настройки RetroAchievements</string> <!-- Keep words together because this is the official name -->
     <string name="enable_rich_presence">Статус активности</string>
     <string name="rich_presence_summary">Позволяет другим пользователям RetroAchievements видеть запущенную вами игру.</string>
     <string name="hardcore_mode">Режим хардкора</string>
     <string name="hardcore_mode_summary">Удваивает количество очков, но отключает использование быстрых сохранений, чит-кодов и замедления во время игры</string>
+    <string name="show_active_challenge_indicators">Показывать индикаторы активных испытаний</string>
+    <string name="show_active_challenge_indicators_summary">Отображать на экране индикаторы при возможности получить определённые достижения</string>
+    <string name="show_progress_indicators">Показывать индикаторы прогресса</string>
+    <string name="show_progress_indicators_summary">Отображать индикаторы при прогрессе в получении достижения</string>
+    <string name="show_leaderboard_indicators">Показывать индикаторы таблиц лидеров</string>
+    <string name="show_leaderboard_indicators_summary">Отображать индикаторы во время попытки войти в таблицу лидеров</string>
 
     <string name="cheats">Чит-коды</string>
     <string name="cheats_summary">Включение и импорт чит-кодов</string>
     <string name="enable_cheats">Загружать чит-коды</string>
     <string name="cheats_database">База чит-кодов (в XML)</string>
     <string name="import_cheats">Импорт чит-кодов</string>
-    <string name="import_cheats_summary">Для доступа к списку чит-кодов в играх импортируйте файл с базой в формате XML. Все ранее добавленные чит-коды будут удалены.</string>
+    <string name="import_cheats_summary">Импортируйте файл с базой в формате XML для загрузки чит-кодов в играх. Все ранее добавленные чит-коды будут удалены.</string>
     <string name="rom_shortcut">Ярлык для игры</string>
 
     <string name="firmware_nickname">Никнейм</string>
@@ -333,7 +348,7 @@
     <string name="input_select">Select</string>
     <string name="input_lid">Закрыть/открыть крышку</string>
     <string name="input_pause">Пауза</string>
-    <string name="input_fast_forward">Ускорить (переключение)</string>
+    <string name="input_fast_forward">Ускоренная перемотка (переключение)</string>
     <string name="input_microphone">Микрофон (переключение)</string>
     <string name="input_toggle_soft_input">Экранные кнопки</string>
     <string name="input_reset">@string/reset</string>
@@ -347,10 +362,11 @@
     <string name="layouts_summary">Настройка кастомных раскладок</string>
     <string name="action_layouts_new">Новая раскладка</string>
     <string name="default_layout_name">По умолчанию</string>
+    <string name="custom_layout_default_name">Моя раскладка</string>
     <string name="use_global_layout">Глобальная раскладка</string>
     <string name="use_global_preference">Глобальная настройка</string>
-    <string name="custom_layout_default_name">Моя раскладка</string>
     <string name="layout_deleted">Раскладка удалена</string>
+    <string name="named_layout_deleted">Раскладка \"%1$s\" удалена</string>
 
     <string name="layout_editor">Редактор раскладки</string>
     <string name="add_component">Добавить компонент</string>
@@ -360,8 +376,8 @@
     <string name="label_height">Высота:</string>
     <string name="label_alpha">Прозрачность:</string>
     <string name="label_aspect_ratio">Соотношение сторон:</string>
-    <string name="aspect_ratio_4_3">4:3 (исходное)</string>
-    <string name="aspect_ratio_16_9">16:9 (широкий экран)</string>
+    <string name="aspect_ratio_4_3">4:3 (оригинальное)</string>
+    <string name="aspect_ratio_16_9">16:9 (широкоэкранное)</string>
     <string name="aspect_ratio_unrestricted">Без ограничений</string>
     <string name="keep_ds_ratio">Сохранять пропорции DS</string>
     <string name="above_other_screen">Поверх другого экрана</string>
@@ -390,18 +406,23 @@
     <string name="background_deleted">Задний фон удалён</string>
     <string name="background_add_processing_failed">Не удалось обработать выбранное изображение. Убедитесь, что файл не повреждён.</string>
     
-    <string name="retro_achievements_login_description">Выполните вход в RetroAchievements для просмотра доступных достижений для данной игры.</string>
-    <string name="login_with_retro_achievements">Войти в RetroAchievements</string>
+    <string name="retro_achievements_login_description">Выполните вход в RetroAchievements для загрузки доступных достижений для данной игры.</string>
+    <string name="login_with_retro_achievements">Выполнить вход в RetroAchievements</string>
     <string name="login">Вход</string>
-    <string name="retroachievements_login_summary">Выполните вход в RetroAchievements для получения достижений во время игры.</string>
+    <string name="retroachievements_login_summary">Авторизуйтесь в RetroAchievements для получения достижений во время игры.</string>
     <string name="retroachievements_login_status">Выполнен вход для %1$s</string>
     <string name="retroachievements_logout">Выход</string>
     <string name="retroachievements_logout_confirmation">Вы подтверждаете выход из RetroAchievements? Получение достижений во время игры будет недоступно.</string>
-    <string name="retro_achievements_login_error">Не удалось авторизоваться. Проверьте соединение с Интернет и убедитесь, что имя пользователя и пароль введены верно.</string>
-    <string name="retro_achievements_login_error_short">Ошибка авторизации.</string>
+    <string name="retro_achievements_login_error">Не удалось авторизоваться. Проверьте соединение с Интернет и правильность ввода имени пользователя и пароля.</string>
+    <string name="retro_achievements_login_error_short">При авторизации возникла ошибка.</string>
     <string name="retro_achievements_load_error">Не удалось загрузить достижения для данной игры. Проверьте соединение с Интернет и повторите попытку.</string>
     <string name="retro_achievements_no_achievements">Не найдены доступные достижения для данной игры.</string>
     <string name="retro_achievements_relaunch_to_apply_settings">Перезапустите игру, чтобы применить изменения настроек RetroAchievements</string>
+    <string name="retro_achievements_active_challenges">Активные испытания</string>
+    <string name="retro_achievements_recently_unlokced">Открытые недавно</string>
+    <string name="retro_achievements_almost_there">Почти у цели</string>
+    <string name="retro_achievements_locked">Закрытые</string>
+    <string name="retro_achievements_unlocked">Открытые</string>
     <string name="username">Имя пользователя</string>
     <string name="password">Пароль</string>
     <string name="retry">Повторить</string>
@@ -410,6 +431,7 @@
     <string name="completed">Завершено</string>
     <string name="ra_mode_hardcore">хардкор</string>
     <string name="ra_mode_softcore">софткор</string>
+    <string name="ra_base_set">Основной сет</string>
     <string name="view_achievement">Просмотр достижения</string>
     <string name="completed_achievements"><b>%1$d</b> из <b>%2$d</b> (%3$d%%)</string>
     <string name="submitting_achievements">Отправка RetroAchievements…</string>
@@ -421,6 +443,12 @@
     <string name="achievement_unlocked">Открыто достижение!</string>
     <string name="achievement_missable">Безвозвратное</string>
     <string name="achievement_missable_description">Данное достижение может быть упущено при прохождении.</string>
+    <string name="achievement_progress">%1$d/%2$d</string> <!-- Eg.: 12/38 -->
+    <string name="challenge_started">Испытание запущено</string>
+    <string name="leaderboard_attempt_started">Попытка войти в таблицу лидеров запущена!</string>
+    <string name="leaderboard_submission_info">%1$s • Ранг %2$d из %3$d</string> <!-- Eg.: 01:42.95 • Rank 73 of 145 -->
+    <string name="game_completed">%1$s пройдена</string>
+    <string name="game_mastered">Выполнен сет %1$s</string>
 
     <string-array name="fast_forward_speed_multiplier_options">
         <item>Без ограничения</item>
@@ -461,6 +489,7 @@
     <string-array name="gba_slot_options">
         <item>Нет</item>
         <item>Ром GBA</item>
+        <item>Rumble Pak</item>
         <item>Расширение памяти</item>
     </string-array>
     
@@ -550,8 +579,8 @@
 
     <string-array name="soft_input_behaviour_descriptions">
         <item>Экранные кнопки отображаются всегда, согласно настройкам текущей внутренней раскладки.</item>
-        <item>Кнопки консоли (A B X Y, D-Pad, L, R, Start и Select) будут скрыты, если подключен контроллер. Прочие кнопки текущей внутренней раскладки останутся видимыми.</item>
-        <item>Все экранные кнопки, действия которых привязаны к подключенному контроллеру будут скрыты. Прочие кнопки текущей внутренней раскладки, не привязанные к контроллеру останутся видимыми.</item>
+        <item>Кнопки консоли (A B X Y, D-Pad, L, R, Start и Select) будут скрыты при подключении контроллера. Прочие кнопки текущей внутренней раскладки останутся видимыми.</item>
+        <item>Все экранные кнопки, действия которых привязаны к подключенному контроллеру будут скрыты. Прочие кнопки текущей внутренней раскладки без привязок к контроллеру останутся видимыми.</item>
         <item>Экранные кнопки отображаются всегда, независимо от текущих привязок контроллера.</item>
     </string-array>
 
@@ -562,7 +591,7 @@
     </string-array>
 
     <string-array name="layout_orientation_options">
-        <item>Системная</item>
+        <item>Как в системе</item>
         <item>Портретная</item>
         <item>Альбомная</item>
     </string-array>
