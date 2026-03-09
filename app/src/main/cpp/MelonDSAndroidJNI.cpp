@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <time.h>
 #include <MelonDS.h>
+#include <MelonDSAudio.h>
 #include <RomGbaSlotConfig.h>
 #include <android/asset_manager_jni.h>
 #include "UriFileHandler.h"
@@ -509,9 +510,9 @@ JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_setMicrophoneEnabled(JNIEnv* env, jobject thiz, jboolean enabled)
 {
     if (enabled)
-        MelonDSAndroid::enableMic();
+        MelonDSAndroid::userEnableMic();
     else
-        MelonDSAndroid::disableMic();
+        MelonDSAndroid::userDisableMic();
 }
 
 JNIEXPORT void JNICALL
@@ -589,7 +590,6 @@ void* emulate(void*)
 
         pthread_mutex_unlock(&emuThreadMutex);
 
-        MelonDSAndroid::updateMic();
         u32 nLines = MelonDSAndroid::loop();
 
         double currentTick = getCurrentMillis();
