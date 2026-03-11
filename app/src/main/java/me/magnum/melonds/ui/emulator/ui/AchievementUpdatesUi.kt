@@ -1,5 +1,6 @@
 package me.magnum.melonds.ui.emulator.ui
 
+import android.util.Log
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
@@ -188,6 +189,7 @@ private class AchievementUpdatesListState {
     val visibleInfos = mutableStateListOf<AchievementInfo>()
 
     fun handleEvent(event: RAEventUi) {
+        Log.d("AchievementUpdatesListState", "Handling event: $event")
         when (event) {
             RAEventUi.Reset -> handleReset()
             is RAEventUi.AchievementPrimed -> handleAchievementPrimed(event)
@@ -209,10 +211,17 @@ private class AchievementUpdatesListState {
     }
 
     private fun handleAchievementPrimed(event: RAEventUi.AchievementPrimed) {
-        val state = AchievementInfoState {
-            visibleInfos.removeFirst { (it as? AchievementPrimed)?.achievement?.id == event.achievement.id }
+        val existingPrimedAchievementIndex = visibleInfos.indexOfFirst { (it as? AchievementPrimed)?.achievement?.id == event.achievement.id }
+
+        if (existingPrimedAchievementIndex != -1) {
+            // Primed achievement already being displayed. Ensure it's kept shown in case it's being dismissed
+            visibleInfos[existingPrimedAchievementIndex].state.show()
+        } else {
+            val state = AchievementInfoState {
+                visibleInfos.removeFirst { (it as? AchievementPrimed)?.achievement?.id == event.achievement.id }
+            }
+            visibleInfos.add(0, AchievementPrimed(event.achievement, state))
         }
-        visibleInfos.add(0, AchievementPrimed(event.achievement, state))
     }
 
     private fun handleAchievementUnPrimed(event: RAEventUi.AchievementUnPrimed) {
