@@ -1,6 +1,5 @@
 package me.magnum.melonds.ui.emulator.ui
 
-import android.util.Log
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
@@ -189,7 +188,6 @@ private class AchievementUpdatesListState {
     val visibleInfos = mutableStateListOf<AchievementInfo>()
 
     fun handleEvent(event: RAEventUi) {
-        Log.d("AchievementUpdatesListState", "Handling event: $event")
         when (event) {
             RAEventUi.Reset -> handleReset()
             is RAEventUi.AchievementPrimed -> handleAchievementPrimed(event)

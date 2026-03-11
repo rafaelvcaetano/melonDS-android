@@ -1,6 +1,5 @@
 package me.magnum.melonds.ui.emulator.render
 
-import android.util.Log
 import android.view.Choreographer
 
 private const val DEFAULT_FRAME_PERIOD_NS = 16666666L // 16.6ms (60 FPS)
@@ -32,7 +31,6 @@ class ChoreographerOldFrameRenderer(private val frameRenderCoordinator: FrameRen
                 framePeriodSamples.sort()
                 val median = framePeriodSamples[framePeriodSamples.size / 2]
                 framePeriodNs = median
-                Log.d("melonDS", "Calculated frame period: ${median / 1_000_000f}ms")
                 framePeriodSampleCount = 0
             }
         }
