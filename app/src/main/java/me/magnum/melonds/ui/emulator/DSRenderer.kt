@@ -23,6 +23,7 @@ import kotlin.math.roundToInt
 
 class DSRenderer(private val context: Context) : EmulatorRenderer {
 
+    private val configurationLock = Any()
     private var rendererConfiguration: RuntimeRendererConfiguration? = null
     private var mustUpdateConfiguration = false
     private var isBackgroundPositionDirty = false
@@ -58,8 +59,10 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
     private var backgroundHeight = 0
 
     override fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
-        rendererConfiguration = newRendererConfiguration
-        mustUpdateConfiguration = true
+        synchronized(configurationLock) {
+            rendererConfiguration = newRendererConfiguration
+            mustUpdateConfiguration = true
+        }
     }
 
     override fun setLeftRotationEnabled(enabled: Boolean) {
@@ -73,13 +76,15 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
         topOnTop: Boolean,
         bottomOnTop: Boolean,
     ) {
-        this.topScreenRect = topScreenRect
-        this.bottomScreenRect = bottomScreenRect
-        this.topAlpha = topAlpha
-        this.bottomAlpha = bottomAlpha
-        this.topOnTop = topOnTop
-        this.bottomOnTop = bottomOnTop
-        mustUpdateConfiguration = true
+        synchronized(configurationLock) {
+            this.topScreenRect = topScreenRect
+            this.bottomScreenRect = bottomScreenRect
+            this.topAlpha = topAlpha
+            this.bottomAlpha = bottomAlpha
+            this.topOnTop = topOnTop
+            this.bottomOnTop = bottomOnTop
+            mustUpdateConfiguration = true
+        }
     }
 
     fun setBackground(background: RuntimeBackground) {
@@ -129,7 +134,9 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
         // Create background shader
         backgroundShader = ShaderFactory.createShaderProgram(ShaderProgramSource.BackgroundShader)
 
-        applyRendererConfiguration()
+        synchronized(configurationLock) {
+            mustUpdateConfiguration = true
+        }
     }
 
     private fun applyRendererConfiguration() {
@@ -224,9 +231,11 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
     }
 
     override fun onSurfaceChanged(width: Int, height: Int) {
-        this.width = width.toFloat()
-        this.height = height.toFloat()
-        mustUpdateConfiguration = true
+        synchronized(configurationLock) {
+            this.width = width.toFloat()
+            this.height = height.toFloat()
+            mustUpdateConfiguration = true
+        }
 
         synchronized(backgroundLock) {
             isBackgroundPositionDirty = true
@@ -234,9 +243,11 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
     }
 
     override fun drawFrame(presentFrameWrapper: PresentFrameWrapper) {
-        if (mustUpdateConfiguration) {
-            applyRendererConfiguration()
-            mustUpdateConfiguration = false
+        synchronized(configurationLock) {
+            if (mustUpdateConfiguration) {
+                applyRendererConfiguration()
+                mustUpdateConfiguration = false
+            }
         }
 
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
