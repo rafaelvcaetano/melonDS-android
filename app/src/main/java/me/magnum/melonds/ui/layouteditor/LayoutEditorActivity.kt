@@ -151,7 +151,7 @@ class LayoutEditorActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                layoutEditorManager.openMenu()
+                layoutEditorManager.handleBackNavigation()
             }
         })
 

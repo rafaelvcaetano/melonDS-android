@@ -141,6 +141,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
                         }
                         true
                     }
+                    MotionEvent.ACTION_CANCEL,
                     MotionEvent.ACTION_UP -> {
                         if (!dragging) {
                             selectView(layoutComponentView)
@@ -254,6 +255,17 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         val position = view.getPosition()
         view.setPosition(Point(position.x, centerY))
         modifiedByUser = true
+    }
+
+    fun scaleSelectedView(scale: Float) {
+        // Assume view has a 1:1 aspect ratio. Always scale on the smallest axis
+        if (width > height) {
+            val widthScale = ((height - minComponentSize) * scale) / (width - minComponentSize)
+            scaleSelectedView(widthScale, scale)
+        } else {
+            val heightScale =  ((width - minComponentSize) * scale) / (height - minComponentSize)
+            scaleSelectedView(scale, heightScale)
+        }
     }
 
     fun scaleSelectedView(widthScale: Float, heightScale: Float) {

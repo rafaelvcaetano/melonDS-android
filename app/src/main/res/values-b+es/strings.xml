@@ -303,7 +303,7 @@
     <string name="layout_editor">Editor de diseño</string>
     <string name="add_component">Agregar componente</string>
     <string name="no_more_components">No hay más componentes que agregar</string>
-    <string name="label_size">Tamaño:</string>
+    <string name="label_size">Tamaño</string>
     <string name="menu">Menú</string>
     <string name="properties">Propiedades</string>
     <string name="revert_changes">Revertir cambios</string>

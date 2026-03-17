@@ -371,10 +371,10 @@
     <string name="layout_editor">Layout editor</string>
     <string name="add_component">Add component</string>
     <string name="no_more_components">No more components to add</string>
-    <string name="label_size">Size:</string>
-    <string name="label_width">Width:</string>
-    <string name="label_height">Height:</string>
-    <string name="label_alpha">Alpha:</string>
+    <string name="label_size">Size</string>
+    <string name="label_width">Width</string>
+    <string name="label_height">Height</string>
+    <string name="label_alpha">Alpha</string>
     <string name="label_aspect_ratio">Aspect ratio:</string>
     <string name="aspect_ratio_4_3">4:3 (Original)</string>
     <string name="aspect_ratio_16_9">16:9 (Widescreen)</string>

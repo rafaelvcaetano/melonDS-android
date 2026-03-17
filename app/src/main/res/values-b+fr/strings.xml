@@ -283,7 +283,7 @@
     <string name="layout_editor">Éditeur de disposition</string>
     <string name="add_component">Ajouter un composant</string>
     <string name="no_more_components">Plus de composants à ajouter</string>
-    <string name="label_size">Taille :</string>
+    <string name="label_size">Taille</string>
     <string name="menu">Menu</string>
     <string name="properties">Propriétés</string>
     <string name="revert_changes">Annuler les changements</string>

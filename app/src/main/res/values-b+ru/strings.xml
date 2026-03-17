@@ -313,7 +313,7 @@
     <string name="layout_editor">Редактор раскладки</string>
     <string name="add_component">Добавить компонент</string>
     <string name="no_more_components">Нет компонентов для добавления</string>
-    <string name="label_size">Размер:</string>
+    <string name="label_size">Размер</string>
     <string name="menu">Меню</string>
     <string name="properties">Свойства</string>
     <string name="revert_changes">Отменить изменения</string>

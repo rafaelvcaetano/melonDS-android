@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <ImageView
+        android:id="@+id/image_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null" />
+
+    <me.magnum.melonds.ui.layouteditor.LayoutEditorView
+        android:id="@+id/view_layout_editor"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="false" />
+
+    <ScrollView
+        android:id="@+id/layout_scaling_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#AFFF"
+        android:clickable="true"
+        android:focusable="true"
+        android:fillViewport="true">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_scaling"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp">
+
+            <Button
+                android:id="@+id/button_delete_button"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/delete"
+                style="@style/Button.Editor" />
+
+            <ImageButton
+                android:id="@+id/button_hide_controls"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                style="?android:attr/buttonStyleSmall"
+                android:background="@null"
+                android:src="@drawable/m3_split_button_chevron_avd"
+                app:tint="@color/textLayoutEditor"
+                android:contentDescription="@string/close" />
+
+            <LinearLayout
+                android:id="@+id/layout_size_labels"
+                app:layout_constraintTop_toBottomOf="@id/button_delete_button"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"
+                android:orientation="vertical"
+                android:paddingVertical="4dp"
+                android:layout_marginStart="16dp" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/textLayoutEditor"
+                    android:text="@string/label_size" />
+
+                <TextView
+                    android:id="@+id/text_size"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/textLayoutEditor"
+                    tools:text="1080" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/seek_bar_size"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toEndOf="@id/barrier_labels"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/layout_size_labels"
+                app:layout_constraintBottom_toBottomOf="@id/layout_size_labels"
+                android:padding="8dp"
+                android:layout_gravity="center_vertical" />
+
+            <LinearLayout
+                android:id="@+id/layout_width_labels"
+                app:layout_constraintTop_toBottomOf="@id/layout_size_labels"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"
+                android:orientation="vertical"
+                android:paddingVertical="4dp"
+                android:layout_marginStart="16dp" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/textLayoutEditor"
+                    android:text="@string/label_width" />
+
+                <TextView
+                    android:id="@+id/text_width"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/textLayoutEditor"
+                    tools:text="1080" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/seek_bar_width"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toEndOf="@id/barrier_labels"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/layout_width_labels"
+                app:layout_constraintBottom_toBottomOf="@id/layout_width_labels"
+                android:padding="8dp"
+                android:layout_gravity="center_vertical" />
+
+            <LinearLayout
+                android:id="@+id/layout_height_labels"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/layout_width_labels"
+                app:layout_constraintStart_toStartOf="parent"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"
+                android:orientation="vertical"
+                android:paddingVertical="4dp"
+                android:layout_marginStart="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/textLayoutEditor"
+                    android:text="@string/label_height" />
+
+                <TextView
+                    android:id="@+id/text_height"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/textLayoutEditor"
+                    tools:text="1080" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/seek_bar_height"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toEndOf="@id/barrier_labels"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/layout_height_labels"
+                app:layout_constraintBottom_toBottomOf="@id/layout_height_labels"
+                android:padding="8dp"
+                android:layout_gravity="center_vertical" />
+
+            <LinearLayout
+                android:id="@+id/layout_alpha_labels"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/layout_height_labels"
+                app:layout_constraintStart_toStartOf="parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingVertical="4dp"
+                android:layout_marginStart="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/textLayoutEditor"
+                    android:text="@string/label_alpha" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/seek_bar_alpha"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintStart_toEndOf="@id/barrier_labels"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/layout_alpha_labels"
+                app:layout_constraintBottom_toBottomOf="@id/layout_alpha_labels"
+                android:padding="8dp"
+                android:max="100"
+                android:layout_gravity="center_vertical" />
+
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/barrier_labels"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:barrierDirection="end"
+                app:barrierAllowsGoneWidgets="false"
+                app:constraint_referenced_ids="layout_size_labels,layout_width_labels,layout_height_labels,layout_alpha_labels" />
+
+            <LinearLayout
+                android:id="@+id/layout_aspect_ratio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/layout_alpha_labels"
+                app:layout_constraintStart_toStartOf="parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingVertical="4dp"
+                android:layout_marginStart="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/textLayoutEditor"
+                    android:text="@string/label_aspect_ratio" />
+
+                <Spinner
+                    android:id="@+id/spinner_aspect_ratio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/checkbox_above_screen"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/layout_aspect_ratio"
+                app:layout_constraintStart_toStartOf="parent"
+                android:textColor="@color/textLayoutEditor"
+                android:text="@string/above_other_screen"
+                android:paddingVertical="4dp"
+                android:layout_marginStart="8dp"/>
+
+            <Button
+                android:id="@+id/button_center_horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/checkbox_above_screen"
+                app:layout_constraintStart_toStartOf="parent"
+                android:text="@string/center_horizontal"
+                style="@style/Button.Editor" />
+
+            <Button
+                android:id="@+id/button_center_vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toEndOf="@id/button_center_horizontal"
+                app:layout_constraintTop_toTopOf="@id/button_center_horizontal"
+                android:text="@string/center_vertical"
+                style="@style/Button.Editor" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/layout_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:background="#AFFF"
+        android:clickable="true"
+        android:focusable="false"
+        android:gravity="center_vertical"
+        tools:visibility="invisible">
+
+        <Button
+            android:id="@+id/button_add_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/add_component"
+            style="@style/Button.Editor" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/button_menu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/menu"
+            style="@style/Button.Editor" />
+    </LinearLayout>
+</RelativeLayout>
