@@ -59,14 +59,16 @@
                 android:id="@+id/layout_size_labels"
                 app:layout_constraintTop_toBottomOf="@id/button_delete_button"
                 app:layout_constraintStart_toStartOf="parent"
-                android:layout_width="wrap_content"
+                app:layout_constraintEnd_toStartOf="@id/barrier_labels"
+                app:layout_constraintWidth_min="wrap"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:clickable="true"
                 android:focusable="true"
                 android:background="?attr/selectableItemBackground"
                 android:orientation="vertical"
                 android:paddingVertical="4dp"
-                android:layout_marginStart="16dp" >
+                android:paddingStart="16dp" >
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -97,14 +99,16 @@
                 android:id="@+id/layout_width_labels"
                 app:layout_constraintTop_toBottomOf="@id/layout_size_labels"
                 app:layout_constraintStart_toStartOf="parent"
-                android:layout_width="wrap_content"
+                app:layout_constraintEnd_toStartOf="@id/barrier_labels"
+                app:layout_constraintWidth_min="wrap"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:clickable="true"
                 android:focusable="true"
                 android:background="?attr/selectableItemBackground"
                 android:orientation="vertical"
                 android:paddingVertical="4dp"
-                android:layout_marginStart="16dp" >
+                android:paddingStart="16dp" >
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -133,16 +137,18 @@
 
             <LinearLayout
                 android:id="@+id/layout_height_labels"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                app:layout_constraintWidth_min="wrap"
                 app:layout_constraintTop_toBottomOf="@id/layout_width_labels"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/barrier_labels"
                 android:clickable="true"
                 android:focusable="true"
                 android:background="?attr/selectableItemBackground"
                 android:orientation="vertical"
                 android:paddingVertical="4dp"
-                android:layout_marginStart="16dp">
+                android:paddingStart="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
