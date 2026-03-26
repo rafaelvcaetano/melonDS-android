@@ -214,14 +214,14 @@ class AndroidRetroAchievementsRepository(
         return raApi.submitLeaderboardEntry(leaderboardId, value)
     }
 
-    override suspend fun startSession(gameHash: String): Result<Unit> {
+    override suspend fun startSession(gameHash: String, forHardcoreMode: Boolean): Result<Unit> {
         val gameId = getGameIdFromGameHash(gameHash).getOrNull() ?: return Result.failure(RAGameNotExist(gameHash))
-        return raApi.startSession(gameId)
+        return raApi.startSession(gameId, gameHash, forHardcoreMode)
     }
 
-    override suspend fun sendSessionHeartbeat(gameHash: String, richPresenceDescription: String?) {
+    override suspend fun sendSessionHeartbeat(gameHash: String, forHardcoreMode: Boolean, richPresenceDescription: String?) {
         val gameId = getGameIdFromGameHash(gameHash).getOrNull() ?: return
-        raApi.sendPing(gameId, richPresenceDescription)
+        raApi.sendPing(gameId, gameHash, forHardcoreMode, richPresenceDescription)
     }
 
     private suspend fun submitAchievementAward(achievementId: Long, gameId: RAGameId, forHardcoreMode: Boolean): Result<RAAwardAchievementResponse> {

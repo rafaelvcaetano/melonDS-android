@@ -28,6 +28,6 @@ interface RetroAchievementsRepository {
     suspend fun submitPendingAchievements(): Result<Unit>
     suspend fun getLeaderboard(leaderboardId: Long): RALeaderboard?
     suspend fun submitLeaderboardEntry(leaderboardId: Long, value: Int): Result<RASubmitLeaderboardEntryResponse>
-    suspend fun startSession(gameHash: String): Result<Unit>
-    suspend fun sendSessionHeartbeat(gameHash: String, richPresenceDescription: String?)
+    suspend fun startSession(gameHash: String, forHardcoreMode: Boolean): Result<Unit>
+    suspend fun sendSessionHeartbeat(gameHash: String, forHardcoreMode: Boolean, richPresenceDescription: String?)
 }

@@ -944,7 +944,8 @@ class EmulatorViewModel @Inject constructor(
                 // Wait until the emulator has actually started
                 ensureEmulatorIsRunning().firstOrNull()
 
-                val startResult = retroAchievementsRepository.startSession(rom.retroAchievementsHash)
+                val isHardcoreModeEnabled = emulatorSession.isRetroAchievementsHardcoreModeEnabled
+                val startResult = retroAchievementsRepository.startSession(rom.retroAchievementsHash, isHardcoreModeEnabled)
                 if (startResult.isFailure) {
                     _raIntegrationEvent.tryEmit(RAIntegrationEvent.Failed(achievementData.icon))
                 } else {
@@ -961,11 +962,12 @@ class EmulatorViewModel @Inject constructor(
                         _raIntegrationEvent.tryEmit(RAIntegrationEvent.LoadedNoAchievements(achievementData.icon))
                     }
 
+                    delay(30.seconds)
                     while (isActive) {
                         // TODO: Should we pause the session if the app goes to background? If so, how?
-                        delay(2.minutes)
                         val richPresenceDescription = MelonEmulator.getRichPresenceStatus()
-                        retroAchievementsRepository.sendSessionHeartbeat(rom.retroAchievementsHash, richPresenceDescription)
+                        retroAchievementsRepository.sendSessionHeartbeat(rom.retroAchievementsHash, isHardcoreModeEnabled, richPresenceDescription)
+                        delay(2.minutes)
                     }
                 }
             }

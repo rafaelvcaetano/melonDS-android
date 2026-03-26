@@ -52,14 +52,14 @@ class RAApi(
         private const val PARAMETER_REQUEST = "r"
         private const val PARAMETER_GAME_ID = "g"
         private const val PARAMETER_GAME_HASH = "m"
-        private const val PARAMETER_SESSION_GAME_ID = "m"
+        private const val PARAMETER_PING_GAME_HASH = "x"
         private const val PARAMETER_ACHIEVEMENT_ID = "a"
         private const val PARAMETER_IS_HARDMODE = "h"
-        private const val PARAMETER_ACTIVITY_TYPE = "a"
         private const val PARAMETER_RICH_PRESENCE = "m"
         private const val PARAMETER_SIGNATURE = "v"
         private const val PARAMETER_LEADERBOARD_ID = "i"
         private const val PARAMETER_SCORE = "s"
+        private const val PARAMETER_RCHEEVOS_VERSION = "l"
 
         private const val VALUE_HARDMODE_DISABLED = "0"
         private const val VALUE_HARDMODE_ENABLED = "1"
@@ -68,12 +68,12 @@ class RAApi(
         private const val REQUEST_HASH_LIBRARY = "hashlibrary"
         private const val REQUEST_ACHIEVEMENT_SETS = "achievementsets"
         private const val REQUEST_USER_UNLOCKED_ACHIEVEMENTS = "unlocks"
-        private const val REQUEST_POST_ACTIVITY = "postactivity"
+        private const val REQUEST_START_SESSION = "startsession"
         private const val REQUEST_AWARD_ACHIEVEMENT = "awardachievement"
         private const val REQUEST_SUBMIT_LEADERBOARD_ENTRY = "submitlbentry"
         private const val REQUEST_PING = "ping"
 
-        private const val ACTIVITY_TYPE_START_SESSION = "3"
+        private const val RCHEEVOS_VERSION = "12.2.1"
     }
 
     suspend fun login(username: String, password: String): Result<Unit> {
@@ -129,16 +129,18 @@ class RAApi(
         }
     }
 
-    suspend fun startSession(gameId: RAGameId): Result<Unit> {
+    suspend fun startSession(gameId: RAGameId, gameHash: String, forHardcoreMode: Boolean): Result<Unit> {
         val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
 
         return post(
             mapOf(
-                PARAMETER_REQUEST to REQUEST_POST_ACTIVITY,
+                PARAMETER_REQUEST to REQUEST_START_SESSION,
                 PARAMETER_USER to userAuth.username,
                 PARAMETER_TOKEN to userAuth.token,
-                PARAMETER_ACTIVITY_TYPE to ACTIVITY_TYPE_START_SESSION,
-                PARAMETER_SESSION_GAME_ID to gameId.id.toString(),
+                PARAMETER_GAME_ID to gameId.id.toString(),
+                PARAMETER_GAME_HASH to gameHash,
+                PARAMETER_IS_HARDMODE to if (forHardcoreMode) VALUE_HARDMODE_ENABLED else VALUE_HARDMODE_DISABLED,
+                PARAMETER_RCHEEVOS_VERSION to RCHEEVOS_VERSION,
             )
         )
     }
@@ -198,7 +200,7 @@ class RAApi(
         }
     }
 
-    suspend fun sendPing(gameId: RAGameId, richPresenceDescription: String?): Result<Unit> {
+    suspend fun sendPing(gameId: RAGameId, gameHash: String, forHardcoreMode: Boolean, richPresenceDescription: String?): Result<Unit> {
         // NOTE: Call this every 2 minutes if rich presence is enabled or every 4 minutes if not
         val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
 
@@ -207,6 +209,8 @@ class RAApi(
             PARAMETER_USER to userAuth.username,
             PARAMETER_TOKEN to userAuth.token,
             PARAMETER_GAME_ID to gameId.id.toString(),
+            PARAMETER_PING_GAME_HASH to gameHash,
+            PARAMETER_IS_HARDMODE to if (forHardcoreMode) VALUE_HARDMODE_ENABLED else VALUE_HARDMODE_DISABLED,
         )
 
         if (richPresenceDescription != null) {
