@@ -54,7 +54,7 @@ internal fun LeaderboardAttemptUi(
 
     AchievementInfoUi(
         modifier = Modifier.padding(8.dp).graphicsLayer { alpha = alphaTransition.value },
-        icon = info.gameIcon,
+        iconData = info.gameIcon,
         state = info.state,
     ) {
         AnimatedContent(

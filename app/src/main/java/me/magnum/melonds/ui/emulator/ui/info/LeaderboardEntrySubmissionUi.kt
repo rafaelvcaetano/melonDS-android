@@ -27,7 +27,7 @@ internal fun LeaderboardEntrySubmissionUi(
 ) {
     AchievementInfoUi(
         modifier = Modifier.padding(8.dp),
-        icon = info.gameIcon,
+        iconData = info.gameIcon,
         state = info.state,
     ) {
         var isDescriptionVisible by remember { mutableStateOf(false) }

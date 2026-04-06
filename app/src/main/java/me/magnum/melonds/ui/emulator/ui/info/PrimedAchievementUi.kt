@@ -36,7 +36,7 @@ internal fun PrimedAchievementUi(primedInfo: AchievementPrimed) {
         modifier = Modifier.padding(8.dp).graphicsLayer {
             alpha = alphaTransition.value
         },
-        icon = primedInfo.achievement.badgeUrlUnlocked,
+        iconData = primedInfo.achievement.badgeUrlUnlocked,
         state = primedInfo.state,
     ) {
         var isDescriptionVisible by remember { mutableStateOf(false) }

@@ -2,9 +2,11 @@ package me.magnum.melonds.ui.emulator.ui.info
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
@@ -30,12 +32,11 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import java.net.URL
 
 @Composable
 internal fun AchievementInfoUi(
     modifier: Modifier = Modifier,
-    icon: URL,
+    iconData: Any,
     state: AchievementInfoState,
     body: (@Composable RowScope.() -> Unit)? = null,
 ) {
@@ -51,7 +52,7 @@ internal fun AchievementInfoUi(
     AnimatedVisibility(
         visibleState = state.visibility,
         enter = fadeIn() + slideInVertically() + expandVertically(clip = false, expandFrom = Alignment.CenterVertically),
-        exit = fadeOut() + slideOutHorizontally(),
+        exit = fadeOut() + slideOutHorizontally() + shrinkVertically(animationSpec = tween(delayMillis = 300), shrinkTowards = Alignment.Top),
     ) {
         DisposableEffect(state) {
             onDispose {
@@ -73,7 +74,7 @@ internal fun AchievementInfoUi(
                     AsyncImage(
                         modifier = Modifier.size(32.dp),
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(icon.toString())
+                            .data(iconData)
                             .crossfade(false)
                             .build(),
                         contentDescription = null,

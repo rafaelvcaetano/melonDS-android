@@ -5,12 +5,10 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import me.magnum.melonds.ui.emulator.ui.AchievementInfo.AchievementProgress
-import me.magnum.rcheevosapi.model.RAAchievement
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -22,7 +20,7 @@ internal fun AchievementProgressUi(progressInfo: AchievementProgress) {
 
     AchievementInfoUi(
         modifier = Modifier.padding(8.dp),
-        icon = progressInfo.achievement.badgeUrlUnlocked,
+        iconData = progressInfo.achievement.badgeUrlUnlocked,
         state = progressInfo.state,
     ) {
         Text(
