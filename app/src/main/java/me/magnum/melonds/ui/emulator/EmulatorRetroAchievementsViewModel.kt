@@ -2,6 +2,7 @@ package me.magnum.melonds.ui.emulator
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
 import me.magnum.melonds.domain.model.retroachievements.RAUserAchievement
@@ -12,6 +13,7 @@ import me.magnum.melonds.domain.services.EmulatorManager
 import me.magnum.melonds.impl.emulator.EmulatorSession
 import me.magnum.melonds.ui.common.achievements.ui.model.AchievementUiModel
 import me.magnum.melonds.ui.common.achievements.viewmodel.RetroAchievementsViewModel
+import me.magnum.melonds.ui.emulator.component.RetroAchievementsSubmissionHandler
 import me.magnum.melonds.ui.romdetails.model.AchievementBucketUiModel
 import javax.inject.Inject
 import kotlin.time.Clock
@@ -24,6 +26,7 @@ class EmulatorRetroAchievementsViewModel @Inject constructor(
     private val retroAchievementsRepository: RetroAchievementsRepository,
     private val emulatorSession: EmulatorSession,
     private val emulatorManager: EmulatorManager,
+    private val achievementsSubmissionHandler: RetroAchievementsSubmissionHandler,
 ) : RetroAchievementsViewModel(retroAchievementsRepository, settingsRepository) {
 
     private class TimedUnlockedAchievement(
@@ -62,8 +65,11 @@ class EmulatorRetroAchievementsViewModel @Inject constructor(
 
     override suspend fun buildAchievementBuckets(achievements: List<RAUserAchievement>): List<AchievementBucketUiModel> {
         val now = Clock.System.now()
+        val pendingAchievements = achievementsSubmissionHandler.getPendingAchievementsFlow().firstOrNull() ?: emptyList()
+
         return retroAchievementsRepository.getRuntimeUserAchievements(achievements).groupingBy { runtimeAchievement ->
             when {
+                pendingAchievements.any { it.id == runtimeAchievement.userAchievement.achievement.id } -> AchievementBucketUiModel.Bucket.PendingSubmissions
                 runtimeAchievement.userAchievement.isUnlocked -> {
                     val recentlyUnlockedAchievement = recentlyUnlockedAchievements.firstOrNull { it.achievementId == runtimeAchievement.userAchievement.achievement.id }
                     if (recentlyUnlockedAchievement != null && (now - recentlyUnlockedAchievement.unlockedAt) < 10.minutes) {

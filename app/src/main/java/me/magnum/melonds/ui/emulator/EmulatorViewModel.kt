@@ -64,22 +64,21 @@ import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.EmulatorManager
 import me.magnum.melonds.impl.emulator.EmulatorSession
 import me.magnum.melonds.impl.layout.UILayoutProvider
+import me.magnum.melonds.ui.emulator.component.RetroAchievementsSubmissionHandler
 import me.magnum.melonds.ui.emulator.firmware.FirmwarePauseMenuOption
-import me.magnum.melonds.ui.emulator.model.RumbleEvent
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
 import me.magnum.melonds.ui.emulator.model.LaunchArgs
 import me.magnum.melonds.ui.emulator.model.PauseMenu
 import me.magnum.melonds.ui.emulator.model.RAEventUi
 import me.magnum.melonds.ui.emulator.model.RAIntegrationEvent
+import me.magnum.melonds.ui.emulator.model.RumbleEvent
 import me.magnum.melonds.ui.emulator.model.RuntimeInputLayoutConfiguration
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
 import me.magnum.melonds.ui.emulator.model.ToastEvent
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rom.RomPauseMenuOption
 import me.magnum.melonds.utils.EventSharedFlow
-import me.magnum.rcheevosapi.model.RAAchievementSet
-import me.magnum.rcheevosapi.model.RASetId
 import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -104,6 +103,7 @@ class EmulatorViewModel @Inject constructor(
     private val uiLayoutProvider: UILayoutProvider,
     private val emulatorManager: EmulatorManager,
     private val emulatorSession: EmulatorSession,
+    private val retroAchievementsSubmissionHandler: RetroAchievementsSubmissionHandler,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -143,6 +143,8 @@ class EmulatorViewModel @Inject constructor(
 
     private val _raIntegrationEvent = EventSharedFlow<RAIntegrationEvent>()
     val integrationEvent = _raIntegrationEvent.asSharedFlow()
+
+    val pendingSubmissionsSummary = retroAchievementsSubmissionHandler.getPendingSubmissionsSummaryFlow()
 
     private val _uiEvent = EventSharedFlow<EmulatorUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
@@ -356,7 +358,16 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    fun stopEmulator() {
+    fun exitEmulator(force: Boolean = false) {
+        if (!force && retroAchievementsSubmissionHandler.hasPendingSubmissions()) {
+            _uiEvent.tryEmit(EmulatorUiEvent.ShowPendingSubmissionsDialog)
+            retroAchievementsSubmissionHandler.retrySubmissionsImmediately()
+        } else {
+            stopEmulatorAndExit()
+        }
+    }
+
+    private fun stopEmulator() {
         viewModelScope.launch {
             _achievementsEvent.emit(RAEventUi.Reset)
         }
@@ -413,7 +424,7 @@ class EmulatorViewModel @Inject constructor(
                     }
                     RomPauseMenuOption.VIEW_ACHIEVEMENTS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowAchievementList)
                     RomPauseMenuOption.RESET -> resetEmulator()
-                    RomPauseMenuOption.EXIT -> stopEmulatorAndExit()
+                    RomPauseMenuOption.EXIT -> exitEmulator(force = false)
                 }
             }
             is FirmwarePauseMenuOption -> {
@@ -799,15 +810,7 @@ class EmulatorViewModel @Inject constructor(
             retroAchievementsRepository.getAchievement(achievementId).onSuccess { achievement ->
                 if (achievement != null) {
                     val isHardcoreModeEnabled = emulatorSession.isRetroAchievementsHardcoreModeEnabled
-                    retroAchievementsRepository.awardAchievement(achievement, isHardcoreModeEnabled).onSuccess {
-                        if (it.achievementAwarded) {
-                            _achievementsEvent.emit(RAEventUi.AchievementTriggered(achievement))
-
-                            if (it.isSetMastered()) {
-                                showSetMastery(achievement.setId, isHardcoreModeEnabled)
-                            }
-                        }
-                    }
+                    retroAchievementsSubmissionHandler.addPendingAchievementSubmission(achievement, isHardcoreModeEnabled)
                 }
             }
         }
@@ -871,60 +874,15 @@ class EmulatorViewModel @Inject constructor(
 
     private fun onLeaderboardAttemptCompleted(completionEvent: RAEvent.OnLeaderboardAttemptCompleted) {
         sessionCoroutineScope.launch {
-            retroAchievementsRepository.submitLeaderboardEntry(completionEvent.leaderboardId, completionEvent.value).fold(
-                onSuccess = { submissionResponse ->
-                    retroAchievementsRepository.getLeaderboard(completionEvent.leaderboardId)?.let { leaderboard ->
-                        retroAchievementsRepository.getAchievementSetSummary(leaderboard.setId)?.let { setSummary ->
-                            val submissionEvent = RAEventUi.LeaderboardEntrySubmitted(
-                                leaderboardId = completionEvent.leaderboardId,
-                                title = submissionResponse.title,
-                                gameIcon = setSummary.iconUrl,
-                                formattedScore = submissionResponse.formattedScore,
-                                rank = submissionResponse.rank,
-                                numberOfEntries = submissionResponse.numEntries,
-                            )
-                            _achievementsEvent.emit(submissionEvent)
-                        }
-                    }
-                },
-                onFailure = {
-                    // Submission failed. Submit a cancellation event anyway to ensure the attempt indicator is dismissed
-                    _achievementsEvent.emit(RAEventUi.LeaderboardAttemptCancelled(completionEvent.leaderboardId))
-                },
-            )
+            retroAchievementsRepository.getLeaderboard(completionEvent.leaderboardId)?.let { leaderboard ->
+                retroAchievementsSubmissionHandler.addPendingLeaderboardSubmission(leaderboard, completionEvent.value)
+            }
         }
     }
 
     private fun onLeaderboardAttemptCancelled(cancelEvent: RAEvent.OnLeaderboardAttemptCancelled) {
         sessionCoroutineScope.launch {
             _achievementsEvent.emit(RAEventUi.LeaderboardAttemptCancelled(cancelEvent.leaderboardId))
-        }
-    }
-
-    private suspend fun showSetMastery(setId: RASetId, forHardcoreMode: Boolean) {
-        val rom = (emulatorSession.currentSessionType() as? EmulatorSession.SessionType.RomSession)?.rom
-        if (rom != null) {
-            val setSummary = retroAchievementsRepository.getAchievementSetSummary(setId)
-            val raUserName = retroAchievementsRepository.getUserAuthentication()?.username
-            val romPlayTime = romsRepository.getRomAtUri(rom.uri)?.totalPlayTime
-
-            if (setSummary != null) {
-                val title = if (setSummary.type == RAAchievementSet.Type.Core) {
-                    val gameSummary = retroAchievementsRepository.getGameSummary(rom.retroAchievementsHash)
-                    gameSummary?.title.orEmpty()
-                } else {
-                    setSummary.title.orEmpty()
-                }
-
-                val masteryEvent = RAEventUi.GameMastered(
-                    gameTitle = title,
-                    gameIcon = setSummary.iconUrl,
-                    userName = raUserName,
-                    playTime = romPlayTime,
-                    forHardcodeMode = forHardcoreMode,
-                )
-                _achievementsEvent.emit(masteryEvent)
-            }
         }
     }
 
@@ -949,6 +907,10 @@ class EmulatorViewModel @Inject constructor(
                 if (startResult.isFailure) {
                     _raIntegrationEvent.tryEmit(RAIntegrationEvent.Failed(achievementData.icon))
                 } else {
+                    launch {
+                        retroAchievementsSubmissionHandler.startEmulatorSession().collect(_achievementsEvent)
+                    }
+
                     emulatorManager.setupRetroAchievements(achievementData)
                     if (achievementData.hasAchievements) {
                         _raIntegrationEvent.tryEmit(

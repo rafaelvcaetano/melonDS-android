@@ -11,10 +11,11 @@ data class AchievementBucketUiModel(
      * The different buckets into which displayed achievements can be inserted. The enum entries are defined in their preferred display order.
      */
     enum class Bucket(val displayOrder: Int) {
-        ActiveChallenges(0),
-        RecentlyUnlocked(1),
-        AlmostThere(2),
-        Locked(3),
-        Unlocked(4),
+        PendingSubmissions(0),
+        ActiveChallenges(1),
+        RecentlyUnlocked(2),
+        AlmostThere(3),
+        Locked(4),
+        Unlocked(5),
     }
 }

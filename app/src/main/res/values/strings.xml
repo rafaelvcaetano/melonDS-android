@@ -418,6 +418,7 @@
     <string name="retro_achievements_load_error">There was a problem when trying to load the achievements for this game. Make sure you are connected to the internet and try again later</string>
     <string name="retro_achievements_no_achievements">No RetroAchievements were found for this game</string>
     <string name="retro_achievements_relaunch_to_apply_settings">Relaunch the ROM to apply the new RetroAchievements settings</string>
+    <string name="retro_achievements_pending_unlocks">Pending Unlocks</string>
     <string name="retro_achievements_active_challenges">Active Challenges</string>
     <string name="retro_achievements_recently_unlokced">Recently Unlocked</string>
     <string name="retro_achievements_almost_there">Almost There</string>
@@ -449,6 +450,20 @@
     <string name="leaderboard_submission_info">%1$s • Rank %2$d of %3$d</string> <!-- Eg.: 01:42.95 • Rank 73 of 145 -->
     <string name="game_completed">Completed %1$s</string>
     <string name="game_mastered">Mastered %1$s</string>
+    <string name="retroachievements_unsynchronized_data">Un-synchronized RetroAchievements data</string>
+    <string name="retroachievements_unsynchronized_data_info">There is un-synchronized RetroAchievements data. The following operations are pending:</string>
+    <plurals name="retroachievements_pending_achievement_unlocks">
+        <item quantity="one">%d achievement unlock</item>
+        <item quantity="other">%d achievement unlocks</item>
+    </plurals>
+    <plurals name="retroachievements_pending_leaderboard_entries">
+        <item quantity="one">%d leaderboard entry</item>
+        <item quantity="other">%d leaderboard entries</item>
+    </plurals>
+    <string name="retroachievements_unsynchronized_data_connect_internet">Connect to the internet to synchronize the data.</string>
+    <string name="retroachievements_unsynchronized_data_loss_info">If you exit now, this data will be lost!</string>
+    <string name="retroachievements_unsynchronized_data_synchronized">All data has been synchronized!</string>
+    <string name="retroachievements_unsynchronized_data_exiting">The emulator will now exit.</string>
 
     <string-array name="fast_forward_speed_multiplier_options">
         <item>Unlimited</item>

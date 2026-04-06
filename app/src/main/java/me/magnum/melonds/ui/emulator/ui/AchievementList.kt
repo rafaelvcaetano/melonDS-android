@@ -2,7 +2,6 @@ package me.magnum.melonds.ui.emulator.ui
 
 import androidx.compose.animation.core.animate
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.BringIntoViewSpec
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
@@ -342,6 +341,7 @@ private fun Content(
 @Composable
 private fun getBucketTitle(bucket: AchievementBucketUiModel.Bucket): String {
     return when (bucket) {
+        AchievementBucketUiModel.Bucket.PendingSubmissions -> stringResource(R.string.retro_achievements_pending_unlocks)
         AchievementBucketUiModel.Bucket.ActiveChallenges -> stringResource(R.string.retro_achievements_active_challenges)
         AchievementBucketUiModel.Bucket.RecentlyUnlocked -> stringResource(R.string.retro_achievements_recently_unlokced)
         AchievementBucketUiModel.Bucket.AlmostThere -> stringResource(R.string.retro_achievements_almost_there)
@@ -356,8 +356,8 @@ private fun LoadError(
     onRetry: () -> Unit,
 ) {
     Column(
-        modifier = modifier.background(MaterialTheme.colors.background),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(

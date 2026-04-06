@@ -96,6 +96,7 @@ import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 import me.magnum.melonds.ui.emulator.rom.SaveStateAdapter
 import me.magnum.melonds.ui.emulator.ui.AchievementListDialog
 import me.magnum.melonds.ui.emulator.ui.AchievementUpdatesUi
+import me.magnum.melonds.ui.emulator.ui.PendingSubmissionsDialog
 import me.magnum.melonds.ui.layouteditor.model.LayoutTarget
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.theme.MelonTheme
@@ -264,6 +265,7 @@ class EmulatorActivity : AppCompatActivity() {
         closeRewindWindow()
     }
     private val showAchievementList = mutableStateOf(false)
+    private val showPendingSubmissionsDialog = mutableStateOf(false)
 
     private val activeOverlays = EmulatorOverlayTracker(
         onOverlaysCleared = {
@@ -365,6 +367,18 @@ class EmulatorActivity : AppCompatActivity() {
                         }
                     )
                 }
+
+                if (showPendingSubmissionsDialog.value) {
+                    PendingSubmissionsDialog(
+                        pendingSubmissionsSummaryFlow = viewModel.pendingSubmissionsSummary,
+                        onExit = { viewModel.exitEmulator(force = true) },
+                        onCancel = {
+                            activeOverlays.removeActiveOverlay(EmulatorOverlay.PENDING_SUBMISSION_CONFIRM_EXIT)
+                            viewModel.resumeEmulator()
+                            showPendingSubmissionsDialog.value = false
+                        }
+                    )
+                }
             }
         }
 
@@ -462,9 +476,7 @@ class EmulatorActivity : AppCompatActivity() {
                     when (it) {
                         EmulatorUiEvent.CloseEmulator -> {
                             choreographerFrameRenderer.stopRendering()
-                            presentation?.apply {
-                                dismiss()
-                            }
+                            presentation?.dismiss()
                             finish()
                         }
                         is EmulatorUiEvent.OpenScreen.CheatsScreen -> {
@@ -490,6 +502,10 @@ class EmulatorActivity : AppCompatActivity() {
                         EmulatorUiEvent.ShowAchievementList -> {
                             activeOverlays.addActiveOverlay(EmulatorOverlay.ACHIEVEMENTS_DIALOG)
                             showAchievementList.value = true
+                        }
+                        EmulatorUiEvent.ShowPendingSubmissionsDialog -> {
+                            activeOverlays.addActiveOverlay(EmulatorOverlay.PENDING_SUBMISSION_CONFIRM_EXIT)
+                            showPendingSubmissionsDialog.value = true
                         }
                     }
                 }

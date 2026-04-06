@@ -6,8 +6,9 @@ import java.net.URL
 import kotlin.time.Duration
 
 sealed class RAEventUi {
-    object Reset : RAEventUi()
+    data object Reset : RAEventUi()
     data class AchievementTriggered(val achievement: RAAchievement) : RAEventUi()
+    data class AchievementTriggerError(val achievement: RAAchievement) : RAEventUi()
     data class AchievementPrimed(val achievement: RAAchievement) : RAEventUi()
     data class AchievementUnPrimed(val achievement: RAAchievement) : RAEventUi()
     data class AchievementProgressUpdated(val achievement: RAAchievement, val current: Int, val target: Int, val progress: String) : RAEventUi()
@@ -22,6 +23,8 @@ sealed class RAEventUi {
         val rank: Int,
         val numberOfEntries: Int,
     ) : RAEventUi()
+    data class LeaderboardEntrySubmitError(val leaderboardId: Long) : RAEventUi()
+    data object PendingDataSubmitted : RAEventUi()
     data class GameMastered(
         val gameTitle: String,
         val gameIcon: URL,
