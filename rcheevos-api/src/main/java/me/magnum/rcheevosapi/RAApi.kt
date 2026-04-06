@@ -1,5 +1,8 @@
 package me.magnum.rcheevosapi
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.boolean
@@ -33,7 +36,6 @@ import java.io.IOException
 import java.net.URLEncoder
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.KClass
 
 class RAApi(
@@ -232,13 +234,15 @@ class RAApi(
         responseClass: KClass<T>,
         parameters: Map<String, String>,
         errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") },
-    ): Result<T> {
+    ): Result<T> = withContext(Dispatchers.IO) {
         val request = buildGetRequest(parameters)
-        return suspendRunCatching {
+        suspendRunCatching {
             executeRequest(request)
         }.suspendMapCatching { response ->
             if (response.isSuccessful) {
-                val body = response.body.charStream().readText()
+                val body = response.body.charStream().use {
+                    it.readText()
+                }
                 val responseJson = Json.parseToJsonElement(body).jsonObject
                 val isSuccessful = responseJson["Success"]!!.jsonPrimitive.boolean
                 if (!isSuccessful) {
@@ -271,13 +275,15 @@ class RAApi(
         responseClass: KClass<T>,
         parameters: Map<String, String>,
         errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") },
-    ): Result<T> {
+    ): Result<T> = withContext(Dispatchers.IO) {
         val request = buildPostRequest(parameters)
-        return suspendRunCatching {
+        suspendRunCatching {
             executeRequest(request)
         }.suspendMapCatching { response ->
             if (response.isSuccessful) {
-                val body = response.body.charStream().readText()
+                val body = response.body.charStream().use {
+                    it.readText()
+                }
                 val responseJson = Json.parseToJsonElement(body).jsonObject
                 val isSuccessful = responseJson["Success"]!!.jsonPrimitive.boolean
                 if (!isSuccessful) {
@@ -322,16 +328,20 @@ class RAApi(
             .build()
     }
 
-    private suspend fun executeRequest(request: Request): Response = suspendCoroutine {
+    private suspend fun executeRequest(request: Request): Response = suspendCancellableCoroutine { continuation ->
         val call = okHttpClient.newCall(request)
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                it.resumeWithException(e)
+                continuation.resumeWithException(e)
             }
 
             override fun onResponse(call: Call, response: Response) {
-                it.resume(response)
+                continuation.resume(response)
             }
         })
+
+        continuation.invokeOnCancellation {
+            call.cancel()
+        }
     }
 }
