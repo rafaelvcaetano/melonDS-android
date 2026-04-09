@@ -161,7 +161,6 @@ class EmulatorActivity : AppCompatActivity() {
     private var presentation: ExternalPresentation? = null
 
     private lateinit var handler: Handler
-    private lateinit var displayManager: DisplayManager
     private val displayListener = object : DisplayManager.DisplayListener {
 
         override fun onDisplayAdded(displayId: Int) {
@@ -308,9 +307,6 @@ class EmulatorActivity : AppCompatActivity() {
         binding.surfaceMain.apply {
             setRenderer(mainScreenRenderer)
         }
-
-        displayManager = getSystemService<DisplayManager>()!!
-        displayManager.registerDisplayListener(displayListener, null)
 
         binding.textFps.visibility = View.INVISIBLE
         binding.viewLayoutControls.setLayoutComponentViewBuilderFactory(RuntimeLayoutComponentViewBuilderFactory())
@@ -597,6 +593,7 @@ class EmulatorActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         updateDisplays()
+        getSystemService<DisplayManager>()?.registerDisplayListener(displayListener, null)
         getSystemService<InputManager>()?.registerInputDeviceListener(connectedControllerManager, null)
         connectedControllerManager.startTrackingControllers()
         frameRenderCoordinator.addSurface(binding.surfaceMain)
@@ -985,6 +982,7 @@ class EmulatorActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
+        getSystemService<DisplayManager>()?.unregisterDisplayListener(displayListener)
         getSystemService<InputManager>()?.unregisterInputDeviceListener(connectedControllerManager)
         connectedControllerManager.stopTrackingControllers()
         frameRenderCoordinator.removeSurface(binding.surfaceMain)
@@ -994,6 +992,5 @@ class EmulatorActivity : AppCompatActivity() {
         super.onDestroy()
         frameRenderCoordinator.stop()
         presentation?.dismiss()
-        displayManager.unregisterDisplayListener(displayListener)
     }
 }
