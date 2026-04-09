@@ -17,7 +17,7 @@ public:
     void onLeaderboardAttemptStarted(long leaderboardId) override;
     void onLeaderboardAttemptUpdated(long leaderboardId, std::string formattedValue) override;
     void onLeaderboardAttemptCanceled(long leaderboardId) override;
-    void onLeaderboardAttemptCompleted(long leaderboardId, int value) override;
+    void onLeaderboardAttemptCompleted(long leaderboardId, int value, std::string formattedValue) override;
 
 private:
     // Event type constants

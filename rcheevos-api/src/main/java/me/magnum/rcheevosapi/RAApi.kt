@@ -193,9 +193,6 @@ class RAApi(
             ),
         ).map {
             RASubmitLeaderboardEntryResponse(
-                gameId = RAGameId(it.response.leaderboardData.gameId),
-                title = it.response.leaderboardData.title,
-                formattedScore = it.response.scoreFormatted,
                 rank = it.response.rankInfo.rank,
                 numEntries = it.response.rankInfo.numEntries,
             )

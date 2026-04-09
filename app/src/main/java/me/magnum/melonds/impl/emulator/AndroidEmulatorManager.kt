@@ -76,7 +76,14 @@ class AndroidEmulatorManager(
                 achievementsSharedFlow.tryEmit(event)
             }
             EmulatorEventType.EventRALeaderboardAttemptCanceled -> achievementsSharedFlow.tryEmit(RAEvent.OnLeaderboardAttemptCancelled(data.getLong()))
-            EmulatorEventType.EventRALeaderboardAttemptCompleted -> achievementsSharedFlow.tryEmit(RAEvent.OnLeaderboardAttemptCompleted(data.getLong(), data.getInt()))
+            EmulatorEventType.EventRALeaderboardAttemptCompleted -> {
+                val event = RAEvent.OnLeaderboardAttemptCompleted(
+                    leaderboardId = data.getLong(),
+                    value = data.getInt(),
+                    formattedValue = String(ByteArray(data.getInt()).apply { data.get(this) }),
+                )
+                achievementsSharedFlow.tryEmit(event)
+            }
         }
     }
 
@@ -195,12 +202,12 @@ class AndroidEmulatorManager(
         return MelonEmulator.loadRewindState(rewindSaveState)
     }
 
-    override suspend fun saveState(saveStateFileUri: Uri): Boolean {
-        return MelonEmulator.saveState(saveStateFileUri)
+    override suspend fun saveState(saveStateFileUri: Uri): Boolean = withContext(Dispatchers.IO) {
+        MelonEmulator.saveState(saveStateFileUri)
     }
 
-    override suspend fun loadState(saveStateFileUri: Uri): Boolean {
-        return MelonEmulator.loadState(saveStateFileUri)
+    override suspend fun loadState(saveStateFileUri: Uri): Boolean = withContext(Dispatchers.IO) {
+        MelonEmulator.loadState(saveStateFileUri)
     }
 
     override fun stopEmulator() {

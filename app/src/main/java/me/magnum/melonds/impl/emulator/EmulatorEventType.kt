@@ -70,6 +70,8 @@ enum class EmulatorEventType(val event: Int) {
      * RA leaderboard attempt completed. Data:
      * * leaderboard ID (`i64`)
      * * leaderboard value (`i32`)
+     * * formated value string size (`i32`)
+     * * formated value string (`u8[32]`)
      */
     EventRALeaderboardAttemptCompleted(213),
 }

@@ -83,9 +83,9 @@ class RetroAchievementsSubmissionHandler @Inject constructor(
         pendingSubmissionsChannel?.trySend(Unit)
     }
 
-    fun addPendingLeaderboardSubmission(leaderboard: RALeaderboard, value: Int) {
+    fun addPendingLeaderboardSubmission(leaderboard: RALeaderboard, value: Int, formattedValue: String) {
         pendingSubmissions.update {
-            it + PendingSubmission.LeaderboardEntrySubmission(leaderboard, value, true)
+            it + PendingSubmission.LeaderboardEntrySubmission(leaderboard, value, formattedValue, true)
         }
         pendingSubmissionsChannel?.trySend(Unit)
     }
@@ -174,7 +174,7 @@ class RetroAchievementsSubmissionHandler @Inject constructor(
                         leaderboardId = leaderboardSubmission.leaderboard.id,
                         title = leaderboardSubmission.leaderboard.title,
                         gameIcon = setSummary.iconUrl,
-                        formattedScore = submissionResponse.formattedScore,
+                        formattedScore = leaderboardSubmission.formattedValue,
                         rank = submissionResponse.rank,
                         numberOfEntries = submissionResponse.numEntries,
                     )
@@ -234,7 +234,7 @@ class RetroAchievementsSubmissionHandler @Inject constructor(
 
     private sealed class PendingSubmission {
         data class AchievementSubmission(val achievement: RAAchievement, val forHardcoreMode: Boolean, val firstTry: Boolean) : PendingSubmission()
-        data class LeaderboardEntrySubmission(val leaderboard: RALeaderboard, val value: Int, val firstTry: Boolean) : PendingSubmission()
+        data class LeaderboardEntrySubmission(val leaderboard: RALeaderboard, val value: Int, val formattedValue: String, val firstTry: Boolean) : PendingSubmission()
     }
 
     private sealed class PendingSubmissionResult(open val uiEvents: List<RAEventUi>) {

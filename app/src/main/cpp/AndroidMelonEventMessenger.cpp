@@ -81,15 +81,19 @@ void AndroidMelonEventMessenger::onLeaderboardAttemptCanceled(long leaderboardId
     MelonDSAndroid::fireEmulatorEvent(EVENT_RA_LBOARD_ATTEMPT_CANCELED, sizeof(leaderboardIdLong), &leaderboardIdLong);
 }
 
-void AndroidMelonEventMessenger::onLeaderboardAttemptCompleted(long leaderboardId, int value)
+void AndroidMelonEventMessenger::onLeaderboardAttemptCompleted(long leaderboardId, int value, std::string formattedValue)
 {
     struct {
         int64_t leaderboardId;
         int32_t value;
+        int32_t formattedValueSize;
+        char formattedValue[32];
     } data = {
         .leaderboardId = (int64_t) leaderboardId,
         .value = (int32_t) value,
+        .formattedValueSize = (int32_t) formattedValue.size(),
     };
+    strncpy(data.formattedValue, formattedValue.c_str(), sizeof(data.formattedValue));
 
     MelonDSAndroid::fireEmulatorEvent(EVENT_RA_LBOARD_ATTEMPT_COMPLETED, sizeof(data), &data);
 }
