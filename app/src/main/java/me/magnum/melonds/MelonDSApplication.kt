@@ -8,6 +8,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import me.magnum.melonds.common.UriFileHandler
@@ -50,7 +51,7 @@ class MelonDSApplication : Application(), Configuration.Provider {
 
     @OptIn(DelicateCoroutinesApi::class)
     private fun applyTheme() {
-        GlobalScope.launch {
+        GlobalScope.launch(Dispatchers.Main) {
             settingsRepository.observeTheme().collect {
                 AppCompatDelegate.setDefaultNightMode(it.nightMode)
             }
