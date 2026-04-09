@@ -305,6 +305,12 @@ private class AchievementUpdatesListState {
     }
 
     private fun handleLeaderboardEntrySubmitError(event: RAEventUi.LeaderboardEntrySubmitError) {
+        // Dismiss information regarding the leaderboard attempt
+        val attempt = visibleInfos.firstOrNull {
+            (it as? AchievementInfo.LeaderboardAttempt)?.leaderboard?.id == event.leaderboardId
+        }
+        attempt?.state?.dismiss()
+
         val errorInfoIndex = visibleInfos.indexOfFirst { it is AchievementInfo.ServerCommunicationFailed }
         val errorSource = AchievementInfo.ServerCommunicationFailed.ErrorSource.SubmitLeaderboard(event.leaderboardId)
 
