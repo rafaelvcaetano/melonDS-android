@@ -19,6 +19,8 @@
 #include "MelonDSAndroidConfiguration.h"
 #include "MelonDSAndroidCameraHandler.h"
 #include "RetroAchievementsMapper.h"
+#include "performancehint/ThreadSafePerformanceHintSession.h"
+#include "performancehint/PerformanceHintManagerFactory.h"
 
 #include "Platform.h"
 
@@ -49,6 +51,10 @@ bool isFastForwardEnabled = false;
 
 jobject globalCameraManager;
 MelonDSAndroidCameraHandler* androidCameraHandler;
+
+static const int64_t FRAME_DURATION_60FPS_NS = 16666666;
+static const int64_t FRAME_DURATION_1000FPS_NS = 1000000; // 1ms. Used as frame time when fast-forward is enabled
+ThreadSafePerformanceHintSession* performanceHintSession = nullptr;
 
 extern "C"
 {
@@ -504,6 +510,19 @@ Java_me_magnum_melonds_MelonEmulator_setFastForwardEnabled(JNIEnv* env, jobject 
         limitFps = true;
         targetFps = 60;
     }
+
+    if (performanceHintSession != nullptr) {
+        if (enabled) {
+            if (fastForwardSpeedMultiplier > 0) {
+                auto frameDurationNs = static_cast<int64_t>(FRAME_DURATION_60FPS_NS / fastForwardSpeedMultiplier);
+                performanceHintSession->updateTargetWorkDuration(frameDurationNs);
+            } else {
+                performanceHintSession->updateTargetWorkDuration(FRAME_DURATION_1000FPS_NS);
+            }
+        } else {
+            performanceHintSession->updateTargetWorkDuration(FRAME_DURATION_60FPS_NS);
+        }
+    }
 }
 
 JNIEXPORT void JNICALL
@@ -527,6 +546,15 @@ Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jo
     if (isFastForwardEnabled) {
         limitFps = fastForwardSpeedMultiplier > 0;
         targetFps = 60 * fastForwardSpeedMultiplier;
+
+        if (performanceHintSession != nullptr) {
+            if (fastForwardSpeedMultiplier > 0) {
+                auto frameDurationNs = static_cast<int64_t>(FRAME_DURATION_60FPS_NS / fastForwardSpeedMultiplier);
+                performanceHintSession->updateTargetWorkDuration(frameDurationNs);
+            } else {
+                performanceHintSession->updateTargetWorkDuration(FRAME_DURATION_1000FPS_NS);
+            }
+        }
     }
 }
 }
@@ -570,6 +598,12 @@ void* emulate(void*)
 
     MelonDSAndroid::start();
 
+    auto manager = PerformanceHintManagerFactory::create(jniEnvHandler);
+    performanceHintSession = new ThreadSafePerformanceHintSession(std::move(manager));
+    if (performanceHintSession != nullptr) {
+        performanceHintSession->createSession(gettid(), FRAME_DURATION_60FPS_NS);
+    }
+
     for (;;)
     {
         pthread_mutex_lock(&emuThreadMutex);
@@ -590,7 +624,13 @@ void* emulate(void*)
 
         pthread_mutex_unlock(&emuThreadMutex);
 
+        auto frameStart = std::chrono::steady_clock::now();
+
         u32 nLines = MelonDSAndroid::loop();
+
+        auto frameDuration = std::chrono::steady_clock::now() - frameStart;
+        if (performanceHintSession != nullptr)
+            performanceHintSession->reportActualWorkDuration(std::chrono::nanoseconds(frameDuration).count());
 
         double currentTick = getCurrentMillis();
         double delay = currentTick - lastTick;
@@ -632,7 +672,13 @@ void* emulate(void*)
             lastMeasureFpsTick = lastTick;
             observedFrames = 0;
         }
+    }
 
+    if (performanceHintSession != nullptr) {
+        performanceHintSession->destroySession();
+
+        delete performanceHintSession;
+        performanceHintSession = nullptr;
     }
 
     MelonDSAndroid::stop();

@@ -26,6 +26,10 @@ add_library(
         src/main/cpp/MelonDSAndroidCameraHandler.cpp
         src/main/cpp/RetroAchievementsMapper.cpp
         src/main/cpp/RomIconBuilder.cpp
+        src/main/cpp/performancehint/NdkPerformanceHintManager.cpp
+        src/main/cpp/performancehint/JniPerformanceHintManager.cpp
+        src/main/cpp/performancehint/PerformanceHintManagerFactory.cpp
+        src/main/cpp/performancehint/ThreadSafePerformanceHintSession.cpp
 )
 
 target_link_libraries(melonDS-android-frontend melonDS-lib)
