@@ -7,6 +7,7 @@ import android.hardware.display.DisplayManager
 import android.hardware.input.InputManager
 import android.os.Bundle
 import android.os.Handler
+import android.os.PowerManager
 import android.view.Display
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -186,6 +187,7 @@ class EmulatorActivity : AppCompatActivity() {
     private lateinit var choreographerFrameRenderer: ChoreographerFrameRenderer
     private lateinit var mainScreenRenderer: DSRenderer
     private lateinit var melonTouchHandler: MelonTouchHandler
+    private var lidClosedByScreenOff = false
     private lateinit var nativeInputListener: INativeInputListener
     private val frontendInputHandler = object : FrontendInputHandler() {
         var fastForwardEnabled = false
@@ -684,11 +686,18 @@ class EmulatorActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        cancelPendingLidPause()
         choreographerFrameRenderer.startRendering()
 
         if (!activeOverlays.hasActiveOverlays()) {
             disableScreenTimeOut()
             viewModel.resumeEmulator()
+        
+            // Open the virtual lid only if the device actually went to sleep (not on app switch, etc)
+            if (lidClosedByScreenOff) {
+                lidClosedByScreenOff = false
+                melonTouchHandler.setLidClosed(false)
+            }
         }
     }
 
@@ -963,11 +972,38 @@ class EmulatorActivity : AppCompatActivity() {
         viewModel.setSystemOrientation(orientation)
     }
 
+    // Most games play sound for <2secs after closing the lid
+    private val lidClosePauseDelayMs = 3000L
+
+    private val pauseAfterLidCloseRunnable = Runnable {
+        choreographerFrameRenderer.stopRendering()
+        viewModel.pauseEmulator(false)
+        stopService(Intent(this, LidCloseService::class.java))
+    }
+
+    private fun isScreenOff(): Boolean {
+        return getSystemService<PowerManager>()?.isInteractive == false
+    }
+
+    private fun cancelPendingLidPause() {
+        handler.removeCallbacks(pauseAfterLidCloseRunnable)
+        stopService(Intent(this, LidCloseService::class.java))
+    }
+
     override fun onPause() {
         super.onPause()
         enableScreenTimeOut()
-        choreographerFrameRenderer.stopRendering()
-        viewModel.pauseEmulator(false)
+        if (isScreenOff()) {
+            lidClosedByScreenOff = true
+            melonTouchHandler.setLidClosed(true)
+            startForegroundService(Intent(this, LidCloseService::class.java))
+
+            // Delay pausing the emulator just enough to let games play sounds after closing the lid
+            handler.postDelayed(pauseAfterLidCloseRunnable, lidClosePauseDelayMs)
+        } else { // App switch, etc.
+            choreographerFrameRenderer.stopRendering()
+            viewModel.pauseEmulator(false)
+        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
