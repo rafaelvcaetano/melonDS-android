@@ -38,12 +38,12 @@
     <string name="size_gb">ГБ</string>
 
     <string name="error_rom_not_found">Игра не найдена</string>
-    <string name="error_rom_not_found_info">Выбранный образ игры не найден. Убедитесь, что файл присутствует в текущем каталоге поиска.\n%1$s</string>
+    <string name="error_rom_not_found_info">Не найден выбранный образ игры. Убедитесь, что файл существует в текущем каталоге поиска.\n%1$s</string>
     <string name="error_load_rom">Не удалось загрузить игру</string>
     <string name="error_load_rom_message">Ошибка загрузки игры. Убедитесь, что образ не повреждён и повторите попытку.</string>
     <string name="error_load_firmware">Не удалось загрузить прошивку</string>
     <string name="error_load_firmware_message">Ошибка загрузки прошивки (%1$s). Убедитесь, что образы прошивки и BIOS не повреждены, прошивка является загрузочной и повторите попытку.</string>
-    <string name="error_load_rom_report_issue">Сгенерирован лог об ошибке, который может помочь устранить проблему. Создать на GitHub запрос с содержимым лога? Требуется аккаунт GitHub.</string>
+    <string name="error_load_rom_report_issue">Сгенерирован лог об ошибке, который может помочь в решении проблемы. Создать на GitHub запрос с содержимым лога? Требуется аккаунт GitHub.</string>
     <string name="title_emulator_running">Эмулятор запущен</string>
     <string name="message_stop_emulation">Остановить эмуляцию и загрузить новый файл?</string>
     <string name="error_load_gba_rom">Не удалось загрузить ром GBA</string>
@@ -76,7 +76,7 @@
     <string name="dsiware_manager_import_title_error_title_already_imported">Данный образ DSiWare уже импортирован</string>
     <string name="dsiware_manager_import_title_error_insatll_failed">Не удалось установить игру</string>
     <string name="dsiware_manager_import_title_error_metadat_fetch_failed">Не удалось загрузить метаданные игры. Проверьте соединение с Интернет</string>
-    <string name="dsiware_manager_import_title_error_unknown">Произошла неизвестная ошибка</string>
+    <string name="dsiware_manager_import_title_error_unknown">Неизвестная ошибка</string>
     <string name="dsiware_manager_import_data">Импорт данных…</string>
     <string name="dsiware_manager_export_data">Экспорт данных…</string>
     <string name="dsiware_manager_import_file_success">%1$s успешно импортировано</string>
@@ -168,13 +168,13 @@
     <string name="category_system_summary">Настройки прошивки, выбор BIOS, JIT</string>
     <string name="theme">Тема оформления</string>
     <string name="fast_forward_max_speed">Максимальное ускорение</string>
-    <string name="rewind_description">Включает автоматическое сохранение через заданный период времени. Для возврата к любой точке прохождения перейдите в меню обратной перемотки и выберите сохранение, с которого хотите продолжить.\n\nВозможно снижение производительности при недостаточной мощности устройства. В зависимости от конфигурации может потребоваться значительный объём свободной памяти.</string>
+    <string name="rewind_description">Включает автоматическое сохранение через заданный период времени. Для возврата к любой точке геймплея откройте меню обратной перемотки и выберите сохранение, с которого хотите продолжить.\n\nВозможно снижение производительности при недостаточной мощности устройства. В зависимости от конфигурации может потребоваться значительный объём свободной памяти.</string>
     <string name="rewind_save_period">Частота сохранений</string>
     <string name="rewind_length">Буфер перемотки</string>
     <string name="rewind_max_memory_usage">Максимальный объём памяти: %1$s.</string>
     <string name="rewind_memory_usage_above_recommended_limit">Превышен рекомендуемый объём памяти</string>
     <string name="sustained_performance_mode">Режим устойчивой производительности</string>
-    <string name="sustained_performance_mode_summary">При включении ограничивает пиковую производительность устройства, предотвращая троттлинг.</string>
+    <string name="sustained_performance_mode_summary">При включении ограничивает пиковую производительность устройства для избежания троттлинга.</string>
     <string name="check_for_updates">Проверять обновления</string>
     <string name="check_for_updates_summary">Если включено, приложение будет периодически проверять наличие обновлений</string>
     <string name="rom_icon_filtering">Сглаживание иконок</string>
@@ -194,7 +194,7 @@
     <string name="show_boot_screen">Показывать экран загрузки</string>
     <string name="mac_address">MAC-адрес</string>
     <string name="randomize_mac_address">Случайный MAC-адрес</string>
-    <string name="randomize_mac_address_summary">Если включено, при каждой загрузке будет сгенерирован случайный MAC-адрес. Возможны сбои событий с привязкой ко времени, т.к. некоторые игры могут ошибочно определять запуск на другой системе.</string>
+    <string name="randomize_mac_address_summary">Если включено, при каждом запуске будет генерироваться случайный MAC-адрес. Возможны сбои событий с привязкой ко времени, т.к. некоторые игры могут ошибочно определять запуск на другой системе.</string>
     <string name="generate_new_mac_address">Сгенерировать новый</string>
     <string name="generate_new_mac_address_description">Создание нового MAC-адреса может привести к тому, что игры будут ошибочно определять запуск на другой системе.</string>
     <string name="enable_jit">Включить JIT</string>
@@ -264,13 +264,13 @@
     <string name="enable_rich_presence">Статус активности</string>
     <string name="rich_presence_summary">Позволяет другим пользователям RetroAchievements видеть запущенную вами игру.</string>
     <string name="hardcore_mode">Режим хардкора</string>
-    <string name="hardcore_mode_summary">Удваивает количество очков, но отключает использование быстрых сохранений, чит-кодов и замедления во время игры</string>
-    <string name="show_active_challenge_indicators">Показывать индикаторы активных испытаний</string>
+    <string name="hardcore_mode_summary">Удваивает количество очков, но запрещает быстрые сохранения, чит-коды и замедление геймплея</string>
+    <string name="show_active_challenge_indicators">Показывать значки активных испытаний</string>
     <string name="show_active_challenge_indicators_summary">Отображать на экране индикаторы при возможности получить определённые достижения</string>
     <string name="show_progress_indicators">Показывать индикаторы прогресса</string>
     <string name="show_progress_indicators_summary">Отображать индикаторы при прогрессе в получении достижения</string>
     <string name="show_leaderboard_indicators">Показывать индикаторы таблиц лидеров</string>
-    <string name="show_leaderboard_indicators_summary">Отображать индикаторы во время попытки войти в таблицу лидеров</string>
+    <string name="show_leaderboard_indicators_summary">Отображать индикаторы во время попытки занесения в таблицу лидеров</string>
 
     <string name="cheats">Чит-коды</string>
     <string name="cheats_summary">Включение и импорт чит-кодов</string>
@@ -369,8 +369,8 @@
     <string name="named_layout_deleted">Раскладка \"%1$s\" удалена</string>
 
     <string name="layout_editor">Редактор раскладки</string>
-    <string name="add_component">Добавить компонент</string>
-    <string name="no_more_components">Нет компонентов для добавления</string>
+    <string name="add_component">Добавить элемент</string>
+    <string name="no_more_components">Нет элементов для добавления</string>
     <string name="label_size">Размер:</string>
     <string name="label_width">Ширина:</string>
     <string name="label_height">Высота:</string>
@@ -409,7 +409,7 @@
     <string name="retro_achievements_login_description">Выполните вход в RetroAchievements для загрузки доступных достижений для данной игры.</string>
     <string name="login_with_retro_achievements">Выполнить вход в RetroAchievements</string>
     <string name="login">Вход</string>
-    <string name="retroachievements_login_summary">Авторизуйтесь в RetroAchievements для получения достижений во время игры.</string>
+    <string name="retroachievements_login_summary">Выполните вход в RetroAchievements для получения достижений во время игры.</string>
     <string name="retroachievements_login_status">Выполнен вход для %1$s</string>
     <string name="retroachievements_logout">Выход</string>
     <string name="retroachievements_logout_confirmation">Вы подтверждаете выход из RetroAchievements? Получение достижений во время игры будет недоступно.</string>
@@ -445,7 +445,7 @@
     <string name="achievement_missable_description">Данное достижение может быть упущено при прохождении.</string>
     <string name="achievement_progress">%1$d/%2$d</string> <!-- Eg.: 12/38 -->
     <string name="challenge_started">Испытание запущено</string>
-    <string name="leaderboard_attempt_started">Попытка войти в таблицу лидеров запущена!</string>
+    <string name="leaderboard_attempt_started">Попытка войти в таблицу лидеров начата!</string>
     <string name="leaderboard_submission_info">%1$s • Ранг %2$d из %3$d</string> <!-- Eg.: 01:42.95 • Rank 73 of 145 -->
     <string name="game_completed">%1$s пройдена</string>
     <string name="game_mastered">Выполнен сет %1$s</string>
