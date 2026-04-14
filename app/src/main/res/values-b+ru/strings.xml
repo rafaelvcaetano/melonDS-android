@@ -418,6 +418,7 @@
     <string name="retro_achievements_load_error">Не удалось загрузить достижения для данной игры. Проверьте соединение с Интернет и повторите попытку.</string>
     <string name="retro_achievements_no_achievements">Не найдены доступные достижения для данной игры.</string>
     <string name="retro_achievements_relaunch_to_apply_settings">Перезапустите игру, чтобы применить изменения настроек RetroAchievements</string>
+    <string name="retro_achievements_pending_unlocks">Ожидают разблокировки</string>
     <string name="retro_achievements_active_challenges">Активные испытания</string>
     <string name="retro_achievements_recently_unlokced">Открытые недавно</string>
     <string name="retro_achievements_almost_there">Почти у цели</string>
@@ -442,13 +443,27 @@
     <string name="achievements_failed_load_tip">Убедитесь, что вы онлайн</string>
     <string name="achievement_unlocked">Открыто достижение!</string>
     <string name="achievement_missable">Безвозвратное</string>
-    <string name="achievement_missable_description">Данное достижение может быть упущено при прохождении.</string>
+    <string name="achievement_missable_description">Данное достижение может быть утеряно при прохождении.</string>
     <string name="achievement_progress">%1$d/%2$d</string> <!-- Eg.: 12/38 -->
     <string name="challenge_started">Испытание запущено</string>
     <string name="leaderboard_attempt_started">Попытка войти в таблицу лидеров начата!</string>
     <string name="leaderboard_submission_info">%1$s • Ранг %2$d из %3$d</string> <!-- Eg.: 01:42.95 • Rank 73 of 145 -->
     <string name="game_completed">%1$s пройдена</string>
     <string name="game_mastered">Выполнен сет %1$s</string>
+    <string name="retroachievements_unsynchronized_data">Несинхронизированные данные RetroAchievements</string>
+    <string name="retroachievements_unsynchronized_data_info">Обнаружены несинхронизированные данные RetroAchievements. Операции в ожидании:</string>
+    <plurals name="retroachievements_pending_achievement_unlocks">
+        <item quantity="one">%d открытое достижение</item>
+        <item quantity="other">открытые достижения: %d</item>
+    </plurals>
+    <plurals name="retroachievements_pending_leaderboard_entries">
+        <item quantity="one">%d занесение в таблицу лидеров</item>
+        <item quantity="other">занесения в таблицы лидеров: %d</item>
+    </plurals>
+    <string name="retroachievements_unsynchronized_data_connect_internet">Подключитесь к Интернет, чтобы синхронизировать данные.</string>
+    <string name="retroachievements_unsynchronized_data_loss_info">Выход приведёт к потере данных!</string>
+    <string name="retroachievements_unsynchronized_data_synchronized">Все данные синхронизированы!</string>
+    <string name="retroachievements_unsynchronized_data_exiting">Эмулятор будет закрыт.</string>
 
     <string-array name="fast_forward_speed_multiplier_options">
         <item>Без ограничения</item>
