@@ -21,7 +21,7 @@ import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class SystemPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
+class SystemPreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTitleProvider {
 
     @Inject lateinit var uriPermissionManager: UriPermissionManager
     @Inject lateinit var directoryAccessValidator: DirectoryAccessValidator

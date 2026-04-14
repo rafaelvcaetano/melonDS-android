@@ -7,5 +7,5 @@ data class RAGame(
     val title: String,
     val icon: URL,
     val richPresencePatch: String?,
-    val achievements: List<RAAchievement>,
+    val sets: List<RAAchievementSet>,
 )

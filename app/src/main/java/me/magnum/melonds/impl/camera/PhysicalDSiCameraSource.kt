@@ -3,6 +3,7 @@ package me.magnum.melonds.impl.camera
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Matrix
+import android.hardware.camera2.CameraManager
 import android.os.Handler
 import android.os.Looper
 import android.util.Size
@@ -42,6 +43,12 @@ class PhysicalDSiCameraSource(
     private val handler = Handler(Looper.getMainLooper())
     private val originalPoints = FloatArray(640 * 480 * 2)
     private val mappedPoints = FloatArray(640 * 480 * 2)
+
+    override fun isAvailable(): Boolean {
+        val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        // Check if there is at least one camera
+        return cameraManager.cameraIdList.isNotEmpty()
+    }
 
     override fun startCamera(camera: CameraType) {
         initializeOriginalPoints()

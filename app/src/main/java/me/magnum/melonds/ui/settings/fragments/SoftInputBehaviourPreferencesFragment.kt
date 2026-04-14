@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
@@ -58,7 +60,7 @@ class SoftInputBehaviourPreferencesFragment : Fragment(), PreferenceFragmentTitl
 @Composable
 private fun SoftInputBehaviourPreferencesScreen() {
     val context = LocalContext.current
-    val resources = LocalContext.current.resources
+    val resources = LocalResources.current
     val behaviourValues = remember {
         resources.getStringArray(R.array.soft_input_behaviour)
     }
@@ -78,7 +80,10 @@ private fun SoftInputBehaviourPreferencesScreen() {
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).selectableGroup(),
+        modifier = Modifier.fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .selectableGroup()
+            .safeDrawingPadding(),
     ) {
         SoftInputBehaviour.entries.forEachIndexed { index, behaviour ->
             if (index > 0) {

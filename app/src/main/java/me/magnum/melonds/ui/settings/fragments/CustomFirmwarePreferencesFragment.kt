@@ -20,7 +20,7 @@ import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class CustomFirmwarePreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
+class CustomFirmwarePreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTitleProvider {
 
     private val viewModel: SettingsViewModel by activityViewModels()
     private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager, directoryAccessValidator) }

@@ -7,7 +7,7 @@ import me.magnum.melonds.R
 import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
 
 @AndroidEntryPoint
-class MainPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
+class MainPreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTitleProvider {
 
     override fun getTitle() = getString(R.string.settings)
 

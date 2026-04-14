@@ -9,8 +9,6 @@ import android.util.Log
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
-import io.reactivex.Observable
-import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
@@ -88,7 +86,6 @@ class SharedPreferencesSettingsRepository(
 
         MutableStateFlow(initialConfiguration)
     }
-    private val preferenceObservers: HashMap<String, PublishSubject<Any>> = HashMap()
     private val preferenceSharedFlows = mutableMapOf<String, MutableSharedFlow<Unit>>()
     private val renderConfigurationFlow: SharedFlow<RendererConfiguration>
 
@@ -166,7 +163,7 @@ class SharedPreferencesSettingsRepository(
             getAudioInterpolation(),
             getAudioBitrate(),
             getVolume(),
-            getAudioLatency(),
+            AudioLatency.LOW,
             getMicSource(),
             getFirmwareConfiguration(),
             renderConfigurationFlow.first(),
@@ -479,6 +476,18 @@ class SharedPreferencesSettingsRepository(
         return preferences.getBoolean("ra_hardcore_enabled", false)
     }
 
+    override fun areRetroAchievementsActiveChallengeIndicatorsEnabled(): Boolean {
+        return preferences.getBoolean("ra_active_challenge_indicators", true)
+    }
+
+    override fun areRetroAchievementsProgressIndicatorsEnabled(): Boolean {
+        return preferences.getBoolean("ra_progress_indicators", true)
+    }
+
+    override fun areRetroAchievementsLeaderboardIndicatorsEnabled(): Boolean {
+        return preferences.getBoolean("ra_leaderboard_indicators", true)
+    }
+
     override fun areCheatsEnabled(): Boolean {
         return preferences.getBoolean("cheats_enabled", false)
     }
@@ -489,8 +498,8 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
-    override fun observeSelectedLayoutId(): Observable<UUID> {
-        return getOrCreatePreferenceObservable("input_layout_id") {
+    override fun observeSelectedLayoutId(): Flow<UUID> {
+        return getOrCreatePreferenceSharedFlow("input_layout_id") {
             getSelectedLayoutId()
         }
     }
@@ -558,8 +567,8 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
-    override fun observeTheme(): Observable<Theme> {
-        return getOrCreatePreferenceObservable("theme") {
+    override fun observeTheme(): Flow<Theme> {
+        return getOrCreatePreferenceSharedFlow("theme") {
             getTheme()
         }
     }
@@ -568,15 +577,6 @@ class SharedPreferencesSettingsRepository(
         return getOrCreatePreferenceSharedFlow("rom_icon_filtering") {
             getRomIconFiltering()
         }
-    }
-
-    private fun <T> getOrCreatePreferenceObservable(preference: String, mapper: (Any) -> T): Observable<T> {
-        var preferenceSubject = preferenceObservers[preference]
-        if (preferenceSubject == null) {
-            preferenceSubject = PublishSubject.create()
-            preferenceObservers[preference] = preferenceSubject
-        }
-        return preferenceSubject.map(mapper)
     }
 
     private fun <T> getOrCreatePreferenceSharedFlow(preference: String, mapper: () -> T): Flow<T> {
@@ -591,9 +591,6 @@ class SharedPreferencesSettingsRepository(
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
-        val subject = preferenceObservers[key]
-        subject?.onNext(Any())
-
         preferenceSharedFlows[key]?.tryEmit(Unit)
     }
 

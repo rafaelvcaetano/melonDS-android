@@ -29,10 +29,12 @@ import me.magnum.melonds.ui.common.melonOutlinedTextFieldColors
 fun TextInputDialog(
     title: String,
     dialogState: TextInputDialogState,
-    allowEmpty: Boolean = false,
+    textValidator: (String) -> Boolean = { it.isNotEmpty() },
     onDelete: (() -> Unit)? = null,
 ) {
     if (dialogState.isDialogVisible) {
+        var hasError by remember { mutableStateOf(false) }
+
         BaseDialog(
             title = title,
             onDismiss = dialogState::cancel,
@@ -49,10 +51,14 @@ fun TextInputDialog(
                             .padding(padding)
                             .focusRequester(focusRequester),
                         value = dialogState.textField,
-                        onValueChange = { dialogState.textField = it },
+                        onValueChange = {
+                            dialogState.textField = it
+                            hasError = !textValidator(it.text)
+                        },
+                        isError = hasError,
                         colors = melonOutlinedTextFieldColors(),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { dialogState.confirm() }),
+                        keyboardOptions = dialogState.keyboardOptions,
+                        keyboardActions = KeyboardActions(onDone = { if (!hasError) dialogState.confirm() }),
                     )
 
                     LaunchedEffect(Unit) {
@@ -76,7 +82,7 @@ fun TextInputDialog(
                 }
                 DialogButton(
                     text = stringResource(R.string.ok),
-                    enabled = allowEmpty || dialogState.textField.text.isNotEmpty(),
+                    enabled = !hasError,
                     onClick = { dialogState.confirm() },
                 )
             }
@@ -95,23 +101,36 @@ class TextInputDialogState {
 
     internal var isDialogVisible by mutableStateOf(false)
     internal var textField by mutableStateOf(TextFieldValue())
+    internal var keyboardOptions by mutableStateOf(KeyboardOptions(imeAction = ImeAction.Done))
     private var onConfirmCallback by mutableStateOf<((String) -> Unit)?>(null)
+    private var onCancelCallback by mutableStateOf<(() -> Unit)?>(null)
 
-    fun show(initialText: String, onConfirm: (String) -> Unit) {
+    fun show(
+        initialText: String,
+        onConfirm: (String) -> Unit,
+        onCancel: () -> Unit = { },
+        keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+    ) {
         if (isDialogVisible) return
 
         textField = TextFieldValue(text = initialText, selection = TextRange(initialText.length))
         onConfirmCallback = onConfirm
+        onCancelCallback = onCancel
+        this.keyboardOptions = keyboardOptions
         isDialogVisible = true
     }
 
     internal fun cancel() {
         isDialogVisible = false
+        onCancelCallback?.invoke()
+        onConfirmCallback = null
+        onCancelCallback = null
     }
 
     internal fun confirm() {
         onConfirmCallback?.invoke(textField.text)
         isDialogVisible = false
         onConfirmCallback = null
+        onCancelCallback = null
     }
 }

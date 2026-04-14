@@ -16,7 +16,7 @@ import me.magnum.melonds.ui.settings.preferences.SoftwareInputBehaviourPreferenc
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class InputPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
+class InputPreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTitleProvider {
 
     @Inject lateinit var vibrator: TouchVibrator
 

@@ -3,11 +3,6 @@ package me.magnum.melonds.common.vibration
 import me.magnum.melonds.domain.repositories.SettingsRepository
 
 class TouchVibrator(private val delegate: VibratorDelegate, private val settingsRepository: SettingsRepository) {
-    interface VibratorDelegate {
-        fun supportsVibration(): Boolean
-        fun supportsVibrationAmplitude(): Boolean
-        fun vibrate(duration: Int, amplitude: Int)
-    }
 
     companion object {
         private const val VIBRATION_DURATION = 100

@@ -1,13 +1,13 @@
 package me.magnum.melonds
 
-import android.content.res.AssetManager
 import android.net.Uri
-import me.magnum.melonds.common.RetroAchievementsCallback
 import me.magnum.melonds.common.camera.DSiCameraSource
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.EmulatorConfiguration
 import me.magnum.melonds.domain.model.Input
 import me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement
+import me.magnum.melonds.domain.model.retroachievements.RASimpleLeaderboard
+import me.magnum.melonds.domain.model.retroachievements.RASimpleRuntimeAchievement
 import me.magnum.melonds.ui.emulator.render.FrameRenderCallback
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
@@ -41,23 +41,25 @@ object MelonEmulator {
     enum class GbaSlotType {
         NONE,
         GBA_ROM,
+        RUMBLE_PAK,
         MEMORY_EXPANSION,
     }
 
 	external fun setupEmulator(
         emulatorConfiguration: EmulatorConfiguration,
         dsiCameraSource: DSiCameraSource?,
-        retroAchievementsCallback: RetroAchievementsCallback,
         screenshotBuffer: ByteBuffer,
     )
 
     external fun setupCheats(cheats: Array<Cheat>)
 
-    external fun setupAchievements(achievements: Array<RASimpleAchievement>, richPresenceScript: String?)
+    external fun setupAchievements(achievements: Array<RASimpleAchievement>, leaderboards: Array<RASimpleLeaderboard>, richPresenceScript: String?)
 
-    external fun unloadAchievements(achievements: Array<RASimpleAchievement>)
+    external fun unloadRetroAchievementsData()
 
     external fun getRichPresenceStatus(): String?
+
+    external fun getRuntimeAchievements(): Array<RASimpleRuntimeAchievement>
 
 	fun loadRom(romUri: Uri, sramUri: Uri, gbaSlotType: GbaSlotType, gbaRomUri: Uri?, gbaSramUri: Uri?): LoadResult {
         val loadResult = loadRomInternal(romUri.toString(), sramUri.toString(), gbaSlotType.ordinal, gbaRomUri?.toString(), gbaSramUri?.toString())
@@ -81,9 +83,9 @@ object MelonEmulator {
 
 	external fun startEmulation()
 
-    external fun presentFrame(frameRenderCallback: FrameRenderCallback)
+    external fun presentFrame(deadlineNs: Long, frameRenderCallback: FrameRenderCallback)
 
-	external fun getFPS(): Int
+	external fun getFPS(): Float
 
 	external fun pauseEmulation()
 

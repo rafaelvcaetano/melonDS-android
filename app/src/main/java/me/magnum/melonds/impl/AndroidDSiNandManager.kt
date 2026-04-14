@@ -98,7 +98,7 @@ class AndroidDSiNandManager(
         }
     }
 
-    override suspend fun deleteTitle(title: DSiWareTitle) = nandControlLock.withLock {
+    override suspend fun deleteTitle(title: DSiWareTitle): Unit = nandControlLock.withLock {
         if (!isNandOpen.get()) {
             return
         }

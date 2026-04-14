@@ -1,19 +1,19 @@
 package me.magnum.melonds.database.converters
 
 import androidx.room.TypeConverter
-import java.time.Instant
+import kotlin.time.Instant
 
 class InstantConverter {
 
     @TypeConverter
     fun instantToTimestamp(instant: Instant?): Long? {
-        return instant?.toEpochMilli()
+        return instant?.toEpochMilliseconds()
     }
 
     @TypeConverter
     fun timestampToInstant(timestamp: Long?): Instant? {
         return timestamp?.let {
-            Instant.ofEpochMilli(it)
+            Instant.fromEpochMilliseconds(it)
         }
     }
 }

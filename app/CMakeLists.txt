@@ -14,6 +14,8 @@ add_library(
 
         SHARED
 
+        src/main/cpp/AndroidMelonEventMessenger.cpp
+        src/main/cpp/EmulatorMessageQueueJNI.cpp
         src/main/cpp/MelonDSAndroidJNI.cpp
         src/main/cpp/MelonDSAndroidConfiguration.cpp
         src/main/cpp/MelonDSAndroidInterface.cpp
@@ -22,8 +24,7 @@ add_library(
         src/main/cpp/UriFileHandler.cpp
         src/main/cpp/JniEnvHandler.cpp
         src/main/cpp/MelonDSAndroidCameraHandler.cpp
-        src/main/cpp/AndroidRACallback.cpp
-        src/main/cpp/RAAchievementMapper.cpp
+        src/main/cpp/RetroAchievementsMapper.cpp
         src/main/cpp/RomIconBuilder.cpp
 )
 

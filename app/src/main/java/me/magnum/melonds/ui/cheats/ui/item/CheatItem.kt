@@ -25,6 +25,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import me.magnum.melonds.R
@@ -42,11 +50,25 @@ fun CheatItem(
     onDeleteClick: () -> Unit,
 ) {
     val hasDescription = cheat.description?.isNotBlank() == true
+    var showCheatOptions by remember { mutableStateOf(false) }
+    val (mainFocusRequester, optionsFocusRequester) = remember { FocusRequester.createRefs() }
 
     val verticalPadding = if (hasDescription) 12.dp else 4.dp
     Row(
         modifier = modifier
+            .focusRequester(mainFocusRequester)
+            .focusProperties {
+                end = optionsFocusRequester
+            }
             .clickable(onClick = onClick)
+            .onKeyEvent {
+                if (it.type == KeyEventType.KeyDown && it.key == Key.Menu) {
+                    showCheatOptions = true
+                    true
+                } else {
+                    false
+                }
+            }
             .padding(start = 16.dp, top = verticalPadding, bottom = verticalPadding),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = if (hasDescription) Alignment.Top else Alignment.CenterVertically,
@@ -71,10 +93,16 @@ fun CheatItem(
             }
         }
 
-        var showCheatOptions by remember { mutableStateOf(false) }
         // Cheat can always be edited even if it's not valid
         CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
-            IconButton(onClick = { showCheatOptions = true }) {
+            IconButton(
+                modifier = Modifier
+                    .focusRequester(optionsFocusRequester)
+                    .focusProperties {
+                        start = mainFocusRequester
+                    },
+                onClick = { showCheatOptions = true },
+            ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = stringResource(R.string.options),

@@ -115,7 +115,7 @@ fun LayoutPropertiesDialog(
     TextInputDialog(
         title = stringResource(R.string.layout_name),
         dialogState = textInputDialogState,
-        allowEmpty = true,
+        textValidator = { true },
     )
 
     if (showOrientationDialog) {

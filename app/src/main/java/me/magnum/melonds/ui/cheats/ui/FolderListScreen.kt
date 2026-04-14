@@ -19,8 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -60,7 +60,7 @@ private fun List(
     onAddFolder: (String) -> Unit,
 ) {
     val newFolderDialogState = rememberTextInputDialogState()
-    val resources = LocalContext.current.resources
+    val resources = LocalResources.current
 
     Box(modifier) {
         if (folders.isEmpty()) {

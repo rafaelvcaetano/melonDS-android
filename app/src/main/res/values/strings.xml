@@ -20,6 +20,7 @@
     <string name="play">Play</string>
     <string name="save">Save</string>
     <string name="ellipsis">…</string>
+    <string name="navigate_back">Back</string>
 
     <string name="version_alpha">Alpha</string>
     <string name="version_beta">Beta</string>
@@ -105,6 +106,8 @@
     <string name="rewind_unavailable_ra_hardcore_enabled">Rewind is unavailable while Hardcore mode is enabled</string>
     <string name="no_image_selected">No image selected</string>
     <string name="failed_to_load_image">Failed to load image</string>
+    <string name="emulator_stop_gba_mode_unsupported">GBA mode is not supported</string>
+    <string name="emulator_stop_internal_error">An error was encountered during the ROM\'s execution</string>
 
     <string name="action_sort_alphabetically">Alphabetically</string>
     <string name="action_sort_recently_played">Recently played</string>
@@ -262,6 +265,12 @@
     <string name="rich_presence_summary">Allows other RetroAchievement users to see what you are playing</string>
     <string name="hardcore_mode">Hardcore mode</string>
     <string name="hardcore_mode_summary">Earn double the amount of points but you cannot use save states, cheats or slow-motion while playing</string>
+    <string name="show_active_challenge_indicators">Show active challenge indicators</string>
+    <string name="show_active_challenge_indicators_summary">Shows on-screen indicators while certain achievements can be earned</string>
+    <string name="show_progress_indicators">Show progress indicators</string>
+    <string name="show_progress_indicators_summary">Shows on-screen indicators when progress is made towards an achievement</string>
+    <string name="show_leaderboard_indicators">Show leaderboard indicators</string>
+    <string name="show_leaderboard_indicators_summary">Shows on-screen indicators when a leaderboard attempt is in progress</string>
 
     <string name="cheats">Cheats</string>
     <string name="cheats_summary">Enable &amp; import cheat codes</string>
@@ -357,14 +366,15 @@
     <string name="use_global_layout">Use global layout</string>
     <string name="use_global_preference">Use global setting</string>
     <string name="layout_deleted">Layout deleted</string>
+    <string name="named_layout_deleted">Layout \"%1$s\" deleted</string>
 
     <string name="layout_editor">Layout editor</string>
     <string name="add_component">Add component</string>
     <string name="no_more_components">No more components to add</string>
-    <string name="label_size">Size:</string>
-    <string name="label_width">Width:</string>
-    <string name="label_height">Height:</string>
-    <string name="label_alpha">Alpha:</string>
+    <string name="label_size">Size</string>
+    <string name="label_width">Width</string>
+    <string name="label_height">Height</string>
+    <string name="label_alpha">Alpha</string>
     <string name="label_aspect_ratio">Aspect ratio:</string>
     <string name="aspect_ratio_4_3">4:3 (Original)</string>
     <string name="aspect_ratio_16_9">16:9 (Widescreen)</string>
@@ -408,6 +418,12 @@
     <string name="retro_achievements_load_error">There was a problem when trying to load the achievements for this game. Make sure you are connected to the internet and try again later</string>
     <string name="retro_achievements_no_achievements">No RetroAchievements were found for this game</string>
     <string name="retro_achievements_relaunch_to_apply_settings">Relaunch the ROM to apply the new RetroAchievements settings</string>
+    <string name="retro_achievements_pending_unlocks">Pending Unlocks</string>
+    <string name="retro_achievements_active_challenges">Active Challenges</string>
+    <string name="retro_achievements_recently_unlokced">Recently Unlocked</string>
+    <string name="retro_achievements_almost_there">Almost There</string>
+    <string name="retro_achievements_locked">Locked</string>
+    <string name="retro_achievements_unlocked">Unlocked</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="retry">Retry</string>
@@ -416,6 +432,7 @@
     <string name="completed">Completed</string>
     <string name="ra_mode_hardcore">Hardcore</string>
     <string name="ra_mode_softcore">Softcore</string>
+    <string name="ra_base_set">Base Set</string>
     <string name="view_achievement">View achievement</string>
     <string name="completed_achievements"><b>%1$d</b> of <b>%2$d</b> (%3$d%%)</string>
     <string name="submitting_achievements">Submitting RetroAchievements…</string>
@@ -427,6 +444,26 @@
     <string name="achievement_unlocked">Achievement unlocked!</string>
     <string name="achievement_missable">Missable</string>
     <string name="achievement_missable_description">This achievement can be missed during a playthrough</string>
+    <string name="achievement_progress">%1$d/%2$d</string> <!-- Eg.: 12/38 -->
+    <string name="challenge_started">Challenge started</string>
+    <string name="leaderboard_attempt_started">Leaderboard attempt started!</string>
+    <string name="leaderboard_submission_info">%1$s • Rank %2$d of %3$d</string> <!-- Eg.: 01:42.95 • Rank 73 of 145 -->
+    <string name="game_completed">Completed %1$s</string>
+    <string name="game_mastered">Mastered %1$s</string>
+    <string name="retroachievements_unsynchronized_data">Un-synchronized RetroAchievements data</string>
+    <string name="retroachievements_unsynchronized_data_info">There is un-synchronized RetroAchievements data. The following operations are pending:</string>
+    <plurals name="retroachievements_pending_achievement_unlocks">
+        <item quantity="one">%d achievement unlock</item>
+        <item quantity="other">%d achievement unlocks</item>
+    </plurals>
+    <plurals name="retroachievements_pending_leaderboard_entries">
+        <item quantity="one">%d leaderboard entry</item>
+        <item quantity="other">%d leaderboard entries</item>
+    </plurals>
+    <string name="retroachievements_unsynchronized_data_connect_internet">Connect to the internet to synchronize the data.</string>
+    <string name="retroachievements_unsynchronized_data_loss_info">If you exit now, this data will be lost!</string>
+    <string name="retroachievements_unsynchronized_data_synchronized">All data has been synchronized!</string>
+    <string name="retroachievements_unsynchronized_data_exiting">The emulator will now exit.</string>
 
     <string-array name="fast_forward_speed_multiplier_options">
         <item>Unlimited</item>
@@ -467,6 +504,7 @@
     <string-array name="gba_slot_options">
         <item>None</item>
         <item>GBA ROM</item>
+        <item>Rumble Pak</item>
         <item>Memory expansion</item>
     </string-array>
 

@@ -21,7 +21,7 @@ import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
+class VideoPreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTitleProvider {
 
     private companion object {
         const val GLES_3_2 = 0x30002

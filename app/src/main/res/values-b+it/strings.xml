@@ -313,7 +313,7 @@
     <string name="layout_editor">Editor disposizione</string>
     <string name="add_component">Aggiungi componente</string>
     <string name="no_more_components">Non ci sono altri componenti da aggiungere</string>
-    <string name="label_size">Dimensione:</string>
+    <string name="label_size">Dimensione</string>
     <string name="menu">Menu</string>
     <string name="properties">Proprietà</string>
     <string name="revert_changes">Annulla cambiamenti</string>
@@ -405,6 +405,7 @@
     <string-array name="gba_slot_options">
         <item>Nessuno</item>
         <item>ROM GBA</item>
+        <item>Rumble Pak</item>
         <item>Espansione di memoria</item>
     </string-array>
 

@@ -1,7 +1,6 @@
 package me.magnum.melonds.domain.repositories
 
 import android.net.Uri
-import io.reactivex.Observable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import me.magnum.melonds.domain.model.*
@@ -9,7 +8,7 @@ import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
 import me.magnum.melonds.domain.model.input.SoftInputBehaviour
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.ui.Theme
-import java.util.*
+import java.util.UUID
 
 interface SettingsRepository {
     suspend fun getEmulatorConfiguration(): EmulatorConfiguration
@@ -62,13 +61,16 @@ interface SettingsRepository {
 
     fun isRetroAchievementsRichPresenceEnabled(): Boolean
     fun isRetroAchievementsHardcoreEnabled(): Boolean
+    fun areRetroAchievementsActiveChallengeIndicatorsEnabled(): Boolean
+    fun areRetroAchievementsProgressIndicatorsEnabled(): Boolean
+    fun areRetroAchievementsLeaderboardIndicatorsEnabled(): Boolean
 
     fun areCheatsEnabled(): Boolean
 
-    fun observeTheme(): Observable<Theme>
+    fun observeTheme(): Flow<Theme>
     fun observeRomIconFiltering(): Flow<RomIconFiltering>
     fun observeRomSearchDirectories(): Flow<Array<Uri>>
-    fun observeSelectedLayoutId(): Observable<UUID>
+    fun observeSelectedLayoutId(): Flow<UUID>
     fun observeDSiCameraSource(): Flow<DSiCameraSourceType>
     fun observeDSiCameraStaticImage(): Flow<Uri?>
 

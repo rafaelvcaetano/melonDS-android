@@ -7,18 +7,21 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -108,24 +111,26 @@ fun BackgroundListScreen(
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.backgrounds)) },
-                backgroundColor = MaterialTheme.colors.primary,
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            painter = rememberVectorPainter(Icons.AutoMirrored.Filled.ArrowBack),
-                            contentDescription = null,
-                        )
-                    }
-                },
-                windowInsets = WindowInsets.safeDrawing.exclude(WindowInsets(bottom = Int.MAX_VALUE)),
-            )
+            Box(Modifier.background(MaterialTheme.colors.primaryVariant).statusBarsPadding()) {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.backgrounds)) },
+                    backgroundColor = MaterialTheme.colors.primary,
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                painter = rememberVectorPainter(Icons.AutoMirrored.Filled.ArrowBack),
+                                contentDescription = null,
+                            )
+                        }
+                    },
+                    windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top),
+                )
+            }
         },
         floatingActionButton = {
             // Manually apply navigation bar insets due to a bug in Scaffold. Scaffold does not apply horizontal insets to FABs
             FloatingActionButton(
-                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars.exclude(WindowInsets(top = Int.MAX_VALUE, bottom = Int.MAX_VALUE))),
+                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal)),
                 onClick = {
                     addBackgroundLauncher.launch(Pair(null, arrayOf("image/png", "image/jpeg")))
                 },

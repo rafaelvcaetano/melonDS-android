@@ -61,11 +61,6 @@
         <item>static_image</item>
     </string-array>
 
-    <string-array name="external_display_screen_values">
-        <item>top</item>
-        <item>bottom</item>
-    </string-array>
-
     <string-array name="audio_interpolation_values">
         <item>none</item>
         <item>linear</item>

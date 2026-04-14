@@ -9,6 +9,7 @@ import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
 import androidx.core.content.getSystemService
+import androidx.core.net.toUri
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -113,7 +114,7 @@ class GitHubUpdateInstallManager(private val context: Context) : UpdateInstallMa
             }
         }
 
-        val downloadUri = Uri.parse("content://downloads/my_downloads/${downloadId}")
+        val downloadUri = "content://downloads/my_downloads/${downloadId}".toUri()
         context.contentResolver.registerContentObserver(downloadUri, false, downloadContentObserver)
 
         awaitClose {

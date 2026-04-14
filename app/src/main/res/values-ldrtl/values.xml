@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <fraction name="fragment_translate_enter_pop_origin">100%</fraction>
+    <fraction name="fragment_translate_enter_push_origin">-100%</fraction>
+    <fraction name="fragment_translate_exit_pop_destination">-100%</fraction>
+    <fraction name="fragment_translate_exit_push_destination">100%</fraction>
+</resources>

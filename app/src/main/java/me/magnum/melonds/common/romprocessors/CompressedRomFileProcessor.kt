@@ -55,7 +55,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
     override fun getRomIcon(rom: Rom): Bitmap? {
         return try {
             getBestRomInputStream(rom)?.use {
-                RomProcessor.getRomIcon(it.buffered())
+                RomProcessor.getRomIcon(it)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -100,7 +100,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
     }
 
     private fun getRomMetadataInZipEntry(inputStream: InputStream): RomMetadata {
-        return RomProcessor.getRomMetadata(inputStream.buffered())
+        return RomProcessor.getRomMetadata(inputStream)
     }
 
     private fun extractRomFile(rom: Rom): Single<Uri> {

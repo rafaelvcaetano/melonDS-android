@@ -7,7 +7,10 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
-import io.reactivex.disposables.Disposable
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import me.magnum.melonds.common.UriFileHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.repositories.SettingsRepository
@@ -29,8 +32,6 @@ class MelonDSApplication : Application(), Configuration.Provider {
     @Inject lateinit var migrator: Migrator
     @Inject lateinit var uriHandler: UriHandler
 
-    private var themeObserverDisposable: Disposable? = null
-
     override fun onCreate() {
         super.onCreate()
         createNotificationChannels()
@@ -48,11 +49,13 @@ class MelonDSApplication : Application(), Configuration.Provider {
         notificationManager.createNotificationChannel(defaultChannel)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun applyTheme() {
-        val theme = settingsRepository.getTheme()
-
-        AppCompatDelegate.setDefaultNightMode(theme.nightMode)
-        themeObserverDisposable = settingsRepository.observeTheme().subscribe { AppCompatDelegate.setDefaultNightMode(it.nightMode) }
+        GlobalScope.launch(Dispatchers.Main) {
+            settingsRepository.observeTheme().collect {
+                AppCompatDelegate.setDefaultNightMode(it.nightMode)
+            }
+        }
     }
 
     private fun performMigrations() {
@@ -61,7 +64,6 @@ class MelonDSApplication : Application(), Configuration.Provider {
 
     override fun onTerminate() {
         super.onTerminate()
-        themeObserverDisposable?.dispose()
         MelonDSAndroidInterface.cleanup()
     }
 

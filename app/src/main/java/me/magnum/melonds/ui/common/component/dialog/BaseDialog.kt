@@ -30,6 +30,7 @@ fun BaseDialog(
     onDismiss: () -> Unit,
     content: @Composable (PaddingValues) -> Unit,
     buttons: (@Composable () -> Unit)? = null,
+    allowContentScroll: Boolean = true,
 ) {
     DetachedDialog(
         onDismissRequest = onDismiss,
@@ -52,8 +53,14 @@ fun BaseDialog(
                     )
                 }
 
-                Column(Modifier.verticalScroll(rememberScrollState())) {
-                    content(PaddingValues(horizontal = 24.dp))
+                Column(modifier = if (allowContentScroll) Modifier.verticalScroll(rememberScrollState()) else Modifier) {
+                    if (allowContentScroll) {
+                        content(PaddingValues(horizontal = 24.dp))
+                    } else {
+                        Box(Modifier.weight(1f, fill = false)) {
+                            content(PaddingValues(horizontal = 24.dp))
+                        }
+                    }
 
                     buttons?.let {
                         Row(

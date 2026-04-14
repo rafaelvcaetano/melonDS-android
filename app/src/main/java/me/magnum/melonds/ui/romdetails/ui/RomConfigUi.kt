@@ -98,15 +98,16 @@ private fun Content(
             name = stringResource(id = R.string.label_rom_config_custom_name),
             value = romConfig.customName ?: rom.name,
             onLaunchAction = {
-                renameDialogState.show(romConfig.customName ?: rom.name) { newName ->
-                    onConfigUpdate(RomConfigUpdateEvent.CustomNameUpdate(newName.ifBlank { null }))
-                }
+                renameDialogState.show(
+                    initialText = romConfig.customName ?: rom.name,
+                    onConfirm = { newName -> onConfigUpdate(RomConfigUpdateEvent.CustomNameUpdate(newName.ifBlank { null })) },
+                )
             }
         )
         TextInputDialog(
             title = stringResource(id = R.string.label_rom_config_custom_name),
             dialogState = renameDialogState,
-            allowEmpty = true,
+            textValidator = { true },
             onDelete = {
                 onConfigUpdate(RomConfigUpdateEvent.CustomNameUpdate(null))
             },

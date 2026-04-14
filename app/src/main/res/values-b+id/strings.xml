@@ -228,7 +228,7 @@
     <string name="layout_editor">Editor tata letak</string>
     <string name="add_component">Tambahkan komponen</string>
     <string name="no_more_components">Tidak ada lagi komponen untuk ditambahkan</string>
-    <string name="label_size">Ukuran:</string>
+    <string name="label_size">Ukuran</string>
     <string name="menu">Menu</string>
     <string name="properties">Properti</string>
     <string name="revert_changes">Kembalikan perubahan</string>

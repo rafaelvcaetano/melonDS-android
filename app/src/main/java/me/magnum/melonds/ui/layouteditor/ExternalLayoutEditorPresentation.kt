@@ -1,9 +1,12 @@
 package me.magnum.melonds.ui.layouteditor
 
+import android.annotation.SuppressLint
 import android.app.Presentation
 import android.content.Context
 import android.graphics.Color
+import android.os.Build
 import android.view.Display
+import android.window.OnBackInvokedDispatcher
 import androidx.activity.result.ActivityResultRegistryOwner
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.lifecycle.LifecycleOwner
@@ -60,10 +63,18 @@ class ExternalLayoutEditorPresentation(
             layoutEditorView.setLayoutComponentViewBuilderFactory(EditorLayoutComponentViewBuilderFactory())
         }
         setContentView(layoutEditorManager)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            onBackInvokedDispatcher.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT) {
+                layoutEditorManager.handleBackNavigation()
+            }
+        }
     }
 
+    @SuppressLint("GestureBackNavigation")
+    @Deprecated("Should use onBackInvokedDispatcher instead, but it's not available on older API versions")
     override fun onBackPressed() {
-        layoutEditorManager.openMenu()
+        layoutEditorManager.handleBackNavigation()
     }
 
     fun instantiateLayout(layout: UILayout) {

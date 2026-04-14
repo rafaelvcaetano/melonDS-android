@@ -1,5 +1,8 @@
 package me.magnum.rcheevosapi
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.boolean
@@ -8,15 +11,19 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.serializer
 import me.magnum.melonds.common.suspendMapCatching
 import me.magnum.melonds.common.suspendRunCatching
-import me.magnum.rcheevosapi.dto.GamePatchDto
+import me.magnum.rcheevosapi.dto.AwardAchievementResponseDto
+import me.magnum.rcheevosapi.dto.GameAchievementSetsDto
 import me.magnum.rcheevosapi.dto.HashLibraryDto
+import me.magnum.rcheevosapi.dto.RASubmitLeaderboardEntryResponseDto
 import me.magnum.rcheevosapi.dto.UserLoginDto
 import me.magnum.rcheevosapi.dto.UserUnlocksDto
 import me.magnum.rcheevosapi.dto.mapper.mapToModel
 import me.magnum.rcheevosapi.exception.UnsuccessfulRequestException
 import me.magnum.rcheevosapi.exception.UserNotAuthenticatedException
+import me.magnum.rcheevosapi.model.RAAwardAchievementResponse
 import me.magnum.rcheevosapi.model.RAGame
 import me.magnum.rcheevosapi.model.RAGameId
+import me.magnum.rcheevosapi.model.RASubmitLeaderboardEntryResponse
 import me.magnum.rcheevosapi.model.RAUserAuth
 import okhttp3.Call
 import okhttp3.Callback
@@ -29,14 +36,13 @@ import java.io.IOException
 import java.net.URLEncoder
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.KClass
 
 class RAApi(
     private val okHttpClient: OkHttpClient,
     private val json: Json,
     private val userAuthStore: RAUserAuthStore,
-    private val achievementSignatureProvider: RAAchievementSignatureProvider,
+    private val signatureProvider: RASignatureProvider,
 ) {
 
     companion object {
@@ -47,25 +53,29 @@ class RAApi(
         private const val PARAMETER_TOKEN = "t"
         private const val PARAMETER_REQUEST = "r"
         private const val PARAMETER_GAME_ID = "g"
-        private const val PARAMETER_SESSION_GAME_ID = "m"
+        private const val PARAMETER_GAME_HASH = "m"
+        private const val PARAMETER_PING_GAME_HASH = "x"
         private const val PARAMETER_ACHIEVEMENT_ID = "a"
         private const val PARAMETER_IS_HARDMODE = "h"
-        private const val PARAMETER_ACTIVITY_TYPE = "a"
         private const val PARAMETER_RICH_PRESENCE = "m"
         private const val PARAMETER_SIGNATURE = "v"
+        private const val PARAMETER_LEADERBOARD_ID = "i"
+        private const val PARAMETER_SCORE = "s"
+        private const val PARAMETER_RCHEEVOS_VERSION = "l"
 
         private const val VALUE_HARDMODE_DISABLED = "0"
         private const val VALUE_HARDMODE_ENABLED = "1"
 
         private const val REQUEST_LOGIN = "login2"
         private const val REQUEST_HASH_LIBRARY = "hashlibrary"
-        private const val REQUEST_GAME_DATA = "patch"
+        private const val REQUEST_ACHIEVEMENT_SETS = "achievementsets"
         private const val REQUEST_USER_UNLOCKED_ACHIEVEMENTS = "unlocks"
-        private const val REQUEST_POST_ACTIVITY = "postactivity"
+        private const val REQUEST_START_SESSION = "startsession"
         private const val REQUEST_AWARD_ACHIEVEMENT = "awardachievement"
+        private const val REQUEST_SUBMIT_LEADERBOARD_ENTRY = "submitlbentry"
         private const val REQUEST_PING = "ping"
 
-        private const val ACTIVITY_TYPE_START_SESSION = "3"
+        private const val RCHEEVOS_VERSION = "12.3.0"
     }
 
     suspend fun login(username: String, password: String): Result<Unit> {
@@ -106,41 +116,43 @@ class RAApi(
         }
     }
 
-    suspend fun getGameInfo(gameId: RAGameId): Result<RAGame> {
+    suspend fun getGameAchievementSets(gameHash: String): Result<RAGame> {
         val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
 
-        return get<GamePatchDto>(
+        return get<GameAchievementSetsDto>(
             mapOf(
-                PARAMETER_REQUEST to REQUEST_GAME_DATA,
+                PARAMETER_REQUEST to REQUEST_ACHIEVEMENT_SETS,
                 PARAMETER_USER to userAuth.username,
                 PARAMETER_TOKEN to userAuth.token,
-                PARAMETER_GAME_ID to gameId.id.toString(),
+                PARAMETER_GAME_HASH to gameHash,
             )
         ).suspendMapCatching {
-            it.game.mapToModel()
+            it.mapToModel()
         }
     }
 
-    suspend fun startSession(gameId: RAGameId): Result<Unit> {
+    suspend fun startSession(gameId: RAGameId, gameHash: String, forHardcoreMode: Boolean): Result<Unit> {
         val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
 
         return post(
             mapOf(
-                PARAMETER_REQUEST to REQUEST_POST_ACTIVITY,
+                PARAMETER_REQUEST to REQUEST_START_SESSION,
                 PARAMETER_USER to userAuth.username,
                 PARAMETER_TOKEN to userAuth.token,
-                PARAMETER_ACTIVITY_TYPE to ACTIVITY_TYPE_START_SESSION,
-                PARAMETER_SESSION_GAME_ID to gameId.id.toString(),
+                PARAMETER_GAME_ID to gameId.id.toString(),
+                PARAMETER_GAME_HASH to gameHash,
+                PARAMETER_IS_HARDMODE to if (forHardcoreMode) VALUE_HARDMODE_ENABLED else VALUE_HARDMODE_DISABLED,
+                PARAMETER_RCHEEVOS_VERSION to RCHEEVOS_VERSION,
             )
         )
     }
 
-    suspend fun awardAchievement(achievementId: Long, forHardcoreMode: Boolean): Result<Unit> {
+    suspend fun awardAchievement(achievementId: Long, forHardcoreMode: Boolean): Result<RAAwardAchievementResponse> {
         val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
 
-        val signature = achievementSignatureProvider.provideAchievementSignature(achievementId, userAuth, forHardcoreMode)
+        val signature = signatureProvider.provideAchievementSignature(achievementId, userAuth, forHardcoreMode)
 
-        return get(
+        return get<AwardAchievementResponseDto>(
             mapOf(
                 PARAMETER_REQUEST to REQUEST_AWARD_ACHIEVEMENT,
                 PARAMETER_USER to userAuth.username,
@@ -152,14 +164,42 @@ class RAApi(
             ),
             errorHandler = {
                 // Ignore errors if the achievement has already been awarded to the user
-                if (it != "User already has") {
+                if (it?.startsWith("User already has") != true) {
                     throw UnsuccessfulRequestException(it ?: "Unknown reason")
                 }
             }
-        )
+        ).map {
+            RAAwardAchievementResponse(
+                achievementAwarded = it.success,
+                remainingAchievements = it.achievementsRemaining,
+            )
+        }
     }
 
-    suspend fun sendPing(gameId: RAGameId, richPresenceDescription: String?): Result<Unit> {
+    suspend fun submitLeaderboardEntry(leaderboardId: Long, value: Int): Result<RASubmitLeaderboardEntryResponse> {
+        val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
+
+        val signature = signatureProvider.provideLeaderboardSignature(leaderboardId, value, userAuth)
+
+        return get<RASubmitLeaderboardEntryResponseDto>(
+            mapOf(
+                PARAMETER_REQUEST to REQUEST_SUBMIT_LEADERBOARD_ENTRY,
+                PARAMETER_USER to userAuth.username,
+                PARAMETER_TOKEN to userAuth.token,
+                PARAMETER_LEADERBOARD_ID to leaderboardId.toString(),
+                PARAMETER_SCORE to value.toString(),
+                // TODO: Maybe send game hash?
+                PARAMETER_SIGNATURE to signature,
+            ),
+        ).map {
+            RASubmitLeaderboardEntryResponse(
+                rank = it.response.rankInfo.rank,
+                numEntries = it.response.rankInfo.numEntries,
+            )
+        }
+    }
+
+    suspend fun sendPing(gameId: RAGameId, gameHash: String, forHardcoreMode: Boolean, richPresenceDescription: String?): Result<Unit> {
         // NOTE: Call this every 2 minutes if rich presence is enabled or every 4 minutes if not
         val userAuth = userAuthStore.getUserAuth() ?: return Result.failure(UserNotAuthenticatedException())
 
@@ -168,6 +208,8 @@ class RAApi(
             PARAMETER_USER to userAuth.username,
             PARAMETER_TOKEN to userAuth.token,
             PARAMETER_GAME_ID to gameId.id.toString(),
+            PARAMETER_PING_GAME_HASH to gameHash,
+            PARAMETER_IS_HARDMODE to if (forHardcoreMode) VALUE_HARDMODE_ENABLED else VALUE_HARDMODE_DISABLED,
         )
 
         if (richPresenceDescription != null) {
@@ -189,13 +231,15 @@ class RAApi(
         responseClass: KClass<T>,
         parameters: Map<String, String>,
         errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") },
-    ): Result<T> {
+    ): Result<T> = withContext(Dispatchers.IO) {
         val request = buildGetRequest(parameters)
-        return suspendRunCatching {
+        suspendRunCatching {
             executeRequest(request)
         }.suspendMapCatching { response ->
             if (response.isSuccessful) {
-                val body = response.body?.charStream()?.readText() ?: throw Exception("Could not retrieve body")
+                val body = response.body.charStream().use {
+                    it.readText()
+                }
                 val responseJson = Json.parseToJsonElement(body).jsonObject
                 val isSuccessful = responseJson["Success"]!!.jsonPrimitive.boolean
                 if (!isSuccessful) {
@@ -228,13 +272,15 @@ class RAApi(
         responseClass: KClass<T>,
         parameters: Map<String, String>,
         errorHandler: (String?) -> Unit = { throw UnsuccessfulRequestException(it ?: "Unknown reason") },
-    ): Result<T> {
+    ): Result<T> = withContext(Dispatchers.IO) {
         val request = buildPostRequest(parameters)
-        return suspendRunCatching {
+        suspendRunCatching {
             executeRequest(request)
         }.suspendMapCatching { response ->
             if (response.isSuccessful) {
-                val body = response.body?.charStream()?.readText() ?: throw Exception("Could not retrieve body")
+                val body = response.body.charStream().use {
+                    it.readText()
+                }
                 val responseJson = Json.parseToJsonElement(body).jsonObject
                 val isSuccessful = responseJson["Success"]!!.jsonPrimitive.boolean
                 if (!isSuccessful) {
@@ -279,16 +325,20 @@ class RAApi(
             .build()
     }
 
-    private suspend fun executeRequest(request: Request): Response = suspendCoroutine {
+    private suspend fun executeRequest(request: Request): Response = suspendCancellableCoroutine { continuation ->
         val call = okHttpClient.newCall(request)
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                it.resumeWithException(e)
+                continuation.resumeWithException(e)
             }
 
             override fun onResponse(call: Call, response: Response) {
-                it.resume(response)
+                continuation.resume(response)
             }
         })
+
+        continuation.invokeOnCancellation {
+            call.cancel()
+        }
     }
 }

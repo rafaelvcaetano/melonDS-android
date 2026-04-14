@@ -11,6 +11,7 @@ import me.magnum.melonds.impl.BackgroundThumbnailProvider
 import me.magnum.melonds.impl.RomIconProvider
 import me.magnum.melonds.impl.image.CoilBackgroundThumbnailFetcher
 import me.magnum.melonds.impl.image.CoilRomIconFetcher
+import me.magnum.melonds.impl.image.CoilURLMapper
 import javax.inject.Singleton
 
 @Module
@@ -36,6 +37,7 @@ object CoilModule {
     ): ImageLoader {
         return ImageLoader.Builder(context)
             .components {
+                add(CoilURLMapper())
                 add(coilBackgroundThumbnailFetcherFactory)
                 add(coilRomIconFetcherFactory)
             }

@@ -93,7 +93,7 @@ private fun InputSetupScreenContent(
     systemUiController.isNavigationBarContrastEnforced = false
 
     BackHandler(enabled = inputUnderConfiguration != null) {
-        // Prevent back navigation when user is configuring an input
+        onCancelInputConfiguration()
     }
     LaunchedEffect(Unit) {
         onInputAssignedEvent.collect {

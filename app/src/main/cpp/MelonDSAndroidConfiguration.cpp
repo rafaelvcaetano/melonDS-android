@@ -77,12 +77,14 @@ MelonDSAndroid::EmulatorConfiguration MelonDSAndroidConfiguration::buildEmulator
     finalEmulatorConfiguration.showBootScreen = showBootScreen;
     finalEmulatorConfiguration.useJit = useJit;
     finalEmulatorConfiguration.consoleType = consoleType;
-    finalEmulatorConfiguration.soundEnabled = soundEnabled;
-    finalEmulatorConfiguration.volume = volume;
-    finalEmulatorConfiguration.audioInterpolation = audioInterpolation;
-    finalEmulatorConfiguration.audioBitrate = audioBitrate;
-    finalEmulatorConfiguration.audioLatency = audioLatency;
-    finalEmulatorConfiguration.micSource = micSource;
+    finalEmulatorConfiguration.audioSettings = MelonDSAndroid::AudioSettings {
+        .soundEnabled = (bool) soundEnabled,
+        .volume = volume,
+        .audioInterpolation = audioInterpolation,
+        .audioBitrate = audioBitrate,
+        .audioLatency = audioLatency,
+        .micSource = micSource
+    };
     finalEmulatorConfiguration.firmwareConfiguration = buildFirmwareConfiguration(env, firmwareConfigurationObject);
     finalEmulatorConfiguration.rewindEnabled = enableRewind ? 1 : 0;
     finalEmulatorConfiguration.rewindCaptureSpacingSeconds = rewindPeriodSeconds;

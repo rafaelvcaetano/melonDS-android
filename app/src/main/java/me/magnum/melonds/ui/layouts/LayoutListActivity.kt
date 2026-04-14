@@ -1,31 +1,34 @@
 package me.magnum.melonds.ui.layouts
 
+import android.graphics.Color
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.commit
 import dagger.hilt.android.AndroidEntryPoint
-import me.magnum.melonds.R
-import me.magnum.melonds.databinding.ActivityLayoutsBinding
-import me.magnum.melonds.ui.layouts.fragments.LayoutListFragment
+import me.magnum.melonds.ui.layouts.ui.LayoutsScreen
+import me.magnum.melonds.ui.layouts.viewmodel.LayoutsViewModel
+import me.magnum.melonds.ui.theme.MelonTheme
 
 @AndroidEntryPoint
 class LayoutListActivity : AppCompatActivity() {
+
     private val viewModel: LayoutsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge(
+            navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
+        )
         super.onCreate(savedInstanceState)
-        val binding = ActivityLayoutsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        val fragment = LayoutListFragment().apply {
-            setOnLayoutSelectedListener { id, _ ->
-                viewModel.setSelectedLayoutId(id)
+        setContent {
+            MelonTheme {
+                LayoutsScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = ::finish,
+                )
             }
-        }
-
-        supportFragmentManager.commit {
-            replace(R.id.frame_layout_list, fragment)
         }
     }
 }

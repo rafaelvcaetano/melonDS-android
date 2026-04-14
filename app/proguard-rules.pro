@@ -34,6 +34,8 @@
 -keep class me.magnum.melonds.domain.model.DSiWareTitle { *; }
 -keep class me.magnum.melonds.domain.model.VideoRenderer { *; }
 -keep class me.magnum.melonds.domain.model.retroachievements.RASimpleAchievement { *; }
+-keep class me.magnum.melonds.domain.model.retroachievements.RASimpleLeaderboard { *; }
+-keep class me.magnum.melonds.domain.model.retroachievements.RASimpleRuntimeAchievement { *; }
 -keep class me.magnum.melonds.ui.emulator.render.FrameRenderCallback { *; }
 -keep class me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState { *; }
 -keep class me.magnum.melonds.ui.emulator.rewind.model.RewindWindow { *; }
@@ -42,7 +44,6 @@
     public int open(java.lang.String, java.lang.String);
 }
 -keep interface me.magnum.melonds.common.camera.DSiCameraSource { *; }
--keep interface me.magnum.melonds.common.RetroAchievementsCallback { *; }
 -keep interface me.magnum.melonds.ui.emulator.EmulatorFrameRenderedListener { *; }
 
 # Migration fields. These rules are required for migrations to work properly

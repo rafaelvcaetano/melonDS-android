@@ -16,3 +16,12 @@ fun Preference.addOnPreferenceChangeListener(listener: Preference.OnPreferenceCh
         }
     }
 }
+
+fun Preference.removeOnPreferenceChangeListener(listener: Preference.OnPreferenceChangeListener) {
+    val currentListener = onPreferenceChangeListener
+    if (currentListener is CompositeOnPreferenceChangeListener) {
+        currentListener.removeOnPreferenceChangeListener(listener)
+    } else if (currentListener === listener) {
+        onPreferenceChangeListener = null
+    }
+}

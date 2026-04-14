@@ -1,5 +1,6 @@
 package me.magnum.melonds.ui.inputsetup
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.view.InputDevice
@@ -94,12 +95,11 @@ class InputSetupActivity : AppCompatActivity() {
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN && viewModel.inputUnderAssignment.value != null) {
+            @SuppressLint("GestureBackNavigation")
             if (event.keyCode != KeyEvent.KEYCODE_BACK) {
                 viewModel.updateInputAssignedKey(event.keyCode)
-            } else {
-                viewModel.stopInputAssignment()
+                return true
             }
-            return true
         }
         return super.dispatchKeyEvent(event)
     }

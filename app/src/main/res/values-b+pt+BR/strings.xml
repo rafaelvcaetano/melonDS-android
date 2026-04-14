@@ -260,7 +260,7 @@
     <string name="layout_editor">Editor de layout</string>
     <string name="add_component">Adicionar componente</string>
     <string name="no_more_components">Não há mais componentes para serem adicionados</string>
-    <string name="label_size">Tamanho:</string>
+    <string name="label_size">Tamanho</string>
     <string name="menu">Menu</string>
     <string name="properties">Propriedades</string>
     <string name="revert_changes">Reverter alterações</string>

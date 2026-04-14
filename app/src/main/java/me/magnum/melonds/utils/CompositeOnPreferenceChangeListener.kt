@@ -13,4 +13,8 @@ class CompositeOnPreferenceChangeListener : Preference.OnPreferenceChangeListene
     fun addOnPreferenceChangeListener(listener: Preference.OnPreferenceChangeListener) {
         listeners.add(listener)
     }
+
+    fun removeOnPreferenceChangeListener(listener: Preference.OnPreferenceChangeListener) {
+        listeners.remove(listener)
+    }
 }

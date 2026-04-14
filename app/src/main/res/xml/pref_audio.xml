@@ -45,6 +45,7 @@
             android:dependency="sound_enabled"
             android:summary="%s"
             app:iconSpaceReserved="false"
+            app:isPreferenceVisible="@bool/settings_audio_latency_enabled"
             android:entries="@array/audio_latency_options"
             android:entryValues="@array/audio_latency_values"
             android:defaultValue="medium" />
