@@ -106,7 +106,7 @@ jobs:
           packageName: me.magnum.melonds
           releaseName: ${{ steps.release_params.outputs.VERSION }}
           releaseFiles: app/build/outputs/apk/playStoreProd/release/app-playStore-prod-release.apk
-          track: beta
+          track: production
           inAppUpdatePriority: 2
           whatsNewDirectory: ./.github/changelog/playStore
           mappingFile: app/build/outputs/mapping/playStoreProdRelease/mapping.txt
