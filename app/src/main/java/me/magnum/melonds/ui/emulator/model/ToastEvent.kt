@@ -2,7 +2,6 @@ package me.magnum.melonds.ui.emulator.model
 
 sealed class ToastEvent {
     data object GbaLoadFailed : ToastEvent()
-    data object ResetFailed : ToastEvent()
     data object RewindNotEnabled : ToastEvent()
     data object RewindNotAvailableWhileRAHardcoreModeEnabled : ToastEvent()
     data object StateSaveFailed : ToastEvent()
@@ -14,4 +13,6 @@ sealed class ToastEvent {
     data object CannotSaveStateWhenRunningFirmware : ToastEvent()
     data object CannotLoadStateWhenRunningFirmware : ToastEvent()
     data object CannotSwitchRetroAchievementsMode : ToastEvent()
+    data object GbaModeNotSupported : ToastEvent()
+    data object InternalError : ToastEvent()
 }

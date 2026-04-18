@@ -6,6 +6,7 @@ import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.Keep
+import androidx.core.os.BundleCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -25,7 +26,7 @@ open class MasterSwitchPreferenceFragment : PreferenceFragmentCompat() {
     }
 
     val attrs: MasterSwitchPreferenceAttrs by lazy {
-        requireArguments().getParcelable<MasterSwitchPreferenceAttrs>(ATTRS_KEY_NAME)!!
+        BundleCompat.getParcelable<MasterSwitchPreferenceAttrs>(requireArguments(), ATTRS_KEY_NAME, MasterSwitchPreferenceAttrs::class.java)!!
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {

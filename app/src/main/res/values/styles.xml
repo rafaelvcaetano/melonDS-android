@@ -1,20 +1,15 @@
 <resources>
-    <style name="AppTheme" parent="Theme.AppCompat.DayNight.DarkActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="colorOnPrimary">@color/colorOnPrimary</item>
         <item name="colorOnSecondary">@color/colorOnSecondary</item>
-        <item name="android:navigationBarColor">?android:attr/colorBackground</item>
-        <item name="android:windowLightNavigationBar">@bool/lightNavigationBar</item>
-        <item name="actionOverflowMenuStyle">@style/Menu.OverflowUnder</item>
-        <item name="preferenceTheme">@style/Preference</item>
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
-    </style>
-
-    <style name="AppTheme.NoToolbar" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightNavigationBar">@bool/lightNavigationBar</item>
+        <item name="toolbarNavigationButtonStyle">@style/Toolbar.Button.Navigation</item>
+        <item name="actionOverflowMenuStyle">@style/Menu.OverflowUnder</item>
+        <item name="preferenceTheme">@style/Preference</item>
     </style>
 
     <style name="SplashTheme" parent="Theme.SplashScreen">
@@ -30,19 +25,40 @@
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowTranslucentNavigation">true</item>
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
 
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="Preference" parent="@style/PreferenceThemeOverlay">
-        <item name="android:tint">@color/buttonContrasted</item>
+    <style name="Toolbar">
+        <item name="android:background">@color/colorPrimary</item>
+        <item name="android:elevation">4dp</item>
+        <item name="android:theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="popupTheme">@style/ThemeOverlay.AppCompat.DayNight</item>
+        <item name="titleTextAppearance">@style/Toolbar.TitleText</item>
     </style>
 
-    <style name="Toolbar.Transparent" parent="Widget.AppCompat.Light.ActionBar">
-        <item name="android:windowActionBarOverlay">true</item>
+    <style name="Toolbar.Button.Navigation" parent="Widget.AppCompat.Toolbar.Button.Navigation">
+        <item name="tint">@color/colorOnPrimary</item>
+    </style>
+
+    <style name="Toolbar.TitleText" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textSize">20sp</item>
+        <item name="lineHeight">24sp</item>
+    </style>
+
+    <style name="FullscreenDialog">
+        <item name="android:windowEnterAnimation">@anim/dialog_slide_in</item>
+        <item name="android:windowExitAnimation">@anim/dialog_slide_out</item>
+    </style>
+
+    <style name="FullscreenDialog.Restore">
+        <item name="android:windowEnterAnimation">@null</item>
+    </style>
+
+    <style name="Preference" parent="@style/PreferenceThemeOverlay">
+        <item name="android:tint">@color/buttonContrasted</item>
     </style>
 
     <style name="Button.Ripple" parent="android:Widget.ImageButton">
@@ -64,82 +80,9 @@
         <item name="android:overlapAnchor">false</item>
     </style>
 
-    <style name="Layout">
-    </style>
-
-    <style name="Layout.RomSetting">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:minHeight">?android:attr/listPreferredItemHeight</item>
-        <item name="android:background">?android:attr/selectableItemBackground</item>
-        <item name="android:clickable">true</item>
-        <item name="android:focusable">true</item>
-        <item name="android:paddingStart">?android:attr/listPreferredItemPaddingStart</item>
-        <item name="android:paddingEnd">?android:attr/listPreferredItemPaddingEnd</item>
-        <item name="android:orientation">horizontal</item>
-        <item name="android:gravity">center_vertical</item>
-    </style>
-
-    <style name="Layout.RomSetting.SeekBar">
-        <item name="android:clipChildren">false</item>
-        <item name="android:clipToPadding">false</item>
-    </style>
-
-    <style name="Layout.RomSettingContent">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginEnd">6dip</item>
-        <item name="android:layout_marginStart">6dip</item>
-        <item name="android:layout_marginTop">6dip</item>
-        <item name="android:layout_marginBottom">6dip</item>
-        <item name="android:orientation">vertical</item>
-        <item name="android:layout_weight">1</item>
-    </style>
-
-    <style name="Layout.RomSettingContent.SeekBar">
-        <item name="android:paddingEnd">16dp</item>
-        <item name="android:clipChildren">false</item>
-        <item name="android:clipToPadding">false</item>
-    </style>
-
-    <style name="Text.RomSetting.Title" parent="Widget.AppCompat.TextView">
-        <item name="android:singleLine">true</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
-        <item name="android:textColor">?android:attr/textColorPrimary</item>
-        <item name="android:ellipsize">marquee</item>
-        <item name="android:fadingEdge">horizontal</item>
-    </style>
-
-    <style name="Text.RomSetting.Summary" parent="Widget.AppCompat.TextView">
-        <item name="android:textAppearance">?android:attr/textAppearanceSmall</item>
-        <item name="android:textColor">?android:attr/textColorSecondary</item>
-    </style>
-
     <style name="Text.SaveStateSlot" parent="Widget.AppCompat.TextView">
         <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
         <item name="android:textColor">?android:attr/textColorPrimary</item>
-    </style>
-
-    <style name="SeekBar.RomSetting" parent="Widget.AppCompat.SeekBar">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:paddingStart">0dp</item>
-        <item name="android:paddingEnd">0dp</item>
-        <item name="android:paddingTop">15dp</item>
-        <item name="android:paddingBottom">15dp</item>
-        <item name="android:clickable">false</item>
-        <item name="android:focusable">false</item>
-        <item name="android:background">@null</item>
-    </style>
-
-    <style name="Divider">
-        <item name="android:background">@color/divider</item>
-    </style>
-
-    <style name="Divider.Horizontal">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">1dp</item>
     </style>
 
     <style name="ColourTile">

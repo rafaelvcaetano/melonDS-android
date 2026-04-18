@@ -26,7 +26,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
         val SUPPORTED_ROM_EXTENSIONS = listOf("nds", "dsi", "ids")
     }
 
-    override fun getRomFromUri(romUri: Uri, parentUri: Uri): Rom? {
+    override fun getRomFromUri(romUri: Uri, parentUri: Uri?): Rom? {
         return try {
             context.contentResolver.openInputStream(romUri)?.use { stream ->
                 getNdsEntryStreamInFileStream(stream)?.use { romFileStream ->
@@ -39,7 +39,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
                         fileName = romDocument?.name ?: "",
                         uri = romUri,
                         parentTreeUri = parentUri,
-                        config = RomConfig(),
+                        config = if (romMetadata.isDSiWareTitle) RomConfig.forDsiWareTitle() else RomConfig.default(),
                         lastPlayed = null,
                         isDsiWareTitle = romMetadata.isDSiWareTitle,
                         retroAchievementsHash = romMetadata.retroAchievementsHash
@@ -55,7 +55,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
     override fun getRomIcon(rom: Rom): Bitmap? {
         return try {
             getBestRomInputStream(rom)?.use {
-                RomProcessor.getRomIcon(it.buffered())
+                RomProcessor.getRomIcon(it)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -100,7 +100,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
     }
 
     private fun getRomMetadataInZipEntry(inputStream: InputStream): RomMetadata {
-        return RomProcessor.getRomMetadata(inputStream.buffered())
+        return RomProcessor.getRomMetadata(inputStream)
     }
 
     private fun extractRomFile(rom: Rom): Single<Uri> {

@@ -20,7 +20,7 @@ import javax.inject.Inject
 import kotlin.math.pow
 
 @AndroidEntryPoint
-class RomsPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
+class RomsPreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTitleProvider {
 
     private val viewModel: SettingsViewModel by activityViewModels()
     private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager, directoryAccessValidator) }

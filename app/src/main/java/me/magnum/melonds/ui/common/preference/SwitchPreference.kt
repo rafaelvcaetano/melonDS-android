@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import me.magnum.melonds.ui.common.melonSwitchColors
 
@@ -18,6 +19,7 @@ fun SwitchItem(
     name: String,
     isOn: Boolean,
     onToggle: (Boolean) -> Unit,
+    horizontalPadding: Dp = 16.dp,
 ) {
     Row(
         modifier = Modifier
@@ -25,7 +27,7 @@ fun SwitchItem(
             .clickable { onToggle(!isOn) }
             .focusable()
             .heightIn(min = 48.dp)
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+            .padding(start = horizontalPadding, end = horizontalPadding, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(

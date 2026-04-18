@@ -8,15 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Checkbox
-import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Icon
-import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -33,46 +30,42 @@ fun CheatInFolderItem(
     cheatInFolder: CheatInFolder,
     onClick: () -> Unit,
 ) {
-    val contentAlpha = if (cheatInFolder.cheat.isValid()) ContentAlpha.high else ContentAlpha.disabled
-    CompositionLocalProvider(LocalContentAlpha provides contentAlpha) {
-        Row(
-            modifier = modifier
-                .clickable(enabled = cheatInFolder.cheat.isValid(), onClick = onClick)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(32.dp),
-        ) {
-            Checkbox(
-                modifier = Modifier.padding(top = 4.dp),
-                checked = cheatInFolder.cheat.enabled,
-                enabled = cheatInFolder.cheat.isValid(),
-                onCheckedChange = null,
-            )
+    Row(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(32.dp),
+    ) {
+        Checkbox(
+            modifier = Modifier.padding(top = 4.dp),
+            checked = cheatInFolder.cheat.enabled,
+            onCheckedChange = null,
+        )
 
-            Column {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        modifier = Modifier.size(20.dp),
-                        imageVector = Icons.Filled.Folder,
-                        contentDescription = null,
-                    )
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = cheatInFolder.folderName,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+        Column {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    modifier = Modifier.size(20.dp),
+                    imageVector = Icons.Filled.Folder,
+                    contentDescription = null,
+                )
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = cheatInFolder.folderName,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
 
-                Text(cheatInFolder.cheat.name)
-                if (cheatInFolder.cheat.description?.isNotBlank() == true) {
-                    CaptionText(
-                        text = cheatInFolder.cheat.description,
-                        style = MaterialTheme.typography.body2,
-                    )
-                }
+            Text(cheatInFolder.cheat.name)
+            if (cheatInFolder.cheat.description?.isNotBlank() == true) {
+                CaptionText(
+                    text = cheatInFolder.cheat.description,
+                    style = MaterialTheme.typography.body2,
+                )
             }
         }
     }

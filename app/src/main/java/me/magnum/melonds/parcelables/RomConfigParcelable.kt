@@ -21,6 +21,7 @@ class RomConfigParcelable : Parcelable {
             runtimeMicSource = RuntimeMicSource.entries[parcel.readInt()],
             layoutId = parcel.readString()?.let { UUID.fromString(it) },
             gbaSlotConfig = parcel.parcelable<RomGbaSlotConfigParcelable>()!!.gbaSlotConfig,
+            customName = parcel.readString(),
         )
     }
 
@@ -29,6 +30,7 @@ class RomConfigParcelable : Parcelable {
         dest.writeInt(romConfig.runtimeMicSource.ordinal)
         dest.writeString(romConfig.layoutId?.toString())
         dest.writeParcelable(RomGbaSlotConfigParcelable(romConfig.gbaSlotConfig), 0)
+        dest.writeString(romConfig.customName)
     }
 
     override fun describeContents(): Int {

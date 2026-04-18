@@ -1,0 +1,6 @@
+collection: Nintendo DS
+extension: nds, zip, 7z, dsi
+launch: am start
+  -n me.magnum.melonds.nightly/me.magnum.melonds.ui.emulator.EmulatorActivity
+  -d {file.uri}
+  --grant-read-uri-permission

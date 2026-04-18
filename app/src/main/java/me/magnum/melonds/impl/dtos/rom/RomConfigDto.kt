@@ -15,6 +15,8 @@ data class RomConfigDto(
     val layoutId: String?,
     @SerializedName("gbaSlotConfig")
     val gbaSlotConfig: RomGbaSlotConfigDto,
+    @SerializedName("customName")
+    val customName: String? = null,
 ) {
 
     companion object {
@@ -24,6 +26,7 @@ data class RomConfigDto(
                 romConfig.runtimeMicSource,
                 romConfig.layoutId?.toString(),
                 RomGbaSlotConfigDto.fromModel(romConfig.gbaSlotConfig),
+                romConfig.customName,
             )
         }
     }
@@ -34,6 +37,7 @@ data class RomConfigDto(
             runtimeMicSource,
             layoutId?.let { UUID.fromString(it) },
             gbaSlotConfig.toModel(),
+            customName = customName,
         )
     }
 }

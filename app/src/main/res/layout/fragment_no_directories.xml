@@ -10,17 +10,21 @@
             android:layout_gravity="center"
             android:gravity="center">
         <TextView
+                android:id="@+id/textRomSearchDirectoryInfo"
                 android:layout_marginLeft="24dp"
                 android:layout_marginRight="24dp"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:textSize="16sp"
+                android:textColor="?android:textColorPrimary"
                 android:text="@string/no_rom_search_directory_specified"/>
         <Button
-                android:id="@+id/buttonSetRomDirectory"
+                android:id="@+id/buttonAction"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingTop="8dp"
-                style="@style/Widget.AppCompat.Button.Borderless.Colored"
+                android:layout_marginTop="16dp"
+                style="@style/Widget.AppCompat.Button.Colored"
                 android:text="@string/set_rom_directory"/>
     </LinearLayout>
 </FrameLayout>

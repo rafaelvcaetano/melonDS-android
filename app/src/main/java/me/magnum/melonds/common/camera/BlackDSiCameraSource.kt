@@ -2,6 +2,8 @@ package me.magnum.melonds.common.camera
 
 class BlackDSiCameraSource : DSiCameraSource {
 
+    override fun isAvailable() = true
+
     override fun startCamera(camera: CameraType) {
     }
 

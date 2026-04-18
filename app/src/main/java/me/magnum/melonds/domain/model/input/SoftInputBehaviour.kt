@@ -1,0 +1,8 @@
+package me.magnum.melonds.domain.model.input
+
+enum class SoftInputBehaviour {
+    ALWAYS_VISIBLE,
+    HIDE_SYSTEM_BUTTONS_WHEN_CONTROLLERS_CONNECTED,
+    HIDE_ALL_BUTTONS_ASSIGNED_TO_CONNECTED_CONTROLLERS,
+    ALWAYS_INVISIBLE,
+}

@@ -13,7 +13,8 @@ class ZipRomFileProcessor(context: Context, uriHandler: UriHandler, ndsRomCache:
     override fun getNdsEntryStreamInFileStream(fileStream: InputStream): RomFileStream? {
         val zipStream = ZipInputStream(fileStream)
         return getNdsEntryInZipStream(zipStream)?.let {
-            RomFileStream(zipStream, SizeUnit.Bytes(it.size))
+            // ZIP ROMs seem to require the stream to be buffered, otherwise data is not processed properly
+            RomFileStream(zipStream.buffered(), SizeUnit.Bytes(it.size))
         }
     }
 

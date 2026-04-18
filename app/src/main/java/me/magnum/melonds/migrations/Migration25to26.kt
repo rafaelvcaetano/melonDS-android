@@ -2,11 +2,11 @@ package me.magnum.melonds.migrations
 
 import me.magnum.melonds.impl.dtos.layout.PositionedLayoutComponentDto
 import me.magnum.melonds.impl.dtos.layout.RectDto
-import me.magnum.melonds.impl.dtos.layout.UILayoutDto
 import me.magnum.melonds.migrations.helper.GenericJsonArrayMigrationHelper
 import me.magnum.melonds.migrations.legacy.layout.LayoutConfiguration25
 import me.magnum.melonds.migrations.legacy.layout.LayoutConfigurationDto31
 import me.magnum.melonds.migrations.legacy.layout.UILayout25
+import me.magnum.melonds.migrations.legacy.layout.UILayoutDto35
 
 class Migration25to26(
     private val layoutMigrationHelper: GenericJsonArrayMigrationHelper,
@@ -39,8 +39,8 @@ class Migration25to26(
         }
     }
 
-    private fun mapUiLayoutToNewDto(uiLayout25: UILayout25): UILayoutDto {
-        return UILayoutDto(
+    private fun mapUiLayoutToNewDto(uiLayout25: UILayout25): UILayoutDto35 {
+        return UILayoutDto35(
             uiLayout25.backgroundId,
             uiLayout25.backgroundMode,
             uiLayout25.components.map {

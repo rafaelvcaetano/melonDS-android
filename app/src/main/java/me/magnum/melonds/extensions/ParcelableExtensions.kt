@@ -1,34 +1,21 @@
 package me.magnum.melonds.extensions
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.core.content.IntentCompat
+import androidx.core.os.BundleCompat
+import androidx.core.os.ParcelCompat
 
 inline fun <reified T : Parcelable> Intent.parcelable(key: String): T? {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        getParcelableExtra(key, T::class.java)
-    } else {
-        @Suppress("DEPRECATION")
-        getParcelableExtra(key)
-    }
+    return IntentCompat.getParcelableExtra<T>(this, key, T::class.java)
 }
 
 inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        getParcelable(key, T::class.java)
-    } else {
-        @Suppress("DEPRECATION")
-        getParcelable(key)
-    }
+    return BundleCompat.getParcelable(this, key, T::class.java)
 }
 
 inline fun <reified T : Parcelable> Parcel.parcelable(): T? {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        readParcelable(T::class.java.classLoader, T::class.java)
-    } else {
-        @Suppress("DEPRECATION")
-        readParcelable(T::class.java.classLoader)
-    }
+    return ParcelCompat.readParcelable<T>(this, T::class.java.classLoader, T::class.java)
 }

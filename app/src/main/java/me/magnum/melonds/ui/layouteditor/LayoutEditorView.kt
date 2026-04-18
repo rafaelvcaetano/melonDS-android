@@ -11,9 +11,18 @@ import me.magnum.melonds.domain.model.layout.PositionedLayoutComponent
 import me.magnum.melonds.domain.model.layout.UILayout
 import me.magnum.melonds.ui.common.LayoutComponentView
 import me.magnum.melonds.ui.common.LayoutView
+import me.magnum.melonds.ui.layouteditor.model.LayoutTarget
+import me.magnum.melonds.impl.dpToPixels
 import kotlin.math.*
 
-typealias ViewSelectedListener = ((LayoutComponentView, currentScale: Float, maxSize: Int, minSize: Int) -> Unit)
+typealias ViewSelectedListener = (
+                                  view: LayoutComponentView,
+                                  widthScale: Float,
+                                  heightScale: Float,
+                                  maxWidth: Int,
+                                  maxHeight: Int,
+                                  minSize: Int
+) -> Unit
 
 class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(context, attrs) {
     enum class Anchor {
@@ -26,8 +35,8 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
     private var onViewSelectedListener: ViewSelectedListener? = null
     private var onViewDeselectedListener: ((LayoutComponentView) -> Unit)? = null
     private var otherClickListener: OnClickListener? = null
-    private val defaultComponentWidth by lazy { screenUnitsConverter.dpToPixels(100f).toInt() }
-    private val minComponentSize by lazy { screenUnitsConverter.dpToPixels(30f).toInt() }
+    private val defaultComponentWidth by lazy { context.dpToPixels(100f).toInt() }
+    private val minComponentSize by lazy { context.dpToPixels(30f).toInt() }
     private var selectedView: LayoutComponentView? = null
     private var selectedViewAnchor = Anchor.TOP_LEFT
     private var modifiedByUser = false
@@ -42,8 +51,8 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         }
     }
 
-    override fun instantiateLayout(layoutConfiguration: UILayout) {
-        super.instantiateLayout(layoutConfiguration)
+    override fun instantiateLayout(layoutConfiguration: UILayout, layoutTarget: LayoutTarget) {
+        super.instantiateLayout(layoutConfiguration, layoutTarget)
         modifiedByUser = false
     }
 
@@ -68,7 +77,9 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
     }
 
     fun buildCurrentLayout(): List<PositionedLayoutComponent> {
-        return views.values.map { PositionedLayoutComponent(it.getRect(), it.component) }
+        return views.values.map {
+            PositionedLayoutComponent(it.getRect(), it.component, it.baseAlpha, it.onTop)
+        }
     }
 
     fun handleKeyDown(event: KeyEvent): Boolean {
@@ -93,6 +104,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         super.onLayoutComponentViewAdded(layoutComponentView)
         setupDragHandler(layoutComponentView)
         layoutComponentView.view.alpha = 0.5f
+        layoutComponentView.setHighlighted(false)
     }
 
     private fun setupDragHandler(layoutComponentView: LayoutComponentView) {
@@ -115,6 +127,7 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
                         downOffsetX = motionEvent.x
                         downOffsetY = motionEvent.y
                         view.alpha = 1f
+                        layoutComponentView.setHighlighted(true)
                         true
                     }
                     MotionEvent.ACTION_MOVE -> {
@@ -128,11 +141,13 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
                         }
                         true
                     }
+                    MotionEvent.ACTION_CANCEL,
                     MotionEvent.ACTION_UP -> {
                         if (!dragging) {
                             selectView(layoutComponentView)
                         } else {
                             view.alpha = 0.5f
+                            layoutComponentView.setHighlighted(false)
                             dragging = false
                         }
                         true
@@ -162,26 +177,15 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         selectedViewAnchor = anchor
         selectedView = view
 
-        val layoutAspectRatio = width / height.toFloat()
-        val selectedViewAspectRatio = view.aspectRatio
-        val currentConstrainedDimension: Int
-        val maxDimension: Int
-
-        if (layoutAspectRatio > selectedViewAspectRatio) {
-            maxDimension = height
-            currentConstrainedDimension = view.getHeight()
-        } else {
-            maxDimension = width
-            currentConstrainedDimension = view.getWidth()
-        }
-
-        val viewScale = (currentConstrainedDimension - minComponentSize) / (maxDimension - minComponentSize).toFloat()
-        onViewSelectedListener?.invoke(view, viewScale, maxDimension, minComponentSize)
+        val widthScale = (view.getWidth() - minComponentSize) / (width - minComponentSize).toFloat()
+        val heightScale = (view.getHeight() - minComponentSize) / (height - minComponentSize).toFloat()
+        onViewSelectedListener?.invoke(view, widthScale, heightScale, width, height, minComponentSize)
     }
 
     private fun deselectCurrentView() {
         selectedView?.let {
             it.view.alpha = 0.5f
+            it.setHighlighted(false)
             onViewDeselectedListener?.invoke(it)
         }
         selectedView = null
@@ -189,9 +193,10 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
 
     fun deleteSelectedView() {
         val currentlySelectedView = selectedView ?: return
-        deselectCurrentView()
         removeView(currentlySelectedView.view)
         views.remove(currentlySelectedView.component)
+        deselectCurrentView()
+        modifiedByUser = true
     }
 
     private fun dragView(view: LayoutComponentView, offsetX: Float, offsetY: Float) {
@@ -202,25 +207,72 @@ class LayoutEditorView(context: Context, attrs: AttributeSet?) : LayoutView(cont
         modifiedByUser = true
     }
 
-    fun scaleSelectedView(newScale: Float) {
+    fun setSelectedViewAlpha(alpha: Float) {
+        selectedView?.let {
+            it.baseAlpha = alpha
+            modifiedByUser = true
+        }
+    }
+
+    fun setSelectedScreenOnTop(onTop: Boolean) {
+        selectedView?.let {
+            it.onTop = onTop
+            rearrangeScreens()
+            modifiedByUser = true
+        }
+    }
+
+    private fun rearrangeScreens() {
+        val topScreen = views[LayoutComponent.TOP_SCREEN]
+        val bottomScreen = views[LayoutComponent.BOTTOM_SCREEN]
+        if (topScreen != null && bottomScreen != null) {
+            removeView(topScreen.view)
+            removeView(bottomScreen.view)
+            if (topScreen.onTop) {
+                addView(bottomScreen.view, 0)
+                addView(topScreen.view, 0)
+            } else if (bottomScreen.onTop) {
+                addView(topScreen.view, 0)
+                addView(bottomScreen.view, 0)
+            } else {
+                addView(bottomScreen.view, 0)
+                addView(topScreen.view, 0)
+            }
+        }
+    }
+
+    fun centerSelectedViewHorizontally() {
+        val view = selectedView ?: return
+        val centerX = (width - view.getWidth()) / 2
+        val position = view.getPosition()
+        view.setPosition(Point(centerX, position.y))
+        modifiedByUser = true
+    }
+
+    fun centerSelectedViewVertically() {
+        val view = selectedView ?: return
+        val centerY = (height - view.getHeight()) / 2
+        val position = view.getPosition()
+        view.setPosition(Point(position.x, centerY))
+        modifiedByUser = true
+    }
+
+    fun scaleSelectedView(scale: Float) {
+        // Assume view has a 1:1 aspect ratio. Always scale on the smallest axis
+        if (width > height) {
+            val widthScale = ((height - minComponentSize) * scale) / (width - minComponentSize)
+            scaleSelectedView(widthScale, scale)
+        } else {
+            val heightScale =  ((width - minComponentSize) * scale) / (height - minComponentSize)
+            scaleSelectedView(scale, heightScale)
+        }
+    }
+
+    fun scaleSelectedView(widthScale: Float, heightScale: Float) {
         val currentlySelectedView = selectedView ?: return
 
-        val screenAspectRatio = width / height.toFloat()
-        val selectedViewAspectRatio = currentlySelectedView.aspectRatio
-        val newViewWidth: Int
-        val newViewHeight: Int
-
-        if (screenAspectRatio > selectedViewAspectRatio) {
-            // The scale range must go from minComponentSize to height
-            val scaledHeight = ((height - minComponentSize) * newScale + minComponentSize).roundToInt()
-            newViewWidth = (scaledHeight * selectedViewAspectRatio).toInt()
-            newViewHeight = scaledHeight
-        } else {
-            // The scale range must go from minComponentSize to width
-            val scaledWidth = ((width - minComponentSize) * newScale + minComponentSize).roundToInt()
-            newViewWidth = scaledWidth
-            newViewHeight = (scaledWidth / selectedViewAspectRatio).toInt()
-        }
+        val newViewWidth = ((width - minComponentSize) * widthScale + minComponentSize).roundToInt()
+        val newViewHeight = ((height - minComponentSize) * heightScale + minComponentSize).roundToInt()
 
         val viewPosition = currentlySelectedView.getPosition()
         var viewX: Int

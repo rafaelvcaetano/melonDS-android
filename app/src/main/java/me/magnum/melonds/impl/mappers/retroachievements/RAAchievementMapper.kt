@@ -3,12 +3,14 @@ package me.magnum.melonds.impl.mappers.retroachievements
 import me.magnum.melonds.database.entities.retroachievements.RAAchievementEntity
 import me.magnum.rcheevosapi.model.RAAchievement
 import me.magnum.rcheevosapi.model.RAGameId
+import me.magnum.rcheevosapi.model.RASetId
 import java.net.URL
 
 fun RAAchievement.mapToEntity(): RAAchievementEntity {
     return RAAchievementEntity(
         id,
         gameId.id,
+        setId.id,
         totalAwardsCasual ?: 0,
         totalAwardsHardcore ?: 0,
         title,
@@ -26,6 +28,7 @@ fun RAAchievementEntity.mapToModel(): RAAchievement {
     return RAAchievement(
         id,
         RAGameId(gameId),
+        RASetId(setId),
         totalAwardsCasual,
         totalAwardsHardcore,
         title,

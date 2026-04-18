@@ -5,6 +5,7 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import me.magnum.melonds.initializer.AppForegroundStateTrackerInitializer
 import me.magnum.melonds.initializer.CoilInitializer
 
 @EntryPoint
@@ -12,6 +13,8 @@ import me.magnum.melonds.initializer.CoilInitializer
 interface InitializerEntryPoint {
 
     fun inject(coilInitializer: CoilInitializer)
+
+    fun inject(appForegroundStateTrackerInitializer: AppForegroundStateTrackerInitializer)
 
     companion object {
         fun resolve(context: Context): InitializerEntryPoint {

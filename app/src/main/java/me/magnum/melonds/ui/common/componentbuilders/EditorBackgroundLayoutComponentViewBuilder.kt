@@ -9,7 +9,7 @@ import me.magnum.melonds.ui.common.LayoutComponentViewBuilder
 class EditorBackgroundLayoutComponentViewBuilder(private val baseBuilder: LayoutComponentViewBuilder) : LayoutComponentViewBuilder() {
     override fun build(context: Context): View {
         return baseBuilder.build(context).apply {
-            background = ContextCompat.getDrawable(context, R.drawable.background_uiview)
+            background = ContextCompat.getDrawable(context, R.drawable.background_uiview_selector)
         }
     }
 

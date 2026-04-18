@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Card
 import androidx.compose.material.DropdownMenu
@@ -133,7 +132,7 @@ private fun BackgroundItemBase(
                             modifier = Modifier
                                 .padding(start = 4.dp, top = 4.dp, end = 4.dp)
                                 .sharedElement(
-                                    state = sharedTransitionScope.rememberSharedContentState(backgroundId.orEmpty()),
+                                    sharedContentState = sharedTransitionScope.rememberSharedContentState(backgroundId.orEmpty()),
                                     animatedVisibilityScope = animatedContentScope,
                                 )
                                 .fillMaxWidth().aspectRatio(1.0f),

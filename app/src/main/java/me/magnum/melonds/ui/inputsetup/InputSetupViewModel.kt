@@ -57,7 +57,34 @@ class InputSetupViewModel @Inject constructor(private val settingsRepository: Se
         if (inputIndex >= 0) {
             _inputConfig.update { config ->
                 config.toMutableList().apply {
-                    this[inputIndex] = this[inputIndex].copy(assignment = assignment)
+                    val current = this[inputIndex]
+                    var primary = current.assignment
+                    var secondary = current.altAssignment
+                    when (assignment) {
+                        InputConfig.Assignment.None -> {
+                            primary = InputConfig.Assignment.None
+                            secondary = InputConfig.Assignment.None
+                        }
+                        is InputConfig.Assignment.Key -> {
+                            if (primary == InputConfig.Assignment.None || primary == assignment) {
+                                primary = assignment
+                            } else if (secondary == InputConfig.Assignment.None || secondary == assignment) {
+                                secondary = assignment
+                            } else {
+                                secondary = assignment
+                            }
+                        }
+                        is InputConfig.Assignment.Axis -> {
+                            if (primary == InputConfig.Assignment.None|| primary == assignment) {
+                                primary = assignment
+                            } else if (secondary == InputConfig.Assignment.None || secondary == assignment) {
+                                secondary = assignment
+                            } else {
+                                secondary = assignment
+                            }
+                        }
+                    }
+                    this[inputIndex] = current.copy(assignment = primary, altAssignment = secondary)
                 }.also {
                     onConfigsChanged(it)
                 }

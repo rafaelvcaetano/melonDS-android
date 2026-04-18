@@ -1,3 +1,5 @@
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <jni.h>
 #include <string>
 #include <sstream>
@@ -5,25 +7,26 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <cstdlib>
+#include <time.h>
 #include <MelonDS.h>
+#include <MelonDSAudio.h>
 #include <RomGbaSlotConfig.h>
-#include <InputAndroid.h>
 #include <android/asset_manager_jni.h>
 #include "UriFileHandler.h"
 #include "JniEnvHandler.h"
-#include "AndroidRACallback.h"
-#include "AndroidFrameRenderedCallback.h"
+#include "AndroidMelonEventMessenger.h"
 #include "MelonDSAndroidInterface.h"
 #include "MelonDSAndroidConfiguration.h"
 #include "MelonDSAndroidCameraHandler.h"
-#include "RAAchievementMapper.h"
+#include "RetroAchievementsMapper.h"
 
-#define MAX_CHEAT_SIZE (2*64)
+#include "Platform.h"
 
 enum GbaSlotType {
     NONE = 0,
     GBA_ROM = 1,
-    MEMORY_EXPANSION = 2,
+    RUMBLE_PAK = 2,
+    MEMORY_EXPANSION = 3,
 };
 
 void* emulate(void*);
@@ -38,41 +41,31 @@ bool stop;
 bool paused;
 std::atomic_bool isThreadReallyPaused = false;
 int observedFrames = 0;
-int fps = 0;
+float fps = 0;
 int targetFps;
 float fastForwardSpeedMultiplier;
 bool limitFps = true;
 bool isFastForwardEnabled = false;
 
-jobject globalAssetManager;
 jobject globalCameraManager;
-jobject androidRaCallback;
-jobject androidFrameRenderListener;
 MelonDSAndroidCameraHandler* androidCameraHandler;
-AndroidRACallback* raCallback;
-AndroidFrameRenderedCallback* frameRenderedCallback;
 
 extern "C"
 {
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject javaAssetManager, jobject cameraManager, jobject retroAchievementsCallback, jobject frameRenderListener, jobject screenshotBuffer, jlong glContext)
+Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jobject emulatorConfiguration, jobject cameraManager, jobject screenshotBuffer)
 {
     MelonDSAndroid::EmulatorConfiguration finalEmulatorConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
     fastForwardSpeedMultiplier = finalEmulatorConfiguration.fastForwardSpeedMultiplier;
 
-    globalAssetManager = env->NewGlobalRef(javaAssetManager);
     globalCameraManager = env->NewGlobalRef(cameraManager);
-    androidRaCallback = env->NewGlobalRef(retroAchievementsCallback);
-    androidFrameRenderListener = env->NewGlobalRef(frameRenderListener);
 
-    AAssetManager* assetManager = AAssetManager_fromJava(env, globalAssetManager);
+    auto androidEventMessenger = std::make_shared<AndroidMelonEventMessenger>();
     androidCameraHandler = new MelonDSAndroidCameraHandler(jniEnvHandler, globalCameraManager);
-    raCallback = new AndroidRACallback(jniEnvHandler, androidRaCallback);
-    frameRenderedCallback = new AndroidFrameRenderedCallback(jniEnvHandler, androidFrameRenderListener);
     u32* screenshotBufferPointer = (u32*) env->GetDirectBufferAddress(screenshotBuffer);
 
-    MelonDSAndroid::setConfiguration(finalEmulatorConfiguration);
-    MelonDSAndroid::setup(assetManager, androidCameraHandler, raCallback, frameRenderedCallback, screenshotBufferPointer, glContext, true);
+    MelonDSAndroid::setConfiguration(std::move(finalEmulatorConfiguration));
+    MelonDSAndroid::setup(androidCameraHandler, std::move(androidEventMessenger), screenshotBufferPointer, 0);
     paused = false;
 }
 
@@ -81,6 +74,7 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
 {
     jsize cheatCount = env->GetArrayLength(cheats);
     if (cheatCount < 1) {
+        MelonDSAndroid::setCodeList(std::list<MelonDSAndroid::Cheat>());
         return;
     }
 
@@ -92,14 +86,18 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
     for (int i = 0; i < cheatCount; ++i) {
         jobject cheat = env->GetObjectArrayElement(cheats, i);
         jstring code = (jstring) env->GetObjectField(cheat, codeField);
-        std::string codeString = env->GetStringUTFChars(code, JNI_FALSE);
+        const char* codeStringPtr = env->GetStringUTFChars(code, JNI_FALSE);
+        std::string codeString = codeStringPtr;
+        // Since each part of a cheat code has 8 characters (4 bytes), we can add 1 to the length (to ensure that each part has a matching space separator) and divide by 9
+        // (part length + space separator) to calculate the total number of parts in the cheat
+        size_t codeLength = (codeString.size() + 1) / 9;
 
         bool isBad = false;
-        int sectionCounter = 0;
         std::size_t start = 0;
         std::size_t end = 0;
 
         MelonDSAndroid::Cheat internalCheat;
+        internalCheat.code.reserve(codeLength);
 
         // Split code string into sections separated by a space
         while ((end = codeString.find(' ', start)) != std::string::npos) {
@@ -114,13 +112,7 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
 
                 unsigned long section = strtoul(sectionString.c_str(), &endPointer, 16);
                 if (*endPointer == 0) {
-                    if (sectionCounter >= MAX_CHEAT_SIZE) {
-                        isBad = true;
-                        break;
-                    }
-
-                    internalCheat.code[sectionCounter] = (u32) section;
-                    sectionCounter++;
+                    internalCheat.code.push_back((u32) section);
                 } else {
                     isBad = true;
                     break;
@@ -136,20 +128,16 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
                 isBad = true;
             } else {
                 unsigned long section = strtoul(sectionString.c_str(), &endPointer, 16);
-                if (*endPointer == 0 && sectionCounter < MAX_CHEAT_SIZE) {
-                    internalCheat.code[sectionCounter] = (u32) section;
-                    sectionCounter++;
-                } else {
-                    isBad = true;
-                }
+                internalCheat.code.push_back((u32) section);
             }
         }
+
+        env->ReleaseStringUTFChars(code, codeStringPtr);
 
         if (isBad) {
             continue;
         }
 
-        internalCheat.codeLength = sectionCounter;
         internalCheats.push_back(internalCheat);
     }
 
@@ -157,34 +145,32 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
 }
 
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_setupAchievements(JNIEnv* env, jobject thiz, jobjectArray achievements, jstring richPresenceScript)
+Java_me_magnum_melonds_MelonEmulator_setupAchievements(JNIEnv* env, jobject thiz, jobjectArray achievements, jobjectArray leaderboards, jstring richPresenceScript)
 {
-    std::list<RetroAchievements::RAAchievement> internalAchievements;
+    std::list<MelonDSAndroid::RetroAchievements::RAAchievement> internalAchievements;
+    std::list<MelonDSAndroid::RetroAchievements::RALeaderboard> internalLeaderboards;
     mapAchievementsFromJava(env, achievements, internalAchievements);
+    mapLeaderboardsFromJava(env, leaderboards, internalLeaderboards);
 
-    std::string* richPresence = nullptr;
+    std::optional<std::string> richPresence = std::nullopt;
 
     if (richPresenceScript != nullptr)
     {
         jboolean isStringCopy;
         const char* richPresenceString = env->GetStringUTFChars(richPresenceScript, &isStringCopy);
-        richPresence = new std::string(richPresenceString);
+        richPresence = richPresenceString;
 
         if (isStringCopy)
             env->ReleaseStringUTFChars(richPresenceScript, richPresenceString);
     }
 
-    MelonDSAndroid::setupAchievements(internalAchievements, richPresence);
-    delete richPresence;
+    MelonDSAndroid::setupAchievements(internalAchievements, internalLeaderboards, richPresence);
 }
 
 JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_unloadAchievements(JNIEnv* env, jobject thiz, jobjectArray achievements)
+Java_me_magnum_melonds_MelonEmulator_unloadRetroAchievementsData(JNIEnv* env, jobject thiz)
 {
-    std::list<RetroAchievements::RAAchievement> internalAchievements;
-    mapAchievementsFromJava(env, achievements, internalAchievements);
-
-    MelonDSAndroid::unloadAchievements(internalAchievements);
+    MelonDSAndroid::unloadRetroAchievementsData();
 }
 
 JNIEXPORT jstring JNICALL
@@ -197,6 +183,26 @@ Java_me_magnum_melonds_MelonEmulator_getRichPresenceStatus(JNIEnv* env, jobject 
         return env->NewStringUTF(richPresenceString.c_str());
 }
 
+JNIEXPORT jobjectArray JNICALL
+Java_me_magnum_melonds_MelonEmulator_getRuntimeAchievements(JNIEnv* env, jobject thiz)
+{
+    jclass simpleRuntimeAchievementClass = env->FindClass("me/magnum/melonds/domain/model/retroachievements/RASimpleRuntimeAchievement");
+    jmethodID simpleRuntimeAchievementConstructor = env->GetMethodID(simpleRuntimeAchievementClass, "<init>", "(JII)V");
+
+    auto runtimeAchievements = MelonDSAndroid::getRuntimeAchievements();
+
+    jobjectArray achievements = env->NewObjectArray(runtimeAchievements.size(), simpleRuntimeAchievementClass, nullptr);
+
+    int index = 0;
+    for (const auto &item: runtimeAchievements)
+    {
+        jobject simpleRuntimeAchievement = env->NewObject(simpleRuntimeAchievementClass, simpleRuntimeAchievementConstructor, item.id, (jint) item.value, (jint) item.target);
+        env->SetObjectArrayElement(achievements, index++, simpleRuntimeAchievement);
+    }
+
+    return achievements;
+}
+
 JNIEXPORT jint JNICALL
 Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jobject thiz, jstring romPath, jstring sramPath, jint gbaSlotType, jstring gbaRomPath, jstring gbaSramPath)
 {
@@ -207,7 +213,7 @@ Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jobject thiz, 
     const char* gbaSram = gbaSramPath == nullptr ? nullptr : env->GetStringUTFChars(gbaSramPath, &isCopy);
 
     MelonDSAndroid::RomGbaSlotConfig* gbaSlotConfig = buildGbaSlotConfig((GbaSlotType) gbaSlotType, gbaRom, gbaSram);
-    int result = MelonDSAndroid::loadRom(const_cast<char*>(rom), const_cast<char*>(sram), gbaSlotConfig);
+    int result = MelonDSAndroid::loadRom(rom, sram, gbaSlotConfig);
     delete gbaSlotConfig;
 
     if (isCopy == JNI_TRUE) {
@@ -242,7 +248,46 @@ Java_me_magnum_melonds_MelonEmulator_startEmulation(JNIEnv* env, jobject thiz)
     started = true;
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT void JNICALL
+Java_me_magnum_melonds_MelonEmulator_presentFrame(JNIEnv* env, jobject thiz, jlong deadlineNs, jobject renderFrameCallback)
+{
+    jclass presentFrameWrapperClass = env->GetObjectClass(renderFrameCallback);
+    jmethodID renderFrameMethodId = env->GetMethodID(presentFrameWrapperClass, "renderFrame", "(ZI)V");
+
+    std::optional<std::chrono::time_point<std::chrono::steady_clock>> deadlineTime;
+    if (deadlineNs > 0)
+    {
+        std::chrono::nanoseconds deadline(deadlineNs);
+        deadlineTime = std::make_optional(std::chrono::time_point<std::chrono::steady_clock>(deadline));
+    }
+    else
+    {
+        deadlineTime = std::nullopt;
+    }
+
+    Frame* presentationFrame = MelonDSAndroid::getPresentationFrame(deadlineTime);
+    EGLDisplay currentDisplay = eglGetCurrentDisplay();
+
+    if (presentationFrame != nullptr && presentationFrame->presentFence)
+    {
+        eglDestroySyncKHR(currentDisplay, presentationFrame->presentFence);
+        presentationFrame->presentFence = 0;
+    }
+
+    if (presentationFrame != nullptr)
+    {
+        eglWaitSyncKHR(currentDisplay, presentationFrame->renderFence, 0);
+        env->CallVoidMethod(renderFrameCallback, renderFrameMethodId, true, (jint) presentationFrame->frameTexture);
+        EGLSyncKHR presentFence = eglCreateSyncKHR(currentDisplay, EGL_SYNC_FENCE_KHR, nullptr);
+        presentationFrame->presentFence = presentFence;
+    }
+    else
+    {
+        env->CallVoidMethod(renderFrameCallback, renderFrameMethodId, false, 0);
+    }
+}
+
+JNIEXPORT jfloat JNICALL
 Java_me_magnum_melonds_MelonEmulator_getFPS(JNIEnv* env, jobject thiz)
 {
     return fps;
@@ -287,10 +332,8 @@ Java_me_magnum_melonds_MelonEmulator_resumeEmulation(JNIEnv* env, jobject thiz)
     MelonDSAndroid::resume();
 }
 
-JNIEXPORT jboolean JNICALL
+JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_resetEmulation(JNIEnv* env, jobject thiz) {
-    bool result = true;
-
     pthread_mutex_lock(&emuThreadMutex);
     if (!stop) {
         if (paused) {
@@ -302,14 +345,12 @@ Java_me_magnum_melonds_MelonEmulator_resetEmulation(JNIEnv* env, jobject thiz) {
 
         // Make sure that the thread is really paused to avoid data corruption
         while (!isThreadReallyPaused);
-        result = MelonDSAndroid::reset();
+        MelonDSAndroid::reset();
         Java_me_magnum_melonds_MelonEmulator_resumeEmulation(env, thiz);
     } else {
         // If the emulation is stopping, just ignore it
         pthread_mutex_unlock(&emuThreadMutex);
     }
-
-    return result;
 }
 
 JNIEXPORT jboolean JNICALL
@@ -342,18 +383,21 @@ Java_me_magnum_melonds_MelonEmulator_loadRewindState(JNIEnv* env, jobject thiz, 
 
         jclass rewindSaveStateClass = env->FindClass("me/magnum/melonds/ui/emulator/rewind/model/RewindSaveState");
         jfieldID bufferField = env->GetFieldID(rewindSaveStateClass, "buffer", "Ljava/nio/ByteBuffer;");
+        jfieldID bufferContentSizeField = env->GetFieldID(rewindSaveStateClass, "bufferContentSize", "J");
         jfieldID screenshotBufferField = env->GetFieldID(rewindSaveStateClass, "screenshotBuffer", "Ljava/nio/ByteBuffer;");
         jfieldID frameField = env->GetFieldID(rewindSaveStateClass, "frame", "I");
         jobject buffer = env->GetObjectField(rewindSaveState, bufferField);
+        jlong bufferContentSize = env->GetLongField(rewindSaveState, bufferContentSizeField);
         jobject screenshotBuffer = env->GetObjectField(rewindSaveState, screenshotBufferField);
         jint frame = (int) env->GetIntField(rewindSaveState, frameField);
 
         // Make sure that the thread is really paused to avoid data corruption
         while (!isThreadReallyPaused);
 
-        RewindManager::RewindSaveState state = RewindManager::RewindSaveState {
+        melonDS::RewindSaveState state = melonDS::RewindSaveState {
             .buffer = (u8*) env->GetDirectBufferAddress(buffer),
             .bufferSize = (u32) env->GetDirectBufferCapacity(buffer),
+            .bufferContentSize = (u32) bufferContentSize,
             .screenshot = (u8*) env->GetDirectBufferAddress(screenshotBuffer),
             .screenshotSize = (u32) env->GetDirectBufferCapacity(screenshotBuffer),
             .frame = frame
@@ -378,7 +422,7 @@ Java_me_magnum_melonds_MelonEmulator_getRewindWindow(JNIEnv* env, jobject thiz) 
     auto currentRewindWindow = MelonDSAndroid::getRewindWindow();
 
     jclass rewindSaveStateClass = env->FindClass("me/magnum/melonds/ui/emulator/rewind/model/RewindSaveState");
-    jmethodID rewindSaveStateConstructor = env->GetMethodID(rewindSaveStateClass, "<init>", "(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;I)V");
+    jmethodID rewindSaveStateConstructor = env->GetMethodID(rewindSaveStateClass, "<init>", "(Ljava/nio/ByteBuffer;JLjava/nio/ByteBuffer;I)V");
 
     jclass listClass = env->FindClass("java/util/ArrayList");
     jmethodID listConstructor = env->GetMethodID(listClass, "<init>", "()V");
@@ -389,7 +433,7 @@ Java_me_magnum_melonds_MelonEmulator_getRewindWindow(JNIEnv* env, jobject thiz) 
     for (auto state : currentRewindWindow.rewindStates) {
         jobject stateBuffer = env->NewDirectByteBuffer(state.buffer, state.bufferSize);
         jobject stateScreenshot = env->NewDirectByteBuffer(state.screenshot, state.screenshotSize);
-        jobject rewindSaveState = env->NewObject(rewindSaveStateClass, rewindSaveStateConstructor, stateBuffer, stateScreenshot, state.frame);
+        jobject rewindSaveState = env->NewObject(rewindSaveStateClass, rewindSaveStateConstructor, stateBuffer, (jlong) state.bufferContentSize, stateScreenshot, state.frame);
         env->CallVoidMethod(rewindStateList, listAddMethod, index++, rewindSaveState);
     }
 
@@ -416,19 +460,13 @@ Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
         pthread_cond_destroy(&emuThreadCond);
     }
 
-    env->DeleteGlobalRef(globalAssetManager);
-    env->DeleteGlobalRef(globalCameraManager);
-    env->DeleteGlobalRef(androidRaCallback);
-    env->DeleteGlobalRef(androidFrameRenderListener);
+    MelonDSAndroid::cleanup();
 
-    globalAssetManager = nullptr;
+    env->DeleteGlobalRef(globalCameraManager);
+
     globalCameraManager = nullptr;
-    androidRaCallback = nullptr;
-    androidFrameRenderListener = nullptr;
 
     delete androidCameraHandler;
-    delete raCallback;
-    delete frameRenderedCallback;
 }
 
 JNIEXPORT void JNICALL
@@ -472,9 +510,9 @@ JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_setMicrophoneEnabled(JNIEnv* env, jobject thiz, jboolean enabled)
 {
     if (enabled)
-        MelonDSAndroid::enableMic();
+        MelonDSAndroid::userEnableMic();
     else
-        MelonDSAndroid::disableMic();
+        MelonDSAndroid::userDisableMic();
 }
 
 JNIEXPORT void JNICALL
@@ -482,8 +520,9 @@ Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jo
 {
     MelonDSAndroid::EmulatorConfiguration newConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
 
-    MelonDSAndroid::updateEmulatorConfiguration(newConfiguration);
     fastForwardSpeedMultiplier = newConfiguration.fastForwardSpeedMultiplier;
+
+    MelonDSAndroid::updateEmulatorConfiguration(std::make_unique<MelonDSAndroid::EmulatorConfiguration>(std::move(newConfiguration)));
 
     if (isFastForwardEnabled) {
         limitFps = fastForwardSpeedMultiplier > 0;
@@ -502,6 +541,10 @@ MelonDSAndroid::RomGbaSlotConfig* buildGbaSlotConfig(GbaSlotType slotType, const
         };
         return (MelonDSAndroid::RomGbaSlotConfig*) gbaSlotConfigGbaRom;
     }
+    else if (slotType == GbaSlotType::RUMBLE_PAK)
+    {
+        return (MelonDSAndroid::RomGbaSlotConfig*) new MelonDSAndroid::RomGbaSlotRumblePak;
+    }
     else if (slotType == GbaSlotType::MEMORY_EXPANSION)
     {
         return (MelonDSAndroid::RomGbaSlotConfig*) new MelonDSAndroid::RomGbaSlotConfigMemoryExpansion;
@@ -514,7 +557,7 @@ MelonDSAndroid::RomGbaSlotConfig* buildGbaSlotConfig(GbaSlotType slotType, const
 
 double getCurrentMillis() {
     timespec now;
-    clock_gettime(CLOCK_REALTIME, &now);
+    clock_gettime(CLOCK_MONOTONIC, &now);
     return (now.tv_sec * 1000.0) + now.tv_nsec / 1000000.0;
 }
 
@@ -535,6 +578,8 @@ void* emulate(void*)
             while (paused && !stop)
                 pthread_cond_wait(&emuThreadCond, &emuThreadMutex);
 
+            frameLimitError = 0;
+            lastTick = getCurrentMillis();
             isThreadReallyPaused = false;
         }
 
@@ -545,48 +590,51 @@ void* emulate(void*)
 
         pthread_mutex_unlock(&emuThreadMutex);
 
-        MelonDSAndroid::updateMic();
         u32 nLines = MelonDSAndroid::loop();
 
         double currentTick = getCurrentMillis();
         double delay = currentTick - lastTick;
 
+        // All times are in ms
+        double frameTimeStep = (double) nLines / ((float) targetFps * 263.0) * 1000.0;
+        if (frameTimeStep < 1)
+            frameTimeStep = 1;
+
         if (limitFps)
         {
-            float frameRate = (1000.0 * nLines) / ((float) targetFps * 263.0f);
-
-            frameLimitError += frameRate - delay;
-            if (frameLimitError < -frameRate)
-                frameLimitError = -frameRate;
-            if (frameLimitError > frameRate)
-                frameLimitError = frameRate;
+            frameLimitError += frameTimeStep - delay;
+            if (frameLimitError < -frameTimeStep)
+                frameLimitError = -frameTimeStep;
+            if (frameLimitError > frameTimeStep)
+                frameLimitError = frameTimeStep;
 
             if (round(frameLimitError) > 0.0)
             {
-                usleep(frameLimitError * 1000);
-                double timeBeforeSleep = currentTick;
-                currentTick = getCurrentMillis();
-                frameLimitError -= currentTick -timeBeforeSleep;
+                timespec sleepTime = {
+                    .tv_sec = 0,
+                    .tv_nsec = (long) (frameLimitError * 1000000),
+                };
+                clock_nanosleep(CLOCK_MONOTONIC, 0, &sleepTime, nullptr);
+                double timeAfterSleep = getCurrentMillis();
+                frameLimitError -= timeAfterSleep - currentTick;
+                currentTick = timeAfterSleep;
             }
 
             lastTick = currentTick;
         } else {
-            if (delay < 1)
-                usleep(1000);
-
+            frameLimitError = 0;
             lastTick = getCurrentMillis();
         }
 
         observedFrames++;
         if (observedFrames >= 30) {
-            double currentFpsTick = getCurrentMillis();
-            fps = (int) (observedFrames * 1000.0) / (currentFpsTick - lastMeasureFpsTick);
-            lastMeasureFpsTick = currentFpsTick;
+            fps = (observedFrames * 1000.0) / (lastTick - lastMeasureFpsTick);
+            lastMeasureFpsTick = lastTick;
             observedFrames = 0;
         }
 
     }
 
-    MelonDSAndroid::cleanup();
+    MelonDSAndroid::stop();
     pthread_exit(NULL);
 }

@@ -7,27 +7,41 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
     }
 
     companion object {
+        private const val TEXTURE_WIDTH = 256
+        private const val TEXTURE_HEIGHT = 192 * 2 + 2
+
         private const val DEFAULT_VERT_SHADER = "attribute vec2 vUV;\n" +
                 "attribute vec2 vPos;\n" +
+                "attribute float vAlpha;\n" +
                 "varying vec2 uv;\n" +
+                "varying float alpha;\n" +
                 "void main()\n" +
                 "{\n" +
                 "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                 "    uv = vUV;\n" +
+                "    alpha = vAlpha;\n" +
                 "}"
 
         private const val DEFAULT_FRAG_SHADER = "precision mediump float;\n" +
                 "uniform sampler2D tex;\n" +
                 "varying vec2 uv;\n" +
+                "varying float alpha;\n" +
                 "void main()\n" +
                 "{\n" +
                 "    vec4 color = texture2D(tex, uv);\n" +
-                "    gl_FragColor = vec4(color.bgr, 1);\n" +
+                "    gl_FragColor = vec4(color.bgr, alpha);\n" +
                 "}"
 
         val BackgroundShader = ShaderProgramSource(
             TextureFiltering.LINEAR,
-            DEFAULT_VERT_SHADER,
+            "attribute vec2 vUV;\n" +
+                    "attribute vec2 vPos;\n" +
+                    "varying vec2 uv;\n" +
+                    "void main()\n" +
+                    "{\n" +
+                    "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
+                    "    uv = vUV;\n" +
+                    "}",
             "precision mediump float;\n" +
                     "uniform sampler2D tex;\n" +
                     "varying vec2 uv;\n" +
@@ -56,13 +70,16 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
             TextureFiltering.NEAREST,
                 "attribute vec2 vPos;\n" +
                     "attribute vec2 vUV;\n" +
+                    "attribute float vAlpha;\n" +
                     "varying vec2 uv;\n" +
+                    "varying float alpha;\n" +
                     "varying vec2 omega;\n" +
                     "" +
                     "void main() {\n" +
                     "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                     "    uv = vUV;\n" +
-                    "    omega = 3.141592654 * 2.0 * vec2(256, 384);\n" +
+                    "    alpha = vAlpha;\n" +
+                    "    omega = 3.141592654 * 2.0 * vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
                     "}",
             "#ifdef GL_FRAGMENT_PRECISION_HIGH\n" +
                     "precision highp float;\n" +
@@ -71,6 +88,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "#endif\n" +
                     "uniform sampler2D tex;\n" +
                     "varying vec2 uv;\n" +
+                    "varying float alpha;\n" +
                     "varying vec2 omega;\n" +
                     "" +
                     "/* configuration (higher values mean brighter image but reduced effect depth) */\n" +
@@ -86,6 +104,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "    vec3 xfactors = (brighten_lcd + sin(angle.x + offsets)) / (brighten_lcd + 1.0);\n" +
                     "" +
                     "    gl_FragColor.rgb = yfactor * xfactors * texture2D(tex, uv).bgr;\n" +
+                    "    gl_FragColor.a = alpha;\n" +
                     "}"
         )
 
@@ -95,17 +114,20 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
             TextureFiltering.NEAREST,
                 "attribute vec2 vPos;\n" +
                     "attribute vec2 vUV;\n" +
+                    "attribute float vAlpha;\n" +
                     "varying vec2 uv;\n" +
+                    "varying float alpha;\n" +
                     "varying vec2 omega;\n" +
                     "" +
-                    "vec2 inputSize = vec2(256, 384);\n" + // What is this?
-                    "vec2 outputSize = vec2(256, 384);\n" + // What is this?
+                    "vec2 inputSize = vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" + // What is this?
+                    "vec2 outputSize = vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" + // What is this?
                     "" +
                     "void main()\n" +
                     "{\n" +
                     "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                     "    uv = vUV;\n" +
-                    "    vec2 textureSize = vec2(256, 384);\n" +
+                    "    vec2 textureSize = vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
+                    "    alpha = vAlpha;\n" +
                     "    omega = vec2(3.1415 * outputSize.x * textureSize.x / inputSize.x, 2.0 * 3.1415 * textureSize.y);\n" +
                     "}",
             "#ifdef GL_FRAGMENT_PRECISION_HIGH\n" +
@@ -115,6 +137,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "#endif\n" +
                     "" +
                     "uniform sampler2D tex;\n" +
+                    "varying float alpha;\n" +
                     "varying vec2 uv;\n" +
                     "varying vec2 omega;\n" +
                     "" +
@@ -123,7 +146,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "" +
                     "void main ()\n" +
                     "{\n" +
-                    "    vec4 color = texture2D(tex, uv).bgra;\n" +
+                    "    vec4 color = vec4(texture2D(tex, uv).bgr, alpha);\n" +
                     "" +
                     "    vec4 scanline = color * (base_brightness + dot(sine_comp * sin(uv * omega), vec2(1.0)));\n" +
                     "    gl_FragColor = clamp(scanline, 0.0, 1.0);\n" +
@@ -151,13 +174,16 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
             TextureFiltering.NEAREST,
                 "attribute vec2 vPos;\n" +
                     "attribute vec2 vUV;\n" +
+                    "attribute float vAlpha;\n" +
                     "varying vec2 uv[3];\n" +
+                    "varying float alpha;\n" +
                     "" +
                     "void main() {\n" +
-                    "    vec2 ps = 1.0 / vec2(256, 384);\n" +
+                    "    vec2 ps = 1.0 / vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
                     "    uv[0] = vUV;\n" +
                     "    uv[1] = vec2(0.0, -ps.y);\n" +
                     "    uv[2] = vec2(-ps.x, 0.0);\n" +
+                    "    alpha = vAlpha;\n" +
                     "" +
                     "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                     "}",
@@ -168,6 +194,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "#endif\n" +
                     "uniform sampler2D tex;\n" +
                     "varying vec2 uv[3];\n" +
+                    "varying float alpha;\n" +
                     "" +
                     "const vec3 dtt = vec3(65536.0, 255.0, 1.0);\n" +
                     "" +
@@ -176,7 +203,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "}\n" +
                     "" +
                     "void main() {\n" +
-                    "    vec2 fp = fract(uv[0] * vec2(256, 384));\n" +
+                    "    vec2 fp = fract(uv[0] * vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT));\n" +
                     "" +
                     "    vec2 g1 = uv[1] * (step(0.5, fp.x) + step(0.5, fp.y) - 1.0) +\n" +
                     "            uv[2] * (step(0.5, fp.x) - step(0.5, fp.y));\n" +
@@ -207,6 +234,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "    {\n" +
                     "        gl_FragColor.rgb = mix(E, F, 0.5);\n" +
                     "    }\n" +
+                    "    gl_FragColor.a = alpha;\n" +
                     "}"
         )
 
@@ -214,10 +242,12 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
             TextureFiltering.NEAREST,
                 "attribute vec2 vPos;\n" +
                     "attribute vec2 vUV;\n" +
+                    "attribute float vAlpha;\n" +
                     "varying vec4 uv[5];\n" +
+                    "varying float alpha;\n" +
                     "" +
                     "void main() {\n" +
-                    "    vec2 dg1 = 0.5 / vec2(256, 384);\n" +
+                    "    vec2 dg1 = 0.5 / vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
                     "    vec2 dg2 = vec2(-dg1.x, dg1.y);\n" +
                     "    vec2 dx = vec2(dg1.x, 0.0);\n" +
                     "    vec2 dy = vec2(0.0, dg1.y);\n" +
@@ -231,6 +261,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "    uv[3].zw = vUV + dy;\n" +
                     "    uv[4].xy = vUV + dg2;\n" +
                     "    uv[4].zw = vUV - dx;\n" +
+                    "    alpha = vAlpha;\n" +
                     "" +
                     "    gl_Position = vec4(vPos, 0.0, 1.0);\n" +
                     "}",
@@ -241,6 +272,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "#endif\n" +
                     "uniform sampler2D tex;\n" +
                     "varying vec4 uv[5];\n" +
+                    "varying float alpha;\n" +
                     "" +
                     "    const float mx = 0.325;      // start smoothing wt.\n" +
                     "    const float k = -0.250;      // wt. decrease factor\n" +
@@ -283,6 +315,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "    w4 = clamp(lc2 * dot(abs(c11 - c01), dt) + mx, min_w, max_w);\n" +
                     "" +
                     "    gl_FragColor.bgr = w1 * c10 + w2 * c21 + w3 * c12 + w4 * c01 + (1.0 - w1 - w2 - w3 - w4) * c11;\n" +
+                    "    gl_FragColor.a = alpha;\n" +
                     "}"
         )
 
@@ -307,11 +340,13 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
             TextureFiltering.NEAREST,
                 "attribute vec2 vPos;\n" +
                     "attribute vec2 vUV;\n" +
+                    "attribute float vAlpha;\n" +
                     "varying vec4 uv[7];\n" +
+                    "varying float alpha;\n" +
                     "" +
                     "void main()\n" +
                     "{\n" +
-                    "    vec2 dg1 = 0.5 / vec2(256, 384);\n" +
+                    "    vec2 dg1 = 0.5 / vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
                     "    vec2 dg2 = vec2(-dg1.x, dg1.y);\n" +
                     "    vec2 sd1 = dg1 * 0.5;\n" +
                     "    vec2 sd2 = dg2 * 0.5;\n" +
@@ -332,6 +367,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "    uv[2].zw = vUV + ddx;\n" +
                     "    uv[3].zw = vUV + ddy;\n" +
                     "    uv[4].zw = vUV - ddx;\n" +
+                    "    alpha = vAlpha;\n" +
                     "}",
             "#ifdef GL_FRAGMENT_PRECISION_HIGH\n" +
                     "precision highp float;\n" +
@@ -340,6 +376,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "#endif\n" +
                     "uniform sampler2D tex;\n" +
                     "varying vec4 uv[7];\n" +
+                    "varying float alpha;\n" +
                     "" +
                     "const float mx = 1.00;      // start smoothing wt.\n" +
                     "const float k = -1.10;      // wt. decrease factor\n" +
@@ -390,6 +427,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "    w4 = clamp(w4+mx,min_w,max_w);\n" +
                     "" +
                     "    gl_FragColor.rgb = (w1*(i1+i3)+w2*(i2+i4)+w3*(s1+s3)+w4*(s2+s4)+c)/(2.0*(w1+w2+w3+w4)+1.0);\n" +
+                    "    gl_FragColor.a = alpha;\n" +
                     "}"
         )
 
@@ -404,10 +442,11 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "precision mediump float;\n" +
                     "#endif\n" +
                     "uniform sampler2D tex;\n" +
+                    "varying float alpha;\n" +
                     "varying vec2 uv;\n" +
                     "" +
                     "vec4 getTexel(vec2 p) {\n" +
-                    "    vec2 textureSize = vec2(256, 384);\n" +
+                    "    vec2 textureSize = vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
                     "    p = p * textureSize + vec2(0.5);\n" +
                     "" +
                     "    vec2 i = floor(p);\n" +
@@ -420,7 +459,7 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
                     "}\n" +
                     "" +
                     "void main() {\n" +
-                    "    gl_FragColor = getTexel(uv).bgra;\n" +
+                    "    gl_FragColor = vec4(getTexel(uv).bgr, alpha);\n" +
                     "}"
         )
     }

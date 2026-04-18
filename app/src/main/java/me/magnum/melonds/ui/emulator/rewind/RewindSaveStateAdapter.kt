@@ -13,7 +13,9 @@ import me.magnum.melonds.databinding.ItemRewindSaveStateBinding
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 import java.text.DecimalFormat
-import java.time.Duration
+import kotlin.time.Duration
+import androidx.core.graphics.drawable.toDrawable
+import kotlin.time.Duration.Companion.minutes
 
 class RewindSaveStateAdapter(private val onRewindSaveStateSelected: (RewindSaveState) -> Unit) : RecyclerView.Adapter<RewindSaveStateAdapter.RewindSaveStateViewHolder>() {
 
@@ -26,7 +28,7 @@ class RewindSaveStateAdapter(private val onRewindSaveStateSelected: (RewindSaveS
         private lateinit var state: RewindSaveState
 
         fun setRewindSaveState(state: RewindSaveState, window: RewindWindow) {
-            val screenshotDrawable = BitmapDrawable(context.resources, state.screenshot)
+            val screenshotDrawable = state.screenshot.toDrawable(context.resources)
             val durationToState = window.getDeltaFromEmulationTimeToRewindState(state)
 
             binding.imageScreenshot.setImageDrawable(screenshotDrawable)
@@ -39,12 +41,12 @@ class RewindSaveStateAdapter(private val onRewindSaveStateSelected: (RewindSaveS
         }
 
         private fun getDurationString(context: Context, duration: Duration): String {
-            val minutes = duration.toMinutes()
+            val minutes = duration.inWholeMinutes.toInt()
             return if (minutes >= 1) {
-                val seconds = duration.minusMinutes(minutes).toMillis() / 1000f
+                val seconds = (duration.inWholeMilliseconds - minutes.minutes.inWholeMilliseconds) / 1000f
                 context.getString(R.string.rewind_time_minutes_seconds, minutes, SECONDS_FORMATTER.format(seconds))
             } else {
-                val seconds = duration.toMillis() / 1000f
+                val seconds = duration.inWholeMilliseconds / 1000f
                 context.getString(R.string.rewind_time_seconds, SECONDS_FORMATTER.format(seconds))
             }
         }

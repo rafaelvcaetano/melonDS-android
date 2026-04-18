@@ -4,8 +4,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import me.magnum.melonds.common.camera.DSiCameraSource
 import me.magnum.melonds.common.camera.CameraType
+import me.magnum.melonds.common.camera.DSiCameraSource
 import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
 import me.magnum.melonds.domain.repositories.SettingsRepository
 
@@ -25,20 +25,23 @@ class DSiCameraSourceMultiplexer(
 
     init {
         coroutineScope.launch {
-            settingsRepository.observeDSiCameraSource().collect {
+            settingsRepository.observeDSiCameraSource().collect { cameraSourceType ->
                 val cameraState = currentCameraState
                 if (cameraState is CurrentCameraState.Running) {
                     activeDSiCameraSource?.stopCamera(cameraState.activeCamera)
                 }
 
-                activeDSiCameraSource = dsiCameraSources[it]?.also { newCameraManager ->
+                val newCameraSource = dsiCameraSources[cameraSourceType]?.takeIf { it.isAvailable() } ?: dsiCameraSources[DSiCameraSourceType.BLACK_SCREEN]
+                activeDSiCameraSource = newCameraSource?.also {
                     if (cameraState is CurrentCameraState.Running) {
-                        newCameraManager.startCamera(cameraState.activeCamera)
+                        it.startCamera(cameraState.activeCamera)
                     }
                 }
             }
         }
     }
+
+    override fun isAvailable() = true
 
     override fun startCamera(camera: CameraType) {
         currentCameraState = CurrentCameraState.Running(camera)

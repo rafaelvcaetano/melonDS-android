@@ -21,4 +21,28 @@
             android:summary="@string/enable_jit_summary"
             app:iconSpaceReserved="false"
             android:defaultValue="true" />
+
+    <Preference
+            android:key="backup_internal_layout"
+            android:title="@string/backup_internal_layout"
+            app:isPreferenceVisible="@bool/settings_backup_restore_enabled"
+            app:iconSpaceReserved="false" />
+
+    <Preference
+            android:key="backup_external_layout"
+            android:title="@string/backup_external_layout"
+            app:isPreferenceVisible="false"
+            app:iconSpaceReserved="false" />
+
+    <Preference
+            android:key="restore_internal_layout"
+            android:title="@string/restore_internal_layout"
+            app:isPreferenceVisible="@bool/settings_backup_restore_enabled"
+            app:iconSpaceReserved="false" />
+
+    <Preference
+            android:key="restore_external_layout"
+            android:title="@string/restore_external_layout"
+            app:isPreferenceVisible="false"
+            app:iconSpaceReserved="false" />
 </PreferenceScreen>

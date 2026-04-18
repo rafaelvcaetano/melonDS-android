@@ -8,6 +8,7 @@ import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.squareup.picasso.Picasso
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,6 +23,8 @@ import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.common.uridelegates.CompositeUriHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
+import me.magnum.melonds.impl.system.AppForegroundStateObserver
+import me.magnum.melonds.impl.system.AppForegroundStateTracker
 import me.magnum.melonds.utils.UriTypeHierarchyAdapter
 import javax.inject.Singleton
 
@@ -91,5 +94,16 @@ object AppModule {
     @Singleton
     fun providePermissionHandler(@ApplicationContext context: Context): PermissionHandler {
         return PermissionHandler(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAppForegroundStateTracker(): AppForegroundStateTracker {
+        return AppForegroundStateTracker()
+    }
+
+    @Provides
+    fun provideAppForegroundStateObserver(appForegroundStateTracker: AppForegroundStateTracker): AppForegroundStateObserver {
+        return appForegroundStateTracker
     }
 }

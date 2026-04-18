@@ -20,6 +20,7 @@
     <string name="play">Play</string>
     <string name="save">Save</string>
     <string name="ellipsis">…</string>
+    <string name="navigate_back">Back</string>
 
     <string name="version_alpha">Alpha</string>
     <string name="version_beta">Beta</string>
@@ -89,6 +90,8 @@
     <string name="no_dsiware_roms_found">No DSiWare ROMs found</string>
 
     <string name="info_fps">FPS: %1$d</string>
+    <string name="info_play_time_hours_minutes">Play time: %1$dh %2$dm</string> <!-- Ex: 4h 28m -->
+    <string name="info_play_time_minutes">Play time: %1$dm</string> <!-- Ex: 28m -->
     <string name="info_loading">LOADING…</string>
     <string name="save_state_slot">%1$s.</string>
     <string name="failed_save_state">Failed to save state</string>
@@ -103,6 +106,8 @@
     <string name="rewind_unavailable_ra_hardcore_enabled">Rewind is unavailable while Hardcore mode is enabled</string>
     <string name="no_image_selected">No image selected</string>
     <string name="failed_to_load_image">Failed to load image</string>
+    <string name="emulator_stop_gba_mode_unsupported">GBA mode is not supported</string>
+    <string name="emulator_stop_internal_error">An error was encountered during the ROM\'s execution</string>
 
     <string name="action_sort_alphabetically">Alphabetically</string>
     <string name="action_sort_recently_played">Recently played</string>
@@ -117,16 +122,26 @@
     <string name="storage_permission_required">Storage permission required</string>
     <string name="storage_permission_required_info">Storage permission is required to load ROMs from your device. Please grant access to storage on the next dialog.</string>
     <string name="microphone_permission_required">Audio recording permission required</string>
-    <string name="microphone_permission_required_info">Audio recording permission is required to send microphone data to the emulator. Please grant access to storage on the next dialog.</string>
+    <string name="microphone_permission_required_info">Audio recording permission is required to send microphone data to the emulator. Please grant microphone access permission on the next dialog.</string>
+    <string name="system_file_picker_not_found">Your device does not have a file picker. Without one, this emulator will not work</string>
+    <string name="system_file_picker_not_enabled">Your device\'s file picker is disabled. Please enable it</string>
+    <string name="file_picker_settings">File picker settings</string>
     <string name="no_rom_search_directory_specified">No ROM search directory specified</string>
     <string name="set_rom_directory">Set ROM directory</string>
     <string name="error_invalid_directory">Invalid directory</string>
     <string name="error_invalid_directory_description">It\'s not possible to write to the selected directory. Please select a different one. If you are selecting a compressed file, try extracting its contents.</string>
     <string name="no_roms_found">No ROMs found</string>
-    <string name="dsiware_title_cannot_be_launched_directly_title">DSiWare titles cannot be launched</string>
-    <string name="dsiware_title_cannot_be_launched_directly_message">DSiWare titles cannot be launched directly. They must be installed to the NAND (through the DSiWare Manager) and launched from the DSi firmware.</string>
+    <string name="rom_launch_failed">Failed to launch ROM</string>
+    <string name="rom_launch_custom_bios_firmware_bad_setup">This ROM is set to run using a custom BIOS and firmware, but it\'s not properly configured.</string>
+    <string name="firmware_launch_failed">Failed to launch the firmware</string>
+    <string name="firmware_launch_bad_setup">To launch this firmware, a custom BIOS and firmware is required, but it\'s not properly configured.</string>
+    <string name="failed_launch_dsiware_title">Failed to launch DSiWare title</string>
+    <string name="failed_launch_dsiware_title_check_failed">Could not verify if the DSiWare title is installed. Check the DSiWare Manager for more information.</string>
+    <string name="failed_launch_dsiware_title_rom_failed">Could not parse the ROM file. Check if the ROM file is valid and it\'s not corrupted.</string>
+    <string name="failed_launch_dsiware_title_not_installed">To launch a DSiWare title, it must first be installed to the NAND. You can install it in the DSiWare Manager.</string>
 
     <string name="press_any_button">Press any button…</string>
+    <string name="waiting_for_input">Waiting for input…</string>
 
     <string name="choose_component">Choose component</string>
 
@@ -185,6 +200,24 @@
     <string name="enable_jit">Enable JIT</string>
     <string name="enable_jit_summary">Improves performance but may cause freezes or crashes.</string>
     <string name="jit_not_supported">JIT is only supported in 64 bit devices.</string>
+    <string name="backup_settings">Backup settings</string>
+    <string name="restore_settings">Restore settings</string>
+    <string name="settings_backup_success">Settings backup created.\n\nThe following were skipped:\n&#8226; RetroAchievements session\n&#8226; ROM/save directories\n&#8226; DS BIOS directory\n&#8226; DSi BIOS directory</string>
+    <string name="settings_backup_error">Failed to backup settings</string>
+    <string name="settings_restore_success">Settings restored.\n\nThe following were unchanged:\n&#8226; RetroAchievements session\n&#8226; ROM/save directories\n&#8226; DS BIOS directory\n&#8226; DSi BIOS directory</string>
+    <string name="settings_restore_error">Failed to restore settings</string>
+    <string name="backup_internal_layout">Backup internal layout</string>
+    <string name="backup_external_layout">Backup external layout</string>
+    <string name="restore_internal_layout">Restore internal layout</string>
+    <string name="restore_external_layout">Restore external layout</string>
+    <string name="internal_layout_backup_success">Internal layout backup created.</string>
+    <string name="internal_layout_backup_error">Failed to backup internal layout</string>
+    <string name="external_layout_backup_success">External layout backup created.</string>
+    <string name="external_layout_backup_error">Failed to backup external layout</string>
+    <string name="internal_layout_restore_success">Internal layout restored.</string>
+    <string name="internal_layout_restore_error">Failed to restore internal layout</string>
+    <string name="external_layout_restore_success">External layout restored.</string>
+    <string name="external_layout_restore_error">Failed to restore external layout</string>
     <string name="threaded_rendering">Threaded rendering</string>
     <string name="fps_counter_position">FPS counter position</string>
     <string name="threaded_rendering_summary">Improves performance on 3D games when enabled but may cause graphical glitches.</string>
@@ -194,7 +227,14 @@
     <string name="internal_resolution">Internal resolution</string>
     <string name="renderer">Renderer</string>
     <string name="dsi_camera_source">DSi camera source</string>
+    <string name="external_screen_layout">External screen layout</string>
+    <string name="external_display_screen">External display screen</string>
+    <string name="external_display_rotate_left">Rotate external screen content left</string>
+    <string name="refresh_external_screen">Refresh external screen</string>
     <string name="dsi_camera_image">DSi camera image</string>
+    <string name="internal_screen_layout">Internal screen layout</string>
+    <string name="input_refresh_external_screen">Refresh external screen</string>
+    <string name="quick_settings">Quick settings</string>
     <string name="category_audio">Audio</string>
     <string name="category_audio_summary">Volume, latency, microphone source</string>
     <string name="enable_sound">Enable sound</string>
@@ -215,6 +255,7 @@
     <string name="key_mapping">Key mapping</string>
     <string name="key_mapping_summary">Assign keys to controller inputs</string>
     <string name="show_soft_input">Show soft input</string>
+    <string name="soft_input_behaviour">Soft input behaviour</string>
     <string name="vibrate_on_touch">Vibrate on touch</string>
     <string name="vibration_strength">Vibration strength</string>
     <string name="soft_input_opacity">Soft input opacity</string>
@@ -224,6 +265,12 @@
     <string name="rich_presence_summary">Allows other RetroAchievement users to see what you are playing</string>
     <string name="hardcore_mode">Hardcore mode</string>
     <string name="hardcore_mode_summary">Earn double the amount of points but you cannot use save states, cheats or slow-motion while playing</string>
+    <string name="show_active_challenge_indicators">Show active challenge indicators</string>
+    <string name="show_active_challenge_indicators_summary">Shows on-screen indicators while certain achievements can be earned</string>
+    <string name="show_progress_indicators">Show progress indicators</string>
+    <string name="show_progress_indicators_summary">Shows on-screen indicators when progress is made towards an achievement</string>
+    <string name="show_leaderboard_indicators">Show leaderboard indicators</string>
+    <string name="show_leaderboard_indicators_summary">Shows on-screen indicators when a leaderboard attempt is in progress</string>
 
     <string name="cheats">Cheats</string>
     <string name="cheats_summary">Enable &amp; import cheat codes</string>
@@ -267,11 +314,12 @@
 
     <string name="rom_settings">Rom settings</string> <!-- Accessibility string. Should not use acronyms -->
     <string name="label_rom_config_console">Boot system</string>
+    <string name="label_rom_config_custom_name">ROM display name</string>
     <string name="label_rom_config_gba_slot">GBA slot</string>
     <string name="label_rom_config_gba_rom_path">GBA ROM path</string>
     <string name="label_rom_config_gba_save_path">GBA save path</string>
     <string name="rom_details_configuration_tab">Configuration</string>
-    <string name="retro_achievements_tab">Retro Achievements</string> <!-- Keep words separated to help with word wrapping -->
+    <string name="retro_achievements_tab">Retro&#8203;Achievements</string> <!-- Keep zero-width space to allow line breaks in the middle of the word -->
 
     <string name="theme_option_light">Light</string>
     <string name="theme_option_dark">Dark</string>
@@ -281,6 +329,7 @@
 
     <string name="top_screen">Top Screen</string>
     <string name="bottom_screen">Bottom Screen</string>
+    <string name="custom_layout">Custom layout</string>
     <string name="input_a">A</string>
     <string name="input_b">B</string>
     <string name="input_x">X</string>
@@ -289,6 +338,10 @@
     <string name="input_right">Right</string>
     <string name="input_up">Up</string>
     <string name="input_down">Down</string>
+    <string name="input_left_joy">Left Joy</string>
+    <string name="input_right_joy">Right Joy</string>
+    <string name="input_up_joy">Up Joy</string>
+    <string name="input_down_joy">Down Joy</string>
     <string name="input_l">L</string>
     <string name="input_r">R</string>
     <string name="input_start">Start</string>
@@ -311,12 +364,27 @@
     <string name="default_layout_name">Default</string>
     <string name="custom_layout_default_name">My Layout</string>
     <string name="use_global_layout">Use global layout</string>
+    <string name="use_global_preference">Use global setting</string>
     <string name="layout_deleted">Layout deleted</string>
+    <string name="named_layout_deleted">Layout \"%1$s\" deleted</string>
 
     <string name="layout_editor">Layout editor</string>
     <string name="add_component">Add component</string>
     <string name="no_more_components">No more components to add</string>
-    <string name="label_size">Size:</string>
+    <string name="label_size">Size</string>
+    <string name="label_width">Width</string>
+    <string name="label_height">Height</string>
+    <string name="label_alpha">Alpha</string>
+    <string name="label_aspect_ratio">Aspect ratio:</string>
+    <string name="aspect_ratio_4_3">4:3 (Original)</string>
+    <string name="aspect_ratio_16_9">16:9 (Widescreen)</string>
+    <string name="aspect_ratio_unrestricted">Unrestricted</string>
+    <string name="keep_ds_ratio">Keep DS aspect ratio</string>
+    <string name="above_other_screen">Above other screen</string>
+    <string name="center_horizontal">Center horizontally</string>
+    <string name="center_vertical">Center vertically</string>
+    <string name="editing_internal_layout">Editing internal layout</string>
+    <string name="editing_external_layout">Editing external layout</string>
     <string name="menu">Menu</string>
     <string name="properties">Properties</string>
     <string name="revert_changes">Revert changes</string>
@@ -350,6 +418,12 @@
     <string name="retro_achievements_load_error">There was a problem when trying to load the achievements for this game. Make sure you are connected to the internet and try again later</string>
     <string name="retro_achievements_no_achievements">No RetroAchievements were found for this game</string>
     <string name="retro_achievements_relaunch_to_apply_settings">Relaunch the ROM to apply the new RetroAchievements settings</string>
+    <string name="retro_achievements_pending_unlocks">Pending Unlocks</string>
+    <string name="retro_achievements_active_challenges">Active Challenges</string>
+    <string name="retro_achievements_recently_unlokced">Recently Unlocked</string>
+    <string name="retro_achievements_almost_there">Almost There</string>
+    <string name="retro_achievements_locked">Locked</string>
+    <string name="retro_achievements_unlocked">Unlocked</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="retry">Retry</string>
@@ -358,16 +432,38 @@
     <string name="completed">Completed</string>
     <string name="ra_mode_hardcore">Hardcore</string>
     <string name="ra_mode_softcore">Softcore</string>
+    <string name="ra_base_set">Base Set</string>
     <string name="view_achievement">View achievement</string>
     <string name="completed_achievements"><b>%1$d</b> of <b>%2$d</b> (%3$d%%)</string>
     <string name="submitting_achievements">Submitting RetroAchievements…</string>
     <string name="achievements_loaded">Achievements loaded</string>
     <string name="achievements_unlocked_compact">Unlocked: %1$d/%2$d</string>
+    <string name="game_has_no_achievements">This game has no achievements</string>
     <string name="achievements_failed_load">Failed to load achievements!</string>
     <string name="achievements_failed_load_tip">Make sure you are Online</string>
     <string name="achievement_unlocked">Achievement unlocked!</string>
     <string name="achievement_missable">Missable</string>
     <string name="achievement_missable_description">This achievement can be missed during a playthrough</string>
+    <string name="achievement_progress">%1$d/%2$d</string> <!-- Eg.: 12/38 -->
+    <string name="challenge_started">Challenge started</string>
+    <string name="leaderboard_attempt_started">Leaderboard attempt started!</string>
+    <string name="leaderboard_submission_info">%1$s • Rank %2$d of %3$d</string> <!-- Eg.: 01:42.95 • Rank 73 of 145 -->
+    <string name="game_completed">Completed %1$s</string>
+    <string name="game_mastered">Mastered %1$s</string>
+    <string name="retroachievements_unsynchronized_data">Un-synchronized RetroAchievements data</string>
+    <string name="retroachievements_unsynchronized_data_info">There is un-synchronized RetroAchievements data. The following operations are pending:</string>
+    <plurals name="retroachievements_pending_achievement_unlocks">
+        <item quantity="one">%d achievement unlock</item>
+        <item quantity="other">%d achievement unlocks</item>
+    </plurals>
+    <plurals name="retroachievements_pending_leaderboard_entries">
+        <item quantity="one">%d leaderboard entry</item>
+        <item quantity="other">%d leaderboard entries</item>
+    </plurals>
+    <string name="retroachievements_unsynchronized_data_connect_internet">Connect to the internet to synchronize the data.</string>
+    <string name="retroachievements_unsynchronized_data_loss_info">If you exit now, this data will be lost!</string>
+    <string name="retroachievements_unsynchronized_data_synchronized">All data has been synchronized!</string>
+    <string name="retroachievements_unsynchronized_data_exiting">The emulator will now exit.</string>
 
     <string-array name="fast_forward_speed_multiplier_options">
         <item>Unlimited</item>
@@ -408,6 +504,7 @@
     <string-array name="gba_slot_options">
         <item>None</item>
         <item>GBA ROM</item>
+        <item>Rumble Pak</item>
         <item>Memory expansion</item>
     </string-array>
 
@@ -458,6 +555,11 @@
         <item>Static image</item>
     </string-array>
 
+    <string-array name="external_display_screen_options">
+        <item>@string/top_screen</item>
+        <item>@string/bottom_screen</item>
+    </string-array>
+
     <string-array name="audio_interpolation_options">
         <item>None</item>
         <item>Linear</item>
@@ -481,6 +583,20 @@
         <item>None</item>
         <item>Blow</item>
         <item>Device microphone</item>
+    </string-array>
+
+    <string-array name="soft_input_behaviour_options">
+        <item>Always visible</item>
+        <item>Hide console buttons when a controller is connected</item>
+        <item>Hide assigned input when a controller is connected</item>
+        <item>Always invisible</item>
+    </string-array>
+
+    <string-array name="soft_input_behaviour_descriptions">
+        <item>The soft input is always visible, as set in the current input layout.</item>
+        <item>When a controller is connected, console buttons (A B X Y, D-Pad, L, R, Start, and Select) are hidden. Other buttons in the current input layout remain visible.</item>
+        <item>When a controller is connected, all inputs assigned to that controller are hidden. Other inputs present in the current input layout that are not assigned to the connected controllers remain visible.</item>
+        <item>The soft input is always invisible, independently of the buttons found in the current input layout.</item>
     </string-array>
 
     <string-array name="save_state_locations">

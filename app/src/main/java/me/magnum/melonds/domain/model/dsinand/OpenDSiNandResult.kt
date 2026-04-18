@@ -6,5 +6,11 @@ enum class OpenDSiNandResult {
     BIOS7_NOT_FOUND,
     NAND_OPEN_FAILED,
     INVALID_DSI_SETUP,
-    UNKNOWN,
+    UNKNOWN;
+
+    fun isFailure(): Boolean {
+        return this != SUCCESS && this != NAND_ALREADY_OPEN
+    }
+
+    fun isSuccess() = !isFailure()
 }

@@ -8,6 +8,14 @@ import me.magnum.melonds.domain.model.Point
 import me.magnum.melonds.domain.model.Rect
 
 class LayoutComponentView(val view: View, val aspectRatio: Float, val component: LayoutComponent) {
+    var baseAlpha: Float = 1f
+        set(value) {
+            field = value
+            applyAlpha()
+        }
+
+    var onTop: Boolean = false
+
     fun setPosition(position: Point) {
         view.updateLayoutParams<FrameLayout.LayoutParams> {
             leftMargin = position.x
@@ -53,5 +61,13 @@ class LayoutComponentView(val view: View, val aspectRatio: Float, val component:
                 view.width,
                 view.height
         )
+    }
+
+    fun setHighlighted(value: Boolean) {
+        view.isSelected = value
+    }
+
+    private fun applyAlpha() {
+        view.alpha = baseAlpha
     }
 }

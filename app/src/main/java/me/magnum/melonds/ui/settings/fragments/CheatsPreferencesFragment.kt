@@ -15,7 +15,7 @@ import me.magnum.melonds.ui.settings.CheatsImportProgressDialog
 import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
 import me.magnum.melonds.ui.settings.SettingsViewModel
 
-class CheatsPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
+class CheatsPreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTitleProvider {
 
     private val viewModel: SettingsViewModel by activityViewModels()
 

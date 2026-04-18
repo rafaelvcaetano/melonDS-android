@@ -12,17 +12,21 @@ import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.ui.inputsetup.InputSetupActivity
 import me.magnum.melonds.ui.layouts.LayoutListActivity
 import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
+import me.magnum.melonds.ui.settings.preferences.SoftwareInputBehaviourPreference
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class InputPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
+class InputPreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTitleProvider {
 
     @Inject lateinit var vibrator: TouchVibrator
+
+    private lateinit var softInputBehaviourPreference: SoftwareInputBehaviourPreference
 
     override fun getTitle() = getString(R.string.input)
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.pref_input, rootKey)
+        softInputBehaviourPreference = findPreference("soft_input_behaviour")!!
         val touchVibratePreference = findPreference<SwitchPreference>("input_touch_haptic_feedback_enabled")!!
         val vibrationStrengthPreference = findPreference<SeekBarPreference>("input_touch_haptic_feedback_strength")!!
         val keyMappingPreference = findPreference<Preference>("input_key_mapping")!!
@@ -48,5 +52,11 @@ class InputPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
             startActivity(intent)
             true
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Set proper value for soft input behaviour preference since the value is not updated when returning from the fragment
+        softInputBehaviourPreference.value = softInputBehaviourPreference.sharedPreferences?.getString(softInputBehaviourPreference.key, "hide_system_buttons_when_controller_connected")
     }
 }

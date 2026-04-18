@@ -1,55 +1,54 @@
 package me.magnum.melonds.ui.layouteditor
 
+import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.Color
+import android.hardware.display.DisplayManager
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
-import android.view.KeyEvent
-import android.widget.SeekBar
-import android.widget.Toast
+import android.view.Display
+import android.widget.RelativeLayout
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.isGone
-import androidx.core.view.isInvisible
-import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
-import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import me.magnum.melonds.R
-import me.magnum.melonds.databinding.ActivityLayoutEditorBinding
-import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.Rect
-import me.magnum.melonds.domain.model.RuntimeBackground
-import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.domain.model.layout.ScreenFold
+import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.extensions.insetsControllerCompat
-import me.magnum.melonds.extensions.setBackgroundMode
 import me.magnum.melonds.extensions.setLayoutOrientation
 import me.magnum.melonds.impl.ScreenUnitsConverter
-import me.magnum.melonds.ui.common.TextInputDialog
-import me.magnum.melonds.utils.getLayoutComponentName
+import me.magnum.melonds.impl.layout.DeviceLayoutDisplayMapper
+import me.magnum.melonds.impl.layout.SecondaryDisplaySelector
+import me.magnum.melonds.ui.backgrounds.BackgroundsActivity
+import me.magnum.melonds.ui.layouteditor.model.LayoutTarget
+import me.magnum.melonds.ui.layouteditor.model.ScreenEditorState
+import java.util.UUID
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class LayoutEditorActivity : AppCompatActivity() {
     companion object {
         const val KEY_LAYOUT_ID = "layout_id"
-
-        private const val CONTROLS_SLIDE_ANIMATION_DURATION_MS = 100L
+        const val KEY_IS_EXTERNAL = "is_external"
     }
 
-    enum class MenuOption(@StringRes val stringRes: Int) {
+    enum class MenuOption(@field:StringRes val stringRes: Int) {
         PROPERTIES(R.string.properties),
         BACKGROUNDS(R.string.background),
         REVERT(R.string.revert_changes),
@@ -61,66 +60,102 @@ class LayoutEditorActivity : AppCompatActivity() {
     @Inject
     lateinit var screenUnitsConverter: ScreenUnitsConverter
     @Inject
+    lateinit var secondaryDisplaySelector: SecondaryDisplaySelector
+    @Inject
+    lateinit var deviceLayoutDisplayMapper: DeviceLayoutDisplayMapper
+    @Inject
     lateinit var picasso: Picasso
 
     private val viewModel: LayoutEditorViewModel by viewModels()
-    private lateinit var binding: ActivityLayoutEditorBinding
+    private lateinit var layoutEditorManager: LayoutEditorManagerView
     private lateinit var handler: Handler
-    private var areBottomControlsShown = true
-    private var areScalingControlsShown = true
-    private var selectedViewMinSize = 0
+    private val displayListener = object : DisplayManager.DisplayListener {
+        override fun onDisplayAdded(displayId: Int) {
+            updateDisplays()
+        }
+
+        override fun onDisplayRemoved(displayId: Int) {
+            updateDisplays()
+        }
+
+        override fun onDisplayChanged(displayId: Int) {
+            updateDisplays()
+        }
+    }
+
+    private var externalLayoutEditorPresentation: ExternalLayoutEditorPresentation? = null
+    private var savedExternalEditorState: ScreenEditorState? = null
+
+    private val mainScreenBackgroundPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == RESULT_OK) {
+            val backgroundId = it.data?.getStringExtra(BackgroundsActivity.KEY_SELECTED_BACKGROUND_ID)?.let { UUID.fromString(it) }
+            viewModel.setBackgroundPropertiesBackgroundId(LayoutTarget.MAIN_SCREEN, backgroundId)
+        }
+    }
+
+    private val secondaryScreenBackgroundPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == RESULT_OK) {
+            val backgroundId = it.data?.getStringExtra(BackgroundsActivity.KEY_SELECTED_BACKGROUND_ID)?.let { UUID.fromString(it) }
+            viewModel.setBackgroundPropertiesBackgroundId(LayoutTarget.SECONDARY_SCREEN, backgroundId)
+        }
+    }
+
+    private val layoutEditorManagerListener = object : LayoutEditorManagerView.LayoutEditorManagerListener {
+        override fun openBackgroundPicker(layoutTarget: LayoutTarget, selectedBackgroundId: UUID?) {
+            storeLayoutChanges()
+            val intent = Intent(this@LayoutEditorActivity, BackgroundsActivity::class.java).apply {
+                putExtra(BackgroundsActivity.KEY_INITIAL_BACKGROUND_ID, selectedBackgroundId?.toString())
+            }
+            when (layoutTarget) {
+                LayoutTarget.MAIN_SCREEN -> mainScreenBackgroundPickerLauncher.launch(intent)
+                LayoutTarget.SECONDARY_SCREEN -> secondaryScreenBackgroundPickerLauncher.launch(intent)
+            }
+        }
+
+        override fun onStoreLayoutChanges() {
+            storeLayoutChanges()
+        }
+
+        override fun onSaveLayoutAndExit() {
+            saveLayoutAndExit()
+        }
+
+        override fun onExit() {
+            finish()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLayoutEditorBinding.inflate(layoutInflater)
         handler = Handler(mainLooper)
-        setContentView(binding.root)
+
+        val container = RelativeLayout(this).apply {
+            setBackgroundColor(Color.BLACK)
+        }
+        layoutEditorManager = LayoutEditorManagerView(LayoutTarget.MAIN_SCREEN, picasso, null, this).apply {
+            listener = layoutEditorManagerListener
+        }
+        container.addView(layoutEditorManager, RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT)
+        setContentView(container)
+        ViewCompat.setOnApplyWindowInsetsListener(container) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            view.setPadding(
+                insets.left,
+                insets.top,
+                insets.right,
+                insets.bottom,
+            )
+
+            WindowInsetsCompat.CONSUMED
+        }
 
         onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                openMenu()
+                layoutEditorManager.handleBackNavigation()
             }
         })
 
-        binding.buttonAddButton.setOnClickListener {
-            openButtonsMenu()
-        }
-        binding.buttonMenu.setOnClickListener {
-            openMenu()
-        }
-        binding.buttonDeleteButton.setOnClickListener {
-            binding.viewLayoutEditor.deleteSelectedView()
-        }
-
-        binding.viewLayoutEditor.setLayoutComponentViewBuilderFactory(EditorLayoutComponentViewBuilderFactory())
-        binding.viewLayoutEditor.setOnClickListener {
-            if (areBottomControlsShown)
-                hideBottomControls()
-            else
-                showBottomControls()
-        }
-        binding.viewLayoutEditor.setOnViewSelectedListener { _, scale, maxSize, minSize ->
-            hideBottomControls()
-            showScalingControls(scale, maxSize, minSize)
-        }
-        binding.viewLayoutEditor.setOnViewDeselectedListener {
-            hideScalingControls()
-        }
-        binding.seekBarScaling.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val scale = progress / binding.seekBarScaling.max.toFloat()
-                binding.textSize.text = ((binding.seekBarScaling.max - selectedViewMinSize) * scale + selectedViewMinSize).toInt().toString()
-                binding.viewLayoutEditor.scaleSelectedView(scale)
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-            }
-        })
-
-        binding.viewLayoutEditor.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+        layoutEditorManager.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
             val oldWith = oldRight - oldLeft
             val oldHeight = oldBottom - oldTop
 
@@ -134,19 +169,19 @@ class LayoutEditorActivity : AppCompatActivity() {
         }
 
         setupFullscreen()
-        hideScalingControls(false)
         updateOrientation(resources.configuration)
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.currentLayout.collect {
                     if (it == null) {
-                        binding.viewLayoutEditor.destroyLayout()
+                        layoutEditorManager.layoutEditorView.destroyLayout()
+                        externalLayoutEditorPresentation?.layoutEditorManager?.layoutEditorView?.destroyLayout()
                     } else {
-                        Log.d("LayoutEditorActivity", "Instantiating layout. On main thread: ${mainLooper.isCurrentThread}")
                         handler.removeCallbacksAndMessages(null)
                         handler.post {
-                            binding.viewLayoutEditor.instantiateLayout(it.layout)
+                            layoutEditorManager.layoutEditorView.instantiateLayout(it.layout)
+                            externalLayoutEditorPresentation?.instantiateLayout(it.layout)
                             setLayoutOrientation(it.orientation)
                         }
                     }
@@ -155,9 +190,18 @@ class LayoutEditorActivity : AppCompatActivity() {
         }
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.background.collect {
+                viewModel.mainScreenBackground.collect {
                     it?.let {
-                        updateBackground(it)
+                        layoutEditorManager.updateBackground(it)
+                    }
+                }
+            }
+        }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.secondaryScreenBackground.collect {
+                    it?.let {
+                        externalLayoutEditorPresentation?.layoutEditorManager?.updateBackground(it)
                     }
                 }
             }
@@ -184,14 +228,14 @@ class LayoutEditorActivity : AppCompatActivity() {
         }
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (event == null) return super.onKeyDown(keyCode, event)
+    override fun onStart() {
+        super.onStart()
+        getSystemService<DisplayManager>()?.registerDisplayListener(displayListener, null)
+    }
 
-        return if (binding.viewLayoutEditor.handleKeyDown(event)) {
-            true
-        } else {
-            super.onKeyDown(keyCode, event)
-        }
+    override fun onResume() {
+        super.onResume()
+        updateDisplays()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -203,6 +247,9 @@ class LayoutEditorActivity : AppCompatActivity() {
         super.onConfigurationChanged(newConfig)
         storeLayoutChanges()
         updateOrientation(newConfig)
+        handler.post {
+            updateDisplays()
+        }
     }
 
     private fun updateOrientation(configuration: Configuration) {
@@ -214,11 +261,51 @@ class LayoutEditorActivity : AppCompatActivity() {
         viewModel.setCurrentSystemOrientation(orientation)
     }
 
-    private fun storeLayoutChanges() {
-        if (binding.viewLayoutEditor.isModifiedByUser()) {
-            val layoutComponents = binding.viewLayoutEditor.buildCurrentLayout()
-            viewModel.saveLayoutToCurrentConfiguration(layoutComponents)
+    private fun updateDisplays() {
+        val currentDisplay = ContextCompat.getDisplayOrDefault(this)
+        val secondaryDisplay = secondaryDisplaySelector.getSecondaryDisplay(this)
+
+        val displays = deviceLayoutDisplayMapper.mapDisplaysToLayoutDisplays(currentDisplay, secondaryDisplay)
+        viewModel.setConnectedDisplays(displays)
+
+        showExternalLayoutEditor(secondaryDisplay)
+    }
+
+    private fun showExternalLayoutEditor(secondaryDisplay: Display?) {
+        if (externalLayoutEditorPresentation?.display?.displayId == secondaryDisplay?.displayId) {
+            return
         }
+
+        externalLayoutEditorPresentation?.dismiss()
+        externalLayoutEditorPresentation = null
+
+        if (secondaryDisplay != null) {
+            externalLayoutEditorPresentation = ExternalLayoutEditorPresentation(picasso, this, secondaryDisplay, layoutEditorManagerListener, savedExternalEditorState).apply {
+                setOnShowListener {
+                    val currentConfiguration = viewModel.currentLayout.value
+                    if (currentConfiguration != null) {
+                        instantiateLayout(currentConfiguration.layout)
+                    }
+                }
+                show()
+            }
+        }
+    }
+
+    private fun storeLayoutChanges() {
+        val primaryDisplayLayoutComponents = if (layoutEditorManager.layoutEditorView.isModifiedByUser()) {
+            layoutEditorManager.layoutEditorView.buildCurrentLayout()
+        } else {
+            null
+        }
+
+        val externalPresentationLayoutView = externalLayoutEditorPresentation?.layoutEditorManager?.layoutEditorView
+        val secondaryDisplayLayoutComponents = if (externalPresentationLayoutView?.isModifiedByUser() == true) {
+            externalPresentationLayoutView.buildCurrentLayout()
+        } else {
+            null
+        }
+        viewModel.saveLayoutToCurrentConfiguration(primaryDisplayLayoutComponents, secondaryDisplayLayoutComponents)
     }
 
     private fun setupFullscreen() {
@@ -228,196 +315,28 @@ class LayoutEditorActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateBackground(background: RuntimeBackground) {
-        picasso.load(background.background?.uri).into(binding.imageBackground, object : Callback {
-            override fun onSuccess() {
-                binding.imageBackground.setBackgroundMode(background.mode)
-            }
-
-            override fun onError(e: java.lang.Exception?) {
-                e?.printStackTrace()
-                Toast.makeText(this@LayoutEditorActivity, R.string.layout_background_load_failed, Toast.LENGTH_LONG).show()
-            }
-        })
-    }
-
-    private fun showBottomControls(animate: Boolean = true) {
-        if (areBottomControlsShown) {
-            return
-        }
-
-        binding.layoutControls.clearAnimation()
-        if (animate) {
-            binding.layoutControls
-                .animate()
-                .y(binding.layoutControls.bottom.toFloat() - binding.layoutControls.height.toFloat())
-                .setDuration(CONTROLS_SLIDE_ANIMATION_DURATION_MS)
-                .withStartAction {
-                    binding.layoutControls.isVisible = true
-                }
-                .start()
-        } else {
-            binding.layoutControls.isVisible = true
-        }
-
-        areBottomControlsShown = true
-    }
-
-    private fun hideBottomControls(animate: Boolean = true) {
-        if (!areBottomControlsShown) {
-            return
-        }
-
-        if (animate) {
-            binding.layoutControls.clearAnimation()
-            if (animate) {
-                binding.layoutControls.animate()
-                    .y(binding.layoutControls.bottom.toFloat())
-                    .setDuration(CONTROLS_SLIDE_ANIMATION_DURATION_MS)
-                    .withEndAction {
-                        binding.layoutControls.isGone = true
-                    }
-                    .start()
-            }
-        } else {
-            binding.layoutControls.isGone = true
-        }
-
-        areBottomControlsShown = false
-    }
-
-    private fun showScalingControls(currentScale: Float, maxSize: Int, minSize: Int, animate: Boolean = true) {
-        binding.seekBarScaling.apply {
-            max = maxSize
-            progress = (currentScale * maxSize).toInt()
-        }
-
-        selectedViewMinSize = minSize
-
-        if (areScalingControlsShown) {
-            return
-        }
-
-        if (animate) {
-            binding.layoutScaling
-                .animate()
-                .y(binding.layoutScaling.bottom.toFloat() - binding.layoutScaling.height.toFloat())
-                .setDuration(CONTROLS_SLIDE_ANIMATION_DURATION_MS)
-                .withStartAction {
-                    binding.layoutScaling.isVisible = true
-                }
-                .start()
-        } else {
-            binding.layoutScaling.isVisible = true
-        }
-
-        areScalingControlsShown = true
-    }
-
-    private fun hideScalingControls(animate: Boolean = true) {
-        if (!areScalingControlsShown) {
-            return
-        }
-
-        if (animate) {
-            binding.layoutScaling
-                .animate()
-                .y(binding.layoutScaling.bottom.toFloat())
-                .setDuration(CONTROLS_SLIDE_ANIMATION_DURATION_MS)
-                .withEndAction {
-                    binding.layoutScaling.isInvisible = true
-                }
-                .start()
-        } else {
-            binding.layoutScaling.isInvisible = true
-        }
-
-        areScalingControlsShown = false
-    }
-
-    private fun openButtonsMenu() {
-        hideBottomControls()
-        val instantiatedComponents = binding.viewLayoutEditor.getInstantiatedComponents()
-        val componentsToShow = LayoutComponent.entries.filterNot { instantiatedComponents.contains(it) }
-
-        val dialogBuilder = AlertDialog.Builder(this)
-                .setTitle(R.string.choose_component)
-                .setNegativeButton(R.string.cancel) { dialog, _ ->
-                    dialog.cancel()
-                }
-
-        if (componentsToShow.isNotEmpty()) {
-            dialogBuilder.setItems(componentsToShow.map { getString(getLayoutComponentName(it)) }.toTypedArray()) { _, which ->
-                val component = componentsToShow[which]
-                binding.viewLayoutEditor.addLayoutComponent(component)
-            }
-        } else {
-            dialogBuilder.setMessage(R.string.no_more_components)
-        }
-
-        dialogBuilder.show()
-    }
-
-    private fun openMenu() {
-        storeLayoutChanges()
-        val values = MenuOption.entries
-        val options = Array(values.size) { i -> getString(values[i].stringRes) }
-
-        AlertDialog.Builder(this)
-                .setTitle(R.string.menu)
-                .setItems(options) { _, which -> onMenuOptionSelected(values[which]) }
-                .setNegativeButton(R.string.cancel, null)
-                .show()
-    }
-
-    private fun onMenuOptionSelected(option: MenuOption) {
-        when (option) {
-            MenuOption.PROPERTIES -> openPropertiesDialog()
-            MenuOption.BACKGROUNDS -> openBackgroundsConfigDialog()
-            MenuOption.REVERT -> viewModel.revertLayoutChanges()
-            MenuOption.RESET -> viewModel.resetLayout()
-            MenuOption.SAVE_AND_EXIT -> {
-                if (viewModel.currentLayoutHasName()) {
-                    saveLayoutAndExit()
-                } else {
-                    showLayoutNameInputDialog()
-                }
-            }
-            MenuOption.EXIT_WITHOUT_SAVING -> finish()
-        }
-    }
-
-    private fun openPropertiesDialog() {
-        storeLayoutChanges()
-        val layoutConfiguration = viewModel.getCurrentLayoutConfiguration() ?: return
-        LayoutPropertiesDialog.newInstance(layoutConfiguration).show(supportFragmentManager, null)
-    }
-
-    private fun openBackgroundsConfigDialog() {
-        storeLayoutChanges()
-        LayoutBackgroundDialog.newInstance().show(supportFragmentManager, null)
-    }
-
-    private fun showLayoutNameInputDialog() {
-        TextInputDialog.Builder()
-            .setTitle(getString(R.string.layout_name))
-            .setText(getString(R.string.custom_layout_default_name))
-            .setOnConfirmListener {
-                viewModel.setCurrentLayoutName(it)
-                saveLayoutAndExit()
-            }
-            .build()
-            .show(supportFragmentManager, null)
-    }
-
     private fun saveLayoutAndExit() {
         storeLayoutChanges()
         viewModel.saveCurrentLayout()
         finish()
     }
 
+    override fun onStop() {
+        super.onStop()
+        getSystemService<DisplayManager>()?.unregisterDisplayListener(displayListener)
+        storeLayoutChanges()
+        externalLayoutEditorPresentation?.let {
+            savedExternalEditorState = it.saveEditorState()
+            it.dismiss()
+        }
+        externalLayoutEditorPresentation = null
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        picasso.cancelRequest(binding.imageBackground)
+        picasso.cancelRequest(layoutEditorManager.imageBackground)
+        externalLayoutEditorPresentation?.layoutEditorManager?.imageBackground?.let {
+            picasso.cancelRequest(it)
+        }
     }
 }

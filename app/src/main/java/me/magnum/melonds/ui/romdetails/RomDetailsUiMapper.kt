@@ -20,6 +20,7 @@ class RomDetailsUiMapper(
             layoutId = romConfig.layoutId,
             layoutName = romConfig.layoutId?.let { layoutsRepository.getLayout(it)?.name } ?: layoutsRepository.getGlobalLayoutPlaceholder().name,
             gbaSlotConfig = mapGbaSlotConfigToUi(romConfig.gbaSlotConfig),
+            customName = romConfig.customName,
         )
     }
 
@@ -31,6 +32,7 @@ class RomDetailsUiMapper(
                 gbaRomPath = gbaSlotConfig.romPath?.let { DocumentFile.fromSingleUri(context, it)?.name },
                 gbaSavePath = gbaSlotConfig.savePath?.let { DocumentFile.fromSingleUri(context, it)?.name },
             )
+            RomGbaSlotConfig.RumblePak -> RomGbaSlotConfigUiModel(type = RomGbaSlotConfigUiModel.Type.RumblePak)
             is RomGbaSlotConfig.MemoryExpansion -> RomGbaSlotConfigUiModel(type = RomGbaSlotConfigUiModel.Type.MemoryExpansion)
         }
     }

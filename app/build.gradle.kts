@@ -1,10 +1,10 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.hilt.android)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
@@ -14,10 +14,10 @@ android {
     signingConfigs {
         create("release") {
             val props = gradleLocalProperties(rootDir, providers)
-            storeFile = file(props["MELONDS_KEYSTORE"] as String)
-            storePassword = props["MELONDS_KEYSTORE_PASSWORD"] as String
-            keyAlias = props["MELONDS_KEY_ALIAS"] as String
-            keyPassword = props["MELONDS_KEY_PASSWORD"] as String
+            (props["MELONDS_KEYSTORE"] as String?)?.let { storeFile = file(it) }
+            storePassword = props["MELONDS_KEYSTORE_PASSWORD"] as String? ?: ""
+            keyAlias = props["MELONDS_KEY_ALIAS"] as String? ?: ""
+            keyPassword = props["MELONDS_KEY_PASSWORD"] as String? ?: ""
         }
     }
 
@@ -39,9 +39,6 @@ android {
                 cppFlags("-std=c++17 -Wno-write-strings")
             }
         }
-        ksp {
-            arg("room.schemaLocation", "$projectDir/schemas")
-        }
         vectorDrawables.useSupportLibrary = true
     }
     buildFeatures {
@@ -51,7 +48,7 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
         }
         getByName("debug") {
@@ -90,26 +87,27 @@ android {
     }
     sourceSets {
         // Adds exported schema location as test app assets.
-        getByName("androidTest").assets.srcDir("$projectDir/schemas")
+        getByName("androidTest").assets.directories += "$projectDir/schemas"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
-        isCoreLibraryDesugaringEnabled = true
+    }
+}
 
-        kotlin {
-            jvmToolchain(21)
-            kotlinOptions {
-                freeCompilerArgs += "-opt-in=kotlin.ExperimentalUnsignedTypes"
-            }
-        }
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
+        freeCompilerArgs.add("-opt-in=kotlin.ExperimentalUnsignedTypes")
+    }
+
+    ksp {
+        arg("room.schemaLocation", "$projectDir/schemas")
     }
 }
 
 dependencies {
     val gitHubImplementation by configurations
-
-    coreLibraryDesugaring(libs.android.desugaring)
 
     implementation(projects.masterswitch)
     implementation(projects.rcheevosApi)
@@ -141,10 +139,10 @@ dependencies {
     implementation(libs.android.material)
 
     implementation(platform(libs.compose.bom))
-    implementation(libs.accompanist.pagerindicators)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.compose.foundation)
     implementation(libs.compose.material)
+    implementation(libs.compose.material3)
     implementation(libs.compose.material.icons)
     implementation(libs.compose.navigation)
     implementation(libs.compose.ui)

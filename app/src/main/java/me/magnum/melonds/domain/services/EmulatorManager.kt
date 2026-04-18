@@ -4,21 +4,22 @@ import android.net.Uri
 import kotlinx.coroutines.flow.Flow
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
-import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.emulator.EmulatorEvent
 import me.magnum.melonds.domain.model.emulator.FirmwareLaunchResult
 import me.magnum.melonds.domain.model.emulator.RomLaunchResult
-import me.magnum.melonds.domain.model.render.FrameRenderEvent
 import me.magnum.melonds.domain.model.retroachievements.GameAchievementData
 import me.magnum.melonds.domain.model.retroachievements.RAEvent
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 
 interface EmulatorManager {
-    val frameRenderedEvent: Flow<FrameRenderEvent>
 
-    suspend fun loadRom(rom: Rom, cheats: List<Cheat>, glContext: Long): RomLaunchResult
+    val emulatorEvents: Flow<EmulatorEvent>
 
-    suspend fun loadFirmware(consoleType: ConsoleType, glContext: Long): FirmwareLaunchResult
+    suspend fun loadRom(rom: Rom, cheats: List<Cheat>): RomLaunchResult
+
+    suspend fun loadFirmware(consoleType: ConsoleType): FirmwareLaunchResult
 
     suspend fun updateRomEmulatorConfiguration(rom: Rom)
 
@@ -26,17 +27,17 @@ interface EmulatorManager {
 
     suspend fun getRewindWindow(): RewindWindow
 
-    fun getFps(): Int
+    fun getFps(): Float
 
     suspend fun pauseEmulator()
 
     suspend fun resumeEmulator()
 
-    suspend fun resetEmulator(): Boolean
+    suspend fun resetEmulator()
 
     suspend fun updateCheats(cheats: List<Cheat>)
-    suspend fun setupAchievements(achievementData: GameAchievementData)
-    fun unloadAchievements()
+    suspend fun setupRetroAchievements(achievementData: GameAchievementData)
+    fun unloadRetroAchievementsData()
 
     suspend fun loadRewindState(rewindSaveState: RewindSaveState): Boolean
 

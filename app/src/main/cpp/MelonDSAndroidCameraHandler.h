@@ -4,6 +4,9 @@
 #include <jni.h>
 #include <AndroidCameraHandler.h>
 #include "JniEnvHandler.h"
+#include "types.h"
+
+using namespace melonDS;
 
 class MelonDSAndroidCameraHandler : public MelonDSAndroid::AndroidCameraHandler {
 private:

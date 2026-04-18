@@ -1,9 +1,10 @@
 package me.magnum.melonds.impl.dtos.rom
 
-import android.net.Uri
+import androidx.core.net.toUri
 import com.google.gson.annotations.SerializedName
 import me.magnum.melonds.domain.model.rom.Rom
-import java.util.*
+import java.util.Date
+import kotlin.time.Duration.Companion.milliseconds
 
 data class RomDto(
     @SerializedName("name")
@@ -15,7 +16,7 @@ data class RomDto(
     @SerializedName("uri")
     val uri: String,
     @SerializedName("parentTreeUri")
-    val parentTreeUri: String,
+    val parentTreeUri: String?,
     @SerializedName("config")
     var config: RomConfigDto,
     @SerializedName("lastPlayed")
@@ -24,6 +25,8 @@ data class RomDto(
     val isDsiWareTitle: Boolean,
     @SerializedName("retroAchievementsHash")
     val retroAchievementsHash: String,
+    @SerializedName("totalPlayTime")
+    val totalPlayTime: Long = 0,
 ) {
 
     companion object {
@@ -33,11 +36,12 @@ data class RomDto(
                 rom.developerName,
                 rom.fileName,
                 rom.uri.toString(),
-                rom.parentTreeUri.toString(),
+                rom.parentTreeUri?.toString(),
                 RomConfigDto.fromModel(rom.config),
                 rom.lastPlayed,
                 rom.isDsiWareTitle,
                 rom.retroAchievementsHash,
+                rom.totalPlayTime.inWholeMilliseconds,
             )
         }
     }
@@ -47,12 +51,13 @@ data class RomDto(
             name,
             developerName,
             fileName,
-            Uri.parse(uri),
-            Uri.parse(parentTreeUri),
+            uri.toUri(),
+            parentTreeUri?.toUri(),
             config.toModel(),
             lastPlayed,
             isDsiWareTitle,
             retroAchievementsHash,
+            totalPlayTime.milliseconds,
         )
     }
 }

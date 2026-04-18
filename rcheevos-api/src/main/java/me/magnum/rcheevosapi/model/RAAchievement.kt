@@ -5,6 +5,7 @@ import java.net.URL
 data class RAAchievement(
     val id: Long,
     val gameId: RAGameId,
+    val setId: RASetId,
     val totalAwardsCasual: Int?,
     val totalAwardsHardcore: Int?,
     val title: String,

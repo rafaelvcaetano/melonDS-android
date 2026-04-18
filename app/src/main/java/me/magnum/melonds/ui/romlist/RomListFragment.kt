@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
-import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,9 +11,12 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.os.bundleOf
-import androidx.core.view.isGone
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -34,13 +36,12 @@ import me.magnum.melonds.R
 import me.magnum.melonds.databinding.ItemRomConfigurableBinding
 import me.magnum.melonds.databinding.ItemRomSimpleBinding
 import me.magnum.melonds.databinding.RomListFragmentBinding
-import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.domain.model.RomScanningStatus
+import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.extensions.setViewEnabledRecursive
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.romdetails.RomDetailsActivity
-import me.magnum.melonds.ui.romlist.RomListFragment.RomEnabledFilter
 import me.magnum.melonds.ui.romlist.RomListFragment.RomListAdapter.RomViewHolder
 
 @AndroidEntryPoint
@@ -77,7 +78,12 @@ class RomListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.listRoms) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            view.updatePadding(bottom = insets.bottom)
 
+            WindowInsetsCompat.CONSUMED
+        }
         binding.swipeRefreshRoms.setOnRefreshListener { romListViewModel.refreshRoms() }
 
         val allowRomConfiguration = arguments?.getBoolean(KEY_ALLOW_ROM_CONFIGURATION) ?: true
@@ -139,7 +145,7 @@ class RomListFragment : Fragment() {
 
     private fun displayEmptyListViewIfRequired() {
         val isScanning = binding.swipeRefreshRoms.isRefreshing
-        val emptyViewVisible = !isScanning && romListViewModel.roms.value?.size == 0
+        val emptyViewVisible = !isScanning && romListViewModel.roms.value?.isEmpty() == true
         binding.textRomListEmpty.isVisible = emptyViewVisible
     }
 
@@ -211,9 +217,7 @@ class RomListFragment : Fragment() {
             private var romIconLoadJob: Job? = null
 
             init {
-                itemView.setOnClickListener {
-                    onRomClick(rom)
-                }
+                itemView.setOnClickListener { onRomClick(rom) }
             }
 
             fun cleanup() {
@@ -222,7 +226,7 @@ class RomListFragment : Fragment() {
 
             open fun setRom(rom: Rom, isEnabled: Boolean) {
                 this.rom = rom
-                textViewRomName.text = rom.name
+                textViewRomName.text = rom.config.customName ?: rom.name
                 textViewRomPath.text = rom.fileName
                 imageViewRomIcon.setImageDrawable(null)
                 imagePlatformLogo.isVisible = rom.isDsiWareTitle
@@ -244,7 +248,7 @@ class RomListFragment : Fragment() {
 
                 romIconLoadJob = coroutineScope.launch {
                     val romIcon = romListViewModel.getRomIcon(rom)
-                    val iconDrawable = BitmapDrawable(itemView.resources, romIcon.bitmap).apply {
+                    val iconDrawable = romIcon.bitmap?.toDrawable(itemView.resources)?.apply {
                         paint.isFilterBitmap = romIcon.filtering == RomIconFiltering.LINEAR
                         if (isEnabled) {
                             colorFilter = null
@@ -277,11 +281,6 @@ class RomListFragment : Fragment() {
                     onRomConfigClick(getRom())
                 }
             }
-
-            override fun setRom(rom: Rom, isEnabled: Boolean) {
-                super.setRom(rom, isEnabled)
-                imageViewButtonRomConfig.isGone = rom.isDsiWareTitle
-            }
         }
 
         inner class RomsDiffUtilCallback(private val oldRoms: List<Rom>, private val newRoms: List<Rom>) : DiffUtil.Callback() {
@@ -290,7 +289,7 @@ class RomListFragment : Fragment() {
             override fun getNewListSize(): Int = newRoms.size
 
             override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                return oldRoms[oldItemPosition] == newRoms[newItemPosition]
+                return oldRoms[oldItemPosition].uri == newRoms[newItemPosition].uri
             }
 
             override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {

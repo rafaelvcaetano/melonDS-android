@@ -3,5 +3,5 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:duration="@integer/fragment_translate_duration"
         android:interpolator="@android:anim/decelerate_interpolator"
-        android:fromXDelta="100%"
+        android:fromXDelta="@fraction/fragment_translate_enter_push_origin"
         android:toXDelta="0%" />

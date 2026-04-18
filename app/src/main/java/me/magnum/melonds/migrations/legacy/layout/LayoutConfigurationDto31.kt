@@ -1,7 +1,6 @@
 package me.magnum.melonds.migrations.legacy.layout
 
 import com.google.gson.annotations.SerializedName
-import me.magnum.melonds.impl.dtos.layout.UILayoutDto
 
 data class LayoutConfigurationDto31(
     @SerializedName("id")
@@ -17,7 +16,7 @@ data class LayoutConfigurationDto31(
     @SerializedName("opacity")
     val opacity: Int,
     @SerializedName("portraitLayout")
-    val portraitLayout: UILayoutDto,
+    val portraitLayout: UILayoutDto35,
     @SerializedName("landscapeLayout")
-    val landscapeLayout: UILayoutDto
+    val landscapeLayout: UILayoutDto35
 )

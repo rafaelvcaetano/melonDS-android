@@ -9,5 +9,6 @@ data class RomConfigUiModel(
     val runtimeMicSource: RuntimeMicSource = RuntimeMicSource.DEFAULT,
     val layoutId: UUID? = null,
     val layoutName: String? = null,
-    val gbaSlotConfig: RomGbaSlotConfigUiModel = RomGbaSlotConfigUiModel()
+    val gbaSlotConfig: RomGbaSlotConfigUiModel = RomGbaSlotConfigUiModel(),
+    val customName: String? = null,
 )

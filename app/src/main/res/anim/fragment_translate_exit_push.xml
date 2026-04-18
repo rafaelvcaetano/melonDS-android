@@ -4,4 +4,4 @@
         android:duration="@integer/fragment_translate_duration"
         android:interpolator="@android:anim/decelerate_interpolator"
         android:fromXDelta="0%"
-        android:toXDelta="-100%" />
+        android:toXDelta="@fraction/fragment_translate_exit_push_destination" />

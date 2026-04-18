@@ -12,6 +12,8 @@ import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.UriPermissionManager
 import me.magnum.melonds.domain.model.VideoRenderer
 import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
+import me.magnum.melonds.domain.repositories.LayoutsRepository
+import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.ui.settings.PreferenceFragmentHelper
 import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
 import me.magnum.melonds.ui.settings.preferences.StoragePickerPreference
@@ -19,7 +21,7 @@ import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentTitleProvider {
+class VideoPreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTitleProvider {
 
     private companion object {
         const val GLES_3_2 = 0x30002
@@ -28,6 +30,8 @@ class VideoPreferencesFragment : PreferenceFragmentCompat(), PreferenceFragmentT
     private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager, directoryAccessValidator) }
     @Inject lateinit var uriPermissionManager: UriPermissionManager
     @Inject lateinit var directoryAccessValidator: DirectoryAccessValidator
+    @Inject lateinit var layoutsRepository: LayoutsRepository
+    @Inject lateinit var settingsRepository: SettingsRepository
 
     private val softwareRendererPreferences = mutableListOf<Preference>()
     private val openGlRendererPreferences = mutableListOf<Preference>()

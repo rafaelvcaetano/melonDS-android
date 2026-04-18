@@ -7,7 +7,7 @@ import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.RomInfo
 
 interface RomFileProcessor {
-    fun getRomFromUri(romUri: Uri, parentUri: Uri): Rom?
+    fun getRomFromUri(romUri: Uri, parentUri: Uri?): Rom?
     fun getRomIcon(rom: Rom): Bitmap?
     fun getRomInfo(rom: Rom): RomInfo?
     fun getRealRomUri(rom: Rom): Single<Uri>

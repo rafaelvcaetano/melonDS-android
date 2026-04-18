@@ -25,7 +25,7 @@ class Migration4to5 : Migration(4, 5) {
         db.execSQL("DROP TABLE `game`")
         db.execSQL("ALTER TABLE `_new_game` RENAME TO `game`")
         // Delete duplicate entries in game before creating new UNIQUE INDEX
-        db.execSQL("DELETE FROM game WHERE id IN (SELECT id FROM (SELECT id, game_code, game_checksum, ROW_NUMBER() OVER (PARTITION BY game_code, game_checksum ORDER BY id) AS row_num FROM game) WHERE row_num > 1)")
+        db.execSQL("DELETE FROM game WHERE id NOT IN (SELECT MIN(id) FROM game GROUP BY game_code, game_checksum)")
         db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `game_code_checksum_index` ON `game` (`game_code`, `game_checksum`)")
 
         // Create custom cheat database

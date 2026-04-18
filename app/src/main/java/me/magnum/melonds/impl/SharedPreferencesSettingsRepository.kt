@@ -9,14 +9,14 @@ import android.util.Log
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
-import io.reactivex.Observable
-import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.first
@@ -46,10 +46,12 @@ import me.magnum.melonds.domain.model.SortingOrder
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.VideoRenderer
 import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
+import me.magnum.melonds.domain.model.input.SoftInputBehaviour
 import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.impl.dtos.input.ControllerConfigurationDto
+import me.magnum.melonds.impl.input.ControllerConfigurationFactory
 import me.magnum.melonds.ui.Theme
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import java.io.File
@@ -59,6 +61,7 @@ import kotlin.math.pow
 class SharedPreferencesSettingsRepository(
     private val context: Context,
     private val preferences: SharedPreferences,
+    private val controllerConfigurationFactory: ControllerConfigurationFactory,
     private val json: Json,
     private val uriHandler: UriHandler,
     preferencesCoroutineScope: CoroutineScope,
@@ -69,8 +72,20 @@ class SharedPreferencesSettingsRepository(
         private const val CONTROLLER_CONFIG_FILE = "controller_config.json"
     }
 
-    private var controllerConfiguration: ControllerConfiguration? = null
-    private val preferenceObservers: HashMap<String, PublishSubject<Any>> = HashMap()
+    @OptIn(ExperimentalSerializationApi::class)
+    private val controllerConfiguration by lazy {
+        val initialConfiguration = try {
+            val configFile = File(context.filesDir, CONTROLLER_CONFIG_FILE)
+            configFile.inputStream().use {
+                val loadedConfiguration = json.decodeFromStream<ControllerConfigurationDto>(it)
+                loadedConfiguration.toControllerConfiguration()
+            }
+        } catch (_: Exception) {
+            controllerConfigurationFactory.buildDefaultControllerConfiguration()
+        }
+
+        MutableStateFlow(initialConfiguration)
+    }
     private val preferenceSharedFlows = mutableMapOf<String, MutableSharedFlow<Unit>>()
     private val renderConfigurationFlow: SharedFlow<RendererConfiguration>
 
@@ -148,7 +163,7 @@ class SharedPreferencesSettingsRepository(
             getAudioInterpolation(),
             getAudioBitrate(),
             getVolume(),
-            getAudioLatency(),
+            AudioLatency.LOW,
             getMicSource(),
             getFirmwareConfiguration(),
             renderConfigurationFlow.first(),
@@ -195,7 +210,6 @@ class SharedPreferencesSettingsRepository(
         // Cache size is 128MB * (cacheSizeStepPreference ^ 2)
         return SizeUnit.MB(128) * 2.toDouble().pow(cacheSizeStepPreference).toLong()
     }
-
     override fun getDefaultConsoleType(): ConsoleType {
         val consoleTypePreference = preferences.getString("console_type", "ds")!!
         return enumValueOfIgnoreCase(consoleTypePreference)
@@ -368,7 +382,18 @@ class SharedPreferencesSettingsRepository(
         return if (!saveNextToRomFile() && getSaveFileDirectory() != null) {
             getSaveFileDirectory()!!
         } else {
-            getRomParentDirectory(rom)
+            if (rom.parentTreeUri != null) {
+                getRomParentDirectory(rom)
+            } else {
+                // We don't know the ROM's directory, so we can't save next to it. Put save file in an app folder
+                val externalFilesDir = context.getExternalFilesDir(null)
+                val saveFileDirectory = File(externalFilesDir, "saves")
+                if (!saveFileDirectory.isDirectory && !saveFileDirectory.mkdirs()) {
+                    throw Exception("Could not create internal save directory")
+                }
+
+                Uri.fromFile(saveFileDirectory)
+            }
         }
     }
 
@@ -394,24 +419,17 @@ class SharedPreferencesSettingsRepository(
     }
 
     private fun getRomParentDirectory(rom: Rom): Uri {
-        return uriHandler.getUriTreeDocument(rom.parentTreeUri)?.uri ?: throw Exception("Could not determine ROMs parent document")
+        return rom.parentTreeUri?.let {
+            uriHandler.getUriTreeDocument(rom.parentTreeUri)?.uri
+        } ?: throw Exception("Could not determine ROMs parent document")
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
     override fun getControllerConfiguration(): ControllerConfiguration {
-        if (controllerConfiguration == null) {
-            try {
-                val configFile = File(context.filesDir, CONTROLLER_CONFIG_FILE)
-                configFile.inputStream().use {
-                    val loadedConfiguration = json.decodeFromStream<ControllerConfigurationDto>(it)
-                    controllerConfiguration = loadedConfiguration.toControllerConfiguration()
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "Failed to load controller configuration", e)
-                controllerConfiguration = ControllerConfiguration.empty()
-            }
-        }
-        return controllerConfiguration!!
+        return controllerConfiguration.value
+    }
+
+    override fun observeControllerConfiguration(): StateFlow<ControllerConfiguration> {
+        return controllerConfiguration
     }
 
     override fun getSelectedLayoutId(): UUID {
@@ -419,9 +437,17 @@ class SharedPreferencesSettingsRepository(
         return id?.let { UUID.fromString(it) } ?: LayoutConfiguration.DEFAULT_ID
     }
 
-    override fun showSoftInput(): Flow<Boolean> {
-        return getOrCreatePreferenceSharedFlow("input_show_soft") {
-            preferences.getBoolean("input_show_soft", true)
+    override fun getSoftInputBehaviour(): Flow<SoftInputBehaviour> {
+        return getOrCreatePreferenceSharedFlow("soft_input_behaviour") {
+            val preference = preferences.getString("soft_input_behaviour", "hide_system_buttons_when_controller_connected")
+
+            when (preference) {
+                "always_visible" -> SoftInputBehaviour.ALWAYS_VISIBLE
+                "hide_system_buttons_when_controller_connected" -> SoftInputBehaviour.HIDE_SYSTEM_BUTTONS_WHEN_CONTROLLERS_CONNECTED
+                "hide_mapped_buttons_when_controller_connected" -> SoftInputBehaviour.HIDE_ALL_BUTTONS_ASSIGNED_TO_CONNECTED_CONTROLLERS
+                "always_invisible" -> SoftInputBehaviour.ALWAYS_INVISIBLE
+                else -> SoftInputBehaviour.HIDE_SYSTEM_BUTTONS_WHEN_CONTROLLERS_CONNECTED
+            }
         }
     }
 
@@ -450,18 +476,30 @@ class SharedPreferencesSettingsRepository(
         return preferences.getBoolean("ra_hardcore_enabled", false)
     }
 
+    override fun areRetroAchievementsActiveChallengeIndicatorsEnabled(): Boolean {
+        return preferences.getBoolean("ra_active_challenge_indicators", true)
+    }
+
+    override fun areRetroAchievementsProgressIndicatorsEnabled(): Boolean {
+        return preferences.getBoolean("ra_progress_indicators", true)
+    }
+
+    override fun areRetroAchievementsLeaderboardIndicatorsEnabled(): Boolean {
+        return preferences.getBoolean("ra_leaderboard_indicators", true)
+    }
+
     override fun areCheatsEnabled(): Boolean {
         return preferences.getBoolean("cheats_enabled", false)
     }
 
-    override fun observeRomSearchDirectories(): Observable<Array<Uri>> {
-        return getOrCreatePreferenceObservable("rom_search_dirs") {
+    override fun observeRomSearchDirectories(): Flow<Array<Uri>> {
+        return getOrCreatePreferenceSharedFlow("rom_search_dirs") {
             getRomSearchDirectories()
         }
     }
 
-    override fun observeSelectedLayoutId(): Observable<UUID> {
-        return getOrCreatePreferenceObservable("input_layout_id") {
+    override fun observeSelectedLayoutId(): Flow<UUID> {
+        return getOrCreatePreferenceSharedFlow("input_layout_id") {
             getSelectedLayoutId()
         }
     }
@@ -498,7 +536,7 @@ class SharedPreferencesSettingsRepository(
 
     @OptIn(ExperimentalSerializationApi::class)
     override fun setControllerConfiguration(controllerConfiguration: ControllerConfiguration) {
-        this.controllerConfiguration = controllerConfiguration
+        this.controllerConfiguration.value = controllerConfiguration
 
         try {
             val configFile = File(context.filesDir, CONTROLLER_CONFIG_FILE)
@@ -529,8 +567,8 @@ class SharedPreferencesSettingsRepository(
         }
     }
 
-    override fun observeTheme(): Observable<Theme> {
-        return getOrCreatePreferenceObservable("theme") {
+    override fun observeTheme(): Flow<Theme> {
+        return getOrCreatePreferenceSharedFlow("theme") {
             getTheme()
         }
     }
@@ -539,15 +577,6 @@ class SharedPreferencesSettingsRepository(
         return getOrCreatePreferenceSharedFlow("rom_icon_filtering") {
             getRomIconFiltering()
         }
-    }
-
-    private fun <T> getOrCreatePreferenceObservable(preference: String, mapper: (Any) -> T): Observable<T> {
-        var preferenceSubject = preferenceObservers[preference]
-        if (preferenceSubject == null) {
-            preferenceSubject = PublishSubject.create()
-            preferenceObservers[preference] = preferenceSubject
-        }
-        return preferenceSubject.map(mapper)
     }
 
     private fun <T> getOrCreatePreferenceSharedFlow(preference: String, mapper: () -> T): Flow<T> {
@@ -562,9 +591,6 @@ class SharedPreferencesSettingsRepository(
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
-        val subject = preferenceObservers[key]
-        subject?.onNext(Any())
-
         preferenceSharedFlows[key]?.tryEmit(Unit)
     }
 

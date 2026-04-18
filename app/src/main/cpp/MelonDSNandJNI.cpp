@@ -7,6 +7,7 @@
 #include "Platform.h"
 #include "MelonDSAndroidConfiguration.h"
 #include "MelonDS.h"
+#include "RomIconBuilder.h"
 #include "UriFileHandler.h"
 
 #define NAND_INIT_OK 0
@@ -23,7 +24,8 @@
 
 const u32 DSI_NAND_FILE_CATEGORY = 0x00030004;
 
-bool isNandOpen = false;
+std::unique_ptr<melonDS::DSi_NAND::NANDImage> nand;
+melonDS::DSi_NAND::NANDMount* nandMount;
 
 jobject getTitleData(JNIEnv* env, u32 category, u32 titleId);
 
@@ -32,31 +34,34 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_me_magnum_melonds_MelonDSiNand_openNand(JNIEnv* env, jobject thiz, jobject emulatorConfiguration)
 {
-    if (isNandOpen)
-    {
+    if (nand)
         return NAND_INIT_ERROR_ALREADY_OPEN;
-    }
 
     MelonDSAndroid::EmulatorConfiguration configuration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
-    MelonDSAndroid::setConfiguration(configuration);
+    MelonDSAndroid::setConfiguration(std::move(configuration));
 
-    auto bios7file = Platform::OpenLocalFile(configuration.dsiBios7Path, "rb");
+    auto bios7file = Platform::OpenFile(configuration.dsiBios7Path, melonDS::Platform::FileMode::Read);
     if (!bios7file)
-    {
         return NAND_INIT_ERROR_BIOS7_NOT_FOUND;
-    }
 
     u8 esKey[16];
-    fseek(bios7file, 0x8308, SEEK_SET);
-    fread(esKey, 16, 1, bios7file);
-    fclose(bios7file);
+    Platform::FileSeek(bios7file, 0x8308, melonDS::Platform::FileSeekOrigin::Start);
+    Platform::FileRead(esKey, 16, 1, bios7file);
+    Platform::CloseFile(bios7file);
 
-    if (!DSi_NAND::Init(esKey))
+    auto nandfile = Platform::OpenLocalFile(configuration.dsiNandPath, melonDS::Platform::FileMode::ReadWriteExisting);
+    if (!nandfile)
+        return false;
+
+    nand = std::make_unique<melonDS::DSi_NAND::NANDImage>(nandfile, esKey);
+    if (!*nand)
     {
+        nand = nullptr;
         return NAND_INIT_ERROR_NAND_FAILED;
     }
 
-    isNandOpen = true;
+    nandMount = new melonDS::DSi_NAND::NANDMount(*nand);
+
     return NAND_INIT_OK;
 }
 
@@ -65,7 +70,7 @@ Java_me_magnum_melonds_MelonDSiNand_listTitles(JNIEnv* env, jobject thiz)
 {
     const u32 category = DSI_NAND_FILE_CATEGORY;
     std::vector<u32> titleList;
-    DSi_NAND::ListTitles(category, titleList);
+    nandMount->ListTitles(category, titleList);
 
     jclass listClass = env->FindClass("java/util/ArrayList");
     jmethodID listConstructor = env->GetMethodID(listClass, "<init>", "()V");
@@ -86,25 +91,23 @@ Java_me_magnum_melonds_MelonDSiNand_listTitles(JNIEnv* env, jobject thiz)
 JNIEXPORT jint JNICALL
 Java_me_magnum_melonds_MelonDSiNand_importTitle(JNIEnv* env, jobject thiz, jstring titleUri, jbyteArray tmdMetadata)
 {
-    if (!isNandOpen)
-    {
+    if (!nand)
         return TITLE_IMPORT_NAND_NOT_OPEN;
-    }
 
     u32 titleId[2];
 
     const char* titlePath = env->GetStringUTFChars(titleUri, NULL);
 
-    FILE* titleFile = Platform::OpenFile(titlePath, "rb");
+    auto titleFile = Platform::OpenFile(titlePath, melonDS::Platform::FileMode::Read);
     if (!titleFile)
     {
         env->ReleaseStringUTFChars(titleUri, titlePath);
         return TITLE_IMPORT_ERROR_OPENING_FILE;
     }
 
-    fseek(titleFile, 0x230, SEEK_SET);
-    fread(titleId, 8, 1, titleFile);
-    fclose(titleFile);
+    Platform::FileSeek(titleFile, 0x230, melonDS::Platform::FileSeekOrigin::Start);
+    Platform::FileRead(titleId, 8, 1, titleFile);
+    Platform::CloseFile(titleFile);
 
     if (titleId[1] != DSI_NAND_FILE_CATEGORY)
     {
@@ -113,7 +116,7 @@ Java_me_magnum_melonds_MelonDSiNand_importTitle(JNIEnv* env, jobject thiz, jstri
         return TITLE_IMPORT_NOT_DSIWARE_TITLE;
     }
 
-    if (DSi_NAND::TitleExists(titleId[1], titleId[0]))
+    if (nandMount->TitleExists(titleId[1], titleId[0]))
     {
         // Title already exists
         env->ReleaseStringUTFChars(titleUri, titlePath);
@@ -121,14 +124,17 @@ Java_me_magnum_melonds_MelonDSiNand_importTitle(JNIEnv* env, jobject thiz, jstri
     }
 
     jbyte* tmdBytes = env->GetByteArrayElements(tmdMetadata, NULL);
+    auto titleMetadata = reinterpret_cast<melonDS::DSi_TMD::TitleMetadata*>(tmdBytes);
 
-    DSi_NAND::DeleteTitle(titleId[0], titleId[1]);
-    bool result = DSi_NAND::ImportTitle(titlePath, (u8*) tmdBytes, false);
+    nandMount->DeleteTitle(titleId[0], titleId[1]);
+    bool result = nandMount->ImportTitle(titlePath, *titleMetadata, false);
+
     env->ReleaseStringUTFChars(titleUri, titlePath);
     env->ReleaseByteArrayElements(tmdMetadata, tmdBytes, 0);
 
-    if (!result) {
-        DSi_NAND::DeleteTitle(titleId[0], titleId[1]);
+    if (!result)
+    {
+        nandMount->DeleteTitle(titleId[0], titleId[1]);
         return TITLE_IMPORT_INSATLL_FAILED;
     }
 
@@ -138,7 +144,8 @@ Java_me_magnum_melonds_MelonDSiNand_importTitle(JNIEnv* env, jobject thiz, jstri
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonDSiNand_deleteTitle(JNIEnv* env, jobject thiz, jint titleId)
 {
-    DSi_NAND::DeleteTitle(DSI_NAND_FILE_CATEGORY, (u32) titleId);
+    if (nand)
+        nandMount->DeleteTitle(DSI_NAND_FILE_CATEGORY, (u32) titleId);
 }
 
 JNIEXPORT jboolean JNICALL
@@ -147,12 +154,10 @@ Java_me_magnum_melonds_MelonDSiNand_importTitleFile(JNIEnv* env, jobject thiz, j
     jboolean isFilePathCopy;
     const char* filePath = env->GetStringUTFChars(fileUri, &isFilePathCopy);
 
-    bool result = DSi_NAND::ImportTitleData(DSI_NAND_FILE_CATEGORY, (u32) titleId, fileType, filePath);
+    bool result = nandMount->ImportTitleData(DSI_NAND_FILE_CATEGORY, (u32) titleId, fileType, filePath);
 
     if (isFilePathCopy)
-    {
         env->ReleaseStringUTFChars(fileUri, filePath);
-    }
 
     return result;
 }
@@ -163,12 +168,10 @@ Java_me_magnum_melonds_MelonDSiNand_exportTitleFile(JNIEnv* env, jobject thiz, j
     jboolean isFilePathCopy;
     const char* filePath = env->GetStringUTFChars(fileUri, &isFilePathCopy);
 
-    bool result = DSi_NAND::ExportTitleData(DSI_NAND_FILE_CATEGORY, (u32) titleId, fileType, filePath);
+    bool result = nandMount->ExportTitleData(DSI_NAND_FILE_CATEGORY, (u32) titleId, fileType, filePath);
 
     if (isFilePathCopy)
-    {
         env->ReleaseStringUTFChars(fileUri, filePath);
-    }
 
     return result;
 }
@@ -176,13 +179,11 @@ Java_me_magnum_melonds_MelonDSiNand_exportTitleFile(JNIEnv* env, jobject thiz, j
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonDSiNand_closeNand(JNIEnv* env, jobject thiz)
 {
-    if (!isNandOpen)
-    {
+    if (!nand)
         return;
-    }
 
-    DSi_NAND::DeInit();
-    isNandOpen = false;
+    nand = nullptr;
+    delete nandMount;
 }
 }
 
@@ -192,10 +193,10 @@ jobject getTitleData(JNIEnv* env, u32 category, u32 titleId)
     NDSHeader header;
     NDSBanner banner;
 
-    DSi_NAND::GetTitleInfo(category, titleId, version, &header, &banner);
+    nandMount->GetTitleInfo(category, titleId, version, &header, &banner);
 
     u32 iconData[32 * 32];
-    ROMManager::ROMIcon(banner.Icon, banner.Palette, iconData);
+    MelonDSAndroid::BuildRomIcon(banner.Icon, banner.Palette, iconData);
     jbyteArray iconBytes = env->NewByteArray(32 * 32 * sizeof(u32));
     jbyte* iconArrayElements = env->GetByteArrayElements(iconBytes, NULL);
     memcpy(iconArrayElements, iconData, sizeof(iconData));

@@ -21,13 +21,20 @@ import me.magnum.melonds.common.vibration.Api26VibratorDelegate
 import me.magnum.melonds.common.vibration.OldVibratorDelegate
 import me.magnum.melonds.common.vibration.TouchVibrator
 import me.magnum.melonds.database.MelonDatabase
-import me.magnum.melonds.database.daos.RAAchievementsDao
+import me.magnum.melonds.database.daos.RetroAchievementsDao
 import me.magnum.melonds.domain.repositories.*
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.domain.services.DSiNandManager
+import me.magnum.melonds.domain.services.EmulatorLaunchPreconditionChecker
 import me.magnum.melonds.impl.AndroidDSiNandManager
 import me.magnum.melonds.impl.*
+import me.magnum.melonds.impl.input.ControllerConfigurationFactory
+import me.magnum.melonds.impl.input.DefaultControllerConfigurationFactory
+import me.magnum.melonds.impl.layout.DeviceLayoutDisplayMapper
+import me.magnum.melonds.impl.layout.DefaultLayoutProvider
 import me.magnum.melonds.impl.layout.UILayoutProvider
+import me.magnum.melonds.impl.layout.devicemapper.AynThorLayoutDisplayMapper
+import me.magnum.melonds.impl.layout.devicemapper.DefaultLayoutDisplayMapper
 import me.magnum.melonds.impl.romprocessors.Api24RomFileProcessorFactory
 import me.magnum.melonds.ui.romdetails.RomDetailsUiMapper
 import me.magnum.rcheevosapi.RAApi
@@ -37,10 +44,22 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object MelonModule {
+
+    @Provides
+    fun provideControllerConfigurationFactory(): ControllerConfigurationFactory {
+        return DefaultControllerConfigurationFactory()
+    }
+
     @Provides
     @Singleton
-    fun provideSettingsRepository(@ApplicationContext context: Context, sharedPreferences: SharedPreferences, json: Json, uriHandler: UriHandler): SettingsRepository {
-        return SharedPreferencesSettingsRepository(context, sharedPreferences, json, uriHandler, CoroutineScope(Dispatchers.IO))
+    fun provideSettingsRepository(@ApplicationContext context: Context, sharedPreferences: SharedPreferences, controllerConfigurationFactory: ControllerConfigurationFactory, json: Json, uriHandler: UriHandler): SettingsRepository {
+        return SharedPreferencesSettingsRepository(context, sharedPreferences, controllerConfigurationFactory, json, uriHandler, CoroutineScope(Dispatchers.IO))
+    }
+
+    @Provides
+    @Singleton
+    fun provideSettingsBackupManager(@ApplicationContext context: Context, sharedPreferences: SharedPreferences): SettingsBackupManager {
+        return SettingsBackupManager(context, sharedPreferences)
     }
 
     @Provides
@@ -89,12 +108,12 @@ object MelonModule {
     @Singleton
     fun provideRetroAchievementsRepository(
         raApi: RAApi,
-        raAchievementsDao: RAAchievementsDao,
+        retroAchievementsDao: RetroAchievementsDao,
         raUserAuthStore: RAUserAuthStore,
         sharedPreferences: SharedPreferences,
         @ApplicationContext context: Context,
     ): RetroAchievementsRepository {
-        return AndroidRetroAchievementsRepository(raApi, raAchievementsDao, raUserAuthStore, sharedPreferences, context)
+        return AndroidRetroAchievementsRepository(raApi, retroAchievementsDao, raUserAuthStore, sharedPreferences, context)
     }
 
     @Provides
@@ -147,6 +166,16 @@ object MelonModule {
 
     @Provides
     @Singleton
+    fun provideDeviceLayoutDisplayMapper(@ApplicationContext context: Context): DeviceLayoutDisplayMapper {
+        return if (Build.MANUFACTURER == "AYN" && Build.MODEL == "AYN Thor") {
+            AynThorLayoutDisplayMapper(context)
+        } else {
+            DefaultLayoutDisplayMapper(context)
+        }
+    }
+
+    @Provides
+    @Singleton
     fun provideDefaultLayoutBuilder(screenUnitsConverter: ScreenUnitsConverter): DefaultLayoutProvider {
         return DefaultLayoutProvider(screenUnitsConverter)
     }
@@ -171,5 +200,20 @@ object MelonModule {
     @Singleton
     fun provideRomDetailsUiMapper(@ApplicationContext context: Context, layoutsRepository: LayoutsRepository): RomDetailsUiMapper {
         return RomDetailsUiMapper(context, layoutsRepository)
+    }
+
+    @Provides
+    fun provideRomLaunchPreconditionChecker(
+        configurationDirectoryVerifier: ConfigurationDirectoryVerifier,
+        romFileProcessorFactory: RomFileProcessorFactory,
+        dsiNandManager: DSiNandManager,
+        settingsRepository: SettingsRepository,
+    ): EmulatorLaunchPreconditionChecker {
+        return EmulatorLaunchPreconditionChecker(
+            configurationDirectoryVerifier = configurationDirectoryVerifier,
+            romFileProcessorFactory = romFileProcessorFactory,
+            dsiNandManager = dsiNandManager,
+            settingsRepository = settingsRepository,
+        )
     }
 }

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -14,6 +15,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.getSystemService
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.fragment.app.commit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -23,16 +29,14 @@ import io.noties.markwon.Markwon
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import me.magnum.melonds.R
-import me.magnum.melonds.common.Permission
-import me.magnum.melonds.common.contracts.DirectoryPickerContract
 import me.magnum.melonds.databinding.ActivityRomListBinding
-import me.magnum.melonds.domain.model.ConfigurationDirResult
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.DownloadProgress
-import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.SortingMode
 import me.magnum.melonds.domain.model.Version
 import me.magnum.melonds.domain.model.appupdate.AppUpdate
+import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.ui.common.rom.EmulatorLaunchValidatorDelegate
 import me.magnum.melonds.ui.dsiwaremanager.DSiWareManagerActivity
 import me.magnum.melonds.ui.emulator.EmulatorActivity
 import me.magnum.melonds.ui.settings.SettingsActivity
@@ -48,40 +52,56 @@ class RomListActivity : AppCompatActivity() {
     @Inject lateinit var markwon: Markwon
     private val viewModel: RomListViewModel by viewModels()
     private val updatesViewModel: UpdatesViewModel by viewModels()
+    private lateinit var emulatorLauncherValidatorDelegate: EmulatorLaunchValidatorDelegate
 
     private var downloadProgressDialog: AlertDialog? = null
-
-    private val dsBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract(Permission.READ_WRITE)) { uri ->
-        if (uri != null) {
-            if (viewModel.setDsBiosDirectory(uri)) {
-                selectedRom?.let {
-                    loadRom(it)
-                } ?: selectedFirmwareConsole?.let {
-                    bootFirmware(it)
-                }
-            }
-        }
-    }
-    private val dsiBiosPickerLauncher = registerForActivityResult(DirectoryPickerContract(Permission.READ_WRITE)) { uri ->
-        if (uri != null) {
-            if (viewModel.setDsiBiosDirectory(uri)) {
-                selectedRom?.let {
-                    loadRom(it)
-                } ?: selectedFirmwareConsole?.let {
-                    bootFirmware(it)
-                }
-            }
-        }
-    }
-
-    private var selectedRom: Rom? = null
-    private var selectedFirmwareConsole: ConsoleType? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        WindowCompat.enableEdgeToEdge(window)
         val binding = ActivityRomListBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+
+        var defaultContentInsetLeft = -1
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            if (defaultContentInsetLeft == -1) {
+                defaultContentInsetLeft = binding.toolbar.contentInsetLeft
+            }
+
+            binding.toolbar.setContentInsetsAbsolute(defaultContentInsetLeft + insets.left, binding.toolbar.contentInsetRight)
+            binding.toolbar.updatePadding(
+                left = insets.left,
+                right = insets.right,
+            )
+            binding.viewStatusBarBackground.updateLayoutParams {
+                height = insets.top
+            }
+            binding.layoutMain.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                leftMargin = insets.left
+                rightMargin = insets.right
+            }
+
+            windowInsets.inset(insets.left, insets.top, insets.right, 0)
+        }
+
+        emulatorLauncherValidatorDelegate = EmulatorLaunchValidatorDelegate(this, object : EmulatorLaunchValidatorDelegate.Callback {
+            override fun onRomValidated(rom: Rom) {
+                val intent = EmulatorActivity.getRomEmulatorActivityIntent(this@RomListActivity, rom)
+                startActivity(intent)
+            }
+
+            override fun onFirmwareValidated(consoleType: ConsoleType) {
+                val intent = EmulatorActivity.getFirmwareEmulatorActivityIntent(this@RomListActivity, consoleType)
+                startActivity(intent)
+            }
+
+            override fun onValidationAborted() {
+                // Do nothing
+            }
+        })
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -170,11 +190,11 @@ class RomListActivity : AppCompatActivity() {
                 return true
             }
             R.id.action_boot_firmware_ds -> {
-                bootFirmware(ConsoleType.DS)
+                launchFirmware(ConsoleType.DS)
                 return true
             }
             R.id.action_boot_firmware_dsi -> {
-                bootFirmware(ConsoleType.DSi)
+                launchFirmware(ConsoleType.DSi)
                 return true
             }
             R.id.action_dsiware_manager -> {
@@ -213,7 +233,7 @@ class RomListActivity : AppCompatActivity() {
                 replace(R.id.layout_main, romListFragment, FRAGMENT_ROM_LIST)
             }
         }
-        romListFragment.setRomSelectedListener { rom -> loadRom(rom) }
+        romListFragment.setRomSelectedListener { rom -> launchRom(rom) }
     }
 
     private fun showProdUpdateAvailableDialog(update: AppUpdate) {
@@ -300,84 +320,12 @@ class RomListActivity : AppCompatActivity() {
         return "$typeString${if (typeString.isEmpty()) "" else " "}${version.major}.${version.minor}.${version.patch}"
     }
 
-    private fun loadRom(rom: Rom) {
-        if (rom.isDsiWareTitle) {
-            AlertDialog.Builder(this)
-                .setTitle(R.string.dsiware_title_cannot_be_launched_directly_title)
-                .setMessage(R.string.dsiware_title_cannot_be_launched_directly_message)
-                .setPositiveButton(R.string.ok) { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .show()
-            return
-        }
-
-        selectedRom = rom
-        selectedFirmwareConsole = null
-
-        val configurationDirResult = viewModel.getRomConfigurationDirStatus(rom)
-        if (configurationDirResult.status == ConfigurationDirResult.Status.VALID) {
-            val intent = EmulatorActivity.getRomEmulatorActivityIntent(this, rom)
-            startActivity(intent)
-        } else {
-            showIncorrectConfigurationDirectoryDialog(configurationDirResult)
-        }
+    private fun launchRom(rom: Rom) {
+        emulatorLauncherValidatorDelegate.validateRom(rom)
     }
 
-    private fun bootFirmware(consoleType: ConsoleType) {
-        selectedRom = null
-        selectedFirmwareConsole = consoleType
-
-        val configurationDirResult = viewModel.getConsoleConfigurationDirResult(consoleType)
-        if (configurationDirResult.status == ConfigurationDirResult.Status.VALID) {
-            val intent = EmulatorActivity.getFirmwareEmulatorActivityIntent(this, consoleType)
-            startActivity(intent)
-        } else {
-            showIncorrectConfigurationDirectoryDialog(configurationDirResult)
-        }
-    }
-
-    private fun showIncorrectConfigurationDirectoryDialog(configurationDirResult: ConfigurationDirResult) {
-        when (configurationDirResult.consoleType) {
-            ConsoleType.DS -> {
-                val titleRes: Int
-                val messageRes: Int
-                if (configurationDirResult.status == ConfigurationDirResult.Status.UNSET) {
-                    titleRes = R.string.ds_bios_dir_not_set
-                    messageRes = R.string.ds_bios_dir_not_set_info
-                } else {
-                    titleRes = R.string.incorrect_bios_dir
-                    messageRes = R.string.ds_incorrect_bios_dir_info
-                }
-
-                AlertDialog.Builder(this)
-                        .setTitle(titleRes)
-                        .setMessage(messageRes)
-                        .setPositiveButton(R.string.ok) { _, _ -> dsBiosPickerLauncher.launch(null) }
-                        .setNegativeButton(R.string.cancel, null)
-                        .setCancelable(true)
-                        .show()
-            }
-            ConsoleType.DSi -> {
-                val titleRes: Int
-                val messageRes: Int
-                if (configurationDirResult.status == ConfigurationDirResult.Status.UNSET) {
-                    titleRes = R.string.dsi_bios_dir_not_set
-                    messageRes = R.string.dsi_bios_dir_not_set_info
-                } else {
-                    titleRes = R.string.incorrect_bios_dir
-                    messageRes = R.string.dsi_incorrect_bios_dir_info
-                }
-
-                AlertDialog.Builder(this)
-                        .setTitle(titleRes)
-                        .setMessage(messageRes)
-                        .setPositiveButton(R.string.ok) { _, _ -> dsiBiosPickerLauncher.launch(null) }
-                        .setNegativeButton(R.string.cancel, null)
-                        .setCancelable(true)
-                        .show()
-            }
-        }
+    private fun launchFirmware(consoleType: ConsoleType) {
+        emulatorLauncherValidatorDelegate.validateFirmware(consoleType)
     }
 
     private fun showInvalidDirectoryAccessDialog() {
