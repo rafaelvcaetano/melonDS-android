@@ -20,6 +20,7 @@
     <string name="play">Mainkan</string>
     <string name="save">Simpan</string>
     <string name="ellipsis">…</string>
+    <string name="navigate_back">Kembali</string>
 
     <string name="version_alpha">Alfa</string>
     <string name="version_beta">Beta</string>
@@ -89,6 +90,8 @@
     <string name="no_dsiware_roms_found">Tidak ada ROM DSiWare yang ditemukan</string>
 
     <string name="info_fps">FPDetik: %1$d</string>
+    <string name="info_play_time_hours_minutes">Waktu bermain: %1$dj %2$dm</string> <!-- Contoh: 4j 28m -->
+    <string name="info_play_time_minutes">Waktu bermain: %1$dm</string> <!-- Contoh: 28m -->
     <string name="info_loading">MEMUAT…</string>
     <string name="save_state_slot">%1$s.</string>
     <string name="failed_save_state">Gagal menyimpan status</string>
@@ -96,13 +99,15 @@
     <string name="cant_load_empty_slot">Tidak dapat memuat slot penyimpanan status kosong</string>
     <string name="failed_reset_emulation">Gagal mengatur ulang emulasi</string>
     <string name="save_states_not_supported">Penyimpanan status tidak didukung saat menjalankan firmware</string>
-    <string name="save_states_unavailable_ra_hardcore_enabled">Penyimpanan status tidak tersedia saat mode Hardcore diaktifkan</string>
+    <string name="save_states_unavailable_ra_hardcore_enabled">Penyimpanan status tidak tersedia saat moda Hardcore diaktifkan</string>
     <string name="rewind_time_seconds">%1$ss</string> <!-- Ex: 43.56s -->
     <string name="rewind_time_minutes_seconds">%1$dm%2$ss</string> <!-- Ex: 2m37.93s -->
     <string name="rewind_not_enabled">Putar ulang tidak diaktifkan</string>
-    <string name="rewind_unavailable_ra_hardcore_enabled">Putar ulang tidak tersedia saat mode Hardcore diaktifkan</string>
+    <string name="rewind_unavailable_ra_hardcore_enabled">Putar ulang tidak tersedia saat moda Hardcore diaktifkan</string>
     <string name="no_image_selected">Tidak ada gambar terpilih</string>
     <string name="failed_to_load_image">Gagal memuat gambar</string>
+    <string name="emulator_stop_gba_mode_unsupported">Moda GBA tidak didukung</string>
+    <string name="emulator_stop_internal_error">Sebuah kesalahan ditemukan pada saat eksekusi ROM</string>
 
     <string name="action_sort_alphabetically">Sesuai abjad</string>
     <string name="action_sort_recently_played">Baru saja dimainkan</string>
@@ -126,10 +131,17 @@
     <string name="error_invalid_directory">Directori tidak valid</string>
     <string name="error_invalid_directory_description">Tidak mungkin untuk menulis ke direktori terpilih. Silahkan pilih yang lainnya. Jika anda memilih berkas yang terkompresi, coba ekstrak isinya.</string>
     <string name="no_roms_found">Tidak ada ROM yang ditemukan</string>
-    <string name="dsiware_title_cannot_be_launched_directly_title">Judul DSiWare tidak dapat dijalankan</string>
-    <string name="dsiware_title_cannot_be_launched_directly_message">Judul DSiWare titles tidak dapat dijalankan secara langsung. Mereka harus dipasang ke NAND (Melalui Manajer DSiWare) dan dijalankan dari firmware DSi.</string>
+    <string name="rom_launch_failed">Gagal untukk menjalankan ROM</string>
+    <string name="rom_launch_custom_bios_firmware_bad_setup">ROM ini telah diatur untuk dijalankan menggunakan sebuah BIOS dan firmware kustom, namun ini tidak dikonfigurasi dengan benar.</string>
+    <string name="firmware_launch_failed">Gagal menjalankan firmware</string>
+    <string name="firmware_launch_bad_setup">Untuk menjalankan firmware ini, sebuah BIOS dan firmware kustom dibutuhkan, namun ini tidak dikonfigurasi dengan benar.</string>
+    <string name="failed_launch_dsiware_title">Gagal untuk menjalankan DSiWare</string>
+    <string name="failed_launch_dsiware_title_check_failed">Tidak dapat membuktikan bahwa judul DSiWare terpasang. Cek Manajer DSiWare untuk informasi lebih lanjut.</string>
+    <string name="failed_launch_dsiware_title_rom_failed">Tidak dapat mengurai berkas ROM. Cek apakah berkas ROM sah dan tidak terkorupsi.</string>
+    <string name="failed_launch_dsiware_title_not_installed">Untuk menjalankan sebuah judul DSiWare, ini harus sebelumnya terpasang ke NAND. Anda dapat memasng ini pada Manajer DSiWare.</string>
 
     <string name="press_any_button">Tekan sembarang tombol</string>
+    <string name="waiting_for_input">Menunggu masukan…</string>
 
     <string name="choose_component">Pilih komponen</string>
 
@@ -161,7 +173,7 @@
     <string name="rewind_length">Panjang putar ulang</string>
     <string name="rewind_max_memory_usage">Maks. penggunaan memori: %1$s</string>
     <string name="rewind_memory_usage_above_recommended_limit">Penggunaan memori melebihi batas rekomendasi</string>
-    <string name="sustained_performance_mode">Mode performa berkelanjutan</string>
+    <string name="sustained_performance_mode">Moda performa berkelanjutan</string>
     <string name="sustained_performance_mode_summary">Ketika diaktifkan, kinerja puncak akan lebih rendah namun pembatasan panas akan kurang terasa.</string>
     <string name="check_for_updates">Periksa pembaruan</string>
     <string name="check_for_updates_summary">Ketika diaktifkan, aplikasi akan secara berkala mengecek ketersediaan pembaruan</string>
@@ -188,6 +200,24 @@
     <string name="enable_jit">Aktifkan JIT</string>
     <string name="enable_jit_summary">Meningkatkan kinerja namun dapat menyebabkan berhenti atau macet.</string>
     <string name="jit_not_supported">JIT hanya didukung di perangkat 64 bit.</string>
+    <string name="backup_settings">Cadangkan pengaturan</string>
+    <string name="restore_settings">Memulihkan pengaturan</string>
+    <string name="settings_backup_success">Cadangan pengaturan dibuat.\n\nBerikut ini dilewati:\n&#8226; Sesi RetroAchievements\n&#8226; ROM/direktori penyimpanan\n&#8226; Direktori BIOS DS\n&#8226; Direktori BIOS DSi</string>
+    <string name="settings_backup_error">Gagal untuk mencadangkan pengaturan</string>
+    <string name="settings_restore_success">Settings restored.\n\nThe following were unchanged:\n&#8226; Sesi RetroAchievements\n&#8226; ROM/direktori penyimpanan\n&#8226; Direktori BIOS DS\n&#8226; Direktori BIOS DSi</string>
+    <string name="settings_restore_error">Gagal memulihkan pengaturan</string>
+    <string name="backup_internal_layout">Cadangkan tata letak internal</string>
+    <string name="backup_external_layout">Cadangkan tata letak eksternal</string>
+    <string name="restore_internal_layout">Pulihkan tata letak internal</string>
+    <string name="restore_external_layout">Pulihkan tata letak eksternal</string>
+    <string name="internal_layout_backup_success">Cadangan tata letak internal dibuat.</string>
+    <string name="internal_layout_backup_error">Gagal untuk mencadangkan tata letak internal</string>
+    <string name="external_layout_backup_success">Cadangan tata letak eksternal dibuat.</string>
+    <string name="external_layout_backup_error">Gagal untuk mencadangkan tata letak eksternal</string>
+    <string name="internal_layout_restore_success">Tata letak internal dipulihkan.</string>
+    <string name="internal_layout_restore_error">Gagal untuk memulihkan tata letak internal</string>
+    <string name="external_layout_restore_success">Tata letak eksternal dipulihkan.</string>
+    <string name="external_layout_restore_error">Gagal untuk memulihkan tata letak eksternal</string>
     <string name="threaded_rendering">Perenderan berulir</string>
     <string name="fps_counter_position">Posisi penghitung FPDetik</string>
     <string name="threaded_rendering_summary">Meningkatkan kinerja pada game 3D saat diaktifkan namun dapat menyebabkan gangguan grafis.</string>
@@ -197,7 +227,14 @@
     <string name="internal_resolution">Resolusi internal</string>
     <string name="renderer">Perender</string>
     <string name="dsi_camera_source">Sumber kamera DSi</string>
+    <string name="external_screen_layout">Tata letak layar eksternal</string>
+    <string name="external_display_screen">Layar tampil eksternal</string>
+    <string name="external_display_rotate_left">Putar isi layar eksternal ke kiri</string>
+    <string name="refresh_external_screen">Segarkan layar eksternal</string>
     <string name="dsi_camera_image">Gambar kamera DSi</string>
+    <string name="internal_screen_layout">Tata letak layar internal</string>
+    <string name="input_refresh_external_screen">Segarkan layar eksternal</string>
+    <string name="quick_settings">Pengaturan cepat</string>
     <string name="category_audio">Suara</string>
     <string name="category_audio_summary">Volume, latensi, sumber mikrofon</string>
     <string name="enable_sound">Aktifkan suara</string>
@@ -211,29 +248,36 @@
     <string name="category_save_files">Simpan Berkas</string>
     <string name="category_save_files_summary">Lokasi simpan berkas &amp; simpan status</string>
     <string name="save_next_rom">Simpan di sebelah berkas ROM</string>
-    <string name="save_file_directory">Direktori simpan berkas</string>
+    <string name="save_file_directory">Direktori penyimpanan berkas</string>
     <string name="save_state_location">Lokasi simpan status</string>
     <string name="input">Masukan</string>
     <string name="input_summary">Pemetaan kunci, tata letak, umpan balik haptik</string>
     <string name="key_mapping">Pemetaan kunci</string>
     <string name="key_mapping_summary">Tetapkan kunci ke masukan kontroler</string>
     <string name="show_soft_input">Tampilkan masukan lunak</string>
+    <string name="soft_input_behaviour">Perilaku masukan lunak</string>
     <string name="vibrate_on_touch">Bergetar saat disentuh</string>
     <string name="vibration_strength">Kekuatan getaran</string>
     <string name="soft_input_opacity">Opasitas masukan lunak</string>
     <string name="retroachievements">RetroAchievements</string> <!-- Keep words together because this is the official name -->
     <string name="retroachievements_summary">Masuk &amp; kelola integrasi RetroAchievements</string> <!-- Keep words together because this is the official name -->
     <string name="enable_rich_presence">Aktifkan tampilan kaya</string>
-    <string name="rich_presence_summary">Memungkinkan pengguna RetroAchievement lain untuk melihat apa yang anda mainkan</string>
-    <string name="hardcore_mode">Mode Hardcore</string>
+    <string name="rich_presence_summary">Memungkinkan pengguna RetroAchievements lain untuk melihat apa yang anda mainkan</string>
+    <string name="hardcore_mode">Moda Hardcore</string>
     <string name="hardcore_mode_summary">Dapatkan dua kali lebih banyak poin namun anda tidak dapat menggunakan simpan status, curang atau gerak-lambat ketika bermain</string>
+    <string name="show_active_challenge_indicators">Tampilkan indikator tantangan aktif</string>
+    <string name="show_active_challenge_indicators_summary">Tampilkan indikator pada-layar ketika tantangan tertentu dapat diperoleh</string>
+    <string name="show_progress_indicators">Tampilkan indikator kemajuan</string>
+    <string name="show_progress_indicators_summary">Tampilkan indikator pada-layar ketika kemajuan telah dicapai ke sebuah pencapaian</string>
+    <string name="show_leaderboard_indicators">Tampilkan indikator peringkat</string>
+    <string name="show_leaderboard_indicators_summary">Tampilkan indikator pada-layar ketika sebuah usaha masuk peringkat sedang berlangsung</string>
 
     <string name="cheats">Curang</string>
     <string name="cheats_summary">Aktifkan &amp; impor kode curang</string>
     <string name="enable_cheats">Mengaktifkan curang</string>
     <string name="cheats_database">Basis data curang (format XML)</string>
     <string name="import_cheats">Mengimpor curang</string>
-    <string name="import_cheats_summary">Mengimpor curang dari berkas basis data untuk membuatnya tersedia. Hanya basis data XML yang didukung untuk sekarang. Curang apa pun yang terinstal sebelumnya akan dihapus.</string>
+    <string name="import_cheats_summary">Mengimpor curang dari berkas basis data untuk membuatnya tersedia. Hanya basis data XML yang didukung untuk sekarang. Curang apa pun yang terpasang sebelumnya akan dihapus.</string>
     <string name="rom_shortcut">Pintasan ROM</string>
 
     <string name="firmware_nickname">Nama panggilan</string>
@@ -270,6 +314,7 @@
 
     <string name="rom_settings">Pengaturan Rom</string> <!-- Accessibility string. Should not use acronyms -->
     <string name="label_rom_config_console">Sistem mulai</string>
+    <string name="label_rom_config_custom_name">Nama tampilan ROM</string>
     <string name="label_rom_config_gba_slot">Slot GBA</string>
     <string name="label_rom_config_gba_rom_path">Jalur ROM GBA</string>
     <string name="label_rom_config_gba_save_path">Jalur simpan GBA</string>
@@ -284,6 +329,7 @@
 
     <string name="top_screen">Layar Atas</string>
     <string name="bottom_screen">Layar Bawah</string>
+    <string name="custom_layout">Tata letak kustom</string>
     <string name="input_a">A</string>
     <string name="input_b">B</string>
     <string name="input_x">X</string>
@@ -292,6 +338,10 @@
     <string name="input_right">Kanan</string>
     <string name="input_up">Atas</string>
     <string name="input_down">Bawah</string>
+    <string name="input_left_joy">Joy Kiri</string>
+    <string name="input_right_joy">Joy Kanan</string>
+    <string name="input_up_joy">Joy Atas</string>
+    <string name="input_down_joy">Joy Bawah</string>
     <string name="input_l">L</string>
     <string name="input_r">R</string>
     <string name="input_start">Mulai</string>
@@ -314,12 +364,27 @@
     <string name="default_layout_name">Bawaan</string>
     <string name="custom_layout_default_name">Tata letakku</string>
     <string name="use_global_layout">Gunakan tata letak global</string>
+    <string name="use_global_preference">Gunaakan pengaturan global</string>
     <string name="layout_deleted">Tata letak terhapus</string>
+    <string name="named_layout_deleted">Tata letaak \"%1$s\" dihapus</string>
 
     <string name="layout_editor">Pengubah tata letak</string>
     <string name="add_component">Tambahkan komponen</string>
     <string name="no_more_components">Tidak ada lagi komponen untuk ditambahkan</string>
     <string name="label_size">Ukuran:</string>
+    <string name="label_width">Lebaar</string>
+    <string name="label_height">Tinggi</string>
+    <string name="label_alpha">Alfa</string>
+    <string name="label_aspect_ratio">Rasio aspek:</string>
+    <string name="aspect_ratio_4_3">4:3 (Asli)</string>
+    <string name="aspect_ratio_16_9">16:9 (Layar lebar)</string>
+    <string name="aspect_ratio_unrestricted">Tidak terbatas</string>
+    <string name="keep_ds_ratio">Memperhatikan aspek rasio DS</string>
+    <string name="above_other_screen">Di atas layar yang lain</string>
+    <string name="center_horizontal">Tengah secara horizontal</string>
+    <string name="center_vertical">Tengah secara vertikal</string>
+    <string name="editing_internal_layout">Penyuntingan tata letak internal</string>
+    <string name="editing_external_layout">Penyuntingan tata letak eksternal</string>
     <string name="menu">Menu</string>
     <string name="properties">Properti</string>
     <string name="revert_changes">Kembalikan perubahan</string>
@@ -335,7 +400,7 @@
     <string name="layout_background_title">Latar Belakang Tata Letak</string>
     <string name="background">Latar belakang</string>
     <string name="backgrounds">Latar belakang</string>
-    <string name="background_mode">Mode latar belakang</string>
+    <string name="background_mode">Moda latar belakang</string>
     <string name="action_backgrounds_new">Latar belakang baru</string>
     <string name="background_name">Nama latar belakang</string>
     <string name="background_deleted">Latar belakang terhapus</string>
@@ -353,6 +418,12 @@
     <string name="retro_achievements_load_error">Ada masalah saat mencoba memuat pencapaian untuk permainan ini. Pastikan anda terkoneksi ke internet dan coba lagi nanti</string>
     <string name="retro_achievements_no_achievements">Tidak ada RetroAchievements yang ditemukan untuk permainan ini</string>
     <string name="retro_achievements_relaunch_to_apply_settings">Jalankan kembali ROM untuk menerapkan pengaturan RetroAchievements baru</string>
+    <string name="retro_achievements_pending_unlocks">Membuka Tertunda</string>
+    <string name="retro_achievements_active_challenges">Tantangan Aktif</string>
+    <string name="retro_achievements_recently_unlokced">Terbuka Baru-Baru Ini</string>
+    <string name="retro_achievements_almost_there">Hampir Sampai</string>
+    <string name="retro_achievements_locked">Terkunci</string>
+    <string name="retro_achievements_unlocked">Terbuka</string>
     <string name="username">Nama pengguna</string>
     <string name="password">Kata sandi</string>
     <string name="retry">Coba lagi</string>
@@ -361,16 +432,38 @@
     <string name="completed">Diselesaikan</string>
     <string name="ra_mode_hardcore">Hardcore</string>
     <string name="ra_mode_softcore">Softcore</string>
+    <string name="ra_base_set">Set Dasar</string>
     <string name="view_achievement">Lihat pencapaian</string>
     <string name="completed_achievements"><b>%1$d</b> dari <b>%2$d</b> (%3$d%%)</string>
     <string name="submitting_achievements">Mengirimkan RetroAchievements…</string>
     <string name="achievements_loaded">Pencapaian termuat</string>
     <string name="achievements_unlocked_compact">Terbuka: %1$d/%2$d</string>
+    <string name="game_has_no_achievements">Permainan ini tidak memiliki pencapaian</string>
     <string name="achievements_failed_load">Gagal memuat pencapaian!</string>
     <string name="achievements_failed_load_tip">Pastikan anda Online</string>
     <string name="achievement_unlocked">Pencapaian terbuka!</string>
     <string name="achievement_missable">Dapat terlewatkan</string>
     <string name="achievement_missable_description">Pencapaian ini dapat terlewatkan selama permainan</string>
+    <string name="achievement_progress">%1$d/%2$d</string> <!-- Eg.: 12/38 -->
+    <string name="challenge_started">Tantangan dimulai</string>
+    <string name="leaderboard_attempt_started">Usaha masuk peringkat dimulai!</string>
+    <string name="leaderboard_submission_info">%1$s • Peringkat %2$d dari %3$d</string> <!-- Eg.: 01:42.95 • Rank 73 of 145 -->
+    <string name="game_completed">Diselesaikan %1$s</string>
+    <string name="game_mastered">Dikuasai %1$s</string>
+    <string name="retroachievements_unsynchronized_data">Data RetroAchievements tidak tersinkronisasi</string>
+    <string name="retroachievements_unsynchronized_data_info">Ada data RetroAchievements yang tidak tersinkronisasi. Operasi berikut tertunda:</string>
+    <plurals name="retroachievements_pending_achievement_unlocks">
+        <item quantity="one">%d tantangan terbuka</item>
+        <item quantity="other">%d tantangan terbuka</item>
+    </plurals>
+    <plurals name="retroachievements_pending_leaderboard_entries">
+        <item quantity="one">%d peserta mencoba masuk peringkat</item>
+        <item quantity="other">%d peserta mencoba masuk peringkat</item>
+    </plurals>
+    <string name="retroachievements_unsynchronized_data_connect_internet">Hubungkan ke internet untuk menyinkronkan data.</string>
+    <string name="retroachievements_unsynchronized_data_loss_info">Jika anda keluar sekarang, data ini akan hilang!</string>
+    <string name="retroachievements_unsynchronized_data_synchronized">Semua data telah disinkronisasi!</string>
+    <string name="retroachievements_unsynchronized_data_exiting">Emulator akan keluar sekarang.</string>
 
     <string-array name="fast_forward_speed_multiplier_options">
         <item>Tidak terbatas</item>
@@ -411,6 +504,7 @@
     <string-array name="gba_slot_options">
         <item>Tidak ada</item>
         <item>ROM GBA</item>
+        <item>Pak Getaran</item>
         <item>Ekspansi memori</item>
     </string-array>
 
@@ -461,6 +555,11 @@
         <item>Gambar statis</item>
     </string-array>
 
+    <string-array name="external_display_screen_options">
+        <item>@string/top_screen</item>
+        <item>@string/bottom_screen</item>
+    </string-array>
+
     <string-array name="audio_interpolation_options">
         <item>Tidak ada</item>
         <item>Linier</item>
@@ -486,8 +585,22 @@
         <item>Mikrofon perangkat</item>
     </string-array>
 
+    <string-array name="soft_input_behaviour_options">
+        <item>Selalu tampil</item>
+        <item>Sembunyikan tombol konsole ketika sebuah kontroler terkoneksi</item>
+        <item>Sembunyikan masukan yang ditetapkan ketika sebuah kontroler terkoneksi</item>
+        <item>Selalu disembunyikan</item>
+    </string-array>
+
+    <string-array name="soft_input_behaviour_descriptions">
+        <item>Masukan lunak selalu tampil, seperti yang di atur pada tata letak masukan sekarang.</item>
+        <item>Ketika sebuah kontroler terkoneksi, tombol konsol (A B X Y, D-Pad, L, R, Mulai, dan Pilih) disembunyikan. Tombol lainnya pada tata letak masukan sekarang tetap ditampilkan.</item>
+        <item>Ketika sebuah kontroler terkoneksi, seluruh masukan pada kontroler tersebut disembunyikan. Masukan lainnya yang ada pada tata letak masukan sekarang yang tidak diatur ke kontroler terkonekasi tetap ditampilkan.</item>
+        <item>Masukan lunak selalu disembunyikan, secara mandari dari tombol yang ditemukan pada tata letak input sekarang.</item>
+    </string-array>
+
     <string-array name="save_state_locations">
-        <item>Direktori berkas simpan</item>
+        <item>Direktori berkas penyimpanan</item>
         <item>Direktori ROM</item>
         <item>Direktori internal</item>
     </string-array>
