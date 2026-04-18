@@ -465,7 +465,7 @@ class EmulatorViewModel @Inject constructor(
     }
 
     fun saveStateToSlot(slot: SaveStateSlot) {
-        sessionCoroutineScope.launch(Dispatchers.IO) {
+        sessionCoroutineScope.launch {
             (_emulatorState.value as? EmulatorState.RunningRom)?.let {
                 if (!saveRomState(it.rom, slot)) {
                     _toastEvent.emit(ToastEvent.StateSaveFailed)
