@@ -1,7 +1,7 @@
 **WARNING**: Savestates from this version are incompatible with savestates from the previous version.
 
 **Changelog:**
-1.0.0
+2.0.0
 * Update core to melonDS 1.1
 * Add support dual-screen devices (thanks to @SapphireRhodonite for the initial implementation, special thanks to AYANEO and AYN for providing test devices)
 * Multiple improvements and additions to the RetroAchievements integration
