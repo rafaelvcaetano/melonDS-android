@@ -38,6 +38,7 @@ private fun parseAchievementSetType(type: String): RAAchievementSet.Type {
         "bonus" -> RAAchievementSet.Type.Bonus
         "specialty" -> RAAchievementSet.Type.Specialty
         "exclusive" -> RAAchievementSet.Type.Exclusive
-        else -> throw IllegalArgumentException("Unknown achievement set type: $type")
+        "challenge" -> RAAchievementSet.Type.Challenge
+        else -> RAAchievementSet.Type.Bonus
     }
 }

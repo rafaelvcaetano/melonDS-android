@@ -17,5 +17,6 @@ data class RAAchievementSet(
         Bonus,
         Specialty,
         Exclusive,
+        Challenge,
     }
 }
