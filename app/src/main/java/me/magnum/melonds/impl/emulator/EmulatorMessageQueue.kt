@@ -59,7 +59,7 @@ class EmulatorMessageQueue(private val eventHandler: EventHandler) {
                 throw RuntimeException("Failed to initialize native pipe")
             }
 
-            val fileDescriptor = ParcelFileDescriptor.adoptFd(readPipeFd)
+            val fileDescriptor = ParcelFileDescriptor.fromFd(readPipeFd)
             if (fileDescriptor == null) {
                 throw RuntimeException("Failed to create ParcelFileDescriptor")
             }
@@ -102,9 +102,7 @@ class EmulatorMessageQueue(private val eventHandler: EventHandler) {
     }
 
     fun cleanup() {
-        handler.post {
-            stop()
-        }
+        stop()
         handlerThread.quitSafely()
     }
 
