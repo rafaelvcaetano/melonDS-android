@@ -31,7 +31,12 @@ sealed class LaunchArgs {
                 if (romParcelable != null) {
                     RomObject(romParcelable.rom)
                 } else {
-                    val uri = savedStateHandle.get<String>(EmulatorActivity.KEY_URI)?.toUri()
+                    val uri = when (val uriEntry = savedStateHandle.get<Any>(EmulatorActivity.KEY_URI)) {
+                        is String -> uriEntry.toUri()
+                        is Uri -> uriEntry
+                        else -> null
+                    }
+
                     if (uri != null) {
                         RomUri(uri)
                     } else {
@@ -69,8 +74,14 @@ sealed class LaunchArgs {
                         RomPath(romPath)
                     }
                     extras?.containsKey(EmulatorActivity.KEY_URI) == true -> {
-                        val romUri = extras.getString(EmulatorActivity.KEY_URI)!!
-                        RomUri(romUri.toUri())
+                        @Suppress("DEPRECATION")
+                        val uri = when (val uriEntry = extras.get(EmulatorActivity.KEY_URI)) {
+                            is String -> uriEntry.toUri()
+                            is Uri -> uriEntry
+                            else -> null
+                        }
+
+                        uri?.let { RomUri(it) }
                     }
                     else -> null
                 }
