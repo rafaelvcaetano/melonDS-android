@@ -14,6 +14,7 @@ import me.magnum.melonds.impl.NdsRomCache
 import me.magnum.melonds.utils.RomProcessor
 import java.io.FileOutputStream
 import java.io.FilterInputStream
+import java.io.IOException
 import java.io.InputStream
 
 abstract class CompressedRomFileProcessor(private val context: Context, private val uriHandler: UriHandler, private val ndsRomCache: NdsRomCache) : RomFileProcessor {
@@ -115,14 +116,18 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
                         override fun saveRomFile(fileStream: FileOutputStream): Boolean {
                             val buffer = ByteArray(8192)
 
-                            do {
-                                val read = romFileStream.read(buffer)
-                                if (read <= 0) {
-                                    break
-                                }
+                            try {
+                                do {
+                                    val read = romFileStream.read(buffer)
+                                    if (read <= 0) {
+                                        break
+                                    }
 
-                                fileStream.write(buffer, 0, read)
-                            } while (!emitter.isDisposed)
+                                    fileStream.write(buffer, 0, read)
+                                } while (!emitter.isDisposed)
+                            } catch (_: IOException) {
+                                return false
+                            }
 
                             return !emitter.isDisposed
                         }
