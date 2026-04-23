@@ -35,7 +35,7 @@ class EmulatorLaunchValidatorDelegate(
 
     init {
         context.lifecycleScope.launch {
-            context.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            context.lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.romValidationResult.collect {
                     when (it) {
                         is LaunchValidationResult.Firmware -> {

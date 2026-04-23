@@ -171,12 +171,24 @@ class EmulatorViewModel @Inject constructor(
         launchEmulator(args)
     }
 
+    fun onRomLaunchValidated(rom: Rom) {
+        viewModelScope.launch {
+            launchRom(rom)
+        }
+    }
+
+    fun onFirmwareLaunchValidated(consoleType: ConsoleType) {
+        viewModelScope.launch {
+            launchFirmware(consoleType)
+        }
+    }
+
     private fun launchEmulator(args: LaunchArgs) {
         when (args) {
             is LaunchArgs.RomObject -> loadRom(args.rom)
             is LaunchArgs.RomUri -> loadRom(args.uri)
             is LaunchArgs.RomPath -> loadRom(args.path)
-            is LaunchArgs.Firmware -> loadFirmware(args.consoleType)
+            is LaunchArgs.Firmware -> _emulatorState.value = EmulatorState.ValidatingFirmware(args.consoleType)
         }
     }
 
@@ -184,7 +196,7 @@ class EmulatorViewModel @Inject constructor(
         viewModelScope.launch {
             resetEmulatorState(EmulatorState.LoadingRom)
             sessionCoroutineScope.launch {
-                launchRom(rom)
+                _emulatorState.value = EmulatorState.ValidatingRom(rom)
             }
         }
     }
@@ -195,7 +207,7 @@ class EmulatorViewModel @Inject constructor(
             sessionCoroutineScope.launch {
                 val rom = romsRepository.getRomAtUri(romUri)
                 if (rom != null) {
-                    launchRom(rom)
+                    _emulatorState.value = EmulatorState.ValidatingRom(rom)
                 } else {
                     _emulatorState.value = EmulatorState.RomNotFoundError(romUri.toString())
                 }
@@ -209,7 +221,7 @@ class EmulatorViewModel @Inject constructor(
             sessionCoroutineScope.launch {
                 val rom = romsRepository.getRomAtPath(romPath)
                 if (rom != null) {
-                    launchRom(rom)
+                    _emulatorState.value = EmulatorState.ValidatingRom(rom)
                 } else {
                     _emulatorState.value = EmulatorState.RomNotFoundError(romPath)
                 }
@@ -248,7 +260,7 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    private fun loadFirmware(consoleType: ConsoleType) {
+    private fun launchFirmware(consoleType: ConsoleType) {
         viewModelScope.launch {
             resetEmulatorState(EmulatorState.LoadingFirmware)
             startEmulatorSession(EmulatorSession.SessionType.FirmwareSession(consoleType))

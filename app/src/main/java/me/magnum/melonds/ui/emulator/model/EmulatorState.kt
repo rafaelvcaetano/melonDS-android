@@ -6,7 +6,9 @@ import me.magnum.melonds.domain.model.rom.Rom
 
 sealed class EmulatorState {
     data object Uninitialized : EmulatorState()
+    data class ValidatingRom(val rom: Rom) : EmulatorState()
     data object LoadingRom : EmulatorState()
+    data class ValidatingFirmware(val consoleType: ConsoleType) : EmulatorState()
     data object LoadingFirmware : EmulatorState()
     data class RunningRom(val rom: Rom) : EmulatorState()
     data class RunningFirmware(val console: ConsoleType) : EmulatorState()
