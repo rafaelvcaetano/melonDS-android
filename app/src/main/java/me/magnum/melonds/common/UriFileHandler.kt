@@ -3,6 +3,7 @@ package me.magnum.melonds.common
 import android.content.Context
 import androidx.core.net.toUri
 import me.magnum.melonds.common.uridelegates.UriHandler
+import java.io.FileNotFoundException
 
 class UriFileHandler(private val context: Context, private val uriHandler: UriHandler) {
     companion object {
@@ -20,10 +21,18 @@ class UriFileHandler(private val context: Context, private val uriHandler: UriHa
 
         return if (isWriteMode) {
             if (uriHandler.fileExists(uri)) {
-                context.contentResolver.openFileDescriptor(uri, mode)?.detachFd()
+                try {
+                    context.contentResolver.openFileDescriptor(uri, mode)?.detachFd()
+                } catch (_: FileNotFoundException) {
+                    null
+                }
             } else {
                 uriHandler.createFileDocument(uri)?.let { document ->
-                    context.contentResolver.openFileDescriptor(document.uri, mode)?.detachFd()
+                    try {
+                        context.contentResolver.openFileDescriptor(document.uri, mode)?.detachFd()
+                    } catch (_: FileNotFoundException) {
+                        null
+                    }
                 }
             }
         } else {
