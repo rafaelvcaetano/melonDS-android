@@ -264,9 +264,9 @@
     <string name="enable_rich_presence">启用 Rich Presence</string>
     <string name="rich_presence_summary">允许其他 RetroAchievements 用户看到您正在玩什么游戏</string>
     <string name="hardcore_mode">硬核模式</string>
-    <string name="hardcore_mode_summary">获得双倍积分，但您无法在游戏中使用即时存档、金手指或慢动作</string>
+    <string name="hardcore_mode_summary">允许获得硬核成就。金手指、即时存档、慢动作和倒带被禁用</string>
     <string name="show_active_challenge_indicators">显示进行中挑战指示器</string>
-    <string name="show_active_challenge_indicators_summary">可取得特定成就时在屏幕上显示指示器</string>
+    <string name="show_active_challenge_indicators_summary">可获得特定成就时在屏幕上显示指示器</string>
     <string name="show_progress_indicators">显示进度指示器</string>
     <string name="show_progress_indicators_summary">进度接近成就时在屏幕上显示指示器</string>
     <string name="show_leaderboard_indicators">显示排行榜指示器</string>
