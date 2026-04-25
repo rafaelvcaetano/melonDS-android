@@ -17,6 +17,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -114,6 +116,8 @@ class EmulatorViewModel @Inject constructor(
     val emulatorState = _emulatorState.asStateFlow()
 
     private val _layout = MutableStateFlow<LayoutConfiguration?>(null)
+
+    private val _currentLayout = uiLayoutProvider.currentLayout.shareIn(viewModelScope, SharingStarted.Lazily)
 
     private val _runtimeLayout = MutableStateFlow<RuntimeInputLayoutConfiguration?>(null)
     val runtimeLayout = _runtimeLayout.asStateFlow()
@@ -587,7 +591,7 @@ class EmulatorViewModel @Inject constructor(
         sessionCoroutineScope.launch {
             combine(
                 _layout,
-                uiLayoutProvider.currentLayout,
+                _currentLayout,
                 settingsRepository.getSoftInputBehaviour(),
                 settingsRepository.isTouchHapticFeedbackEnabled(),
                 settingsRepository.getSoftInputOpacity(),
@@ -663,7 +667,7 @@ class EmulatorViewModel @Inject constructor(
 
     private fun startObservingMainScreenBackground() {
         sessionCoroutineScope.launch {
-            combine(uiLayoutProvider.currentLayout, ensureEmulatorIsRunning()) { variant, _ ->
+            combine(_currentLayout, ensureEmulatorIsRunning()) { variant, _ ->
                 val layout = variant?.second
                 if (layout == null) {
                     RuntimeBackground.None
@@ -676,7 +680,7 @@ class EmulatorViewModel @Inject constructor(
 
     private fun startObservingSecondaryScreenBackground() {
         sessionCoroutineScope.launch {
-            combine(uiLayoutProvider.currentLayout, ensureEmulatorIsRunning()) { variant, _ ->
+            combine(_currentLayout, ensureEmulatorIsRunning()) { variant, _ ->
                 val layout = variant?.second
                 if (layout == null) {
                     RuntimeBackground.None

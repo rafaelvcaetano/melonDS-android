@@ -1,7 +1,9 @@
 package me.magnum.melonds.impl.layout
 
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import me.magnum.melonds.domain.model.Point
 import me.magnum.melonds.domain.model.layout.LayoutConfiguration
@@ -10,7 +12,9 @@ import me.magnum.melonds.domain.model.layout.ScreenFold
 import me.magnum.melonds.domain.model.layout.UILayout
 import me.magnum.melonds.domain.model.layout.UILayoutVariant
 import me.magnum.melonds.domain.model.ui.Orientation
+import kotlin.time.Duration.Companion.milliseconds
 
+@OptIn(FlowPreview::class)
 class UILayoutProvider(private val defaultLayoutProvider: DefaultLayoutProvider) {
 
     private val currentUiSize = MutableStateFlow<Point?>(null)
@@ -24,7 +28,7 @@ class UILayoutProvider(private val defaultLayoutProvider: DefaultLayoutProvider)
         } else {
             UILayoutVariant(size, orientation, folds, displays)
         }
-    }.distinctUntilChanged()
+    }.distinctUntilChanged().debounce(50.milliseconds) // Debounce to avoid emitting multiple values when different configurations are updated at the same time
 
     private val _currentLayoutConfiguration = MutableStateFlow<LayoutConfiguration?>(null)
 
