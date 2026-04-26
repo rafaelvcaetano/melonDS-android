@@ -27,6 +27,8 @@ class InputSetupActivity : AppCompatActivity() {
     private val viewModel: InputSetupViewModel by viewModels()
 
     private val referenceAxisValues = mutableMapOf<Int, Float>()
+    private val pressedKeysUnderAssignment = mutableSetOf<Int>()
+    private val keysToConsumeAfterAssignment = mutableSetOf<Int>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
@@ -49,6 +51,8 @@ class InputSetupActivity : AppCompatActivity() {
                     if (it != null) {
                         // A new assignment has started. Reset reference values
                         referenceAxisValues.clear()
+                        pressedKeysUnderAssignment.clear()
+                        keysToConsumeAfterAssignment.clear()
                         InputDevice.getDeviceIds().forEach { deviceId ->
                             InputDevice.getDevice(deviceId)?.motionRanges?.forEach { range ->
                                 if (range.isFromSource(InputDevice.SOURCE_CLASS_JOYSTICK)) {
@@ -94,11 +98,34 @@ class InputSetupActivity : AppCompatActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.action == KeyEvent.ACTION_DOWN && viewModel.inputUnderAssignment.value != null) {
+        if (event.action == KeyEvent.ACTION_UP && keysToConsumeAfterAssignment.remove(event.keyCode)) {
+            return true
+        }
+
+        if (viewModel.inputUnderAssignment.value != null) {
+            if (event.keyCode == KeyEvent.KEYCODE_BACK) {
+                return super.dispatchKeyEvent(event)
+            }
+
             @SuppressLint("GestureBackNavigation")
-            if (event.keyCode != KeyEvent.KEYCODE_BACK) {
-                viewModel.updateInputAssignedKey(event.keyCode)
-                return true
+            when (event.action) {
+                KeyEvent.ACTION_DOWN -> {
+                    if (event.repeatCount == 0) {
+                        pressedKeysUnderAssignment.add(event.keyCode)
+                        if (pressedKeysUnderAssignment.size >= 2) {
+                            keysToConsumeAfterAssignment.addAll(pressedKeysUnderAssignment)
+                            viewModel.updateInputAssignedKeyCombination(pressedKeysUnderAssignment.toList())
+                            pressedKeysUnderAssignment.clear()
+                        }
+                    }
+                    return true
+                }
+                KeyEvent.ACTION_UP -> {
+                    if (pressedKeysUnderAssignment.remove(event.keyCode) && pressedKeysUnderAssignment.isEmpty()) {
+                        viewModel.updateInputAssignedKey(event.keyCode)
+                    }
+                    return true
+                }
             }
         }
         return super.dispatchKeyEvent(event)
