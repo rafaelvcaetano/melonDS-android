@@ -173,8 +173,10 @@ private fun Input(
                     assignments.joinToString(" / ") { assignment ->
                         when (assignment) {
                             is InputConfig.Assignment.Key -> {
-                                val keyCodeString = KeyEvent.keyCodeToString(assignment.keyCode)
-                                keyCodeString.replace("KEYCODE", "").replace("_", " ").trim()
+                                assignment.keyCodes.joinToString(" + ") { keyCode ->
+                                    val keyCodeString = KeyEvent.keyCodeToString(keyCode)
+                                    keyCodeString.replace("KEYCODE", "").replace("_", " ").trim()
+                                }
                             }
                             is InputConfig.Assignment.Axis -> {
                                 val axisString = MotionEvent.axisToString(assignment.axisCode)
