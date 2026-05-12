@@ -28,6 +28,7 @@ MelonDSAndroid::EmulatorConfiguration MelonDSAndroidConfiguration::buildEmulator
     jobject dsiNandUri = env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "dsiNandUri", "Landroid/net/Uri;"));
     jstring internalFilesDir = (jstring) env->GetObjectField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "internalDirectory", "Ljava/lang/String;"));
     jfloat fastForwardMaxSpeed = env->GetFloatField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "fastForwardSpeedMultiplier", "F"));
+    jboolean muteFastForwardAudio = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "muteFastForwardAudio", "Z"));
     jboolean enableRewind = env->GetBooleanField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "rewindEnabled", "Z"));
     jint rewindPeriodSeconds = env->GetIntField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "rewindPeriodSeconds", "I"));
     jint rewindWindowSeconds = env->GetIntField(emulatorConfiguration, env->GetFieldID(emulatorConfigurationClass, "rewindWindowSeconds", "I"));
@@ -79,6 +80,7 @@ MelonDSAndroid::EmulatorConfiguration MelonDSAndroidConfiguration::buildEmulator
     finalEmulatorConfiguration.consoleType = consoleType;
     finalEmulatorConfiguration.audioSettings = MelonDSAndroid::AudioSettings {
         .soundEnabled = (bool) soundEnabled,
+        .muteFastForwardAudio = (bool) muteFastForwardAudio,
         .volume = volume,
         .audioInterpolation = audioInterpolation,
         .audioBitrate = audioBitrate,

@@ -2,6 +2,7 @@
 #include "MicInputOboeCallback.h"
 #include "mic_blow.h"
 #include "OboeCallback.h"
+#include <atomic>
 #include <oboe/Oboe.h>
 
 #define MIC_BUFFER_SIZE 2048
@@ -16,6 +17,8 @@ std::shared_ptr<oboe::AudioStream> micInputStream;
 std::shared_ptr<MicInputOboeCallback> micInputCallback;
 
 MelonDSAndroid::AudioSettings currentAudioSettings;
+std::atomic_bool isFastForwardAudioEnabled = false;
+std::atomic_bool muteFastForwardAudio = false;
 std::mutex micBufferMutex;
 int actualMicSource = 0;
 bool isMicInputEnabled = true;
@@ -241,6 +244,8 @@ namespace MelonDSAndroid
     void setupAudio(AudioSettings audioSettings)
     {
         isMicOn = false;
+        isFastForwardAudioEnabled = false;
+        muteFastForwardAudio = audioSettings.muteFastForwardAudio;
         actualMicSource = audioSettings.micSource;
         currentAudioSettings = audioSettings;
 
@@ -253,6 +258,8 @@ namespace MelonDSAndroid
 
     void updateAudioSettings(AudioSettings audioSettings)
     {
+        muteFastForwardAudio = audioSettings.muteFastForwardAudio;
+
         if (audioSettings.soundEnabled && currentAudioSettings.volume > 0) {
             if (!audioStream) {
                 setupAudioOutputStream(audioSettings.audioLatency, audioSettings.volume);
@@ -279,6 +286,16 @@ namespace MelonDSAndroid
         currentAudioSettings = audioSettings;
     }
 
+    void setAudioFastForwardEnabled(bool enabled)
+    {
+        isFastForwardAudioEnabled = enabled;
+    }
+
+    bool shouldMuteAudioOutput()
+    {
+        return isFastForwardAudioEnabled.load() && muteFastForwardAudio.load();
+    }
+
     void setAudioActiveInstance(std::shared_ptr<MelonInstance> instance)
     {
         activeInstance = instance;
@@ -288,6 +305,8 @@ namespace MelonDSAndroid
 
     void cleanupAudio()
     {
+        isFastForwardAudioEnabled = false;
+        muteFastForwardAudio = false;
         cleanupAudioOutputStream();
         cleanupMicInputStream();
     }

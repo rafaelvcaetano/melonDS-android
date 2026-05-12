@@ -245,6 +245,7 @@ Java_me_magnum_melonds_MelonEmulator_startEmulation(JNIEnv* env, jobject thiz)
     limitFps = true;
     targetFps = 60;
     isFastForwardEnabled = false;
+    MelonDSAndroid::setAudioFastForwardEnabled(false);
 
     pthread_mutex_init(&emuThreadMutex, NULL);
     pthread_cond_init(&emuThreadCond, NULL);
@@ -509,6 +510,7 @@ JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_setFastForwardEnabled(JNIEnv* env, jobject thiz, jboolean enabled)
 {
     isFastForwardEnabled = enabled;
+    MelonDSAndroid::setAudioFastForwardEnabled(enabled);
     if (enabled) {
         limitFps = fastForwardSpeedMultiplier > 0;
         targetFps = 60 * fastForwardSpeedMultiplier;

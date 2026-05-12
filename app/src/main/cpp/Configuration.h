@@ -31,6 +31,7 @@ struct ComputeRenderSettings : public RenderSettings
 struct AudioSettings
 {
     bool soundEnabled;
+    bool muteFastForwardAudio;
     int volume;
     int audioInterpolation;
     int audioBitrate;
