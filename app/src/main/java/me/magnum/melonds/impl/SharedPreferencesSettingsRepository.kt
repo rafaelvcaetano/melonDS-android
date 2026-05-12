@@ -154,7 +154,7 @@ class SharedPreferencesSettingsRepository(
             dsiNandUri = dsiDirDocument?.findFile("nand.bin")?.uri,
             internalDirectory = context.filesDir.absolutePath,
             fastForwardSpeedMultiplier = getFastForwardSpeedMultiplier(),
-            muteFastForwardAudio = isFastForwardAudioMuted(),
+            muteFastForwardAudio = shouldMuteFastForwardAudio(),
             rewindEnabled = isRewindEnabled(),
             rewindPeriodSeconds = getRewindPeriod(),
             rewindWindowSeconds = getRewindWindow(),
@@ -181,7 +181,7 @@ class SharedPreferencesSettingsRepository(
         return speedMultiplierPreference.toFloat()
     }
 
-    override fun isFastForwardAudioMuted(): Boolean {
+    override fun shouldMuteFastForwardAudio(): Boolean {
         return preferences.getBoolean("mute_fast_forward_audio", false)
     }
 
