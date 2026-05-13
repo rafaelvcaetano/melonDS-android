@@ -9,8 +9,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import me.magnum.melonds.common.network.MelonOkHttpInterceptor
+import me.magnum.melonds.common.retroachievements.RetroAchievementsIniStore
 import me.magnum.melonds.common.retroachievements.AndroidRASignatureProvider
 import me.magnum.melonds.common.retroachievements.AndroidRAUserAuthStore
+import me.magnum.rcheevosapi.RAHostUrlProvider
 import me.magnum.rcheevosapi.RASignatureProvider
 import me.magnum.rcheevosapi.RAApi
 import me.magnum.rcheevosapi.RAUserAuthStore
@@ -37,8 +39,14 @@ object RAModule {
 
     @Provides
     @Singleton
-    fun provideRAUserAuthStore(sharedPreferences: SharedPreferences): RAUserAuthStore {
-        return AndroidRAUserAuthStore(sharedPreferences)
+    fun provideRAUserAuthStore(retroAchievementsIniStore: RetroAchievementsIniStore): RAUserAuthStore {
+        return AndroidRAUserAuthStore(retroAchievementsIniStore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRAHostUrlProvider(retroAchievementsIniStore: RetroAchievementsIniStore): RAHostUrlProvider {
+        return retroAchievementsIniStore
     }
 
     @Provides
@@ -49,11 +57,12 @@ object RAModule {
 
     @Provides
     @Singleton
-    fun provideRAApi(@Named("ra-api-client") client: OkHttpClient, json: Json, userAuthStore: RAUserAuthStore, achievementSignatureProvider: RASignatureProvider): RAApi {
+    fun provideRAApi(@Named("ra-api-client") client: OkHttpClient, json: Json, userAuthStore: RAUserAuthStore, hostUrlProvider: RAHostUrlProvider, achievementSignatureProvider: RASignatureProvider): RAApi {
         return RAApi(
             okHttpClient = client,
             json = json,
             userAuthStore = userAuthStore,
+            hostUrlProvider = hostUrlProvider,
             signatureProvider = achievementSignatureProvider,
         )
     }

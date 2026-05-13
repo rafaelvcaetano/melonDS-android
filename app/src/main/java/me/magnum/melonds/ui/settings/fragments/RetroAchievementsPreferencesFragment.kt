@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import me.magnum.melonds.R
+import me.magnum.melonds.common.retroachievements.RetroAchievementsIniStore
+import me.magnum.melonds.common.retroachievements.RetroAchievementsPreferenceDataStore
 import me.magnum.melonds.databinding.DialogRetroachievementsLoginBinding
 import me.magnum.melonds.extensions.addOnPreferenceChangeListener
 import me.magnum.melonds.ui.common.LoadingDialog
@@ -23,15 +25,20 @@ import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
 import me.magnum.melonds.ui.settings.flow.observeAsFlow
 import me.magnum.melonds.ui.settings.model.RetroAchievementsAccountState
 import me.magnum.melonds.ui.settings.viewmodel.RetroAchievementsSettingsViewModel
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class RetroAchievementsPreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTitleProvider {
+
+    @Inject
+    lateinit var retroAchievementsIniStore: RetroAchievementsIniStore
 
     private val viewModel by viewModels<RetroAchievementsSettingsViewModel>()
 
     private var loginProgressDialog: LoadingDialog? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+        preferenceManager.preferenceDataStore = RetroAchievementsPreferenceDataStore(retroAchievementsIniStore)
         setPreferencesFromResource(R.xml.pref_retroachievements, rootKey)
 
         val accountPreference = findPreference<Preference>("ra_login")!!

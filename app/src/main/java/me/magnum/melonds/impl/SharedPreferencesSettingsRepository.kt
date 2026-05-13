@@ -26,6 +26,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
+import me.magnum.melonds.common.retroachievements.RetroAchievementsIniStore
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.AudioBitrate
 import me.magnum.melonds.domain.model.AudioInterpolation
@@ -61,6 +62,7 @@ import kotlin.math.pow
 class SharedPreferencesSettingsRepository(
     private val context: Context,
     private val preferences: SharedPreferences,
+    private val retroAchievementsIniStore: RetroAchievementsIniStore,
     private val controllerConfigurationFactory: ControllerConfigurationFactory,
     private val json: Json,
     private val uriHandler: UriHandler,
@@ -469,23 +471,23 @@ class SharedPreferencesSettingsRepository(
     }
 
     override fun isRetroAchievementsRichPresenceEnabled(): Boolean {
-        return preferences.getBoolean("ra_rich_presence", true)
+        return retroAchievementsIniStore.isRichPresenceEnabled()
     }
 
     override fun isRetroAchievementsHardcoreEnabled(): Boolean {
-        return preferences.getBoolean("ra_hardcore_enabled", false)
+        return retroAchievementsIniStore.isHardcoreEnabled()
     }
 
     override fun areRetroAchievementsActiveChallengeIndicatorsEnabled(): Boolean {
-        return preferences.getBoolean("ra_active_challenge_indicators", true)
+        return retroAchievementsIniStore.areActiveChallengeIndicatorsEnabled()
     }
 
     override fun areRetroAchievementsProgressIndicatorsEnabled(): Boolean {
-        return preferences.getBoolean("ra_progress_indicators", true)
+        return retroAchievementsIniStore.areProgressIndicatorsEnabled()
     }
 
     override fun areRetroAchievementsLeaderboardIndicatorsEnabled(): Boolean {
-        return preferences.getBoolean("ra_leaderboard_indicators", true)
+        return retroAchievementsIniStore.areLeaderboardIndicatorsEnabled()
     }
 
     override fun areCheatsEnabled(): Boolean {

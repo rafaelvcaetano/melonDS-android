@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
+        <domain>127.0.0.1</domain>
+        <domain>localhost</domain>
+    </domain-config>
+
+    <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">nus.cdn.t.shop.nintendowifi.net</domain>
     </domain-config>
 

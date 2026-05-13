@@ -44,11 +44,12 @@ class RAApi(
     private val okHttpClient: OkHttpClient,
     private val json: Json,
     private val userAuthStore: RAUserAuthStore,
+    private val hostUrlProvider: RAHostUrlProvider,
     private val signatureProvider: RASignatureProvider,
 ) {
 
     companion object {
-        private const val BASE_URL = "https://retroachievements.org/dorequest.php"
+        private const val DEFAULT_BASE_URL = "https://retroachievements.org/dorequest.php"
 
         private const val PARAMETER_USER = "u"
         private const val PARAMETER_PASSWORD = "p"
@@ -317,7 +318,7 @@ class RAApi(
             "${URLEncoder.encode(it.key, "utf-8")}=${URLEncoder.encode(it.value, "utf-8")}"
         }.joinToString(separator = "&")
 
-        val url = "$BASE_URL?$query"
+        val url = "${getBaseUrl()}?$query"
 
         return Request.Builder()
             .get()
@@ -332,8 +333,31 @@ class RAApi(
 
         return Request.Builder()
             .post(data.toRequestBody("application/x-www-form-urlencoded".toMediaType()))
-            .url(BASE_URL)
+            .url(getBaseUrl())
             .build()
+    }
+
+    private fun getBaseUrl(): String {
+        val hostUrl = hostUrlProvider.getHostUrl()?.trim().orEmpty()
+        if (hostUrl.isEmpty()) {
+            return DEFAULT_BASE_URL
+        }
+
+        val normalizedHost = hostUrl
+            .let {
+                if (it.startsWith("http://", ignoreCase = true) || it.startsWith("https://", ignoreCase = true)) {
+                    it
+                } else {
+                    "http://$it"
+                }
+            }
+            .removeSuffix("/")
+
+        return if (normalizedHost.endsWith("/dorequest.php")) {
+            normalizedHost
+        } else {
+            "$normalizedHost/dorequest.php"
+        }
     }
 
     private suspend fun executeRequest(request: Request): Response = suspendCancellableCoroutine { continuation ->
