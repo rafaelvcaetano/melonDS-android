@@ -1,5 +1,6 @@
 package me.magnum.melonds.ui.emulator.render
 
+import android.hardware.HardwareBuffer
 import android.opengl.EGL14
 import android.opengl.EGLConfig
 import android.opengl.EGLDisplay
@@ -12,6 +13,7 @@ class GlContext(sharedEglContext: Long? = null) {
     private var display: EGLDisplay
     private var config: EGLConfig
     private var context: Long
+    private var pbufferSurface: EGLSurface
 
     init {
         display = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY)
@@ -28,6 +30,23 @@ class GlContext(sharedEglContext: Long? = null) {
         context = createContext(display.nativeHandle, config.nativeHandle, sharedEglContext ?: 0)
         if (context == 0L) {
             throw GlContextException("Failed to create context: ${EGL14.eglGetError()}")
+        }
+
+        // Create a small pbuffer surface for making the context current without a window surface. Used for front-buffer rendering
+        val pbufferAttributess = intArrayOf(
+            EGL14.EGL_WIDTH, 1,
+            EGL14.EGL_HEIGHT, 1,
+            EGL14.EGL_NONE,
+        )
+        pbufferSurface = EGL14.eglCreatePbufferSurface(display, config, pbufferAttributess, 0)
+        if (pbufferSurface == EGL14.EGL_NO_SURFACE) {
+            throw GlContextException("Failed to create pbuffer surface: ${EGL14.eglGetError()}")
+        }
+    }
+
+    fun useWithoutSurface() {
+        if (!makeCurrent(display.nativeHandle, pbufferSurface.nativeHandle, context)) {
+            throw GlContextException("Failed to make current on pbuffer: ${EGL14.eglGetError()}")
         }
     }
 
@@ -50,6 +69,12 @@ class GlContext(sharedEglContext: Long? = null) {
 
     fun destroy() {
         destroyContext(display.nativeHandle, context)
+
+        if (pbufferSurface != EGL14.EGL_NO_SURFACE) {
+            EGL14.eglDestroySurface(display, pbufferSurface)
+            pbufferSurface = EGL14.EGL_NO_SURFACE
+        }
+
         EGL14.eglTerminate(display)
         EGL14.eglReleaseThread()
 
@@ -68,6 +93,14 @@ class GlContext(sharedEglContext: Long? = null) {
 
     fun destroyWindowSurface(eglSurface: EGLSurface) {
         EGL14.eglDestroySurface(display, eglSurface)
+    }
+
+    fun createEglImageFromHardwareBuffer(hardwareBuffer: HardwareBuffer): Long {
+        return nativeCreateEglImageFromHardwareBuffer(display.nativeHandle, hardwareBuffer)
+    }
+
+    fun destroyEglImage(eglImage: Long) {
+        nativeDestroyEglImage(display.nativeHandle, eglImage)
     }
 
     private fun createGlConfig(): EGLConfig {
@@ -97,6 +130,8 @@ class GlContext(sharedEglContext: Long? = null) {
     private external fun createContext(display: Long, config: Long, sharedGlContext: Long): Long
     private external fun makeCurrent(display: Long, surface: Long, context: Long): Boolean
     private external fun destroyContext(display: Long, context: Long)
+    private external fun nativeCreateEglImageFromHardwareBuffer(display: Long, hardwareBuffer: HardwareBuffer): Long
+    private external fun nativeDestroyEglImage(display: Long, eglImage: Long)
 
     class GlContextException(message: String) : Exception(message)
 }

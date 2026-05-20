@@ -732,7 +732,7 @@ class EmulatorViewModel @Inject constructor(
     private fun startObservingRendererConfiguration() {
         sessionCoroutineScope.launch {
             settingsRepository.observeRenderConfiguration().collectLatest {
-                _runtimeRendererConfiguration.value = RuntimeRendererConfiguration(it.videoFiltering, it.resolutionScaling)
+                _runtimeRendererConfiguration.value = RuntimeRendererConfiguration(it.videoFiltering, it.resolutionScaling, it.renderStrategy)
             }
         }
     }

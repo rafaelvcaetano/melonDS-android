@@ -1,5 +1,6 @@
 package me.magnum.melonds.ui.emulator.render
 
+import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Message
@@ -7,11 +8,15 @@ import androidx.core.os.bundleOf
 import me.magnum.melonds.MelonDSAndroidInterface
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.domain.model.render.PresentFrameWrapper
+import me.magnum.melonds.domain.model.render.RenderStrategy
 import me.magnum.melonds.ui.emulator.EmulatorSurfaceView
 
 class FrameRenderCoordinator {
 
     private val glContext: GlContext
+    private val frontBufferSupported = FrontBufferCapability.isFrontBufferSupported()
+    @Volatile private var currentRenderStrategy: RenderStrategy = computeEffectiveRenderStrategy(RenderStrategy.BACK_BUFFER_RENDERING)
+
     private val frameRenderThread = FrameRenderThread()
     private val presentFrameWrapper = PresentFrameWrapper()
     private val surfacesLock = Any()
@@ -23,17 +28,27 @@ class FrameRenderCoordinator {
         frameRenderThread.start()
     }
 
+    fun setRenderStrategy(strategy: RenderStrategy) {
+        val newRenderStrategy = computeEffectiveRenderStrategy(strategy)
+        if (newRenderStrategy != currentRenderStrategy) {
+            currentRenderStrategy = newRenderStrategy
+            frameRenderThread.requestModeSwitch()
+        }
+    }
+
     fun addSurface(surface: EmulatorSurfaceView) {
         synchronized(surfacesLock) {
+            surface.setSurfaceRenderer(createRendererForStrategy(currentRenderStrategy), glContext)
             managedSurfaces.add(surface)
         }
     }
 
     fun removeSurface(surface: EmulatorSurfaceView) {
         synchronized(surfacesLock) {
-            managedSurfaces.remove(surface)
-            surfacesPendingRemoval.add(surface)
-            frameRenderThread.requestSurfaceDestruction()
+            if (managedSurfaces.remove(surface)) {
+                surfacesPendingRemoval.add(surface)
+                frameRenderThread.requestSurfaceDestruction()
+            }
         }
     }
 
@@ -45,6 +60,22 @@ class FrameRenderCoordinator {
         frameRenderThread.requestStop()
         frameRenderThread.quitSafely()
         frameRenderThread.join()
+    }
+
+    private fun computeEffectiveRenderStrategy(strategy: RenderStrategy): RenderStrategy {
+        return if (strategy == RenderStrategy.FRONT_BUFFER_RENDERING && frontBufferSupported) {
+            RenderStrategy.FRONT_BUFFER_RENDERING
+        } else {
+            RenderStrategy.BACK_BUFFER_RENDERING
+        }
+    }
+
+    private fun createRendererForStrategy(strategy: RenderStrategy): SurfaceRenderer {
+        return if (strategy == RenderStrategy.FRONT_BUFFER_RENDERING && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            SurfaceFrontRenderer()
+        } else {
+            SurfaceBackRenderer()
+        }
     }
 
     private inner class FrameRenderThread : HandlerThread("FrameRenderThread") {
@@ -78,6 +109,7 @@ class FrameRenderCoordinator {
                         MSG_RENDER_FRAME -> renderFrame(msg.data.getLong(MSG_RENDER_FRAME_FRAME_DEADLINE_NS))
                         MSG_DESTROY_SURFACES -> destroySurfaces()
                         MSG_STOP -> stopThread()
+                        MSG_RENDER_STRATEGY_SWITCH -> handleModeSwitch()
                     }
                 }
             }
@@ -94,6 +126,11 @@ class FrameRenderCoordinator {
         fun requestSurfaceDestruction() {
             handler?.removeMessages(MSG_DESTROY_SURFACES)
             handler?.sendEmptyMessage(MSG_DESTROY_SURFACES)
+        }
+
+        fun requestModeSwitch() {
+            handler?.removeMessages(MSG_RENDER_STRATEGY_SWITCH)
+            handler?.sendEmptyMessage(MSG_RENDER_STRATEGY_SWITCH)
         }
 
         fun requestStop() {
@@ -123,6 +160,14 @@ class FrameRenderCoordinator {
                     it.stop(glContext)
                 }
                 surfacesPendingRemoval.clear()
+            }
+        }
+
+        private fun handleModeSwitch() {
+            synchronized(surfacesLock) {
+                managedSurfaces.forEach { surface ->
+                    surface.setSurfaceRenderer(createRendererForStrategy(currentRenderStrategy), glContext)
+                }
             }
         }
 
@@ -162,6 +207,7 @@ class FrameRenderCoordinator {
         const val MSG_RENDER_FRAME = 1
         const val MSG_DESTROY_SURFACES = 2
         const val MSG_STOP = 3
+        const val MSG_RENDER_STRATEGY_SWITCH = 4
 
         const val MSG_RENDER_FRAME_FRAME_DEADLINE_NS = "frame-deadline"
     }

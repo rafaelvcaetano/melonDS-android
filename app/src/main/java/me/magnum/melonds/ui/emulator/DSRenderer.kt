@@ -250,8 +250,7 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
             }
         }
 
-        GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
-
+        GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
         if (!presentFrameWrapper.isValidFrame) {
             return
         }

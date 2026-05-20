@@ -444,6 +444,9 @@ class EmulatorActivity : AppCompatActivity() {
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.runtimeRendererConfiguration.collectLatest {
+                    if (it != null) {
+                        frameRenderCoordinator.setRenderStrategy(it.renderStrategy)
+                    }
                     mainScreenRenderer.updateRendererConfiguration(it)
                     presentation?.updateRendererConfiguration(it)
                 }

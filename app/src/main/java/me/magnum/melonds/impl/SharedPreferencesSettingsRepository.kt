@@ -48,6 +48,7 @@ import me.magnum.melonds.domain.model.VideoRenderer
 import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
 import me.magnum.melonds.domain.model.input.SoftInputBehaviour
 import me.magnum.melonds.domain.model.layout.LayoutConfiguration
+import me.magnum.melonds.domain.model.render.RenderStrategy
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.impl.dtos.input.ControllerConfigurationDto
@@ -98,9 +99,10 @@ class SharedPreferencesSettingsRepository(
             getVideoRenderer(),
             getVideoFiltering(),
             isThreadedRenderingEnabled(),
+            getRenderStrategy(),
             getVideoInternalResolutionScaling(),
-        ) { renderer, filtering, threadedRenderingEnabled, resolutionScaling ->
-            RendererConfiguration(renderer, filtering, threadedRenderingEnabled, resolutionScaling)
+        ) { renderer, filtering, threadedRenderingEnabled, renderStrategy, resolutionScaling ->
+            RendererConfiguration(renderer, filtering, threadedRenderingEnabled, renderStrategy, resolutionScaling)
         }.conflate().shareIn(preferencesCoroutineScope, SharingStarted.Lazily, replay = 1)
     }
 
@@ -302,6 +304,16 @@ class SharedPreferencesSettingsRepository(
     override fun isThreadedRenderingEnabled(): Flow<Boolean> {
         return getOrCreatePreferenceSharedFlow("enable_threaded_rendering") {
             preferences.getBoolean("enable_threaded_rendering", true)
+        }
+    }
+
+    override fun getRenderStrategy(): Flow<RenderStrategy> {
+        return getOrCreatePreferenceSharedFlow("front_rendering") {
+            if (preferences.getBoolean("front_rendering", false)) {
+                RenderStrategy.FRONT_BUFFER_RENDERING
+            } else {
+                RenderStrategy.BACK_BUFFER_RENDERING
+            }
         }
     }
 

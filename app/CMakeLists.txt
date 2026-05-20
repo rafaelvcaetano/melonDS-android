@@ -43,6 +43,7 @@ add_library(
         ${ANDROID-CPP}/MelonDSNandJNI.cpp
         ${ANDROID-CPP}/MelonInstance.cpp
         ${ANDROID-CPP}/MicInputOboeCallback.cpp
+        ${ANDROID-CPP}/NativeFrontBufferRenderer.cpp
         ${ANDROID-CPP}/NativeGlContext.cpp
         ${ANDROID-CPP}/OboeCallback.cpp
         ${ANDROID-CPP}/OpenGLContext.cpp
