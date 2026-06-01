@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import android.text.util.Linkify
-import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.squareup.picasso.Picasso
@@ -21,6 +20,7 @@ import kotlinx.serialization.json.Json
 import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.PermissionHandler
 import me.magnum.melonds.common.UriPermissionManager
+import me.magnum.melonds.common.appSharedPreferences
 import me.magnum.melonds.common.uridelegates.CompositeUriHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.impl.system.AppForegroundStateObserver
@@ -37,7 +37,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences {
-        return PreferenceManager.getDefaultSharedPreferences(context)
+        return appSharedPreferences(context)
     }
 
     @Provides

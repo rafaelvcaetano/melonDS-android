@@ -43,13 +43,12 @@ import kotlin.reflect.KClass
 class RAApi(
     private val okHttpClient: OkHttpClient,
     private val json: Json,
+    private val hostUrlProvider: RAHostUrlProvider,
     private val userAuthStore: RAUserAuthStore,
     private val signatureProvider: RASignatureProvider,
 ) {
 
     companion object {
-        private const val BASE_URL = "https://retroachievements.org/dorequest.php"
-
         private const val PARAMETER_USER = "u"
         private const val PARAMETER_PASSWORD = "p"
         private const val PARAMETER_TOKEN = "t"
@@ -317,7 +316,7 @@ class RAApi(
             "${URLEncoder.encode(it.key, "utf-8")}=${URLEncoder.encode(it.value, "utf-8")}"
         }.joinToString(separator = "&")
 
-        val url = "$BASE_URL?$query"
+        val url = "${hostUrlProvider.getBaseUrl()}?$query"
 
         return Request.Builder()
             .get()
@@ -332,7 +331,7 @@ class RAApi(
 
         return Request.Builder()
             .post(data.toRequestBody("application/x-www-form-urlencoded".toMediaType()))
-            .url(BASE_URL)
+            .url(hostUrlProvider.getBaseUrl())
             .build()
     }
 

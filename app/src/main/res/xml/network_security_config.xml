@@ -4,6 +4,11 @@
         <domain includeSubdomains="true">nus.cdn.t.shop.nintendowifi.net</domain>
     </domain-config>
 
+    <domain-config cleartextTrafficPermitted="true">
+        <domain>127.0.0.1</domain>
+        <domain>localhost</domain>
+    </domain-config>
+
     <debug-overrides>
         <trust-anchors>
             <certificates src="user" />
