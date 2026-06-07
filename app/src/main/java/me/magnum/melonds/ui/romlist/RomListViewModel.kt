@@ -159,6 +159,7 @@ class RomListViewModel @Inject constructor(
         return if (sortingOrder == SortingOrder.ASCENDING) {
             Comparator { o1: Rom, o2: Rom ->
                 when {
+                    o1.lastPlayed == null && o2.lastPlayed == null -> o1.name.compareTo(o2.name)
                     o1.lastPlayed == null -> -1
                     o2.lastPlayed == null -> 1
                     else -> o1.lastPlayed!!.compareTo(o2.lastPlayed)
@@ -167,6 +168,7 @@ class RomListViewModel @Inject constructor(
         } else {
             Comparator { o1: Rom, o2: Rom ->
                 when {
+                    o1.lastPlayed == null && o2.lastPlayed == null -> o1.name.compareTo(o2.name)
                     o2.lastPlayed == null -> -1
                     o1.lastPlayed == null -> 1
                     else -> o2.lastPlayed!!.compareTo(o1.lastPlayed)
