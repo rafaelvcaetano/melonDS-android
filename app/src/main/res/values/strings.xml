@@ -11,6 +11,7 @@
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
     <string name="clear">Clear</string>
+    <string name="copy">Copy</string>
     <string name="none">None</string>
     <string name="options">Options</string>
     <string name="preview">Preview</string>

@@ -110,10 +110,17 @@ class TextInputDialogState {
         onConfirm: (String) -> Unit,
         onCancel: () -> Unit = { },
         keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        highlightInitialText: Boolean = false,
     ) {
         if (isDialogVisible) return
 
-        textField = TextFieldValue(text = initialText, selection = TextRange(initialText.length))
+        val selectionRange = if (highlightInitialText) {
+            TextRange(0, initialText.length)
+        } else {
+            TextRange(initialText.length)
+        }
+
+        textField = TextFieldValue(text = initialText, selection = selectionRange)
         onConfirmCallback = onConfirm
         onCancelCallback = onCancel
         this.keyboardOptions = keyboardOptions

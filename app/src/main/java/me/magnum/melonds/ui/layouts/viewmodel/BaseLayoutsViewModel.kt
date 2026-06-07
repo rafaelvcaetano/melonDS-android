@@ -24,6 +24,17 @@ abstract class BaseLayoutsViewModel(protected val layoutsRepository: LayoutsRepo
         }
     }
 
+    fun copyLayout(layout: LayoutConfiguration, copyName: String) {
+        val newLayout = layout.copy(
+            id = null,
+            name = copyName,
+        )
+
+        viewModelScope.launch {
+            layoutsRepository.saveLayout(newLayout)
+        }
+    }
+
     fun deleteLayout(layout: LayoutConfiguration) {
         viewModelScope.launch {
             if (layout.id == selectedLayoutId.value) {
