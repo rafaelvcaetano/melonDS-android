@@ -5,13 +5,13 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.domain.model.rom.Rom
 import java.io.File
-import java.util.*
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import java.util.Collections
 
 /**
  * Provider for ROM icons that supports caching. Both memory and disk caches are supported. If upon
@@ -24,10 +24,11 @@ class RomIconProvider(private val context: Context, private val romFileProcessor
         private const val ICON_CACHE_DIR = "rom_icons"
     }
 
+    private val iconAccessScope = Dispatchers.IO.limitedParallelism(1)
     private val memoryIconCache = mutableMapOf<String, Bitmap>()
-    private val romIconLocks = Collections.synchronizedMap(mutableMapOf<String, ReentrantLock>())
+    private val romIconLocks = Collections.synchronizedMap(mutableMapOf<String, Mutex>())
 
-    suspend fun getRomIcon(rom: Rom): Bitmap? = withContext(Dispatchers.IO) {
+    suspend fun getRomIcon(rom: Rom): Bitmap? = withContext(Dispatchers.Default) {
         val romHash = rom.uri.hashCode().toString()
         getRomIconLock(romHash).withLock {
             loadIconFromMemory(romHash, rom)
@@ -42,15 +43,15 @@ class RomIconProvider(private val context: Context, private val romFileProcessor
         }
     }
 
-    private fun getRomIconLock(romHash: String): ReentrantLock {
+    private fun getRomIconLock(romHash: String): Mutex {
         synchronized(romIconLocks) {
             return romIconLocks.getOrPut(romHash) {
-                ReentrantLock()
+                Mutex()
             }
         }
     }
 
-    private fun loadIconFromMemory(hash: String, rom: Rom): Bitmap? {
+    private suspend fun loadIconFromMemory(hash: String, rom: Rom): Bitmap? {
         var bitmap = memoryIconCache[hash]
         if (bitmap != null)
             return bitmap
@@ -62,22 +63,22 @@ class RomIconProvider(private val context: Context, private val romFileProcessor
         return bitmap
     }
 
-    private fun loadIconFromDisk(hash: String, rom: Rom): Bitmap? {
+    private suspend fun loadIconFromDisk(hash: String, rom: Rom): Bitmap? = withContext(iconAccessScope) {
         val iconCacheDir = getIconCacheDir()
         if (iconCacheDir?.isDirectory == true) {
             val iconFile = File(iconCacheDir, hash)
             if (iconFile.isFile) {
-                return BitmapFactory.decodeFile(iconFile.absolutePath)
+                return@withContext BitmapFactory.decodeFile(iconFile.absolutePath)
             }
         }
 
-        val romDocument = DocumentFile.fromSingleUri(context, rom.uri) ?: return null
-        val romProcessor = romFileProcessorFactory.getFileRomProcessorForDocument(romDocument) ?: return null
+        val romDocument = DocumentFile.fromSingleUri(context, rom.uri) ?: return@withContext null
+        val romProcessor = romFileProcessorFactory.getFileRomProcessorForDocument(romDocument) ?: return@withContext null
         val bitmap = romProcessor.getRomIcon(rom)
         if (bitmap != null && iconCacheDir != null) {
             saveRomIcon(hash, bitmap)
         }
-        return bitmap
+        bitmap
     }
 
     private fun saveRomIcon(romHash: String, icon: Bitmap) {

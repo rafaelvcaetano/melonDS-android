@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.domain.model.RomScanningStatus
 import me.magnum.melonds.domain.model.rom.Rom
@@ -36,22 +37,22 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration
 
 class FileSystemRomsRepository(
-        private val context: Context,
-        private val gson: Gson,
-        private val settingsRepository: SettingsRepository,
-        private val romFileProcessorFactory: RomFileProcessorFactory
+    private val context: Context,
+    private val gson: Gson,
+    private val settingsRepository: SettingsRepository,
+    private val romFileProcessorFactory: RomFileProcessorFactory
 ) : RomsRepository {
 
     companion object {
         private const val TAG = "FSRomsRepository"
-        private const val EXTERNAL_STORAGE_PROVIDER_AUTHORITY = "com.android.externalstorage.documents"
         private const val ROM_DATA_FILE = "rom_data.json"
     }
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val fileAccessDispatcher = Dispatchers.IO.limitedParallelism(1)
     private val romListType: Type = object : TypeToken<List<RomDto>>(){}.type
     private val romsChannel = SubjectSharedFlow<List<Rom>>()
-    private val scanningStatusSubject = MutableStateFlow(RomScanningStatus.NOT_SCANNING)
+    private val scanningStatus = MutableStateFlow(RomScanningStatus.NOT_SCANNING)
     private val roms: ArrayList<Rom> = ArrayList()
     private var areRomsLoaded = AtomicBoolean(false)
 
@@ -82,7 +83,7 @@ class FileSystemRomsRepository(
 
     override fun getRoms(): Flow<List<Rom>> = flow {
         if (areRomsLoaded.compareAndSet(false, true)) {
-            coroutineScope.launch {
+            coroutineScope.launch(fileAccessDispatcher) {
                 loadCachedRoms()
             }
         }
@@ -90,7 +91,7 @@ class FileSystemRomsRepository(
     }
 
     override fun getRomScanningStatus(): StateFlow<RomScanningStatus> {
-        return scanningStatusSubject.asStateFlow()
+        return scanningStatus.asStateFlow()
     }
 
     override suspend fun getRomAtPath(path: String): Rom? {
@@ -100,11 +101,13 @@ class FileSystemRomsRepository(
         }
     }
 
-    override suspend fun getRomAtUri(uri: Uri): Rom? {
+    override suspend fun getRomAtUri(uri: Uri): Rom? = withContext(fileAccessDispatcher) {
         val allRoms = getRoms().first()
 
         // Quick exact URI match first (no filename needed)
-        allRoms.find { rom -> rom.uri == uri }?.let { return it }
+        allRoms.find { rom -> rom.uri == uri }?.let {
+            return@withContext it
+        }
 
         // Pre-filter by filename for performance
         val incomingFileName = DocumentFile.fromSingleUri(context, uri)?.name
@@ -119,10 +122,10 @@ class FileSystemRomsRepository(
             ?: findRomBySize(candidateRoms, uri)
 
         if (cachedRom != null)
-            return cachedRom
+            return@withContext cachedRom
 
         // ROM is not known. Create a new ROM from the URI
-        return romFileProcessorFactory.getFileRomProcessorForDocument(uri)?.getRomFromUri(uri, null)
+        romFileProcessorFactory.getFileRomProcessorForDocument(uri)?.getRomFromUri(uri, null)
     }
 
     private fun findRomByPath(roms: List<Rom>, uri: Uri): Rom? {
@@ -173,14 +176,14 @@ class FileSystemRomsRepository(
     }
 
     override fun rescanRoms() {
-        coroutineScope.launch {
-            scanningStatusSubject.emit(RomScanningStatus.SCANNING)
+        coroutineScope.launch(fileAccessDispatcher) {
+            scanningStatus.value = RomScanningStatus.SCANNING
 
             scanForNewRoms().collect {
                 addRom(it)
             }
 
-            scanningStatusSubject.emit(RomScanningStatus.NOT_SCANNING)
+            scanningStatus.value = RomScanningStatus.NOT_SCANNING
         }
     }
 
@@ -234,7 +237,7 @@ class FileSystemRomsRepository(
     }
 
     private suspend fun loadCachedRoms() {
-        scanningStatusSubject.emit(RomScanningStatus.SCANNING)
+        scanningStatus.value = RomScanningStatus.SCANNING
 
         val cachedRoms = getCachedRoms().filter {
             DocumentFile.fromSingleUri(context, it.uri)?.exists() == true
@@ -246,7 +249,7 @@ class FileSystemRomsRepository(
             addRom(it)
         }
 
-        scanningStatusSubject.emit(RomScanningStatus.NOT_SCANNING)
+        scanningStatus.value = RomScanningStatus.NOT_SCANNING
     }
 
     private fun scanForNewRoms(): Flow<Rom> = flow {

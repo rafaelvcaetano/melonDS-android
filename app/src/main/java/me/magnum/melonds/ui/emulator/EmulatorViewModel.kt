@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.common.runtime.ScreenshotFrameBufferProvider
@@ -338,8 +339,8 @@ class EmulatorViewModel @Inject constructor(
     fun onCheatsChanged() {
         val rom = (_emulatorState.value as? EmulatorState.RunningRom)?.rom ?: return
 
-        getRomInfo(rom)?.let {
-            sessionCoroutineScope.launch {
+        sessionCoroutineScope.launch {
+            getRomInfo(rom)?.let {
                 val cheats = getRomEnabledCheats(it)
                 emulatorManager.updateCheats(cheats)
             }
@@ -443,8 +444,10 @@ class EmulatorViewModel @Inject constructor(
                     }
                     RomPauseMenuOption.CHEATS -> {
                         (_emulatorState.value as? EmulatorState.RunningRom)?.let {
-                            getRomInfo(it.rom)?.let { romInfo ->
-                                _uiEvent.tryEmit(EmulatorUiEvent.OpenScreen.CheatsScreen(romInfo))
+                            sessionCoroutineScope.launch {
+                                getRomInfo(it.rom)?.let { romInfo ->
+                                    _uiEvent.tryEmit(EmulatorUiEvent.OpenScreen.CheatsScreen(romInfo))
+                                }
                             }
                         }
                     }
@@ -766,9 +769,9 @@ class EmulatorViewModel @Inject constructor(
             }
     }
 
-    private fun getRomInfo(rom: Rom): RomInfo? {
+    private suspend fun getRomInfo(rom: Rom): RomInfo? = withContext(Dispatchers.IO) {
         val fileRomProcessor = romFileProcessorFactory.getFileRomProcessorForDocument(rom.uri)
-        return fileRomProcessor?.getRomInfo(rom)
+        fileRomProcessor?.getRomInfo(rom)
     }
 
     private fun getRomSaveStateSlots(rom: Rom): List<SaveStateSlot> {
