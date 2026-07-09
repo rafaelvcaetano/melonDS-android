@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.emulator
 
 import android.net.Uri
+import android.os.SystemClock
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -116,6 +117,12 @@ class EmulatorViewModel @Inject constructor(
 
     private val sessionCoroutineScope = EmulatorSessionCoroutineScope()
     private var raSessionJob: Job? = null
+    private var isActivityResumed = false
+    private var isEmulationPaused = true
+    private var fpsTrackingJob: Job? = null
+    private var playTimeTrackingJob: Job? = null
+    private var playTimeTrackingRom: Rom? = null
+    private var playTimeTrackingStartMillis: Long? = null
 
     private val _emulatorState = MutableStateFlow<EmulatorState>(EmulatorState.Uninitialized)
     val emulatorState = _emulatorState.asStateFlow()
@@ -263,8 +270,7 @@ class EmulatorViewModel @Inject constructor(
                     _toastEvent.tryEmit(ToastEvent.GbaLoadFailed)
                 }
                 _emulatorState.value = EmulatorState.RunningRom(rom)
-                startTrackingFps()
-                startTrackingPlayTime(rom)
+                onEmulationStarted()
             }
         }
     }
@@ -288,7 +294,7 @@ class EmulatorViewModel @Inject constructor(
                     }
                     FirmwareLaunchResult.LaunchSuccessful -> {
                         _emulatorState.value = EmulatorState.RunningFirmware(consoleType)
-                        startTrackingFps()
+                        onEmulationStarted()
                     }
                 }
             }
@@ -346,7 +352,18 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
+    fun onActivityResumed() {
+        isActivityResumed = true
+    }
+
+    fun onActivityPaused() {
+        isActivityResumed = false
+    }
+
     fun pauseEmulator(showPauseMenu: Boolean) {
+        isEmulationPaused = true
+        stopActiveSessionTracking(flushPlayTime = true)
+
         sessionCoroutineScope.launch {
             emulatorManager.pauseEmulator()
             if (showPauseMenu) {
@@ -370,8 +387,10 @@ class EmulatorViewModel @Inject constructor(
     }
 
     fun resumeEmulator() {
+        isEmulationPaused = false
         sessionCoroutineScope.launch {
             emulatorManager.resumeEmulator()
+            startActiveSessionTracking()
         }
     }
 
@@ -394,6 +413,7 @@ class EmulatorViewModel @Inject constructor(
     }
 
     private fun stopEmulator() {
+        stopActiveSessionTracking(flushPlayTime = true)
         viewModelScope.launch {
             _achievementsEvent.emit(RAEventUi.Reset)
         }
@@ -402,20 +422,9 @@ class EmulatorViewModel @Inject constructor(
     }
 
     private fun stopEmulatorAndExit() {
+        stopActiveSessionTracking(flushPlayTime = true)
         emulatorManager.stopEmulator()
         _uiEvent.tryEmit(EmulatorUiEvent.CloseEmulator)
-    }
-
-    private fun startTrackingPlayTime(rom: Rom) {
-        sessionCoroutineScope.launch {
-            var lastTime = System.currentTimeMillis()
-            while (isActive) {
-                delay(1000)
-                val now = System.currentTimeMillis()
-                romsRepository.addRomPlayTime(rom, (now - lastTime).milliseconds)
-                lastTime = now
-            }
-        }
     }
 
     fun onPauseMenuOptionSelected(option: PauseMenuOption) {
@@ -496,7 +505,7 @@ class EmulatorViewModel @Inject constructor(
                 if (!saveRomState(it.rom, slot)) {
                     _toastEvent.emit(ToastEvent.StateSaveFailed)
                 }
-                emulatorManager.resumeEmulator()
+                _uiEvent.emit(EmulatorUiEvent.ResumeEmulationWhenReady)
             }
         }
     }
@@ -510,7 +519,7 @@ class EmulatorViewModel @Inject constructor(
                     if (!loadRomState(it.rom, slot)) {
                         _toastEvent.emit(ToastEvent.StateLoadFailed)
                     }
-                    emulatorManager.resumeEmulator()
+                    _uiEvent.emit(EmulatorUiEvent.ResumeEmulationWhenReady)
                 }
             }
         }
@@ -526,7 +535,7 @@ class EmulatorViewModel @Inject constructor(
                     if (saveRomState(currentState.rom, quickSlot)) {
                         _toastEvent.emit(ToastEvent.QuickSaveSuccessful)
                     }
-                    emulatorManager.resumeEmulator()
+                    _uiEvent.emit(EmulatorUiEvent.ResumeEmulationWhenReady)
                 }
             }
             is EmulatorState.RunningFirmware -> {
@@ -549,7 +558,7 @@ class EmulatorViewModel @Inject constructor(
                         if (loadRomState(currentState.rom, quickSlot)) {
                             _toastEvent.emit(ToastEvent.QuickLoadSuccessful)
                         }
-                        emulatorManager.resumeEmulator()
+                        _uiEvent.emit(EmulatorUiEvent.ResumeEmulationWhenReady)
                     }
                 } else {
                     _toastEvent.tryEmit(ToastEvent.CannotUseSaveStatesWhenRAHardcoreIsEnabled)
@@ -638,9 +647,11 @@ class EmulatorViewModel @Inject constructor(
     }
 
     private fun resetEmulatorState(newState: EmulatorState) {
+        stopActiveSessionTracking(flushPlayTime = true)
         sessionCoroutineScope.notifyNewSessionStarted()
         emulatorSession.reset()
         raSessionJob = null
+        isEmulationPaused = true
         _currentFps.value = null
         _emulatorState.value = newState
         _mainScreenBackground.value = RuntimeBackground.None
@@ -981,13 +992,91 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
-    private fun startTrackingFps() {
-        sessionCoroutineScope.launch {
+    private suspend fun onEmulationStarted() {
+        isEmulationPaused = !isActivityResumed
+        if (isEmulationPaused) {
+            emulatorManager.pauseEmulator()
+        } else {
+            startActiveSessionTracking()
+        }
+    }
+
+    private fun startActiveSessionTracking() {
+        if (!isActivityResumed || isEmulationPaused) {
+            return
+        }
+
+        when (val state = _emulatorState.value) {
+            is EmulatorState.RunningRom -> {
+                startFpsTracking()
+                startPlayTimeTracking(state.rom)
+            }
+            is EmulatorState.RunningFirmware -> startFpsTracking()
+            else -> { /* Do nothing */ }
+        }
+    }
+
+    private fun stopActiveSessionTracking(flushPlayTime: Boolean) {
+        stopFpsTracking()
+        stopPlayTimeTracking(flushPlayTime)
+    }
+
+    private fun startFpsTracking() {
+        if (fpsTrackingJob?.isActive == true) {
+            return
+        }
+
+        fpsTrackingJob = sessionCoroutineScope.launch {
             while (isActive) {
                 delay(1.seconds)
                 _currentFps.value = emulatorManager.getFps().roundToInt()
             }
         }
+    }
+
+    private fun stopFpsTracking() {
+        fpsTrackingJob?.cancel()
+        fpsTrackingJob = null
+        _currentFps.value = null
+    }
+
+    private fun startPlayTimeTracking(rom: Rom) {
+        if (playTimeTrackingJob?.isActive == true && playTimeTrackingRom?.hasSameFileAsRom(rom) == true) {
+            return
+        }
+
+        stopPlayTimeTracking(flushPlayTime = true)
+        playTimeTrackingRom = rom
+        playTimeTrackingStartMillis = SystemClock.elapsedRealtime()
+        playTimeTrackingJob = sessionCoroutineScope.launch {
+            while (isActive) {
+                delay(1.minutes)
+                flushPlayTime()
+            }
+        }
+    }
+
+    private fun stopPlayTimeTracking(flushPlayTime: Boolean) {
+        if (flushPlayTime) {
+            flushPlayTime()
+        }
+        playTimeTrackingJob?.cancel()
+        playTimeTrackingJob = null
+        playTimeTrackingRom = null
+        playTimeTrackingStartMillis = null
+    }
+
+    private fun flushPlayTime() {
+        val rom = playTimeTrackingRom ?: return
+        val startMillis = playTimeTrackingStartMillis ?: return
+        val now = SystemClock.elapsedRealtime()
+        val elapsedMillis = now - startMillis
+        if (elapsedMillis <= 0L) {
+            return
+        }
+
+        romsRepository.addRomPlayTime(rom, elapsedMillis.milliseconds)
+        playTimeTrackingStartMillis = now
     }
 
     private fun filterRomPauseMenuOption(option: RomPauseMenuOption): Boolean {

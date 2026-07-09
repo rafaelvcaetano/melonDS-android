@@ -1,7 +1,10 @@
 package me.magnum.melonds.ui.emulator
 
+import android.app.KeyguardManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Configuration
 import android.hardware.display.DisplayManager
 import android.hardware.input.InputManager
@@ -162,8 +165,20 @@ class EmulatorActivity : AppCompatActivity() {
     lateinit var appForegroundStateObserver: AppForegroundStateObserver
 
     private var presentation: ExternalPresentation? = null
+    private var isRenderingActive = false
 
     private lateinit var handler: Handler
+    private val screenPowerReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                Intent.ACTION_SCREEN_OFF -> suspendEmulationForInactiveUi()
+                Intent.ACTION_SCREEN_ON,
+                Intent.ACTION_USER_PRESENT -> handler.post {
+                    maybeResumeEmulationForActiveUi()
+                }
+            }
+        }
+    }
     private val displayListener = object : DisplayManager.DisplayListener {
 
         override fun onDisplayAdded(displayId: Int) {
@@ -244,11 +259,11 @@ class EmulatorActivity : AppCompatActivity() {
         viewModel.onSettingsChanged()
         setupSustainedPerformanceMode()
         setupFpsCounter()
-        viewModel.resumeEmulator()
+        resumeEmulationWhenUiIsReady()
     }
     private val cheatsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         viewModel.onCheatsChanged()
-        viewModel.resumeEmulator()
+        resumeEmulationWhenUiIsReady()
     }
     private val permissionRequestLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         lifecycleScope.launch {
@@ -272,7 +287,9 @@ class EmulatorActivity : AppCompatActivity() {
 
     private val activeOverlays = EmulatorOverlayTracker(
         onOverlaysCleared = {
-            disableScreenTimeOut()
+            if (canUseEmulatorUi()) {
+                disableScreenTimeOut()
+            }
             presentation?.setPauseOverlayVisibility(false)
         },
         onOverlaysPresent = {
@@ -288,6 +305,7 @@ class EmulatorActivity : AppCompatActivity() {
         binding = ActivityEmulatorBinding.inflate(layoutInflater)
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
         setContentView(binding.root)
+        registerScreenPowerReceiver()
         setupFullscreen()
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
@@ -376,7 +394,7 @@ class EmulatorActivity : AppCompatActivity() {
                         viewModel = achievementsViewModel,
                         onDismiss = {
                             activeOverlays.removeActiveOverlay(EmulatorOverlay.ACHIEVEMENTS_DIALOG)
-                            viewModel.resumeEmulator()
+                            resumeEmulationWhenUiIsReady()
                             showAchievementList.value = false
                         }
                     )
@@ -388,7 +406,7 @@ class EmulatorActivity : AppCompatActivity() {
                         onExit = { viewModel.exitEmulator(force = true) },
                         onCancel = {
                             activeOverlays.removeActiveOverlay(EmulatorOverlay.PENDING_SUBMISSION_CONFIRM_EXIT)
-                            viewModel.resumeEmulator()
+                            resumeEmulationWhenUiIsReady()
                             showPendingSubmissionsDialog.value = false
                         }
                     )
@@ -489,7 +507,7 @@ class EmulatorActivity : AppCompatActivity() {
                 viewModel.uiEvent.collectLatest {
                     when (it) {
                         EmulatorUiEvent.CloseEmulator -> {
-                            choreographerFrameRenderer.stopRendering()
+                            stopRenderingIfNeeded()
                             presentation?.dismiss()
                             finish()
                         }
@@ -521,6 +539,7 @@ class EmulatorActivity : AppCompatActivity() {
                             activeOverlays.addActiveOverlay(EmulatorOverlay.PENDING_SUBMISSION_CONFIRM_EXIT)
                             showPendingSubmissionsDialog.value = true
                         }
+                        EmulatorUiEvent.ResumeEmulationWhenReady -> resumeEmulationWhenUiIsReady()
                     }
                 }
             }
@@ -698,7 +717,7 @@ class EmulatorActivity : AppCompatActivity() {
                         activeOverlays.removeActiveOverlay(EmulatorOverlay.SWITCH_NEW_ROM_DIALOG)
                     }
                     .setOnCancelListener {
-                        viewModel.resumeEmulator()
+                        resumeEmulationWhenUiIsReady()
                     }
                     .show()
         }
@@ -706,7 +725,16 @@ class EmulatorActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        choreographerFrameRenderer.startRendering()
+        maybeResumeEmulationForActiveUi()
+    }
+
+    private fun maybeResumeEmulationForActiveUi() {
+        if (!canUseEmulatorUi()) {
+            return
+        }
+
+        viewModel.onActivityResumed()
+        startRenderingIfNeeded()
 
         if (!activeOverlays.hasActiveOverlays()) {
             disableScreenTimeOut()
@@ -714,9 +742,29 @@ class EmulatorActivity : AppCompatActivity() {
         }
     }
 
+    private fun resumeEmulationWhenUiIsReady() {
+        handler.post {
+            maybeResumeEmulationForActiveUi()
+        }
+    }
+
+    private fun canUseEmulatorUi(): Boolean {
+        return lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) &&
+                hasWindowFocus() &&
+                window.decorView.windowVisibility == View.VISIBLE &&
+                binding.root.isShown &&
+                ContextCompat.getDisplayOrDefault(this).state == Display.STATE_ON &&
+                getSystemService<KeyguardManager>()?.isKeyguardLocked != true
+    }
+
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         setupFullscreen()
+        if (hasFocus) {
+            handler.post {
+                maybeResumeEmulationForActiveUi()
+            }
+        }
     }
 
     private fun setupFullscreen() {
@@ -854,7 +902,7 @@ class EmulatorActivity : AppCompatActivity() {
                     activeOverlays.removeActiveOverlay(EmulatorOverlay.PAUSE_MENU)
                 }
                 .setOnCancelListener {
-                    viewModel.resumeEmulator()
+                    resumeEmulationWhenUiIsReady()
                 }
                 .show()
     }
@@ -927,7 +975,7 @@ class EmulatorActivity : AppCompatActivity() {
                 activeOverlays.removeActiveOverlay(EmulatorOverlay.SAVE_STATES_DIALOG)
             }
             .setOnCancelListener {
-                viewModel.resumeEmulator()
+                resumeEmulationWhenUiIsReady()
             }
             .show()
     }
@@ -981,7 +1029,7 @@ class EmulatorActivity : AppCompatActivity() {
     private fun closeRewindWindow() {
         activeOverlays.removeActiveOverlay(EmulatorOverlay.REWIND_WINDOW)
         binding.root.transitionToState(R.id.rewind_hidden)
-        viewModel.resumeEmulator()
+        resumeEmulationWhenUiIsReady()
     }
 
     private fun showLoadingState() {
@@ -1001,8 +1049,13 @@ class EmulatorActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        suspendEmulationForInactiveUi()
+    }
+
+    private fun suspendEmulationForInactiveUi() {
+        viewModel.onActivityPaused()
         enableScreenTimeOut()
-        choreographerFrameRenderer.stopRendering()
+        stopRenderingIfNeeded()
         viewModel.pauseEmulator(false)
     }
 
@@ -1026,7 +1079,31 @@ class EmulatorActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        unregisterReceiver(screenPowerReceiver)
         frameRenderCoordinator.stop()
         presentation?.dismiss()
+    }
+
+    private fun registerScreenPowerReceiver() {
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_USER_PRESENT)
+        }
+        ContextCompat.registerReceiver(this, screenPowerReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+    }
+
+    private fun startRenderingIfNeeded() {
+        if (!isRenderingActive) {
+            choreographerFrameRenderer.startRendering()
+            isRenderingActive = true
+        }
+    }
+
+    private fun stopRenderingIfNeeded() {
+        if (isRenderingActive) {
+            choreographerFrameRenderer.stopRendering()
+            isRenderingActive = false
+        }
     }
 }
