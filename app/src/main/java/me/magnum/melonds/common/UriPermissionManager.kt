@@ -14,4 +14,14 @@ class UriPermissionManager(private val context: Context) {
         val flags = permission.toFlags()
         context.contentResolver.takePersistableUriPermission(fileUri, flags)
     }
+
+    // Same as [persistFilePermissions] but does not throw if [fileUri] was not granted a persistable permission
+    fun tryPersistFilePermissions(fileUri: Uri, permission: Permission): Boolean {
+        return try {
+            context.contentResolver.takePersistableUriPermission(fileUri, permission.toFlags())
+            true
+        } catch (e: SecurityException) {
+            false
+        }
+    }
 }

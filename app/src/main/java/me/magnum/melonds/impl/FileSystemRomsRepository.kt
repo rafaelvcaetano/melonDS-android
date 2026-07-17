@@ -107,22 +107,35 @@ class FileSystemRomsRepository(
         allRoms.find { rom -> rom.uri == uri }?.let { return it }
 
         // Pre-filter by filename for performance
-        val incomingFileName = DocumentFile.fromSingleUri(context, uri)?.name
+        val incomingFileName = runCatching { DocumentFile.fromSingleUri(context, uri)?.name }.getOrNull()
         val candidateRoms = if (incomingFileName != null) {
             allRoms.filter { it.fileName == incomingFileName }
         } else {
             allRoms
         }
 
-        // Try to find matching ROM by path, then by size (filename already pre-filtered)
-        val cachedRom = findRomByPath(candidateRoms, uri)
+        // Try to find matching ROM by document id, then by path, then by size (filename already pre-filtered)
+        val cachedRom = findRomByDocumentId(candidateRoms, uri)
+            ?: findRomByPath(candidateRoms, uri)
             ?: findRomBySize(candidateRoms, uri)
 
         if (cachedRom != null)
             return cachedRom
 
         // ROM is not known. Create a new ROM from the URI
+        Log.i(TAG, "getRomAtUri: no cached ROM matched for $uri, falling back to ad-hoc import")
         return romFileProcessorFactory.getFileRomProcessorForDocument(uri)?.getRomFromUri(uri, null)
+    }
+
+    // Matches [uri] against a cached ROM's URI by comparing their SAF document IDs directly
+    private fun findRomByDocumentId(roms: List<Rom>, uri: Uri): Rom? {
+        if (uri.authority != EXTERNAL_STORAGE_PROVIDER_AUTHORITY) return null
+        val incomingDocId = FileUtils.getDocumentIdOrNull(context, uri) ?: return null
+
+        return roms.find { rom ->
+            rom.uri.authority == EXTERNAL_STORAGE_PROVIDER_AUTHORITY &&
+                FileUtils.getDocumentIdOrNull(context, rom.uri)?.equals(incomingDocId, ignoreCase = true) == true
+        }
     }
 
     private fun findRomByPath(roms: List<Rom>, uri: Uri): Rom? {
