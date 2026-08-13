@@ -19,5 +19,6 @@ sealed class EmulatorUiEvent {
     }
     data object ShowAchievementList : EmulatorUiEvent()
     data object ShowPendingSubmissionsDialog : EmulatorUiEvent()
+    data object ResumeEmulationWhenReady : EmulatorUiEvent()
     data object CloseEmulator : EmulatorUiEvent()
 }
