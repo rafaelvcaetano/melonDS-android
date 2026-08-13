@@ -166,6 +166,7 @@ class EmulatorActivity : AppCompatActivity() {
 
     private var presentation: ExternalPresentation? = null
     private var isRenderingActive = false
+    private var isResumePending = false
 
     private lateinit var handler: Handler
     private val screenPowerReceiver = object : BroadcastReceiver() {
@@ -173,8 +174,10 @@ class EmulatorActivity : AppCompatActivity() {
             when (intent.action) {
                 Intent.ACTION_SCREEN_OFF -> suspendEmulationForInactiveUi()
                 Intent.ACTION_SCREEN_ON,
-                Intent.ACTION_USER_PRESENT -> handler.post {
-                    maybeResumeEmulationForActiveUi()
+                Intent.ACTION_USER_PRESENT -> {
+                    if (!activeOverlays.hasActiveOverlays()) {
+                        resumeEmulationWhenUiIsReady()
+                    }
                 }
             }
         }
@@ -218,7 +221,7 @@ class EmulatorActivity : AppCompatActivity() {
         }
 
         override fun onPausePressed() {
-            viewModel.pauseEmulator(true)
+            pauseEmulator(true)
         }
 
         override fun onFastForwardPressed() {
@@ -700,7 +703,7 @@ class EmulatorActivity : AppCompatActivity() {
             return
 
         if (viewModel.emulatorState.value.isRunning()) {
-            viewModel.pauseEmulator(false)
+            pauseEmulator(false)
 
             activeOverlays.addActiveOverlay(EmulatorOverlay.SWITCH_NEW_ROM_DIALOG)
             AlertDialog.Builder(this)
@@ -725,7 +728,11 @@ class EmulatorActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        maybeResumeEmulationForActiveUi()
+        if (activeOverlays.hasActiveOverlays()) {
+            handler.post { maybeResumeEmulationForActiveUi() }
+        } else {
+            resumeEmulationWhenUiIsReady()
+        }
     }
 
     private fun maybeResumeEmulationForActiveUi() {
@@ -736,13 +743,15 @@ class EmulatorActivity : AppCompatActivity() {
         viewModel.onActivityResumed()
         startRenderingIfNeeded()
 
-        if (!activeOverlays.hasActiveOverlays()) {
+        if (isResumePending && !activeOverlays.hasActiveOverlays()) {
+            isResumePending = false
             disableScreenTimeOut()
             viewModel.resumeEmulator()
         }
     }
 
     private fun resumeEmulationWhenUiIsReady() {
+        isResumePending = true
         handler.post {
             maybeResumeEmulationForActiveUi()
         }
@@ -882,7 +891,7 @@ class EmulatorActivity : AppCompatActivity() {
         if (isRewindWindowOpen()) {
             closeRewindWindow()
         } else {
-            viewModel.pauseEmulator(true)
+            pauseEmulator(true)
         }
     }
 
@@ -1053,10 +1062,16 @@ class EmulatorActivity : AppCompatActivity() {
     }
 
     private fun suspendEmulationForInactiveUi() {
+        isResumePending = false
         viewModel.onActivityPaused()
         enableScreenTimeOut()
         stopRenderingIfNeeded()
         viewModel.pauseEmulator(false)
+    }
+
+    private fun pauseEmulator(showPauseMenu: Boolean) {
+        isResumePending = false
+        viewModel.pauseEmulator(showPauseMenu)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

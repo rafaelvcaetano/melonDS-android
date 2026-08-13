@@ -399,6 +399,7 @@ class EmulatorViewModel @Inject constructor(
             sessionCoroutineScope.launch {
                 emulatorManager.resetEmulator()
                 _achievementsEvent.emit(RAEventUi.Reset)
+                _uiEvent.emit(EmulatorUiEvent.ResumeEmulationWhenReady)
             }
         }
     }
