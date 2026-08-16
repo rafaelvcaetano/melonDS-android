@@ -1,5 +1,10 @@
 package me.magnum.melonds.common.cheats
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.CheatDatabase
 import me.magnum.melonds.domain.model.CheatFolder
@@ -22,6 +27,8 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
 
         private const val FLAG_FOLDER = 0x1000
         private const val FLAG_FOLDER_ONE_HOT = 0x1100
+
+        private const val THREAD_POOL_SIZE = 4
     }
 
     private class InvalidUsrCheatDatabaseException(reason: String) : Exception("Invalid usrcheat.dat file: $reason")
@@ -54,20 +61,65 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
         // Sort entries by offset so we can read them sequentially
         val sortedEntries = gameEntries.sortedBy { it.offset }
 
-        for (entry in sortedEntries) {
-            // Skip to the game's offset
-            val toSkip = entry.offset - streamReader.bytesRead
-            if (toSkip > 0) {
-                streamReader.skip(toSkip)
-            } else if (toSkip < 0) {
-                // Shouldn't happen
-                continue
+        // To reduce the time required to parse all the cheats, parsing will be done in a multithreaded context, with a producer-consumer setup. One coroutine, the producer,
+        // reads game entries from the database's "address book". These entries are pushed into a Channel to be consumed by consumers. Each consumer is responsible for parsing
+        // all cheat data of the game associated with that entry
+        runBlocking {
+            val channel = Channel<GameData>(capacity = THREAD_POOL_SIZE)
+
+            // Producer: reads the stream sequentially and sends game data blocks into the channel
+            launch(Dispatchers.IO) {
+                for (i in sortedEntries.indices) {
+                    val entry = sortedEntries[i]
+
+                    // Skip to the game's offset
+                    val toSkip = entry.offset - streamReader.bytesRead
+                    if (toSkip > 0) {
+                        streamReader.skip(toSkip)
+                    } else if (toSkip < 0) {
+                        // Shouldn't happen
+                        continue
+                    }
+
+                    // Determine how many bytes to read for this game
+                    val startOffset = streamReader.bytesRead
+                    val endOffset = if (i < sortedEntries.size - 1) {
+                        sortedEntries[i + 1].offset
+                    } else {
+                        // Last entry: read until end of stream (cap at 1MB safety limit)
+                        startOffset + 1024 * 1024
+                    }
+
+                    val blockSize = endOffset - startOffset
+                    val data = streamReader.readBytesOrUntilEnd(blockSize)
+                    channel.send(GameData(entry, data))
+                }
+                channel.close()
             }
 
-            val game = parseGame(streamReader, entry, cheatDatabase, charset, parseListener)
-            if (game != null) {
-                parseListener.onGameParsed(game)
+            // Consumers: fixed pool of coroutines parsing games concurrently.
+            // The listener is notified immediately as each game is parsed.
+            val workers = List(THREAD_POOL_SIZE) {
+                launch(Dispatchers.Default) {
+                    for (gameData in channel) {
+                        val gameName = peekGameName(gameData.data, charset)
+                        if (gameName != null) {
+                            synchronized(parseListener) {
+                                parseListener.onGameParseStart(gameName)
+                            }
+                        }
+                        val game = parseGame(gameData.data, gameData.entry, cheatDatabase, charset)
+                        if (game != null) {
+                            synchronized(parseListener) {
+                                parseListener.onGameParsed(game)
+                            }
+                        }
+                    }
+                }
             }
+
+            // Wait for all workers to finish
+            workers.joinAll()
         }
 
         parseListener.onParseComplete()
@@ -118,13 +170,22 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
         return entries
     }
 
-    private fun parseGame(reader: StreamReader, entry: GameEntry, cheatDatabase: CheatDatabase, charset: Charset, parseListener: CheatDatabaseParserListener): Game? {
+    /**
+     * Reads just the game name from the raw byte data without performing a full parse.
+     */
+    private fun peekGameName(data: ByteArray, charset: Charset): String? {
+        val reader = ByteArrayReader(data)
+        val gameName = reader.readPaddedString(charset)
+        return gameName.ifBlank { null }
+    }
+
+    private fun parseGame(data: ByteArray, entry: GameEntry, cheatDatabase: CheatDatabase, charset: Charset): Game? {
+        val reader = ByteArrayReader(data)
+
         val gameName = reader.readPaddedString(charset)
         if (gameName.isBlank()) {
             return null
         }
-
-        parseListener.onGameParseStart(gameName)
 
         // Read number of items (2 bytes) + master code enable flag (2 bytes)
         val itemHeader = reader.readBytes(4)
@@ -185,7 +246,7 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
         return flags == FLAG_FOLDER || flags == FLAG_FOLDER_ONE_HOT
     }
 
-    private fun parseCheat(reader: StreamReader, cheatDatabase: CheatDatabase, charset: Charset): Cheat? {
+    private fun parseCheat(reader: ByteArrayReader, cheatDatabase: CheatDatabase, charset: Charset): Cheat? {
         val (cheatName, cheatDescription) = reader.readNameAndDescription(charset)
 
         if (cheatName.isBlank()) {
@@ -195,8 +256,7 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
         // Read code chunk count (4 bytes, little-endian)
         val countBytes = reader.readBytes(4)
         val codeChunkCount = readI32LE(countBytes, 0)
-        val codeBytes = ByteArray(codeChunkCount * 4)
-        reader.read(codeBytes)
+        val codeBytes = reader.readBytes(codeChunkCount * 4)
         // Convert little endian to big endian
         for (i in 0 until codeChunkCount) {
             val index = i * 4
@@ -234,6 +294,7 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
     }
 
     private data class GameEntry(val gameCode: String, val checksum: String, val offset: Int)
+    private class GameData(val entry: GameEntry, val data: ByteArray)
 
     private class StreamReader(private val stream: ProgressTrackerInputStream) {
 
@@ -251,6 +312,17 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
                 totalRead += read
             }
             return buffer
+        }
+
+        fun readBytesOrUntilEnd(maxCount: Int): ByteArray {
+            val buffer = ByteArray(maxCount)
+            var totalRead = 0
+            while (totalRead < maxCount) {
+                val read = stream.read(buffer, totalRead, maxCount - totalRead)
+                if (read == -1) break
+                totalRead += read
+            }
+            return if (totalRead == maxCount) buffer else buffer.copyOf(totalRead)
         }
 
         fun read(buffer: ByteArray): Int {
@@ -272,10 +344,35 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
             } while (remaining > 0)
         }
 
+        private fun readOneByte(): Byte {
+            if (stream.read(singleByteBuffer) == -1) {
+                throw InvalidUsrCheatDatabaseException("Unexpected end of stream at position $bytesRead")
+            }
+            return singleByteBuffer[0]
+        }
+    }
+
+    private class ByteArrayReader(private val data: ByteArray) {
+        var position = 0
+            private set
+
+        fun readBytes(count: Int): ByteArray {
+            if (position + count > data.size) {
+                throw InvalidUsrCheatDatabaseException("Unexpected end of data at position $position (requested $count bytes, available ${data.size - position})")
+            }
+            val result = data.copyOfRange(position, position + count)
+            position += count
+            return result
+        }
+
+        fun skip(count: Int) {
+            position += count
+        }
+
         fun readPaddedString(charset: Charset): String {
             val bytes = mutableListOf<Byte>()
-            while (true) {
-                val b = readOneByte()
+            while (position < data.size) {
+                val b = data[position++]
                 if (b == 0.toByte()) break
                 bytes.add(b)
             }
@@ -283,49 +380,34 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
             // We need to advance to the next 4-byte aligned position.
             val consumed = bytes.size + 1
             val padding = if (consumed % 4 == 0) 0 else 4 - (consumed % 4)
-            if (padding > 0) {
-                readBytes(padding)
-            }
+            position += padding
             return String(bytes.toByteArray(), charset)
         }
 
-        /**
-         * Name and description are 2 sequential strings, each one ending with a null terminator. The number of read bytes is equal to the length of the name and description
-         * plus 2 for the null terminators, rounded up to the nearest multiple of 4.
-         */
         fun readNameAndDescription(charset: Charset): Pair<String, String?> {
             // Read name until null
             val nameBytes = mutableListOf<Byte>()
-            while (true) {
-                val b = readOneByte()
+            while (position < data.size) {
+                val b = data[position++]
                 if (b == 0.toByte()) break
                 nameBytes.add(b)
             }
 
             // Read description until null
             val descBytes = mutableListOf<Byte>()
-            while (true) {
-                val b = readOneByte()
+            while (position < data.size) {
+                val b = data[position++]
                 if (b == 0.toByte()) break
                 descBytes.add(b)
             }
 
             val blockSize = nameBytes.size + 1 + descBytes.size + 1
             val padding = if (blockSize % 4 == 0) 0 else 4 - (blockSize % 4)
-            if (padding > 0) {
-                readBytes(padding)
-            }
+            position += padding
 
             val name = String(nameBytes.toByteArray(), charset)
             val description = if (descBytes.isNotEmpty()) String(descBytes.toByteArray(), charset) else null
             return Pair(name, description)
-        }
-
-        private fun readOneByte(): Byte {
-            if (stream.read(singleByteBuffer) == -1) {
-                throw InvalidUsrCheatDatabaseException("Unexpected end of stream at position $bytesRead")
-            }
-            return singleByteBuffer[0]
         }
     }
 }
