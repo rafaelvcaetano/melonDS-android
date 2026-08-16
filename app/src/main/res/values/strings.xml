@@ -278,7 +278,7 @@
     <string name="enable_cheats">Enable cheats</string>
     <string name="cheats_database">Cheats database (XML format)</string>
     <string name="import_cheats">Import cheats</string>
-    <string name="import_cheats_summary">Import cheats from database files to make them available. Only XML databases are supported for now. Any previously imported cheat will be deleted.</string>
+    <string name="import_cheats_summary">Import cheats from database files to make them available. XML and usrcheat.dat databases are supported. Any previously imported cheat will be deleted.</string>
     <string name="rom_shortcut">ROM shortcut</string>
 
     <string name="firmware_nickname">Nickname</string>

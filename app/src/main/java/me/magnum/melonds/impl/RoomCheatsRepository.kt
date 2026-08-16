@@ -133,13 +133,8 @@ class RoomCheatsRepository(private val context: Context, private val database: M
         database.cheatFolderDao().insertCheatFolder(cheatFolderEntity)
     }
 
-    override suspend fun deleteCheatDatabaseIfExists(databaseName: String) {
-        if (databaseName == CheatDatabaseEntity.CUSTOM_CHEATS_DATABASE_NAME) {
-            // Don't allow the custom cheat database to be deleted
-            return
-        }
-
-        database.cheatDatabaseDao().deleteCheatDatabase(databaseName)
+    override suspend fun deleteImportedCheatDatabases() {
+        database.cheatDatabaseDao().deleteImportedCheatDatabases()
         database.cheatFolderDao().deleteEmptyFolders()
         database.gameDao().deleteEmptyGames()
     }

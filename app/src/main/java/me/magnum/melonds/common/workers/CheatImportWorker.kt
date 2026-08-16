@@ -22,6 +22,7 @@ import me.magnum.melonds.R
 import me.magnum.melonds.common.cheats.CheatDatabaseParser
 import me.magnum.melonds.common.cheats.CheatDatabaseParserListener
 import me.magnum.melonds.common.cheats.ProgressTrackerInputStream
+import me.magnum.melonds.common.cheats.UsrCheatDatabaseParser
 import me.magnum.melonds.common.cheats.XmlCheatDatabaseParser
 import me.magnum.melonds.domain.model.CheatDatabase
 import me.magnum.melonds.domain.model.Game
@@ -67,23 +68,24 @@ class CheatImportWorker @AssistedInject constructor(
             val databaseExtension = databaseDocument.name?.substringAfterLast('.')
             val parser = when (databaseExtension) {
                 "xml" -> XmlCheatDatabaseParser()
+                "dat" -> UsrCheatDatabaseParser()
                 else -> {
                     return Result.failure()
                 }
             }
 
-            return parseXmlDocument(uri, parser, totalFileSize)
+            return parseCheatDatabase(uri, parser, totalFileSize)
         } catch (e: Exception) {
             return Result.failure()
         }
     }
 
-    private suspend fun parseXmlDocument(uri: Uri, parser: CheatDatabaseParser, totalFileSize: Long?) = suspendCoroutine { continuation ->
+    private suspend fun parseCheatDatabase(uri: Uri, parser: CheatDatabaseParser, totalFileSize: Long?) = suspendCoroutine { continuation ->
         applicationContext.contentResolver.openInputStream(uri)?.use {
             val progressTrackerStream = ProgressTrackerInputStream(it)
             parser.parseCheatDatabase(progressTrackerStream, object : CheatDatabaseParserListener {
                 override fun onDatabaseParseStart(databaseName: String): CheatDatabase = runBlocking {
-                    cheatsRepository.deleteCheatDatabaseIfExists(databaseName)
+                    cheatsRepository.deleteImportedCheatDatabases()
                     cheatsRepository.addCheatDatabase(databaseName)
                 }
 

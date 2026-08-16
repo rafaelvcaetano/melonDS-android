@@ -18,7 +18,7 @@ interface CheatsRepository {
     suspend fun getRomEnabledCheats(romInfo: RomInfo): List<Cheat>
     suspend fun updateCheatsStatus(cheats: List<Cheat>)
     suspend fun addCheatFolder(folderName: String, game: Game)
-    suspend fun deleteCheatDatabaseIfExists(databaseName: String)
+    suspend fun deleteImportedCheatDatabases()
     suspend fun addCheatDatabase(databaseName: String): CheatDatabase
     suspend fun addGameCheats(game: Game): Game
     suspend fun addCheat(folder: CheatFolder, cheat: Cheat)
