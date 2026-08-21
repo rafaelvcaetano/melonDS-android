@@ -1,8 +1,10 @@
 package me.magnum.melonds.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 
 @Composable
 fun MelonTheme(
@@ -15,6 +17,8 @@ fun MelonTheme(
         colors = colors,
         typography = MelonTypography,
     ) {
-        content()
+        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colors.onSurface) {
+            content()
+        }
     }
 }

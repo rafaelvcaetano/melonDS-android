@@ -49,6 +49,8 @@ import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.ui.common.FullScreen
 import me.magnum.melonds.ui.common.component.dialog.BaseDialog
 import me.magnum.melonds.ui.common.component.dialog.DialogButton
+import me.magnum.melonds.ui.common.component.romlist.DefaultRomItemPadding
+import me.magnum.melonds.ui.common.component.romlist.RomItem
 import me.magnum.melonds.ui.dsiwaremanager.DSiWareRomListViewModel
 import me.magnum.melonds.ui.dsiwaremanager.model.DSiWareMangerRomListUiState
 import me.magnum.melonds.ui.romlist.RomIcon

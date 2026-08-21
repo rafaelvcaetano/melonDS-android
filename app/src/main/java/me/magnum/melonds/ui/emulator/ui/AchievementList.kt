@@ -3,7 +3,6 @@ package me.magnum.melonds.ui.emulator.ui
 import androidx.compose.animation.core.animate
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.BringIntoViewSpec
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
@@ -64,6 +63,7 @@ import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import me.magnum.melonds.R
+import me.magnum.melonds.ui.common.PaddedListBringIntoViewSpec
 import me.magnum.melonds.ui.common.melonButtonColors
 import me.magnum.melonds.ui.romdetails.model.AchievementBucketUiModel
 import me.magnum.melonds.ui.romdetails.model.AchievementSetUiModel
@@ -71,7 +71,6 @@ import me.magnum.melonds.ui.romdetails.model.RomRetroAchievementsUiState
 import me.magnum.melonds.ui.romdetails.ui.AchievementsMultiSetTabRow
 import me.magnum.melonds.ui.romdetails.ui.RomAchievementUi
 import me.magnum.rcheevosapi.model.RAAchievement
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -211,7 +210,7 @@ private fun Content(
     val coroutineScope = rememberCoroutineScope()
     val bringIntoViewSpec = remember(density) {
         val contentPadding = with(density) { LIST_CONTENT_PADDING.toPx() }
-        AchievementListBringIntoViewSpec(contentPadding, contentPadding)
+        PaddedListBringIntoViewSpec(contentPadding, contentPadding)
     }
     val scrollAmountByKeyboard = remember(density) {
         with(density) { 80.dp.toPx() }
@@ -370,35 +369,6 @@ private fun LoadError(
             colors = melonButtonColors(),
         ) {
             Text(text = stringResource(id = R.string.retry).uppercase())
-        }
-    }
-}
-
-/**
- * [BringIntoViewSpec] implementation that takes content padding into account. This means that focused items inside of a list are brought into view inside the useful list area
- * instead of leaving them on the edge, within the content padding area. The implementation was adapted from the default implementation of [BringIntoViewSpec].
- */
-private class AchievementListBringIntoViewSpec(
-    private val leadingPadding: Float,
-    private val trailingPadding: Float,
-) : BringIntoViewSpec {
-
-    override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float {
-        val trailingEdge = offset + size
-        val leadingEdge = offset
-        return when {
-
-            // If the item is already visible, no need to scroll.
-            leadingEdge >= leadingPadding && trailingEdge <= containerSize - trailingPadding -> 0f
-
-            // If the item is visible but larger than the parent, we don't scroll.
-            leadingEdge < leadingPadding && trailingEdge > containerSize - trailingPadding -> 0f
-
-            // Find the minimum scroll needed to make one of the edges coincide with the
-            // parent's
-            // edge.
-            abs(leadingEdge + leadingPadding) < abs(trailingEdge - (containerSize - trailingPadding)) -> leadingEdge - leadingPadding
-            else -> trailingEdge - containerSize + trailingPadding
         }
     }
 }

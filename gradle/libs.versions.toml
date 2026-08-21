@@ -8,6 +8,7 @@ cardView = "1.0.0"
 coil = "2.7.0"
 commonsCompress = "1.27.1"
 composeBom = "2026.05.00"
+composeMarkdown = "0.7.2"
 constraintLayout = "2.2.1"
 core = "1.18.0"
 documentFile = "1.1.0"
@@ -33,7 +34,6 @@ retrofit = "3.0.0"
 room = "2.8.4"
 splashscreen = "1.2.0"
 startup = "1.2.0"
-swipeRefreshLayout = "1.2.0"
 window = "1.5.1"
 work = "2.11.2"
 xz = "1.11"
@@ -64,7 +64,6 @@ androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-rxjava = { module = "androidx.room:room-rxjava2", version.ref = "room" }
 androidx-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreen" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version.ref = "startup" }
-androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swipeRefreshLayout" }
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
 androidx-work = { module = "androidx.work:work-runtime", version.ref = "work" }
 android-material = { module = "com.google.android.material:material", version.ref = "material" }
@@ -82,6 +81,7 @@ compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview"
 
 # Third-party
 coil = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
+compose-markdown = { module = "com.github.jeziellago:compose-markdown", version.ref = "composeMarkdown" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 hilt = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 kotlinx-coroutines-rx = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-rx2", version.ref = "kotlinxCoroutines" }
