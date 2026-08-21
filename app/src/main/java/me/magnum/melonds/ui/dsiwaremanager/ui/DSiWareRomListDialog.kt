@@ -26,7 +26,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -79,7 +79,7 @@ private fun DSiWareRomListDialogImpl(
     onRomSelected: (Rom) -> Unit,
     retrieveRomIcon: suspend (Rom) -> RomIcon,
 ) {
-    val windowSizeClass = currentWindowAdaptiveInfo(true).windowSizeClass
+    val windowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass
     val isLargeScreen = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)
     if (isLargeScreen) {
         PopupDialog(

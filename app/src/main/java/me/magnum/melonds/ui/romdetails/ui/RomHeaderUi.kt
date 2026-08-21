@@ -37,7 +37,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -85,7 +85,7 @@ fun RomHeaderUi(
             elevation = 4.dp,
         ) {
             Column(Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top))) {
-                val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+                val windowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass
                 val isLandscape = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
                 if (isLandscape) {
                     LandscapeTopBar(

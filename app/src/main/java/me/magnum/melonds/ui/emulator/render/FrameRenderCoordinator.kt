@@ -1,10 +1,10 @@
 package me.magnum.melonds.ui.emulator.render
 
 import android.os.Build
+import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Message
-import androidx.core.os.bundleOf
 import me.magnum.melonds.MelonDSAndroidInterface
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.domain.model.render.PresentFrameWrapper
@@ -118,7 +118,9 @@ class FrameRenderCoordinator {
         fun requestFrameRender(frameDeadlineNanos: Long?) {
             handler?.removeMessages(MSG_RENDER_FRAME)
             handler?.obtainMessage(MSG_RENDER_FRAME)?.let {
-                it.data = bundleOf(MSG_RENDER_FRAME_FRAME_DEADLINE_NS to (frameDeadlineNanos ?: 0L))
+                it.data = Bundle().apply {
+                    putLong(MSG_RENDER_FRAME_FRAME_DEADLINE_NS, frameDeadlineNanos ?: 0L)
+                }
                 handler?.sendMessage(it)
             }
         }

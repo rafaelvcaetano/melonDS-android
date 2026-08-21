@@ -32,7 +32,7 @@ import androidx.compose.material.TextButton
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -72,7 +72,7 @@ fun CheatFormDialog(
     if (state != CheatFormDialogState.Hidden) {
         val cheatFormState = rememberCheatFormState(state)
 
-        val windowSizeClass = currentWindowAdaptiveInfo(true).windowSizeClass
+        val windowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass
         val isLargeScreen = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)
         if (isLargeScreen) {
             CheatFormPopupDialog(

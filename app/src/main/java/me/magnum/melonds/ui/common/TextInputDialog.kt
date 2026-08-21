@@ -5,7 +5,6 @@ import android.content.DialogInterface
 import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.core.os.bundleOf
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.DialogFragment
 import me.magnum.melonds.R
@@ -120,10 +119,10 @@ class TextInputDialog : DialogFragment() {
             return TextInputDialog().apply {
                 this@Builder.onConfirmListener?.let { setOnConfirmListener(it) }
                 this@Builder.onCancelListener?.let { setOnCancelListener(it) }
-                arguments = bundleOf(
-                    KEY_TITLE to this@Builder.title,
-                    KEY_TEXT to this@Builder.text
-                )
+                arguments = Bundle().apply {
+                    putString(KEY_TITLE, this@Builder.title)
+                    putString(KEY_TEXT, this@Builder.text)
+                }
             }
         }
     }
