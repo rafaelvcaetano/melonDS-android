@@ -23,7 +23,6 @@ kotlinxCoroutines = "1.10.2"
 kotlinxSerialization = "1.11.0"
 ksp = "2.3.4"
 lifecycleViewModel = "2.10.0"
-markwon = "4.6.2"
 material = "1.13.0"
 navigation = "2.9.8"
 okHttp = "5.3.2"
@@ -86,9 +85,6 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 hilt = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 kotlinx-coroutines-rx = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-rx2", version.ref = "kotlinxCoroutines" }
 picasso = { module = "com.squareup.picasso:picasso", version.ref = "picasso" }
-markwon = { module = "io.noties.markwon:core", version.ref = "markwon" }
-markwon-imagepicasso = { module = "io.noties.markwon:image-picasso", version.ref = "markwon" }
-markwon-linkify = { module = "io.noties.markwon:linkify", version.ref = "markwon" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okHttp" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commonsCompress" }
 xz = { module = "org.tukaani:xz", version.ref = "xz" }

@@ -155,9 +155,6 @@ dependencies {
     implementation(libs.kotlin.serialization)
     implementation(libs.kotlinx.coroutines.rx)
     implementation(libs.picasso)
-    implementation(libs.markwon)
-    implementation(libs.markwon.imagepicasso)
-    implementation(libs.markwon.linkify)
     implementation(libs.commons.compress)
     implementation(libs.xz)
 

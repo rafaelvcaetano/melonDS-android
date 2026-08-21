@@ -14,9 +14,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import io.noties.markwon.Markwon
-import io.noties.markwon.image.picasso.PicassoImagesPlugin
-import io.noties.markwon.linkify.LinkifyPlugin
 import kotlinx.serialization.json.Json
 import me.magnum.melonds.common.DirectoryAccessValidator
 import me.magnum.melonds.common.PermissionHandler
@@ -67,15 +64,6 @@ object AppModule {
     @Singleton
     fun providePicasso(@ApplicationContext context: Context): Picasso {
         return Picasso.Builder(context).build()
-    }
-
-    @Provides
-    @Singleton
-    fun provideMarkwon(@ApplicationContext context: Context, picasso: Picasso): Markwon {
-        return Markwon.builder(context)
-            .usePlugin(PicassoImagesPlugin.create(picasso))
-            .usePlugin(LinkifyPlugin.create(Linkify.WEB_URLS, true))
-            .build()
     }
 
     @Provides
