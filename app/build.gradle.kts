@@ -32,7 +32,7 @@ android {
         versionName = AppConfig.versionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk {
-            abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86_64"))
+            abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
         }
         externalNativeBuild {
             cmake {
@@ -48,6 +48,7 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
         }
@@ -67,6 +68,10 @@ android {
             dimension = "version"
             isDefault = true
             versionNameSuffix = " GH"
+            ndk {
+                // Add 32 bit support only on GitHub releases
+                abiFilters.add("armeabi-v7a")
+            }
         }
 
         create("prod") {
