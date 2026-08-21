@@ -1,4 +1,4 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -8,12 +8,16 @@ plugins {
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
 
 android {
     signingConfigs {
         create("release") {
-            val props = gradleLocalProperties(rootDir, providers)
+            val props = Properties().apply {
+                val file = rootProject.file("local.properties")
+                if (file.exists()) load(file.inputStream())
+            }
             (props["MELONDS_KEYSTORE"] as String?)?.let { storeFile = file(it) }
             storePassword = props["MELONDS_KEYSTORE_PASSWORD"] as String? ?: ""
             keyAlias = props["MELONDS_KEY_ALIAS"] as String? ?: ""
@@ -39,7 +43,6 @@ android {
                 cppFlags("-std=c++17 -Wno-write-strings")
             }
         }
-        vectorDrawables.useSupportLibrary = true
     }
     buildFeatures {
         viewBinding = true
@@ -57,8 +60,7 @@ android {
         }
     }
 
-    flavorDimensions.add("version")
-    flavorDimensions.add("build")
+    flavorDimensions += listOf("version", "build")
     productFlavors {
         create("playStore") {
             dimension = "version"
@@ -105,15 +107,13 @@ kotlin {
         jvmTarget = JvmTarget.JVM_21
         freeCompilerArgs.add("-opt-in=kotlin.ExperimentalUnsignedTypes")
     }
+}
 
-    ksp {
-        arg("room.schemaLocation", "$projectDir/schemas")
-    }
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {
-    val gitHubImplementation by configurations
-
     implementation(projects.masterswitch)
     implementation(projects.rcheevosApi)
     implementation(projects.common)
@@ -163,8 +163,8 @@ dependencies {
     implementation(libs.commons.compress)
     implementation(libs.xz)
 
-    gitHubImplementation(libs.retrofit)
-    gitHubImplementation(libs.retrofit.converter.kotlinx)
+    "gitHubImplementation"(libs.retrofit)
+    "gitHubImplementation"(libs.retrofit.converter.kotlinx)
 
     ksp(libs.hilt.compiler)
     ksp(libs.hilt.compiler.android)
