@@ -57,6 +57,7 @@ import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.ControllerConfiguration
 import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.Rect
+import me.magnum.melonds.domain.model.rewind.RewindWindowPosition
 import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.domain.model.layout.Insets
 import me.magnum.melonds.domain.model.layout.LayoutComponent
@@ -502,7 +503,7 @@ class EmulatorActivity : AppCompatActivity() {
                             settingsLauncher.launch(settingsIntent)
                         }
                         is EmulatorUiEvent.ShowPauseMenu -> showPauseMenu(it.pauseMenu)
-                        is EmulatorUiEvent.ShowRewindWindow -> showRewindWindow(it.rewindWindow)
+                        is EmulatorUiEvent.ShowRewindWindow -> showRewindWindow(it.rewindWindow, it.windowPosition)
                         is EmulatorUiEvent.ShowRomSaveStates -> {
                             showSaveStateSlotsDialog(it.saveStates) { slot ->
                                 if (it.reason == EmulatorUiEvent.ShowRomSaveStates.Reason.SAVING) {
@@ -963,9 +964,9 @@ class EmulatorActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showRewindWindow(rewindWindow: RewindWindow) {
+    private fun showRewindWindow(rewindWindow: RewindWindow, windowPosition: RewindWindowPosition) {
         activeOverlays.addActiveOverlay(EmulatorOverlay.REWIND_WINDOW)
-        rewindWindowState.value = RewindWindowState.Visible(rewindWindow)
+        rewindWindowState.value = RewindWindowState.Visible(rewindWindow, windowPosition)
     }
 
     private fun closeRewindWindow() {

@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CancellationException
 import me.magnum.melonds.R
+import me.magnum.melonds.domain.model.rewind.RewindWindowPosition
 import me.magnum.melonds.ui.common.CenteredBringIntoViewSpec
 import me.magnum.melonds.ui.emulator.model.RewindWindowState
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
@@ -79,8 +80,10 @@ fun RewindWindowUi(
 
     // Remember the last visible rewind window so content stays during exit animation
     var lastRewindWindow by remember { mutableStateOf<RewindWindow?>(null) }
+    var lastWindowPosition by remember { mutableStateOf(RewindWindowPosition.BOTTOM) }
     if (state is RewindWindowState.Visible) {
         lastRewindWindow = state.rewindWindow
+        lastWindowPosition = state.windowPosition
     }
 
     val animationProgress = remember { Animatable(0f) }
@@ -123,9 +126,15 @@ fun RewindWindowUi(
 
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.BottomCenter,
+                contentAlignment = when (lastWindowPosition) {
+                    RewindWindowPosition.TOP -> Alignment.TopCenter
+                    RewindWindowPosition.BOTTOM -> Alignment.BottomCenter
+                },
             ) {
-                val offsetY = ((1f - animationProgress.value) * listHeightPx).roundToInt()
+                val offsetY = when (lastWindowPosition) {
+                    RewindWindowPosition.TOP -> -((1f - animationProgress.value) * listHeightPx).roundToInt()
+                    RewindWindowPosition.BOTTOM -> ((1f - animationProgress.value) * listHeightPx).roundToInt()
+                }
 
                 Box(
                     modifier = Modifier

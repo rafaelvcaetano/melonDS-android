@@ -1,6 +1,7 @@
 package me.magnum.melonds.ui.emulator
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -439,7 +440,7 @@ class EmulatorViewModel @Inject constructor(
                     RomPauseMenuOption.REWIND -> {
                         sessionCoroutineScope.launch {
                             val rewindWindow = emulatorManager.getRewindWindow()
-                            _uiEvent.emit(EmulatorUiEvent.ShowRewindWindow(rewindWindow))
+                            _uiEvent.emit(EmulatorUiEvent.ShowRewindWindow(rewindWindow, settingsRepository.getRewindWindowPosition()))
                         }
                     }
                     RomPauseMenuOption.CHEATS -> {
@@ -483,7 +484,7 @@ class EmulatorViewModel @Inject constructor(
         sessionCoroutineScope.launch {
             emulatorManager.pauseEmulator()
             val rewindWindow = emulatorManager.getRewindWindow()
-            _uiEvent.emit(EmulatorUiEvent.ShowRewindWindow(rewindWindow))
+            _uiEvent.emit(EmulatorUiEvent.ShowRewindWindow(rewindWindow, settingsRepository.getRewindWindowPosition()))
         }
     }
 

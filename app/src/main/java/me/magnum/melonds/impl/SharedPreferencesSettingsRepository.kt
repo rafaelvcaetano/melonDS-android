@@ -38,6 +38,7 @@ import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.MacAddress
 import me.magnum.melonds.domain.model.MicSource
 import me.magnum.melonds.domain.model.RendererConfiguration
+import me.magnum.melonds.domain.model.rewind.RewindWindowPosition
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.domain.model.SaveStateLocation
 import me.magnum.melonds.domain.model.SizeUnit
@@ -184,6 +185,11 @@ class SharedPreferencesSettingsRepository(
 
     override fun isRewindEnabled(): Boolean {
         return preferences.getBoolean("enable_rewind", false)
+    }
+
+    override fun getRewindWindowPosition(): RewindWindowPosition {
+        val positionPreference = preferences.getString("rewind_window_position", "bottom")!!
+        return RewindWindowPosition.valueOf(positionPreference.uppercase())
     }
 
     override fun isSustainedPerformanceModeEnabled(): Boolean {

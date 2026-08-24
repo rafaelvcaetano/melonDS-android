@@ -29,4 +29,13 @@
             android:enabled="false"
             app:iconSpaceReserved="false"
             tools:summary="Max. memory usage: 100MB" />
+
+    <ListPreference
+            android:key="rewind_window_position"
+            android:title="@string/rewind_window_position"
+            android:summary="%s"
+            app:iconSpaceReserved="false"
+            android:entries="@array/rewind_window_position_options"
+            android:entryValues="@array/rewind_window_position_values"
+            android:defaultValue="bottom" />
 </PreferenceScreen>

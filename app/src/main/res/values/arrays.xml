@@ -114,4 +114,9 @@
         <item>rom_dir</item>
         <item>internal_dir</item>
     </string-array>
+
+    <string-array name="rewind_window_position_values">
+        <item>top</item>
+        <item>bottom</item>
+    </string-array>
 </resources>
