@@ -33,6 +33,8 @@ interface EmulatorManager {
 
     suspend fun resumeEmulator()
 
+    suspend fun syncRtcToSystem()
+
     suspend fun resetEmulator()
 
     suspend fun updateCheats(cheats: List<Cheat>)

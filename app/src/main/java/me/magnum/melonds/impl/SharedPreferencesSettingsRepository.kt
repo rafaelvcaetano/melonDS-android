@@ -158,6 +158,7 @@ class SharedPreferencesSettingsRepository(
             rewindPeriodSeconds = getRewindPeriod(),
             rewindWindowSeconds = getRewindWindow(),
             useJit = isJitEnabled(),
+            syncRtcOnLidOpen = isRtcSyncOnLidOpenEnabled(),
             consoleType = consoleType,
             soundEnabled = isSoundEnabled(),
             audioInterpolation = getAudioInterpolation(),
@@ -178,6 +179,10 @@ class SharedPreferencesSettingsRepository(
     override fun getFastForwardSpeedMultiplier(): Float {
         val speedMultiplierPreference = preferences.getString("fast_forward_speed_multiplier", "-1")!!
         return speedMultiplierPreference.toFloat()
+    }
+
+    override fun isRtcSyncOnLidOpenEnabled(): Boolean {
+        return preferences.getBoolean("sync_rtc_on_lid_open", false)
     }
 
     override fun isRewindEnabled(): Boolean {

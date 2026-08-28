@@ -22,6 +22,13 @@
             app:iconSpaceReserved="false"
             android:defaultValue="true" />
 
+    <SwitchPreference
+            android:key="sync_rtc_on_lid_open"
+            android:title="@string/sync_rtc_on_lid_open"
+            android:summary="@string/sync_rtc_on_lid_open_summary"
+            app:iconSpaceReserved="false"
+            android:defaultValue="false" />
+
     <Preference
             android:key="backup_internal_layout"
             android:title="@string/backup_internal_layout"

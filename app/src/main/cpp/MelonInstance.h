@@ -42,6 +42,7 @@ public:
     void releaseScreen();
     void pressKey(u32 key);
     void releaseKey(u32 key);
+    void syncRtcToSystem();
     int readAudioOutput(s16* buffer, int length);
     void setAudioOutputSkew(double skew);
     bool takeScreenshot();

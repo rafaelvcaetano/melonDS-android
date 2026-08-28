@@ -375,6 +375,16 @@ class EmulatorViewModel @Inject constructor(
         }
     }
 
+    fun syncRtcOnAppResume() {
+        if (!_emulatorState.value.isRunning() || !settingsRepository.isRtcSyncOnLidOpenEnabled()) {
+            return
+        }
+
+        sessionCoroutineScope.launch {
+            emulatorManager.syncRtcToSystem()
+        }
+    }
+
     fun resetEmulator() {
         if (_emulatorState.value.isRunning()) {
             sessionCoroutineScope.launch {
