@@ -158,6 +158,7 @@ class SharedPreferencesSettingsRepository(
             rewindPeriodSeconds = getRewindPeriod(),
             rewindWindowSeconds = getRewindWindow(),
             useJit = isJitEnabled(),
+            syncRtcOnLidOpen = preferences.getBoolean("sync_rtc_on_lid_open", false),
             consoleType = consoleType,
             soundEnabled = isSoundEnabled(),
             audioInterpolation = getAudioInterpolation(),

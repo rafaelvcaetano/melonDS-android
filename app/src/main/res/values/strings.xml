@@ -200,6 +200,8 @@
     <string name="enable_jit">Enable JIT</string>
     <string name="enable_jit_summary">Improves performance but may cause freezes or crashes.</string>
     <string name="jit_not_supported">JIT is only supported in 64 bit devices.</string>
+    <string name="sync_rtc_on_lid_open">Sync RTC on lid open</string>
+    <string name="sync_rtc_on_lid_open_summary">Synchronizes the emulated clock with the device\'s date and time whenever the lid is opened.</string>
     <string name="backup_settings">Backup settings</string>
     <string name="restore_settings">Restore settings</string>
     <string name="settings_backup_success">Settings backup created.\n\nThe following were skipped:\n&#8226; RetroAchievements session\n&#8226; ROM/save directories\n&#8226; DS BIOS directory\n&#8226; DSi BIOS directory</string>
