@@ -182,6 +182,12 @@ namespace MelonDSAndroid
             instance->releaseKey(key);
     }
 
+    void syncRtcToSystem()
+    {
+        if (instance)
+            instance->syncRtcToSystem();
+    }
+
     void start()
     {
         startAudio();
@@ -382,4 +388,3 @@ namespace MelonDSAndroid
         openGlContext->Release();
     }
 }
-

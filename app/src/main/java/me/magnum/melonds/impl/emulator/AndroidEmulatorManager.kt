@@ -169,6 +169,10 @@ class AndroidEmulatorManager(
         MelonEmulator.resumeEmulation()
     }
 
+    override suspend fun syncRtcToSystem() {
+        MelonEmulator.syncRtcToSystem()
+    }
+
     override suspend fun resetEmulator() {
         MelonEmulator.resetEmulation()
     }
