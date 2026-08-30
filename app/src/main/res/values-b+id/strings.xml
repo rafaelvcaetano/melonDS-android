@@ -506,6 +506,8 @@
         <item>ROM GBA</item>
         <item>Pak Getaran</item>
         <item>Ekspansi memori</item>
+        <item>Motion Pak (Homebrew)</item>
+        <item>Motion Pak (Retail)</item>
     </string-array>
 
     <string-array name="console_type_options">

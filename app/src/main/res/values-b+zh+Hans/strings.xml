@@ -504,6 +504,8 @@
         <item>GBA ROM</item>
         <item>震动包</item>
         <item>内存扩展卡</item>
+        <item>Motion Pak (Homebrew)</item>
+        <item>Motion Pak (Retail)</item>
     </string-array>
 
     <string-array name="console_type_options">

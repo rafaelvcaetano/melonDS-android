@@ -1,6 +1,7 @@
 #ifndef MELONINSTANCE_H
 #define MELONINSTANCE_H
 
+#include <atomic>
 #include <string>
 #include "Args.h"
 #include "Configuration.h"
@@ -32,12 +33,16 @@ public:
     bool loadGbaRom(std::string romPath, std::string sramPath);
     void loadRumblePak();
     void loadGbaMemoryExpansion();
+    void loadMotionPakHomebrew();
+    void loadMotionPakRetail();
     bool bootFirmware();
     void start();
     void reset();
     melonDS::u32 runFrame();
     void stop();
 
+    void updateMotionData(float ax, float ay, float az, float rx, float ry, float rz);
+    float getMotionData(MotionQueryType type);
     void touchScreen(u16 x, u16 y);
     void releaseScreen();
     void pressKey(u32 key);
@@ -79,6 +84,8 @@ private:
     int consoleType;
     NDS* nds;
     std::shared_ptr<Net> net;
+
+    std::atomic<float> motionData[6] = { 0.0f, 0.0f, 9.80665f, 0.0f, 0.0f, 0.0f };
 
     std::unique_ptr<RetroAchievements::RetroAchievementsManager> retroAchievementsManager;
     std::unique_ptr<SaveManager> ndsSave;

@@ -624,8 +624,14 @@ namespace Platform
 
     float Addon_MotionQuery(MotionQueryType type, void* userdata)
     {
-        // TODO
-        return 0;
+        auto emulatorInstance = (MelonDSAndroid::MelonInstance*) userdata;
+        if (emulatorInstance)
+            return emulatorInstance->getMotionData(type);
+
+        // Fallback: return gravity on Z axis (rest position), 0 for everything else
+        if (type == MotionAccelerationZ)
+            return 9.80665f;
+        return 0.0f;
     }
 
     DynamicLibrary* DynamicLibrary_Load(const char* lib)

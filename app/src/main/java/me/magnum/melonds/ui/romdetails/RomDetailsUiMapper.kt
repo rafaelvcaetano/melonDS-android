@@ -34,6 +34,8 @@ class RomDetailsUiMapper(
             )
             RomGbaSlotConfig.RumblePak -> RomGbaSlotConfigUiModel(type = RomGbaSlotConfigUiModel.Type.RumblePak)
             is RomGbaSlotConfig.MemoryExpansion -> RomGbaSlotConfigUiModel(type = RomGbaSlotConfigUiModel.Type.MemoryExpansion)
+            RomGbaSlotConfig.MotionPakHomebrew -> RomGbaSlotConfigUiModel(type = RomGbaSlotConfigUiModel.Type.MotionPakHomebrew)
+            RomGbaSlotConfig.MotionPakRetail -> RomGbaSlotConfigUiModel(type = RomGbaSlotConfigUiModel.Type.MotionPakRetail)
         }
     }
 }

@@ -145,6 +145,14 @@ namespace MelonDSAndroid
         {
             instance->loadGbaMemoryExpansion();
         }
+        else if (gbaSlotConfig->type == MOTION_PAK_HOMEBREW)
+        {
+            instance->loadMotionPakHomebrew();
+        }
+        else if (gbaSlotConfig->type == MOTION_PAK_RETAIL)
+        {
+            instance->loadMotionPakRetail();
+        }
 
         return 0;
     }
@@ -180,6 +188,12 @@ namespace MelonDSAndroid
     {
         if (instance)
             instance->releaseKey(key);
+    }
+
+    void updateMotionData(float ax, float ay, float az, float rx, float ry, float rz)
+    {
+        if (instance)
+            instance->updateMotionData(ax, ay, az, rx, ry, rz);
     }
 
     void start()

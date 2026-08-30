@@ -17,7 +17,7 @@ data class RomGbaSlotConfigDto(
 ) {
 
     enum class Type {
-        None, GbaRom, RumblePak, MemoryExpansion
+        None, GbaRom, RumblePak, MemoryExpansion, MotionPakHomebrew, MotionPakRetail
     }
 
     fun toModel(): RomGbaSlotConfig {
@@ -29,6 +29,8 @@ data class RomGbaSlotConfigDto(
             )
             Type.RumblePak -> RomGbaSlotConfig.RumblePak
             Type.MemoryExpansion -> RomGbaSlotConfig.MemoryExpansion
+            Type.MotionPakHomebrew -> RomGbaSlotConfig.MotionPakHomebrew
+            Type.MotionPakRetail -> RomGbaSlotConfig.MotionPakRetail
         }
     }
 
@@ -47,6 +49,8 @@ data class RomGbaSlotConfigDto(
                 is RomGbaSlotConfig.GbaRom -> Type.GbaRom
                 RomGbaSlotConfig.RumblePak -> Type.RumblePak
                 RomGbaSlotConfig.MemoryExpansion -> Type.MemoryExpansion
+                RomGbaSlotConfig.MotionPakHomebrew -> Type.MotionPakHomebrew
+                RomGbaSlotConfig.MotionPakRetail -> Type.MotionPakRetail
             }
         }
     }

@@ -58,6 +58,7 @@ namespace MelonDSAndroid {
     extern void releaseScreen();
     extern void pressKey(u32 key);
     extern void releaseKey(u32 key);
+    extern void updateMotionData(float ax, float ay, float az, float rx, float ry, float rz);
     extern void start();
     extern u32 loop();
     extern Frame* getPresentationFrame(std::optional<std::chrono::time_point<std::chrono::steady_clock>> deadline);

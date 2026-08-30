@@ -57,12 +57,13 @@ import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.ControllerConfiguration
 import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.Rect
-import me.magnum.melonds.domain.model.rewind.RewindWindowPosition
 import me.magnum.melonds.domain.model.SaveStateSlot
 import me.magnum.melonds.domain.model.layout.Insets
 import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.layout.ScreenFold
+import me.magnum.melonds.domain.model.rewind.RewindWindowPosition
 import me.magnum.melonds.domain.model.rom.Rom
+import me.magnum.melonds.domain.model.rom.config.RomGbaSlotConfig
 import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.extensions.insetsControllerCompat
 import me.magnum.melonds.extensions.setLayoutOrientation
@@ -76,6 +77,7 @@ import me.magnum.melonds.ui.cheats.CheatsActivity
 import me.magnum.melonds.ui.common.rom.EmulatorLaunchValidatorDelegate
 import me.magnum.melonds.ui.emulator.component.EmulatorOverlayTracker
 import me.magnum.melonds.ui.emulator.input.ConnectedControllerManager
+import me.magnum.melonds.ui.emulator.input.EmulatorMotionManager
 import me.magnum.melonds.ui.emulator.input.EmulatorRumbleManager
 import me.magnum.melonds.ui.emulator.input.FrontendInputHandler
 import me.magnum.melonds.ui.emulator.input.INativeInputListener
@@ -187,6 +189,7 @@ class EmulatorActivity : AppCompatActivity() {
     private val connectedControllerManager = ConnectedControllerManager()
     private lateinit var emulatorLaunchValidatorDelegate: EmulatorLaunchValidatorDelegate
     private lateinit var emulatorRumbleManager: EmulatorRumbleManager
+    private lateinit var emulatorMotionManager: EmulatorMotionManager
     private lateinit var frameRenderCoordinator: FrameRenderCoordinator
     private lateinit var choreographerFrameRenderer: ChoreographerFrameRenderer
     private lateinit var mainScreenRenderer: DSRenderer
@@ -315,6 +318,7 @@ class EmulatorActivity : AppCompatActivity() {
             }
         })
         emulatorRumbleManager = EmulatorRumbleManager(this, lifecycleScope, connectedControllerManager)
+        emulatorMotionManager = EmulatorMotionManager(this, lifecycleScope, connectedControllerManager)
         frameRenderCoordinator = FrameRenderCoordinator()
         choreographerFrameRenderer = ChoreographerFrameRendererFactory.createFrameRenderer(frameRenderCoordinator)
         melonTouchHandler = MelonTouchHandler()
@@ -546,10 +550,12 @@ class EmulatorActivity : AppCompatActivity() {
                         }
                         is EmulatorState.ValidatingFirmware -> {
                             showLoadingState()
+                            emulatorMotionManager.stop()
                             emulatorLaunchValidatorDelegate.validateFirmware(it.consoleType)
                         }
                         is EmulatorState.ValidatingRom -> {
                             showLoadingState()
+                            emulatorMotionManager.stop()
                             emulatorLaunchValidatorDelegate.validateRom(it.rom)
                         }
                         EmulatorState.LoadingFirmware,
@@ -561,6 +567,9 @@ class EmulatorActivity : AppCompatActivity() {
                             binding.textLoading.isGone = true
                             binding.viewLayoutControls.isVisible = true
                             backPressedCallback.isEnabled = true
+                            if (it is EmulatorState.RunningRom) {
+                                startMotionManagerIfNeeded(it.rom)
+                            }
                         }
                         is EmulatorState.RomLoadError -> {
                             binding.viewLayoutControls.isInvisible = true
@@ -707,6 +716,7 @@ class EmulatorActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         choreographerFrameRenderer.startRendering()
+        emulatorMotionManager.resume()
 
         if (!activeOverlays.hasActiveOverlays()) {
             disableScreenTimeOut()
@@ -723,6 +733,13 @@ class EmulatorActivity : AppCompatActivity() {
         window.insetsControllerCompat?.let {
             it.hide(WindowInsetsCompat.Type.navigationBars())
             it.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    private fun startMotionManagerIfNeeded(rom: Rom) {
+        val gbaSlotConfig = rom.config.gbaSlotConfig
+        if (gbaSlotConfig is RomGbaSlotConfig.MotionPakHomebrew || gbaSlotConfig is RomGbaSlotConfig.MotionPakRetail) {
+            emulatorMotionManager.start()
         }
     }
 
@@ -994,6 +1011,7 @@ class EmulatorActivity : AppCompatActivity() {
         super.onPause()
         enableScreenTimeOut()
         choreographerFrameRenderer.stopRendering()
+        emulatorMotionManager.pause()
         viewModel.pauseEmulator(false)
     }
 
@@ -1017,6 +1035,7 @@ class EmulatorActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        emulatorMotionManager.stop()
         frameRenderCoordinator.stop()
         presentation?.dismiss()
     }

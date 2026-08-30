@@ -9,7 +9,9 @@ namespace MelonDSAndroid
         NONE = 0,
         GBA_ROM = 1,
         RUMBLE_PAK = 2,
-        MEMORY_EXPANSION = 3
+        MEMORY_EXPANSION = 3,
+        MOTION_PAK_HOMEBREW = 4,
+        MOTION_PAK_RETAIL = 5
     } ;
 
     struct RomGbaSlotConfig {
@@ -32,6 +34,14 @@ namespace MelonDSAndroid
 
     struct RomGbaSlotConfigMemoryExpansion {
         RomGbaSlotConfig _base = { .type = RomGbaSlotConfigType::MEMORY_EXPANSION };
+    };
+
+    struct RomGbaSlotMotionPakHomebrew {
+        RomGbaSlotConfig _base = { .type = RomGbaSlotConfigType::MOTION_PAK_HOMEBREW };
+    };
+
+    struct RomGbaSlotMotionPakRetail {
+        RomGbaSlotConfig _base = { .type = RomGbaSlotConfigType::MOTION_PAK_RETAIL };
     };
 }
 

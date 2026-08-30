@@ -228,6 +228,18 @@ void MelonInstance::loadGbaMemoryExpansion()
     nds->SetGBACart(std::move(memoryExpansionCart));
 }
 
+void MelonInstance::loadMotionPakHomebrew()
+{
+    auto motionPakCart = GBACart::LoadAddon(GBAAddon_MotionPakHomebrew, this);
+    nds->SetGBACart(std::move(motionPakCart));
+}
+
+void MelonInstance::loadMotionPakRetail()
+{
+    auto motionPakCart = GBACart::LoadAddon(GBAAddon_MotionPakRetail, this);
+    nds->SetGBACart(std::move(motionPakCart));
+}
+
 bool MelonInstance::bootFirmware()
 {
     if (nds->NeedsDirectBoot())
@@ -404,6 +416,24 @@ void MelonInstance::stop()
 {
     retroAchievementsManager = nullptr;
     screenshotRenderer->cleanup();
+}
+
+void MelonInstance::updateMotionData(float ax, float ay, float az, float rx, float ry, float rz)
+{
+    motionData[MotionQueryType::MotionAccelerationX].store(ax, std::memory_order_relaxed);
+    motionData[MotionQueryType::MotionAccelerationY].store(ay, std::memory_order_relaxed);
+    motionData[MotionQueryType::MotionAccelerationZ].store(az, std::memory_order_relaxed);
+    motionData[MotionQueryType::MotionRotationX].store(rx, std::memory_order_relaxed);
+    motionData[MotionQueryType::MotionRotationY].store(ry, std::memory_order_relaxed);
+    motionData[MotionQueryType::MotionRotationZ].store(rz, std::memory_order_relaxed);
+}
+
+float MelonInstance::getMotionData(MotionQueryType type)
+{
+    if (type < MotionQueryType::MotionAccelerationX || type > MotionQueryType::MotionRotationZ)
+        return 0.0f;
+
+    return motionData[type].load(std::memory_order_relaxed);
 }
 
 void MelonInstance::touchScreen(u16 x, u16 y)

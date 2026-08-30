@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import me.magnum.melonds.common.vibration.Api26VibratorDelegate
 import me.magnum.melonds.common.vibration.OldVibratorDelegate
 import me.magnum.melonds.common.vibration.VibratorDelegate
+import kotlin.time.Duration.Companion.milliseconds
 
 class EmulatorRumbleManager(
     context: Context,
@@ -107,7 +108,7 @@ class EmulatorRumbleManager(
                 // Fire turn-on event immediately
                 val turnOnFlow = _rumbleEvents.filter { it }
                 // Fire turn-off event if no rumble events are received within 50ms
-                val turnOffFlow = _rumbleEvents.debounce(50).map { false }
+                val turnOffFlow = _rumbleEvents.debounce(50.milliseconds).map { false }
 
                 merge(turnOnFlow, turnOffFlow).collect(_vibratorState)
             }

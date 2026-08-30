@@ -43,6 +43,8 @@ object MelonEmulator {
         GBA_ROM,
         RUMBLE_PAK,
         MEMORY_EXPANSION,
+        MOTION_PAK_HOMEBREW,
+        MOTION_PAK_RETAIL,
     }
 
 	external fun setupEmulator(
@@ -134,4 +136,6 @@ object MelonEmulator {
     external fun setMicrophoneEnabled(enabled: Boolean)
 
     external fun updateEmulatorConfiguration(emulatorConfiguration: EmulatorConfiguration)
+
+    external fun updateMotionData(ax: Float, ay: Float, az: Float, rx: Float, ry: Float, rz: Float)
 }

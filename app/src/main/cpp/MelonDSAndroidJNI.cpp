@@ -29,6 +29,8 @@ enum GbaSlotType {
     GBA_ROM = 1,
     RUMBLE_PAK = 2,
     MEMORY_EXPANSION = 3,
+    MOTION_PAK_HOMEBREW = 4,
+    MOTION_PAK_RETAIL = 5,
 };
 
 void* emulate(void*);
@@ -499,6 +501,12 @@ Java_me_magnum_melonds_MelonEmulator_onKeyRelease(JNIEnv* env, jobject thiz, jin
     MelonDSAndroid::releaseKey(key);
 }
 
+JNIEXPORT void JNICALL
+Java_me_magnum_melonds_MelonEmulator_updateMotionData(JNIEnv* env, jobject thiz, jfloat ax, jfloat ay, jfloat az, jfloat rx, jfloat ry, jfloat rz)
+{
+    MelonDSAndroid::updateMotionData(ax, ay, az, rx, ry, rz);
+}
+
 JNIEXPORT jboolean JNICALL
 Java_me_magnum_melonds_MelonEmulator_takeScreenshot(JNIEnv* env, jobject thiz)
 {
@@ -582,6 +590,14 @@ MelonDSAndroid::RomGbaSlotConfig* buildGbaSlotConfig(GbaSlotType slotType, const
     else if (slotType == GbaSlotType::MEMORY_EXPANSION)
     {
         return (MelonDSAndroid::RomGbaSlotConfig*) new MelonDSAndroid::RomGbaSlotConfigMemoryExpansion;
+    }
+    else if (slotType == GbaSlotType::MOTION_PAK_HOMEBREW)
+    {
+        return (MelonDSAndroid::RomGbaSlotConfig*) new MelonDSAndroid::RomGbaSlotMotionPakHomebrew;
+    }
+    else if (slotType == GbaSlotType::MOTION_PAK_RETAIL)
+    {
+        return (MelonDSAndroid::RomGbaSlotConfig*) new MelonDSAndroid::RomGbaSlotMotionPakRetail;
     }
     else
     {

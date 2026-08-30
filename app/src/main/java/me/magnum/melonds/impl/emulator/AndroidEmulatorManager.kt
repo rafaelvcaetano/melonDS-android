@@ -104,6 +104,8 @@ class AndroidEmulatorManager(
                 is RomGbaSlotConfig.GbaRom -> MelonEmulator.GbaSlotType.GBA_ROM
                 RomGbaSlotConfig.MemoryExpansion -> MelonEmulator.GbaSlotType.MEMORY_EXPANSION
                 RomGbaSlotConfig.RumblePak -> MelonEmulator.GbaSlotType.RUMBLE_PAK
+                RomGbaSlotConfig.MotionPakHomebrew -> MelonEmulator.GbaSlotType.MOTION_PAK_HOMEBREW
+                RomGbaSlotConfig.MotionPakRetail -> MelonEmulator.GbaSlotType.MOTION_PAK_RETAIL
             }
 
             val loadResult = MelonEmulator.loadRom(
