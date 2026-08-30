@@ -18,6 +18,7 @@ class ControllerConfiguration(configList: List<InputConfig>) {
             Input.HINGE,
             Input.PAUSE,
             Input.FAST_FORWARD,
+            Input.FAST_FORWARD_HOLD,
             Input.MICROPHONE,
             Input.RESET,
             Input.SWAP_SCREENS,

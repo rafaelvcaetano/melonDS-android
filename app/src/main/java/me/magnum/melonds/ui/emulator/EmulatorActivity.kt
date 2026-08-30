@@ -198,6 +198,7 @@ class EmulatorActivity : AppCompatActivity() {
     private val frontendInputHandler = object : FrontendInputHandler() {
         var fastForwardEnabled = false
             private set
+        private var fastForwardHoldEnabled = false
         var microphoneEnabled = true
             private set
 
@@ -214,7 +215,17 @@ class EmulatorActivity : AppCompatActivity() {
             fastForwardEnabled = !fastForwardEnabled
             binding.viewLayoutControls.setLayoutComponentToggleState(LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE, fastForwardEnabled)
             presentation?.layoutView?.setLayoutComponentToggleState(LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE, fastForwardEnabled)
-            MelonEmulator.setFastForwardEnabled(fastForwardEnabled)
+            updateFastForwardState()
+        }
+
+        override fun onFastForwardHoldPressed() {
+            fastForwardHoldEnabled = true
+            updateFastForwardState()
+        }
+
+        override fun onFastForwardHoldReleased() {
+            fastForwardHoldEnabled = false
+            updateFastForwardState()
         }
 
         override fun onMicrophonePressed() {
@@ -242,6 +253,10 @@ class EmulatorActivity : AppCompatActivity() {
 
         override fun onRewind() {
             viewModel.onOpenRewind()
+        }
+
+        private fun updateFastForwardState() {
+            MelonEmulator.setFastForwardEnabled(fastForwardEnabled || fastForwardHoldEnabled)
         }
     }
     private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
