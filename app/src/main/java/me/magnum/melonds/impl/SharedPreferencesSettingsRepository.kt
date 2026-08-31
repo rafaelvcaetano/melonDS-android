@@ -157,6 +157,7 @@ class SharedPreferencesSettingsRepository(
             dsiNandUri = dsiDirDocument?.findFile("nand.bin")?.uri,
             internalDirectory = context.filesDir.absolutePath,
             fastForwardSpeedMultiplier = getFastForwardSpeedMultiplier(),
+            muteFastForwardAudio = shouldMuteFastForwardAudio(),
             rewindEnabled = isRewindEnabled(),
             rewindPeriodSeconds = getRewindPeriod(),
             rewindWindowSeconds = getRewindWindow(),
@@ -181,6 +182,10 @@ class SharedPreferencesSettingsRepository(
     override fun getFastForwardSpeedMultiplier(): Float {
         val speedMultiplierPreference = preferences.getString("fast_forward_speed_multiplier", "-1")!!
         return speedMultiplierPreference.toFloat()
+    }
+
+    override fun shouldMuteFastForwardAudio(): Boolean {
+        return preferences.getBoolean("mute_fast_forward_audio", false)
     }
 
     override fun isRewindEnabled(): Boolean {

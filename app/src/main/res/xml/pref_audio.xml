@@ -39,6 +39,13 @@
             app:min="0"
             android:max="256" />
 
+    <SwitchPreference
+            android:key="mute_fast_forward_audio"
+            android:title="@string/mute_fast_forward_audio"
+            android:dependency="sound_enabled"
+            app:iconSpaceReserved="false"
+            android:defaultValue="false" />
+
     <ListPreference
             android:key="audio_latency"
             android:title="@string/audio_latency"

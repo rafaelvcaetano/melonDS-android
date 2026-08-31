@@ -15,6 +15,8 @@ namespace MelonDSAndroid
 
     extern void setupAudio(AudioSettings audioSettings);
     extern void updateAudioSettings(AudioSettings audioSettings);
+    extern void setAudioFastForwardActive(bool active);
+    extern bool shouldMuteAudioOutput();
     extern void setAudioActiveInstance(std::shared_ptr<MelonInstance> instance);
     extern void cleanupAudio();
     extern void startAudio();

@@ -244,6 +244,7 @@
     <string name="bitrate">Bitrate</string>
     <string name="volume">Volume</string>
     <string name="volume_percentage">%1$d%%</string>
+    <string name="mute_fast_forward_audio">Mute audio while fast forwarding</string>
     <string name="audio_latency">Audio latency</string>
     <string name="microphone_source">Microphone source</string>
     <string name="controller_layout">Controller layout</string>
