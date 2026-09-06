@@ -67,7 +67,7 @@ class EmulatorMessageQueue(private val eventHandler: EventHandler) {
 
             messagesFileDescriptor = fileDescriptor
             isRunning = true
-            inputStream = FileInputStream(fileDescriptor.fileDescriptor)
+            inputStream = ParcelFileDescriptor.AutoCloseInputStream(fileDescriptor)
 
             val watchedEvents = MessageQueue.OnFileDescriptorEventListener.EVENT_INPUT or
                 MessageQueue.OnFileDescriptorEventListener.EVENT_ERROR
@@ -114,13 +114,19 @@ class EmulatorMessageQueue(private val eventHandler: EventHandler) {
         }
 
         isRunning = false
-        messagesFileDescriptor?.let { fd ->
+        val currentFileDescriptor = messagesFileDescriptor
+        currentFileDescriptor?.let { fd ->
             Looper.myLooper()?.queue?.removeOnFileDescriptorEventListener(fd.fileDescriptor)
-            fd.close()
         }
 
+        val currentInputStream = inputStream
         inputStream = null
         messagesFileDescriptor = null
+        if (currentInputStream != null) {
+            currentInputStream.close()
+        } else {
+            currentFileDescriptor?.close()
+        }
         frameDecoder.reset()
         closeMessagePipe()
     }

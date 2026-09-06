@@ -350,7 +350,7 @@ class EmulatorRecoveryRepository(private val context: Context) {
                 .put("event", event)
                 .put("details", details)
             journalFile.appendText(entry.toString() + "\n")
-            Log.i(TAG, "$event: $details")
+            Log.i(TAG, event)
         } catch (exception: Exception) {
             Log.e(TAG, "Failed to append recovery journal", exception)
         }

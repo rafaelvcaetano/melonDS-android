@@ -175,7 +175,7 @@ class EmulatorViewModel @Inject constructor(
     private val _uiEvent = EventSharedFlow<EmulatorUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
-    private val _recoveryPrompt = MutableStateFlow(emulatorRecoveryRepository.getPendingRecovery())
+    private val _recoveryPrompt = MutableStateFlow<RecoveryPrompt?>(null)
     val recoveryPrompt = _recoveryPrompt.asStateFlow()
 
     init {
@@ -185,22 +185,34 @@ class EmulatorViewModel @Inject constructor(
             }
         }
 
-        val launchArgs = LaunchArgs.fromSavedStateHandle(savedStateHandle)
-        val recovery = _recoveryPrompt.value
-        if (recovery?.automaticRestoreAllowed == true &&
-            emulatorRecoveryRepository.markAutomaticRecoveryStarted(recovery.session.id)
-        ) {
+        viewModelScope.launch {
+            initializeSession(LaunchArgs.fromSavedStateHandle(savedStateHandle))
+        }
+    }
+
+    private suspend fun initializeSession(launchArgs: LaunchArgs?) {
+        val recovery = withContext(Dispatchers.IO) {
+            emulatorRecoveryRepository.getPendingRecovery()
+        }
+        val automaticRecoveryStarted = recovery?.automaticRestoreAllowed == true &&
+            withContext(Dispatchers.IO) {
+                emulatorRecoveryRepository.markAutomaticRecoveryStarted(recovery.session.id)
+            }
+
+        if (automaticRecoveryStarted) {
             automaticRecoveryInProgress = true
             pendingRecoveryRestore = recovery
-            _recoveryPrompt.value = null
             launchRecoverySession(recovery.session)
         } else if (recovery != null) {
-            emulatorRecoveryRepository.record("recovery_prompted")
+            withContext(Dispatchers.IO) {
+                emulatorRecoveryRepository.record("recovery_prompted")
+            }
+            _recoveryPrompt.value = recovery
             _emulatorState.value = EmulatorState.RecoveryPending
         } else if (launchArgs != null) {
             launchEmulator(launchArgs)
         } else {
-            _uiEvent.tryEmit(EmulatorUiEvent.CloseEmulator)
+            _uiEvent.emit(EmulatorUiEvent.CloseEmulator)
         }
     }
 
