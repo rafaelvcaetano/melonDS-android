@@ -88,8 +88,9 @@ class EmulatorRecoveryRepository(private val context: Context) {
         )
         synchronized(lock) {
             deleteCheckpoints()
-            writeSession(session)
-            appendJournal("session_started", session.toJson())
+            if (writeSession(session)) {
+                appendJournal("session_started", session.toJson())
+            }
         }
     }
 
@@ -116,8 +117,9 @@ class EmulatorRecoveryRepository(private val context: Context) {
         )
         synchronized(lock) {
             deleteCheckpoints()
-            writeSession(session)
-            appendJournal("session_started", session.toJson())
+            if (writeSession(session)) {
+                appendJournal("session_started", session.toJson())
+            }
         }
     }
 
@@ -130,26 +132,27 @@ class EmulatorRecoveryRepository(private val context: Context) {
     fun markAutomaticRecoveryStarted(sessionId: String): Boolean = synchronized(lock) {
         val session = readSession() ?: return@synchronized false
         val updatedSession = session.startAutomaticRecovery(sessionId) ?: return@synchronized false
-        writeSession(updatedSession)
+        if (!writeSession(updatedSession)) {
+            return@synchronized false
+        }
         appendJournal("automatic_recovery_started", JSONObject())
         true
     }
 
-    fun markDeviceSleepStarted() {
-        synchronized(lock) {
-            val session = readSession() ?: return
-            writeSession(session.startDeviceSleep(System.currentTimeMillis()))
+    fun markDeviceSleepStarted(): Boolean = synchronized(lock) {
+        val session = readSession() ?: return@synchronized false
+        val persisted = writeSession(session.startDeviceSleep(System.currentTimeMillis()))
+        if (persisted) {
             appendJournal("device_sleep_started", JSONObject())
         }
+        persisted
     }
 
     fun markDeviceSleepResumed(details: Map<String, Any?>) {
         synchronized(lock) {
             val session = readSession()
-            if (session != null) {
-                writeSession(session.finishDeviceSleep())
-            }
-            appendJournal("device_sleep_resumed", JSONObject(details))
+            val persisted = session == null || writeSession(session.finishDeviceSleep())
+            appendJournal("device_sleep_resumed", JSONObject(details).put("persisted", persisted))
         }
     }
 
@@ -160,8 +163,13 @@ class EmulatorRecoveryRepository(private val context: Context) {
     fun recordUnexpectedTermination(reason: String, cause: RecoveryCause): RecoveryPrompt? = synchronized(lock) {
         val session = readSession() ?: return@synchronized null
         val updatedSession = session.copy(stopReason = reason)
-        writeSession(updatedSession)
-        appendJournal("emulator_stopped", JSONObject().put("reason", reason))
+        val persisted = writeSession(updatedSession)
+        appendJournal(
+            "emulator_stopped",
+            JSONObject()
+                .put("reason", reason)
+                .put("persisted", persisted),
+        )
         val checkpointAvailable = isCheckpointValid(updatedSession)
         RecoveryPrompt(
             session = updatedSession,
@@ -202,16 +210,22 @@ class EmulatorRecoveryRepository(private val context: Context) {
                     checkpointSha256 = checksum,
                     checkpointCreatedAt = System.currentTimeMillis(),
                 )
-                writeSession(updatedSession)
-                previousCheckpoint?.let { File(recoveryDirectory, it).delete() }
-                pendingCheckpointFile = null
-                appendJournal(
-                    "checkpoint_committed",
-                    JSONObject()
-                        .put("bytes", committedFile.length())
-                        .put("sha256", checksum),
-                )
-                true
+                if (!writeSession(updatedSession)) {
+                    committedFile.delete()
+                    pendingCheckpointFile = null
+                    appendJournal("checkpoint_failed", JSONObject().put("reason", "session_write_failed"))
+                    false
+                } else {
+                    previousCheckpoint?.let { File(recoveryDirectory, it).delete() }
+                    pendingCheckpointFile = null
+                    appendJournal(
+                        "checkpoint_committed",
+                        JSONObject()
+                            .put("bytes", committedFile.length())
+                            .put("sha256", checksum),
+                    )
+                    true
+                }
             }
         } catch (exception: Exception) {
             Log.e(TAG, "Failed to commit recovery checkpoint", exception)
@@ -342,15 +356,21 @@ class EmulatorRecoveryRepository(private val context: Context) {
         }
     }
 
-    private fun writeSession(session: RecoverySession) {
+    private fun writeSession(session: RecoverySession): Boolean {
         var output: FileOutputStream? = null
-        try {
+        return try {
             output = sessionFile.startWrite()
             output.write(session.toJson().toString().toByteArray())
             sessionFile.finishWrite(output)
+            true
         } catch (exception: Exception) {
-            output?.let(sessionFile::failWrite)
-            throw exception
+            try {
+                output?.let(sessionFile::failWrite)
+            } catch (rollbackException: Exception) {
+                exception.addSuppressed(rollbackException)
+            }
+            Log.e(TAG, "Failed to write recovery session", exception)
+            false
         }
     }
 

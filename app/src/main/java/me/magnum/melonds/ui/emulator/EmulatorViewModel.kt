@@ -482,7 +482,9 @@ class EmulatorViewModel @Inject constructor(
     }
 
     fun startDeviceSleepTransition() {
-        if (!_emulatorState.value.isRunning() || deviceSleepTransitionActive) {
+        if (!_emulatorState.value.isRunning() ||
+            deviceSleepTransitionActive && sleepPreparationJob?.isActive == true
+        ) {
             return
         }
         deviceSleepTransitionActive = true
@@ -502,14 +504,13 @@ class EmulatorViewModel @Inject constructor(
         deviceSleepTransitionActive = false
     }
 
-    suspend fun finishDeviceSleepTransition(resumeEmulation: Boolean): Boolean {
+    suspend fun finishDeviceSleepPreparation() {
         sleepPreparationJob?.let { job ->
             job.join()
             if (sleepPreparationJob === job) {
                 sleepPreparationJob = null
             }
         }
-        return resumeAfterDeviceSleep(resumeEmulation)
     }
 
     suspend fun prepareForDeviceSleep(): Boolean = sleepTransitionMutex.withLock {
