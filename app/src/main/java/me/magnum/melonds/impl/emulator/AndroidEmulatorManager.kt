@@ -122,9 +122,14 @@ class AndroidEmulatorManager(
             } else {
                 messageQueue.start()
                 MelonEmulator.setupCheats(cheats.toTypedArray())
-                MelonEmulator.startEmulation()
-
-                RomLaunchResult.LaunchSuccessful(loadResult != MelonEmulator.LoadResult.SUCCESS_GBA_FAILED)
+                if (MelonEmulator.startEmulation()) {
+                    RomLaunchResult.LaunchSuccessful(loadResult != MelonEmulator.LoadResult.SUCCESS_GBA_FAILED)
+                } else {
+                    messageQueue.stop()
+                    cameraManager.stopCurrentCameraSource()
+                    MelonEmulator.stopEmulation()
+                    RomLaunchResult.LaunchFailedEmulatorStart
+                }
             }
         }
     }
@@ -139,8 +144,14 @@ class AndroidEmulatorManager(
                 FirmwareLaunchResult.LaunchFailed(result)
             } else {
                 messageQueue.start()
-                MelonEmulator.startEmulation()
-                FirmwareLaunchResult.LaunchSuccessful
+                if (MelonEmulator.startEmulation()) {
+                    FirmwareLaunchResult.LaunchSuccessful
+                } else {
+                    messageQueue.stop()
+                    cameraManager.stopCurrentCameraSource()
+                    MelonEmulator.stopEmulation()
+                    FirmwareLaunchResult.LaunchFailedEmulatorStart
+                }
             }
         }
     }
@@ -163,15 +174,19 @@ class AndroidEmulatorManager(
         return MelonEmulator.getFPS()
     }
 
-    override suspend fun pauseEmulator() {
-        MelonEmulator.pauseEmulation()
+    override suspend fun pauseEmulator(timeoutMs: Long): MelonEmulator.PauseResult = withContext(Dispatchers.IO) {
+        MelonEmulator.pauseEmulation(timeoutMs)
     }
 
     override suspend fun resumeEmulator() {
         MelonEmulator.resumeEmulation()
     }
 
-    override suspend fun resetEmulator() {
+    override fun getEmulatorStatus(): MelonEmulator.EmulationStatus {
+        return MelonEmulator.getEmulationStatus()
+    }
+
+    override suspend fun resetEmulator() = withContext(Dispatchers.IO) {
         MelonEmulator.resetEmulation()
     }
 
@@ -197,8 +212,8 @@ class AndroidEmulatorManager(
         MelonEmulator.unloadRetroAchievementsData()
     }
 
-    override suspend fun loadRewindState(rewindSaveState: RewindSaveState): Boolean {
-        return MelonEmulator.loadRewindState(rewindSaveState)
+    override suspend fun loadRewindState(rewindSaveState: RewindSaveState): Boolean = withContext(Dispatchers.IO) {
+        MelonEmulator.loadRewindState(rewindSaveState)
     }
 
     override suspend fun saveState(saveStateFileUri: Uri): Boolean = withContext(Dispatchers.IO) {

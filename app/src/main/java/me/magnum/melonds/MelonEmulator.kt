@@ -47,6 +47,25 @@ object MelonEmulator {
         MOTION_PAK_RETAIL,
     }
 
+    enum class PauseResult {
+        SUCCESS,
+        ALREADY_PAUSED,
+        TIMEOUT,
+        STOPPED,
+        NOT_STARTED,
+    }
+
+    enum class EmulationStatus {
+        NOT_STARTED,
+        STARTING,
+        RUNNING,
+        PAUSED,
+        PAUSE_REQUESTED,
+        STOPPING,
+        STOPPED,
+        START_FAILED,
+    }
+
 	external fun setupEmulator(
         emulatorConfiguration: EmulatorConfiguration,
         dsiCameraSource: DSiCameraSource?,
@@ -83,19 +102,30 @@ object MelonEmulator {
 
     private external fun bootFirmwareInternal(): Int
 
-	external fun startEmulation()
+	external fun startEmulation(): Boolean
 
     external fun presentFrame(deadlineNs: Long, frameRenderCallback: FrameRenderCallback)
 
 	external fun getFPS(): Float
 
-	external fun pauseEmulation()
+    fun pauseEmulation(timeoutMs: Long = 2_000): PauseResult {
+        require(timeoutMs >= 0) { "Pause timeout cannot be negative" }
+        return PauseResult.entries[pauseEmulationInternal(timeoutMs)]
+    }
+
+    private external fun pauseEmulationInternal(timeoutMs: Long): Int
 
 	external fun resumeEmulation()
 
     external fun resetEmulation()
 
 	external fun stopEmulation()
+
+    fun getEmulationStatus(): EmulationStatus {
+        return EmulationStatus.entries[getEmulationStatusInternal()]
+    }
+
+    private external fun getEmulationStatusInternal(): Int
 
     fun saveState(path: Uri): Boolean {
         return saveStateInternal(path.toString())
