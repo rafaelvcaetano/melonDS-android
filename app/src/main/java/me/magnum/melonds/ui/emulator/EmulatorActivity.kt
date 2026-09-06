@@ -53,6 +53,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.common.PermissionHandler
@@ -804,6 +805,7 @@ class EmulatorActivity : AppCompatActivity() {
             deviceSleepResumeJob = lifecycleScope.launch {
                 val shouldResume = !activeOverlays.hasActiveOverlays()
                 viewModel.finishDeviceSleepPreparation()
+                yield()
                 if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) || isScreenOff()) {
                     return@launch
                 }
