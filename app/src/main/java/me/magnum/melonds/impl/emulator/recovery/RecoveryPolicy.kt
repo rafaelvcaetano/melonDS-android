@@ -83,6 +83,14 @@ internal fun canAutomaticallyRestore(
     }
 }
 
+internal fun shouldDiscardRecovery(cause: RecoveryCause): Boolean {
+    return cause is RecoveryCause.ProcessExit &&
+        cause.reason in setOf(
+            RecoveryProcessExitReason.USER_REQUESTED,
+            RecoveryProcessExitReason.USER_STOPPED,
+        )
+}
+
 internal fun RecoverySession.startDeviceSleep(startedAt: Long): RecoverySession {
     return copy(sleeping = true, sleepStartedAt = startedAt)
 }

@@ -619,6 +619,11 @@ class EmulatorActivity : AppCompatActivity() {
                             if (it is EmulatorState.RunningRom) {
                                 startMotionManagerIfNeeded(it.rom)
                             }
+                            if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) &&
+                                !activeOverlays.hasActiveOverlays()
+                            ) {
+                                viewModel.resumeEmulator()
+                            }
                         }
                         is EmulatorState.RomLoadError -> {
                             binding.viewLayoutControls.isInvisible = true

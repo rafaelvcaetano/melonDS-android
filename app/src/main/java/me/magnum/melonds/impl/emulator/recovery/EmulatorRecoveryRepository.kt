@@ -51,6 +51,10 @@ class EmulatorRecoveryRepository(private val context: Context) {
             session.processToken != processToken -> classifyPreviousProcessExit(session)
             else -> return@synchronized null
         }
+        if (shouldDiscardRecovery(cause)) {
+            markClean("android_user_exit")
+            return@synchronized null
+        }
 
         val checkpointAvailable = isCheckpointValid(session)
         RecoveryPrompt(

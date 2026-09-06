@@ -55,6 +55,18 @@ class RecoveryPolicyTest {
     }
 
     @Test
+    fun discardsSessionsEndedByExplicitUserAction() {
+        assertTrue(shouldDiscardRecovery(processExit(RecoveryProcessExitReason.USER_REQUESTED)))
+        assertTrue(shouldDiscardRecovery(processExit(RecoveryProcessExitReason.USER_STOPPED)))
+        assertFalse(shouldDiscardRecovery(processExit(RecoveryProcessExitReason.LOW_MEMORY)))
+        assertFalse(
+            shouldDiscardRecovery(
+                RecoveryCause.ProcessRecreated("no_matching_exit_record"),
+            ),
+        )
+    }
+
+    @Test
     fun requiresActiveSleepWithCurrentCheckpoint() {
         val eligibleExit = processExit(RecoveryProcessExitReason.LOW_MEMORY)
 
