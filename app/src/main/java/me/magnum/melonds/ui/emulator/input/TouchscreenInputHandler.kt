@@ -21,7 +21,7 @@ class TouchscreenInputHandler(inputListener: IInputListener) : BaseInputHandler(
             MotionEvent.ACTION_MOVE -> {
                 inputListener.onTouch(normalizeTouchCoordinates(event, v.width, v.height))
             }
-            MotionEvent.ACTION_UP -> {
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 inputListener.onKeyReleased(Input.TOUCHSCREEN)
                 onScreenRelease()
             }
