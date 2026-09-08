@@ -9,34 +9,28 @@ import org.junit.Test
 class RecoveryPolicyTest {
 
     @Test
-    fun automaticallyRestoresEligibleAndroidExitsDuringSleep() {
+    fun automaticallyRestoresKnownNonUserExitsDuringSleep() {
         val eligibleReasons = listOf(
+            RecoveryProcessExitReason.ANR,
+            RecoveryProcessExitReason.CRASH,
+            RecoveryProcessExitReason.NATIVE_CRASH,
             RecoveryProcessExitReason.LOW_MEMORY,
             RecoveryProcessExitReason.EXCESSIVE_RESOURCE_USAGE,
+            RecoveryProcessExitReason.SELF_EXIT,
             RecoveryProcessExitReason.FREEZER,
+            RecoveryProcessExitReason.INITIALIZATION_FAILURE,
+            RecoveryProcessExitReason.PERMISSION_CHANGE,
+            RecoveryProcessExitReason.SIGNALED,
         )
 
         eligibleReasons.forEach { reason ->
             assertTrue(canAutomaticallyRestore(session(), processExit(reason), true))
         }
-        assertTrue(
-            canAutomaticallyRestore(
-                session(),
-                processExit(RecoveryProcessExitReason.SIGNALED, status = 9),
-                true,
-            ),
-        )
     }
 
     @Test
-    fun rejectsNonEligibleAndroidExits() {
+    fun rejectsUserAndUnknownExits() {
         val ineligibleReasons = listOf(
-            RecoveryProcessExitReason.ANR,
-            RecoveryProcessExitReason.CRASH,
-            RecoveryProcessExitReason.NATIVE_CRASH,
-            RecoveryProcessExitReason.SELF_EXIT,
-            RecoveryProcessExitReason.INITIALIZATION_FAILURE,
-            RecoveryProcessExitReason.PERMISSION_CHANGE,
             RecoveryProcessExitReason.USER_REQUESTED,
             RecoveryProcessExitReason.USER_STOPPED,
             RecoveryProcessExitReason.UNKNOWN,
@@ -45,13 +39,6 @@ class RecoveryPolicyTest {
         ineligibleReasons.forEach { reason ->
             assertFalse(canAutomaticallyRestore(session(), processExit(reason), true))
         }
-        assertFalse(
-            canAutomaticallyRestore(
-                session(),
-                processExit(RecoveryProcessExitReason.SIGNALED, status = 15),
-                true,
-            ),
-        )
     }
 
     @Test

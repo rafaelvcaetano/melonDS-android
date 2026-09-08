@@ -74,13 +74,11 @@ internal fun canAutomaticallyRestore(
     if (checkpointCreatedAt < sleepStartedAt) {
         return false
     }
-    return when (cause.reason) {
-        RecoveryProcessExitReason.LOW_MEMORY,
-        RecoveryProcessExitReason.EXCESSIVE_RESOURCE_USAGE,
-        RecoveryProcessExitReason.FREEZER -> true
-        RecoveryProcessExitReason.SIGNALED -> cause.status == 9
-        else -> false
-    }
+    return cause.reason !in setOf(
+        RecoveryProcessExitReason.USER_REQUESTED,
+        RecoveryProcessExitReason.USER_STOPPED,
+        RecoveryProcessExitReason.UNKNOWN,
+    )
 }
 
 internal fun shouldDiscardRecovery(cause: RecoveryCause): Boolean {
