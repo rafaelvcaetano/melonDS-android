@@ -16,6 +16,10 @@ class SingleButtonInputHandler(inputListener: IInputListener, private val input:
                 inputListener.onKeyReleased(input)
                 performHapticFeedback(v, HapticFeedbackType.KEY_RELEASE)
             }
+            MotionEvent.ACTION_CANCEL -> {
+                // A cancelled gesture ends without a subsequent ACTION_UP.
+                inputListener.onKeyReleased(input)
+            }
         }
         return true
     }
