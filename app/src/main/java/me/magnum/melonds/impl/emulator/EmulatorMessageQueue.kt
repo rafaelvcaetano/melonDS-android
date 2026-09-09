@@ -8,6 +8,7 @@ import android.os.ParcelFileDescriptor
 import java.io.FileInputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.min
 
 class EmulatorMessageQueue(private val eventHandler: EventHandler) {
 
@@ -20,8 +21,8 @@ class EmulatorMessageQueue(private val eventHandler: EventHandler) {
     }
 
     companion object {
-        private const val EVENT_SIZE_BYTES = 8 // 2 ints (type, data length)
-        private const val DATA_SIZE_BYTES = 128 // 128 bytes of arbitrary data
+        internal const val MAX_DATA_SIZE_BYTES = 128
+        private const val READ_BUFFER_SIZE_BYTES = 512
 
         /**
          * Initialize the native message pipe and returns the file descriptor through which the messages will be sent.
@@ -43,8 +44,8 @@ class EmulatorMessageQueue(private val eventHandler: EventHandler) {
     private var messagesFileDescriptor: ParcelFileDescriptor? = null
     private var inputStream: FileInputStream? = null
     private var isRunning = false
-    private val eventBuffer = ByteBuffer.allocateDirect(EVENT_SIZE_BYTES).order(ByteOrder.nativeOrder())
-    private val dataBuffer = ByteBuffer.allocateDirect(DATA_SIZE_BYTES).order(ByteOrder.nativeOrder())
+    private val readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE_BYTES)
+    private val frameDecoder = EmulatorEventFrameDecoder()
 
     fun start() {
         handler.post {
@@ -66,18 +67,28 @@ class EmulatorMessageQueue(private val eventHandler: EventHandler) {
 
             messagesFileDescriptor = fileDescriptor
             isRunning = true
-            inputStream = FileInputStream(fileDescriptor.fileDescriptor)
+            inputStream = ParcelFileDescriptor.AutoCloseInputStream(fileDescriptor)
 
-            looper.queue.addOnFileDescriptorEventListener(fileDescriptor.fileDescriptor, MessageQueue.OnFileDescriptorEventListener.EVENT_INPUT) { _, _ ->
-                if (isRunning) {
-                    try {
-                        readEvents()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+            val watchedEvents = MessageQueue.OnFileDescriptorEventListener.EVENT_INPUT or
+                MessageQueue.OnFileDescriptorEventListener.EVENT_ERROR
+            looper.queue.addOnFileDescriptorEventListener(fileDescriptor.fileDescriptor, watchedEvents) { _, events ->
+                if (!isRunning || events and MessageQueue.OnFileDescriptorEventListener.EVENT_ERROR != 0) {
+                    stopOnHandlerThread()
+                    return@addOnFileDescriptorEventListener 0
                 }
 
-                MessageQueue.OnFileDescriptorEventListener.EVENT_INPUT
+                try {
+                    if (!readEvents()) {
+                        stopOnHandlerThread()
+                        return@addOnFileDescriptorEventListener 0
+                    }
+                } catch (exception: Exception) {
+                    exception.printStackTrace()
+                    stopOnHandlerThread()
+                    return@addOnFileDescriptorEventListener 0
+                }
+
+                watchedEvents
             }
         }
     }
@@ -88,16 +99,7 @@ class EmulatorMessageQueue(private val eventHandler: EventHandler) {
                 return@post
             }
 
-            isRunning = false
-
-            messagesFileDescriptor?.let { fd ->
-                Looper.myLooper()?.queue?.removeOnFileDescriptorEventListener(fd.fileDescriptor)
-                fd.close()
-            }
-
-            inputStream = null
-            messagesFileDescriptor = null
-            closeMessagePipe()
+            stopOnHandlerThread()
         }
     }
 
@@ -106,33 +108,111 @@ class EmulatorMessageQueue(private val eventHandler: EventHandler) {
         handlerThread.quitSafely()
     }
 
-    private fun readEvents() {
-        val currentInputStream = inputStream ?: return
-
-        eventBuffer.clear()
-        var bytesRead = currentInputStream.channel.read(eventBuffer)
-        eventBuffer.position(0)
-
-        if (bytesRead < EVENT_SIZE_BYTES) {
+    private fun stopOnHandlerThread() {
+        if (!isRunning) {
             return
         }
 
-        val type = eventBuffer.int
-        val dataLength = eventBuffer.int
+        isRunning = false
+        val currentFileDescriptor = messagesFileDescriptor
+        currentFileDescriptor?.let { fd ->
+            Looper.myLooper()?.queue?.removeOnFileDescriptorEventListener(fd.fileDescriptor)
+        }
 
-        if (dataLength > 0) {
-            dataBuffer.position(0)
-            dataBuffer.limit(dataLength)
-            bytesRead = currentInputStream.channel.read(dataBuffer)
-            dataBuffer.position(0)
+        val currentInputStream = inputStream
+        inputStream = null
+        messagesFileDescriptor = null
+        if (currentInputStream != null) {
+            currentInputStream.close()
+        } else {
+            currentFileDescriptor?.close()
+        }
+        frameDecoder.reset()
+        closeMessagePipe()
+    }
 
-            if (bytesRead < dataLength) {
-                return
+    private fun readEvents(): Boolean {
+        val currentInputStream = inputStream ?: return false
+
+        while (true) {
+            readBuffer.clear()
+            when (currentInputStream.channel.read(readBuffer)) {
+                -1 -> return false
+                0 -> return true
+                else -> {
+                    readBuffer.flip()
+                    frameDecoder.consume(readBuffer, eventHandler::onEmulatorEvent)
+                }
             }
         }
+    }
+}
 
-        EmulatorEventType.entries.firstOrNull { it.event == type }?.let {
-            eventHandler.onEmulatorEvent(it, dataBuffer)
+internal class EmulatorEventFrameDecoder(
+    private val maxPayloadSize: Int = EmulatorMessageQueue.MAX_DATA_SIZE_BYTES,
+) {
+    private val headerBuffer = ByteBuffer.allocate(Int.SIZE_BYTES * 2).order(ByteOrder.nativeOrder())
+    private val payloadBuffer = ByteBuffer.allocate(maxPayloadSize).order(ByteOrder.nativeOrder())
+    private var pendingType: EmulatorEventType? = null
+    private var pendingPayloadLength: Int? = null
+
+    fun consume(source: ByteBuffer, eventHandler: (EmulatorEventType, ByteBuffer) -> Unit) {
+        while (source.hasRemaining()) {
+            if (pendingPayloadLength == null) {
+                transfer(source, headerBuffer)
+                if (headerBuffer.hasRemaining()) {
+                    return
+                }
+
+                headerBuffer.flip()
+                val rawType = headerBuffer.int
+                val payloadLength = headerBuffer.int
+                headerBuffer.clear()
+
+                if (payloadLength < 0 || payloadLength > maxPayloadSize) {
+                    reset()
+                    throw IllegalArgumentException("Invalid emulator event payload length: $payloadLength")
+                }
+
+                pendingType = EmulatorEventType.entries.firstOrNull { it.event == rawType }
+                pendingPayloadLength = payloadLength
+                payloadBuffer.clear()
+                payloadBuffer.limit(payloadLength)
+
+                if (payloadLength == 0) {
+                    dispatch(eventHandler)
+                }
+            } else {
+                transfer(source, payloadBuffer)
+                if (!payloadBuffer.hasRemaining()) {
+                    dispatch(eventHandler)
+                }
+            }
         }
+    }
+
+    fun reset() {
+        headerBuffer.clear()
+        payloadBuffer.clear()
+        pendingType = null
+        pendingPayloadLength = null
+    }
+
+    private fun dispatch(eventHandler: (EmulatorEventType, ByteBuffer) -> Unit) {
+        payloadBuffer.flip()
+        pendingType?.let { type ->
+            eventHandler(type, payloadBuffer.asReadOnlyBuffer().order(ByteOrder.nativeOrder()))
+        }
+        payloadBuffer.clear()
+        pendingType = null
+        pendingPayloadLength = null
+    }
+
+    private fun transfer(source: ByteBuffer, destination: ByteBuffer) {
+        val byteCount = min(source.remaining(), destination.remaining())
+        val oldLimit = source.limit()
+        source.limit(source.position() + byteCount)
+        destination.put(source)
+        source.limit(oldLimit)
     }
 }

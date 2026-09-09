@@ -2,6 +2,7 @@ package me.magnum.melonds.domain.services
 
 import android.net.Uri
 import kotlinx.coroutines.flow.Flow
+import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.emulator.EmulatorEvent
@@ -29,9 +30,11 @@ interface EmulatorManager {
 
     fun getFps(): Float
 
-    suspend fun pauseEmulator()
+    suspend fun pauseEmulator(timeoutMs: Long = 2_000): MelonEmulator.PauseResult
 
     suspend fun resumeEmulator()
+
+    fun getEmulatorStatus(): MelonEmulator.EmulationStatus
 
     suspend fun resetEmulator()
 
