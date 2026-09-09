@@ -64,7 +64,10 @@ For a release candidate:
 2. Confirm normal wake resumes animation, input, audio, RTC, and both displays.
 3. If the sleeping process ends for any known non-user reason, confirm reopening
    restores automatically without a dialog.
-4. Confirm explicit user stops are discarded without a dialog. Unknown exits
+4. Leave the display off after automatic recovery, confirm the replacement
+   session records another sleep checkpoint, then terminate it again and confirm
+   the next restore is also automatic.
+5. Confirm explicit user stops are discarded without a dialog. Unknown exits
    and stale or corrupt checkpoints must use the fallback prompt; manual restore
    must disable Hardcore.
 
