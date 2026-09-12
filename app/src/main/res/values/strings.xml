@@ -58,6 +58,7 @@
     <string name="nightly_update_available_message">Do you want to download it now?</string>
     <string name="skip_update">Skip</string>
     <string name="remind_later_update">Later</string>
+    <string name="downloading_update_version">Downloading update %1$s…</string>
     <string name="downloading_update">Downloading update…</string>
     <string name="starting_download">Starting download…</string>
     <string name="download_progress_sizes">%1$.1fMB/%2$.1fMB</string>
