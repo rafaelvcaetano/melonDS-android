@@ -1,5 +1,6 @@
 package me.magnum.melonds.ui.emulator.ui.popup
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,12 +25,23 @@ import me.magnum.melonds.R
 import me.magnum.melonds.ui.emulator.model.RAIntegrationEvent
 
 @Composable
-fun RAIntegrationEventUi(modifier: Modifier, event: RAIntegrationEvent) {
+fun RAIntegrationEventUi(
+    modifier: Modifier,
+    event: RAIntegrationEvent,
+    onRetry: () -> Unit,
+    onLogin: () -> Unit,
+) {
+    val action = when (event) {
+        is RAIntegrationEvent.Failed -> onRetry
+        is RAIntegrationEvent.LoginExpired -> onLogin
+        else -> null
+    }
     Card(
         modifier = modifier
             .padding(16.dp)
             .shadow(8.dp, RoundedCornerShape(8.dp))
-            .widthIn(max = 400.dp),
+            .widthIn(max = 400.dp)
+            .then(if (action != null) Modifier.clickable(onClick = action) else Modifier),
         shape = RoundedCornerShape(8.dp),
     ) {
         Row(

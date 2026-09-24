@@ -1,5 +1,7 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include <cerrno>
+#include <cstdint>
 #include <jni.h>
 #include <string>
 #include <sstream>
@@ -37,13 +39,47 @@ void* emulate(void*);
 MelonDSAndroid::RomGbaSlotConfig* buildGbaSlotConfig(GbaSlotType slotType, const char* romPath, const char* savePath);
 
 pthread_t emuThread;
-pthread_mutex_t emuThreadMutex;
-pthread_cond_t emuThreadCond;
+pthread_mutex_t emuThreadMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t emuThreadCond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t coreOperationMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t pauseApiMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t pauseControlMutex = PTHREAD_MUTEX_INITIALIZER;
 
-bool started = false;
-bool stop;
-bool paused;
-std::atomic_bool isThreadReallyPaused = false;
+enum class EmulatorThreadState {
+    NotStarted,
+    Starting,
+    Running,
+    Stopping,
+    Stopped,
+    StartFailed,
+};
+
+enum class PauseResult {
+    Success,
+    AlreadyPaused,
+    Timeout,
+    Stopped,
+    NotStarted,
+};
+
+enum class EmulationStatus {
+    NotStarted,
+    Starting,
+    Running,
+    Paused,
+    PauseRequested,
+    Stopping,
+    Stopped,
+    StartFailed,
+};
+
+EmulatorThreadState emuThreadState = EmulatorThreadState::NotStarted;
+bool emuThreadJoinable = false;
+bool stopRequested = false;
+bool userPauseRequested = false;
+unsigned int synchronizedOperationCount = 0;
+bool emulatorAtSafePoint = false;
+bool corePauseApplied = false;
 int observedFrames = 0;
 float fps = 0;
 int targetFps;
@@ -56,7 +92,165 @@ MelonDSAndroidCameraHandler* androidCameraHandler;
 
 static const int64_t FRAME_DURATION_60FPS_NS = 16666666;
 static const int64_t FRAME_DURATION_1000FPS_NS = 1000000; // 1ms. Used as frame time when fast-forward is enabled
+static const int64_t PAUSE_TIMEOUT_MS = 2000;
 ThreadSafePerformanceHintSession* performanceHintSession = nullptr;
+
+static bool isPauseRequested()
+{
+    return userPauseRequested || synchronizedOperationCount > 0;
+}
+
+static void applyCorePauseState()
+{
+    pthread_mutex_lock(&pauseControlMutex);
+    while (true) {
+        pthread_mutex_lock(&emuThreadMutex);
+        if (emuThreadState != EmulatorThreadState::Running) {
+            pthread_mutex_unlock(&emuThreadMutex);
+            break;
+        }
+
+        bool shouldPause = isPauseRequested();
+        if (shouldPause == corePauseApplied) {
+            pthread_mutex_unlock(&emuThreadMutex);
+            break;
+        }
+        pthread_mutex_unlock(&emuThreadMutex);
+
+        if (shouldPause) {
+            MelonDSAndroid::pause();
+        } else {
+            MelonDSAndroid::resume();
+        }
+
+        pthread_mutex_lock(&emuThreadMutex);
+        corePauseApplied = shouldPause;
+        pthread_mutex_unlock(&emuThreadMutex);
+    }
+    pthread_mutex_unlock(&pauseControlMutex);
+}
+
+static timespec getTimeout(int64_t timeoutMs)
+{
+    timespec timeout;
+    clock_gettime(CLOCK_REALTIME, &timeout);
+    timeout.tv_sec += timeoutMs / 1000;
+    timeout.tv_nsec += (timeoutMs % 1000) * 1000000;
+    if (timeout.tv_nsec >= 1000000000) {
+        timeout.tv_sec++;
+        timeout.tv_nsec -= 1000000000;
+    }
+    return timeout;
+}
+
+static bool waitForThreadStartLocked(const timespec& timeout)
+{
+    while (emuThreadState == EmulatorThreadState::Starting && !stopRequested) {
+        int result = pthread_cond_timedwait(&emuThreadCond, &emuThreadMutex, &timeout);
+        if (result == ETIMEDOUT) {
+            return false;
+        }
+    }
+    return emuThreadState == EmulatorThreadState::Running && !stopRequested;
+}
+
+static bool waitForSafePointLocked(const timespec& timeout)
+{
+    while (!emulatorAtSafePoint && emuThreadState == EmulatorThreadState::Running && !stopRequested) {
+        int result = pthread_cond_timedwait(&emuThreadCond, &emuThreadMutex, &timeout);
+        if (result == ETIMEDOUT) {
+            return false;
+        }
+    }
+    return emulatorAtSafePoint && emuThreadState == EmulatorThreadState::Running && !stopRequested;
+}
+
+static PauseResult requestUserPause(int64_t timeoutMs)
+{
+    pthread_mutex_lock(&pauseApiMutex);
+    pthread_mutex_lock(&emuThreadMutex);
+    timespec timeout = getTimeout(timeoutMs);
+
+    if (emuThreadState == EmulatorThreadState::NotStarted || emuThreadState == EmulatorThreadState::StartFailed) {
+        pthread_mutex_unlock(&emuThreadMutex);
+        pthread_mutex_unlock(&pauseApiMutex);
+        return PauseResult::NotStarted;
+    }
+    if (emuThreadState == EmulatorThreadState::Starting && !waitForThreadStartLocked(timeout)) {
+        PauseResult result = emuThreadState == EmulatorThreadState::Starting
+            ? PauseResult::Timeout
+            : PauseResult::Stopped;
+        pthread_mutex_unlock(&emuThreadMutex);
+        pthread_mutex_unlock(&pauseApiMutex);
+        return result;
+    }
+    if (emuThreadState != EmulatorThreadState::Running || stopRequested) {
+        pthread_mutex_unlock(&emuThreadMutex);
+        pthread_mutex_unlock(&pauseApiMutex);
+        return PauseResult::Stopped;
+    }
+
+    bool wasAlreadyPaused = userPauseRequested;
+    userPauseRequested = true;
+    pthread_mutex_unlock(&emuThreadMutex);
+    applyCorePauseState();
+
+    pthread_mutex_lock(&emuThreadMutex);
+    bool reachedSafePoint = waitForSafePointLocked(timeout);
+    PauseResult result;
+    if (reachedSafePoint) {
+        result = wasAlreadyPaused ? PauseResult::AlreadyPaused : PauseResult::Success;
+    } else if (emuThreadState != EmulatorThreadState::Running || stopRequested) {
+        result = PauseResult::Stopped;
+    } else {
+        result = PauseResult::Timeout;
+    }
+
+    pthread_mutex_unlock(&emuThreadMutex);
+    pthread_mutex_unlock(&pauseApiMutex);
+    return result;
+}
+
+static bool beginSynchronizedOperation()
+{
+    pthread_mutex_lock(&coreOperationMutex);
+    pthread_mutex_lock(&emuThreadMutex);
+    timespec timeout = getTimeout(PAUSE_TIMEOUT_MS);
+
+    if ((emuThreadState == EmulatorThreadState::Starting && !waitForThreadStartLocked(timeout)) ||
+        emuThreadState != EmulatorThreadState::Running || stopRequested) {
+        pthread_mutex_unlock(&emuThreadMutex);
+        pthread_mutex_unlock(&coreOperationMutex);
+        return false;
+    }
+
+    synchronizedOperationCount++;
+    pthread_mutex_unlock(&emuThreadMutex);
+    applyCorePauseState();
+
+    pthread_mutex_lock(&emuThreadMutex);
+    if (!waitForSafePointLocked(timeout)) {
+        synchronizedOperationCount--;
+        pthread_cond_broadcast(&emuThreadCond);
+        pthread_mutex_unlock(&emuThreadMutex);
+        applyCorePauseState();
+        pthread_mutex_unlock(&coreOperationMutex);
+        return false;
+    }
+
+    pthread_mutex_unlock(&emuThreadMutex);
+    return true;
+}
+
+static void endSynchronizedOperation()
+{
+    pthread_mutex_lock(&emuThreadMutex);
+    synchronizedOperationCount--;
+    pthread_cond_broadcast(&emuThreadCond);
+    pthread_mutex_unlock(&emuThreadMutex);
+    applyCorePauseState();
+    pthread_mutex_unlock(&coreOperationMutex);
+}
 
 extern "C"
 {
@@ -74,7 +268,6 @@ Java_me_magnum_melonds_MelonEmulator_setupEmulator(JNIEnv* env, jobject thiz, jo
 
     MelonDSAndroid::setConfiguration(std::move(finalEmulatorConfiguration));
     MelonDSAndroid::setup(androidCameraHandler, std::move(androidEventMessenger), screenshotBufferPointer, 0);
-    paused = false;
 }
 
 JNIEXPORT void JNICALL
@@ -239,21 +432,43 @@ Java_me_magnum_melonds_MelonEmulator_bootFirmwareInternal(JNIEnv* env, jobject t
     return MelonDSAndroid::bootFirmware();
 }
 
-JNIEXPORT void JNICALL
+JNIEXPORT jboolean JNICALL
 Java_me_magnum_melonds_MelonEmulator_startEmulation(JNIEnv* env, jobject thiz)
 {
-    stop = false;
-    isThreadReallyPaused = false;
+    pthread_mutex_lock(&coreOperationMutex);
+    pthread_mutex_lock(&emuThreadMutex);
+    if (emuThreadJoinable || emuThreadState == EmulatorThreadState::Starting ||
+        emuThreadState == EmulatorThreadState::Running || emuThreadState == EmulatorThreadState::Stopping) {
+        pthread_mutex_unlock(&emuThreadMutex);
+        pthread_mutex_unlock(&coreOperationMutex);
+        return JNI_FALSE;
+    }
+
+    stopRequested = false;
+    userPauseRequested = false;
+    synchronizedOperationCount = 0;
+    emulatorAtSafePoint = false;
+    corePauseApplied = false;
     limitFps = true;
     targetFps = 60;
     isFastForwardEnabled = false;
 
-    pthread_mutex_init(&emuThreadMutex, NULL);
-    pthread_cond_init(&emuThreadCond, NULL);
-    pthread_create(&emuThread, NULL, emulate, NULL);
-    pthread_setname_np(emuThread, "EmulatorThread");
+    int createResult = pthread_create(&emuThread, NULL, emulate, NULL);
+    if (createResult != 0) {
+        emuThreadState = EmulatorThreadState::StartFailed;
+        pthread_cond_broadcast(&emuThreadCond);
+        pthread_mutex_unlock(&emuThreadMutex);
+        pthread_mutex_unlock(&coreOperationMutex);
+        return JNI_FALSE;
+    }
 
-    started = true;
+    emuThreadJoinable = true;
+    emuThreadState = EmulatorThreadState::Starting;
+    pthread_setname_np(emuThread, "EmulatorThread");
+    pthread_mutex_unlock(&emuThreadMutex);
+    pthread_mutex_unlock(&coreOperationMutex);
+
+    return JNI_TRUE;
 }
 
 JNIEXPORT void JNICALL
@@ -301,63 +516,31 @@ Java_me_magnum_melonds_MelonEmulator_getFPS(JNIEnv* env, jobject thiz)
     return fps;
 }
 
-JNIEXPORT void JNICALL
-Java_me_magnum_melonds_MelonEmulator_pauseEmulation(JNIEnv* env, jobject thiz)
+JNIEXPORT jint JNICALL
+Java_me_magnum_melonds_MelonEmulator_pauseEmulationInternal(JNIEnv* env, jobject thiz, jlong timeoutMs)
 {
-    if (started) {
-        pthread_mutex_lock(&emuThreadMutex);
-    }
-
-    if (!stop) {
-        paused = true;
-    }
-
-    if (started) {
-        pthread_mutex_unlock(&emuThreadMutex);
-    }
-
-    MelonDSAndroid::pause();
+    return static_cast<jint>(requestUserPause(timeoutMs));
 }
 
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_resumeEmulation(JNIEnv* env, jobject thiz)
 {
-    if (started) {
-        pthread_mutex_lock(&emuThreadMutex);
+    pthread_mutex_lock(&pauseApiMutex);
+    pthread_mutex_lock(&emuThreadMutex);
+    if (emuThreadState == EmulatorThreadState::Running && !stopRequested) {
+        userPauseRequested = false;
+        pthread_cond_broadcast(&emuThreadCond);
     }
-
-    if (!stop) {
-        paused = false;
-        if (started) {
-            pthread_cond_broadcast(&emuThreadCond);
-        }
-    }
-
-    if (started) {
-        pthread_mutex_unlock(&emuThreadMutex);
-    }
-
-    MelonDSAndroid::resume();
+    pthread_mutex_unlock(&emuThreadMutex);
+    applyCorePauseState();
+    pthread_mutex_unlock(&pauseApiMutex);
 }
 
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_resetEmulation(JNIEnv* env, jobject thiz) {
-    pthread_mutex_lock(&emuThreadMutex);
-    if (!stop) {
-        if (paused) {
-            pthread_mutex_unlock(&emuThreadMutex);
-        } else {
-            pthread_mutex_unlock(&emuThreadMutex);
-            Java_me_magnum_melonds_MelonEmulator_pauseEmulation(env, thiz);
-        }
-
-        // Make sure that the thread is really paused to avoid data corruption
-        while (!isThreadReallyPaused);
+    if (beginSynchronizedOperation()) {
         MelonDSAndroid::reset();
-        Java_me_magnum_melonds_MelonEmulator_resumeEmulation(env, thiz);
-    } else {
-        // If the emulation is stopping, just ignore it
-        pthread_mutex_unlock(&emuThreadMutex);
+        endSynchronizedOperation();
     }
 }
 
@@ -365,63 +548,67 @@ JNIEXPORT jboolean JNICALL
 Java_me_magnum_melonds_MelonEmulator_saveStateInternal(JNIEnv* env, jobject thiz, jstring path)
 {
     const char* saveStatePath = path == nullptr ? nullptr : env->GetStringUTFChars(path, JNI_FALSE);
-    return MelonDSAndroid::saveState(saveStatePath);
+    if (!beginSynchronizedOperation()) {
+        if (path != nullptr) {
+            env->ReleaseStringUTFChars(path, saveStatePath);
+        }
+        return JNI_FALSE;
+    }
+
+    bool result = MelonDSAndroid::saveState(saveStatePath);
+    endSynchronizedOperation();
+    if (path != nullptr) {
+        env->ReleaseStringUTFChars(path, saveStatePath);
+    }
+    return result;
 }
 
 JNIEXPORT jboolean JNICALL
 Java_me_magnum_melonds_MelonEmulator_loadStateInternal(JNIEnv* env, jobject thiz, jstring path)
 {
     const char* saveStatePath = path == nullptr ? nullptr : env->GetStringUTFChars(path, JNI_FALSE);
-    return MelonDSAndroid::loadState(saveStatePath);
+    if (!beginSynchronizedOperation()) {
+        if (path != nullptr) {
+            env->ReleaseStringUTFChars(path, saveStatePath);
+        }
+        return JNI_FALSE;
+    }
+
+    bool result = MelonDSAndroid::loadState(saveStatePath);
+    endSynchronizedOperation();
+    if (path != nullptr) {
+        env->ReleaseStringUTFChars(path, saveStatePath);
+    }
+    return result;
 }
 
 JNIEXPORT jboolean JNICALL
 Java_me_magnum_melonds_MelonEmulator_loadRewindState(JNIEnv* env, jobject thiz, jobject rewindSaveState) {
-    bool result = true;
-
-    pthread_mutex_lock(&emuThreadMutex);
-    if (!stop) {
-        bool wasPaused = paused;
-        if (paused) {
-            pthread_mutex_unlock(&emuThreadMutex);
-        } else {
-            pthread_mutex_unlock(&emuThreadMutex);
-            Java_me_magnum_melonds_MelonEmulator_pauseEmulation(env, thiz);
-        }
-
-        jclass rewindSaveStateClass = env->FindClass("me/magnum/melonds/ui/emulator/rewind/model/RewindSaveState");
-        jfieldID bufferField = env->GetFieldID(rewindSaveStateClass, "buffer", "Ljava/nio/ByteBuffer;");
-        jfieldID bufferContentSizeField = env->GetFieldID(rewindSaveStateClass, "bufferContentSize", "J");
-        jfieldID screenshotBufferField = env->GetFieldID(rewindSaveStateClass, "screenshotBuffer", "Ljava/nio/ByteBuffer;");
-        jfieldID frameField = env->GetFieldID(rewindSaveStateClass, "frame", "I");
-        jobject buffer = env->GetObjectField(rewindSaveState, bufferField);
-        jlong bufferContentSize = env->GetLongField(rewindSaveState, bufferContentSizeField);
-        jobject screenshotBuffer = env->GetObjectField(rewindSaveState, screenshotBufferField);
-        jint frame = (int) env->GetIntField(rewindSaveState, frameField);
-
-        // Make sure that the thread is really paused to avoid data corruption
-        while (!isThreadReallyPaused);
-
-        melonDS::RewindSaveState state = melonDS::RewindSaveState {
-            .buffer = (u8*) env->GetDirectBufferAddress(buffer),
-            .bufferSize = (u32) env->GetDirectBufferCapacity(buffer),
-            .bufferContentSize = (u32) bufferContentSize,
-            .screenshot = (u8*) env->GetDirectBufferAddress(screenshotBuffer),
-            .screenshotSize = (u32) env->GetDirectBufferCapacity(screenshotBuffer),
-            .frame = frame
-        };
-
-        result = MelonDSAndroid::loadRewindState(state);
-
-        // Resume emulation if it was running
-        if (!wasPaused) {
-            Java_me_magnum_melonds_MelonEmulator_resumeEmulation(env, thiz);
-        }
-    } else {
-        // If the emulation is stopping, just ignore it
-        pthread_mutex_unlock(&emuThreadMutex);
+    if (!beginSynchronizedOperation()) {
+        return JNI_FALSE;
     }
 
+    jclass rewindSaveStateClass = env->FindClass("me/magnum/melonds/ui/emulator/rewind/model/RewindSaveState");
+    jfieldID bufferField = env->GetFieldID(rewindSaveStateClass, "buffer", "Ljava/nio/ByteBuffer;");
+    jfieldID bufferContentSizeField = env->GetFieldID(rewindSaveStateClass, "bufferContentSize", "J");
+    jfieldID screenshotBufferField = env->GetFieldID(rewindSaveStateClass, "screenshotBuffer", "Ljava/nio/ByteBuffer;");
+    jfieldID frameField = env->GetFieldID(rewindSaveStateClass, "frame", "I");
+    jobject buffer = env->GetObjectField(rewindSaveState, bufferField);
+    jlong bufferContentSize = env->GetLongField(rewindSaveState, bufferContentSizeField);
+    jobject screenshotBuffer = env->GetObjectField(rewindSaveState, screenshotBufferField);
+    jint frame = (int) env->GetIntField(rewindSaveState, frameField);
+
+    melonDS::RewindSaveState state = melonDS::RewindSaveState {
+        .buffer = (u8*) env->GetDirectBufferAddress(buffer),
+        .bufferSize = (u32) env->GetDirectBufferCapacity(buffer),
+        .bufferContentSize = (u32) bufferContentSize,
+        .screenshot = (u8*) env->GetDirectBufferAddress(screenshotBuffer),
+        .screenshotSize = (u32) env->GetDirectBufferCapacity(screenshotBuffer),
+        .frame = frame
+    };
+
+    bool result = MelonDSAndroid::loadRewindState(state);
+    endSynchronizedOperation();
     return result;
 }
 
@@ -454,27 +641,36 @@ Java_me_magnum_melonds_MelonEmulator_getRewindWindow(JNIEnv* env, jobject thiz) 
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_stopEmulation(JNIEnv* env, jobject thiz)
 {
-    if (started)
-    {
-        pthread_mutex_lock(&emuThreadMutex);
-        stop = true;
-        paused = false;
-        started = false;
+    pthread_mutex_lock(&coreOperationMutex);
+    pthread_mutex_lock(&emuThreadMutex);
+    bool shouldJoin = emuThreadJoinable;
+    if (shouldJoin) {
+        stopRequested = true;
+        userPauseRequested = false;
+        emuThreadState = EmulatorThreadState::Stopping;
         pthread_cond_broadcast(&emuThreadCond);
-        pthread_mutex_unlock(&emuThreadMutex);
-
-        pthread_join(emuThread, NULL);
-        pthread_mutex_destroy(&emuThreadMutex);
-        pthread_cond_destroy(&emuThreadCond);
     }
+    pthread_mutex_unlock(&emuThreadMutex);
+
+    if (shouldJoin) {
+        pthread_join(emuThread, NULL);
+
+        pthread_mutex_lock(&emuThreadMutex);
+        emuThreadJoinable = false;
+        emuThreadState = EmulatorThreadState::Stopped;
+        pthread_mutex_unlock(&emuThreadMutex);
+    }
+    pthread_mutex_unlock(&coreOperationMutex);
 
     MelonDSAndroid::cleanup();
 
-    env->DeleteGlobalRef(globalCameraManager);
-
-    globalCameraManager = nullptr;
+    if (globalCameraManager != nullptr) {
+        env->DeleteGlobalRef(globalCameraManager);
+        globalCameraManager = nullptr;
+    }
 
     delete androidCameraHandler;
+    androidCameraHandler = nullptr;
 }
 
 JNIEXPORT void JNICALL
@@ -492,19 +688,55 @@ Java_me_magnum_melonds_MelonEmulator_onScreenRelease(JNIEnv* env, jobject thiz)
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_onKeyPress(JNIEnv* env, jobject thiz, jint key)
 {
-    MelonDSAndroid::pressKey(key);
+    if (key != 16 + 7) {
+        MelonDSAndroid::pressKey(key);
+    } else if (beginSynchronizedOperation()) {
+        MelonDSAndroid::pressKey(key);
+        endSynchronizedOperation();
+    }
 }
 
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_onKeyRelease(JNIEnv* env, jobject thiz, jint key)
 {
-    MelonDSAndroid::releaseKey(key);
+    if (key != 16 + 7) {
+        MelonDSAndroid::releaseKey(key);
+    } else if (beginSynchronizedOperation()) {
+        MelonDSAndroid::releaseKey(key);
+        endSynchronizedOperation();
+    }
 }
 
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_updateMotionData(JNIEnv* env, jobject thiz, jfloat ax, jfloat ay, jfloat az, jfloat rx, jfloat ry, jfloat rz)
 {
     MelonDSAndroid::updateMotionData(ax, ay, az, rx, ry, rz);
+}
+
+JNIEXPORT jint JNICALL
+Java_me_magnum_melonds_MelonEmulator_getEmulationStatusInternal(JNIEnv* env, jobject thiz)
+{
+    pthread_mutex_lock(&emuThreadMutex);
+    EmulationStatus status;
+    if (emuThreadState == EmulatorThreadState::StartFailed) {
+        status = EmulationStatus::StartFailed;
+    } else if (emuThreadState == EmulatorThreadState::NotStarted) {
+        status = EmulationStatus::NotStarted;
+    } else if (emuThreadState == EmulatorThreadState::Starting) {
+        status = EmulationStatus::Starting;
+    } else if (emuThreadState == EmulatorThreadState::Stopping) {
+        status = EmulationStatus::Stopping;
+    } else if (emuThreadState == EmulatorThreadState::Stopped) {
+        status = EmulationStatus::Stopped;
+    } else if (emulatorAtSafePoint && isPauseRequested()) {
+        status = EmulationStatus::Paused;
+    } else if (isPauseRequested()) {
+        status = EmulationStatus::PauseRequested;
+    } else {
+        status = EmulationStatus::Running;
+    }
+    pthread_mutex_unlock(&emuThreadMutex);
+    return static_cast<jint>(status);
 }
 
 JNIEXPORT jboolean JNICALL
@@ -620,6 +852,13 @@ void* emulate(void*)
 
     MelonDSAndroid::start();
 
+    pthread_mutex_lock(&emuThreadMutex);
+    if (emuThreadState == EmulatorThreadState::Starting) {
+        emuThreadState = stopRequested ? EmulatorThreadState::Stopping : EmulatorThreadState::Running;
+    }
+    pthread_cond_broadcast(&emuThreadCond);
+    pthread_mutex_unlock(&emuThreadMutex);
+
     auto manager = PerformanceHintManagerFactory::create(jniEnvHandler);
     performanceHintSession = new ThreadSafePerformanceHintSession(std::move(manager));
     if (performanceHintSession != nullptr) {
@@ -629,17 +868,21 @@ void* emulate(void*)
     for (;;)
     {
         pthread_mutex_lock(&emuThreadMutex);
-        if (paused) {
-            isThreadReallyPaused = true;
-            while (paused && !stop)
+        if (isPauseRequested()) {
+            emulatorAtSafePoint = true;
+            pthread_cond_broadcast(&emuThreadCond);
+            while (isPauseRequested() && !stopRequested)
                 pthread_cond_wait(&emuThreadCond, &emuThreadMutex);
 
             frameLimitError = 0;
             lastTick = getCurrentMillis();
-            isThreadReallyPaused = false;
+            emulatorAtSafePoint = false;
+            pthread_cond_broadcast(&emuThreadCond);
         }
 
-        if (stop) {
+        if (stopRequested) {
+            emulatorAtSafePoint = false;
+            pthread_cond_broadcast(&emuThreadCond);
             pthread_mutex_unlock(&emuThreadMutex);
             break;
         }
@@ -696,6 +939,11 @@ void* emulate(void*)
         }
     }
 
+    pthread_mutex_lock(&emuThreadMutex);
+    emulatorAtSafePoint = false;
+    pthread_cond_broadcast(&emuThreadCond);
+    pthread_mutex_unlock(&emuThreadMutex);
+
     if (performanceHintSession != nullptr) {
         performanceHintSession->destroySession();
 
@@ -704,5 +952,12 @@ void* emulate(void*)
     }
 
     MelonDSAndroid::stop();
-    pthread_exit(NULL);
+
+    pthread_mutex_lock(&emuThreadMutex);
+    if (emuThreadState != EmulatorThreadState::Stopping) {
+        emuThreadState = EmulatorThreadState::Stopped;
+    }
+    pthread_cond_broadcast(&emuThreadCond);
+    pthread_mutex_unlock(&emuThreadMutex);
+    return nullptr;
 }

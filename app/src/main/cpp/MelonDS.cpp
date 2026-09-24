@@ -247,9 +247,7 @@ namespace MelonDSAndroid
             return false;
         }
 
-        instance->saveState(&state);
-
-        if (state.Error)
+        if (!instance->saveState(&state) || state.Error)
         {
             Platform::CloseFile(saveStateFile);
             return false;
@@ -308,7 +306,7 @@ namespace MelonDSAndroid
         {
             Platform::Log(Platform::LogLevel::Error, "Failed to load state file \"%s\" into emulator\n", path);
             // Restore backup
-            if (!instance->loadState(backup.get()) || state->Error)
+            if (!instance->loadState(backup.get()) || backup->Error)
                 Platform::Log(Platform::LogLevel::Error, "Failed to load backup state\n", path);
             else
                 Platform::Log(Platform::LogLevel::Info, "Backup state loaded\n", path);

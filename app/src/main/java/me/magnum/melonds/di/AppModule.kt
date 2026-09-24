@@ -22,6 +22,7 @@ import me.magnum.melonds.common.uridelegates.CompositeUriHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.impl.system.AppForegroundStateObserver
 import me.magnum.melonds.impl.system.AppForegroundStateTracker
+import me.magnum.melonds.impl.emulator.recovery.EmulatorRecoveryRepository
 import me.magnum.melonds.utils.UriTypeHierarchyAdapter
 import javax.inject.Singleton
 
@@ -82,6 +83,12 @@ object AppModule {
     @Singleton
     fun providePermissionHandler(@ApplicationContext context: Context): PermissionHandler {
         return PermissionHandler(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideEmulatorRecoveryRepository(@ApplicationContext context: Context): EmulatorRecoveryRepository {
+        return EmulatorRecoveryRepository(context)
     }
 
     @Provides

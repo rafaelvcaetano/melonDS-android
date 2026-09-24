@@ -50,6 +50,7 @@ import java.net.URL
 @Composable
 fun AchievementUpdatesUi(
     viewModel: EmulatorViewModel,
+    onLogin: () -> Unit,
 ) {
     val popupEventFlow = remember(viewModel) {
         val achievementsFlow = viewModel.achievementsEvent.mapNotNull {
@@ -72,6 +73,8 @@ fun AchievementUpdatesUi(
         MainAchievementPopup(
             modifier = Modifier.fillMaxWidth(),
             popupEventFlow = popupEventFlow,
+            onRetry = viewModel::retryRetroAchievementsConnection,
+            onLogin = onLogin,
         )
     }
 }
@@ -80,6 +83,8 @@ fun AchievementUpdatesUi(
 private fun MainAchievementPopup(
     modifier: Modifier = Modifier,
     popupEventFlow: Flow<PopupEvent>,
+    onRetry: () -> Unit,
+    onLogin: () -> Unit,
 ) {
     var popupEvent by remember {
         mutableStateOf<PopupEvent?>(null)
@@ -134,6 +139,8 @@ private fun MainAchievementPopup(
                 RAIntegrationEventUi(
                     modifier = modifier,
                     event = currentPopupEvent.event,
+                    onRetry = onRetry,
+                    onLogin = onLogin,
                 )
             }
             is PopupEvent.GameMasteredPopup ->{

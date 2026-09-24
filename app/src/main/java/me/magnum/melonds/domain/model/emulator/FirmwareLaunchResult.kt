@@ -4,5 +4,6 @@ import me.magnum.melonds.MelonEmulator
 
 sealed class FirmwareLaunchResult {
     data class LaunchFailed(val reason: MelonEmulator.FirmwareLoadResult) : FirmwareLaunchResult()
+    data object LaunchFailedEmulatorStart : FirmwareLaunchResult()
     object LaunchSuccessful : FirmwareLaunchResult()
 }
