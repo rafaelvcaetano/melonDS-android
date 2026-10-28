@@ -22,5 +22,9 @@ void updateAudioSettings(AudioSettings);
 void cleanupAudio();
 void userEnableMic();
 void userDisableMic();
+void enableMic();
+void disableMic();
+void startAudio();
+void pauseAudio();
 int readMic(s16*, int);
 }

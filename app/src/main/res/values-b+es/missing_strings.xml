@@ -23,6 +23,12 @@
     <string name="bios_guided_setup_failed">El elemento seleccionado no es una carpeta</string>
     <string name="bios_guided_setup_in_progress">Configurando las carpetas de BIOS…</string>
     <string name="bios_guided_setup_missing">%1$s %2$s: sigue faltando; no se encontró ningún archivo correspondiente</string>
+    <string name="bios_guided_setup_invalid">%1$s %2$s: archivo no válido; se ha dejado sin cambios. Revísalo antes de volver a ejecutar la configuración.</string>
+    <string name="bios_guided_setup_copy_error">%1$s %2$s: no se pudo leer o copiar. Comprueba los permisos de acceso a la carpeta y el espacio libre, y vuelve a intentarlo.</string>
+    <string name="bios_guided_setup_cleanup_failed">%1$s %2$s: la copia falló. No se pudo eliminar \"%3$s\". Elimina esa copia incompleta antes de volver a intentarlo.</string>
+    <string name="bios_guided_setup_directory_selected">carpeta seleccionada</string>
+    <string name="bios_guided_setup_directory_unchanged">carpeta sin cambios en los ajustes; configuración incompleta o no se pudo validar</string>
+    <string name="bios_guided_setup_unreadable_sources">No se pudo comprobar el tamaño o la cabecera del firmware de estos archivos: %1$s. Comprueba los permisos de acceso a la carpeta y vuelve a intentarlo.</string>
     <string name="bios_guided_setup_result_title">Resultado de la configuración guiada de BIOS</string>
     <string name="bios_guided_setup_summary">Selecciona una carpeta con tus archivos de BIOS y firmware, independientemente de sus nombres o de si están mezclados, y se crearán y completarán automáticamente las carpetas de DS y DSi</string>
     <string name="bios_guided_setup_title">Configuración guiada de BIOS</string>

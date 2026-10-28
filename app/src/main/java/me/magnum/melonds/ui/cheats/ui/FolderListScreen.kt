@@ -1,5 +1,6 @@
 package me.magnum.melonds.ui.cheats.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
@@ -155,9 +157,10 @@ private fun List(
                                 onClick = { onFolderClick(result.folder) },
                             )
                             is CheatSearchRow.Match -> Column(
-                                Modifier.fillMaxWidth()
+                                Modifier.fillMaxWidth().heightIn(min = 48.dp)
                                     .clickable { onSearchResultClick(result) }
                                     .padding(start = 72.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                                verticalArrangement = Arrangement.Center,
                             ) {
                                 HighlightedText(text = result.label, query = query, style = MaterialTheme.typography.body2)
                                 result.familyTitle?.let { title ->

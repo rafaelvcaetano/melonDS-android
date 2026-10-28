@@ -95,6 +95,24 @@ foreach(NAND_TEST NandJniTest StorageNandTest)
     target_compile_options(${NAND_TEST} PRIVATE -Wno-deprecated-declarations)
 endforeach()
 
+# Compile the exact frontend renderer-selection and core fallback function bodies.
+# Only renderer factories and unrelated instance/framebuffer state use typed adapters.
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+set(RENDERER_FALLBACK_DIR "${MELONDS_TEST_ROOT}/tools/host-tests/renderer-fallback")
+set(RENDERER_FUNCTIONS "${CMAKE_CURRENT_BINARY_DIR}/renderer-fallback/ProductionFunctions.cpp")
+add_custom_command(OUTPUT "${RENDERER_FUNCTIONS}"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/renderer-fallback"
+    COMMAND "${Python3_EXECUTABLE}" "${RENDERER_FALLBACK_DIR}/extract.py" "${RENDERER_FUNCTIONS}"
+    DEPENDS "${RENDERER_FALLBACK_DIR}/extract.py"
+        "${MELONDS_TEST_ROOT}/app/src/main/cpp/MelonInstance.cpp"
+        "${MELONDS_TEST_ROOT}/melonDS-android-lib/src/GPU.cpp"
+    VERBATIM
+)
+add_executable(RendererFallbackTest "${RENDERER_FALLBACK_DIR}/RendererFallbackTest.cpp" "${RENDERER_FUNCTIONS}")
+target_include_directories(RendererFallbackTest PRIVATE "${RENDERER_FALLBACK_DIR}" "${MELONDS_TEST_ROOT}/app/src/main/cpp")
+target_compile_options(RendererFallbackTest PRIVATE -fsanitize=vptr -fno-sanitize-recover=vptr)
+target_link_options(RendererFallbackTest PRIVATE -fsanitize=vptr -fno-sanitize-recover=vptr)
+
 # The NDK legacy toolchain sets CMAKE_SYSTEM_VERSION to 1, independently of the API.
 string(REGEX REPLACE "^android-" "" MELONDS_TEST_API "${ANDROID_PLATFORM}")
 if(NOT MELONDS_TEST_API MATCHES "^[0-9]+$")

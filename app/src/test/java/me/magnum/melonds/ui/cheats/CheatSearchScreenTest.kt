@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.*
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import me.magnum.melonds.common.cheats.WildEncounterCheat
@@ -46,6 +47,12 @@ class CheatSearchScreenTest {
         compose.onNodeWithContentDescription("Clear").performClick()
         compose.onNodeWithText("Movement").assertIsDisplayed()
         compose.onNodeWithText("Max money").assertDoesNotExist()
+    }
+
+    @Test fun aSingleLineSearchResultHasAFullHeightTouchTarget() {
+        show(folders)
+        compose.onNodeWithText("Search cheats and folders").performTextInput("money")
+        compose.onNode(hasText("Max money") and hasClickAction()).assertHeightIsAtLeast(48.dp)
     }
 
     @Test fun findsGeneratedSpeciesAbsentFromThePhysicalCheatName() {

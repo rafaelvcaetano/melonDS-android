@@ -8,3 +8,7 @@
 /captures
 .externalNativeBuild
 .kotlin
+# Generated original homebrew for the opt-in Android GLES regression.
+/app/src/androidTest/assets/fallback-homebrew.nds
+/app/src/androidTest/assets/arm9-listing.txt
+/app/src/androidTest/assets/fixture.json

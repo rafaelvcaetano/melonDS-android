@@ -26,8 +26,15 @@ std::shared_ptr<oboe::AudioStream> audioStream;
 std::shared_ptr<OboeCallback> outputCallback;
 std::shared_ptr<oboe::StabilizedCallback> stabilizedOutputCallback;
 
-std::shared_ptr<oboe::AudioStream> micInputStream;
-std::shared_ptr<MicInputOboeCallback> micInputCallback;
+// JNI/UI toggles and the core's Mic_Start/Mic_Stop can overlap setup, settings,
+// pause and teardown. Serialize stream ownership and all start/stop requests.
+// Lock order: audioOutputMutex -> micControlMutex -> micBufferMutex. Neither
+// Oboe data callback takes micControlMutex; never hold micBufferMutex over close,
+// which can wait for an in-flight capture callback that needs the buffer lock.
+std::mutex micControlMutex;
+std::shared_ptr<oboe::AudioStream> micInputStream; // micControlMutex
+bool isMicOn = false; // guest request, micControlMutex
+bool isMicRunning = false; // frontend running rather than paused, micControlMutex
 
 MelonDSAndroid::AudioSettings currentAudioSettings;
 
@@ -36,10 +43,14 @@ MelonDSAndroid::AudioSettings currentAudioSettings;
 std::atomic_bool isAudioFastForwardActive = false;
 std::atomic_bool muteFastForwardAudio = false;
 
+// readMic runs on the emulation thread. It never waits for stream open/close:
+// source and UI enable are independent atomic values, not callback publication.
+// The existing buffer lock publishes/removes the callback and protects its ring.
+std::atomic<int> actualMicSource = 0;
+std::atomic_bool isMicInputEnabled = true;
 std::mutex micBufferMutex;
-int actualMicSource = 0;
-bool isMicInputEnabled = true;
-bool isMicOn = false;
+std::shared_ptr<MicInputOboeCallback> micInputCallback; // micBufferMutex
+// Only readMic advances the blow recording; capture cursors belong to their ring.
 int micBufferReadPos = 0;
 
 namespace MelonDSAndroid
@@ -132,9 +143,10 @@ namespace MelonDSAndroid
 
     // MICROPHONE
 
+    // All stream helpers require micControlMutex; public entry points take it.
     void setupMicInputStream()
     {
-        micInputCallback = std::make_shared<MicInputOboeCallback>(MIC_BUFFER_SIZE, micBufferMutex);
+        auto callback = std::make_shared<MicInputOboeCallback>(MIC_BUFFER_SIZE, micBufferMutex);
         oboe::AudioStreamBuilder micStreamBuilder;
         micStreamBuilder.setChannelCount(1);
         micStreamBuilder.setFramesPerCallback(1024);
@@ -146,15 +158,18 @@ namespace MelonDSAndroid
         micStreamBuilder.setPerformanceMode(oboe::PerformanceMode::None);
         micStreamBuilder.setSharingMode(oboe::SharingMode::Exclusive);
         micStreamBuilder.setUsage(oboe::Usage::Game);
-        micStreamBuilder.setDataCallback(micInputCallback);
+        micStreamBuilder.setDataCallback(callback);
 
         oboe::Result micResult = micStreamBuilder.openStream(micInputStream);
         if (micResult != oboe::Result::OK)
         {
             actualMicSource = 1;
             Log(Error, "Failed to init mic audio stream");
-            micInputCallback = nullptr;
+            callback = nullptr;
         }
+
+        std::lock_guard<std::mutex> lock(micBufferMutex);
+        micInputCallback = std::move(callback);
     }
 
     void cleanupMicInputStream()
@@ -173,18 +188,20 @@ namespace MelonDSAndroid
 
     void startMicStreamIfAllowed()
     {
-        if (actualMicSource == 2 && micInputStream && isMicInputEnabled && isMicOn)
+        if (actualMicSource == 2 && micInputStream && isMicInputEnabled && isMicOn && isMicRunning)
             micInputStream->requestStart();
     }
 
     void userEnableMic()
     {
+        std::lock_guard<std::mutex> lock(micControlMutex);
         isMicInputEnabled = true;
         startMicStreamIfAllowed();
     }
 
     void userDisableMic()
     {
+        std::lock_guard<std::mutex> lock(micControlMutex);
         isMicInputEnabled = false;
         if (micInputStream)
             micInputStream->requestStop();
@@ -192,12 +209,14 @@ namespace MelonDSAndroid
 
     void enableMic()
     {
+        std::lock_guard<std::mutex> lock(micControlMutex);
         isMicOn = true;
         startMicStreamIfAllowed();
     }
 
     void disableMic()
     {
+        std::lock_guard<std::mutex> lock(micControlMutex);
         isMicOn = false;
         if (micInputStream)
             micInputStream->requestStop();
@@ -279,6 +298,7 @@ namespace MelonDSAndroid
     void setupAudio(AudioSettings audioSettings)
     {
         std::lock_guard<std::mutex> lock(audioOutputMutex);
+        std::lock_guard<std::mutex> micLock(micControlMutex);
 
         // A previous session may still own a running stream (setupEmulator after a quick
         // background/foreground cycle). Opening a new one over it destroys the old stream while
@@ -288,6 +308,7 @@ namespace MelonDSAndroid
         cleanupMicInputStream();
 
         isMicOn = false;
+        isMicRunning = false;
         isAudioFastForwardActive = false;
         muteFastForwardAudio = audioSettings.muteFastForwardAudio;
         actualMicSource = audioSettings.micSource;
@@ -305,6 +326,7 @@ namespace MelonDSAndroid
     void updateAudioSettings(AudioSettings audioSettings)
     {
         std::lock_guard<std::mutex> lock(audioOutputMutex);
+        std::lock_guard<std::mutex> micLock(micControlMutex);
 
         muteFastForwardAudio = audioSettings.muteFastForwardAudio;
 
@@ -361,8 +383,11 @@ namespace MelonDSAndroid
     void cleanupAudio()
     {
         std::lock_guard<std::mutex> lock(audioOutputMutex);
+        std::lock_guard<std::mutex> micLock(micControlMutex);
 
         isAudioRunning = false;
+        isMicRunning = false;
+        isMicOn = false;
         isAudioFastForwardActive = false;
         muteFastForwardAudio = false;
         // Forget the settings too: they are what startAudio() consults to decide whether to
@@ -375,8 +400,10 @@ namespace MelonDSAndroid
     void startAudio()
     {
         std::lock_guard<std::mutex> lock(audioOutputMutex);
+        std::lock_guard<std::mutex> micLock(micControlMutex);
 
         isAudioRunning = true;
+        isMicRunning = true;
 
         // Reopen the stream if it is gone. A device disconnect (headphones, Bluetooth) closes
         // the stream and the reopen in resetAudioOutputStream() can fail while the app is in the
@@ -394,8 +421,10 @@ namespace MelonDSAndroid
     void pauseAudio()
     {
         std::lock_guard<std::mutex> lock(audioOutputMutex);
+        std::lock_guard<std::mutex> micLock(micControlMutex);
 
         isAudioRunning = false;
+        isMicRunning = false;
 
         if (audioStream)
             audioStream->requestPause();

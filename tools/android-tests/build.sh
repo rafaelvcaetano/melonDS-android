@@ -46,6 +46,6 @@ fi
     -DANDROID_PLATFORM=android-24 \
     -DANDROID_STL=c++_static \
     -DCMAKE_BUILD_TYPE=Debug
-"$cmake_bin" --build "$build_dir" --target JitInvalidationTest MicInputGainTest MicSourceSwitchTest NandJniTest StorageNandTest --parallel "${BUILD_JOBS:-8}"
+"$cmake_bin" --build "$build_dir" --target JitInvalidationTest MicInputGainTest MicSourceSwitchTest NandJniTest StorageNandTest RendererFallbackTest --parallel "${BUILD_JOBS:-8}"
 printf '\nAndroid test executable: %s/JitInvalidationTest\n' "$build_dir"
 printf 'Run on Android: %s/tools/android-tests/run.sh --abi %s --serial DEVICE_SERIAL\n' "$repo_root" "$abi"

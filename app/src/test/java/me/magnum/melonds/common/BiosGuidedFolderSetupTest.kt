@@ -1,11 +1,15 @@
 package me.magnum.melonds.common
 
 import android.app.Application
+import android.content.ContentResolver
+import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
+import androidx.documentfile.provider.DeleteDeniedDocumentFile
 import androidx.test.core.app.ApplicationProvider
 import me.magnum.melonds.domain.model.BiosSlot
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.FirmwareConsoleType
+import me.magnum.melonds.ui.settings.fragments.CustomFirmwarePreferencesFragment
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -17,9 +21,13 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.Implementation
+import org.robolectric.annotation.Implements
+import org.robolectric.shadows.ShadowContentResolver
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import java.io.OutputStream
 
 /**
  * Exercises [BiosGuidedFolderSetup] against a real temp directory via [DocumentFile.fromFile],
@@ -97,7 +105,8 @@ class BiosGuidedFolderSetupTest {
         val report = setup.run(DocumentFile.fromFile(tempFolder.root))
 
         val result = report.slotResults.first { it.slot == BiosSlot.DS_BIOS7 }
-        assertEquals(BiosGuidedFolderSetup.Outcome.MISSING, result.outcome)
+        assertEquals("ERROR", result.outcome.name)
+        assertEquals(listOf("broken_bios7.bin"), result.sourceFileNames)
         assertFalse("a 0-byte destination file must not be left behind", File(tempFolder.root, "DS/bios7.bin").exists())
     }
 
@@ -147,6 +156,155 @@ class BiosGuidedFolderSetupTest {
         assertEquals(BiosGuidedFolderSetup.Outcome.CREATED, result.outcome)
         assertEquals(listOf("somebackup.sav"), result.sourceFileNames)
         assertTrue(File(tempFolder.root, "DS/firmware.bin").exists())
+    }
+
+    @Test
+    fun `an existing empty BIOS is invalid and is never overwritten`() {
+        tempFolder.newFolder("DS")
+        val existing = writeFile("DS/bios7.bin", 0)
+        writeFile("valid_bios7.bin", 16384)
+
+        val report = setup.run(DocumentFile.fromFile(tempFolder.root))
+
+        assertEquals("INVALID", report.slotResults.first { it.slot == BiosSlot.DS_BIOS7 }.outcome.name)
+        assertTrue(existing.exists())
+        assertEquals(0L, existing.length())
+        assertEquals(16384L, File(tempFolder.root, "valid_bios7.bin").length())
+    }
+
+    @Test
+    fun `an existing DSi BIOS of the wrong size is invalid and is never overwritten`() {
+        tempFolder.newFolder("DSi")
+        val existing = writeFile("DSi/bios7.bin", 16384)
+        writeFile("dsi_arm7.bin", 65536)
+        writeFile("dsi_arm9.bin", 65536)
+
+        val report = setup.run(DocumentFile.fromFile(tempFolder.root))
+
+        assertEquals("INVALID", report.slotResults.first { it.slot == BiosSlot.DSI_BIOS7 }.outcome.name)
+        assertEquals(16384L, existing.length())
+    }
+
+    @Test
+    fun `an existing firmware for the wrong console is invalid and is never overwritten`() {
+        tempFolder.newFolder("DS")
+        val existing = writeFile("DS/firmware.bin", 131072, FirmwareConsoleType.HEADER_OFFSET, FirmwareConsoleType.DSI_HEADER_BYTE)
+        val original = existing.readBytes()
+
+        val report = setup.run(DocumentFile.fromFile(tempFolder.root))
+
+        assertEquals("INVALID", report.slotResults.first { it.slot == BiosSlot.DS_FIRMWARE }.outcome.name)
+        assertTrue(original.contentEquals(existing.readBytes()))
+    }
+
+    @Test
+    fun `a DSi folder without NAND is not eligible to replace a configured directory`() {
+        writeFile("dsi_arm7.bin", 65536)
+        writeFile("dsi_arm9.bin", 65536)
+        writeFile("dsi_firmware.bin", 131072, FirmwareConsoleType.HEADER_OFFSET, FirmwareConsoleType.DSI_HEADER_BYTE)
+        val report = setup.run(DocumentFile.fromFile(tempFolder.root))
+
+        val gate = CustomFirmwarePreferencesFragment::class.java.getDeclaredMethod(
+            "allMandatorySlotsSatisfied", BiosGuidedFolderSetup.Report::class.java, ConsoleType::class.java,
+        ).apply { isAccessible = true }
+
+        assertFalse(gate.invoke(CustomFirmwarePreferencesFragment(), report, ConsoleType.DSi) as Boolean)
+    }
+
+    @Test
+    @Config(shadows = [FailingOutputResolver::class])
+    fun `a destination write failure is an error and preserves the source for retry`() {
+        val source = writeFile("bios7.bin", 16384)
+        val destination = File(tempFolder.root, "DS/bios7.bin")
+
+        val report = setup.run(DocumentFile.fromFile(tempFolder.root))
+
+        assertEquals("ERROR", report.slotResults.first { it.slot == BiosSlot.DS_BIOS7 }.outcome.name)
+        assertFalse(destination.exists())
+        assertEquals(16384L, source.length())
+    }
+
+    @Test
+    @Config(shadows = [NullInputResolver::class])
+    fun `a null input stream is an error and removes the new destination`() {
+        writeFile("bios7.bin", 16384)
+
+        val report = setup.run(DocumentFile.fromFile(tempFolder.root))
+
+        assertEquals("ERROR", report.slotResults.first { it.slot == BiosSlot.DS_BIOS7 }.outcome.name)
+        assertFalse(File(tempFolder.root, "DS/bios7.bin").exists())
+    }
+
+    @Test
+    @Config(shadows = [NullOutputResolver::class])
+    fun `a null output stream is an error and removes the new destination`() {
+        writeFile("bios7.bin", 16384)
+
+        val report = setup.run(DocumentFile.fromFile(tempFolder.root))
+
+        assertEquals("ERROR", report.slotResults.first { it.slot == BiosSlot.DS_BIOS7 }.outcome.name)
+        assertFalse(File(tempFolder.root, "DS/bios7.bin").exists())
+    }
+
+    @Test
+    fun `permission revoked after classification is reported as an error`() {
+        val source = writeFile("bios7.bin", 16384)
+        Shadows.shadowOf(context.contentResolver).registerInputStreamSupplier(Uri.fromFile(source)) {
+            throw SecurityException("permission revoked")
+        }
+
+        val report = setup.run(DocumentFile.fromFile(tempFolder.root))
+
+        assertEquals("ERROR", report.slotResults.first { it.slot == BiosSlot.DS_BIOS7 }.outcome.name)
+        assertFalse(File(tempFolder.root, "DS/bios7.bin").exists())
+        assertTrue(source.exists())
+    }
+
+    @Test
+    fun `failed cleanup of a partial copy is reported separately`() {
+        val source = writeFile("bios7.bin", 16384)
+        Shadows.shadowOf(context.contentResolver).registerInputStreamSupplier(Uri.fromFile(source)) {
+            throw IOException("source unavailable")
+        }
+
+        val report = setup.run(DeleteDeniedDocumentFile(DocumentFile.fromFile(tempFolder.root)))
+
+        assertEquals("CLEANUP_FAILED", report.slotResults.first { it.slot == BiosSlot.DS_BIOS7 }.outcome.name)
+        assertFalse("An incomplete copy must not occupy the canonical BIOS name", File(tempFolder.root, "DS/bios7.bin").exists())
+        assertEquals("Only the owned partial should remain", 1, File(tempFolder.root, "DS").listFiles()!!.size)
+        assertEquals(16384L, source.length())
+    }
+
+    @Test
+    fun `empty existing NAND is invalid and preserved`() {
+        tempFolder.newFolder("DSi")
+        val nand = writeFile("DSi/nand.bin", 0)
+
+        val report = setup.run(DocumentFile.fromFile(tempFolder.root))
+
+        assertEquals("INVALID", report.nandResult.outcome.name)
+        assertTrue(nand.exists())
+        assertEquals(0L, nand.length())
+    }
+
+    @Implements(ContentResolver::class)
+    class NullInputResolver : ShadowContentResolver() {
+        @Implementation
+        public override fun openInputStream(uri: Uri): InputStream? = null
+    }
+
+    @Implements(ContentResolver::class)
+    class FailingOutputResolver : ShadowContentResolver() {
+        @Implementation
+        public override fun openOutputStream(uri: Uri): OutputStream = object : OutputStream() {
+            override fun write(b: Int) = throw IOException("storage full")
+        }
+    }
+
+    @Implements(ContentResolver::class)
+    class NullOutputResolver : ShadowContentResolver() {
+        @Implementation
+        public override fun openOutputStream(uri: Uri): OutputStream? = null
     }
 
     private fun assertSlot(

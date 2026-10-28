@@ -14,6 +14,12 @@
     <string name="bios_guided_setup_choose_folder">Pilih folder</string>
     <string name="bios_guided_setup_in_progress">Menyiapkan folder BIOS…</string>
     <string name="bios_guided_setup_failed">Item yang dipilih bukan folder</string>
+    <string name="bios_guided_setup_invalid">%1$s %2$s: berkas tidak valid; tidak diubah. Periksa berkas sebelum menjalankan pengaturan lagi.</string>
+    <string name="bios_guided_setup_copy_error">%1$s %2$s: tidak dapat dibaca atau disalin. Periksa izin akses folder dan ruang kosong, lalu coba lagi.</string>
+    <string name="bios_guided_setup_cleanup_failed">%1$s %2$s: penyalinan gagal. Tidak dapat menghapus \"%3$s\". Hapus salinan yang tidak lengkap tersebut sebelum mencoba lagi.</string>
+    <string name="bios_guided_setup_directory_selected">folder dipilih</string>
+    <string name="bios_guided_setup_directory_unchanged">folder dalam pengaturan tidak diubah; pengaturan belum selesai atau tidak dapat divalidasi</string>
+    <string name="bios_guided_setup_unreadable_sources">Tidak dapat memeriksa ukuran atau header firmware berkas berikut: %1$s. Periksa izin akses folder, lalu coba lagi.</string>
     <string name="bios_guided_setup_result_title">Hasil panduan pengaturan BIOS</string>
     <string name="bios_guided_setup_created">%1$s %2$s: disalin dari \"%3$s\"</string>
     <string name="bios_guided_setup_created_by_name_hint">%1$s %2$s: disalin dari \"%3$s\" (diperkirakan berdasarkan nama berkas, bukan isinya)</string>

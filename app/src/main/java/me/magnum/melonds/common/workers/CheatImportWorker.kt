@@ -5,6 +5,7 @@ import android.content.pm.ServiceInfo
 import android.content.res.AssetFileDescriptor
 import android.net.Uri
 import android.os.Build
+import android.os.CancellationSignal
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -17,6 +18,10 @@ import androidx.work.workDataOf
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.ensureActive
 import me.magnum.melonds.MelonDSApplication
 import me.magnum.melonds.R
 import me.magnum.melonds.common.cheats.CheatDatabaseParser
@@ -52,15 +57,6 @@ class CheatImportWorker @AssistedInject constructor(
                 return Result.failure()
             }
 
-            val totalFileSize = applicationContext.contentResolver.openAssetFileDescriptor(uri, "r")?.use {
-                val length = it.length
-                if (length == AssetFileDescriptor.UNKNOWN_LENGTH) {
-                    null
-                } else {
-                    length
-                }
-            }
-
             val databaseExtension = databaseDocument.name?.substringAfterLast('.')
             val parser = when (databaseExtension) {
                 "xml" -> XmlCheatDatabaseParser()
@@ -70,7 +66,7 @@ class CheatImportWorker @AssistedInject constructor(
                 }
             }
 
-            return parseCheatDatabase(uri, parser, totalFileSize)
+            return parseCheatDatabase(uri, parser)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -78,24 +74,44 @@ class CheatImportWorker @AssistedInject constructor(
         }
     }
 
-    private suspend fun parseCheatDatabase(uri: Uri, parser: CheatDatabaseParser, totalFileSize: Long?): Result {
-        val input = applicationContext.contentResolver.openInputStream(uri) ?: return Result.failure()
-        input.use {
-            val progressTrackerStream = ProgressTrackerInputStream(it)
-            cheatsRepository.replaceImportedCheats(parser.importEvents(progressTrackerStream) { gameName ->
-                val readProgress = if (totalFileSize != null && totalFileSize > 0) {
-                    (progressTrackerStream.totalReadBytes.toDouble() / totalFileSize * 100).toInt().coerceIn(0, 100)
-                } else {
-                    0
+    private suspend fun parseCheatDatabase(uri: Uri, parser: CheatDatabaseParser): Result = coroutineScope {
+        val cancellationSignal = CancellationSignal()
+        val parsing = async(Dispatchers.IO) {
+            try {
+                applicationContext.contentResolver.openAssetFileDescriptor(uri, "r", cancellationSignal).use { descriptor ->
+                    // A provider may still return a descriptor after it receives cancellation.
+                    ensureActive()
+                    if (descriptor == null) return@async Result.failure()
+                    val totalFileSize = descriptor.length.takeUnless { it == AssetFileDescriptor.UNKNOWN_LENGTH }
+                    descriptor.createInputStream().use { input ->
+                        val progressTrackerStream = ProgressTrackerInputStream(input)
+                        cheatsRepository.replaceImportedCheats(parser.importEvents(progressTrackerStream) { gameName ->
+                            val readProgress = if (totalFileSize != null && totalFileSize > 0) {
+                                (progressTrackerStream.totalReadBytes.toDouble() / totalFileSize * 100).toInt().coerceIn(0, 100)
+                            } else {
+                                0
+                            }
+                            setForegroundAsync(createForegroundInfo(gameName, readProgress, totalFileSize == null))
+                            setProgressAsync(workDataOf(
+                                KEY_PROGRESS_RELATIVE to readProgress / 100f,
+                                KEY_PROGRESS_ITEM to gameName
+                            ))
+                        })
+                    }
                 }
-                setForegroundAsync(createForegroundInfo(gameName, readProgress, totalFileSize == null))
-                setProgressAsync(workDataOf(
-                    KEY_PROGRESS_RELATIVE to readProgress / 100f,
-                    KEY_PROGRESS_ITEM to gameName
-                ))
-            })
+                Result.success()
+            } catch (error: Exception) {
+                // Preserve coroutine cancellation when the provider reports its own exception.
+                ensureActive()
+                throw error
+            }
         }
-        return Result.success()
+        try {
+            parsing.await()
+        } finally {
+            // Signal a blocked open before coroutineScope waits for its child to finish.
+            cancellationSignal.cancel()
+        }
     }
 
     private fun createForegroundInfo(gameName: String?, progress: Int, indeterminate: Boolean): ForegroundInfo {

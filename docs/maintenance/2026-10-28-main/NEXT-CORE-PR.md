@@ -26,7 +26,7 @@ Earlier paired proposals, closed during branch consolidation: Android #1682 (htt
 
 - Consolidation retains both local and previously published histories from the earlier `f950b5e6` proposal. Additional corrections cover teardown and DTCM mapping. Teardown matches the earlier report by maximxlss in [melonDS-emu/melonDS#2537](https://github.com/melonDS-emu/melonDS/issues/2537) and RSDuck's analysis; the local fix is not a copied upstream patch. No equivalent ready-made DTCM patch was found in the targeted search.
 - Strict UBSan regressions pass on Android 15 ARM64 with 4-KiB and 16-KiB pages. The failed baseline and sentinel check isolate the RAM alias from literal folding; tests include remapping and both halves of a 32-KiB configured window. These use a synthetic cartridge, with frontend services stubbed.
-- Companion app validation:224 JVM tests, ARM64 debug APK build and zero lint errors (474 warnings). Host sanitizer checks cover synthetic JIT invalidation; companion DNS and JNI tests cover packet behavior and reference lifetimes.
+- Companion app validation:267 JVM tests, ARM64 debug APK build and zero lint errors (474 warnings). Host sanitizer checks cover synthetic JIT invalidation; companion DNS and JNI tests cover packet behavior and reference lifetimes.
 - **Insert final reviewed commit and successful paired CI links after the coordinated audit.** The original 180-test run remains historical evidence, not verification of the updated app.
 - Game-specific Android JIT/interpreter comparisons and physical-device acceptance remain pending. Core host leak detection is disabled. Synthetic checks do not establish that Android issues #579/#751 or every ROM hack are fixed.
 - A prior paired Android build received five weeks of user testing on an AYN Thor. New Android corrections still require Thor acceptance testing.
@@ -34,3 +34,9 @@ Earlier paired proposals, closed during branch consolidation: Android #1682 (htt
 Supersedes #19 and the earlier #18. New PR publication remains blocked until the coordinated review is complete and the user authorizes it.
 
 The subsequent Android bug-remediation campaign leaves this core revision unchanged. See [Android corrections and evidence](../2026-10-28-android-bugfixes/REPORT.md); no new core/ROM compatibility claim follows from the app fixes.
+
+The later [Android refinement campaign](../2026-10-28-refinement/STATUS.md) also
+leaves this core revision unchanged. Renderer factory-failure handling is fixed
+in the Android frontend; GPU visibility and texture-reuse research has not been
+applied as a core optimization. The linked report records the newer Android
+runtime coverage and retains separate physical-device/performance gates.

@@ -15,7 +15,12 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.flow
+import me.magnum.melonds.common.cheats.CloseAwareBlockingInputStream
+import me.magnum.melonds.common.cheats.importEvents
 import me.magnum.melonds.domain.model.CheatImportEvent
 import me.magnum.melonds.common.cheats.CheatDatabaseParser
 import me.magnum.melonds.common.cheats.XmlCheatDatabaseParser
@@ -68,12 +73,11 @@ abstract class CheatImportIntegrityContract {
         it.writeText(content); files += it
     }
     // Invoke the production suspend import path without substituting its listener or database.
-    // This also runs unchanged against the original private implementation for RED evidence.
     private suspend fun import(file: File, parser: CheatDatabaseParser = XmlCheatDatabaseParser()): Any? =
         suspendCoroutineUninterceptedOrReturn { continuation ->
-            val method = CheatImportWorker::class.java.getDeclaredMethod("parseCheatDatabase", Uri::class.java, CheatDatabaseParser::class.java, Long::class.javaObjectType, Continuation::class.java)
+            val method = CheatImportWorker::class.java.getDeclaredMethod("parseCheatDatabase", Uri::class.java, CheatDatabaseParser::class.java, Continuation::class.java)
             method.isAccessible = true
-            try { method.invoke(worker, Uri.fromFile(file), parser, file.length(), continuation) }
+            try { method.invoke(worker, Uri.fromFile(file), parser, continuation) }
             catch (e: InvocationTargetException) { throw e.targetException }
         }
     private fun codes(): List<String> = database.openHelper.readableDatabase.query("SELECT code FROM cheat ORDER BY code").use { cursor ->
@@ -163,6 +167,41 @@ abstract class CheatImportIntegrityContract {
         withTimeout(5000) { transactionStarted.await() }
         job.cancelAndJoin()
         assertEquals(original, snapshot())
+    }
+
+    @Test(timeout = 15000)
+    fun blockedDatCancellationRollsBackAndAllowsNextImport() = runBlocking {
+        val original = snapshot()
+        val source = CloseAwareBlockingInputStream(UsrCheatFixture.manyGames(100))
+        val replacementStarted = CompletableDeferred<Unit>()
+        val job = launch(Dispatchers.Default) {
+            repository.replaceImportedCheats(flow {
+                UsrCheatDatabaseParser().importEvents(ProgressTrackerInputStream(source)) {}.collect { event ->
+                    emit(event)
+                    // emit returns after the real repository processed Start inside its transaction.
+                    if (event is CheatImportEvent.Start) replacementStarted.complete(Unit)
+                }
+            })
+        }
+        var stopped = false
+        var closedBeforeCleanup = false
+        try {
+            withTimeout(5000) { replacementStarted.await() }
+            assertTrue(withContext(Dispatchers.IO) { source.awaitRead() })
+            job.cancel()
+            stopped = withTimeoutOrNull(1000) { job.join(); true } == true
+            closedBeforeCleanup = source.closed.get()
+        } finally {
+            source.close()
+            job.cancelAndJoin()
+        }
+        assertTrue("Blocked import must release the read before external provider cleanup", closedBeforeCleanup)
+        assertTrue("Cancelled transaction must finish promptly", stopped)
+        assertEquals(original, snapshot())
+        withTimeout(5000) {
+            assertEquals(ListenableWorker.Result.success(), import(file("<codelist><name>Replacement</name>$newGame</codelist>")))
+        }
+        assertEquals(listOf("02000000 00000002", "02000000 00000003"), codes())
     }
 
     @Test fun datTruncatedAtGameOffsetCannotEraseImportedCheats() = runBlocking {

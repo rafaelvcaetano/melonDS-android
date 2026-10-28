@@ -115,7 +115,7 @@ class RomListViewModel @Inject constructor(
             else
                 SortingOrder.ASCENDING
 
-            settingsRepository.setRomSortingOrder(_sortingOrder.value)
+            settingsRepository.setRomSortingOrder(newSortingOrder)
             _sortingOrder.value = newSortingOrder
         } else {
             settingsRepository.setRomSortingMode(sortingMode)

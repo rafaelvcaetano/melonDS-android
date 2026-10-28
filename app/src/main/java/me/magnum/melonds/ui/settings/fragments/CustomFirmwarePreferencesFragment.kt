@@ -8,9 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import me.magnum.melonds.R
 import me.magnum.melonds.common.BiosGuidedFolderSetup
 import me.magnum.melonds.common.DirectoryAccessValidator
@@ -25,11 +23,13 @@ import me.magnum.melonds.ui.settings.PreferenceFragmentTitleProvider
 import me.magnum.melonds.ui.settings.preferences.BiosDirectoryPickerPreference
 import me.magnum.melonds.utils.enumValueOfIgnoreCase
 import javax.inject.Inject
+import java.io.IOException
 
 @AndroidEntryPoint
 class CustomFirmwarePreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTitleProvider {
 
     private val viewModel by viewModels<CustomFirmwareViewModel>()
+    private var guidedSetupProgressDialog: AlertDialog? = null
     private val helper by lazy { PreferenceFragmentHelper(this, uriPermissionManager, directoryAccessValidator) }
     @Inject lateinit var uriPermissionManager: UriPermissionManager
     @Inject lateinit var directoryAccessValidator: DirectoryAccessValidator
@@ -92,6 +92,12 @@ class CustomFirmwarePreferencesFragment : BasePreferenceFragment(), PreferenceFr
 
     override fun getTitle() = getString(R.string.custom_bios_firmware)
 
+    override fun onDestroyView() {
+        guidedSetupProgressDialog?.dismiss()
+        guidedSetupProgressDialog = null
+        super.onDestroyView()
+    }
+
     /**
      * Used to show the same generic "not correct" text for three different problems: a missing
      * file, a file with the wrong size, and a folder that actually holds the other console's
@@ -144,9 +150,9 @@ class CustomFirmwarePreferencesFragment : BasePreferenceFragment(), PreferenceFr
      * See [BiosGuidedFolderSetup] for exactly what is and isn't recognised.
      *
      * The copy itself (which can mean gigabytes, e.g. a DSi nand.bin) runs off the main thread;
-     * a non-cancellable progress dialog covers the wait. If the fragment's view is destroyed
-     * while it's running, [viewLifecycleOwner]'s scope cancels the job -- [BiosGuidedFolderSetup]
-     * cleans up any partially written file when that happens.
+     * a progress dialog covers the wait and is dismissed when the view is destroyed. Guided
+     * runs are serialized; cancellation attempts to remove the current partial copy once provider
+     * IO returns. A provider can still refuse deletion.
      */
     private fun runGuidedBiosSetup(parentDirectoryUri: Uri, dsBiosDirPreference: BiosDirectoryPickerPreference, dsiBiosDirPreference: BiosDirectoryPickerPreference) {
         if (directoryAccessValidator.getDirectoryAccessForPermission(parentDirectoryUri, Permission.READ_WRITE) != DirectoryAccessValidator.DirectoryAccessResult.OK) {
@@ -163,15 +169,21 @@ class CustomFirmwarePreferencesFragment : BasePreferenceFragment(), PreferenceFr
                 .setMessage(R.string.bios_guided_setup_in_progress)
                 .setCancelable(false)
                 .show()
+        guidedSetupProgressDialog = progressDialog
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val report = withContext(Dispatchers.IO) {
-                    BiosGuidedFolderSetup(appContext).run(parentDirectoryUri)
-                }
+                val report = BiosGuidedFolderSetup(appContext).runCancellable(parentDirectoryUri)
                 applyGuidedBiosSetupResult(report, parentDirectoryUri, dsBiosDirPreference, dsiBiosDirPreference)
+            } catch (e: IOException) {
+                showGuidedSetupFailure(parentDirectoryUri, dsBiosDirPreference, dsiBiosDirPreference)
+            } catch (e: SecurityException) {
+                showGuidedSetupFailure(parentDirectoryUri, dsBiosDirPreference, dsiBiosDirPreference)
+            } catch (e: IllegalArgumentException) {
+                showGuidedSetupFailure(parentDirectoryUri, dsBiosDirPreference, dsiBiosDirPreference)
             } finally {
                 progressDialog.dismiss()
+                if (guidedSetupProgressDialog === progressDialog) guidedSetupProgressDialog = null
             }
         }
     }
@@ -183,10 +195,7 @@ class CustomFirmwarePreferencesFragment : BasePreferenceFragment(), PreferenceFr
         dsiBiosDirPreference: BiosDirectoryPickerPreference,
     ) {
         if (report == null) {
-            AlertDialog.Builder(requireContext())
-                    .setMessage(R.string.bios_guided_setup_failed)
-                    .setPositiveButton(R.string.ok, null)
-                    .show()
+            showGuidedSetupFailure(parentDirectoryUri, dsBiosDirPreference, dsiBiosDirPreference)
             return
         }
 
@@ -196,34 +205,78 @@ class CustomFirmwarePreferencesFragment : BasePreferenceFragment(), PreferenceFr
 
         // Only re-point a preference when the console it belongs to actually ended up complete:
         // an existing, valid directory shouldn't be swapped for one that's still missing files.
+        val configuredConsoles = mutableSetOf<ConsoleType>()
         if (allMandatorySlotsSatisfied(report, ConsoleType.DS)) {
-            report.dsDirectory?.let { pointPreferenceAt(dsBiosDirPreference, it.uri) }
+            report.dsDirectory?.let {
+                if (isValidDirectory(ConsoleType.DS, it.uri)) {
+                    pointPreferenceAt(dsBiosDirPreference, it.uri)
+                    configuredConsoles += ConsoleType.DS
+                }
+            }
         }
         if (allMandatorySlotsSatisfied(report, ConsoleType.DSi)) {
-            report.dsiDirectory?.let { pointPreferenceAt(dsiBiosDirPreference, it.uri) }
+            report.dsiDirectory?.let {
+                // DS has already been applied if complete; DSi validation checks that prerequisite.
+                if (isValidDirectory(ConsoleType.DSi, it.uri)) {
+                    pointPreferenceAt(dsiBiosDirPreference, it.uri)
+                    configuredConsoles += ConsoleType.DSi
+                }
+            }
         }
 
-        // pointPreferenceAt() only reliably validates the preference it actually re-pointed
-        // (onDirectoryPicked short-circuits on a SecurityException before validating -- see
-        // BiosDirectoryPickerPreference); revalidate both explicitly so their displayed status
-        // always reflects the outcome of this run.
+        // Refresh both displayed statuses, including a directory retained from earlier setup.
         dsBiosDirPreference.revalidate()
         dsiBiosDirPreference.revalidate()
 
         AlertDialog.Builder(requireContext())
                 .setTitle(R.string.bios_guided_setup_result_title)
-                .setMessage(buildGuidedSetupSummary(report))
+                .setMessage(buildGuidedSetupSummary(report, configuredConsoles))
                 .setPositiveButton(R.string.ok, null)
+                .apply {
+                    if (report.unreadableSourceNames.isNotEmpty() || report.slotResults.any { it.outcome.isFailure() } || report.nandResult.outcome.isFailure()) {
+                        setNeutralButton(R.string.retry) { _, _ -> runGuidedBiosSetup(parentDirectoryUri, dsBiosDirPreference, dsiBiosDirPreference) }
+                    }
+                }
                 .show()
     }
 
-    /** True when every slot [BiosGuidedFolderSetup] tracks for [consoleType] was found (whether newly copied or already there). */
-    private fun allMandatorySlotsSatisfied(report: BiosGuidedFolderSetup.Report, consoleType: ConsoleType): Boolean {
-        val outcomesForConsole = report.slotResults.filter { it.slot.consoleType == consoleType }
-        return outcomesForConsole.isNotEmpty() && outcomesForConsole.all {
-            it.outcome == BiosGuidedFolderSetup.Outcome.CREATED || it.outcome == BiosGuidedFolderSetup.Outcome.ALREADY_PRESENT
+    private fun showGuidedSetupFailure(
+        parentDirectoryUri: Uri,
+        dsPreference: BiosDirectoryPickerPreference,
+        dsiPreference: BiosDirectoryPickerPreference,
+    ) {
+        AlertDialog.Builder(requireContext())
+                .setTitle(R.string.bios_guided_setup_result_title)
+                .setMessage(R.string.bios_guided_setup_failed)
+                .setPositiveButton(R.string.retry) { _, _ -> runGuidedBiosSetup(parentDirectoryUri, dsPreference, dsiPreference) }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+    }
+
+    private fun isValidDirectory(consoleType: ConsoleType, directory: Uri): Boolean {
+        return try {
+            viewModel.getConsoleConfigurationDirectoryStatus(consoleType, directory).status == ConfigurationDirResult.Status.VALID
+        } catch (e: IOException) {
+            false
+        } catch (e: SecurityException) {
+            false
+        } catch (e: IllegalArgumentException) {
+            false
         }
     }
+
+    /** Requires all three BIOS/firmware slots and, for DSi, a readable non-empty NAND. */
+    private fun allMandatorySlotsSatisfied(report: BiosGuidedFolderSetup.Report, consoleType: ConsoleType): Boolean {
+        val outcomesForConsole = report.slotResults.filter { it.slot.consoleType == consoleType }
+        return outcomesForConsole.size == 3 && outcomesForConsole.all { it.outcome.isSatisfied() } &&
+                (consoleType != ConsoleType.DSi || report.nandResult.outcome.isSatisfied())
+    }
+
+    private fun BiosGuidedFolderSetup.Outcome.isSatisfied() =
+        this == BiosGuidedFolderSetup.Outcome.CREATED || this == BiosGuidedFolderSetup.Outcome.ALREADY_PRESENT
+
+    private fun BiosGuidedFolderSetup.Outcome.isFailure() =
+        this == BiosGuidedFolderSetup.Outcome.ERROR || this == BiosGuidedFolderSetup.Outcome.CLEANUP_FAILED
 
     /**
      * Points a BIOS directory preference at a sub-folder created inside an already-persisted
@@ -240,31 +293,40 @@ class CustomFirmwarePreferencesFragment : BasePreferenceFragment(), PreferenceFr
         }
     }
 
-    private fun buildGuidedSetupSummary(report: BiosGuidedFolderSetup.Report): String {
-        val lines = report.slotResults.map { result ->
-            val consoleLabel = getString(if (result.slot.consoleType == ConsoleType.DS) R.string.console_ds else R.string.console_dsi)
-            when (result.outcome) {
-                BiosGuidedFolderSetup.Outcome.CREATED -> {
-                    val source = result.sourceFileNames.firstOrNull().orEmpty()
-                    if (result.resolvedByFileNameHint) {
-                        getString(R.string.bios_guided_setup_created_by_name_hint, consoleLabel, result.slot.canonicalFileName, source)
-                    } else {
-                        getString(R.string.bios_guided_setup_created, consoleLabel, result.slot.canonicalFileName, source)
-                    }
-                }
-                BiosGuidedFolderSetup.Outcome.ALREADY_PRESENT -> getString(R.string.bios_guided_setup_already_present, consoleLabel, result.slot.canonicalFileName)
-                BiosGuidedFolderSetup.Outcome.MISSING -> getString(R.string.bios_guided_setup_missing, consoleLabel, result.slot.canonicalFileName)
-                BiosGuidedFolderSetup.Outcome.AMBIGUOUS -> getString(R.string.bios_guided_setup_ambiguous, consoleLabel, result.slot.canonicalFileName, result.sourceFileNames.joinToString(", "))
-            }
-        }.toMutableList()
-
-        val dsiLabel = getString(R.string.console_dsi)
-        lines += when (report.nandResult.outcome) {
-            BiosGuidedFolderSetup.Outcome.CREATED -> getString(R.string.bios_guided_setup_created, dsiLabel, BiosGuidedFolderSetup.NAND_FILE_NAME, report.nandResult.sourceFileName.orEmpty())
-            BiosGuidedFolderSetup.Outcome.ALREADY_PRESENT -> getString(R.string.bios_guided_setup_already_present, dsiLabel, BiosGuidedFolderSetup.NAND_FILE_NAME)
-            else -> getString(R.string.bios_guided_setup_missing, dsiLabel, BiosGuidedFolderSetup.NAND_FILE_NAME)
+    private fun buildGuidedSetupSummary(report: BiosGuidedFolderSetup.Report, configuredConsoles: Set<ConsoleType>): String {
+        val sourceErrors = if (report.unreadableSourceNames.isEmpty()) "" else {
+            getString(R.string.bios_guided_setup_unreadable_sources, report.unreadableSourceNames.joinToString(", ")) + "\n\n"
         }
+        return sourceErrors + listOf(ConsoleType.DS, ConsoleType.DSi).joinToString("\n\n") { console ->
+            val consoleLabel = getString(if (console == ConsoleType.DS) R.string.console_ds else R.string.console_dsi)
+            val status = getString(if (console in configuredConsoles) R.string.bios_guided_setup_directory_selected else R.string.bios_guided_setup_directory_unchanged)
+            val lines = report.slotResults.filter { it.slot.consoleType == console }.map { result ->
+                guidedSetupOutcomeText(consoleLabel, result.slot.canonicalFileName, result.outcome, result.sourceFileNames, result.resolvedByFileNameHint, result.cleanupFileName)
+            }.toMutableList()
+            if (console == ConsoleType.DSi) {
+                lines += guidedSetupOutcomeText(consoleLabel, BiosGuidedFolderSetup.NAND_FILE_NAME, report.nandResult.outcome, listOfNotNull(report.nandResult.sourceFileName), cleanupFileName = report.nandResult.cleanupFileName)
+            }
+            "$consoleLabel — $status\n" + lines.joinToString("\n") { "• $it" }
+        }
+    }
 
-        return lines.joinToString("\n") { "• $it" }
+    private fun guidedSetupOutcomeText(
+        consoleLabel: String,
+        fileName: String,
+        outcome: BiosGuidedFolderSetup.Outcome,
+        sourceNames: List<String>,
+        byNameHint: Boolean = false,
+        cleanupFileName: String? = null,
+    ): String = when (outcome) {
+        BiosGuidedFolderSetup.Outcome.CREATED -> getString(
+            if (byNameHint) R.string.bios_guided_setup_created_by_name_hint else R.string.bios_guided_setup_created,
+            consoleLabel, fileName, sourceNames.firstOrNull().orEmpty(),
+        )
+        BiosGuidedFolderSetup.Outcome.ALREADY_PRESENT -> getString(R.string.bios_guided_setup_already_present, consoleLabel, fileName)
+        BiosGuidedFolderSetup.Outcome.MISSING -> getString(R.string.bios_guided_setup_missing, consoleLabel, fileName)
+        BiosGuidedFolderSetup.Outcome.AMBIGUOUS -> getString(R.string.bios_guided_setup_ambiguous, consoleLabel, fileName, sourceNames.joinToString(", "))
+        BiosGuidedFolderSetup.Outcome.INVALID -> getString(R.string.bios_guided_setup_invalid, consoleLabel, fileName)
+        BiosGuidedFolderSetup.Outcome.ERROR -> getString(R.string.bios_guided_setup_copy_error, consoleLabel, fileName)
+        BiosGuidedFolderSetup.Outcome.CLEANUP_FAILED -> getString(R.string.bios_guided_setup_cleanup_failed, consoleLabel, fileName, cleanupFileName.orEmpty())
     }
 }

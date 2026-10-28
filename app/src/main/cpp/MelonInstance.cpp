@@ -810,19 +810,30 @@ void MelonInstance::updateRenderer()
 
     if (newRenderer != currentRenderer)
     {
+        std::unique_ptr<Renderer3D> renderer;
         switch (newRenderer)
         {
             case Renderer::Software:
-                nds->GPU.SetRenderer3D(std::make_unique<SoftRenderer>());
+                renderer = std::make_unique<SoftRenderer>();
                 break;
             case Renderer::OpenGl:
-                nds->GPU.SetRenderer3D(GLRenderer::New());
+                renderer = GLRenderer::New();
                 break;
             case Renderer::Compute:
-                nds->GPU.SetRenderer3D(ComputeRenderer::New());
+                renderer = ComputeRenderer::New();
                 break;
             default: __builtin_unreachable();
         }
+        if (!renderer)
+        {
+            // The core installs SoftRenderer for a null factory result. Track that actual
+            // type for frame dimensions/screenshots and leave the requested settings intact.
+            nds->GPU.SetRenderer3D(nullptr);
+            currentRenderer = Renderer::Software;
+            Log(LogLevel::Error, "Failed to initialize renderer %d; using software rendering\n", static_cast<int>(newRenderer));
+            return;
+        }
+        nds->GPU.SetRenderer3D(std::move(renderer));
         currentRenderer = newRenderer;
     }
 

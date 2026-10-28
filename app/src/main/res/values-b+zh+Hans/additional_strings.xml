@@ -14,6 +14,12 @@
     <string name="bios_guided_setup_choose_folder">选择文件夹</string>
     <string name="bios_guided_setup_in_progress">正在设置 BIOS 文件夹…</string>
     <string name="bios_guided_setup_failed">所选项目不是文件夹</string>
+    <string name="bios_guided_setup_invalid">%1$s %2$s：文件无效，未做更改。请检查文件后再运行设置向导。</string>
+    <string name="bios_guided_setup_copy_error">%1$s %2$s：无法读取或复制。请检查文件夹访问权限和可用空间，然后重试。</string>
+    <string name="bios_guided_setup_cleanup_failed">%1$s %2$s：复制失败，无法删除“%3$s”。请删除该不完整副本后重试。</string>
+    <string name="bios_guided_setup_directory_selected">已选择文件夹</string>
+    <string name="bios_guided_setup_directory_unchanged">设置中的文件夹未更改；设置未完成或无法验证</string>
+    <string name="bios_guided_setup_unreadable_sources">无法检查以下文件的大小或固件头部：%1$s。请检查文件夹访问权限，然后重试。</string>
     <string name="bios_guided_setup_result_title">BIOS 设置向导结果</string>
     <string name="bios_guided_setup_created">%1$s %2$s：已从“%3$s”复制</string>
     <string name="bios_guided_setup_created_by_name_hint">%1$s %2$s：已从“%3$s”复制（根据文件名推测，并非根据内容识别）</string>

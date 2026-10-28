@@ -14,6 +14,12 @@
     <string name="bios_guided_setup_choose_folder">Выбрать папку</string>
     <string name="bios_guided_setup_in_progress">Подготовка папок BIOS…</string>
     <string name="bios_guided_setup_failed">Выбранный элемент не является папкой</string>
+    <string name="bios_guided_setup_invalid">%1$s %2$s: недопустимый файл; оставлен без изменений. Проверьте его перед повторной настройкой.</string>
+    <string name="bios_guided_setup_copy_error">%1$s %2$s: не удалось прочитать или скопировать. Проверьте доступ к папке и свободное место, затем повторите попытку.</string>
+    <string name="bios_guided_setup_cleanup_failed">%1$s %2$s: копирование не удалось. Не удалось удалить «%3$s». Удалите эту неполную копию перед повторной попыткой.</string>
+    <string name="bios_guided_setup_directory_selected">папка выбрана</string>
+    <string name="bios_guided_setup_directory_unchanged">папка в настройках не изменена; настройка не завершена или её не удалось проверить</string>
+    <string name="bios_guided_setup_unreadable_sources">Не удалось проверить размер или заголовок прошивки следующих файлов: %1$s. Проверьте доступ к папке и повторите попытку.</string>
     <string name="bios_guided_setup_result_title">Результат работы мастера настройки BIOS</string>
     <string name="bios_guided_setup_created">%1$s %2$s: скопирован из \"%3$s\"</string>
     <string name="bios_guided_setup_created_by_name_hint">%1$s %2$s: скопирован из \"%3$s\" (определён по имени файла, а не по содержимому)</string>

@@ -33,7 +33,10 @@ abstract class ConfigurationDirectoryVerifier(val settingsRepository: SettingsRe
     fun checkConsoleConfigurationDirectory(consoleType: ConsoleType, directory: Uri?): ConfigurationDirResult {
         return when (consoleType) {
             ConsoleType.DS -> checkDsConfigurationDirectory(directory)
-            ConsoleType.DSi -> checkDsiConfigurationDirectory(directory)
+            ConsoleType.DSi -> {
+                val result = checkDsiConfigurationDirectory(directory)
+                if (result.status == ConfigurationDirResult.Status.VALID) checkDsConfigurationDirectory() else result
+            }
         }
     }
 }

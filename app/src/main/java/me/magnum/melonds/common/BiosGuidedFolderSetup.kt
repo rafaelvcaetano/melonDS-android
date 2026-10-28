@@ -4,6 +4,11 @@ import android.content.Context
 import android.content.res.AssetFileDescriptor
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import me.magnum.melonds.domain.model.BiosFileClassification
 import me.magnum.melonds.domain.model.BiosSlot
 import me.magnum.melonds.domain.model.ConsoleType
@@ -11,6 +16,7 @@ import me.magnum.melonds.domain.model.FirmwareConsoleType
 import me.magnum.melonds.domain.services.BiosFileClassifier
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.util.UUID
 
 /**
  * Turns a single folder full of loosely-named BIOS/firmware files (as they are commonly shared:
@@ -32,35 +38,64 @@ import java.io.IOException
  * Nothing already present at a destination is ever overwritten or deleted, and no source file is
  * ever deleted or moved: only copies are made, so a mistake here never loses the user's files.
  */
-class BiosGuidedFolderSetup(private val context: Context) {
+class BiosGuidedFolderSetup private constructor(
+    private val context: Context,
+    private val checkCancellation: () -> Unit,
+) {
+    constructor(context: Context) : this(context, {})
+
+    /**
+     * Serialize guided UI runs across recreated screens. A cancelled run retains ownership until
+     * provider IO returns and its cleanup finishes; waiting callers do not inspect its partial files.
+     * Cancellation is cooperative between IO calls, not a promise to interrupt a blocked provider.
+     */
+    suspend fun runCancellable(parentDirectoryUri: Uri): Report? = operationMutex.withLock {
+        withContext(Dispatchers.IO) {
+            val copyContext = coroutineContext
+            BiosGuidedFolderSetup(context) { copyContext.ensureActive() }.run(parentDirectoryUri)
+        }
+    }
+
 
     enum class Outcome {
         /** A file was found and copied into place under its canonical name. */
         CREATED,
-        /** The destination already had this file; it was left untouched. */
+        /** The destination already had a usable file; it was left untouched. */
         ALREADY_PRESENT,
         /** No file matching this slot was found among the loose files. */
         MISSING,
         /** More than one candidate file could fill this slot and none could be ruled out. */
         AMBIGUOUS,
+        /** An existing file has the wrong size/type; it was left untouched. */
+        INVALID,
+        /** A file could not be read, created or copied. */
+        ERROR,
+        /** Copying failed and the newly created partial file could not be removed. */
+        CLEANUP_FAILED,
     }
 
     data class SlotResult(
         val slot: BiosSlot,
         val outcome: Outcome,
-        /** Name(s) of the loose source file(s) involved, for [Outcome.CREATED] and [Outcome.AMBIGUOUS]. */
+        /** Name(s) of the loose source file(s) involved, including unsuccessful copies. */
         val sourceFileNames: List<String> = emptyList(),
         /** True when a DSi ARM7/ARM9 assignment was made from the file name, not from content. */
         val resolvedByFileNameHint: Boolean = false,
+        /** Actual name of an owned temporary file that the provider refused to remove. */
+        val cleanupFileName: String? = null,
     )
 
-    data class NandResult(val outcome: Outcome, val sourceFileName: String? = null)
+    data class NandResult(val outcome: Outcome, val sourceFileName: String? = null, val cleanupFileName: String? = null)
+
+    private data class CopyResult(val outcome: Outcome, val cleanupFileName: String? = null)
 
     data class Report(
         val dsDirectory: DocumentFile?,
         val dsiDirectory: DocumentFile?,
         val slotResults: List<SlotResult>,
         val nandResult: NandResult,
+        /** Files whose size or firmware header could not be inspected; no slot was assigned. */
+        val unreadableSourceNames: List<String> = emptyList(),
     )
 
     /**
@@ -69,6 +104,7 @@ class BiosGuidedFolderSetup(private val context: Context) {
      * @return null if [parentDirectoryUri] does not resolve to a directory.
      */
     fun run(parentDirectoryUri: Uri): Report? {
+        checkCancellation()
         val parentDir = DocumentFile.fromTreeUri(context, parentDirectoryUri)?.takeIf { it.isDirectory } ?: return null
         return run(parentDir)
     }
@@ -79,25 +115,31 @@ class BiosGuidedFolderSetup(private val context: Context) {
      * [DocumentFile.fromTreeUri]'s dependency on a real Storage Access Framework tree Uri.
      */
     fun run(parentDir: DocumentFile): Report {
+        checkCancellation()
         val dsDir = findChildIgnoringCase(parentDir, DS_FOLDER_NAME)?.takeIf { it.isDirectory } ?: parentDir.createDirectory(DS_FOLDER_NAME)
         val dsiDir = findChildIgnoringCase(parentDir, DSI_FOLDER_NAME)?.takeIf { it.isDirectory } ?: parentDir.createDirectory(DSI_FOLDER_NAME)
 
         val looseFiles = parentDir.listFiles().filter { it.isFile }
 
+        val unreadableSourceNames = mutableListOf<String>()
         val unambiguousMatches = mutableMapOf<BiosSlot, MutableList<DocumentFile>>()
         val dsiBios7Or9Candidates = mutableListOf<DocumentFile>()
         var nandCandidate: DocumentFile? = null
 
         for (file in looseFiles) {
+            checkCancellation()
             if (file.name?.equals(NAND_FILE_NAME, ignoreCase = true) == true) {
                 nandCandidate = file
                 continue
             }
 
-            val size = getFileSize(file) ?: continue
-            val discriminant = if (size in FIRMWARE_SIZES) readFirmwareConsoleTypeByte(file) else null
+            val classification = classifySource(file)
+            if (classification == null) {
+                unreadableSourceNames += file.name ?: file.uri.toString()
+                continue
+            }
 
-            when (val classification = BiosFileClassifier.classify(size, discriminant)) {
+            when (classification) {
                 is BiosFileClassification.Unambiguous -> unambiguousMatches.getOrPut(classification.slot) { mutableListOf() }.add(file)
                 is BiosFileClassification.Ambiguous -> dsiBios7Or9Candidates.add(file)
                 BiosFileClassification.Unrecognized -> Unit
@@ -106,32 +148,50 @@ class BiosGuidedFolderSetup(private val context: Context) {
 
         val slotResults = mutableListOf<SlotResult>()
         for (slot in listOf(BiosSlot.DS_BIOS7, BiosSlot.DS_BIOS9, BiosSlot.DS_FIRMWARE, BiosSlot.DSI_FIRMWARE)) {
+            checkCancellation()
             val destDir = if (slot.consoleType == ConsoleType.DS) dsDir else dsiDir
             slotResults += resolveSingleCandidateSlot(destDir, slot, unambiguousMatches[slot].orEmpty())
         }
         slotResults += resolveDsiBiosPair(dsiDir, dsiBios7Or9Candidates)
 
+        checkCancellation()
         val nandResult = resolveNand(dsiDir, nandCandidate)
+        checkCancellation()
 
-        return Report(dsDir, dsiDir, slotResults, nandResult)
+        return Report(dsDir, dsiDir, slotResults, nandResult, unreadableSourceNames)
+    }
+
+    /** Null means inspection was unavailable, distinct from a readable unrecognized file. */
+    private fun classifySource(file: DocumentFile): BiosFileClassification? {
+        return try {
+            checkCancellation()
+            val size = getFileSize(file) ?: return null
+            val header = if (size in FIRMWARE_SIZES) {
+                readFirmwareConsoleTypeByte(file) ?: return null
+            } else null
+            checkCancellation()
+            BiosFileClassifier.classify(size, header)
+        } catch (e: IOException) {
+            null
+        } catch (e: SecurityException) {
+            null
+        } catch (e: IllegalArgumentException) {
+            null
+        }
     }
 
     private fun resolveSingleCandidateSlot(destDir: DocumentFile?, slot: BiosSlot, candidates: List<DocumentFile>): SlotResult {
         if (destDir == null) {
-            return SlotResult(slot, Outcome.MISSING)
+            return SlotResult(slot, Outcome.ERROR)
         }
-        if (destDir.findFile(slot.canonicalFileName) != null) {
-            return SlotResult(slot, Outcome.ALREADY_PRESENT)
+        destDir.findFile(slot.canonicalFileName)?.let {
+            return SlotResult(slot, validateExistingSlot(it, slot))
         }
         return when (candidates.size) {
             0 -> SlotResult(slot, Outcome.MISSING)
             1 -> {
                 val source = candidates[0]
-                if (copyInto(source, destDir, slot.canonicalFileName)) {
-                    SlotResult(slot, Outcome.CREATED, listOf(source.name.orEmpty()))
-                } else {
-                    SlotResult(slot, Outcome.MISSING)
-                }
+                copySlot(source, destDir, slot)
             }
             else -> SlotResult(slot, Outcome.AMBIGUOUS, candidates.mapNotNull { it.name })
         }
@@ -142,29 +202,25 @@ class BiosGuidedFolderSetup(private val context: Context) {
         val bios9 = BiosSlot.DSI_BIOS9
 
         if (dsiDir == null) {
-            return listOf(SlotResult(bios7, Outcome.MISSING), SlotResult(bios9, Outcome.MISSING))
+            return listOf(SlotResult(bios7, Outcome.ERROR), SlotResult(bios9, Outcome.ERROR))
         }
 
-        val bios7Present = dsiDir.findFile(bios7.canonicalFileName) != null
-        val bios9Present = dsiDir.findFile(bios9.canonicalFileName) != null
-        val missingSlots = listOfNotNull(bios7.takeUnless { bios7Present }, bios9.takeUnless { bios9Present })
-
-        if (missingSlots.isEmpty()) {
-            return listOf(SlotResult(bios7, Outcome.ALREADY_PRESENT), SlotResult(bios9, Outcome.ALREADY_PRESENT))
+        val existingResults = listOf(bios7, bios9).mapNotNull { slot ->
+            dsiDir.findFile(slot.canonicalFileName)?.let { SlotResult(slot, validateExistingSlot(it, slot)) }
         }
+        // Invalid existing files still occupy their names: never overwrite them.
+        val missingSlots = listOf(bios7, bios9).filter { slot -> existingResults.none { it.slot == slot } }
+
+        if (missingSlots.isEmpty()) return existingResults
         if (candidates.isEmpty()) {
-            return missingSlots.map { SlotResult(it, Outcome.MISSING) } + presentSlotResults(bios7Present, bios9Present)
+            return missingSlots.map { SlotResult(it, Outcome.MISSING) } + existingResults
         }
 
         // Exactly one 64 KB candidate and exactly one missing slot: no other file could fill it.
         if (missingSlots.size == 1 && candidates.size == 1) {
             val slot = missingSlots[0]
             val source = candidates[0]
-            val created = copyInto(source, dsiDir, slot.canonicalFileName)
-            val results = mutableListOf<SlotResult>()
-            results += if (created) SlotResult(slot, Outcome.CREATED, listOf(source.name.orEmpty())) else SlotResult(slot, Outcome.MISSING)
-            results += presentSlotResults(bios7Present, bios9Present)
-            return results
+            return listOf(copySlot(source, dsiDir, slot)) + existingResults
         }
 
         // Try a same-console filename hint ("...7..."/"arm7" vs "...9.../arm9") for whatever
@@ -177,18 +233,18 @@ class BiosGuidedFolderSetup(private val context: Context) {
             if (matchingHint.size == 1) {
                 val hinted = matchingHint[0]
                 remainingCandidates.remove(hinted)
-                val created = copyInto(hinted, dsiDir, slot.canonicalFileName)
-                results += if (created) {
-                    SlotResult(slot, Outcome.CREATED, listOf(hinted.name.orEmpty()), resolvedByFileNameHint = true)
-                } else {
-                    SlotResult(slot, Outcome.MISSING)
-                }
+                results += copySlot(hinted, dsiDir, slot, resolvedByFileNameHint = true)
             } else {
                 results += SlotResult(slot, Outcome.AMBIGUOUS, candidates.mapNotNull { it.name })
             }
         }
-        results += presentSlotResults(bios7Present, bios9Present)
+        results += existingResults
         return results
+    }
+
+    private fun copySlot(source: DocumentFile, destDir: DocumentFile, slot: BiosSlot, resolvedByFileNameHint: Boolean = false): SlotResult {
+        val copy = copyInto(source, destDir, slot.canonicalFileName)
+        return SlotResult(slot, copy.outcome, listOf(source.name.orEmpty()), resolvedByFileNameHint, copy.cleanupFileName)
     }
 
     /** True when [file]'s name contains a same-console hint for [hintDigit] ("7" or "9"). */
@@ -202,63 +258,124 @@ class BiosGuidedFolderSetup(private val context: Context) {
         return parent.listFiles().firstOrNull { it.name?.equals(name, ignoreCase = true) == true }
     }
 
-    private fun presentSlotResults(bios7Present: Boolean, bios9Present: Boolean): List<SlotResult> {
-        val results = mutableListOf<SlotResult>()
-        if (bios7Present) results += SlotResult(BiosSlot.DSI_BIOS7, Outcome.ALREADY_PRESENT)
-        if (bios9Present) results += SlotResult(BiosSlot.DSI_BIOS9, Outcome.ALREADY_PRESENT)
-        return results
+    private fun validateExistingSlot(file: DocumentFile, slot: BiosSlot): Outcome {
+        return try {
+            if (!file.isFile) return Outcome.INVALID
+            val size = getFileSize(file) ?: return Outcome.ERROR
+            if (size !in slot.expectedSizeBytes) return Outcome.INVALID
+            if (slot == BiosSlot.DS_FIRMWARE || slot == BiosSlot.DSI_FIRMWARE) {
+                val header = readFirmwareConsoleTypeByte(file) ?: return Outcome.ERROR
+                val classification = BiosFileClassifier.classify(size, header)
+                if (classification !is BiosFileClassification.Unambiguous || classification.slot != slot) {
+                    return Outcome.INVALID
+                }
+            }
+            Outcome.ALREADY_PRESENT
+        } catch (e: IOException) {
+            Outcome.ERROR
+        } catch (e: SecurityException) {
+            Outcome.ERROR
+        } catch (e: IllegalArgumentException) {
+            Outcome.ERROR
+        }
     }
 
     private fun resolveNand(dsiDir: DocumentFile?, candidate: DocumentFile?): NandResult {
-        if (dsiDir == null) {
-            return NandResult(Outcome.MISSING)
-        }
-        if (dsiDir.findFile(NAND_FILE_NAME) != null) {
-            return NandResult(Outcome.ALREADY_PRESENT)
-        }
-        if (candidate == null) {
-            return NandResult(Outcome.MISSING)
-        }
-        return if (copyInto(candidate, dsiDir, NAND_FILE_NAME)) {
-            NandResult(Outcome.CREATED, candidate.name)
-        } else {
-            NandResult(Outcome.MISSING)
+        if (dsiDir == null) return NandResult(Outcome.ERROR)
+        dsiDir.findFile(NAND_FILE_NAME)?.let { return NandResult(validateNand(it)) }
+        if (candidate == null) return NandResult(Outcome.MISSING)
+        val candidateStatus = validateNand(candidate)
+        if (candidateStatus != Outcome.ALREADY_PRESENT) return NandResult(candidateStatus, candidate.name)
+        val copy = copyInto(candidate, dsiDir, NAND_FILE_NAME)
+        return NandResult(copy.outcome, candidate.name, copy.cleanupFileName)
+    }
+
+    /** This only checks accessibility and non-empty storage, not the authenticity of a NAND dump. */
+    private fun validateNand(file: DocumentFile): Outcome {
+        return try {
+            checkCancellation()
+            if (!file.isFile) return Outcome.INVALID
+            context.contentResolver.openInputStream(file.uri)?.use {
+                checkCancellation()
+                val firstByte = it.read()
+                checkCancellation()
+                if (firstByte == -1) Outcome.INVALID else Outcome.ALREADY_PRESENT
+            } ?: Outcome.ERROR
+        } catch (e: IOException) {
+            Outcome.ERROR
+        } catch (e: SecurityException) {
+            Outcome.ERROR
+        } catch (e: IllegalArgumentException) {
+            Outcome.ERROR
         }
     }
 
     /**
-     * Copies [source] into a new file named [destName] under [destDir]. On any failure -- an
-     * I/O error, a permission problem, a coroutine cancellation, anything -- the partially
-     * written destination file is removed rather than left behind at 0 bytes; the source is
-     * never touched either way.
+     * Copy under a unique temporary name and publish only after both streams close. An undeletable
+     * partial therefore cannot be mistaken for a canonical BIOS/NAND file on a later run.
+     * Only this operation's new document is ever cleaned up. SAF has no universal atomic
+     * rename-if-absent; check again immediately before rename and never fall back to direct copying.
+     * Cancellation is observed between provider calls; a blocked read must return before cleanup.
      */
-    private fun copyInto(source: DocumentFile, destDir: DocumentFile, destName: String): Boolean {
-        val dest = destDir.createFile("application/octet-stream", destName) ?: return false
-        var completed = false
+    private fun copyInto(source: DocumentFile, destDir: DocumentFile, destName: String): CopyResult {
+        var dest: DocumentFile? = null
+        var outcome = Outcome.ERROR
+        var temporaryName = "$destName.melonds-${UUID.randomUUID()}.part"
+        var cleanupFileName: String? = null
         try {
-            val input = context.contentResolver.openInputStream(source.uri) ?: return false
+            checkCancellation()
+            if (findChildIgnoringCase(destDir, destName) != null) throw IOException("Destination already exists")
+            while (findChildIgnoringCase(destDir, temporaryName) != null) {
+                checkCancellation()
+                temporaryName = "$destName.melonds-${UUID.randomUUID()}.part"
+            }
+            val createdFile = destDir.createFile("application/octet-stream", temporaryName) ?: return CopyResult(Outcome.ERROR)
+            dest = createdFile
+            checkCancellation()
+            val input = context.contentResolver.openInputStream(source.uri) ?: throw IOException("No input stream")
             input.use { inStream ->
-                val output = context.contentResolver.openOutputStream(dest.uri) ?: return false
+                checkCancellation()
+                val output = context.contentResolver.openOutputStream(createdFile.uri) ?: throw IOException("No output stream")
                 output.use { outStream ->
-                    inStream.copyTo(outStream)
+                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                    while (true) {
+                        checkCancellation()
+                        val count = inStream.read(buffer)
+                        checkCancellation()
+                        if (count < 0) break
+                        outStream.write(buffer, 0, count)
+                    }
                 }
             }
-            completed = true
-            return true
+            checkCancellation()
+            if (findChildIgnoringCase(destDir, destName) != null) throw IOException("Destination appeared during copying")
+            if (!createdFile.renameTo(destName)) throw IOException("Provider could not publish the completed copy")
+            if (createdFile.name != destName) throw IOException("Provider returned a different destination name")
+            checkCancellation()
+            outcome = Outcome.CREATED
         } catch (e: IOException) {
-            return false
+            // Cancellation still takes precedence if the provider failed while the view closed.
+            checkCancellation()
         } catch (e: SecurityException) {
-            return false
+            checkCancellation()
         } catch (e: IllegalArgumentException) {
-            return false
+            checkCancellation()
         } finally {
-            // Covers the exceptions caught above as well as an uncaught cancellation (e.g. the
-            // fragment was destroyed mid-copy): whatever the reason copying didn't finish, no
-            // partial file is left behind.
-            if (!completed) {
-                dest.delete()
+            if (outcome != Outcome.CREATED && dest != null) {
+                val deleted = try {
+                    dest.delete()
+                } catch (e: SecurityException) {
+                    false
+                } catch (e: IllegalArgumentException) {
+                    false
+                }
+                if (!deleted) {
+                    outcome = Outcome.CLEANUP_FAILED
+                    cleanupFileName = dest.name ?: temporaryName
+                }
             }
         }
+        return CopyResult(outcome, cleanupFileName)
     }
 
     private fun getFileSize(file: DocumentFile): Long? {
@@ -280,7 +397,7 @@ class BiosGuidedFolderSetup(private val context: Context) {
             context.contentResolver.openInputStream(file.uri)?.use { stream ->
                 var skipped = 0L
                 while (skipped < FirmwareConsoleType.HEADER_OFFSET) {
-                    val n = stream.skip((FirmwareConsoleType.HEADER_OFFSET - skipped).toLong())
+                    val n = stream.skip(FirmwareConsoleType.HEADER_OFFSET - skipped)
                     if (n <= 0) return null
                     skipped += n
                 }
@@ -293,6 +410,8 @@ class BiosGuidedFolderSetup(private val context: Context) {
     }
 
     companion object {
+        private val operationMutex = Mutex()
+
         const val DS_FOLDER_NAME = "DS"
         const val DSI_FOLDER_NAME = "DSi"
         const val NAND_FILE_NAME = "nand.bin"

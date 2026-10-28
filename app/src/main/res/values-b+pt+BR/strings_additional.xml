@@ -40,6 +40,12 @@
     <string name="bios_guided_setup_failed">O item selecionado não é uma pasta</string>
     <string name="bios_guided_setup_in_progress">Configurando as pastas de BIOS…</string>
     <string name="bios_guided_setup_missing">%1$s %2$s: ainda ausente, nenhum arquivo correspondente foi encontrado</string>
+    <string name="bios_guided_setup_invalid">%1$s %2$s: arquivo inválido; mantido sem alterações. Verifique-o antes de executar a configuração novamente.</string>
+    <string name="bios_guided_setup_copy_error">%1$s %2$s: não foi possível ler ou copiar. Verifique as permissões de acesso à pasta e o espaço livre, depois tente novamente.</string>
+    <string name="bios_guided_setup_cleanup_failed">%1$s %2$s: a cópia falhou. Não foi possível remover \"%3$s\". Remova essa cópia incompleta antes de tentar novamente.</string>
+    <string name="bios_guided_setup_directory_selected">pasta selecionada</string>
+    <string name="bios_guided_setup_directory_unchanged">pasta nas configurações inalterada; configuração incompleta ou não foi possível validá-la</string>
+    <string name="bios_guided_setup_unreadable_sources">Não foi possível verificar o tamanho ou o cabeçalho do firmware destes arquivos: %1$s. Verifique as permissões de acesso à pasta e tente novamente.</string>
     <string name="bios_guided_setup_result_title">Resultado da configuração guiada de BIOS</string>
     <string name="bios_guided_setup_summary">Selecione uma pasta com seus arquivos de BIOS e firmware, mesmo com outros nomes ou misturados, e as pastas do DS e DSi serão criadas e preenchidas automaticamente</string>
     <string name="bios_guided_setup_title">Configuração guiada de BIOS</string>

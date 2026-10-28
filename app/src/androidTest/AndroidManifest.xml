@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Test APK only. A separate process forces the actual Binder signal/FD path. -->
+        <provider
+            android:name="me.magnum.melonds.common.workers.CheatImportTestProvider"
+            android:authorities="${applicationId}.cheat-import-fixture"
+            android:exported="true"
+            android:process=":cheat_import_fixture" />
+        <provider
+            android:name="me.magnum.melonds.common.BiosGuidedSetupTestProvider"
+            android:authorities="${applicationId}.bios-guided-fixture"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:permission="android.permission.MANAGE_DOCUMENTS"
+            android:process=":bios_guided_fixture" />
+        <!-- Test-only bootstrap: grants this provider's URI to its fixed target app. -->
+        <receiver
+            android:name="me.magnum.melonds.common.BiosGuidedSetupTestProvider$GrantReceiver"
+            android:exported="true"
+            android:process=":bios_guided_fixture" />
+    </application>
+</manifest>

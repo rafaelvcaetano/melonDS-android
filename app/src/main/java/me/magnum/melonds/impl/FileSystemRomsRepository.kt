@@ -2,12 +2,14 @@ package me.magnum.melonds.impl
 
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -19,6 +21,8 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.domain.model.RomScanningStatus
@@ -55,6 +59,7 @@ class FileSystemRomsRepository(
     private val romListType: Type = object : TypeToken<List<RomDto>>(){}.type
     private val romsChannel = SubjectSharedFlow<List<Rom>>()
     private val scanningStatus = MutableStateFlow(RomScanningStatus.NOT_SCANNING)
+    private val scanMutex = Mutex()
     private val roms: ArrayList<Rom> = ArrayList()
     private var areRomsLoaded = AtomicBoolean(false)
 
@@ -86,7 +91,7 @@ class FileSystemRomsRepository(
     override fun getRoms(): Flow<List<Rom>> = flow {
         if (areRomsLoaded.compareAndSet(false, true)) {
             coroutineScope.launch(fileAccessDispatcher) {
-                loadCachedRoms()
+                scanRoms(loadCache = true)
             }
         }
         emitAll(romsChannel)
@@ -161,50 +166,49 @@ class FileSystemRomsRepository(
     }
 
     override fun updateRomConfig(rom: Rom, romConfig: RomConfig) {
-        val romIndex = roms.indexOfFirst { it.hasSameFileAsRom(rom) }
-        if (romIndex < 0)
-            return
+        synchronized(roms) {
+            val romIndex = roms.indexOfFirst { it.hasSameFileAsRom(rom) }
+            if (romIndex < 0)
+                return
 
-        roms[romIndex].config = romConfig
-        onRomsChanged()
+            roms[romIndex] = roms[romIndex].copy(config = romConfig)
+            onRomsChanged()
+        }
     }
 
     override fun setRomLastPlayed(rom: Rom, lastPlayed: Date) {
-        val romIndex = roms.indexOfFirst { it.hasSameFileAsRom(rom) }
-        if (romIndex < 0)
-            return
+        synchronized(roms) {
+            val romIndex = roms.indexOfFirst { it.hasSameFileAsRom(rom) }
+            if (romIndex < 0)
+                return
 
-        rom.lastPlayed = lastPlayed
-        roms[romIndex] = rom
-        onRomsChanged()
+            roms[romIndex] = roms[romIndex].copy(lastPlayed = lastPlayed)
+            onRomsChanged()
+        }
     }
 
     override fun addRomPlayTime(rom: Rom, playTime: Duration) {
-        val romIndex = roms.indexOfFirst { it.hasSameFileAsRom(rom) }
-        if (romIndex < 0)
-            return
+        synchronized(roms) {
+            val romIndex = roms.indexOfFirst { it.hasSameFileAsRom(rom) }
+            if (romIndex < 0)
+                return
 
-        val romInList = roms[romIndex]
-        val updatedRom = romInList.copy(totalPlayTime = romInList.totalPlayTime + playTime)
-        roms[romIndex] = updatedRom
-        onRomsChanged()
+            val romInList = roms[romIndex]
+            val updatedRom = romInList.copy(totalPlayTime = romInList.totalPlayTime + playTime)
+            roms[romIndex] = updatedRom
+            onRomsChanged()
+        }
     }
 
     override fun rescanRoms() {
         coroutineScope.launch(fileAccessDispatcher) {
-            scanningStatus.value = RomScanningStatus.SCANNING
-
-            scanForNewRoms().collect {
-                addRom(it)
-            }
-
-            scanningStatus.value = RomScanningStatus.NOT_SCANNING
+            scanRoms()
         }
     }
 
     override fun invalidateRoms() {
         if (areRomsLoaded.compareAndSet(true, false)) {
-            roms.clear()
+            synchronized(roms) { roms.clear() }
         }
 
         val cacheFile = File(context.filesDir, ROM_DATA_FILE)
@@ -214,57 +218,87 @@ class FileSystemRomsRepository(
     }
 
     private fun addRom(rom: Rom) {
-        val existingRom = roms.find { it.hasSameFileAsRom(rom) }
-        if (existingRom == rom) {
-            return
-        }
+        synchronized(roms) {
+            val existingRom = roms.find { it.hasSameFileAsRom(rom) }
+            if (existingRom == rom) {
+                return
+            }
 
-        if (existingRom != null) {
-            // ROM has different metadata. Update it
-            val updatedRom = existingRom.copy(
-                name = rom.name,
-                developerName = rom.developerName,
-                isDsiWareTitle = rom.isDsiWareTitle,
-                retroAchievementsHash = rom.retroAchievementsHash,
-            )
-            roms.remove(existingRom)
-            roms.add(updatedRom)
-        } else {
-            roms.add(rom)
-        }
+            if (existingRom != null) {
+                // ROM has different metadata. Update it
+                val updatedRom = existingRom.copy(
+                    name = rom.name,
+                    developerName = rom.developerName,
+                    isDsiWareTitle = rom.isDsiWareTitle,
+                    retroAchievementsHash = rom.retroAchievementsHash,
+                )
+                roms.remove(existingRom)
+                roms.add(updatedRom)
+            } else {
+                roms.add(rom)
+            }
 
-        onRomsChanged()
-    }
-
-    private fun removeRom(rom: Rom, notifyChanged: Boolean = true) {
-        if (roms.removeAll { it.hasSameFileAsRom(rom) } && notifyChanged) {
             onRomsChanged()
         }
     }
 
+    private fun removeRom(rom: Rom, notifyChanged: Boolean = true) {
+        synchronized(roms) {
+            if (roms.removeAll { it.hasSameFileAsRom(rom) } && notifyChanged) {
+                onRomsChanged()
+            }
+        }
+    }
+
     private fun removeAllRoms() {
-        roms.clear()
-        onRomsChanged()
+        synchronized(roms) {
+            roms.clear()
+            onRomsChanged()
+        }
     }
 
     private fun onRomsChanged() {
-        romsChannel.tryEmit(roms)
+        // Callers hold the list lock; later repository changes must not mutate this emission.
+        romsChannel.tryEmit(roms.toList())
     }
 
-    private suspend fun loadCachedRoms() {
-        scanningStatus.value = RomScanningStatus.SCANNING
-
-        val cachedRoms = getCachedRoms().filter {
-            DocumentFile.fromSingleUri(context, it.uri)?.exists() == true
+    private suspend fun scanRoms(loadCache: Boolean = false) {
+        // The file dispatcher may run multiple tasks or suspend: scan status has one owner at a time.
+        scanMutex.withLock {
+            scanningStatus.value = RomScanningStatus.SCANNING
+            try {
+                if (loadCache) {
+                    val cachedRoms = getCachedRoms().filter { cachedRomStillExists(it.uri) }
+                    synchronized(roms) {
+                        roms.addAll(cachedRoms)
+                        onRomsChanged()
+                    }
+                }
+                scanForNewRoms().collect { addRom(it) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Keep the cache and the repository scope usable for the next refresh.
+                Log.e(TAG, "Failed to scan ROMs", e)
+            } finally {
+                scanningStatus.value = RomScanningStatus.NOT_SCANNING
+            }
         }
+    }
 
-        roms.addAll(cachedRoms)
-        onRomsChanged()
-        scanForNewRoms().collect {
-            addRom(it)
+    private fun cachedRomStillExists(uri: Uri): Boolean {
+        if (uri.scheme != "content") {
+            return DocumentFile.fromSingleUri(context, uri)?.exists() == true
         }
-
-        scanningStatus.value = RomScanningStatus.NOT_SCANNING
+        // DocumentFile.exists() conflates a deleted document with a denied or unavailable provider.
+        // Only a successful empty query proves deletion; unknown access must preserve user metadata.
+        return try {
+            context.contentResolver.query(uri, arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID), null, null, null)
+                ?.use { it.count > 0 } ?: true
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not check cached ROM; retaining metadata for retry", e)
+            true
+        }
     }
 
     private fun scanForNewRoms(): Flow<Rom> = flow {
@@ -297,8 +331,8 @@ class FileSystemRomsRepository(
         }
 
         return runCatching {
-            gson.fromJson<List<RomDto>>(FileReader(cacheFile), romListType).map {
-                it.toModel()
+            FileReader(cacheFile).use { reader ->
+                gson.fromJson<List<RomDto>>(reader, romListType).map { it.toModel() }
             }
         }.getOrElse { emptyList() }
     }
