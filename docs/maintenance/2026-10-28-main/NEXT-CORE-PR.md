@@ -1,42 +1,71 @@
 # Unpublished core PR draft
 
-**Publication blocked by the user pending coordinated debugging review.**
+**Local draft. Publication requires the maintainer's explicit authorization.**
 
-Source: `Umberto-DEV:main` → target: `rafaelvcaetano/melonDS-android-lib:master`.
+Source: `Umberto-DEV/melonDS-android-lib:main` →
+`rafaelvcaetano/melonDS-android-lib:master`.
+Verified core: `fd7582400bb7e35fe0d36dbb0c89b6766c1a8f2e`.
+Refresh source/target revisions and insert the paired app/CI links before publication.
 
-Title: Fix DS/DSi compatibility, Wi-Fi power saving and JIT invalidation
+Title: Fix JIT invalidation and memory mappings, DS/DSi registers and Wi-Fi power saving
 
-This fixes DS/DSi register handling, Wi-Fi power saving and JIT literal invalidation, and avoids redundant renderer work.
+This corrects shared-core register, JIT and Wi-Fi behavior while retaining normal
+resolver behavior and avoiding work for inactive renderer paths. Android frontend
+BIOS/import/microphone/UI fixes and failed-renderer type handling belong to the
+companion app proposal; the later refinement leaves this core revision unchanged.
 
-- **DS/DSi compatibility:** apply the appropriate SCFG register initialization and access restrictions when running DS software in DSi mode.
-- **Wi-Fi:** automatically power down the transceiver only when automatic power-saving mode is selected. Disabled power saving must not leave the radio off after the beacon countdown.
-- **JIT:** fold literals only when their memory is tracked for invalidation, and use the actual write mask when invalidating a block. Both ARM64 and x86_64 backends check whether a literal was registered.
-- **JIT teardown:** release fast-memory mappings while ARM9 is still alive. Strict Linux UBSan exposed a read of ARM9's DTCM configuration after its destruction; backing memory remains owned by the JIT until all other components have been destroyed.
-- **JIT fast memory on Android:** bound DTCM mappings to their configured windows and physical offsets, keep map/unmap symmetric, and invalidate the old RAM mapping when DTCM moves. This fixes RAM/DTCM aliasing reproduced on Android ARM64; sub-page windows retain the slow fallback.
-- **Rendering:** skip unchanged compute-renderer configuration and stop generating/uploading edge data or compiling shaders for the inactive edge pass.
-- **Optional networking API:** let a frontend provide hostname-to-IPv4 answers to the built-in DNS responder. The table is empty by default; ordinary resolver behavior is preserved.
+## Changes and before/after behavior
 
-### Integration
+| Area | Previous behavior | Result |
+| --- | --- | --- |
+| DS/DSi SCFG | Register initialization/access did not consistently follow the cartridge's console mode | Apply the corresponding DS/DSi initialization and access restrictions. |
+| Wi-Fi power saving | Beacon countdown could power down the radio when automatic saving was disabled | Power down only when automatic power-saving mode is selected. |
+| JIT literal handling | Untracked literals could be folded/registered and invalidation used an inappropriate mask | Fold only tracked literals on ARM64/x86_64 and use the actual write mask. |
+| JIT destruction | Fast-memory teardown read ARM9 configuration after ARM9 destruction | Release mappings while ARM9 is still alive; keep backing memory through component teardown. |
+| DTCM fast memory | RAM writes could alias DTCM and remapping could assert | Bound mappings to configured windows and physical offsets; symmetric map/unmap and invalidation of the old interval. Sub-page windows retain slow fallback. |
+| Compute setup/edge work | Unchanged configuration and inactive edge pass still caused work | Skip unchanged configuration and avoid inactive edge data/upload/shader work. Remove a misleading cache-rejection diagnostic. |
+| Optional DNS overrides | Frontend could not supply hostname answers to the built-in responder | Optional name→IPv4 table, empty by default; case/trailing-dot normalization and A-query behavior covered by packet tests. |
 
-The replacement Android proposal will originate from `Umberto-DEV/melonDS-android:main`; insert its URL only after publication is authorized. Merge the core first, then update the app gitlink and submodule URL to the accepted upstream revision. The WFC settings screen edits firmware DNS settings and does not depend on the optional hostname API.
+WFC firmware settings in the app are independent of the optional DNS override API.
+Do not describe this table as a multiplayer compatibility fix.
 
-Earlier paired proposals, closed during branch consolidation: Android #1682 (https://github.com/rafaelvcaetano/melonDS-android/pull/1682) and core #19. Their descriptions and source histories have been preserved.
+## Evidence and limits
 
-### Validation and limits
+- The teardown defect was reproduced under strict UBSan. Its cause corresponds to
+  [melonDS-emu/melonDS#2537](https://github.com/melonDS-emu/melonDS/issues/2537),
+  reported by maximxlss and analyzed by RSDuck. The local implementation is not a
+  copied upstream patch; the upstream issue remains open and is not automatically
+  closed by a PR in this repository.
+- Android ARM64 DTCM regressions isolate the alias using separate fast-memory and
+  literal controls plus physical sentinels. Coverage includes 4/8/16/32 KiB windows,
+  both 32 KiB mirrors and movement of the configured base. The corrected executable
+  passes on Android 13/4KiB and Android 15/4KiB/16KiB in the paired campaign.
+- Host JIT sanitizer and DNS packet checks are supporting evidence. The native
+  core is real, but synthetic cartridge/frontend adapters are explicit. Linux
+  x86_64 execution is not Android x86_64 execution; DNS checks are functional,
+  and host leak detection is disabled in the retained harness.
+- The previous exact-core CI run is [40696625134](https://github.com/Umberto-DEV/melonDS-android-lib/actions/runs/40696625134).
+  Insert current paired CI links before publication. The app's 267 JVM/52 ART tests
+  describe companion validation, not 267 tests of this core alone.
+- No physical Thor acceptance, all-game JIT compatibility, lower energy use,
+  faster renderer or better 6x image quality is inferred. Android game reports
+  #579/#751 need their own scenarios. The current 2D-upscaling and GPU-visibility
+  research is not included as an implemented optimization.
 
-- Consolidation retains both local and previously published histories from the earlier `f950b5e6` proposal. Additional corrections cover teardown and DTCM mapping. Teardown matches the earlier report by maximxlss in [melonDS-emu/melonDS#2537](https://github.com/melonDS-emu/melonDS/issues/2537) and RSDuck's analysis; the local fix is not a copied upstream patch. No equivalent ready-made DTCM patch was found in the targeted search.
-- Strict UBSan regressions pass on Android 15 ARM64 with 4-KiB and 16-KiB pages. The failed baseline and sentinel check isolate the RAM alias from literal folding; tests include remapping and both halves of a 32-KiB configured window. These use a synthetic cartridge, with frontend services stubbed.
-- Companion app validation:267 JVM tests, ARM64 debug APK build and zero lint errors (474 warnings). Host sanitizer checks cover synthetic JIT invalidation; companion DNS and JNI tests cover packet behavior and reference lifetimes.
-- **Insert final reviewed commit and successful paired CI links after the coordinated audit.** The original 180-test run remains historical evidence, not verification of the updated app.
-- Game-specific Android JIT/interpreter comparisons and physical-device acceptance remain pending. Core host leak detection is disabled. Synthetic checks do not establish that Android issues #579/#751 or every ROM hack are fixed.
-- A prior paired Android build received five weeks of user testing on an AYN Thor. New Android corrections still require Thor acceptance testing.
+[Paired integration report and before/after ledger](../2026-10-28-refinement/INTEGRATION-REPORT.md).
 
-Supersedes #19 and the earlier #18. New PR publication remains blocked until the coordinated review is complete and the user authorizes it.
+## Integration and provenance
 
-The subsequent Android bug-remediation campaign leaves this core revision unchanged. See [Android corrections and evidence](../2026-10-28-android-bugfixes/REPORT.md); no new core/ROM compatibility claim follows from the app fixes.
+Companion Android proposal: insert URL only after explicit publication authorization;
+source `Umberto-DEV/melonDS-android:main`, target upstream `master`.
+Merge this core first. If acceptance changes the revision, update the app's gitlink
+and submodule URL and rerun relevant checks before merging the app.
 
-The later [Android refinement campaign](../2026-10-28-refinement/STATUS.md) also
-leaves this core revision unchanged. Renderer factory-failure handling is fixed
-in the Android frontend; GPU visibility and texture-reuse research has not been
-applied as a core optimization. The linked report records the newer Android
-runtime coverage and retains separate physical-device/performance gates.
+Preserve existing source attribution and the histories consolidated from the
+previous proposal. This supersedes closed, unmerged lib #19/#18; it does not
+represent their prior acceptance upstream. Original descriptions remain archived.
+The larger audio buffer in lib #17 and the separate enable-tag/firmware-path
+proposals lib #1/#3 have not been imported by this refinement.
+
+Publication remains blocked until the maintainer authorizes it. No new PR,
+branch, remote rewrite or automatic issue closure is performed by this draft.

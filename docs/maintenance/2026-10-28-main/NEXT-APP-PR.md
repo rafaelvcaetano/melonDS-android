@@ -1,92 +1,131 @@
 # Unpublished Android PR draft
 
-**Publication blocked by the user pending coordinated debugging review.**
+**Local draft. Publication requires the maintainer's explicit authorization.**
 
-Source: `Umberto-DEV:main` → target: `rafaelvcaetano/melonDS-android:master`.
+Source: `Umberto-DEV/melonDS-android:main` →
+`rafaelvcaetano/melonDS-android:master`.
+Functional candidate: `89053f0fd96ef2bc616849deb15900e1d6b09f43`;
+core: `fd7582400bb7e35fe0d36dbb0c89b6766c1a8f2e`.
+Refresh source/target revisions and insert CI and companion-PR links before publication.
 
-Title: Add Wi-Fi settings and cheat search, improve stability and fix Android CI
+Title: Add Wi-Fi settings and safer BIOS and cheat workflows, fix Android stability
 
-This adds Wi-Fi connection settings, searchable cheat selectors and reliability improvements for saves, audio and controls. It also fixes the GitHub Actions setup failure that prevented the previous submission from reaching compilation.
+This adds firmware Wi-Fi configuration, settings backup and searchable cheat
+selectors, and fixes Android paths that could lose imported data, retain blocked
+work or use an incompatible renderer after GPU initialization failed. Existing
+save formats and default optional settings remain unchanged.
 
-### User-facing changes
+## User-facing changes
 
-- **Wi-Fi connections:** configure three WFC slots and primary/secondary DNS addresses in Settings, and enable or disable slots from the pause menu. DSi edits persist both basic and extended connection blocks.
-- **Setup and preferences:** guided BIOS/firmware setup, settings/layout backup and restore, and optional forward-only clock synchronization.
-- **Controls and cheats:** hold-to-fast-forward, combination hotkeys, optional fast-forward muting and grouped cheat selectors. Interrupted touches and lost controller focus release held inputs.
-- **Cheat search:** search folders, individual cheats and generated selector options. Matching text is highlighted; selecting a result opens the matching row or selector without enabling it. Results use lazy scrolling, and the query survives navigation and loading/restoration transitions.
-- **Reliability:** improve save-write failure handling, audio restoration after resume, ROM icon loading and bounded 7z decoding memory. Also fixes LCD/scanline alignment, XML cheat import and temporary JNI references while listing DSiWare titles.
+- Configure three WFC slots and primary/secondary DNS in Settings; toggle slots
+  from the pause menu. DS/DSi firmware checksums and connection blocks are handled
+  by the existing configuration flow. This does not promise server availability.
+- Export/restore settings and layouts. Guided BIOS setup recognizes candidates,
+  reports DS/DSi results separately and changes preferences only after actual
+  validation. Copies use unique staging documents and publish after both streams
+  close; failed cleanup names the remaining temporary file and permits a full retry.
+- Search cheat folders, codes and generated selector options; highlight matches,
+  preserve the query and navigate without enabling the result. Recognized modifier
+  families expose searchable species/level/nature/starter choices and exclusions.
+- Keep selector colors within the existing theme, provide 48dp targets and one
+  radio action, and retain a usable editor with large text and the real keyboard.
+  Keyboard Done dismisses editing without enabling a cheat. System icons follow
+  the dialog surface in both themes.
+- Add hold-to-fast-forward, combination hotkeys, optional fast-forward muting and
+  optional forward-only clock synchronization. Preserve the ordinary toggle and
+  keep clock synchronization disabled by default.
 
-### Additional verified corrections
+## Data integrity and lifecycle fixes
 
-- Preserve the lid-close pause deadline across Activity stop, stop rendering while hidden, and consume pending pauses before destruction. This is a narrow fix reviewed alongside #1657; the larger focus/rendering rewrite is not included.
-- Own emulator session coroutines from initialization and cancel work from previous sessions.
-- Clear old FPS positioning constraints when moving the counter.
-- Collect cheat-import progress once per fragment lifecycle and register update broadcasts through AndroidX compatibility APIs.
-- Complete the missing translations in the seven supported locales, repair Spanish time formatting and Russian plurals, and expose the Scanlines filter in every locale.
-- Include the standard memory header directly in SaveManager, so standalone Linux builds do not depend on incidental standard-library includes.
+| Trigger | Previous behavior | Result |
+| --- | --- | --- |
+| Malformed/cancelled XML or DAT import | Existing database could be deleted, or blocking I/O could retain work | One Room replacement transaction, bounded parser buffering, owned input closure, provider-open cancellation and a subsequent import that succeeds. |
+| Slow/cancelled BIOS setup followed by another setup | A partial canonical file could be adopted as valid | Serialized setup, noncanonical staging, validation before preferences, explicit source/read/rename/cleanup errors. |
+| Microphone source change or concurrent teardown | Out-of-range PCM, stale buffer cursor or stream/state races | Saturating PCM, per-session cursor and serialized control ownership, without adding a blocking mutex to the realtime callback. |
+| ROM scan error or overlapping refresh | Spinner could remain active; old list values could change | Serialized scans, finally reset, stable snapshots and cache preservation when provider lookup fails. Sorting persists the new value. |
+| Accelerated renderer factory fails | Core installs Software while frontend performs an accelerated downcast | Frontend tracks Software, continues frames/screenshots and preserves the requested renderer preference. |
+| Invalid NAND/BIOS/TMD or fragmented metadata read | Invalid input could appear successful or leave incorrect cleanup | Length/identity checks, complete 520-byte TMD read or EOF, correct cleanup arguments. |
+| Display reconnect/rotation or pointer changes | Missing screen/layout or stale touch coordinates | Verified layout transitions and MotionEvent handling, preserving intentionally hidden screens. |
 
-### Android bug remediation after consolidation
+Also retains safer save-write error/retry handling, output-audio open/resume
+checks, input release on cancellation/focus loss, session coroutine ownership,
+lid-pause deadlines across stop, FPS constraint cleanup, independent ROM icons,
+bounded/serialized 7z decoding, correct XML buffer offsets, LCD/scanline alignment
+and bounded JNI local references while listing DSiWare titles.
 
-- Saturate amplified microphone PCM and keep each capture ring's read cursor with its own session.
-- Reject missing/truncated NAND/BIOS input, short or mismatched title metadata, and correctly clean up failed title imports. Read complete520-byte network TMD responses or report EOF.
-- Restore both DS screens after external-display disconnect and preserve compatible custom layouts across reconnect plus rotated insets.
-- Update resistive-screen coordinates on stationary pointer additions/removals without duplicate press/release events.
-- Parse fragmented DAT input, reject truncated/invalid game offsets, and propagate cancellation through all parser workers. Replace XML/DAT cheat databases in one Room transaction, retaining existing/custom data on parse, write or cancellation failure with bounded buffering.
+## CI and resources
 
-These are independently reproduced component fixes, **not claims that all related game/device reports are solved**. See [source-linked correction and category ledger](../2026-10-28-android-bugfixes/REPORT.md), [PR decisions](../2026-10-28-android-bugfixes/PR-REVIEW.md) and [verification boundaries](../2026-10-28-android-bugfixes/VALIDATION.md). The gain-slider request#1679, DSi quota/HOME reports#1651/#1099, physical Thor offsets and game-specific cheat crashes remain partial/open. Original contributor credits below are unchanged; these additional fixes were developed locally.
+Request `platform-tools`, use supported Node24 workflow actions, verify forks/PRs
+with read-only permissions and no release secrets, retain upstream-only Nightly
+publication, and upload the actual verification APK. Remove the invalid NDK
+output reference and apply the manual Play Store actor restriction at job level.
+Complete missing locale strings, time/plural formatting and Scanlines labels.
 
-### Refinement after the coordinated audit
+## Provenance and issue scope
 
-- Cancel blocked cheat imports through owned streams and provider cancellation, preserving exact Room contents and allowing the next unique KEEP import. Real WorkManager tests include notification removal and retry.
-- Serialize microphone control and teardown without adding a blocking mutex to the realtime callback; retain source selection and sample-gain behavior.
-- Recover ROM scanning after exceptions, serialize overlapping refreshes, emit stable snapshots and persist the newly selected sorting order.
-- Validate guided DS/DSi setup before replacing preferences. Copy through unique temporary documents, close both streams before rename, preserve existing files, and report unreadable sources or failed cleanup with a useful retry action.
-- Keep cheat search and selectors within the existing melonDS theme, with 48dp targets, one radio action, large-text layouts and a usable IME flow. Keyboard Done dismisses editing without enabling a cheat.
-- Handle a failed Compute/OpenGL factory as Software throughout the frontend, avoiding an incompatible downcast while preserving the requested renderer preference. Actual GLES shader rejection and continuing software frames are covered on Android13.
+Search is adapted from [#1677](https://github.com/rafaelvcaetano/melonDS-android/pull/1677)
+by [takanuva15](https://github.com/takanuva15), extended to generated options and
+precise navigation. Preserve original contributor credits for WailAbou
+[#1606](https://github.com/rafaelvcaetano/melonDS-android/pull/1606)/
+[#1608](https://github.com/rafaelvcaetano/melonDS-android/pull/1608), dysprosium
+[#1625](https://github.com/rafaelvcaetano/melonDS-android/pull/1625), N3MI-DG
+[#1648](https://github.com/rafaelvcaetano/melonDS-android/pull/1648), DLCSharp
+[#1589](https://github.com/rafaelvcaetano/melonDS-android/pull/1589), and corigne
+for selected parts of [#1666](https://github.com/rafaelvcaetano/melonDS-android/pull/1666).
+The full process-death recovery rewrite is not claimed integrated.
 
-[Refinement report and verification boundaries](../2026-10-28-refinement/STATUS.md).
-These corrections do not claim faster normal startup, lower energy use, better
-6x image quality or physical Thor acceptance. No additional core revision is
-introduced by this campaign.
+Fixes #1678: the reported JNI local-reference lifetime defect.
 
-### Actions correction
+Implements settings/layout backup requested in #264. Resource coverage addresses
+#1253; linguistic quality is not certified by lint. DAT support requested in
+#1631 already existed upstream; this proposal hardens parsing and import integrity.
+Audio #1644/#1635, RTC #1652/#1604, 7z/library #1519/#1378, microphone #1679/#1285,
+DSi #1651/#1099 and external-display #1663/#1641/#1619 remain partial outside
+the demonstrated contracts. Optional mute is a workaround for #1602.
 
-- Explicitly request `platform-tools` instead of the unavailable SDK package `tools`.
-- Update checkout, Java setup, Android setup and artifact upload to supported Node 24 versions across the Android workflows.
-- Run unit tests and an ARM64 debug APK build for forks and pull requests with read-only repository permissions and no release-signing secrets.
-- Restrict signed Nightly publication to upstream `master`; upload verification APKs from their actual build output path.
-- Remove the nonexistent `setup-ndk` output reference and place the manual Play Store actor restriction on the job, where GitHub evaluates it.
+Do not add blanket closing keywords for those reports or claim that older closed
+issues #1367/#961/#1626 were closed by this work. Adapted third-party PRs remain
+separate upstream submissions. See the [integration and before/after report](../2026-10-28-refinement/INTEGRATION-REPORT.md)
+and [per-item coverage](../2026-10-28-refinement/ISSUE-PR-COVERAGE.csv).
 
-### Credits and issue coverage
+## Validation
 
-The search UI is adapted from [#1677](https://github.com/rafaelvcaetano/melonDS-android/pull/1677) by [takanuva15](https://github.com/takanuva15), whose coauthor credit is preserved. This extends that work to grouped/generated options and precise navigation. Also includes adaptations of #1606/#1608 (WailAbou), #1625 (dysprosium), #1648 (N3MI-DG), #1589 (DLCSharp), and selected side fixes from #1666 (corigne).
+- 267 JVM/Robolectric tests, zero failures/errors/skips; includes BIOS integration,
+  search/navigation, scan, import and input regressions.
+- ARM64 debug app and test APK build; lint 0 errors, 474 warnings.
+- 52 ART/JNI passes plus 3 opt-in skips per environment: Android 13 ARM64/4KiB,
+  Android 15 ARM64/4KiB and Android 15 ARM64/16KiB.
+- Separate real WorkManager test passes on all three: duplicate KEEP suppressed,
+  cancellation reaches the provider, foreground notification removed, database
+  unchanged and the next KEEP request succeeds.
+- Six native Android targets pass on all three; host TSan/ASan/UBSan checks are
+  reported separately. Renderer factory-boundary regressions have seven failing
+  baseline scenarios and ten passing corrected scenarios.
+- Actual Android GLES3.1 compiler failure is exercised through the complete app
+  with original generated homebrew. Software control, Compute and OpenGL requests
+  each show advancing frames, presentation and unchanged preferences after fallback.
+- Native visual inspection covers light/dark, IT/EN, large text and actual IME/Done.
+  Independent review of the frozen diff and final deltas has no open findings.
 
-- Fixes #1678: temporary JNI references accumulating while listing DSiWare titles.
-- Implements the settings/layout backup and restore requested in #264.
-- Partially addresses audio resume (#1644/#1635), clock drift (#1652/#1604), and 7z scanning crashes (#1519/#1378). Optional fast-forward muting is a workaround for #1602; remaining device-specific symptoms and audible distortion are not claimed fixed.
+The functional candidate APK SHA256 is
+`72c3e4363f74da95e9e02df44fa3cba523ddf51ca2216e6992d220682926ec1b`.
+[Commands, build identity and boundaries](../2026-10-28-refinement/VALIDATION.md).
+Insert successful CI links for the actual submitted source; earlier CI does not
+verify a newer commit. This candidate has not been installed on the physical Thor.
 
-### Core dependency
+The previous app/core pair had a narrow real-game raw-save/SAF/cold-restart check;
+it is historical integration evidence. No universal game compatibility, faster
+normal startup, reduced power/RAM/GPU cost or improved 6x quality is claimed.
+Physical microphone/controllers/displays, manual TalkBack and full Android
+Activity rotation with a slow external provider remain separate acceptance gates.
 
-The replacement core proposal will originate from `Umberto-DEV/melonDS-android-lib:main`; insert its URL after publication is authorized. The app pins core `fd7582400bb7e35fe0d36dbb0c89b6766c1a8f2e`, which preserves the earlier proposal and additionally fixes JIT teardown and DTCM fast-memory aliasing reproduced on Android ARM64. The teardown corresponds to [melonDS-emu/melonDS#2537](https://github.com/melonDS-emu/melonDS/issues/2537). Review the pair together; merge the core first and update the app gitlink and submodule URL to the accepted upstream revision before upstream integration. WFC firmware editing does not require the optional hostname-override API.
+## Paired integration
 
-Previous core proposal, now closed during branch consolidation: https://github.com/rafaelvcaetano/melonDS-android-lib/pull/19.
+Companion core proposal: insert URL only after publication authorization.
+Source is `Umberto-DEV/melonDS-android-lib:main`. Merge core first, then point the
+app gitlink/submodule URL to the accepted revision and repeat relevant checks if
+that changes it. WFC firmware editing does not require the optional DNS override API.
 
-### Validation and limits
-
-- Local verification: **267 JVM tests, 0 failures/errors/skips**, ARM64 debug APK compilation and Android Lint with **0 errors**. Lint still reports **474 warnings**.
-- Native host checks passed: RTC/audio/input policies, save-write handling, synthetic JIT invalidation under ASan/UBSan, DNS packet handling, and bounded JNI reference lifetime. Undefined-behavior diagnostics now fail the native check instead of merely printing a warning.
-- CI verifies JVM tests, lint and ARM64 APK, plus native runtime tests on Linux x86_64 and ARM64. Core CI builds sanitizer-instrumented libraries on both architectures. **Insert final reviewed commit and successful CI links after the coordinated audit; do not reuse the previous submission's run as evidence for this source.**
-- Native JIT/microphone/NAND and renderer-fallback regressions pass on Android13 ARM64/4KiB and Android15 ARM64/4KiB/16KiB with strict undefined-behavior checks. The app has52 passing ART/JNI regressions per environment, plus3 opt-in skips; real WorkManager is exercised separately on all three. Native models and real JNI/Room tests are distinguished in the validation report. Game-specific Android interpreter/JIT comparisons remain pending. Leak detection is disabled in the Linux host harness; DNS checks are functional, not sanitizer-instrumented.
-- A new functional APK check on Android15 ARM64/16KiB loaded a local Sacred Gold Plus1.2.5 raw save, saved through SAF, cold-restarted the process and reloaded it; original fixtures stayed unchanged. This is a narrow integration check, not a claim about all game freezes.
-- A prior Android build received five weeks of user testing on an AYN Thor. These newer corrections have automated coverage but still require Thor acceptance testing, including screen-off sound, display mapping, audio, controller input and storage. This campaign uses dedicated Android virtual devices; the new APK is not installed on the physical Thor.
-- The earlier standalone SDK-setup-failure and Actions-warning corrections are preserved. Original evidence remains archived with PR #1682; it does not substitute for fresh verification.
-
-### Screenshots
-
-Wi-Fi settings captured on an AYN Thor from the earlier tested build:
-
-![Wi-Fi connection settings with primary and secondary DNS](https://raw.githubusercontent.com/Umberto-DEV/melonDS-android/main/docs/images/wfc-connection-settings.png)
-
-![Wi-Fi connection settings overview](https://raw.githubusercontent.com/Umberto-DEV/melonDS-android/main/docs/images/wfc-overview.png)
-
-Supersedes #1682 and the earlier #1681. The source is now the fork's sole `main` branch; original community attribution and issue references are preserved.
+Supersedes the closed, unmerged Android proposals #1682/#1681. Their descriptions
+and contributor history are preserved. Publication is still gated; preparing
+this draft does not open or close any GitHub item.

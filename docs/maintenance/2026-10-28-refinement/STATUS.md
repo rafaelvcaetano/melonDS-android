@@ -5,6 +5,8 @@ il core resta `fd758240`. Nessuna installazione sulla Thor, push o pubblicazione
 PR. Le verifiche sul Mac usano Android virtuale ARM64: non certificano consumi,
 GPU Adreno, controller, doppio display o driver fisici della Thor.
 
+[Riepilogo completo, prima/dopo e bozze PR](INTEGRATION-REPORT.md).
+
 [Mandato](../../superpowers/specs/2026-10-28-thor-refinement-design.md) ·
 [Piano e gate residui](../../superpowers/plans/2026-10-28-thor-refinement.md) ·
 [Revisioni indipendenti](INDEPENDENT-REVIEW.md).

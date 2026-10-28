@@ -23,8 +23,8 @@ ROM, BIOS or user save is required by the new regressions. The concurrency and
 renderer host harnesses preserve production source provenance and fail on
 sanitizer diagnostics. They are not Android runtime or physical-driver evidence.
 
-The final JVM XML contains267 tests, zero failures/errors/skips. Lint contains
-zero errors and474 warnings. Do not add focused counts to the full suite total.
+The final JVM XML contains 267 tests, zero failures/errors/skips. Lint contains
+zero errors and 474 warnings. Do not add focused counts to the full suite total.
 
 ## Android ART and provider behavior
 
@@ -37,7 +37,7 @@ adb -s "$REFINEMENT_SERIAL" shell am instrument -w -r me.magnum.melonds.nightly.
 adb -s "$REFINEMENT_SERIAL" shell am instrument -w -r -e class me.magnum.melonds.common.workers.CheatImportWorkManagerTest -e realWorkManager true me.magnum.melonds.nightly.dev.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
-Require52 status-code-zero passes and3 assumption skips in the default suite,
+Require 52 status-code-zero passes and 3 assumption skips in the default suite,
 then one pass in the separate WorkManager invocation. The runner prints 55 cases,
 which includes the three opt-in skips. ADB exit zero alone does not establish a
 successful test run. The opt-in UI and real-GLES paths are exercised separately.

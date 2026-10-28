@@ -127,9 +127,9 @@ The approved app APK is
 `72c3e4363f74da95e9e02df44fa3cba523ddf51ca2216e6992d220682926ec1b`;
 test APK is
 `6bd051e69cf85f3c3b8699541ab7a1d4416d2b18abceb4af05b0a60f66f47bcb`.
-Final 267 JVM tests, zero lint errors,52 ART passes plus3 opt-in skips per API35
+Final 267 JVM tests, zero lint errors, 52 ART passes plus 3 opt-in skips per API35
 4/16KiB environment and real WorkManager passes were inspected by the reviewer.
-The coordinator also repeated52 ART passes, WorkManager and three actual GLES
+The coordinator also repeated 52 ART passes, WorkManager and three actual GLES
 runs on API33 with this final APK; installed APK bytes were independently hashed.
 The corresponding logs preserve the distinction between test counts and skips.
 

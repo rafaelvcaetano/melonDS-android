@@ -18,7 +18,7 @@
 - Parole chiave §3.1 della spec: `WILD = wild|encounter|selvatic|incontr`, `STARTER = starter|iniziale`, `LEVEL = level|livell`, `NATURE = natur` (case-insensitive, sottostringa).
 - Soglie §3.2/§3.3: famiglia ≥ 5 membri, 1–2 word variabili, SPECIES ≥ 80 % nomi o range 1..649 + `WILD|STARTER`; load relativa `b < 0x02000000`; massimo 2 parametri per codice.
 - Test: `sh ./gradlew :app:testGitHubNightlyDebugUnitTest` (tutti), o `--tests 'me.magnum.melonds.common.cheats.*'` per la logica pura.
-- Commit piccoli, messaggi in inglese, chiusi da `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`.
+- Commit piccoli, messaggi tecnici in inglese, senza firme automatiche; conservare i crediti dei contributori originali.
 - Il codice riscritto in forma fissa cambia **solo** l'istruzione load; nessun altro byte.
 
 ---
@@ -949,5 +949,5 @@ IT: `Mostra tutte (%1$d)`, `Nascondi`, `Non attivo`, `Disattiva`, `Livello`.
 - [ ] **Step 1:** su `feat/modifier-families`: `AppConfig.kt` → `versionCode = 45`, `versionName = "2.1.4"`; commit `chore(release): version 2.1.4 (versionCode 45)`.
 - [ ] **Step 2:** `git fetch upstream && git rev-list --count ventuno..upstream/master` → se > 0, merge di `upstream/master` in `ventuno` prima.
 - [ ] **Step 3:** `git checkout ventuno && git merge --no-ff feat/modifier-families`; `git tag v2.1.4`.
-- [ ] **Step 4:** docs: `STATO-VENTUNO.md` (nuova sezione 2.1.4), `WHATS-NEW-VS-UPSTREAM.md` (voce «Pick your wild Pokémon in every game the cheat database supports»), `PR-DRAFT-APP.md` (nota: `pr-prep/app` da rigenerare); `CLAUDE.local.md`.
+- [ ] **Step 4:** docs: `STATO-VENTUNO.md` (nuova sezione 2.1.4), `WHATS-NEW-VS-UPSTREAM.md` (voce «Pick your wild Pokémon in every game the cheat database supports»), `PR-DRAFT-APP.md` (nota: `pr-prep/app` da rigenerare); note di lavoro locali non versionate.
 - [ ] **Step 5:** `git push origin ventuno --tags`; verificare `git rev-list --left-right --count ventuno...origin/ventuno` → `0 0`.
