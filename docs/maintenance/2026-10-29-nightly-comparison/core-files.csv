@@ -1,0 +1,18 @@
+path,status,category,added,deleted
+.github/workflows/core-checks.yml,A,Build and configuration,35,0
+src/ARMJIT.cpp,M,Production code,7,3
+src/ARMJIT_A64/ARMJIT_LoadStore.cpp,M,Production code,2,1
+src/ARMJIT_Internal.h,M,Production code,5,0
+src/ARMJIT_Memory.cpp,M,Production code,16,6
+src/ARMJIT_x64/ARMJIT_LoadStore.cpp,M,Production code,2,1
+src/DSi.cpp,M,Production code,133,123
+src/DSi.h,M,Production code,3,0
+src/GPU3D_Compute.cpp,M,Production code,15,0
+src/GPU3D_Compute.h,M,Production code,4,1
+src/GPU3D_OpenGL.cpp,M,Production code,16,14
+src/GPU3D_OpenGL.h,M,Production code,8,0
+src/NDS.cpp,M,Production code,4,0
+src/OpenGLSupport.cpp,M,Production code,3,1
+src/Wifi.cpp,M,Production code,7,1
+src/net/Net_Slirp.cpp,M,Production code,100,24
+src/net/Net_Slirp.h,M,Production code,17,0

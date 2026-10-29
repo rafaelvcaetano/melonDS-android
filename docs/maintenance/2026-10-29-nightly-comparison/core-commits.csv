@@ -1,0 +1,14 @@
+sha,subject,kind,parents,changed_paths,stable_patch_id,earlier_equivalent_patch
+c552b3898127bdf5a674093dc4437ab5e71eb5b6,fix(dsi): screen the SCFG registers so DS carts stop detecting a DSi,code-test-build,431ab4bd0003c4356e25fce89640ae1004579b9b,2,04cd1f86566edf5d46e8e764afcfc4f3a4e87f27,
+53aff8bc2497611e5e702d3289f49336cc181f58,fix(wifi): only auto power down the transceiver in automatic power saving mode,code-test-build,c552b3898127bdf5a674093dc4437ab5e71eb5b6,1,a340b861cf7a722b982bd7eca09b11b225c29f78,
+b876d3b3730368a949fc69903c1d432f3603f128,perf(gpu3d): skip the compute renderer rebuild when the settings did not change,code-test-build,53aff8bc2497611e5e702d3289f49336cc181f58,2,633565acafd767521b5c5eceff2dc0019a1ec2e9,
+769d61decb2fda9e56ab9a4ac38c3597098b61fa,perf(gpu3d): stop building and uploading an edge index list nothing reads,code-test-build,b876d3b3730368a949fc69903c1d432f3603f128,2,15fa2ae51a6126a4860f95113e6298f875eea534,
+3ad4e9409175d41560e6ffddf456c806b6fd2f72,fix(jit): do not fold a literal whose address is not tracked for invalidation,code-test-build,769d61decb2fda9e56ab9a4ac38c3597098b61fa,4,75fed1b23bfe89d5510af6a4148c8ecc8e708859,
+137c4ba7546112dfcf3251c7eac6dc85397265be,"fix(jit,gl): skip untracked literals, drop the unused edge shaders and stop the false ""cache rejected"" log",code-test-build,3ad4e9409175d41560e6ffddf456c806b6fd2f72,3,4e734a7e8ef463f8cd938537915bcb8a80a7e4bd,
+bc060f4cb2faa1fc6ef6f4046c509feb5e686342,feat(net): optional host name overrides for the built-in DNS responder,code-test-build,137c4ba7546112dfcf3251c7eac6dc85397265be,2,93321adc9ef86032791adaaf3a31e3856188064c,
+32f6c51466813802886b19ccf9c2f56f7f738374,"fix(jit,gl): skip untracked literals, drop the unused edge shaders and stop the false ""cache rejected"" log",code-test-build,3ad4e9409175d41560e6ffddf456c806b6fd2f72,3,4e734a7e8ef463f8cd938537915bcb8a80a7e4bd,137c4ba7546112dfcf3251c7eac6dc85397265be
+f950b5e69c1c72dd309ec7af6ad9261d0076e5fc,feat(net): optional host name overrides for the built-in DNS responder,code-test-build,32f6c51466813802886b19ccf9c2f56f7f738374,2,93321adc9ef86032791adaaf3a31e3856188064c,bc060f4cb2faa1fc6ef6f4046c509feb5e686342
+d5b87f5ba78ac20785393458bb4bc760c1c97cde,Merge published core history into main,merge,bc060f4cb2faa1fc6ef6f4046c509feb5e686342 f950b5e69c1c72dd309ec7af6ad9261d0076e5fc,0,,
+20fb301428cbcdca014605741f5ea4bd28581e33,Verify sanitized core builds on ARM64 and x86_64,code-test-build,d5b87f5ba78ac20785393458bb4bc760c1c97cde,1,7dcef3c0b6271e314981d307a11be9c0774fa9b5,
+20cf21d7425ab97db75e96dda41190ab9e93494a,Reset fast-memory mappings before destroying ARM9,code-test-build,20fb301428cbcdca014605741f5ea4bd28581e33,1,748e5140a80331d7cb8494ef82f8b01adf649756,
+fd7582400bb7e35fe0d36dbb0c89b6766c1a8f2e,Keep DTCM fast-memory mappings within their configured windows,code-test-build,20cf21d7425ab97db75e96dda41190ab9e93494a,1,0dc9a291cbf5f0a30a834fcf8bc51731b941c417,

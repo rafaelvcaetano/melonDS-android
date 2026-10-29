@@ -1,0 +1,357 @@
+path,status,category,added,deleted
+.github/workflows/main.yaml,M,Build and configuration,106,22
+.github/workflows/release-playstore.yaml,M,Build and configuration,8,7
+.github/workflows/release.yaml,M,Build and configuration,13,11
+.gitignore,M,Build and configuration,5,1
+.gitmodules,M,Build and configuration,2,1
+AGENTS.md,A,Documentation and evidence,18,0
+README.md,M,Documentation and evidence,4,0
+app/CMakeLists.txt,M,Build and configuration,4,0
+app/build.gradle.kts,M,Build and configuration,85,1
+app/src/androidTest/AndroidManifest.xml,A,Tests and tools,23,0
+app/src/androidTest/java/me/magnum/melonds/NandOpenFailureTest.kt,A,Tests and tools,35,0
+app/src/androidTest/java/me/magnum/melonds/common/BiosGuidedSetupAndroidTest.kt,A,Tests and tools,192,0
+app/src/androidTest/java/me/magnum/melonds/common/BiosGuidedSetupTestProvider.java,A,Tests and tools,326,0
+app/src/androidTest/java/me/magnum/melonds/common/workers/CheatImportIntegrityAndroidTest.kt,A,Tests and tools,7,0
+app/src/androidTest/java/me/magnum/melonds/common/workers/CheatImportPipeCancellationTest.kt,A,Tests and tools,70,0
+app/src/androidTest/java/me/magnum/melonds/common/workers/CheatImportProviderCancellationTest.kt,A,Tests and tools,221,0
+app/src/androidTest/java/me/magnum/melonds/common/workers/CheatImportTestProvider.java,A,Tests and tools,258,0
+app/src/androidTest/java/me/magnum/melonds/common/workers/CheatImportWorkManagerTest.kt,A,Tests and tools,230,0
+app/src/androidTest/java/me/magnum/melonds/impl/layout/UILayoutProviderDisplayLifecycleAndroidTest.kt,A,Tests and tools,7,0
+app/src/androidTest/java/me/magnum/melonds/ui/cheats/CheatUiCaptureTest.kt,A,Tests and tools,152,0
+app/src/androidTest/java/me/magnum/melonds/ui/emulator/RealGlesFallbackTest.kt,A,Tests and tools,301,0
+app/src/androidTest/java/me/magnum/melonds/ui/emulator/input/TouchscreenPointerTransitionAndroidTest.kt,A,Tests and tools,7,0
+app/src/gitHub/java/me/magnum/melonds/github/services/GitHubUpdateInstallManager.kt,M,Production code,7,13
+app/src/main/AndroidManifest.xml,M,Build and configuration,7,0
+app/src/main/cpp/AudioOutputPolicy.cpp,A,Production code,11,0
+app/src/main/cpp/AudioOutputPolicy.h,A,Production code,23,0
+app/src/main/cpp/AudioOutputPolicyTest.cpp,A,Tests and tools,90,0
+app/src/main/cpp/Configuration.h,M,Production code,5,0
+app/src/main/cpp/EmulatorArgsBuilder.cpp,M,Production code,3,1
+app/src/main/cpp/EmulatorMessageQueueJNI.cpp,M,Production code,29,6
+app/src/main/cpp/EmulatorMessageQueueJNI.h,M,Production code,10,1
+app/src/main/cpp/FileModeString.cpp,A,Production code,74,0
+app/src/main/cpp/FileModeString.h,A,Production code,35,0
+app/src/main/cpp/FileModeStringTest.cpp,A,Tests and tools,92,0
+app/src/main/cpp/MelonDS.cpp,M,Production code,55,7
+app/src/main/cpp/MelonDS.h,M,Production code,39,1
+app/src/main/cpp/MelonDSAndroidConfiguration.cpp,M,Production code,4,0
+app/src/main/cpp/MelonDSAndroidJNI.cpp,M,Production code,85,6
+app/src/main/cpp/MelonDSAudio.cpp,M,Production code,147,23
+app/src/main/cpp/MelonDSAudio.h,M,Production code,2,0
+app/src/main/cpp/MelonDSNandJNI.cpp,M,Production code,39,16
+app/src/main/cpp/MelonInstance.cpp,M,Production code,235,14
+app/src/main/cpp/MelonInstance.h,M,Production code,61,0
+app/src/main/cpp/MicInputOboeCallback.cpp,M,Production code,4,1
+app/src/main/cpp/MicInputOboeCallback.h,M,Production code,1,0
+app/src/main/cpp/OboeCallback.cpp,M,Production code,16,2
+app/src/main/cpp/OboeCallback.h,M,Production code,7,2
+app/src/main/cpp/PlatformAndroid.cpp,M,Production code,2,42
+app/src/main/cpp/RtcSync.cpp,A,Production code,45,0
+app/src/main/cpp/RtcSync.h,A,Production code,56,0
+app/src/main/cpp/RtcSyncTest.cpp,A,Tests and tools,124,0
+app/src/main/cpp/SaveManager.cpp,M,Production code,117,11
+app/src/main/cpp/SaveManager.h,M,Production code,13,2
+app/src/main/cpp/SaveManagerFlushTest.cpp,A,Tests and tools,498,0
+app/src/main/cpp/UriFileHandler.cpp,M,Production code,9,52
+app/src/main/cpp/UriFileHandler.h,M,Production code,0,4
+app/src/main/cpp/WfcSaveRange.h,A,Production code,24,0
+app/src/main/cpp/WfcSettingsJNI.cpp,A,Production code,381,0
+app/src/main/cpp/WildEncounterToggle.h,A,Production code,150,0
+app/src/main/cpp/WildEncounterToggleTest.cpp,A,Tests and tools,79,0
+app/src/main/java/me/magnum/melonds/MelonDSApplication.kt,M,Production code,27,0
+app/src/main/java/me/magnum/melonds/common/BiosGuidedFolderSetup.kt,A,Production code,421,0
+app/src/main/java/me/magnum/melonds/common/UriPermissionManager.kt,M,Production code,10,0
+app/src/main/java/me/magnum/melonds/common/WfcSettings.kt,A,Production code,73,0
+app/src/main/java/me/magnum/melonds/common/WfcSettingsStorage.kt,A,Production code,65,0
+app/src/main/java/me/magnum/melonds/common/cheats/ArCode.kt,A,Production code,53,0
+app/src/main/java/me/magnum/melonds/common/cheats/CheatDatabaseImportEvents.kt,A,Production code,43,0
+app/src/main/java/me/magnum/melonds/common/cheats/ModifierFamily.kt,A,Production code,239,0
+app/src/main/java/me/magnum/melonds/common/cheats/PokemonSpecies.kt,A,Production code,521,0
+app/src/main/java/me/magnum/melonds/common/cheats/ProgressTrackerInputStream.kt,M,Production code,6,2
+app/src/main/java/me/magnum/melonds/common/cheats/UsrCheatDatabaseParser.kt,M,Production code,33,28
+app/src/main/java/me/magnum/melonds/common/cheats/WildEncounterCheat.kt,A,Production code,21,0
+app/src/main/java/me/magnum/melonds/common/opengl/ShaderProgramSource.kt,M,Production code,59,29
+app/src/main/java/me/magnum/melonds/common/opengl/VideoFilterShaderProvider.kt,M,Production code,20,13
+app/src/main/java/me/magnum/melonds/common/romprocessors/CompressedRomFileProcessor.kt,M,Production code,79,57
+app/src/main/java/me/magnum/melonds/common/romprocessors/SevenZMemoryLimit.kt,A,Production code,31,0
+app/src/main/java/me/magnum/melonds/common/romprocessors/SevenZRomFileProcessor.kt,M,Production code,36,10
+app/src/main/java/me/magnum/melonds/common/workers/CheatImportWorker.kt,M,Production code,46,46
+app/src/main/java/me/magnum/melonds/database/migrations/Migration4to5.kt,M,Production code,3,1
+app/src/main/java/me/magnum/melonds/di/MelonModule.kt,M,Production code,18,4
+app/src/main/java/me/magnum/melonds/di/RomFileAccessDispatcher.kt,A,Production code,16,0
+app/src/main/java/me/magnum/melonds/domain/model/BiosFileClassification.kt,A,Production code,37,0
+app/src/main/java/me/magnum/melonds/domain/model/CheatImportEvent.kt,A,Production code,8,0
+app/src/main/java/me/magnum/melonds/domain/model/ConfigurationDirResult.kt,M,Production code,1,1
+app/src/main/java/me/magnum/melonds/domain/model/ControllerConfiguration.kt,M,Production code,1,0
+app/src/main/java/me/magnum/melonds/domain/model/EmulatorConfiguration.kt,M,Production code,2,0
+app/src/main/java/me/magnum/melonds/domain/model/FirmwareConsoleType.kt,A,Production code,41,0
+app/src/main/java/me/magnum/melonds/domain/model/FirmwareValidation.kt,A,Production code,60,0
+app/src/main/java/me/magnum/melonds/domain/model/Input.kt,M,Production code,1,0
+app/src/main/java/me/magnum/melonds/domain/model/InputConfig.kt,M,Production code,4,1
+app/src/main/java/me/magnum/melonds/domain/model/WfcAccessPointSlot.kt,A,Production code,82,0
+app/src/main/java/me/magnum/melonds/domain/model/emulator/EmulatorEvent.kt,M,Production code,2,0
+app/src/main/java/me/magnum/melonds/domain/repositories/CheatsRepository.kt,M,Production code,4,1
+app/src/main/java/me/magnum/melonds/domain/repositories/SettingsRepository.kt,M,Production code,4,0
+app/src/main/java/me/magnum/melonds/domain/services/BiosFileClassifier.kt,A,Production code,64,0
+app/src/main/java/me/magnum/melonds/domain/services/ConfigurationDirectoryVerifier.kt,M,Production code,4,1
+app/src/main/java/me/magnum/melonds/impl/FileSystemConfigurationDirectoryVerifier.kt,M,Production code,29,10
+app/src/main/java/me/magnum/melonds/impl/FileSystemRomsRepository.kt,M,Production code,119,70
+app/src/main/java/me/magnum/melonds/impl/NusDSiWareMetadataRepository.kt,M,Production code,8,4
+app/src/main/java/me/magnum/melonds/impl/RomIconProvider.kt,M,Production code,12,3
+app/src/main/java/me/magnum/melonds/impl/RoomCheatsRepository.kt,M,Production code,41,1
+app/src/main/java/me/magnum/melonds/impl/SettingsBackupManager.kt,M,Production code,14,0
+app/src/main/java/me/magnum/melonds/impl/SharedPreferencesSettingsRepository.kt,M,Production code,30,4
+app/src/main/java/me/magnum/melonds/impl/XmlCheatDatabaseSAXHandler.kt,M,Production code,1,1
+app/src/main/java/me/magnum/melonds/impl/dtos/input/InputConfigDto.kt,M,Production code,5,4
+app/src/main/java/me/magnum/melonds/impl/emulator/AndroidEmulatorManager.kt,M,Production code,2,0
+app/src/main/java/me/magnum/melonds/impl/emulator/EmulatorEventType.kt,M,Production code,9,0
+app/src/main/java/me/magnum/melonds/impl/emulator/EmulatorSession.kt,M,Production code,5,0
+app/src/main/java/me/magnum/melonds/impl/layout/DeviceLayoutDisplayMapper.kt,M,Production code,6,1
+app/src/main/java/me/magnum/melonds/impl/layout/UILayoutProvider.kt,M,Production code,4,2
+app/src/main/java/me/magnum/melonds/impl/romprocessors/BaseRomFileProcessorFactory.kt,M,Production code,18,4
+app/src/main/java/me/magnum/melonds/ui/cheats/CheatsActivity.kt,M,Production code,10,2
+app/src/main/java/me/magnum/melonds/ui/cheats/CheatsNavigation.kt,M,Production code,1,1
+app/src/main/java/me/magnum/melonds/ui/cheats/CheatsViewModel.kt,M,Production code,145,37
+app/src/main/java/me/magnum/melonds/ui/cheats/model/CheatListItem.kt,A,Production code,17,0
+app/src/main/java/me/magnum/melonds/ui/cheats/model/CheatSearchIndex.kt,A,Production code,68,0
+app/src/main/java/me/magnum/melonds/ui/cheats/model/OpenScreenEvent.kt,M,Production code,1,1
+app/src/main/java/me/magnum/melonds/ui/cheats/ui/CheatListScreen.kt,M,Production code,113,16
+app/src/main/java/me/magnum/melonds/ui/cheats/ui/CheatsScreen.kt,M,Production code,11,5
+app/src/main/java/me/magnum/melonds/ui/cheats/ui/FolderListScreen.kt,M,Production code,105,21
+app/src/main/java/me/magnum/melonds/ui/cheats/ui/ModifierFamilyDialog.kt,A,Production code,208,0
+app/src/main/java/me/magnum/melonds/ui/cheats/ui/item/FamilyItem.kt,A,Production code,69,0
+app/src/main/java/me/magnum/melonds/ui/cheats/ui/item/FolderItem.kt,M,Production code,4,3
+app/src/main/java/me/magnum/melonds/ui/cheats/ui/item/HighlightedText.kt,A,Production code,54,0
+app/src/main/java/me/magnum/melonds/ui/common/LayoutView.kt,M,Production code,1,1
+app/src/main/java/me/magnum/melonds/ui/emulator/DSRenderer.kt,M,Production code,8,2
+app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorActivity.kt,M,Production code,175,35
+app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorSessionCoroutineScope.kt,A,Production code,24,0
+app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorViewModel.kt,M,Production code,65,17
+app/src/main/java/me/magnum/melonds/ui/emulator/FpsCounterPositioning.kt,A,Production code,40,0
+app/src/main/java/me/magnum/melonds/ui/emulator/LidClosePauseController.kt,A,Production code,56,0
+app/src/main/java/me/magnum/melonds/ui/emulator/LidCloseService.kt,A,Production code,31,0
+app/src/main/java/me/magnum/melonds/ui/emulator/RuntimeLayoutView.kt,M,Production code,57,18
+app/src/main/java/me/magnum/melonds/ui/emulator/input/BaseInputHandler.kt,M,Production code,10,1
+app/src/main/java/me/magnum/melonds/ui/emulator/input/ButtonsInputHandler.kt,M,Production code,1,1
+app/src/main/java/me/magnum/melonds/ui/emulator/input/ConnectedControllerManager.kt,M,Production code,2,2
+app/src/main/java/me/magnum/melonds/ui/emulator/input/DpadInputHandler.kt,M,Production code,6,2
+app/src/main/java/me/magnum/melonds/ui/emulator/input/FeedbackInputHandler.kt,M,Production code,1,1
+app/src/main/java/me/magnum/melonds/ui/emulator/input/FrontendInputHandler.kt,M,Production code,10,0
+app/src/main/java/me/magnum/melonds/ui/emulator/input/IInputListener.kt,M,Production code,7,0
+app/src/main/java/me/magnum/melonds/ui/emulator/input/InputProcessor.kt,M,Production code,116,33
+app/src/main/java/me/magnum/melonds/ui/emulator/input/MelonTouchHandler.kt,M,Production code,16,6
+app/src/main/java/me/magnum/melonds/ui/emulator/input/MultiButtonInputHandler.kt,M,Production code,114,79
+app/src/main/java/me/magnum/melonds/ui/emulator/input/MultiButtonInputLogic.kt,A,Production code,80,0
+app/src/main/java/me/magnum/melonds/ui/emulator/input/SingleButtonInputHandler.kt,M,Production code,28,8
+app/src/main/java/me/magnum/melonds/ui/emulator/input/TouchscreenInputHandler.kt,M,Production code,33,11
+app/src/main/java/me/magnum/melonds/ui/emulator/model/EmulatorUiEvent.kt,M,Production code,7,0
+app/src/main/java/me/magnum/melonds/ui/emulator/model/ToastEvent.kt,M,Production code,4,0
+app/src/main/java/me/magnum/melonds/ui/emulator/render/ExternalLayoutRender.kt,M,Production code,6,2
+app/src/main/java/me/magnum/melonds/ui/emulator/render/ExternalScreenRender.kt,M,Production code,4,2
+app/src/main/java/me/magnum/melonds/ui/emulator/rom/RomPauseMenuOption.kt,M,Production code,1,0
+app/src/main/java/me/magnum/melonds/ui/inputsetup/InputSetupActivity.kt,M,Production code,33,5
+app/src/main/java/me/magnum/melonds/ui/inputsetup/InputSetupViewModel.kt,M,Production code,8,0
+app/src/main/java/me/magnum/melonds/ui/inputsetup/ui/InputSetupScreen.kt,M,Production code,5,2
+app/src/main/java/me/magnum/melonds/ui/romlist/RomListViewModel.kt,M,Production code,2,2
+app/src/main/java/me/magnum/melonds/ui/settings/CheatsImportProgressDialog.kt,M,Production code,2,2
+app/src/main/java/me/magnum/melonds/ui/settings/FileStatusPopup.kt,M,Production code,28,1
+app/src/main/java/me/magnum/melonds/ui/settings/SettingsActivity.kt,M,Production code,4,0
+app/src/main/java/me/magnum/melonds/ui/settings/fragments/CustomFirmwarePreferencesFragment.kt,M,Production code,272,8
+app/src/main/java/me/magnum/melonds/ui/settings/fragments/WfcConnectionsPreferencesFragment.kt,A,Production code,375,0
+app/src/main/java/me/magnum/melonds/ui/settings/preferences/BiosDirectoryPickerPreference.kt,M,Production code,16,7
+app/src/main/java/me/magnum/melonds/utils/FileUtils.kt,M,Production code,16,1
+app/src/main/res/layout/activity_emulator.xml,M,Resources,3,1
+app/src/main/res/layout/item_file_status.xml,M,Resources,21,7
+app/src/main/res/values-b+es/cheat_search.xml,A,Resources,5,0
+app/src/main/res/values-b+es/missing_strings.xml,A,Resources,213,0
+app/src/main/res/values-b+es/strings.xml,M,Resources,2,1
+app/src/main/res/values-b+fr/cheat_search.xml,A,Resources,5,0
+app/src/main/res/values-b+fr/missing_strings.xml,A,Resources,234,0
+app/src/main/res/values-b+fr/strings.xml,M,Resources,1,0
+app/src/main/res/values-b+id/additional_strings.xml,A,Resources,102,0
+app/src/main/res/values-b+id/cheat_search.xml,A,Resources,5,0
+app/src/main/res/values-b+id/strings.xml,M,Resources,1,0
+app/src/main/res/values-b+it/cheat_search.xml,A,Resources,5,0
+app/src/main/res/values-b+it/strings.xml,M,Resources,1,0
+app/src/main/res/values-b+it/strings_additional.xml,A,Resources,185,0
+app/src/main/res/values-b+pt+BR/cheat_search.xml,A,Resources,5,0
+app/src/main/res/values-b+pt+BR/strings.xml,M,Resources,1,0
+app/src/main/res/values-b+pt+BR/strings_additional.xml,A,Resources,283,0
+app/src/main/res/values-b+ru/additional_strings.xml,A,Resources,102,0
+app/src/main/res/values-b+ru/cheat_search.xml,A,Resources,5,0
+app/src/main/res/values-b+ru/strings.xml,M,Resources,5,0
+app/src/main/res/values-b+zh+Hans/additional_strings.xml,A,Resources,102,0
+app/src/main/res/values-b+zh+Hans/cheat_search.xml,A,Resources,5,0
+app/src/main/res/values-b+zh+Hans/strings.xml,M,Resources,1,0
+app/src/main/res/values-it/wild_encounters.xml,A,Resources,19,0
+app/src/main/res/values-v27/styles.xml,A,Resources,5,0
+app/src/main/res/values/arrays.xml,M,Resources,1,0
+app/src/main/res/values/feature_switches.xml,M,Resources,1,1
+app/src/main/res/values/strings.xml,M,Resources,66,2
+app/src/main/res/values/styles.xml,M,Resources,3,2
+app/src/main/res/values/wild_encounters.xml,A,Resources,19,0
+app/src/main/res/xml/pref_audio.xml,M,Resources,7,0
+app/src/main/res/xml/pref_custom_firmware.xml,M,Resources,7,0
+app/src/main/res/xml/pref_system.xml,M,Resources,18,2
+app/src/main/res/xml/pref_wfc_connections.xml,A,Resources,115,0
+app/src/sharedTest/kotlin/me/magnum/melonds/common/cheats/CheatImportEventsTest.kt,A,Tests and tools,80,0
+app/src/sharedTest/kotlin/me/magnum/melonds/common/cheats/CloseAwareBlockingInputStream.kt,A,Tests and tools,46,0
+app/src/sharedTest/kotlin/me/magnum/melonds/common/cheats/UsrCheatStreamingTest.kt,A,Tests and tools,144,0
+app/src/sharedTest/kotlin/me/magnum/melonds/common/workers/CheatImportIntegrityContract.kt,A,Tests and tools,226,0
+app/src/sharedTest/kotlin/me/magnum/melonds/impl/NusDSiWareMetadataRepositoryTest.kt,A,Tests and tools,64,0
+app/src/sharedTest/kotlin/me/magnum/melonds/impl/layout/UILayoutProviderDisplayLifecycleContract.kt,A,Tests and tools,101,0
+app/src/sharedTest/kotlin/me/magnum/melonds/ui/emulator/input/InputTestSupport.kt,A,Tests and tools,91,0
+app/src/sharedTest/kotlin/me/magnum/melonds/ui/emulator/input/TouchscreenPointerTransitionContract.kt,A,Tests and tools,59,0
+app/src/test/java/androidx/documentfile/provider/DeleteDeniedDocumentFile.kt,A,Tests and tools,21,0
+app/src/test/java/androidx/documentfile/provider/RestrictedDocument.kt,A,Tests and tools,27,0
+app/src/test/java/me/magnum/melonds/common/BiosGuidedFolderSetupTest.kt,A,Tests and tools,331,0
+app/src/test/java/me/magnum/melonds/common/WfcSettingsStorageTest.kt,A,Tests and tools,146,0
+app/src/test/java/me/magnum/melonds/common/cheats/ArCodeTest.kt,A,Tests and tools,36,0
+app/src/test/java/me/magnum/melonds/common/cheats/ModifierFamilyFixtureTest.kt,A,Tests and tools,79,0
+app/src/test/java/me/magnum/melonds/common/cheats/ModifierFamilyTest.kt,A,Tests and tools,236,0
+app/src/test/java/me/magnum/melonds/common/cheats/WildEncounterCheatTest.kt,A,Tests and tools,37,0
+app/src/test/java/me/magnum/melonds/common/opengl/ShaderProgramSourceTest.kt,A,Tests and tools,95,0
+app/src/test/java/me/magnum/melonds/common/romprocessors/CompressedRomFileProcessorTest.kt,A,Tests and tools,96,0
+app/src/test/java/me/magnum/melonds/common/romprocessors/SevenZMemoryLimitTest.kt,A,Tests and tools,43,0
+app/src/test/java/me/magnum/melonds/common/workers/CheatImportIntegrityTest.kt,A,Tests and tools,10,0
+app/src/test/java/me/magnum/melonds/domain/model/FirmwareConsoleTypeDivergenceTest.kt,A,Tests and tools,52,0
+app/src/test/java/me/magnum/melonds/domain/model/FirmwareConsoleTypeTest.kt,A,Tests and tools,44,0
+app/src/test/java/me/magnum/melonds/domain/model/FirmwareValidationTest.kt,A,Tests and tools,60,0
+app/src/test/java/me/magnum/melonds/domain/model/WfcAccessPointSlotTest.kt,A,Tests and tools,80,0
+app/src/test/java/me/magnum/melonds/domain/services/BiosFileClassifierTest.kt,A,Tests and tools,69,0
+app/src/test/java/me/magnum/melonds/domain/services/ConfigurationDirectoryVerifierTest.kt,A,Tests and tools,38,0
+app/src/test/java/me/magnum/melonds/impl/FileSystemRomsRepositoryTest.kt,A,Tests and tools,332,0
+app/src/test/java/me/magnum/melonds/impl/ModifierFamilyPersistenceTest.kt,A,Tests and tools,49,0
+app/src/test/java/me/magnum/melonds/impl/RomIconProviderTest.kt,A,Tests and tools,98,0
+app/src/test/java/me/magnum/melonds/impl/SettingsBackupManagerTest.kt,A,Tests and tools,180,0
+app/src/test/java/me/magnum/melonds/impl/layout/UILayoutProviderDisplayLifecycleTest.kt,A,Tests and tools,10,0
+app/src/test/java/me/magnum/melonds/impl/romprocessors/BaseRomFileProcessorFactoryTest.kt,A,Tests and tools,69,0
+app/src/test/java/me/magnum/melonds/ui/cheats/CheatSearchIndexTest.kt,A,Tests and tools,66,0
+app/src/test/java/me/magnum/melonds/ui/cheats/CheatSearchNavigationTest.kt,A,Tests and tools,161,0
+app/src/test/java/me/magnum/melonds/ui/cheats/CheatSearchScreenTest.kt,A,Tests and tools,114,0
+app/src/test/java/me/magnum/melonds/ui/cheats/ModifierFamilyDialogTest.kt,A,Tests and tools,285,0
+app/src/test/java/me/magnum/melonds/ui/cheats/ModifierFamilyViewModelTest.kt,A,Tests and tools,286,0
+app/src/test/java/me/magnum/melonds/ui/emulator/EmulatorSessionCoroutineScopeTest.kt,A,Tests and tools,69,0
+app/src/test/java/me/magnum/melonds/ui/emulator/FpsCounterPositioningTest.kt,A,Tests and tools,44,0
+app/src/test/java/me/magnum/melonds/ui/emulator/LidClosePauseControllerTest.kt,A,Tests and tools,90,0
+app/src/test/java/me/magnum/melonds/ui/emulator/input/DpadInputHandlerTest.kt,A,Tests and tools,79,0
+app/src/test/java/me/magnum/melonds/ui/emulator/input/InputProcessorTest.kt,A,Tests and tools,159,0
+app/src/test/java/me/magnum/melonds/ui/emulator/input/MultiButtonInputHandlerTest.kt,A,Tests and tools,136,0
+app/src/test/java/me/magnum/melonds/ui/emulator/input/MultiButtonInputLogicTest.kt,A,Tests and tools,75,0
+app/src/test/java/me/magnum/melonds/ui/emulator/input/SingleButtonInputHandlerTest.kt,A,Tests and tools,69,0
+app/src/test/java/me/magnum/melonds/ui/emulator/input/TouchscreenInputHandlerTest.kt,A,Tests and tools,76,0
+app/src/test/java/me/magnum/melonds/ui/emulator/input/TouchscreenPointerTransitionTest.kt,A,Tests and tools,10,0
+app/src/test/java/me/magnum/melonds/ui/romlist/RomListViewModelSortingTest.kt,A,Tests and tools,91,0
+app/src/test/java/me/magnum/melonds/ui/settings/BiosGuidedSetupIntegrationTest.kt,A,Tests and tools,599,0
+app/src/test/resources/cheats/modifier-families.xml,A,Tests and tools,930,0
+app/src/test/resources/sgp-nature-codes.tsv,A,Tests and tools,75,0
+buildSrc/src/main/kotlin/AppConfig.kt,M,Build and configuration,2,2
+docs/images/wfc-connection-settings.png,A,Documentation and evidence,-,-
+docs/images/wfc-overview.png,A,Documentation and evidence,-,-
+docs/maintenance/2026-10-28-android-bugfixes/DECISIONS.md,A,Documentation and evidence,25,0
+docs/maintenance/2026-10-28-android-bugfixes/GAME-CHECK.md,A,Documentation and evidence,28,0
+docs/maintenance/2026-10-28-android-bugfixes/INDEPENDENT-REVIEW.md,A,Documentation and evidence,74,0
+docs/maintenance/2026-10-28-android-bugfixes/ISSUE-STATUS.csv,A,Documentation and evidence,247,0
+docs/maintenance/2026-10-28-android-bugfixes/PR-REVIEW.md,A,Documentation and evidence,25,0
+docs/maintenance/2026-10-28-android-bugfixes/REPORT.md,A,Documentation and evidence,64,0
+docs/maintenance/2026-10-28-android-bugfixes/VALIDATION.md,A,Documentation and evidence,67,0
+docs/maintenance/2026-10-28-main/ISSUE-CATEGORIES.json,A,Documentation and evidence,9644,0
+docs/maintenance/2026-10-28-main/ISSUE-CATEGORIES.md,A,Documentation and evidence,373,0
+docs/maintenance/2026-10-28-main/KNOWN-JIT-ISSUES.md,A,Documentation and evidence,65,0
+docs/maintenance/2026-10-28-main/NEXT-APP-PR.md,A,Documentation and evidence,131,0
+docs/maintenance/2026-10-28-main/NEXT-CORE-PR.md,A,Documentation and evidence,71,0
+docs/maintenance/2026-10-28-main/VALIDATION.md,A,Documentation and evidence,56,0
+docs/maintenance/2026-10-28-main/all-open-app-issues.json,A,Documentation and evidence,18142,0
+docs/maintenance/2026-10-28-main/all-open-core-issues.json,A,Documentation and evidence,302,0
+docs/maintenance/2026-10-28-main/app-comments.json,A,Documentation and evidence,7,0
+docs/maintenance/2026-10-28-main/app-pr.json,A,Documentation and evidence,38,0
+docs/maintenance/2026-10-28-main/app-pr.md,A,Documentation and evidence,47,0
+docs/maintenance/2026-10-28-main/branch-preservation.json,A,Documentation and evidence,58,0
+docs/maintenance/2026-10-28-main/core-comments.json,A,Documentation and evidence,7,0
+docs/maintenance/2026-10-28-main/core-issues.json,A,Documentation and evidence,76,0
+docs/maintenance/2026-10-28-main/core-pr.json,A,Documentation and evidence,38,0
+docs/maintenance/2026-10-28-main/core-pr.md,A,Documentation and evidence,21,0
+docs/maintenance/2026-10-28-main/open-app-prs.json,A,Documentation and evidence,238,0
+docs/maintenance/2026-10-28-main/open-core-prs.json,A,Documentation and evidence,76,0
+docs/maintenance/2026-10-28-main/recent-app-issues.json,A,Documentation and evidence,3,0
+docs/maintenance/2026-10-28-refinement/GITHUB-STATUS.json,A,Documentation and evidence,572,0
+docs/maintenance/2026-10-28-refinement/INDEPENDENT-REVIEW.md,A,Documentation and evidence,143,0
+docs/maintenance/2026-10-28-refinement/INTEGRATION-REPORT.md,A,Documentation and evidence,223,0
+docs/maintenance/2026-10-28-refinement/ISSUE-PR-COVERAGE.csv,A,Documentation and evidence,49,0
+docs/maintenance/2026-10-28-refinement/STATUS.md,A,Documentation and evidence,148,0
+docs/maintenance/2026-10-28-refinement/VALIDATION.md,A,Documentation and evidence,104,0
+docs/superpowers/plans/2026-10-28-android-issue-remediation.md,A,Documentation and evidence,113,0
+docs/superpowers/plans/2026-10-28-compute-visibility-experiment.md,A,Documentation and evidence,72,0
+docs/superpowers/plans/2026-10-28-single-main.md,A,Documentation and evidence,67,0
+docs/superpowers/plans/2026-10-28-thor-refinement.md,A,Documentation and evidence,222,0
+docs/superpowers/specs/2026-10-28-android-issue-remediation-design.md,A,Documentation and evidence,34,0
+docs/superpowers/specs/2026-10-28-thor-refinement-design.md,A,Documentation and evidence,184,0
+docs/ventuno/ALLINEAMENTO-DESKTOP-2026-09-12.md,A,Documentation and evidence,8,0
+docs/ventuno/ANALISI-2026-09-12.md,A,Documentation and evidence,138,0
+docs/ventuno/AUDIT-COMPUTE-2026-09-12.md,A,Documentation and evidence,30,0
+docs/ventuno/AUDIT-INTEGRAZIONE-2026-09-12.md,A,Documentation and evidence,36,0
+docs/ventuno/DECISIONI.md,A,Documentation and evidence,28,0
+docs/ventuno/ICONE-LISTA-ROM-2026-09-19.md,A,Documentation and evidence,58,0
+docs/ventuno/PR-DRAFT-APP.md,A,Documentation and evidence,48,0
+docs/ventuno/PR-DRAFT-CORE.md,A,Documentation and evidence,30,0
+docs/ventuno/PROCEDURA-AVD-E-THOR.md,A,Documentation and evidence,153,0
+docs/ventuno/PROVE-AVD.md,A,Documentation and evidence,255,0
+docs/ventuno/PULIZIA-DISCO.md,A,Documentation and evidence,6,0
+docs/ventuno/SCHEMA-RICHIESTE-2026-09-12.md,A,Documentation and evidence,37,0
+docs/ventuno/SELETTORE-CHEAT-2026-09-19.md,A,Documentation and evidence,296,0
+docs/ventuno/SELETTORE-CHEAT-PIANO-2026-09-19.md,A,Documentation and evidence,953,0
+docs/ventuno/SGP-CHEATS-2.1.1.md,A,Documentation and evidence,67,0
+docs/ventuno/STATO-VENTUNO.md,A,Documentation and evidence,97,0
+docs/ventuno/WFC-GENERALE-E-INTEROP-2026-09-12.md,A,Documentation and evidence,22,0
+docs/ventuno/WHATS-NEW-VS-UPSTREAM.md,A,Documentation and evidence,87,0
+gradle/libs.versions.toml,M,Build and configuration,2,0
+melonDS-android-lib,M,Build and configuration,1,1
+tools/README.md,A,Tests and tools,48,0
+tools/android-tests/AndroidDynamicLibrary.cpp,A,Tests and tools,22,0
+tools/android-tests/CMakeLists.txt,A,Tests and tools,122,0
+tools/android-tests/PLAN.md,A,Tests and tools,38,0
+tools/android-tests/README.md,A,Tests and tools,60,0
+tools/android-tests/build.sh,A,Tests and tools,51,0
+tools/android-tests/renderer-fixture/README.md,A,Tests and tools,151,0
+tools/android-tests/renderer-fixture/generate.py,A,Tests and tools,124,0
+tools/android-tests/run.sh,A,Tests and tools,96,0
+tools/core-host-sanitize.sh,A,Tests and tools,43,0
+tools/host-tests.sh,A,Tests and tools,166,0
+tools/host-tests/dns/CMakeLists.txt,A,Tests and tools,38,0
+tools/host-tests/dns/dns_override_test.cpp,A,Tests and tools,259,0
+tools/host-tests/dns/run.sh,A,Tests and tools,36,0
+tools/host-tests/jit/HostPlatform.cpp,A,Tests and tools,194,0
+tools/host-tests/jit/JitDifferentialTest.cpp,A,Tests and tools,165,0
+tools/host-tests/jit/JitInvalidationTest.cpp,A,Tests and tools,332,0
+tools/host-tests/jit/JitTestSupport.h,A,Tests and tools,43,0
+tools/host-tests/microphone/MicInputGainTest.cpp,A,Tests and tools,68,0
+tools/host-tests/microphone/lifecycle/MicConcurrencyTest.cpp,A,Tests and tools,230,0
+tools/host-tests/microphone/lifecycle/MicSourceSwitchTest.cpp,A,Tests and tools,95,0
+tools/host-tests/microphone/lifecycle/README.md,A,Tests and tools,52,0
+tools/host-tests/microphone/lifecycle/run-concurrency.sh,A,Tests and tools,34,0
+tools/host-tests/microphone/lifecycle/run.sh,A,Tests and tools,17,0
+tools/host-tests/microphone/lifecycle/stubs/MelonDSAudio.h,A,Tests and tools,30,0
+tools/host-tests/microphone/lifecycle/stubs/OboeCallback.h,A,Tests and tools,11,0
+tools/host-tests/microphone/lifecycle/stubs/oboe/Oboe.h,A,Tests and tools,129,0
+tools/host-tests/microphone/run.sh,A,Tests and tools,13,0
+tools/host-tests/microphone/stubs/oboe/Oboe.h,A,Tests and tools,22,0
+tools/host-tests/nand-jni/NandJniTest.cpp,A,Tests and tools,54,0
+tools/host-tests/nand-jni/README.md,A,Tests and tools,30,0
+tools/host-tests/nand-jni/StorageNandTest.cpp,A,Tests and tools,95,0
+tools/host-tests/nand-jni/run.sh,A,Tests and tools,24,0
+tools/host-tests/nand-jni/stubs/DSi_NAND.h,A,Tests and tools,1,0
+tools/host-tests/nand-jni/stubs/MelonDS.h,A,Tests and tools,1,0
+tools/host-tests/nand-jni/stubs/MelonDSAndroidConfiguration.h,A,Tests and tools,1,0
+tools/host-tests/nand-jni/stubs/Platform.h,A,Tests and tools,1,0
+tools/host-tests/nand-jni/stubs/ROMManager.h,A,Tests and tools,1,0
+tools/host-tests/nand-jni/stubs/RomIconBuilder.h,A,Tests and tools,1,0
+tools/host-tests/nand-jni/stubs/TestDependencies.h,A,Tests and tools,78,0
+tools/host-tests/nand-jni/stubs/UriFileHandler.h,A,Tests and tools,1,0
+tools/host-tests/nand-jni/stubs/jni.h,A,Tests and tools,109,0
+tools/host-tests/renderer-fallback/Boundary.h,A,Tests and tools,92,0
+tools/host-tests/renderer-fallback/README.md,A,Tests and tools,49,0
+tools/host-tests/renderer-fallback/RendererFallbackTest.cpp,A,Tests and tools,128,0
+tools/host-tests/renderer-fallback/extract.py,A,Tests and tools,64,0
+tools/host-tests/renderer-fallback/run.sh,A,Tests and tools,18,0
+tools/hwasan-resources/lib/arm64-v8a/wrap.sh,A,Tests and tools,2,0

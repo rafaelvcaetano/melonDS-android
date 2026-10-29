@@ -3,8 +3,10 @@
 Riferimento funzionale verificato: app `89053f0fd96ef2bc616849deb15900e1d6b09f43`,
 core `fd7582400bb7e35fe0d36dbb0c89b6766c1a8f2e`. Entrambi su `main`.
 Il confronto storico è con gli antenati upstream app `c42995ca` e lib `431ab4bd`;
-non pretende che siano il codice upstream più recente. Questo resoconto unisce
-le campagne precedenti e la rifinitura finale, distinguendone la provenienza.
+la successiva [verifica della Nightly ufficiale del 29 ottobre](../2026-10-29-nightly-comparison/README.md)
+conferma che sono anche le revisioni dell'ultima APK pubblicata e dei `master`
+upstream a quella data. Questo resoconto unisce le campagne precedenti e la
+rifinitura finale, distinguendone la provenienza.
 
 **Integrato nel fork non significa già unito upstream.** Nessuna nuova PR è
 stata pubblicata e la build finale non è installata sulla Thor. Lo stato GitHub
@@ -17,7 +19,7 @@ silenziosamente tutte le 246 issue del censimento.
 | Funzione | Prima | Ora nel fork | Controlli e limiti |
 | --- | --- | --- | --- |
 | Configurazione WFC/DNS | Mancava una schermata per gestire direttamente le connessioni firmware | Tre slot, DNS primario/secondario, abilita/disabilita dal menu pausa; scrittura DS/DSi | Test WfcAccessPointSlot/WfcSettingsStorage e checksum; precedente prova Android del firmware modificato. Non certifica server, trade o GTS. |
-| Backup impostazioni e layout | Dopo cancellazione dati occorreva ricostruire la configurazione | Esportazione/importazione in file | SettingsBackupManagerTest; conservazione dei valori/layout. Corrisponde alla funzione richiesta in #264. |
+| Backup impostazioni e layout | Implementazione già upstream, nascosta da un flag disattivato | Funzione resa accessibile; cache controller aggiornata dopo il ripristino | SettingsBackupManagerTest; conservazione dei valori/layout. Corrisponde alla funzione richiesta in #264; non è un'implementazione nuova da zero. |
 | Configurazione guidata BIOS | Selezione cartella e messaggi poco utili; copie e validità non sufficientemente protette | Riconoscimento e copia guidata; risultati DS/DSi separati, verifica reale prima delle preferenze, Retry ed errori nominati | 30 test BIOS JVM, inclusi Fragment/verificatore/preferenze, e 4 casi SAF/Binder Android. Non autentica i dump. |
 | Sincronizzazione orologio opzionale | Il tempo emulato poteva non recuperare il tempo trascorso fuori dal gioco | Opzione disattivata per default, correzione soltanto in avanti | Policy RTC con test host; non attesta ogni evento temporale di ogni gioco né tutti i casi lid manuale. |
 | Fast-forward tenuto premuto, combinazioni e mute | Mancavano queste opzioni di controllo | Hold separato dal toggle, hotkey composte, mute opzionale | Adattamenti attribuiti a #1608/#1606/#1625; test input/policy. Il mute è una funzione, non una correzione della fedeltà audio. |

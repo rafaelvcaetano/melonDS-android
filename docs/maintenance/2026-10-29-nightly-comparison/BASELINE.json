@@ -1,0 +1,133 @@
+{
+  "checked_at": "2026-10-29T05:55:49.525Z",
+  "rechecked_at": "2026-10-29T06:09:57.673Z",
+  "release": {
+    "id": 114026952,
+    "name": "Nightly Build",
+    "tag": "nightly-release",
+    "url": "https://github.com/rafaelvcaetano/melonDS-android/releases/tag/nightly-release",
+    "original_published_at": "2023-07-28T17:58:30Z",
+    "updated_at": "2026-09-12T15:29:51Z",
+    "assets": [
+      {
+        "id": 559485409,
+        "name": "app-gitHub-nightly-release.apk",
+        "bytes": 20421847,
+        "digest": "sha256:addc921e5ea539841b0de87b8cb7e00515a9fcce32191b5cdf7fdcb08e4f1b44",
+        "updated_at": "2026-09-12T15:29:51Z",
+        "url": "https://github.com/rafaelvcaetano/melonDS-android/releases/download/nightly-release/app-gitHub-nightly-release.apk"
+      }
+    ]
+  },
+  "tag": {
+    "object_sha": "76348643d042dc4d0712843527101490741f5321",
+    "commit": "c42995caff0144f37ad9791dc9bc96d82e8a6f65",
+    "tagged_at": "2026-09-12T15:29:47Z"
+  },
+  "app_master": "c42995caff0144f37ad9791dc9bc96d82e8a6f65",
+  "core_master": "431ab4bd0003c4356e25fce89640ae1004579b9b",
+  "core_gitlink": "431ab4bd0003c4356e25fce89640ae1004579b9b",
+  "workflow": {
+    "id": 34701935940,
+    "url": "https://github.com/rafaelvcaetano/melonDS-android/actions/runs/34701935940",
+    "conclusion": "success",
+    "head_sha": "c42995caff0144f37ad9791dc9bc96d82e8a6f65"
+  },
+  "focused_issue_status": [
+    {
+      "url": "https://github.com/rafaelvcaetano/melonDS-android/issues/1678",
+      "number": 1678,
+      "state": "open",
+      "merged": null,
+      "updated_at": "2026-10-16T05:14:41Z",
+      "checked_at": "2026-10-29T05:55:49.259Z"
+    },
+    {
+      "url": "https://github.com/rafaelvcaetano/melonDS-android/issues/264",
+      "number": 264,
+      "state": "open",
+      "merged": null,
+      "updated_at": "2021-03-31T00:11:27Z",
+      "checked_at": "2026-10-29T05:55:49.253Z"
+    },
+    {
+      "url": "https://github.com/rafaelvcaetano/melonDS-android/pull/1677",
+      "number": 1677,
+      "state": "open",
+      "merged": false,
+      "updated_at": "2026-10-17T17:03:10Z",
+      "checked_at": "2026-10-29T05:55:49.525Z"
+    },
+    {
+      "url": "https://github.com/rafaelvcaetano/melonDS-android/pull/1682",
+      "number": 1682,
+      "state": "closed",
+      "merged": false,
+      "updated_at": "2026-10-28T12:12:39Z",
+      "checked_at": "2026-10-29T05:55:49.375Z"
+    },
+    {
+      "url": "https://github.com/rafaelvcaetano/melonDS-android-lib/pull/19",
+      "number": 19,
+      "state": "closed",
+      "merged": false,
+      "updated_at": "2026-10-28T12:12:41Z",
+      "checked_at": "2026-10-29T05:55:49.387Z"
+    },
+    {
+      "url": "https://github.com/melonDS-emu/melonDS/issues/2537",
+      "number": 2537,
+      "state": "open",
+      "merged": null,
+      "updated_at": "2026-01-09T18:48:50Z",
+      "checked_at": "2026-10-29T05:55:49.258Z"
+    }
+  ],
+  "app_snapshot": "f887228d7b4a23ec35db9916f0c75c27960119b2",
+  "functional_candidate": "89053f0fd96ef2bc616849deb15900e1d6b09f43",
+  "core_candidate": "fd7582400bb7e35fe0d36dbb0c89b6766c1a8f2e",
+  "apk_inspection": {
+    "official": {
+      "sha256": "addc921e5ea539841b0de87b8cb7e00515a9fcce32191b5cdf7fdcb08e4f1b44",
+      "bytes": 20421847,
+      "manifest_summary": [
+        "package: name='me.magnum.melonds.nightly' versionCode='41' versionName='2.0.1 (c42995c) GH (NIGHTLY)' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'",
+        "targetSdkVersion:'37'",
+        "application-label:'melonDS Nightly'",
+        "native-code: 'arm64-v8a' 'armeabi-v7a' 'x86_64'"
+      ],
+      "frontend_abis": [
+        "arm64-v8a",
+        "armeabi-v7a",
+        "x86_64"
+      ]
+    },
+    "candidate": {
+      "sha256": "72c3e4363f74da95e9e02df44fa3cba523ddf51ca2216e6992d220682926ec1b",
+      "bytes": 43560458,
+      "manifest_summary": [
+        "package: name='me.magnum.melonds.nightly.dev' versionCode='45' versionName='2.1.4 GH (NIGHTLY)' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'",
+        "targetSdkVersion:'37'",
+        "application-label:'melonDS Dev'",
+        "application-debuggable",
+        "native-code: 'arm64-v8a' 'armeabi-v7a' 'x86_64'"
+      ],
+      "frontend_abis": [
+        "arm64-v8a"
+      ]
+    },
+    "thor": {
+      "sha256": "198505e4f50d9eafa2dbc3f941fcec83f0b747e23c95cb00efdb57859ce8afaa",
+      "bytes": 85275758,
+      "manifest_summary": [
+        "package: name='me.magnum.melonds.nightly.perf' versionCode='45' versionName='2.1.4 GH (NIGHTLY) (PROFILING)' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'",
+        "targetSdkVersion:'37'",
+        "application-label:'melonDS Nightly'",
+        "native-code: 'arm64-v8a' 'armeabi-v7a' 'x86_64'"
+      ],
+      "frontend_abis": [
+        "arm64-v8a"
+      ]
+    }
+  }
+}

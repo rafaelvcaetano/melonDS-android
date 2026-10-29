@@ -1,0 +1,95 @@
+{
+  "app": {
+    "base": "c42995caff0144f37ad9791dc9bc96d82e8a6f65",
+    "snapshot": "f887228d7b4a23ec35db9916f0c75c27960119b2",
+    "merge_base": "c42995caff0144f37ad9791dc9bc96d82e8a6f65",
+    "behind": 0,
+    "ahead": 141,
+    "files": 356,
+    "categories": {
+      "Build and configuration": {
+        "files": 11,
+        "added": 235,
+        "deleted": 46,
+        "binary_files": 0
+      },
+      "Documentation and evidence": {
+        "files": 60,
+        "added": 34225,
+        "deleted": 0,
+        "binary_files": 2
+      },
+      "Tests and tools": {
+        "files": 117,
+        "added": 12614,
+        "deleted": 0,
+        "binary_files": 0
+      },
+      "Production code": {
+        "files": 134,
+        "added": 6597,
+        "deleted": 837,
+        "binary_files": 0
+      },
+      "Resources": {
+        "files": 34,
+        "added": 1553,
+        "deleted": 16,
+        "binary_files": 0
+      }
+    },
+    "commit_kinds": {
+      "code-test-build": 107,
+      "documentation-only": 30,
+      "merge": 4
+    },
+    "exact_repeated_patch_groups": [
+      [
+        "54104599ad26aceb16622eaf3beabacad0116eda",
+        "4e7e4516035b66859ecaebc9922cf42303aa7d5c"
+      ],
+      [
+        "8b17f326d3ef315cda149b61990807d67221791c",
+        "20595c46dced83b7aa4dd24ae81c421a506516b1"
+      ]
+    ],
+    "tree_diff_sha256": "e65b5bd0f548ad8cd735812f7cca4f13f435e35afb4ba194efae6dd0ad6dc781"
+  },
+  "core": {
+    "base": "431ab4bd0003c4356e25fce89640ae1004579b9b",
+    "snapshot": "fd7582400bb7e35fe0d36dbb0c89b6766c1a8f2e",
+    "merge_base": "431ab4bd0003c4356e25fce89640ae1004579b9b",
+    "behind": 0,
+    "ahead": 13,
+    "files": 17,
+    "categories": {
+      "Build and configuration": {
+        "files": 1,
+        "added": 35,
+        "deleted": 0,
+        "binary_files": 0
+      },
+      "Production code": {
+        "files": 16,
+        "added": 342,
+        "deleted": 175,
+        "binary_files": 0
+      }
+    },
+    "commit_kinds": {
+      "code-test-build": 12,
+      "merge": 1
+    },
+    "exact_repeated_patch_groups": [
+      [
+        "137c4ba7546112dfcf3251c7eac6dc85397265be",
+        "32f6c51466813802886b19ccf9c2f56f7f738374"
+      ],
+      [
+        "bc060f4cb2faa1fc6ef6f4046c509feb5e686342",
+        "f950b5e69c1c72dd309ec7af6ad9261d0076e5fc"
+      ]
+    ],
+    "tree_diff_sha256": "f92a36e96852909c1a36f4119453e5a5789e40442691ef4992ebf7c08e7aa1fa"
+  }
+}
