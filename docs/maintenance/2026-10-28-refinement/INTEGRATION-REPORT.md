@@ -208,9 +208,16 @@ ROM canoniche correnti/fallback EN/IT esistono. La nostra campagna aveva già
 rimosso circa 1,94 GiB logici di intermedi e l'AVD vuoto, conservando app/test APK,
 simboli compressi e piccole prove; circa 63 GiB liberi al termine di quella pulizia.
 
-V1.3.0 sta ancora usando emulator-5580 e fixture Android: restano protetti. La
-chat centrale «Auditare l'uso di spazio su disco» mantiene l'ownership della
-pulizia condivisa. V1.3.0 aggiornerà il manifesto alla fine dei test e coordinerà
-quella pulizia; nessuna radice attiva, ROM sorgente, BIOS, save originale, fixture,
-release pubblicata o prova unica viene rimossa per eliminare semplicemente
-"file vecchi". I manifesti privati conservano percorsi esatti e responsabilità.
+Al controllo del 28 ottobre V1.3.0 usava ancora emulator-5580 e fixture Android.
+Il passaggio finale del **29 ottobre** attesta la conclusione della campagna ROM
+e lo spegnimento verificato del banco. Le impronte delle due ROM v3 correnti e
+del profilo Software 1x sono state ricontrollate. Queste prove usano l'APK
+acquisita `.nightly.perf`: non si trasferiscono alla nostra `.dev` o a Compute 6x.
+
+La chat centrale «Auditare l'uso di spazio su disco» mantiene la responsabilità
+della pulizia condivisa ed è attiva; al ricevimento del manifesto finale non era
+ancora disponibile un suo esito conclusivo. Non sono state duplicate cancellazioni.
+ROM sorgenti, BIOS, save originali, fixture, release pubblicate e prove uniche
+restano protetti. I manifesti privati conservano percorsi esatti, impronte,
+ruoli corrente/precedente e responsabilità; "superato" non significa di per sé
+eliminabile.
