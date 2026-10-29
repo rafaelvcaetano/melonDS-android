@@ -13,8 +13,8 @@
 ---
 
 This updates the current Nightly with easier setup, searchable cheats and fixes
-for imports, saves, audio and controls. It includes the earlier Thor-tested
-changes and newer fixes; the newest candidate still needs physical Thor testing.
+for imports, saves, audio and controls. The 2.1.5 candidate has now been installed
+as an update on the Thor, with existing games, saves, cheats and settings preserved.
 
 ### Everyday improvements
 
@@ -65,10 +65,15 @@ changes and newer fixes; the newest candidate still needs physical Thor testing.
   API35/4KiB/16KiB; separate real WorkManager and six native targets also pass.
 - Additional evidence covers real GLES failure/fallback, sanitizer regressions,
   native UI captures and independent review.
+- Thor Android 13: 52 isolated ART passes plus 3 opt-in skips, a separate
+  WorkManager pass and six native passes. The installed optimized build also
+  passed copied raw-save/restart, dual-display and read-only cheat/BIOS UI checks.
+- [Thor update, preservation checks and before/after measurements](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-29-thor-update/README.md).
 - [Before/after tests, exact build identity and limits](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-29-nightly-comparison/VALIDATION.md).
-- No measured startup, battery, RAM or GPU improvement is claimed. The latest
-  candidate has not been installed on the Thor; physical peripherals, manual
-  TalkBack and slow-provider Activity rotation remain to be checked.
+- The physical samples are descriptive; they do not establish a startup, CPU,
+  RAM, battery or GPU improvement. An intermittent black display seen before
+  updating still lacks a controlled reproducer. Physical microphone/peripheral
+  checks, manual TalkBack and slow-provider Activity rotation remain open.
 
 ### Core dependency
 

@@ -1,5 +1,10 @@
 # Rifinitura Android e laboratorio Thor — 28 ottobre 2026
 
+**Aggiornamento del 29 ottobre:** la 2.1.5 è stata installata sulla Thor come
+aggiornamento, con verifica dei dati e prove fisiche. Il
+[rapporto dedicato](../2026-10-29-thor-update/README.md) contiene risultati,
+misure e limiti; il riepilogo seguente descrive lo stato della campagna del 28.
+
 Le correzioni di questa campagna sono verificate localmente su `main`, sopra app `c543c367`;
 il core resta `fd758240`. Nessuna installazione sulla Thor, push o pubblicazione
 PR. Le verifiche sul Mac usano Android virtuale ARM64: non certificano consumi,

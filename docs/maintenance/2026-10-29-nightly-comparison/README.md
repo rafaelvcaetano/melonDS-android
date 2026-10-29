@@ -25,16 +25,20 @@ published official Nightly, not only the fixes from the last few days.
   Its old `published_at` value does not date the current APK.
 - [Machine-readable source evidence](BASELINE.json).
 
-## The three builds must remain distinct
+## Build identities must remain distinct
 
 | Build | Identity and scope |
 | --- | --- |
 | Official Nightly | `me.magnum.melonds.nightly`; release APK; frontend libraries for ARM64, ARMv7 and x86_64. |
 | Earlier Thor installation | `me.magnum.melonds.nightly.perf`; `2.1.4 GH (NIGHTLY) (PROFILING)`; SHA-256 `198505e4f50d9eafa2dbc3f941fcec83f0b747e23c95cb00efdb57859ce8afaa`; frontend ARM64. Exact source commit is not attested. |
 | Locally verified candidate | `me.magnum.melonds.nightly.dev`; `2.1.4 GH (NIGHTLY)`; functional app `89053f0f`, core `fd758240`; APK SHA-256 `72c3e4363f74da95e9e02df44fa3cba523ddf51ca2216e6992d220682926ec1b`; debug frontend ARM64. |
+| Subsequent installed update | `me.magnum.melonds.nightly.perf`; optimized, non-debuggable 2.1.5/versionCode46; APK SHA-256 `0ecc829c6510aa4422902a7b415916a03d1052562bc7530d9edbdfefdb2766aa`. [Source identity, preserved data and physical checks](../2026-10-29-thor-update/README.md). |
 
 - The maintainer used the earlier modified build on the Thor for about a month.
   That is historical feedback, not physical acceptance of the newer candidate.
+- The subsequent physical update compares that modified 2.1.4 with 2.1.5.
+  It is separate from an official-release runtime comparison; the source diff
+  in this document continues to use the pinned official Nightly.
 - The later Sacred Gold Plus tests used the acquired `.perf` APK on Android 13,
   Software 1x. They do not validate the new `.dev` APK or Compute 6x.
 - Both local APKs contain third-party libraries for other ABIs, but their

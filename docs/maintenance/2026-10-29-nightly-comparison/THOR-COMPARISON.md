@@ -1,4 +1,8 @@
-# Thor comparison protocol — not yet executed
+# Official Nightly runtime comparison protocol — not yet executed
+
+The later [in-place update campaign](../2026-10-29-thor-update/README.md) tested
+the installed modified 2.1.4 against 2.1.5. It did not execute the full protocol
+below against the official release. Keep those baselines and conclusions separate.
 
 Use the pinned official Nightly and current candidate from [BASELINE.json](BASELINE.json).
 Recheck the official release when the Thor becomes available; preserve the old

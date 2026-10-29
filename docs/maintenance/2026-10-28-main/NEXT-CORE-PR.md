@@ -33,9 +33,13 @@ and memory-handling problems and removes unnecessary renderer work.
   RAM/DTCM alias, remapping, 4–32KiB windows and 4/16KiB Android pages.
 - The paired campaign ran native regressions on Android 13 and 15. Host JIT/DNS
   checks and ARM64/x86_64 sanitized builds are recorded separately.
+- The Thor Android 13 run passes all six native targets; the optimized app also
+  loads, saves and resumes a copied game with Compute 6x on its Adreno GPU.
+  [Physical checks and measurement limits](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-29-thor-update/README.md).
 - [Before/after evidence, commands and boundaries](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-29-nightly-comparison/VALIDATION.md).
 - No new 2D upscaler, OpenCL backend, audio rate-matching patch or measured FPS,
-  power or image-quality gain is claimed. Physical Thor acceptance is pending.
+  power or image-quality gain is claimed. Whole-app CPU/memory observations
+  do not isolate a core change; sustained thermal and all-game checks remain open.
 
 ### Related work and integration
 

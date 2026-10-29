@@ -69,8 +69,11 @@ Functional app `89053f0fd96ef2bc616849deb15900e1d6b09f43`, core
 
 ## Not established yet
 
-- Physical Thor acceptance of the newest candidate, including microphone,
-  controller, displays, sleep/audio and real storage providers.
+- Complete physical Thor acceptance, including microphone, external controllers,
+  hinge sleep/audio and all real storage-provider behaviors. The subsequent
+  [2.1.5 update and physical checks](../2026-10-29-thor-update/README.md) establish
+  in-place data preservation, copied raw-save/restart, dual-display and screen
+  power recovery, read-only UI checks and isolated ART/native test execution.
 - Faster normal startup, lower CPU/GPU/RAM use, lower energy use or better 6x image quality.
 - Full Activity rotation during a slow external-provider BIOS copy, arbitrary
   uncooperative I/O, external SAF writer races or BIOS/NAND authenticity.
@@ -79,5 +82,6 @@ Functional app `89053f0fd96ef2bc616849deb15900e1d6b09f43`, core
 - Android ARMv7/x86_64 runtime acceptance of the final candidate. Host x86_64
   checks are not Android x86_64 results.
 
-Performance graphs will use comparable physical-device A/B samples. Test counts,
-source line counts and differently built APK sizes are not performance results.
+The physical report includes descriptive startup/CPU/memory samples and their
+confounders. These do not establish causal performance gains. Test counts, source
+line counts and differently built APK sizes are not performance results.

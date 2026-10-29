@@ -9,7 +9,9 @@ upstream a quella data. Questo resoconto unisce le campagne precedenti e la
 rifinitura finale, distinguendone la provenienza.
 
 **Integrato nel fork non significa già unito upstream.** Nessuna nuova PR è
-stata pubblicata e la build finale non è installata sulla Thor. Lo stato GitHub
+stata pubblicata. Il 29 ottobre la 2.1.5 è stata installata sulla Thor come
+[aggiornamento con conservazione dei dati e prove fisiche](../2026-10-29-thor-update/README.md).
+I risultati successivi sono separati dalle prove originarie qui riportate. Lo stato GitHub
 delle voci qui collegate è stato ricontrollato tramite API; data e metadati sono
 in [GITHUB-STATUS.json](GITHUB-STATUS.json). La verifica è mirata, non aggiorna
 silenziosamente tutte le 246 issue del censimento.
