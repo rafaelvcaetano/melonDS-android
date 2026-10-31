@@ -16,3 +16,13 @@
 - Preserve attribution to original human contributors and existing licenses.
 - Apply this convention to both the Android app and its core library. Published
   history must not be rewritten or force-pushed without explicit authorization.
+
+## Bug research, data integrity and evidence
+
+- Start from `docs/maintenance/README.md` and follow `AUDIT-METHOD.md`; reuse existing issue/PR coverage rather than creating duplicate catalogues.
+- A report is not a confirmed local bug. Record exact app/core/binary identities, a reachable caller, expected/observed behavior, negative controls and the level of proof before proposing a fix.
+- Check related upstream issues, PRs and commits, including closed/workaround cases; preserve human attribution. Do not reapply fixes already present in this fork.
+- Test production behavior with minimal explicit seams. Keep host, JVM, Android native, ART and physical-device results separate; retain skipped tests and limitations.
+- Preserve original saves, firmware/NAND, databases, settings, URI grants and signing identity. Use copies and diagnostic packages; never clear personal app data as a debugging shortcut.
+- Inspect individual files before cleanup: ignored `build` and temporary directories can contain unique saves or evidence. Record a deletion manifest and verify retained canonical copies/protected data.
+- Keep regression source tests unless their contract is obsolete or a verified replacement preserves coverage. Clean generated output separately; mark dated reports superseded and link their successors instead of rewriting old acceptance.
