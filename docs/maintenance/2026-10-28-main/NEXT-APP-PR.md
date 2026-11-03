@@ -17,8 +17,9 @@ before using them.
 The scope includes the earlier Thor changes and the November fixes. The baseline
 is official Nightly app `c42995ca` with core `431ab4bd`, rather than the last local
 update. The app initially pinned core `65952aec`; the final paired commit pins
-the new core correction `7837518a`. The candidate identity and local runtime
-checks are in the second-campaign report.
+the new core correction `ac5e6ba0`. The final source pair is app `0018cddb` and
+core `ac5e6ba0`. The candidate identity and local runtime checks are in the
+second-campaign report.
 
 ## Features
 
@@ -92,16 +93,35 @@ severity, disposition and evidence remain in the canonical register.
 | Savestate and native bridge | Restore the pre-load state on semantic rejection; reject invalid dimensions, queue state and native indices before use | [cause reconciliation and limits](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md#ricerca-smentite-e-correzioni) |
 | Update and release trust | Disable production GitHub polling when updates are disabled; verify Gradle artifacts and gate production release provenance | [scan/configuration and external limits](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md#scansione-e-configurazione-osservabile) |
 
+Post-scan verification also corrected three paired-core boundaries without
+recounting them as scan occurrences: Action Replay now carries one frame budget
+across repeated IRQs and resumes the deferred cheat without changing `Enabled`;
+G.711 spans are intersected with the ARM9 NWRAM aperture; and the Linux x86-64
+Thumb JIT no longer folds literals without an invalidation owner. See the
+[extra-scan review and RED/GREEN evidence](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md#revisione-successiva-al-primo-push)
+and the [source-pinned finding detail](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/FINDING-DETAILS.md#causa-extra-scan-non-contata).
+
 The Security results UI may still label entries Open. This draft reports the
 local technical disposition only; it does not claim an upstream issue closure
 or a published security advisory.
+The [101-entry finding detail](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/FINDING-DETAILS.md)
+links every scan occurrence to its attack path, validation, counterevidence,
+patch and remaining proof limits.
 
 ## Validation and remaining scope
 
 - Current delivery: [2.1.8/49 identity, Android-on-Mac checks and conservative AVD update](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md).
+- Final source pair: app `0018cddb`, core/gitlink `ac5e6ba0`.
+  [App CI run 41704565464](https://github.com/Umberto-DEV/melonDS-android/actions/runs/41704565464)
+  is green for JVM tests, lint/build and Linux native checks on x86-64 and
+  ARM64; [core CI run 41704485288](https://github.com/Umberto-DEV/melonDS-android-lib/actions/runs/41704485288)
+  is green.
+- Final optimized update candidate: 2.1.8/49, SHA-256
+  `195b5748fc59bac74eadee148f0a1a7b440e47b51dcc5f70fdcd384e855932cb`.
 - Final second-campaign checks include host sanitizers, JVM/API, optimized APK
-  build and lint, 11 NDK targets on ARM64 4/16 KiB, 58 ART/provider tests with
-  three recorded opt-in skips, and an in-place 2.1.7→2.1.8 AVD update preserving
+  build and lint, 11 NDK targets on ARM64 4/16 KiB, 55 default ART/provider cases
+  (52 pass, three opt-in skips) plus the separately passing WorkManager case,
+  and an in-place 2.1.7→2.1.8 AVD update preserving
   synthetic Room/cheat/layout/preferences and persisted SAF permission.
 - Recorded security source pair: app `a77ccaaa`, core `65952aec`; 312 JVM tests,
   163 focused host ASan/UBSan controls, core host build, DNS/JNI suites, debug
@@ -110,6 +130,8 @@ or a published security advisory.
   SGP save through Continue/SAVE/cold Continue. That APK predates the new fixes.
 
 Host, JVM, NDK component execution, ART and physical Thor results are separate.
+Thor remains on the documented 2.1.6/47 installation; this draft does not
+authorize or claim a physical 2.1.8 installation.
 No all-game, zero-bug, FPS, latency, memory or battery improvement is claimed.
 Android 9 black-screen #1665, DSi HOME/quota, physical microphone/driver behavior
 and device-specific audio/display reports remain open or partial. See [canonical issue/PR register](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-28-refinement/ISSUE-PR-COVERAGE.csv).
@@ -126,5 +148,7 @@ backup/restore addresses [#264](https://github.com/rafaelvcaetano/melonDS-androi
 The issue register preserves partial coverage; there are no blanket closing keywords.
 This replaces app #1681/#1682, closed without merge. Review core first, then pin
 its accepted revision and upstream URL. No replacement companion PR exists yet.
-The new report and register rows are currently local; their absolute GitHub URLs
-must be checked after a separately authorized commit/push and before publication.
+The report and finding-detail URLs are absolute publication targets; the new
+anchors resolve only after the updated report and `FINDING-DETAILS.md` are
+committed to the fork's `main`. Recheck them before any separately authorized
+upstream publication.

@@ -21,8 +21,8 @@
     "app_head": "9929f530df6f60b86d50c324f4aec83747e5745b",
     "core_branch": "main",
     "core_snapshot_head": "65952aec868bedd2dc33151ed850804e3e13df05",
-    "core_final_commit": "7837518a",
-    "app_final_source_commit": "4ffbc794772f956da192341df40fd129f8fbb57a",
+    "core_final_commit": "ac5e6ba0fb795b7aa8a43fdefed62eed8a37eff8",
+    "app_final_source_commit": "0018cddb04278f2bca5054804de501a459eb1de9",
     "working_tree_required_for_binary": true
   },
   "disposition": {
@@ -33,31 +33,86 @@
     "repository_corrected_external_control_unverified": 2,
     "not_applicable_android": 1,
     "informational_prior_campaign": 1,
-    "severity": {"high": 17, "medium": 33, "low": 15, "informational": 1},
-    "primary_location": {"app_or_shared": 38, "core": 28}
+    "severity": {
+      "high": 17,
+      "medium": 33,
+      "low": 15,
+      "informational": 1
+    },
+    "primary_location": {
+      "app_or_shared": 38,
+      "core": 28
+    }
   },
   "verification": {
     "host_security": "pass",
     "core_host_sanitizer": "pass",
     "action_replay_host": "pass",
-    "gradle": {"result": "pass", "actionable_tasks": 203, "executed": 194, "up_to_date": 9, "jvm_api_tests": 346, "failures": 0, "errors": 0, "skipped": 0},
-    "android_ndk_4k": {"result": "pass", "executables": 11, "page_size": 4096},
-    "android_ndk_16k": {"result": "pass", "executables": 11, "page_size": 16384},
-    "android_art": {"finished": 58, "failed": 0, "opt_in_skipped": 3},
+    "gradle": {
+      "result": "pass",
+      "actionable_tasks": 211,
+      "executed": 34,
+      "up_to_date": 177,
+      "jvm_api_tests": 346,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "android_ndk_4k": {
+      "result": "pass",
+      "executables": 11,
+      "page_size": 4096,
+      "serial": "emulator-5556",
+      "source_core": "ac5e6ba0fb795b7aa8a43fdefed62eed8a37eff8"
+    },
+    "android_ndk_16k": {
+      "result": "pass",
+      "executables": 11,
+      "page_size": 16384,
+      "serial": "emulator-5554",
+      "source_core": "ac5e6ba0fb795b7aa8a43fdefed62eed8a37eff8"
+    },
+    "android_art": {
+      "default_total": 55,
+      "default_passed": 52,
+      "default_opt_in_skipped": 3,
+      "workmanager_opt_in_passed": 1,
+      "failures": 0,
+      "package": "me.magnum.melonds.nightly.dev.test",
+      "avd_page_size": 16384
+    },
     "ci_integrity": "pass",
+    "ci_core_final": {
+      "run_id": 41704485288,
+      "result": "success",
+      "jobs_passed": 2
+    },
+    "ci_app_final": {
+      "run_id": 41704565464,
+      "result": "success",
+      "jobs_passed": 3,
+      "jobs_skipped": 1
+    },
     "git_diff_check_app": "pass",
     "git_diff_check_core": "pass"
   },
   "candidate": {
     "path": "local/notes/pr-review-2026-11-03/candidate/melonDS-2.1.8-nightly-profiling.apk",
     "bytes": 85676746,
-    "sha256": "4387d1d39cdba6c0c1507683709e8af902806e7f8c104bc2e24d0ca93a300199",
+    "sha256": "195b5748fc59bac74eadee148f0a1a7b440e47b51dcc5f70fdcd384e855932cb",
     "package": "me.magnum.melonds.nightly.perf",
     "version_name": "2.1.8 GH (NIGHTLY) (PROFILING)",
     "version_code": 49,
     "min_sdk": 24,
     "target_sdk": 37,
-    "abis": ["arm64-v8a", "armeabi-v7a", "x86_64"],
+    "frontend_abi": [
+      "arm64-v8a"
+    ],
+    "aapt_native_code_entries": [
+      "arm64-v8a",
+      "armeabi-v7a",
+      "x86_64"
+    ],
     "certificate_sha256": "41ad82cd4365c73195128975cf0b920699f8833093507957dc2d0f9d6bb0b4b1",
     "debuggable": false,
     "test_only": false,
@@ -82,12 +137,15 @@
     "runtime_homebrew_zip": "pass",
     "exact_rebuilt_apk_same_version_install_r": "success",
     "exact_rebuilt_apk_cold_launcher": "pass",
-    "exact_rebuilt_apk_prior_zip_entries_identical": 1349,
-    "exact_rebuilt_apk_only_changed_entry": "META-INF/version-control-info.textproto"
+    "exact_apk_direct_homebrew": "pass",
+    "exact_apk_zip_homebrew": "pass",
+    "exact_apk_private_data_recheck": "blocked: adb root rejected by automatic approval review",
+    "direct_fixture_sha256": "e298b528668165047d8bb4d7dfa0df038ddb9a6d91289b6f7a84b55e8b2bd5f4",
+    "zip_fixture_sha256": "c502c25d14bd66ef5b59d88f99420de972d5ecd26676667462add61ad080f779"
   },
   "cleanup": {
-    "known_allocated_bytes_removed": 2248740864,
-    "final_free_space": "29 GiB (28 GiB immediately after cleanup)",
+    "known_allocated_bytes_removed": 4907281105,
+    "final_free_space": "18 GiB observed after final cleanup; filesystem values fluctuate",
     "root_build_retained_after_unique_evidence_inspection": true,
     "gradle_daemon_stopped": true,
     "owned_avd_stopped": true,
@@ -96,5 +154,13 @@
   },
   "thor_modified": false,
   "sacred_gold_plus_modified": false,
-  "published": false
+  "published": false,
+  "security_ui": {
+    "first_scan_findings_closed_in_service": "non verificabile",
+    "second_scan_findings_closed_in_service": "non verificabile",
+    "observed_first_page_state": "Open",
+    "closure_blocker": "Mac Security UI locked; available service tool requires UI actionToken/requestId and remediation verified does not close triage; user directed to proceed without interface"
+  },
+  "fork_main_pushed": true,
+  "upstream_published": false
 }

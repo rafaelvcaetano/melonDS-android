@@ -5,6 +5,9 @@
 supersedes the 2.1.7 candidate for future testing. The retained fallback is
 2.1.7/48. An in-place 2.1.7→2.1.8 update with synthetic Room, cheat, layout,
 preferences and persisted SAF data passed on the dedicated 16 KiB ARM64 AVD.
+The maintainer subsequently authorized commits and pushes to `main` on both
+forks; core `ac5e6ba0` and app `0018cddb` have been pushed. This does not
+authorize an upstream PR, release or Thor installation.
 The Thor remains at its last documented 2.1.6/47 and was not connected or
 modified. A later Thor step still requires explicit authorization, verified
 backups/readback and `adb -s SERIAL install -r --no-incremental`; uninstall,
@@ -97,8 +100,9 @@ severity categories or silently convert source review into Android execution.
 Preparing an installable APK was the original scope. The maintainer's explicit
 1 November instruction authorized installation, which is now complete as an
 in-place update with fresh backups and readback checks. A connection alone never
-authorizes a later installation. **Uninstall, clear-data, push, release, upstream
-messages and PR publication remain unauthorized.** Preserve original data, URI
+authorizes a later installation. **At that time, uninstall, clear-data, push,
+release, upstream messages and PR publication were unauthorized; the 3 November
+successor above supersedes only the fork `main` push restriction.** Preserve original data, URI
 grants, settings, package and signing identity in any subsequent operation.
 
 ## Documentation and PR deliverables

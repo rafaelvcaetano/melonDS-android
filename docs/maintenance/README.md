@@ -4,8 +4,11 @@ Start here for Android bug work. This index is current as of **3 November 2026**
 dated reports are historical evidence, not fresh acceptance of later builds.
 
 Current handoff: [second independent scan, 2.1.8/49 and conservative AVD update](2026-11-03-security-followup/README.md).
+The [finding-by-finding Markdown view](2026-11-03-security-followup/FINDING-DETAILS.md)
+provides source-pinned attack paths, checks, counterevidence, fixes and limits;
+the CSV below remains the canonical disposition register.
 It records 66 new scan occurrences as 48 normalized cause groups, without
-recounting the previous 35, and distinguishes 62 locally closed results, two
+recounting the previous 35, and distinguishes 62 repository-code corrections, two
 repository corrections with unobservable external deployment controls, one
 Android-non-applicable case and one informational reconciliation. The Security
 UI may still show these results as Open; that service state is not an upstream
@@ -70,8 +73,8 @@ upstream PR publication still requires separate explicit authorization.
 
 | Layer | Checkout/repository | Current reviewed identity, 3 November |
 | --- | --- | --- |
-| Android frontend, Kotlin/JNI, Oboe, SAF | This repository; [upstream](https://github.com/rafaelvcaetano/melonDS-android) | `main` at `9929f530`; version 2.1.8/49 plus recorded local changes; HEAD alone does not identify the APK |
-| Android core | `melonDS-android-lib` submodule; [upstream](https://github.com/rafaelvcaetano/melonDS-android-lib) | `main` and app gitlink at `65952aec`, with the second-campaign working-tree corrections |
+| Android frontend, Kotlin/JNI, Oboe, SAF | This repository; [upstream](https://github.com/rafaelvcaetano/melonDS-android) | APK 2.1.8/49 embeds source commit `0018cddb`; later documentation commits do not change its payload |
+| Android core | `melonDS-android-lib` submodule; [upstream](https://github.com/rafaelvcaetano/melonDS-android-lib) | `main` and app gitlink at `ac5e6ba0`, pushed to the fork |
 | Shared core research | [melonDS-emu/melonDS](https://github.com/melonDS-emu/melonDS) | Research reference; a fix there is not automatically in the Android submodule |
 | Sacred Gold Plus | Separate sibling checkout/repository | Its owner controls ROM sources, builds and validation; do not modify it for an emulator audit |
 

@@ -7,7 +7,7 @@ non includono le 35 della campagna precedente. La riconciliazione corrente è:
 
 | Disposizione | Occurrence | Gruppi causali normalizzati |
 | --- | ---: | ---: |
-| Corrette e chiuse nel checkout locale | 62 | 45 |
+| Corrette nel codice del fork su `main` | 62 | 45 |
 | Correzione repository presente; controllo di deployment esterno non verificabile | 2 | 1 |
 | Non applicabile al target Android | 1 | 1 |
 | Informativa, già appartenente alla campagna precedente | 1 | 1 |
@@ -23,7 +23,10 @@ release e due controlli della stessa catena di dipendenze. Tutte le altre
 occurrence restano una causa separata. Gli ID, i titoli e la disposizione riga
 per riga sono nel registro canonico
 [FINDINGS.csv](../2026-11-03-security-remediation/FINDINGS.csv) e nel relativo
-[elenco titoli](../2026-11-03-security-remediation/FINDING-TITLES.md).
+[elenco titoli](../2026-11-03-security-remediation/FINDING-TITLES.md). La
+[vista Markdown delle 101 occurrence](FINDING-DETAILS.md) collega ogni ID a
+riepilogo, percorso, prova, controprova, limitazioni, rimedio, patch e
+prima/dopo, mantenendo il CSV come registro canonico.
 
 ### Risposta sulla 2.1.7 e provenienza
 
@@ -62,10 +65,15 @@ compilato in Nightly, **59 occurrence / 43 gruppi** erano associabili al
 runtime potenzialmente presente nell'APK. È una relazione sorgente/build, non
 una riproduzione dinamica di ciascun caso nel binario.
 
-Nell'interfaccia Security questi risultati possono restare marcati **Open**.
-Quello è lo stato del workflow del servizio: la chiusura tecnica locale richiede
-correzione e prova, già registrate qui; non implica chiusura upstream, commit,
-push, pubblicazione o modifica automatica dello stato remoto.
+Nella prima pagina interrogata di entrambe le scansioni, i risultati erano
+ancora marcati **Open** (`triage.open`, `remediation.idle`). Lo stato remoto
+di tutte le righe non è verificabile. L'unico controllo di remediation esposto
+richiede `requestId`, `actionToken` ed `expectedVersion` ottenuti dal flusso UI;
+anche lo stadio `verified` non chiude il triage. L'interfaccia Mac era bloccata
+alla schermata di login e l'utente ha chiesto di proseguire senza interfaccia
+per ora. Nessuna riga è stata marcata Closed per supposizione: le disposizioni
+qui sotto sono tecniche e locali, distinte dallo stato Security e da un'eventuale
+pubblicazione upstream. I commit di codice sono stati inviati sui `main` dei fork.
 
 ## Identità iniziale e conservazione
 
@@ -83,8 +91,9 @@ scansione. Il punto di partenza era:
 | Produttori | nessun writer concorrente app/core; Gradle, ADB e gli AVD avviati in seguito appartenevano a questa campagna |
 | Sacred Gold Plus | checkout e output fuori ambito, non letti per la remediation e non modificati o ripuliti |
 
-HEAD non identifica il binario: il candidato finale include il working tree
-locale preservato. `starting-app.patch`, `starting-core.patch` e
+L'HEAD iniziale non identificava il binario: il candidato finale incorpora il
+codice di produzione del commit app `0018cddb` e il core `ac5e6ba0`.
+`starting-app.patch`, `starting-core.patch` e
 `starting-local-files.json` consentono di distinguere lo stato preesistente.
 Non sono stati usati branch aggiuntivi, worktree, clone, reset, stash o rebase.
 
@@ -163,19 +172,59 @@ restano source-backed con chiamante e controllo negativo, non RED dinamici.
 | Host security | `bash tools/host-tests/security/run.sh`: pass | macOS host, non frontend Mac e non runtime Android |
 | Core sanitizer | `BUILD_JOBS=2 tools/core-host-sanitize.sh`: pass | warning libc++ di piattaforma non sommati ai passaggi |
 | Action Replay reale | `tools/host-tests/cheats/run.sh`: pass, incluso budget esatto | fixture sintetica/homebrew |
-| JVM/API/build/lint | Gradle ripetuto: BUILD SUCCESSFUL, 203 task (194 eseguiti, 9 up-to-date); 346 test JVM/API, zero failure/error/skip; lint zero errori e 479 warning | warning Kotlin/C++/manifest e nome root registrati |
-| Android NDK 4 KiB | 11 eseguibili API35 ARM64, tutti pass; page size 4096 | componenti target, non ART |
-| Android NDK 16 KiB | gli stessi 11, tutti pass; page size 16384 | componenti target, non dispositivo fisico |
-| ART/provider | 58 test terminati; 3 skip opt-in previsti; zero fallimenti | debug/test APK; lo skip non è contato come pass |
-| Integrità CI | checker locale pass | nessuna CI remota della revisione sporca |
-| Sorgenti | `git diff --check` app/core pass | working tree intenzionalmente non committato |
+| JVM/API/build/lint | Gradle finale: BUILD SUCCESSFUL, 211 task (34 eseguiti, 177 up-to-date); 55 suite XML, 346 test JVM/API, zero failure/error/skip; lint completato | warning Kotlin/C++/manifest e nome root registrati; i task up-to-date usano output della stessa coppia sorgente |
+| Android NDK 4 KiB | 11 eseguibili API35 ARM64 della coppia finale, tutti pass; `emulator-5556`, page size 4096 | componenti target, non ART |
+| Android NDK 16 KiB | gli stessi 11, tutti pass; `emulator-5554`, page size 16384 | componenti target, non dispositivo fisico |
+| ART/provider | Sul binario di test finale: suite default 55 casi, 52 pass e 3 skip opt-in previsti; WorkManager reale separato 1 pass; zero fallimenti | debug/test APK `.dev`, non APK ottimizzato `.perf`; UI capture e fallback GLES opt-in non ripetuti in questo ultimo ciclo |
+| Integrità CI | checker locale pass; [CI core finale](https://github.com/Umberto-DEV/melonDS-android-lib/actions/runs/41704485288) verde sui runner x86-64 e ARM64; [CI app finale](https://github.com/Umberto-DEV/melonDS-android/actions/runs/41704565464) verde nei job JVM/lint/ARM64 debug e native sanitizer Linux x86-64/ARM64 | il job legacy `build` risulta skipped, distinto dai tre job eseguiti |
+| Sorgenti | `git diff --check` app/core pass; commit core `ac5e6ba0`, app `0018cddb` su `main` dei fork | `AGENTS.md` e materiale storico locale preesistente restano fuori dai commit |
 
-I tre skip ART sono il controllo di cancellazione WorkManager che richiede opt-in,
-la cattura UI cheat e il fallback GLES reale. Un primo fallimento del test BIOS
+I log finali e i piccoli report Gradle sono conservati nel dossier locale
+`local/notes/pr-review-2026-11-03/final-verification/`. I comandi NDK sono
+`BUILD_JOBS=2 tools/android-tests/build.sh --abi arm64-v8a` e, per ciascuno
+degli 11 nomi in `tools/android-tests/build.sh`,
+`tools/android-tests/run.sh --serial emulator-5554|emulator-5556 --test NOME`.
+L'APK di test `.dev` e il test APK sono stati reinstallati con `adb -s emulator-5554
+install -r -t --no-incremental` prima di `am instrument -w -r`; il caso
+WorkManager ha usato `-e realWorkManager true`. I tre skip ART sono il controllo di cancellazione WorkManager che richiede opt-in,
+la cattura UI cheat e il fallback GLES reale. Il caso WorkManager è stato poi
+eseguito isolato con `-e realWorkManager true` ed è passato. Un primo fallimento del test BIOS
 era un difetto dell'harness: la produzione ora apre la sorgente tre volte per
 misura, validazione e copia; il provider bloccava ancora la seconda. Il test è
 stato corretto per bloccare la terza apertura, poi è passato isolato e nella
 suite completa. Non è contato come bug di produzione.
+
+### Revisione successiva al primo push
+
+Il primo push ha avviato [Core checks](https://github.com/Umberto-DEV/melonDS-android-lib/actions/runs/41702422811),
+verde sui runner Linux x86-64 e ARM64, e la
+[CI app](https://github.com/Umberto-DEV/melonDS-android/actions/runs/41702443735).
+Quest'ultima ha dato esiti separati: native sanitizer ARM64 verde; job JVM/lint/APK
+ferma prima dei test perché la verifica stretta Gradle non conosceva
+`aapt2-9.3.1-15703166-linux.jar`; native sanitizer x86-64 rosso nel controllo
+Thumb/DTCM JIT, con valore vecchio dopo la riscrittura del literal. Il checksum
+SHA-256 `e772a3dae8354764f1b0793903218427f483982445207f2e4ffc8c2026755bd4`
+è stato calcolato scaricando l'artefatto di 2.369.543 byte da Google Maven e
+aggiunto a `gradle/verification-metadata.xml`; il checker CI locale resta verde.
+Il backend x86-64 ora rifiuta il folding di indirizzi senza owner di
+invalidazione, come già faceva quello AArch64. È un'omissione preesistente della
+correzione JIT funzionale: la CI Linux iniziale è RED reale; il controllo sul
+commit `ac5e6ba0` è GREEN nella [CI core](https://github.com/Umberto-DEV/melonDS-android-lib/actions/runs/41704485288)
+e nella [CI app](https://github.com/Umberto-DEV/melonDS-android/actions/runs/41704565464).
+La prova Linux x86-64 è distinta dall'esecuzione Android ARM64.
+
+Una review dei confini della seconda remediation ha inoltre trovato due
+correzioni adiacenti e una segnalazione smentita:
+
+| Caso | Prima | Correzione / controprova | Prova e limite |
+| --- | --- | --- | --- |
+| G.711, finestra ARM9 NWRAM | Il range nominale poteva superare `0x04000000` e far validare un byte diretto a un'altra regione ARM9 | La validazione interseca il range con l'apertura reale `[0x03000000, 0x04000000)`; il limite esatto resta valido, quello oltre è rifiutato | Test helper ASan/UBSan RED exit 1, GREEN 29 controlli; compilazione `G711Ucode.cpp`; comando reale e caso source-to-sink da conservare, nessuna esecuzione G.711 end-to-end su Android |
+| Action Replay, fairness del budget | Un cheat con esattamente 1.048.576 operazioni consumava il frame a ogni giro e il successivo restava indefinitamente differito | Ripresa dal cheat differito al frame successivo; IRQ ripetute nello stesso frame non rinnovano il budget e `Enabled` resta coerente col frontend | `bash tools/host-tests/cheats/run.sh frame-fairness` RED exit 10, poi GREEN; 14 modalità ASan/UBSan verdi fuori dal sandbox, dove `shm_open` è disponibile |
+| Timestamp DSP futuro | La review ipotizzava che un timestamp oltre ARM9 fosse accettato e rendesse il DSP silente | Il codice già richiede `DSPTimestamp <= ARM9Timestamp` e rifiuta backlog oltre `2^24`, indipendentemente dal reset | `NativeRuntimeBoundsTest` ASan/UBSan: 13 controlli verdi, incluso timestamp futuro; nessuna patch e nessun nuovo bug contato |
+
+Questi controlli non sono occurrence aggiuntive della scansione. Il JIT x86-64
+è una lacuna funzionale emersa dalla CI dopo il push; G.711 e Action Replay
+raffinano due confini già nel registro. Non sono tre nuove occurrence Security.
 
 ## APK 2.1.8/49
 
@@ -187,29 +236,32 @@ soltanto dal Gradle:
 | --- | --- |
 | Percorso canonico | `local/notes/pr-review-2026-11-03/candidate/melonDS-2.1.8-nightly-profiling.apk` |
 | Byte | 85.676.746 |
-| SHA-256 | `4387d1d39cdba6c0c1507683709e8af902806e7f8c104bc2e24d0ca93a300199` |
+| SHA-256 | `195b5748fc59bac74eadee148f0a1a7b440e47b51dcc5f70fdcd384e855932cb` |
 | Package | `me.magnum.melonds.nightly.perf` |
 | Versione | `2.1.8 GH (NIGHTLY) (PROFILING)` / 49 |
 | API | min 24, target/compile 37 |
-| ABI presenti | `arm64-v8a`, `armeabi-v7a`, `x86_64` |
+| ABI | frontend nativo solo `arm64-v8a`; l'APK contiene piccole librerie terze anche per `armeabi-v7a` e `x86_64`, perciò `aapt` elenca tutte e tre |
 | Firma | APK Signature Scheme v2; certificato SHA-256 `41ad82cd4365c73195128975cf0b920699f8833093507957dc2d0f9d6bb0b4b1` |
 | Modalità | `RelWithDebInfo`, resource optimization; non debuggable e non testOnly |
-| Revisione incorporata | app `4ffbc794772f956da192341df40fd129f8fbb57a`, core gitlink `7837518a` |
+| Revisione incorporata | app `0018cddb04278f2bca5054804de501a459eb1de9`, core gitlink `ac5e6ba0fb795b7aa8a43fdefed62eed8a37eff8` |
 
-È quindi un APK GitHub Nightly universale compatibile ARM64, non un file
-ARM64-only. Sono conservati soltanto il candidato corrente e il fallback
-2.1.7/48 per questo target.
+È un APK GitHub Nightly ottimizzato per il target ARM64. La presenza di librerie
+terze x86/ARM32 non prova che l'emulatore funzioni su quelle ABI. Restano il
+candidato corrente e il fallback 2.1.7/48 per questo target.
 
-La ricompilazione dopo i commit conserva 1.349 delle 1.350 entry ZIP
-byte-identiche al candidato provato nell'aggiornamento AVD; l'unica entry
-diversa è `META-INF/version-control-info.textproto`, che ora identifica
-`4ffbc794`. Firma, package e versionCode sono stati riletti dall'APK
-ricompilato. L'APK esatto è stato inoltre installato con `-r` sull'AVD già
-popolato: UID e firstInstallTime sono rimasti invariati, il launcher reale
+Firma, package, versionCode, minSdk, flag e librerie native sono stati riletti
+dall'APK ricompilato. L'APK esatto è stato inoltre installato con `-r` sull'AVD
+già popolato: UID e firstInstallTime sono rimasti invariati, il launcher reale
 `RomListActivity` è ripartito da cold start e non è comparso un fatal o ANR
-nella lettura limitata dei log. Un primo tentativo di avviare `MainActivity`
-ha fallito perché quella classe non è il launcher: errore dell'harness,
-corretto usando il manifest dell'APK.
+nella lettura limitata dei log. Dopo l'installazione del binario esatto, la ROM
+homebrew sia diretta sia in ZIP è stata aperta nell'Activity reale: entrambe le
+schermate hanno mostrato i colori attesi. Il controllo privato byte-per-byte
+successivo all'ultimo `install -r` non è stato possibile: la richiesta `adb root`
+sull'AVD è stata respinta dalla revisione automatica dei permessi. Restano la
+prova integrale di upgrade con dati sintetici sul candidato precedente e il
+controllo di UID/firstInstallTime/runtime sul binario esatto; non sono la stessa
+prova. Un primo tentativo di avviare `MainActivity` ha fallito perché quella
+classe non è il launcher: errore dell'harness, corretto usando il manifest.
 
 ## Aggiornamento conservativo sull'AVD
 
@@ -243,7 +295,7 @@ erano identici e il grant era ancora persistente. Dopo il primo avvio 2.1.8:
 La fixture ROM è originale e generata localmente, non commerciale: 131.072 byte,
 SHA-256 `e298b528668165047d8bb4d7dfa0df038ddb9a6d91289b6f7a84b55e8b2bd5f4`.
 È stata avviata dalla libreria sia direttamente sia da ZIP sintetico SHA-256
-`07f93122b3da61fa1c1a6e7ebfd2896faafcc08432d8e5e48066f513b32f1a9b`.
+`c502c25d14bd66ef5b59d88f99420de972d5ecd26676667462add61ad080f779`.
 Le due fasi cromatiche complementari sono state osservate; HOME/ripresa, input
 button/touch e lifecycle non hanno prodotto fatal, ANR o timeout nel log
 limitato. Questa ROM non usa un save: Continue/SAVE/cold Continue non sono quindi
@@ -265,21 +317,31 @@ esterne dell'AVD. La directory root `build/` è stata ispezionata e **conservata
 mescola binari rigenerabili con log, baseline, issue capture e prove storiche
 uniche, quindi il nome non ne autorizza la cancellazione.
 
-Restano circa 29 GiB liberi al controllo finale (28 GiB subito dopo la
-pulizia). Una pulizia storage separata e autorizzata da
+Subito dopo quella pulizia restavano circa 28 GiB liberi, saliti a circa 29 GiB
+al controllo allora finale. La successiva ricompilazione del candidato ha
+rigenerato output Gradle, poi ispezionati e puliti. Sono stati rimossi altri
+2.658.540.241 byte noti: il precedente candidato 2.1.8 sostituito solo dopo
+hash, intermedi app/API e il JAR aapt2 ufficiale usato per il checksum. Il
+totale noto delle due pulizie è 4.907.281.105 byte; i piccoli report Gradle,
+log Android, screenshot e fixture homebrew sono stati spostati nel dossier
+canonico locale. L'ultimo `df -h` mostrava **18 GiB liberi**; il valore del
+filesystem può oscillare e non coincide necessariamente con i byte allocati
+dei singoli file.
+Una pulizia storage separata e autorizzata da
 un'altra lavorazione ha liberato 10,52 GB di video Apple; non è attribuita a
-questa campagna e nessun suo repository è stato modificato qui. Il daemon
-Gradle PID 904, l'AVD dedicato PID 12352 e il server ADB avviato dalla campagna
-sono chiusi; non risultano emulatori della campagna ancora collegati. I due APK
-protetti sono stati riletti dopo la pulizia e mantengono gli hash documentati.
+questa campagna e nessun suo repository è stato modificato qui. Gli AVD 4/16 KiB,
+il daemon Gradle e il server ADB della campagna sono stati arrestati. I soli
+due APK protetti, 2.1.8 corrente e 2.1.7 fallback, sono stati riletti dopo
+la pulizia e mantengono gli hash documentati.
 
 ## Thor, pubblicazione e passo futuro
 
 La Thor non è stata collegata o modificata. L'ultima installazione fisica
 documentata resta 2.1.6/47; non è stato assunto che abbia 2.1.7. Nessun dato
 originale, ROM commerciale, BIOS, firmware/NAND, save, database o grant personale
-è stato modificato. Non sono stati eseguiti commit, push, PR, issue, release o
-messaggi upstream.
+è stato modificato. Sono stati eseguiti commit e push soltanto sui `main` dei
+due fork, come autorizzato successivamente. Non sono stati aperti PR o issue,
+pubblicate release o inviate comunicazioni upstream.
 
 Una futura prova Thor richiede nuova autorizzazione: rilettura package/versione,
 certificato e UID; backup verificati e leggibili di save, NAND/firmware,

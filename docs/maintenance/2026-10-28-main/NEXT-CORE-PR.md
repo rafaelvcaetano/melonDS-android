@@ -4,7 +4,7 @@
 
 Updated 3 November 2026. Source: `Umberto-DEV/melonDS-android-lib:main`;
 target: `rafaelvcaetano/melonDS-android-lib:master`. Baseline `431ab4bd`;
-starting core `65952aec`; final core commit `7837518a` on `main`.
+starting core `65952aec`; final core commit `ac5e6ba0` on `main`.
 Publication remains blocked pending the coordinated
 review and explicit approval. Evidence lives in the app repository, so all
 links below are absolute. Check final CI/URLs and add the real companion PR
@@ -23,13 +23,13 @@ The scope includes the earlier Thor changes and the November corrections.
 | --- | --- | --- |
 | DS/DSi registers | Apply console-mode initialization and SCFG access rules consistently | [features, original authors and test contracts](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-28-refinement/INTEGRATION-REPORT.md) |
 | Wi-Fi power saving | Power down automatically only when the emulated mode requests it | [features, original authors and test contracts](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-28-refinement/INTEGRATION-REPORT.md) |
-| JIT literals/invalidation | Fold tracked literals and use the actual write mask; reject the first untracked AArch64 Thumb/DTCM fold | [baseline and test ledger](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-29-nightly-comparison/VALIDATION.md); [new Thumb RED/GREEN](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-02-core-literal-thumb/README.md) |
+| JIT literals/invalidation | Fold only tracked literals, use the actual write mask and reject Thumb/DTCM folds without an invalidation owner on both AArch64 and x86-64 | [baseline and test ledger](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-29-nightly-comparison/VALIDATION.md); [Thumb RED/GREEN](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-02-core-literal-thumb/README.md); [x86-64 extra-scan cause](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/FINDING-DETAILS.md#causa-extra-scan-non-contata) |
 | JIT teardown/DTCM | Release mappings while ARM9 exists; correct RAM aliases, window offsets, remapping and mirrors | [baseline and test ledger](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-29-nightly-comparison/VALIDATION.md) |
 | NAND imports | Fail on short source/write/close operations; serialize save FAT headers without unaligned stores | [real FatFs/crypto RED/GREEN](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-31-rtc-nand/README.md) |
 | Existing NAND saves | Stage replacement, preserve/restore the old generation on failure and recover on a later import | [replacement tests](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-31-persistence-lifecycle/README.md); [rename fault and retry RED/GREEN](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-nand-rename-fault/README.md) |
 | DS Wi-Fi frames | Bound conversion to the actual LAN buffer | [DS RED/GREEN and Android 4/16 KiB](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-wifi-ds-length/README.md) |
 | DSi WMI frames | Validate payload length against mailbox occupancy and LAN capacity | [DSi RED/GREEN and instrumentation limits](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-dsi-wmi-length/README.md) |
-| Action Replay | Require complete instruction and E-code payload words before interpretation | [ARM7 VBlank RED/GREEN and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-action-replay-length/README.md) |
+| Action Replay | Require complete instruction/E-code payloads; keep one work budget across repeated IRQs in a frame, resume the deferred cheat next frame and preserve `Enabled` | [ARM7 VBlank RED/GREEN and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-action-replay-length/README.md); [fairness finding detail](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/FINDING-DETAILS.md#occ_95b372be5c7a53614199db50) |
 | NAND cartridge B7 | Keep save reads inside the allocation and selected 4 KiB page | [ASan/Android controls and attribution](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-nand-cart-read/README.md) |
 | Rendering | Skip unchanged Compute reconfiguration, unused OpenGL edge data/shaders and a misleading cache-error log | [features, original authors and test contracts](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-28-refinement/INTEGRATION-REPORT.md) |
 
@@ -54,7 +54,7 @@ The union is 35. These counts are not 35 demonstrated Android exploits.
 | Firmware | Validate image geometry and checksum/copy spans; consume a bounded immutable input snapshot | [per-occurrence correction and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/FINDINGS.csv) |
 | DSiWare/NAND | Bound save geometry and fixed-width title strings; reject truncated content before mutation | [per-occurrence correction and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/FINDINGS.csv) |
 | GBA flash | Bound bank/sector accesses and erase alignment; handle allocation failure | [per-occurrence correction and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/FINDINGS.csv) |
-| DSP/graphics | Validate pipe/page spans, transfer parity and scaling dimensions before arithmetic/copy | [per-occurrence correction and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/FINDINGS.csv) |
+| DSP/graphics | Validate pipe/page spans, G.711 work and the real ARM9 NWRAM aperture, transfer parity and scaling dimensions before arithmetic/copy | [per-occurrence correction and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/FINDINGS.csv); [G.711 boundary detail](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/FINDING-DETAILS.md#occ_ac89863ef8213945c0ee1634) |
 
 The [security report and repeatable commands](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/README.md) links exact saved titles, all occurrence dispositions and
 reproduction commands. All 35 occurrences have source corrections; dynamic
@@ -78,10 +78,26 @@ division finding is not applicable to Android because this frontend constructs
 the core without SD storage; it is not claimed fixed for desktop frontends.
 One informational occurrence belongs to the earlier campaign and is not counted
 as a new cause.
+The later Action Replay fairness and G.711 aperture corrections refine already
+counted findings. The x86-64 Thumb JIT correction is one extra-scan functional
+cause exposed by Linux CI, not a 102nd Security occurrence. Their before/after
+evidence and limits are in the
+[post-push review](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md#revisione-successiva-al-primo-push)
+and [finding detail](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/FINDING-DETAILS.md#causa-extra-scan-non-contata).
+The [101-entry finding detail](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/FINDING-DETAILS.md)
+provides the source-pinned path, validation, counterevidence, applied correction
+and proof limit for each occurrence in both scans.
 
 ## Validation and limits
 
 - Current paired delivery: [2.1.8/49 identity, Android-on-Mac checks and conservative AVD update](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md).
+- Final source pair: app/gitlink `0018cddb`, core `ac5e6ba0`.
+  [Core CI run 41704485288](https://github.com/Umberto-DEV/melonDS-android-lib/actions/runs/41704485288)
+  is green; [paired app CI run 41704565464](https://github.com/Umberto-DEV/melonDS-android/actions/runs/41704565464)
+  is green for JVM tests, lint/build and Linux native checks on x86-64 and
+  ARM64.
+- The paired optimized APK is 2.1.8/49, SHA-256
+  `195b5748fc59bac74eadee148f0a1a7b440e47b51dcc5f70fdcd384e855932cb`.
 - The final core passed the focused security suite, full host sanitizer build,
   Action Replay budget controls, and 11 Android-native targets on API35 ARM64
   with 4 KiB and 16 KiB pages. These remain distinct from ART and Thor evidence.
@@ -91,6 +107,9 @@ as a new cause.
   Exact commands and skips: [security report and repeatable commands](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/README.md).
 - Earlier native Android 4/16 KiB results belong to the revisions in each linked
   report. The [earlier Thor 2.1.6/47 acceptance](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-01-thor-update/README.md) predates the security core and is not its physical acceptance.
+
+Thor has not received this 2.1.8/49 pair; installation remains gated on separate
+authorization and the documented backup/verification procedure.
 
 Host macOS diagnostics do not validate Android runtime or a Mac frontend.
 NDK component tests do not certify full ART/SAF integration, game networking,
@@ -110,5 +129,7 @@ and partial DSi/game issues remain in the [canonical issue/PR register](https://
 This replaces library #18/#19, closed without merge. Review/merge core first,
 then point the app at the accepted revision and upstream URL. No replacement
 companion PR has been published.
-The new report and register rows are currently local; verify their absolute URLs
-only after a separately authorized commit/push and before publication.
+The report and finding-detail URLs are absolute publication targets; the new
+anchors resolve only after the updated report and `FINDING-DETAILS.md` are
+committed to the app fork's `main`. Recheck them before any separately
+authorized upstream publication.
