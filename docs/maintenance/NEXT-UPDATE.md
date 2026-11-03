@@ -1,5 +1,13 @@
 # Next modified Nightly update
 
+## Current 2.1.8 delivery preparation
+
+The [Thor 2.1.8/49 handoff](2026-11-03-thor-2.1.8/README.md) records the exact
+local update APK, fresh-backup gates, future physical tests, both PR drafts,
+actual issue/PR states and fork build availability. It supersedes earlier
+delivery instructions for this candidate. No physical install, replacement PR
+or Nightly publication is authorized by preparation alone.
+
 **3 November second-campaign successor:** the
 [second independent scan and 2.1.8/49 delivery](2026-11-03-security-followup/README.md)
 supersedes the 2.1.7 candidate for future testing. The retained fallback is

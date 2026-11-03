@@ -1,6 +1,6 @@
 # Core PR draft — not published
 
-**Title: Harden core state and I/O**
+**Title: Fix core state, memory and storage bounds**
 
 Updated 3 November 2026. Source: `Umberto-DEV/melonDS-android-lib:main`;
 target: `rafaelvcaetano/melonDS-android-lib:master`. Baseline `431ab4bd`;
@@ -120,6 +120,21 @@ DSi HOME/quota, persistent storage faults or power-loss atomicity. Slirp policy
 and the LAN wire format need compatibility review. No measured FPS, energy or
 all-game improvement is claimed.
 
+## Issue scope and paired review build
+
+The teardown cause from melonDS-emu/melonDS #2537 is corrected in this fork;
+that separate upstream issue remained open at the 3 November API check. This
+draft references it without claiming a cross-repository closure. The earlier
+Android-lib #18/#19 PRs are closed without merge and are superseded by this
+draft. Compared Thumb proposals and partial game/DSi reports retain their
+individual disposition in the issue register.
+
+The [paired Thor update and PR handoff](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-thor-2.1.8/README.md)
+defines the APK/source identity and physical acceptance procedure. No new Thor
+result or published fork Nightly is claimed. The core PR supplies source and
+native regression tests; the companion app supplies the review APK after its
+publication is separately approved.
+
 ## Attribution and integration
 
 Preserve existing human authorship and licenses. B7 save-page behavior adapts
@@ -132,7 +147,6 @@ and partial DSi/game issues remain in the [canonical issue/PR register](https://
 This replaces library #18/#19, closed without merge. Review/merge core first,
 then point the app at the accepted revision and upstream URL. No replacement
 companion PR has been published.
-The report and finding-detail URLs are absolute publication targets; the new
-anchors resolve only after the updated report and `FINDING-DETAILS.md` are
-committed to the app fork's `main`. Recheck them before any separately
-authorized upstream publication.
+The report and finding-detail URLs resolve on the app fork's `main`; private
+runtime evidence remains local. Recheck links and upstream revisions before
+separately authorized publication.

@@ -1,0 +1,36 @@
+{
+  "prepared_date": "2026-11-03",
+  "status": "prepared_not_installed_not_published",
+  "apk_relative_path": "local/notes/pr-review-2026-11-03/candidate/melonDS-2.1.8-nightly-profiling.apk",
+  "size_bytes": 85676746,
+  "sha256": "195b5748fc59bac74eadee148f0a1a7b440e47b51dcc5f70fdcd384e855932cb",
+  "application_id": "me.magnum.melonds.nightly.perf",
+  "version_name": "2.1.8 GH (NIGHTLY) (PROFILING)",
+  "version_code": 49,
+  "certificate_sha256": "41ad82cd4365c73195128975cf0b920699f8833093507957dc2d0f9d6bb0b4b1",
+  "signing_scheme": "v2",
+  "debuggable": false,
+  "test_only": false,
+  "min_sdk": 24,
+  "target_sdk": 37,
+  "frontend_abi": "arm64-v8a",
+  "native_build_mode": "RelWithDebInfo",
+  "app_executable_source": "0018cddb04278f2bca5054804de501a459eb1de9",
+  "core_source": "ac5e6ba0fb795b7aa8a43fdefed62eed8a37eff8",
+  "last_documented_thor": {
+    "version_code": 47,
+    "version_name": "2.1.6",
+    "uid": 10126,
+    "api": 33,
+    "page_size": 4096,
+    "must_reverify": true
+  },
+  "physical_update_authorized_by_this_handoff": false,
+  "upstream_publication_authorized": false,
+  "known_limits": [
+    "Exact final APK private bytewise post-upgrade reread unavailable on AVD; prior candidate has full synthetic comparison",
+    "Thor 47-to-49 migration not yet tested",
+    "Different upstream nightly application ID/signature is not interchangeable",
+    "Two external production release controls remain unverified"
+  ]
+}

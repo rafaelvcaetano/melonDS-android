@@ -3,7 +3,10 @@
 Start here for Android bug work. This index is current as of **3 November 2026**;
 dated reports are historical evidence, not fresh acceptance of later builds.
 
-Current handoff: [second independent scan, 2.1.8/49 and conservative AVD update](2026-11-03-security-followup/README.md).
+Current delivery procedure: [Thor 2.1.8 update, PR drafts and GitHub build availability](2026-11-03-thor-2.1.8/README.md).
+Physical installation and upstream publication await separate approval.
+
+Current evidence: [second independent scan, 2.1.8/49 and conservative AVD update](2026-11-03-security-followup/README.md).
 The exact optimized APK also passed Continue, SAVE and new-process cold Continue
 on a copied SGP 1.2.5 IT ROM/save in the dedicated Android AVD; its original
 inputs were rehashed unchanged. Thor remains on the prior installed build.

@@ -1,6 +1,6 @@
 # Android PR draft — not published
 
-**Title: Harden Android files and runtime**
+**Title: Improve Android setup, controls and reliability**
 
 Updated 3 November 2026. Source: `Umberto-DEV/melonDS-android:main`;
 target: `rafaelvcaetano/melonDS-android:master`. Publication remains blocked
@@ -144,6 +144,24 @@ No all-game, zero-bug, FPS, latency, memory or battery improvement is claimed.
 Android 9 black-screen #1665, DSi HOME/quota, physical microphone/driver behavior
 and device-specific audio/display reports remain open or partial. See [canonical issue/PR register](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-28-refinement/ISSUE-PR-COVERAGE.csv).
 
+## Issue scope and review build
+
+No upstream issue is claimed closed by this draft. The precise #1678 JNI cause
+is corrected locally; #264 is covered by exposing the existing configuration
+backup manager. Both issues remained open at the 3 November API check and are
+candidates for closing wording only after final acceptance. #1665, #1651/#1099,
+hardware microphone/casting and game-specific reports remain partial or open.
+Contributor PRs are credited below; adaptation does not close their PRs.
+
+The [Thor update and PR handoff](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-thor-2.1.8/README.md)
+records the exact 2.1.8/49 local APK, backup/update acceptance procedure and
+publication gates. It has not been installed on the Thor. There is no published
+2.1.8 fork Nightly; CI provides a separate debug test artifact, which must not
+be substituted for this local update. The exact-final-APK private bytewise
+post-update comparison remains a proof gap; the full AVD data comparison used
+an earlier candidate, as the report explains. A public review APK can be added
+after physical acceptance and explicit publication approval.
+
 ## Credits and integration
 
 Preserve work adapted from takanuva15 (#1677), WailAbou (#1606/#1608), dysprosium
@@ -156,7 +174,6 @@ backup/restore addresses [#264](https://github.com/rafaelvcaetano/melonDS-androi
 The issue register preserves partial coverage; there are no blanket closing keywords.
 This replaces app #1681/#1682, closed without merge. Review core first, then pin
 its accepted revision and upstream URL. No replacement companion PR exists yet.
-The report and finding-detail URLs are absolute publication targets; the new
-anchors resolve only after the updated report and `FINDING-DETAILS.md` are
-committed to the fork's `main`. Recheck them before any separately authorized
-upstream publication.
+The report and finding-detail URLs resolve on the fork's `main`. Raw private
+runtime evidence and the optimized APK remain local. Recheck links and current
+upstream revisions before separately authorized publication.
