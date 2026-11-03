@@ -3,8 +3,48 @@
 Start here for Android bug work. This index is current as of **3 November 2026**;
 dated reports are historical evidence, not fresh acceptance of later builds.
 
-Latest verified campaign units: [AArch64 literal handling](2026-11-02-repository-campaign/README.md), [DSi NAND rename recovery](2026-11-03-nand-rename-fault/README.md), [DS Wi-Fi guest frame bounds](2026-11-03-wifi-ds-length/README.md), [DSi WMI payload bounds](2026-11-03-dsi-wmi-length/README.md), [Action Replay payload bounds](2026-11-03-action-replay-length/README.md), and [NAND cartridge read spans](2026-11-03-nand-cart-read/README.md). The [deep-scan reconciliation](2026-11-03-scan-reconciliation/README.md) records canceled partial scans; it does not establish exhaustive coverage.
-Local `main` push was authorized on 3 November; upstream PR publication remains blocked.
+Earlier closed unit: [DSi WMI guest payload lengths](2026-11-03-dsi-wmi-length/README.md).
+Its LAN-buffer write was red on host UBSan and the correction is green on host
+and target-instrumented Android NDK API35 ARM64 4 KiB/16 KiB component runs.
+The preceding [DS Wi-Fi frame unit](2026-11-03-wifi-ds-length/README.md) and
+[DSi NAND rename recovery](2026-11-03-nand-rename-fault/README.md) remain
+separate evidence. No new APK/ART execution is claimed for the DSi WMI fix.
+The 2 November [repository-wide inventory and AArch64 Thumb/DTCM literal
+correction](2026-11-02-repository-campaign/README.md) remains separate evidence.
+Its Deep Security Scan status was reported before the later saved artifacts
+became visible. The [3 November scan reconciliation](2026-11-03-scan-reconciliation/README.md)
+records the exact canceled scans and retained results. Neither canceled scan
+establishes complete security coverage. No ART, physical-device, game or
+whole-repository safety claim follows.
+
+Later closed units: [Action Replay instruction/payload bounds](2026-11-03-action-replay-length/README.md) and [NAND cartridge B7 page reads](2026-11-03-nand-cart-read/README.md). Both have host sanitizer RED/GREEN and Android NDK target-source execution on API35 ARM64 4 KiB/16 KiB. The latest app gitlink includes these changes; the previous APK predates them. Full APK/ART and real-game acceptance remain pending.
+
+Delivery: [modified Nightly 2.1.6 / 47, APK identity and final checks](2026-10-31-nightly-2.1.6/README.md).
+Installed in place on the Thor after explicit authorization:
+[2.1.6 physical update, data preservation and native checks](2026-11-01-thor-update/README.md).
+The ten native targets pass on API35 ARM64/4KiB and 16KiB and on Thor API33/4KiB;
+those executions remain separate from ART and whole-game acceptance.
+
+Latest NAND recheck: [API35 ARM64 4 KiB/16 KiB import and replacement
+controls](2026-11-02-nand-recheck/README.md). The four Android-native targets
+are component evidence for the earlier core. The subsequent
+[rename-fault unit](2026-11-03-nand-rename-fault/README.md) covers one-shot
+metadata faults and cleanup retry; ART/SAF, persistent faults, HOME and
+logical quota remain outside acceptance.
+
+Earlier focused batch: [RTC resume and NAND import integrity](2026-10-31-rtc-nand/README.md).
+Two demonstrated core causes corrected in the working tree; Android native
+API35 ARM64/4KiB/16KiB checks are separate from whole-app and HOME quota acceptance.
+
+Follow-up: [save replacement and JNI lease corrections; Surface/teardown limits](2026-10-31-persistence-lifecycle/README.md).
+
+Current delivery mandate: [next modified Nightly update and paired PR drafts](NEXT-UPDATE.md).
+Verified defects may be corrected locally; the target is the next update after
+the documented Thor 2.1.5/46, now delivered as installed 2.1.6/47. The coordinated
+SGP 1.3.1 IT update and copied-save checks are in the same physical report.
+Installation was authorized on 1 November;
+Pushing accepted local `main` commits is authorized as of 3 November;
+upstream PR publication still requires separate explicit authorization.
 
 - [Audit method and data/storage rules](AUDIT-METHOD.md)
 - [Prompt for a new investigation chat](NEW-CHAT-PROMPT.md)
@@ -13,14 +53,14 @@ Local `main` push was authorized on 3 November; upstream PR publication remains 
 
 ## Repositories and baseline
 
-| Layer | Checkout/repository | Baseline inspected on 31 October |
+| Layer | Checkout/repository | Latest local identity, 1 November |
 | --- | --- | --- |
-| Android frontend, Kotlin/JNI, Oboe, SAF | This repository; [upstream](https://github.com/rafaelvcaetano/melonDS-android) | Local `main` at `54bd57ec`; fork five commits ahead of its remote |
-| Android core | `melonDS-android-lib` submodule; [upstream](https://github.com/rafaelvcaetano/melonDS-android-lib) | `fd7582400bb7e35fe0d36dbb0c89b6766c1a8f2e`, local `main` |
+| Android frontend, Kotlin/JNI, Oboe, SAF | This repository; [upstream](https://github.com/rafaelvcaetano/melonDS-android) | Local `main` at `1cf4fa6a` plus recorded working-tree changes; six commits ahead of the local tracking ref |
+| Android core | `melonDS-android-lib` submodule; [upstream](https://github.com/rafaelvcaetano/melonDS-android-lib) | `fd7582400bb7e35fe0d36dbb0c89b6766c1a8f2e`, local `main` plus recorded NAND changes |
 | Shared core research | [melonDS-emu/melonDS](https://github.com/melonDS-emu/melonDS) | Research reference; a fix there is not automatically in the Android submodule |
 | Sacred Gold Plus | Separate sibling checkout/repository | Its owner controls ROM sources, builds and validation; do not modify it for an emulator audit |
 
-The installed 2.1.5 APK, exact identity and limitations are in the
+The previously installed 2.1.5 APK, exact identity and limitations are in the
 [physical update report](2026-10-29-thor-update/README.md). The
 [official Nightly comparison](2026-10-29-nightly-comparison/README.md) distinguishes
 upstream from the modified APK; do not compare two differently configured builds
@@ -84,7 +124,23 @@ current rules. Do not delete regression test sources merely because they are old
 
 ## Security scan results and repository corrections
 
-The original Daybreak scan targets app `1cc24ead` and remains canceled. Its live context reports `remediationAvailable: false` with the exact reason `Remediation is available only for successfully completed scans.` Checked on 3 November 2026. Repository commits and reports do not automatically close Security workbench findings. No scan was restarted for this check.
+The completed Deep Security Scan `4c41e000-6ba0-4453-aaa7-3cdbec542687`
+targets app `6a9d7a1f19cfd44ba7fccdedec9f9196d3e04108` with core `907849b3`.
+Its 35 saved occurrences were re-triaged against the actual source paths: all
+35 are corrected in the current paired candidate; none was dismissed as a false
+positive or accepted without a fix. The [full remediation report](2026-11-03-security-remediation/README.md)
+records raw inputs, methods, RED/GREEN measurements, exact saved titles,
+per-occurrence disposition, independent verification and limits. Fresh checks
+include 163 focused ASan/UBSan controls, the full sanitizer core build and host
+suites, 312 JVM tests, ARM64 APK build, lint and immutable CI dependency checks.
+The final code identity is app `a77ccaaa` with core `65952aec`; the
+[post-remediation adversarial review](2026-11-03-security-remediation/ADVERSARIAL-REVIEW.md)
+records the additional bypass checks and their RED/GREEN evidence.
+
+The original Daybreak scan below targets app `1cc24ead` and remains canceled.
+Its live context reports `remediationAvailable: false` with the exact reason
+`Remediation is available only for successfully completed scans.` It is retained
+as historical evidence and is not the completed scan described above.
 
 | Original Security title/rule | Current local correction | Recorded verification |
 | --- | --- | --- |
@@ -93,4 +149,8 @@ The original Daybreak scan targets app `1cc24ead` and remains canceled. Its live
 | Action Replay E-code length reads beyond the imported code vector (`native-memory-safety.action-replay-payload-bounds`) | `4e989e46` | Host sanitizer RED/GREEN; ten component modes on host and API35 ARM64 4/16 KiB |
 | NAND cartridge transfers disclose host memory past the save allocation (`nds-nand-cart-oob-read`) | `907849b3` | Host ASan source over-read RED/GREEN; six component modes on host and API35 ARM64 4/16 KiB; no disclosure exploit collected |
 
-These mappings cover four corrected causes across six saved scan occurrences. They are not blanket closure verdicts for every subclaim, duplicate, related path or whole-app impact in those occurrences. Per-occurrence verification and Security status reconciliation remain pending. AArch64 literal and DSi NAND rename fixes were separate functional-audit findings, not additional closed Daybreak scan records. Full APK/ART acceptance of the latest combined core remains pending.
+These historical mappings cover four corrected causes across six occurrences in
+the canceled scan. They are not substituted for the 35 per-occurrence verdicts
+in the completed scan. AArch64 literal and DSi NAND rename fixes remain separate
+functional-audit findings. Broad physical-device/game acceptance is still not a
+consequence of either scan.
