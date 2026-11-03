@@ -56,4 +56,5 @@ and memory-handling problems and removes unnecessary renderer work.
 
 - Avoid folding AArch64 literals whose DTCM addresses lack an invalidation owner; preserve existing tracked-literal behavior. [Red/green evidence](../2026-11-02-repository-campaign/README.md).
 - Restore the prior DSi save generation after ambiguous FatFs rename failures. [Fault-injection evidence](../2026-11-03-nand-rename-fault/README.md).
-- Bound DS guest Wi-Fi frame conversion to the 2048-byte native LAN buffer and preserve exact payload length. [Host ASan and Android ARM64 evidence](../2026-11-03-wifi-ds-length/README.md). DSi WMI and real-game networking remain separate checks.
+- Bound DS guest Wi-Fi frame conversion to the 2048-byte native LAN buffer and preserve exact payload length. [Host ASan and Android ARM64 evidence](../2026-11-03-wifi-ds-length/README.md).
+- Reject incomplete or forged DSi WMI guest payload lengths before reading the mailbox or writing the LAN buffer. [Public SDIO host and Android ARM64 evidence](../2026-11-03-dsi-wmi-length/README.md). Full APK/ART and real-game networking remain separate checks.

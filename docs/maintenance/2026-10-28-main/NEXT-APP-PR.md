@@ -85,4 +85,5 @@ as an update on the Thor, with existing games, saves, cheats and settings preser
 ### Verified campaign additions, 3 November
 
 - Pair the app with the corrected core revisions for Thumb/DTCM literal handling, DSi NAND rename recovery, and DS Wi-Fi guest frame bounds. The last correction is red on host ASan before the fix and green on host and API35 ARM64 4 KiB/16 KiB native runs. [Evidence and limits](../2026-11-03-wifi-ds-length/README.md).
-- The assembled GitHubProdDebug APK was checked without installation. ART, real game networking, DSi WMI and device behavior for this new binary remain outside acceptance. No upstream PR is published.
+- DSi WMI payload lengths are now bounded against actual mailbox bytes and native LAN capacity. The public SDIO reproducer is green on host ASan/UBSan and API35 ARM64 4 KiB/16 KiB native execution. [Evidence and limits](../2026-11-03-dsi-wmi-length/README.md).
+- The earlier assembled GitHubProdDebug APK was checked without installation; it predates the DSi WMI correction. Full APK, ART, real game networking and physical-device behavior for the DSi revision remain outside acceptance. No upstream PR is published.

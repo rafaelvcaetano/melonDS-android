@@ -3,7 +3,7 @@
 Start here for Android bug work. This index is current as of **3 November 2026**;
 dated reports are historical evidence, not fresh acceptance of later builds.
 
-Latest verified campaign units: [AArch64 literal handling](2026-11-02-repository-campaign/README.md), [DSi NAND rename recovery](2026-11-03-nand-rename-fault/README.md), and [DS Wi-Fi guest frame bounds](2026-11-03-wifi-ds-length/README.md). The [deep-scan reconciliation](2026-11-03-scan-reconciliation/README.md) records canceled partial scans; it does not establish exhaustive coverage.
+Latest verified campaign units: [AArch64 literal handling](2026-11-02-repository-campaign/README.md), [DSi NAND rename recovery](2026-11-03-nand-rename-fault/README.md), [DS Wi-Fi guest frame bounds](2026-11-03-wifi-ds-length/README.md), and [DSi WMI payload bounds](2026-11-03-dsi-wmi-length/README.md). The [deep-scan reconciliation](2026-11-03-scan-reconciliation/README.md) records canceled partial scans; it does not establish exhaustive coverage.
 Local `main` push was authorized on 3 November; upstream PR publication remains blocked.
 
 - [Audit method and data/storage rules](AUDIT-METHOD.md)
