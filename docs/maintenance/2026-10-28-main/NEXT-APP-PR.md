@@ -124,6 +124,10 @@ patch and remaining proof limits.
   (52 pass, three opt-in skips) plus the separately passing WorkManager case,
   and an in-place 2.1.7→2.1.8 AVD update preserving
   synthetic Room/cheat/layout/preferences and persisted SAF permission.
+- The exact optimized APK also booted direct/ZIP homebrew and an authorized
+  copied SGP 1.2.5 IT ROM/save on the 16 KiB AVD. The copied raw completed
+  Continue, in-game SAVE, a new-process cold Continue and normal Exit; source
+  ROM/save hashes remained unchanged. [Input identities and limits](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md#aggiornamento-conservativo-sullavd).
 - Recorded security source pair: app `a77ccaaa`, core `65952aec`; 312 JVM tests,
   163 focused host ASan/UBSan controls, core host build, DNS/JNI suites, debug
   APK build and lint. Exact commands and limits: [security report and repeatable commands](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/README.md).

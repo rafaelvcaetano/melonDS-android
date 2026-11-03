@@ -145,12 +145,13 @@
   },
   "cleanup": {
     "known_allocated_bytes_removed": 4907281105,
-    "final_free_space": "18 GiB observed after final cleanup; filesystem values fluctuate",
+    "final_free_space": "19 GiB observed after SGP AVD working-copy cleanup; filesystem values fluctuate",
     "root_build_retained_after_unique_evidence_inspection": true,
     "gradle_daemon_stopped": true,
     "owned_avd_stopped": true,
     "adb_server_stopped": true,
-    "candidate_and_fallback_hashes_reverified": true
+    "candidate_and_fallback_hashes_reverified": true,
+    "avd_sgp_working_logical_bytes_removed": 132430408
   },
   "thor_modified": false,
   "sacred_gold_plus_modified": false,
@@ -175,5 +176,24 @@
     "fork_release_job_gate": "github.repository restricts jobs to rafaelvcaetano/melonDS-android",
     "upstream_actor_gate": "rafaelvcaetano",
     "production_release_executed": false
+  },
+  "sgp_runtime": {
+    "avd": "melonds-buglab-api35-arm64-16k",
+    "serial": "emulator-5554",
+    "apk_sha256": "195b5748fc59bac74eadee148f0a1a7b440e47b51dcc5f70fdcd384e855932cb",
+    "rom": "Sacred Gold Plus 1.2.5 IT, frozen authorized copy",
+    "rom_bytes": 131906120,
+    "rom_sha256": "bdf50a4f327f8ea0d8a2ef312e1491d78460d34e978d9b15d160eaf140b313d4",
+    "save_source_bytes": 524288,
+    "save_source_sha256": "975bc4d18c5991a688c2dcefb97a959fc2a400027ea216d5a77bdaded2bf6f1a",
+    "save_after_sha256": "40771aa15de9fde49eb671887e3954a793b956757a56cec7cc348e479fe42f86",
+    "continue": "pass; Pokemon Center, 8 badges, 119 Pokedex",
+    "in_game_save": "pass; normal completion, 524288 bytes",
+    "cold_continue": "pass; PID 3284 to 3626, same Pokemon Center, save hash unchanged",
+    "normal_exit": "pass; returned to RomListActivity",
+    "source_hashes_unchanged": true,
+    "avd_working_copies_removed": true,
+    "private_evidence": "local/notes/pr-review-2026-11-03/final-verification/sgp-fixture-use.json",
+    "limits": "single ROM/save, AVD only; no Thor or malformed savestate"
   }
 }

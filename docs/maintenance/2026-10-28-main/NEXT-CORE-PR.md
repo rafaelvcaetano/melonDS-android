@@ -101,6 +101,9 @@ and proof limit for each occurrence in both scans.
 - The final core passed the focused security suite, full host sanitizer build,
   Action Replay budget controls, and 11 Android-native targets on API35 ARM64
   with 4 KiB and 16 KiB pages. These remain distinct from ART and Thor evidence.
+- The exact paired optimized APK also completed Continue, in-game SAVE and a
+  new-process cold Continue on an authorized copied SGP 1.2.5 IT ROM/save in
+  the 16 KiB AVD; the source hashes were unchanged. [Android runtime evidence and limits](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md#aggiornamento-conservativo-sullavd).
 - Recorded security validation of `65952aec`: 163 focused host ASan/UBSan
   controls, full core sanitizer build, synthetic JIT/NAND/RTC and separate
   DNS/JNI suites. The paired app passed 312 JVM tests, debug APK build and lint.

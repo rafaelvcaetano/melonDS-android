@@ -5,6 +5,9 @@
 supersedes the 2.1.7 candidate for future testing. The retained fallback is
 2.1.7/48. An in-place 2.1.7→2.1.8 update with synthetic Room, cheat, layout,
 preferences and persisted SAF data passed on the dedicated 16 KiB ARM64 AVD.
+The exact optimized APK then completed Continue, SAVE and new-process cold
+Continue on an authorized copied SGP 1.2.5 IT ROM/save, without changing the
+source hashes; this is AVD evidence, not a Thor installation.
 The maintainer subsequently authorized commits and pushes to `main` on both
 forks; core `ac5e6ba0` and app `0018cddb` have been pushed. This does not
 authorize an upstream PR, release or Thor installation.

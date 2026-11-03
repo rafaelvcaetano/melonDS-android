@@ -4,6 +4,9 @@ Start here for Android bug work. This index is current as of **3 November 2026**
 dated reports are historical evidence, not fresh acceptance of later builds.
 
 Current handoff: [second independent scan, 2.1.8/49 and conservative AVD update](2026-11-03-security-followup/README.md).
+The exact optimized APK also passed Continue, SAVE and new-process cold Continue
+on a copied SGP 1.2.5 IT ROM/save in the dedicated Android AVD; its original
+inputs were rehashed unchanged. Thor remains on the prior installed build.
 The [finding-by-finding Markdown view](2026-11-03-security-followup/FINDING-DETAILS.md)
 provides source-pinned attack paths, checks, counterevidence, fixes and limits;
 the CSV below remains the canonical disposition register.

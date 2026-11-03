@@ -192,6 +192,7 @@ restano source-backed con chiamante e controllo negativo, non RED dinamici.
 | Android NDK 4 KiB | 11 eseguibili API35 ARM64 della coppia finale, tutti pass; `emulator-5556`, page size 4096 | componenti target, non ART |
 | Android NDK 16 KiB | gli stessi 11, tutti pass; `emulator-5554`, page size 16384 | componenti target, non dispositivo fisico |
 | ART/provider | Sul binario di test finale: suite default 55 casi, 52 pass e 3 skip opt-in previsti; WorkManager reale separato 1 pass; zero fallimenti | debug/test APK `.dev`, non APK ottimizzato `.perf`; UI capture e fallback GLES opt-in non ripetuti in questo ultimo ciclo |
+| APK ottimizzato `.perf` | homebrew diretta e ZIP avviate; SGP 1.2.5 IT su copie: Continue, SAVE, nuovo processo e cold Continue al Centro Pokémon; Exit normale | una sola ROM/save realistica e un AVD 16 KiB; non certifica altri giochi o Thor |
 | Integrità CI | checker locale pass; [CI core finale](https://github.com/Umberto-DEV/melonDS-android-lib/actions/runs/41704485288) verde sui runner x86-64 e ARM64; [CI app finale](https://github.com/Umberto-DEV/melonDS-android/actions/runs/41704565464) verde nei job JVM/lint/ARM64 debug e native sanitizer Linux x86-64/ARM64 | il job legacy `build` risulta skipped, distinto dai tre job eseguiti |
 | Sorgenti | `git diff --check` app/core pass; commit core `ac5e6ba0`, app `0018cddb` su `main` dei fork | `AGENTS.md` e materiale storico locale preesistente restano fuori dai commit |
 
@@ -314,8 +315,35 @@ SHA-256 `e298b528668165047d8bb4d7dfa0df038ddb9a6d91289b6f7a84b55e8b2bd5f4`.
 `c502c25d14bd66ef5b59d88f99420de972d5ecd26676667462add61ad080f779`.
 Le due fasi cromatiche complementari sono state osservate; HOME/ripresa, input
 button/touch e lifecycle non hanno prodotto fatal, ANR o timeout nel log
-limitato. Questa ROM non usa un save: Continue/SAVE/cold Continue non sono quindi
-coperti e non vengono dichiarati passati.
+limitato. La fixture homebrew non usa un save.
+
+Una prova successiva sull'**APK finale esatto** ha usato la coppia SGP 1.2.5 IT
+già autorizzata e congelata nella [prova Android precedente](../2026-10-28-android-bugfixes/GAME-CHECK.md),
+senza scaricare ROM. Sorgenti letti soltanto: ROM di 131.906.120 byte
+SHA-256 `bdf50a4f327f8ea0d8a2ef312e1491d78460d34e978d9b15d160eaf140b313d4`
+dal backup canonico melonDS e raw save di 524.288 byte SHA-256
+`975bc4d18c5991a688c2dcefb97a959fc2a400027ea216d5a77bdaded2bf6f1a`
+da `build/android-bug-audit/runtime/game/`. Le due copie sono state trasferite
+con `adb -s emulator-5554 push` nella directory SAF sintetica già autorizzata,
+con stesso nome base e hash riletti nell'AVD. Configurazione: Android 15/API35,
+ARM64 16 KiB, boot diretto e BIOS integrati come nella prova precedente;
+preferenze renderer/JIT dell'AVD conservate ma non rilette in questa prova,
+nessun cheat o savestate importato.
+
+Il menu Continue mostrava **8 medaglie e 119 voci Pokédex**. Il gioco ha caricato
+il Centro Pokémon; `SALVA` ha chiesto conferma e sovrascrittura della sola copia.
+Dopo il ritorno al menu, il raw era ancora di 524.288 byte con nuovo SHA-256
+`40771aa15de9fde49eb671887e3954a793b956757a56cec7cc348e479fe42f86`.
+Solo dopo il completamento è stato usato `am force-stop`: PID 3284→3626 al
+nuovo avvio. Il cold Continue ha riportato allo stesso Centro Pokémon e la
+lettura ha lasciato il raw byte-identico; il successivo **Exit** dal menu pausa
+ha riportato alla libreria. Originali ROM/save ricontrollati con hash invariati;
+logcat limitato senza FATAL/ANR dell'app. Screenshot, raw scritto, hash, PID e
+log sono nel dossier locale `local/notes/pr-review-2026-11-03/final-verification/`;
+le sole copie di lavoro SGP nell'AVD sono state rimosse dopo la prova e la copia
+del raw scritto è stata conservata. Questo copre una sessione breve e una ROM:
+non certifica altri giochi, freeze specifici della ROM, savestate corrotti,
+NAND/DSi o perdita di alimentazione.
 
 Un reboot dell'AVD con snapshot/grafica ha lasciato ActivityManager non
 disponibile. È stato arrestato soltanto quell'AVD e riavviato con `-no-snapshot`
@@ -348,7 +376,9 @@ un'altra lavorazione ha liberato 10,52 GB di video Apple; non è attribuita a
 questa campagna e nessun suo repository è stato modificato qui. Gli AVD 4/16 KiB,
 il daemon Gradle e il server ADB della campagna sono stati arrestati. I soli
 due APK protetti, 2.1.8 corrente e 2.1.7 fallback, sono stati riletti dopo
-la pulizia e mantengono gli hash documentati.
+la pulizia e mantengono gli hash documentati. La prova SGP successiva ha rimosso
+altre 132.430.408 byte logici di copie AVD dopo aver conservato il raw scritto;
+all'ultimo controllo erano liberi **19 GiB** sul Mac.
 
 ## Thor, pubblicazione e passo futuro
 
