@@ -1,5 +1,10 @@
 # Published PR — melonDS-android
 
+> Historical text. PR #1681 was closed without merge. Use the
+> [current unpublished app draft](../maintenance/2026-10-28-main/NEXT-APP-PR.md)
+> and its linked verification report for the next proposal. The test counts and
+> device statements below apply only to the dated historical builds.
+
 Updated 24 October 2026. **Published with user approval: https://github.com/rafaelvcaetano/melonDS-android/pull/1681**
 Supersedes the September draft. The old `pr-prep/app` branch is stale and must not be submitted.
 

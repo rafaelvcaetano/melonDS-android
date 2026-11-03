@@ -17,6 +17,7 @@ import kotlin.experimental.and
 import kotlin.math.min
 
 object RomProcessor {
+	internal const val MAX_METADATA_STREAM_BYTES = 64L * 1024L * 1024L
 	private val DSIWARE_CATEGORY = 0x00030004.toUInt()
 	private const val KEY_ROM_NAME = "name"
 	private const val KEY_DEVELOPER_NAME = "developer"
@@ -31,36 +32,37 @@ object RomProcessor {
 		val romStreamProcessor = RomStreamDataProcessor().apply {
 			registerSequentialProcessor(0x0) {
 				val header = ByteArray(0x160)
-				if (stream.read(header) != 0x160) fail()
+				if (!stream.readFully(header)) fail()
 				save(KEY_HEADER, header)
 
 				val gameCode = String(header, 0x0C, 4)
 
 				val arm9Offset = byteArrayToInt(header, 0x20)
 				val arm9Size = byteArrayToInt(header, 0x2C)
-				if (arm9Size !in 0..0x3BFE00) fail()
+				if (arm9Size !in 0..0x3BFE00 || !metadataSpanFits(arm9Offset, arm9Size)) fail()
 
 				val arm7Offset = byteArrayToInt(header, 0x30)
 				val arm7Size = byteArrayToInt(header, 0x3C)
-				if (arm7Size !in 0..0x3BFE00) fail()
+				if (arm7Size !in 0..0x3BFE00 || !metadataSpanFits(arm7Offset, arm7Size)) fail()
 
 				val bannerOffset = byteArrayToInt(header, 0x68)
+				if (!metadataSpanFits(bannerOffset, 0xA00)) fail()
 
 				registerValueProcessor(arm9Offset.toLong()) {
 					val arm9BootCode = ByteArray(arm9Size)
-					if (stream.read(arm9BootCode) != arm9Size) fail()
+					if (!stream.readFully(arm9BootCode)) fail()
 					save(KEY_ARM9_BOOTCODE, arm9BootCode)
 				}
 
 				registerValueProcessor(arm7Offset.toLong()) {
 					val arm7BootCode = ByteArray(arm7Size)
-					if (stream.read(arm7BootCode) != arm7Size) fail()
+					if (!stream.readFully(arm7BootCode)) fail()
 					save(KEY_ARM7_BOOTCODE, arm7BootCode)
 				}
 
 				registerValueProcessor(bannerOffset.toLong()) {
 					val banner = ByteArray(0xA00)
-					stream.read(banner)
+					if (!stream.readFully(banner)) fail()
 					save(KEY_BANNER, banner)
 
 					val titleData = banner.copyOfRange(0x340, 0x340 + 256)
@@ -78,7 +80,7 @@ object RomProcessor {
 					// This is probably a DSi Ware game. But confirm in a later value processor
 					registerValueProcessor(0x234) {
 						val categoryData = ByteArray(4)
-						stream.read(categoryData)
+						if (!stream.readFully(categoryData)) fail()
 						val categoryId = byteArrayToInt(categoryData)
 						save(KEY_ROM_IS_DSIWARE_TITLE, categoryId.toUInt() == DSIWARE_CATEGORY)
 					}
@@ -119,20 +121,32 @@ object RomProcessor {
 		)
 	}
 
+	private fun metadataSpanFits(offset: Int, size: Int): Boolean {
+		if (offset < 0 || size < 0) return false
+		return offset.toLong() <= MAX_METADATA_STREAM_BYTES &&
+			size.toLong() <= MAX_METADATA_STREAM_BYTES - offset.toLong()
+	}
+
 	fun getRomIcon(inputStream: InputStream): Bitmap {
+		val trackedStream = ProgressTrackerInputStream(inputStream).apply {
+			setMaximumReadBytes(MAX_METADATA_STREAM_BYTES)
+		}
 		// Banner offset is at header offset 0x68
-		inputStream.skipStreamBytes(0x68)
+		trackedStream.skipStreamBytes(0x68)
 		// Obtain the banner offset
 		val offsetData = ByteArray(4)
-		inputStream.read(offsetData)
+		if (!trackedStream.readFully(offsetData)) throw java.io.EOFException("ROM banner offset is truncated")
 
 		val bannerOffset = byteArrayToInt(offsetData)
-		inputStream.skipStreamBytes(bannerOffset.toLong() + 32 - (0x68 + 4))
+		if (!metadataSpanFits(bannerOffset, 32 + 512 + 32)) {
+			throw java.io.IOException("ROM banner is outside the metadata budget")
+		}
+		trackedStream.skipStreamBytes(bannerOffset.toLong() + 32 - (0x68 + 4))
 		val tileData = ByteArray(512)
-		inputStream.read(tileData)
+		if (!trackedStream.readFully(tileData)) throw java.io.EOFException("ROM icon tiles are truncated")
 
 		val paletteData = ByteArray(16 * 2)
-		inputStream.read(paletteData)
+		if (!trackedStream.readFully(paletteData)) throw java.io.EOFException("ROM icon palette is truncated")
 
 		val palette = UShortArray(16)
 		for (i in 0 until 16) {
@@ -155,7 +169,7 @@ object RomProcessor {
 
 	fun getRomInfo(rom: Rom, inputStream: InputStream): RomInfo? {
 		val romHeader = ByteArray(0x200)
-		if (inputStream.read(romHeader) < 0x200) {
+		if (!inputStream.readFully(romHeader)) {
 			return null
 		}
 
@@ -250,16 +264,26 @@ object RomProcessor {
 	 * well. This one seems to work when dealing with a BufferedInputStream
 	 */
 	private fun InputStream.skipStreamBytes(bytes: Long) {
+		if (bytes < 0) throw java.io.IOException("ROM metadata sections overlap or move backwards")
+		if (bytes == 0L) return
 		val buffer = ByteArray(1024)
 		var remaining = bytes
 		do {
 			val toRead = min(remaining, buffer.size.toLong())
 			val read = this.read(buffer, 0, toRead.toInt())
-			if (read <= 0) {
-				break
-			}
+			if (read <= 0) throw java.io.EOFException("ROM metadata section is truncated")
 			remaining -= read
 		} while (remaining > 0)
+	}
+
+	private fun InputStream.readFully(buffer: ByteArray): Boolean {
+		var offset = 0
+		while (offset < buffer.size) {
+			val count = read(buffer, offset, buffer.size - offset)
+			if (count <= 0) return false
+			offset += count
+		}
+		return true
 	}
 
 	private class RomStreamDataProcessor {
@@ -298,6 +322,7 @@ object RomProcessor {
 
 		fun process(stream: InputStream): Boolean {
 			val trackedStream = ProgressTrackerInputStream(stream)
+			trackedStream.setMaximumReadBytes(MAX_METADATA_STREAM_BYTES)
 			processors.sortBy { it.streamOffset }
 
 			while (processors.isNotEmpty()) {
@@ -342,6 +367,8 @@ object RomProcessor {
 						processors.sortBy { it.streamOffset }
 					}
 				} catch (_: ProcessorFailException) {
+					return false
+				} catch (_: java.io.IOException) {
 					return false
 				}
 			}

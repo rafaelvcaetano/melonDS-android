@@ -3,6 +3,7 @@ package me.magnum.melonds.ui.emulator.model
 import android.content.Intent
 import android.app.Application
 import android.net.Uri
+import android.os.Parcel
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import me.magnum.melonds.domain.model.ConsoleType
@@ -20,6 +21,29 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class, sdk = [28])
 class LaunchArgsSecurityTest {
+    @Test
+    fun `pre-upgrade storage identity survives a parcel round trip`() {
+        val legacyRom = Rom(
+            name = "legacy",
+            developerName = "developer",
+            fileName = "legacy.nds",
+            uri = Uri.parse("content://trusted/exact-document"),
+            parentTreeUri = null,
+            config = RomConfig.default(),
+            isDsiWareTitle = false,
+            retroAchievementsHash = "",
+            storageNameVersion = 0,
+        )
+        val parcel = Parcel.obtain()
+        try {
+            RomParcelable(legacyRom).writeToParcel(parcel, 0)
+            parcel.setDataPosition(0)
+            assertEquals(0, RomParcelable.CREATOR.createFromParcel(parcel).rom.storageNameVersion)
+        } finally {
+            parcel.recycle()
+        }
+    }
+
     @Test
     fun `exported intent cannot inject a full rom parcelable`() {
         val attackerRom = Rom(

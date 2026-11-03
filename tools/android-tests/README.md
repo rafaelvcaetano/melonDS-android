@@ -33,6 +33,9 @@ tools/android-tests/run.sh --serial DEVICE_SERIAL --test MicSourceSwitchTest
 # Production JNI functions with explicit JNI/core boundary adapters:
 tools/android-tests/run.sh --serial DEVICE_SERIAL --test StorageNandTest
 tools/android-tests/run.sh --serial DEVICE_SERIAL --test NandJniTest
+# Real FatFs + encrypted authored NAND, and production RTC resume with real core:
+tools/android-tests/run.sh --serial DEVICE_SERIAL --test NandFatTest
+tools/android-tests/run.sh --serial DEVICE_SERIAL --test RtcResumeTest
 # Equivalent device selection:
 ANDROID_SERIAL=DEVICE_SERIAL tools/android-tests/run.sh
 # Match an Android x86_64 device to its separately built binary:
@@ -48,6 +51,13 @@ tools/android-tests/run.sh --serial DEVICE_SERIAL > android-jit.log 2>&1
 ```
 
 ## What this proves
+
+`NandFatTest` exercises real core/FatFs/crypto with authored data and controlled
+file errors: physical exhaustion, explicit cleanup/retry and remount readback.
+It does not boot HOME or establish a logical quota. `RtcResumeTest` compiles exact
+frontend resume/sync bodies with real NDS/RTC; it does not deliver Activity/JNI
+lifecycle events or execute a guest. See their [NAND](../host-tests/nand-fat/README.md)
+and [RTC](../host-tests/rtc-resume/README.md) boundary descriptions.
 
 `MicInputGainTest` compiles the unchanged production microphone callback against the real Android Oboe library and supplies eleven constant signed-PCM fixtures. It verifies silence, quiet signals, gain boundaries and positive/negative saturation; the old callback fails six fixtures and triggers float-cast-overflow. It does not open a physical microphone or certify device sensitivity, Bluetooth routing or a game's microphone feature.
 

@@ -21,7 +21,8 @@ esac
     -o "$out/ActionReplayLengthTest"
 if [[ "$#" -eq 0 ]]; then
     set -- valid one-byte five-byte disabled conditional-skip conditional-follow \
-           one-word empty truncated huge-length
+           one-word empty truncated huge-length loop-budget copy-budget
+    set -- "$@" exact-budget
 fi
 for mode in "$@"; do
     ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 \

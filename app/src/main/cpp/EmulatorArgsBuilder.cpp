@@ -99,7 +99,7 @@ void customizeFirmware(const EmulatorConfiguration& configuration, Firmware& fir
         auto &currentData = firmware.GetEffectiveUserData();
 
         // setting up username
-        std::u16string username = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes(firmwareConfig.username);
+        const std::u16string& username = firmwareConfig.username;
         if (!username.empty())
         { // If the frontend defines a username, take it. If not, leave the existing one.
             size_t usernameLength = std::min((int) username.length(), 10);
@@ -134,7 +134,7 @@ void customizeFirmware(const EmulatorConfiguration& configuration, Firmware& fir
         }
 
         // setup message
-        std::u16string message = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes(firmwareConfig.message);
+        const std::u16string& message = firmwareConfig.message;
         if (!message.empty())
         {
             size_t messageLength = std::min((int) message.length(), 26);
@@ -160,7 +160,7 @@ void customizeFirmware(const EmulatorConfiguration& configuration, Firmware& fir
     }
     else if (isInternalFirmware)
     {
-        replaceMac = parseMacAddress(firmwareConfig.macAddress, &configuredMac);
+        replaceMac = parseMacAddress(firmwareConfig.macAddress.c_str(), &configuredMac);
     }
 
     if (replaceMac)
@@ -379,7 +379,7 @@ std::optional<DSi_NAND::NANDImage> loadNAND(const EmulatorConfiguration& configu
             //auto converter = wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{};
 
             // setting up username
-            auto username = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes(firmcfg.username);
+            const std::u16string& username = firmcfg.username;
             size_t usernameLength = std::min((int) username.length(), 10);
             memset(&settings.Nickname, 0, sizeof(settings.Nickname));
             memcpy(&settings.Nickname, username.data(), usernameLength * sizeof(char16_t));
@@ -395,7 +395,7 @@ std::optional<DSi_NAND::NANDImage> loadNAND(const EmulatorConfiguration& configu
             settings.BirthdayDay = firmcfg.birthdayDay;
 
             // setup message
-            auto message = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes(firmcfg.message);;
+            const std::u16string& message = firmcfg.message;
             size_t messageLength = std::min((int) message.length(), 26);
             memset(&settings.Message, 0, sizeof(settings.Message));
             memcpy(&settings.Message, message.data(), messageLength * sizeof(char16_t));

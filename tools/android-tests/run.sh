@@ -3,7 +3,7 @@
 set -euo pipefail
 
 usage() {
-    echo "Usage: $0 [--abi arm64-v8a|x86_64] [--serial DEVICE_SERIAL] [--test JitInvalidationTest|MicInputGainTest|MicSourceSwitchTest|NandJniTest|StorageNandTest|RendererFallbackTest]"
+    echo "Usage: $0 [--abi arm64-v8a|x86_64] [--serial DEVICE_SERIAL] [--test JitInvalidationTest|MicInputGainTest|MicSourceSwitchTest|NandJniTest|StorageNandTest|UtfLeaseTest|RendererFallbackTest|NandFatTest|ExistingSaveReplacementTest|ReplacementFaultSweepTest|NandFatBaselineTest|RtcResumeTest]"
     echo "Environment: ANDROID_SERIAL, ADB_BIN, ANDROID_SDK_ROOT/ANDROID_HOME"
 }
 
@@ -20,7 +20,7 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 case "$abi" in arm64-v8a|x86_64) ;; *) usage >&2; exit 2 ;; esac
-case "$test_name" in JitInvalidationTest|MicInputGainTest|MicSourceSwitchTest|NandJniTest|StorageNandTest|RendererFallbackTest) ;; *) usage >&2; exit 2 ;; esac
+case "$test_name" in JitInvalidationTest|MicInputGainTest|MicSourceSwitchTest|NandJniTest|StorageNandTest|UtfLeaseTest|RendererFallbackTest|NandFatTest|ExistingSaveReplacementTest|ReplacementFaultSweepTest|NandFatBaselineTest|RtcResumeTest) ;; *) usage >&2; exit 2 ;; esac
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"

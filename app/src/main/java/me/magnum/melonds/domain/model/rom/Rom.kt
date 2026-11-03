@@ -16,6 +16,8 @@ data class Rom(
     val isDsiWareTitle: Boolean,
     val retroAchievementsHash: String,
     val totalPlayTime: Duration = Duration.ZERO,
+    /** 0 only for identities loaded from the pre-digest internal ROM cache. */
+    val storageNameVersion: Int = 1,
 ) {
 
     fun hasSameFileAsRom(other: Rom): Boolean {

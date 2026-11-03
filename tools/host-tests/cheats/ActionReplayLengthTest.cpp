@@ -40,6 +40,19 @@ int main(int argc, char** argv)
         cheat.Code = {0x52000000, 0xFFFFFFFF, 0xE2000000, 8,
                       0xAAAAAAAA, 0xBBBBBBBB, 0xD0000000, 0,
                       0x02000000, 0xCAFEBABE};
+    else if (mode == "loop-budget")
+        cheat.Code = {0xC0000000, 0xFFFFFFFF, 0xD1000000, 0};
+    else if (mode == "copy-budget")
+        cheat.Code = {0xF2000000, 0xFFFFFFFF};
+    else if (mode == "exact-budget")
+    {
+        cheat.Code.reserve(ARWorkBudget::MaxOperations * 2);
+        for (u64 i = 0; i < ARWorkBudget::MaxOperations; i++)
+        {
+            cheat.Code.push_back(0xD3000000);
+            cheat.Code.push_back(0);
+        }
+    }
     else
         return 2;
 
@@ -69,6 +82,18 @@ int main(int argc, char** argv)
     }
     else if (first != 0 || second != 0)
         return 4;
+
+    if (mode == "loop-budget" || mode == "copy-budget")
+    {
+        if (!nds->AREngine.Cheats[0].Enabled || !nds->AREngine.Cheats[0].BudgetExceeded)
+            return 5;
+        nds->ARM7.CPSR &= ~0x80;
+        nds->ARM7.TriggerIRQ();
+        if (!nds->AREngine.Cheats[0].BudgetExceeded)
+            return 6;
+    }
+    else if (mode == "exact-budget" && nds->AREngine.Cheats[0].BudgetExceeded)
+        return 7;
 
     std::printf("%s: PASS first=%08X second=%08X\n", mode.c_str(), first, second);
     return 0;

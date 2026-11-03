@@ -158,6 +158,16 @@ run_core_tests() {
 export ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0}"
 run_core_tests
 
+for audit in nand-fat rtc-resume; do
+    if bash "$REPO_ROOT/tools/host-tests/$audit/run.sh"; then
+        TEST_RESULTS+=("PASS")
+    else
+        TEST_RESULTS+=("FAIL")
+        OVERALL_STATUS=1
+    fi
+    TEST_NAMES+=("$audit")
+done
+
 echo "== Summary =="
 for i in "${!TEST_NAMES[@]}"; do
     printf '%-24s %s\n' "${TEST_NAMES[$i]}" "${TEST_RESULTS[$i]}"

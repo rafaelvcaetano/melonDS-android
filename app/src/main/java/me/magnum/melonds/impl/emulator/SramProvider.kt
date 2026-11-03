@@ -4,6 +4,7 @@ import android.net.Uri
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.impl.RomStorageName
 
 class SramProvider(
     private val settingsRepository: SettingsRepository,
@@ -18,9 +19,15 @@ class SramProvider(
         val romDocument = uriHandler.getUriDocument(rom.uri)
 
         val romFileName = romDocument?.name ?: throw SramLoadException("Cannot determine SRAM file name: ${romDocument?.uri}")
-        val sramFileName = romFileName.replaceAfterLast('.', "sav", "$romFileName.sav")
+        val storageStems = RomStorageName.compatibleStems(
+            romFileName,
+            rom.uri.toString(),
+            rom.parentTreeUri == null,
+            allowLegacyFallback = rom.storageNameVersion == 0 && romFileName == rom.fileName,
+        )
+        val sramFileName = "${storageStems.first()}.sav"
 
-        val sramDocument = rootDocument.findFile(sramFileName)
+        val sramDocument = storageStems.firstNotNullOfOrNull { rootDocument.findFile("$it.sav") }
         return if (sramDocument != null) {
             sramDocument.uri
         } else {

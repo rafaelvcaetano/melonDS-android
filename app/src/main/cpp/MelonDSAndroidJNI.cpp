@@ -86,7 +86,9 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
         return;
     }
 
-    jclass cheatClass = env->GetObjectClass(env->GetObjectArrayElement(cheats, 0));
+    jobject firstCheat = env->GetObjectArrayElement(cheats, 0);
+    jclass cheatClass = env->GetObjectClass(firstCheat);
+    env->DeleteLocalRef(firstCheat);
     jfieldID codeField = env->GetFieldID(cheatClass, "code", "Ljava/lang/String;");
 
     std::list<MelonDSAndroid::Cheat> internalCheats;
@@ -95,6 +97,12 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
         jobject cheat = env->GetObjectArrayElement(cheats, i);
         jstring code = (jstring) env->GetObjectField(cheat, codeField);
         const char* codeStringPtr = env->GetStringUTFChars(code, JNI_FALSE);
+        if (!codeStringPtr)
+        {
+            env->DeleteLocalRef(code);
+            env->DeleteLocalRef(cheat);
+            break;
+        }
         std::string codeString = codeStringPtr;
         // Since each part of a cheat code has 8 characters (4 bytes), we can add 1 to the length (to ensure that each part has a matching space separator) and divide by 9
         // (part length + space separator) to calculate the total number of parts in the cheat
@@ -141,6 +149,8 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
         }
 
         env->ReleaseStringUTFChars(code, codeStringPtr);
+        env->DeleteLocalRef(code);
+        env->DeleteLocalRef(cheat);
 
         if (isBad) {
             continue;
@@ -148,6 +158,8 @@ Java_me_magnum_melonds_MelonEmulator_setupCheats(JNIEnv* env, jobject thiz, jobj
 
         internalCheats.push_back(internalCheat);
     }
+
+    env->DeleteLocalRef(cheatClass);
 
     MelonDSAndroid::setCodeList(internalCheats);
 }
@@ -164,12 +176,12 @@ Java_me_magnum_melonds_MelonEmulator_setupAchievements(JNIEnv* env, jobject thiz
 
     if (richPresenceScript != nullptr)
     {
-        jboolean isStringCopy;
-        const char* richPresenceString = env->GetStringUTFChars(richPresenceScript, &isStringCopy);
-        richPresence = richPresenceString;
-
-        if (isStringCopy)
+        const char* richPresenceString = env->GetStringUTFChars(richPresenceScript, nullptr);
+        if (richPresenceString)
+        {
+            richPresence = richPresenceString;
             env->ReleaseStringUTFChars(richPresenceScript, richPresenceString);
+        }
     }
 
     MelonDSAndroid::setupAchievements(internalAchievements, internalLeaderboards, richPresence);
@@ -206,7 +218,10 @@ Java_me_magnum_melonds_MelonEmulator_getRuntimeAchievements(JNIEnv* env, jobject
     {
         jobject simpleRuntimeAchievement = env->NewObject(simpleRuntimeAchievementClass, simpleRuntimeAchievementConstructor, item.id, (jint) item.value, (jint) item.target);
         env->SetObjectArrayElement(achievements, index++, simpleRuntimeAchievement);
+        env->DeleteLocalRef(simpleRuntimeAchievement);
     }
+
+    env->DeleteLocalRef(simpleRuntimeAchievementClass);
 
     return achievements;
 }
@@ -214,22 +229,19 @@ Java_me_magnum_melonds_MelonEmulator_getRuntimeAchievements(JNIEnv* env, jobject
 JNIEXPORT jint JNICALL
 Java_me_magnum_melonds_MelonEmulator_loadRomInternal(JNIEnv* env, jobject thiz, jstring romPath, jstring sramPath, jint gbaSlotType, jstring gbaRomPath, jstring gbaSramPath)
 {
-    jboolean isCopy = JNI_FALSE;
-    const char* rom = romPath == nullptr ? nullptr : env->GetStringUTFChars(romPath, &isCopy);
-    const char* sram = sramPath == nullptr ? nullptr : env->GetStringUTFChars(sramPath, &isCopy);
-    const char* gbaRom = gbaRomPath == nullptr ? nullptr : env->GetStringUTFChars(gbaRomPath, &isCopy);
-    const char* gbaSram = gbaSramPath == nullptr ? nullptr : env->GetStringUTFChars(gbaSramPath, &isCopy);
+    const char* rom = romPath == nullptr ? nullptr : env->GetStringUTFChars(romPath, nullptr);
+    const char* sram = sramPath == nullptr ? nullptr : env->GetStringUTFChars(sramPath, nullptr);
+    const char* gbaRom = gbaRomPath == nullptr ? nullptr : env->GetStringUTFChars(gbaRomPath, nullptr);
+    const char* gbaSram = gbaSramPath == nullptr ? nullptr : env->GetStringUTFChars(gbaSramPath, nullptr);
 
     MelonDSAndroid::RomGbaSlotConfig* gbaSlotConfig = buildGbaSlotConfig((GbaSlotType) gbaSlotType, gbaRom, gbaSram);
-    int result = MelonDSAndroid::loadRom(rom, sram, gbaSlotConfig);
+    int result = (rom && sram) ? MelonDSAndroid::loadRom(rom, sram, gbaSlotConfig) : 2;
     delete gbaSlotConfig;
 
-    if (isCopy == JNI_TRUE) {
-        if (romPath) env->ReleaseStringUTFChars(romPath, rom);
-        if (sramPath) env->ReleaseStringUTFChars(sramPath, sram);
-        if (gbaRomPath) env->ReleaseStringUTFChars(gbaRomPath, gbaRom);
-        if (gbaSramPath) env->ReleaseStringUTFChars(gbaSramPath, gbaSram);
-    }
+    if (rom) env->ReleaseStringUTFChars(romPath, rom);
+    if (sram) env->ReleaseStringUTFChars(sramPath, sram);
+    if (gbaRom) env->ReleaseStringUTFChars(gbaRomPath, gbaRom);
+    if (gbaSram) env->ReleaseStringUTFChars(gbaSramPath, gbaSram);
 
     return result;
 }
@@ -408,8 +420,9 @@ Java_me_magnum_melonds_MelonEmulator_saveStateInternal(JNIEnv* env, jobject thiz
     const char* saveStatePath = path == nullptr ? nullptr : env->GetStringUTFChars(path, JNI_FALSE);
     // Serialising the whole machine while the emulation thread keeps running yields a torn state.
     bool wasPaused = pauseEmuThreadForSyncOperation(env, thiz);
-    jboolean result = MelonDSAndroid::saveState(saveStatePath);
+    jboolean result = saveStatePath && MelonDSAndroid::saveState(saveStatePath);
     resumeEmuThreadAfterSyncOperation(env, thiz, wasPaused);
+    if (saveStatePath) env->ReleaseStringUTFChars(path, saveStatePath);
     return result;
 }
 
@@ -420,8 +433,9 @@ Java_me_magnum_melonds_MelonEmulator_loadStateInternal(JNIEnv* env, jobject thiz
     // Loading rewrites the machine state and makes the core request a save flush, which would
     // race the CheckFlush() the emulation thread runs at the end of every frame.
     bool wasPaused = pauseEmuThreadForSyncOperation(env, thiz);
-    jboolean result = MelonDSAndroid::loadState(saveStatePath);
+    jboolean result = saveStatePath && MelonDSAndroid::loadState(saveStatePath);
     resumeEmuThreadAfterSyncOperation(env, thiz, wasPaused);
+    if (saveStatePath) env->ReleaseStringUTFChars(path, saveStatePath);
     return result;
 }
 

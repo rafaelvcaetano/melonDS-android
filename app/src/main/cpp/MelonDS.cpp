@@ -358,8 +358,12 @@ namespace MelonDSAndroid
         {
             Platform::Log(Platform::LogLevel::Error, "Failed to load state file \"%s\" into emulator\n", path);
             // Restore backup
+            backup->Rewind(false);
             if (!instance->loadState(backup.get()) || backup->Error)
+            {
                 Platform::Log(Platform::LogLevel::Error, "Failed to load backup state\n", path);
+                instance->stop();
+            }
             else
                 Platform::Log(Platform::LogLevel::Info, "Backup state loaded\n", path);
 
@@ -388,8 +392,12 @@ namespace MelonDSAndroid
         {
             Platform::Log(Platform::LogLevel::Error, "Failed to load rewind state");
             // Restore backup
+            backup->Rewind(false);
             if (!instance->loadState(backup.get()) || backup->Error)
+            {
                 Platform::Log(Platform::LogLevel::Error, "Failed to load backup state");
+                instance->stop();
+            }
             else
                 Platform::Log(Platform::LogLevel::Info, "Backup state loaded");
         }

@@ -13,6 +13,7 @@ import me.magnum.melonds.ui.settings.fragments.CustomFirmwarePreferencesFragment
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -28,6 +29,7 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Exercises [BiosGuidedFolderSetup] against a real temp directory via [DocumentFile.fromFile],
@@ -38,6 +40,41 @@ import java.io.OutputStream
 // Preserve the file-backed ContentResolver behavior used by these fixtures.
 @Config(application = Application::class, sdk = [28])
 class BiosGuidedFolderSetupTest {
+
+    @Test
+    fun `bounded provider copy rejects the byte beyond its budget before writing it`() {
+        val output = java.io.ByteArrayOutputStream()
+
+        assertThrows(IOException::class.java) {
+            copyProviderStream(ByteArray(9).inputStream(), output, 8)
+        }
+
+        assertEquals(0, output.size())
+    }
+
+    @Test
+    fun `bounded provider copy preserves an exact-limit input`() {
+        val payload = ByteArray(8) { it.toByte() }
+        val output = java.io.ByteArrayOutputStream()
+
+        copyProviderStream(payload.inputStream(), output, payload.size.toLong())
+
+        assertTrue(payload.contentEquals(output.toByteArray()))
+    }
+
+    @Test
+    fun `bounded provider copy observes cancellation after each provider read`() {
+        val output = java.io.ByteArrayOutputStream()
+        var cancellationChecks = 0
+
+        assertThrows(IOException::class.java) {
+            copyProviderStream(ByteArray(8).inputStream(), output, 8) {
+                if (++cancellationChecks == 2) throw IOException("cancelled")
+            }
+        }
+
+        assertEquals(0, output.size())
+    }
 
     @get:Rule
     val tempFolder = TemporaryFolder()
@@ -108,6 +145,54 @@ class BiosGuidedFolderSetupTest {
         assertEquals("ERROR", result.outcome.name)
         assertEquals(listOf("broken_bios7.bin"), result.sourceFileNames)
         assertFalse("a 0-byte destination file must not be left behind", File(tempFolder.root, "DS/bios7.bin").exists())
+    }
+
+    @Test
+    fun `a provider cannot replace a classified BIOS with a short second stream`() {
+        val source = writeFile("bios7.bin", 16384)
+        Shadows.shadowOf(context.contentResolver).registerInputStreamSupplier(Uri.fromFile(source)) {
+            ByteArray(1).inputStream()
+        }
+
+        val report = setup.run(DocumentFile.fromFile(tempFolder.root))
+
+        assertEquals(BiosGuidedFolderSetup.Outcome.ERROR, report.slotResults.first { it.slot == BiosSlot.DS_BIOS7 }.outcome)
+        assertFalse(File(tempFolder.root, "DS/bios7.bin").exists())
+    }
+
+    @Test
+    fun `firmware header is revalidated from the copied stream`() {
+        val source = writeFile(
+            "firmware.bin", 131072,
+            offset = FirmwareConsoleType.HEADER_OFFSET,
+            value = FirmwareConsoleType.DSI_HEADER_BYTE,
+        )
+        val opens = AtomicInteger()
+        Shadows.shadowOf(context.contentResolver).registerInputStreamSupplier(Uri.fromFile(source)) {
+            ByteArray(131072).apply {
+                this[FirmwareConsoleType.HEADER_OFFSET] =
+                    if (opens.getAndIncrement() == 0) FirmwareConsoleType.DSI_HEADER_BYTE.toByte() else 0
+            }.inputStream()
+        }
+
+        val report = setup.run(DocumentFile.fromFile(tempFolder.root))
+
+        assertEquals(BiosGuidedFolderSetup.Outcome.ERROR, report.slotResults.first { it.slot == BiosSlot.DSI_FIRMWARE }.outcome)
+        assertFalse(File(tempFolder.root, "DSi/firmware.bin").exists())
+    }
+
+    @Test
+    fun `a provider cannot replace a validated NAND with an empty second stream`() {
+        val source = writeFile("nand.bin", 1024)
+        val opens = AtomicInteger()
+        Shadows.shadowOf(context.contentResolver).registerInputStreamSupplier(Uri.fromFile(source)) {
+            if (opens.getAndIncrement() == 0) byteArrayOf(1).inputStream() else ByteArray(0).inputStream()
+        }
+
+        val report = setup.run(DocumentFile.fromFile(tempFolder.root))
+
+        assertEquals(BiosGuidedFolderSetup.Outcome.ERROR, report.nandResult.outcome)
+        assertFalse(File(tempFolder.root, "DSi/nand.bin").exists())
     }
 
     @Test

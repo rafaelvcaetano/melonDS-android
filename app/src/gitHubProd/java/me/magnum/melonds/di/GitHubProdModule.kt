@@ -1,6 +1,7 @@
 package me.magnum.melonds.di
 
 import android.content.Context
+import androidx.preference.PreferenceManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,7 +19,7 @@ object GitHubProdModule {
     @Provides
     @Singleton
     fun provideUpdatesRepository(@ApplicationContext context: Context, gitHubApi: GitHubApi): UpdatesRepository {
-        val gitHubPreferences = context.getSharedPreferences("preferences-github", Context.MODE_PRIVATE)
+        val gitHubPreferences = PreferenceManager.getDefaultSharedPreferences(context)
         return GitHubProdUpdatesRepository(context, gitHubApi, gitHubPreferences)
     }
 }

@@ -53,6 +53,8 @@ class FileSystemRomsRepository(
         private const val TAG = "FSRomsRepository"
         private const val ROM_DATA_FILE = "rom_data.json"
         private const val EXTERNAL_STORAGE_PROVIDER_AUTHORITY = "com.android.externalstorage.documents"
+        private const val MAX_SCAN_DEPTH = 64
+        private const val MAX_SCAN_DOCUMENTS = 100_000
     }
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
@@ -124,10 +126,10 @@ class FileSystemRomsRepository(
             allRoms
         }
 
-        // Try to find matching ROM by document id, then by path, then by size (filename already pre-filtered)
+        // Only stable identity is allowed to rebind to an existing cached URI. Provider-controlled
+        // names and lengths describe content; they do not prove that two documents are the same.
         val cachedRom = findRomByDocumentId(candidateRoms, uri)
             ?: findRomByPath(candidateRoms, uri)
-            ?: findRomBySize(candidateRoms, uri)
 
         if (cachedRom != null)
             return@withContext cachedRom
@@ -154,20 +156,6 @@ class FileSystemRomsRepository(
         val incomingPath = FileUtils.getAbsolutePathFromSingleUri(context, uri) ?: return null
         return roms.find { rom ->
             FileUtils.getAbsolutePathFromSingleUri(context, rom.uri) == incomingPath
-        }
-    }
-
-    private fun findRomBySize(roms: List<Rom>, uri: Uri): Rom? {
-        val incomingSize = runCatching {
-            val incomingDoc = DocumentFile.fromSingleUri(context, uri)?.takeIf { it.exists() }
-                ?: return@runCatching null
-            incomingDoc.length()
-        }.getOrNull() ?: return null
-
-        return roms.find { rom ->
-            runCatching {
-                DocumentFile.fromSingleUri(context, rom.uri)?.length() == incomingSize
-            }.getOrDefault(false)
         }
     }
 
@@ -308,19 +296,36 @@ class FileSystemRomsRepository(
     }
 
     private fun scanForNewRoms(): Flow<Rom> = flow {
+        val traversal = ScanTraversal()
         for (directory in settingsRepository.getRomSearchDirectories()) {
             val documentFile = DocumentFile.fromTreeUri(context, directory)
             if (documentFile != null) {
-                findCachedRomFiles(documentFile, this)
+                findCachedRomFiles(documentFile, this, traversal, 0)
             }
         }
     }
 
-    private suspend fun findCachedRomFiles(directory: DocumentFile, collector: FlowCollector<Rom>) {
+    private class ScanTraversal {
+        val visitedDirectories = mutableSetOf<String>()
+        var documents = 0
+    }
+
+    private suspend fun findCachedRomFiles(
+        directory: DocumentFile,
+        collector: FlowCollector<Rom>,
+        traversal: ScanTraversal,
+        depth: Int,
+    ) {
+        if (depth > MAX_SCAN_DEPTH) return
+        val directoryKey = runCatching {
+            "${directory.uri.authority}:${DocumentsContract.getDocumentId(directory.uri)}"
+        }.getOrElse { directory.uri.toString() }
+        if (!traversal.visitedDirectories.add(directoryKey)) return
         val files = directory.listFiles()
         for (file in files) {
+            if (++traversal.documents > MAX_SCAN_DOCUMENTS) return
             if (file.isDirectory) {
-                findCachedRomFiles(file, collector)
+                findCachedRomFiles(file, collector, traversal, depth + 1)
                 continue
             }
 

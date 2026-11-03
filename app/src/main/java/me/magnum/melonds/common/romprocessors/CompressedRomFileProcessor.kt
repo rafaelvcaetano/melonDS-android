@@ -182,5 +182,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
      */
     abstract fun getNdsEntryStreamInFileStream(fileStream: InputStream): RomFileStream?
 
-    class RomFileStream(stream: InputStream, val romFileSize: SizeUnit?) : FilterInputStream(stream)
+    class RomFileStream(stream: InputStream, val romFileSize: SizeUnit?) : FilterInputStream(
+        BoundedArchiveInputStream(stream, ArchiveReadBudget.MAX_ROM_BYTES),
+    )
 }

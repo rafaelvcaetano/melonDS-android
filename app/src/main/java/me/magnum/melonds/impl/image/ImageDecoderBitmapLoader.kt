@@ -3,13 +3,10 @@ package me.magnum.melonds.impl.image
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
-import android.graphics.Point
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
-import java.io.IOException
-import kotlin.math.roundToInt
 
 @RequiresApi(Build.VERSION_CODES.P)
 class ImageDecoderBitmapLoader(private val context: Context) : BitmapLoader {
@@ -18,34 +15,25 @@ class ImageDecoderBitmapLoader(private val context: Context) : BitmapLoader {
         val source = ImageDecoder.createSource(context.contentResolver, imageUri)
         return try {
             ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
-                val cameraAspectRatio = 640 / 480f
-                val sourceAspectRatio = info.size.width / info.size.height.toFloat()
-
-                val (cropRect, outputSize) = if (sourceAspectRatio > cameraAspectRatio) {
-                    val scale = 480f / info.size.height
-
-                    val rect = Rect(
-                        (info.size.width * scale / 2 - 320).roundToInt(),
-                        0,
-                        (info.size.width * scale / 2 + 320).roundToInt(),
-                        480,
-                    )
-                    rect to Point((info.size.width * scale).roundToInt(), 480)
-                } else {
-                    val scale = info.size.width / 640f
-                    val rect = Rect(
-                        0,
-                        (info.size.height * scale / 2f - 240).roundToInt(),
-                        640,
-                        (info.size.height * scale / 2f + 240).roundToInt()
-                    )
-                    rect to Point(640, (info.size.height * scale).roundToInt())
+                if (!StaticCameraImagePolicy.accepts(info.size.width, info.size.height)) {
+                    throw IllegalArgumentException("Unsupported camera image dimensions")
                 }
-
-                decoder.crop = cropRect
-                decoder.setTargetSize(outputSize.x, outputSize.y)
-            }.copy(Bitmap.Config.ARGB_8888, false)
-        } catch (e: IOException) {
+                val crop = StaticCameraImagePolicy.centerCrop(info.size.width, info.size.height)
+                decoder.crop = Rect(crop.left, crop.top, crop.left + crop.width, crop.top + crop.height)
+                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                decoder.memorySizePolicy = ImageDecoder.MEMORY_POLICY_LOW_RAM
+                decoder.setTargetSize(StaticCameraImagePolicy.TARGET_WIDTH, StaticCameraImagePolicy.TARGET_HEIGHT)
+            }.let { decoded ->
+                if (decoded.width != StaticCameraImagePolicy.TARGET_WIDTH || decoded.height != StaticCameraImagePolicy.TARGET_HEIGHT) {
+                    decoded.recycle()
+                    null
+                } else if (decoded.config == Bitmap.Config.ARGB_8888) {
+                    decoded
+                } else {
+                    decoded.copy(Bitmap.Config.ARGB_8888, false).also { decoded.recycle() }
+                }
+            }
+        } catch (e: Throwable) {
             null
         }
     }

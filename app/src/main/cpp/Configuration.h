@@ -2,6 +2,7 @@
 #define CONFIGURATION_H
 
 #include <memory>
+#include <string>
 #include "renderer/Renderer.h"
 
 namespace MelonDSAndroid
@@ -51,27 +52,27 @@ struct SdCardSettings
 
 typedef struct
 {
-    char username[11];
+    std::u16string username;
     int language;
     int birthdayMonth;
     int birthdayDay;
     int favouriteColour;
-    char message[27];
+    std::u16string message;
     bool randomizeMacAddress;
-    char macAddress[18];
+    std::string macAddress;
 } FirmwareConfiguration;
 
 typedef struct
 {
     bool userInternalFirmwareAndBios;
-    char* dsBios7Path;
-    char* dsBios9Path;
-    char* dsFirmwarePath;
-    char* dsiBios7Path;
-    char* dsiBios9Path;
-    char* dsiFirmwarePath;
-    char* dsiNandPath;
-    char* internalFilesDir;
+    std::string dsBios7Path;
+    std::string dsBios9Path;
+    std::string dsFirmwarePath;
+    std::string dsiBios7Path;
+    std::string dsiBios9Path;
+    std::string dsiFirmwarePath;
+    std::string dsiNandPath;
+    std::string internalFilesDir;
     float fastForwardSpeedMultiplier;
     bool showBootScreen;
     bool useJit;

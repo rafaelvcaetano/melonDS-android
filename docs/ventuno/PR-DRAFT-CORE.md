@@ -1,5 +1,10 @@
 # Published PR — melonDS-android-lib
 
+> Historical text. PR #18 was closed without merge. Use the
+> [current unpublished core draft](../maintenance/2026-10-28-main/NEXT-CORE-PR.md)
+> and its linked verification report for the next proposal. The test counts and
+> device statements below apply only to the dated historical builds.
+
 Updated 24 October 2026. **Published with user approval: https://github.com/rafaelvcaetano/melonDS-android-lib/pull/18**
 
 ## Proposed title

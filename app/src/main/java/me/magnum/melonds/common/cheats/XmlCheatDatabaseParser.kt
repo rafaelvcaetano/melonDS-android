@@ -7,8 +7,11 @@ import javax.xml.parsers.SAXParserFactory
 import javax.xml.XMLConstants
 import org.xml.sax.InputSource
 
-class XmlCheatDatabaseParser : CheatDatabaseParser {
+class XmlCheatDatabaseParser(
+    private val maxInputBytes: Long = 128L * 1024 * 1024,
+) : CheatDatabaseParser {
     override fun parseCheatDatabase(databaseStream: ProgressTrackerInputStream, parseListener: CheatDatabaseParserListener) {
+        databaseStream.setMaximumReadBytes(maxInputBytes)
         val saxFactory = SAXParserFactory.newInstance()
         val parser = saxFactory.newSAXParser()
         val reader = parser.xmlReader

@@ -2,6 +2,11 @@
 
 ## Host tests
 
+The [NAND/FatFs](host-tests/nand-fat/README.md) and
+[RTC resume](host-tests/rtc-resume/README.md) integration controls link the real
+core and also run as Android native executables. Their scope is narrower than
+whole-app ART or device validation.
+
 `tools/host-tests.sh` builds and runs every host-side test. Most need nothing but a C++
 compiler; the two under `tools/host-tests/jit/` link the emulator core, so the script builds
 it first via `tools/core-host-sanitize.sh` (and skips them, rather than failing, if it can't).

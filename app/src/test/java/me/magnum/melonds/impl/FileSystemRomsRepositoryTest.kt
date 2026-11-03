@@ -236,6 +236,33 @@ class FileSystemRomsRepositoryTest {
         assertEquals(original, previous)
     }
 
+    @Test fun cyclicProviderDirectoryIsVisitedOnceAndScanCompletes() = runBlocking {
+        provider.cyclicDirectory = true
+
+        repository.getRoms().first()
+        dispatcher.awaitIdle()
+
+        assertEquals(RomScanningStatus.NOT_SCANNING, repository.getRomScanningStatus().value)
+        assertTrue("cycle was queried ${provider.childrenQueryCount.get()} times", provider.childrenQueryCount.get() <= 2)
+        assertTrue(dispatcher.uncaught.isEmpty())
+    }
+
+    @Test fun nullNameAndEqualSizeCannotSubstituteAnUnrelatedCachedRom() = runBlocking {
+        provider.add("cached.nds", "AAAA")
+        writeCache(rom("cached.nds", "Cached"))
+        repository.getRoms().first()
+        dispatcher.awaitIdle()
+
+        provider.add("incoming.nds", "BBBB")
+        provider.nullDisplayNames += "incoming.nds"
+        val incoming = DocumentsContract.buildDocumentUriUsingTree(treeUri, "incoming.nds")
+
+        val resolved = repository.getRomAtUri(incoming)
+
+        assertEquals(incoming, resolved?.uri)
+        assertEquals("BBBB", resolved?.name)
+    }
+
     private fun rom(id: String, name: String) = Rom(name, "Fixture", id,
         DocumentsContract.buildDocumentUriUsingTree(treeUri, id), treeUri, RomConfig.default(), null, false, "")
 
@@ -295,6 +322,8 @@ class FileSystemRomsRepositoryTest {
         val openCount = AtomicInteger()
         @Volatile var failOpen = false
         @Volatile var failQuery = false
+        @Volatile var cyclicDirectory = false
+        val nullDisplayNames = ConcurrentHashMap.newKeySet<String>()
         fun add(name: String, title: String) { files[name] = File(directory, name).apply { writeText(title) } }
         override fun onCreate() = true
         override fun query(uri: Uri, projection: Array<out String>?, selection: String?, selectionArgs: Array<out String>?, sortOrder: String?): Cursor {
@@ -302,14 +331,23 @@ class FileSystemRomsRepositoryTest {
             val children = uri.lastPathSegment == "children"
             if (children) childrenQueryCount.incrementAndGet() else metadataQueryCount.incrementAndGet()
             val columns = projection ?: arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
-            val ids = if (children) files.keys.sorted() else listOf(DocumentsContract.getDocumentId(uri)).filter { files.containsKey(it) }
+            val requestedId = if (DocumentsContract.isTreeUri(uri) && uri.pathSegments.size == 2) {
+                DocumentsContract.getTreeDocumentId(uri)
+            } else {
+                DocumentsContract.getDocumentId(uri)
+            }
+            val ids = if (children) {
+                (files.keys + if (cyclicDirectory) setOf("roms") else emptySet()).sorted()
+            } else {
+                listOf(requestedId).filter { files.containsKey(it) || (cyclicDirectory && it == "roms") }
+            }
             return MatrixCursor(columns).apply {
                 ids.forEach { id -> addRow(columns.map { column ->
                     when (column) {
                         DocumentsContract.Document.COLUMN_DOCUMENT_ID -> id
-                        DocumentsContract.Document.COLUMN_DISPLAY_NAME -> id
-                        DocumentsContract.Document.COLUMN_MIME_TYPE -> "application/octet-stream"
-                        DocumentsContract.Document.COLUMN_SIZE -> files.getValue(id).length()
+                        DocumentsContract.Document.COLUMN_DISPLAY_NAME -> id.takeUnless { it in nullDisplayNames }
+                        DocumentsContract.Document.COLUMN_MIME_TYPE -> if (cyclicDirectory && id == "roms") DocumentsContract.Document.MIME_TYPE_DIR else "application/octet-stream"
+                        DocumentsContract.Document.COLUMN_SIZE -> files[id]?.length() ?: 0L
                         DocumentsContract.Document.COLUMN_FLAGS -> 0
                         DocumentsContract.Document.COLUMN_LAST_MODIFIED -> 0L
                         else -> null

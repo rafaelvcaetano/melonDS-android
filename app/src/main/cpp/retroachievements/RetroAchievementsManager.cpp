@@ -1,6 +1,7 @@
 #include "NDS.h"
 #include "rcheevos.h"
 #include "RetroAchievementsManager.h"
+#include "MemoryPeekBounds.h"
 #include "types.h"
 
 using namespace melonDS;
@@ -272,27 +273,13 @@ unsigned PeekMemory(unsigned address, unsigned numBytes, void* ud)
             return 0;
     }
 
-    switch (numBytes)
+    const u32 offset = address & memoryMask;
+    if (!PeekSpanValid(offset, memoryMask, numBytes))
     {
-        case 1:
-        {
-            u8 value = *(u8*) &memoryRegion[address & memoryMask];
-            return value;
-        }
-        case 2:
-        {
-            u16 value  = *(u16*) &memoryRegion[address & memoryMask];
-            return value;
-        }
-        case 4:
-        {
-            u32 value = *(u32*) &memoryRegion[address & memoryMask];
-            return value;
-        }
-        default:
-            Platform::Log(Platform::LogLevel::Error, "Unsupported memory peek size: %d", numBytes);
-            return 0;
+        Platform::Log(Platform::LogLevel::Error, "Unsupported memory peek span. Address: %d, size: %d", address, numBytes);
+        return 0;
     }
+    return ReadLittleEndian(memoryRegion, offset, numBytes);
 }
 
 }

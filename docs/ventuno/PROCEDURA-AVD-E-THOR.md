@@ -1,5 +1,12 @@
 # Procedura AVD e Thor — melonDS Android (ventuno)
 
+> **Procedura storica del 12 settembre, superata per gli aggiornamenti.**
+> Non eseguire le disinstallazioni o il ripristino descritti nelle sezioni 5–6:
+> cancellerebbero dati e permessi. La firma attuale permette un aggiornamento
+> in-place. Seguire il [resoconto 2.1.7 e la procedura corrente](../maintenance/2026-11-03-nightly-2.1.7/README.md).
+> Versioni, percorsi SDK/AVD e identità Thor sotto sono storici. Conservati come
+> prova, non come comandi da applicare alla configurazione attuale.
+
 Documento operativo per un agente che esegue passo passo. Basato su fatti verificati il 12/09/2026
 (vedi `PROVE-AVD.md`, `STATO-VENTUNO.md`) e sul codice. Non contiene istruzioni per toccare il
 dispositivo fisico 20e51bf7 (Thor) né per avviare l'AVD in questa sessione: chi esegue questo

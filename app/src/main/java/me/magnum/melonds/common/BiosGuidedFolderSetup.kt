@@ -16,7 +16,41 @@ import me.magnum.melonds.domain.model.FirmwareConsoleType
 import me.magnum.melonds.domain.services.BiosFileClassifier
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.util.UUID
+
+internal fun copyProviderStream(
+    input: InputStream,
+    output: OutputStream,
+    maxBytes: Long,
+    checkCancellation: () -> Unit = {},
+) {
+    require(maxBytes >= 0)
+    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+    var copied = 0L
+    while (true) {
+        checkCancellation()
+        val count = input.read(buffer)
+        checkCancellation()
+        if (count < 0) return
+        if (count == 0) {
+            checkCancellation()
+            val byte = input.read()
+            checkCancellation()
+            if (byte < 0) return
+            if (copied >= maxBytes) throw IOException("Provider stream exceeds $maxBytes bytes")
+            output.write(byte)
+            copied++
+            continue
+        }
+        if (count.toLong() > maxBytes - copied) {
+            throw IOException("Provider stream exceeds $maxBytes bytes")
+        }
+        output.write(buffer, 0, count)
+        copied += count
+    }
+}
 
 /**
  * Turns a single folder full of loosely-named BIOS/firmware files (as they are commonly shared:
@@ -243,7 +277,9 @@ class BiosGuidedFolderSetup private constructor(
     }
 
     private fun copySlot(source: DocumentFile, destDir: DocumentFile, slot: BiosSlot, resolvedByFileNameHint: Boolean = false): SlotResult {
-        val copy = copyInto(source, destDir, slot.canonicalFileName)
+        val copy = copyInto(source, destDir, slot.canonicalFileName, slot.expectedSizeBytes.last()) {
+            validateExistingSlot(it, slot) == Outcome.ALREADY_PRESENT
+        }
         return SlotResult(slot, copy.outcome, listOf(source.name.orEmpty()), resolvedByFileNameHint, copy.cleanupFileName)
     }
 
@@ -286,7 +322,9 @@ class BiosGuidedFolderSetup private constructor(
         if (candidate == null) return NandResult(Outcome.MISSING)
         val candidateStatus = validateNand(candidate)
         if (candidateStatus != Outcome.ALREADY_PRESENT) return NandResult(candidateStatus, candidate.name)
-        val copy = copyInto(candidate, dsiDir, NAND_FILE_NAME)
+        val copy = copyInto(candidate, dsiDir, NAND_FILE_NAME, MAX_NAND_BYTES) {
+            validateNand(it) == Outcome.ALREADY_PRESENT
+        }
         return NandResult(copy.outcome, candidate.name, copy.cleanupFileName)
     }
 
@@ -295,6 +333,8 @@ class BiosGuidedFolderSetup private constructor(
         return try {
             checkCancellation()
             if (!file.isFile) return Outcome.INVALID
+            val declaredSize = getFileSize(file)
+            if (declaredSize != null && declaredSize !in 1..MAX_NAND_BYTES) return Outcome.INVALID
             context.contentResolver.openInputStream(file.uri)?.use {
                 checkCancellation()
                 val firstByte = it.read()
@@ -317,7 +357,13 @@ class BiosGuidedFolderSetup private constructor(
      * rename-if-absent; check again immediately before rename and never fall back to direct copying.
      * Cancellation is observed between provider calls; a blocked read must return before cleanup.
      */
-    private fun copyInto(source: DocumentFile, destDir: DocumentFile, destName: String): CopyResult {
+    private fun copyInto(
+        source: DocumentFile,
+        destDir: DocumentFile,
+        destName: String,
+        maxBytes: Long,
+        validateCompletedCopy: (DocumentFile) -> Boolean,
+    ): CopyResult {
         var dest: DocumentFile? = null
         var outcome = Outcome.ERROR
         var temporaryName = "$destName.melonds-${UUID.randomUUID()}.part"
@@ -337,17 +383,12 @@ class BiosGuidedFolderSetup private constructor(
                 checkCancellation()
                 val output = context.contentResolver.openOutputStream(createdFile.uri) ?: throw IOException("No output stream")
                 output.use { outStream ->
-                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                    while (true) {
-                        checkCancellation()
-                        val count = inStream.read(buffer)
-                        checkCancellation()
-                        if (count < 0) break
-                        outStream.write(buffer, 0, count)
-                    }
+                    copyProviderStream(inStream, outStream, maxBytes, checkCancellation)
+                    checkCancellation()
                 }
             }
             checkCancellation()
+            if (!validateCompletedCopy(createdFile)) throw IOException("Completed provider copy failed validation")
             if (findChildIgnoringCase(destDir, destName) != null) throw IOException("Destination appeared during copying")
             if (!createdFile.renameTo(destName)) throw IOException("Provider could not publish the completed copy")
             if (createdFile.name != destName) throw IOException("Provider returned a different destination name")
@@ -415,6 +456,7 @@ class BiosGuidedFolderSetup private constructor(
         const val DS_FOLDER_NAME = "DS"
         const val DSI_FOLDER_NAME = "DSi"
         const val NAND_FILE_NAME = "nand.bin"
+        private const val MAX_NAND_BYTES = 512L * 1024 * 1024
 
         private val FIRMWARE_SIZES = (BiosSlot.DS_FIRMWARE.expectedSizeBytes.toList() + BiosSlot.DSI_FIRMWARE.expectedSizeBytes.toList()).distinct()
     }

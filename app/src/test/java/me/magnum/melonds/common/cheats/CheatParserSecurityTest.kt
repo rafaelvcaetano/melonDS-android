@@ -2,6 +2,7 @@ package me.magnum.melonds.common.cheats
 
 import me.magnum.melonds.domain.model.CheatDatabase
 import me.magnum.melonds.domain.model.Game
+import me.magnum.melonds.impl.stripParenthesizedSegments
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
@@ -13,6 +14,13 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 class CheatParserSecurityTest {
+    @Test
+    fun `database version suffix stripping preserves ordinary names without regex backtracking`() {
+        assertEquals("Database  Europe", stripParenthesizedSegments("Database (v1.2) Europe"))
+        assertEquals("Database (unfinished", stripParenthesizedSegments("Database (unfinished"))
+        assertEquals(")", stripParenthesizedSegments("((nested))"))
+    }
+
     @Test
     fun `valid cheat XML remains importable with provider independent hardening`() {
         val xml = """<codelist><name>DB</name><game><name>Game</name><gameid>ABCD 1234</gameid><folder><name>Folder</name><cheat><name>Cheat</name><codes>00000000 00000000</codes></cheat></folder></game></codelist>"""
@@ -97,6 +105,31 @@ class CheatParserSecurityTest {
     }
 
     @Test
+    fun `xml parser counts actual provider bytes even when declared length is unknown`() {
+        val xml = "<codelist><name>${"x".repeat(256)}</name></codelist>"
+
+        assertThrows(Exception::class.java) {
+            XmlCheatDatabaseParser(maxInputBytes = 128).parseCheatDatabase(
+                ProgressTrackerInputStream(ByteArrayInputStream(xml.toByteArray())),
+                listener(),
+            )
+        }
+    }
+
+    @Test
+    fun `usrcheat parser applies the same actual-byte document budget`() {
+        val headerAndAddressTerminator = ByteArray(0x110)
+        "R4 CheatCode".toByteArray().copyInto(headerAndAddressTerminator)
+
+        assertThrows(Exception::class.java) {
+            UsrCheatDatabaseParser(maxInputBytes = 0x100).parseCheatDatabase(
+                ProgressTrackerInputStream(ByteArrayInputStream(headerAndAddressTerminator)),
+                listener(),
+            )
+        }
+    }
+
+    @Test
     fun `usrcheat offsets are bounded before a large allocation`() {
         val prefix = ByteArray(0x200)
         "R4 CheatCode".toByteArray().copyInto(prefix)
@@ -113,6 +146,13 @@ class CheatParserSecurityTest {
             "parser requested a ${stream.maxRequestedBytes}-byte read before validating the entry span",
             stream.maxRequestedBytes <= 8 * 1024,
         )
+    }
+
+    @Test
+    fun `usrcheat folder count cannot exceed the remaining game item budget`() {
+        assertTrue(usrCheatFolderSpanFits(itemsParsed = 0, numItems = 10_000, folderItems = 9_999))
+        assertTrue(!usrCheatFolderSpanFits(itemsParsed = 0, numItems = 10_000, folderItems = 10_000))
+        assertTrue(!usrCheatFolderSpanFits(itemsParsed = 9_999, numItems = 10_000, folderItems = 1))
     }
 
     private fun writeAddressEntry(target: ByteArray, offset: Int, gameCode: String, dataOffset: Int) {

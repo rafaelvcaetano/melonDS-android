@@ -7,14 +7,22 @@ on:
       - '*'
       - '!nightly-release'
 
+permissions:
+  contents: read
+
 jobs:
   github-release:
+    if: github.repository == 'rafaelvcaetano/melonDS-android' && github.actor == 'rafaelvcaetano'
     runs-on: ubuntu-latest
+    environment: production-github-release
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
+          persist-credentials: false
 
       - name: Verify immutable CI dependencies
         run: python3 .github/check_ci_integrity.py
@@ -67,64 +75,3 @@ jobs:
             app/build/outputs/apk/gitHubProd/release/app-gitHub-prod-release.apk
             app/build/outputs/mapping/gitHubProdRelease/mapping.txt
             app/build/outputs/native-debug-symbols/gitHubProdRelease/native-debug-symbols.zip
-
-  playstore-release:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          submodules: recursive
-
-      - name: Verify immutable CI dependencies
-        run: python3 .github/check_ci_integrity.py
-
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
-        with:
-          java-version: '21'
-          distribution: zulu
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
-        with:
-          packages: platform-tools
-
-      - name: Build melonDS Android
-        env:
-          MELONDS_KEYSTORE: ${{ secrets.MELONDS_KEYSTORE }}
-          MELONDS_KEYSTORE_PASSWORD: ${{ secrets.MELONDS_KEYSTORE_PASSWORD }}
-          MELONDS_KEY_PASSWORD: ${{ secrets.MELONDS_KEYSTORE_PLAYSTORE_PASSWORD }}
-        run: |
-          echo "$MELONDS_KEYSTORE" | base64 -d > ${{runner.workspace}}/keystore.jks
-          echo "MELONDS_KEYSTORE=${{runner.workspace}}/keystore.jks" >> local.properties
-          echo "MELONDS_KEYSTORE_PASSWORD=$MELONDS_KEYSTORE_PASSWORD" >> local.properties
-          echo "MELONDS_KEY_ALIAS=melonds-playstore" >> local.properties
-          echo "MELONDS_KEY_PASSWORD=$MELONDS_KEY_PASSWORD" >> local.properties
-          chmod +x ./gradlew
-          ./gradlew :app:assemblePlayStoreProdRelease
-
-      - name: Get Version
-        id: release_params
-        run: echo VERSION=$(grep -oP 'versionName = "\K(.*?)(?=")' buildSrc/src/main/kotlin/AppConfig.kt) >> $GITHUB_OUTPUT
-
-      - name: Create Play Store Release
-        uses: r0adkll/upload-google-play@9cf8fd30c9e616ec761db3b9abb2b0f15842ce58 # v1.1.2
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.MELONDS_PLAYSTORE_ACCOUNT_JSON }}
-          packageName: me.magnum.melonds
-          releaseName: ${{ steps.release_params.outputs.VERSION }}
-          releaseFiles: app/build/outputs/apk/playStoreProd/release/app-playStore-prod-release.apk
-          track: production
-          inAppUpdatePriority: 2
-          whatsNewDirectory: ./.github/changelog/playStore
-          mappingFile: app/build/outputs/mapping/playStoreProdRelease/mapping.txt
-          debugSymbols: app/build/outputs/native-debug-symbols/playStoreProdRelease/native-debug-symbols.zip
-
-      - name: Upload APK, Mapping and Debug Symbols
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: playstore-release
-          path: |
-            app/build/outputs/apk/playStoreProd/release/app-playStore-prod-release.apk
-            app/build/outputs/mapping/playStoreProdRelease/mapping.txt
-            app/build/outputs/native-debug-symbols/playStoreProdRelease/native-debug-symbols.zip

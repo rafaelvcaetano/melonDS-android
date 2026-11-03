@@ -71,7 +71,7 @@ class GitHubProdUpdatesRepository(private val context: Context, private val api:
     private fun shouldCheckUpdates(): Boolean {
         val updateCheckEnabled = preferences.getBoolean(PREF_KEY_GITHUB_CHECK_FOR_UPDATES, true)
         if (!updateCheckEnabled) {
-            return true
+            return false
         }
 
         val lastCheckUpdateTimestamp = preferences.getLong(KEY_LAST_UPDATE_CHECK, -1)

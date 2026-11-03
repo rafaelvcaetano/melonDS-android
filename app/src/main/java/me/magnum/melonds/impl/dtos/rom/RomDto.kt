@@ -27,6 +27,8 @@ data class RomDto(
     val retroAchievementsHash: String,
     @SerializedName("totalPlayTime")
     val totalPlayTime: Long = 0,
+    @SerializedName("storageNameVersion")
+    val storageNameVersion: Int? = null,
 ) {
 
     companion object {
@@ -42,6 +44,7 @@ data class RomDto(
                 rom.isDsiWareTitle,
                 rom.retroAchievementsHash,
                 rom.totalPlayTime.inWholeMilliseconds,
+                rom.storageNameVersion,
             )
         }
     }
@@ -58,6 +61,10 @@ data class RomDto(
             isDsiWareTitle,
             retroAchievementsHash,
             totalPlayTime.milliseconds,
+            storageNameVersion = normalizeStorageNameVersion(storageNameVersion),
         )
     }
 }
+
+internal fun normalizeStorageNameVersion(cachedVersion: Int?): Int =
+    if (cachedVersion == null || cachedVersion == 0) 0 else 1

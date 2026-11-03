@@ -1,0 +1,127 @@
+{
+  "source": {
+    "app_head": "9929f530df6f60b86d50c324f4aec83747e5745b",
+    "app_code": "a77ccaaa",
+    "core": "65952aec868bedd2dc33151ed850804e3e13df05",
+    "version_name": "2.1.7",
+    "version_code": 48,
+    "package": "me.magnum.melonds.nightly.perf",
+    "apk_bytes": 85496522,
+    "apk_sha256": "bee6fded3ba4ace159c89cccf0eb21b360f4defd66eb5c5b9bc82f73f2e6606f",
+    "certificate_sha256": "41ad82cd4365c73195128975cf0b920699f8833093507957dc2d0f9d6bb0b4b1",
+    "functional_local_diff_sha256": "daf11e7dd6184d1ec27044f39f4f90f548d34a700b631f4b4eb0db0d1f00e410",
+    "app_diff": {
+      "changed_paths": 438,
+      "added_text_lines": 62006,
+      "removed_text_lines": 1152
+    },
+    "core_diff": {
+      "changed_paths": 55,
+      "added_text_lines": 2512,
+      "removed_text_lines": 762
+    },
+    "canonical_apk": "local/notes/pr-review-2026-11-03/candidate/melonDS-2.1.7-nightly-profiling-arm64.apk",
+    "debug_apk_sha256": "4a0142c81a43e326e95cb89b005a5535578c31ffa89913c9681d9e6cec7a46b9",
+    "instrumentation_apk_sha256": "31a83ea1fbdbb96bb424c43227b736d803489812f877b4df0105f09d849f92c5"
+  },
+  "jvm": {
+    "app": {
+      "tests": 311,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "api": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "lint": {
+    "Error": 0,
+    "Fatal": 0,
+    "Warning": 478,
+    "Information": 0
+  },
+  "security_host_controls": 163,
+  "art": {
+    "api": 35,
+    "page_size": 4096,
+    "passes": 52,
+    "opt_in_skips": 3,
+    "separate_workmanager_passes": 1,
+    "separate_real_gles_passes": 3
+  },
+  "android_native": {
+    "4k": 11,
+    "16k": 11,
+    "abi": "arm64-v8a",
+    "api": 35,
+    "all_exit_zero": true
+  },
+  "profiling_apk_runtime": {
+    "phases": [
+      {
+        "file": "profiling-phase-1.png",
+        "sha256": "cd17822b8633b5b6ebb627a45e4fdb803867c48da77f9c5dc87f4497b2d9939e"
+      },
+      {
+        "file": "profiling-phase-2.png",
+        "sha256": "38252e05be1a2977acfeeb39cb5937c22be95d40fdba4c9b0d72ef655125a808"
+      }
+    ],
+    "observations": [
+      {
+        "top": [
+          0,
+          0,
+          251
+        ],
+        "bottom": [
+          251,
+          0,
+          0
+        ]
+      },
+      {
+        "top": [
+          0,
+          0,
+          251
+        ],
+        "bottom": [
+          251,
+          0,
+          0
+        ]
+      },
+      {
+        "top": [
+          251,
+          0,
+          0
+        ],
+        "bottom": [
+          0,
+          0,
+          251
+        ]
+      }
+    ],
+    "passed": true,
+    "configuration": "fresh perf app defaults; bundled BIOS/generated firmware; synthetic homebrew via SAF library"
+  },
+  "skips": [
+    "external-ROM JIT differential",
+    "physical Thor",
+    "Android ARMv7/x86_64 and API33/Android9",
+    "DSi HOME/quota and network/game acceptance"
+  ],
+  "cleanup": {
+    "before_free": 12382253056,
+    "after_free": 13113901056,
+    "removed_allocated_bytes": 1613991936,
+    "removed_files": 1027
+  }
+}

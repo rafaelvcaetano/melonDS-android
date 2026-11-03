@@ -37,9 +37,11 @@ Java_me_magnum_melonds_MelonDSiNand_openNand(JNIEnv* env, jobject thiz, jobject 
         return NAND_INIT_ERROR_ALREADY_OPEN;
 
     MelonDSAndroid::EmulatorConfiguration configuration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
+    const std::string bios7Path = configuration.dsiBios7Path;
+    const std::string nandPath = configuration.dsiNandPath;
     MelonDSAndroid::setConfiguration(std::move(configuration));
 
-    auto bios7file = Platform::OpenFile(configuration.dsiBios7Path, melonDS::Platform::FileMode::Read);
+    auto bios7file = Platform::OpenFile(bios7Path, melonDS::Platform::FileMode::Read);
     if (!bios7file)
         return NAND_INIT_ERROR_BIOS7_NOT_FOUND;
 
@@ -50,7 +52,7 @@ Java_me_magnum_melonds_MelonDSiNand_openNand(JNIEnv* env, jobject thiz, jobject 
     if (!hasEsKey)
         return NAND_INIT_ERROR_BIOS7_NOT_FOUND;
 
-    auto nandfile = Platform::OpenLocalFile(configuration.dsiNandPath, melonDS::Platform::FileMode::ReadWriteExisting);
+    auto nandfile = Platform::OpenLocalFile(nandPath, melonDS::Platform::FileMode::ReadWriteExisting);
     if (!nandfile)
         return NAND_INIT_ERROR_NAND_FAILED;
 
@@ -69,26 +71,45 @@ Java_me_magnum_melonds_MelonDSiNand_openNand(JNIEnv* env, jobject thiz, jobject 
 JNIEXPORT jobject JNICALL
 Java_me_magnum_melonds_MelonDSiNand_listTitles(JNIEnv* env, jobject thiz)
 {
+    if (!nandMount)
+        return nullptr;
     const u32 category = DSI_NAND_FILE_CATEGORY;
     std::vector<u32> titleList;
     nandMount->ListTitles(category, titleList);
 
     jclass listClass = env->FindClass("java/util/ArrayList");
+    if (!listClass || env->ExceptionCheck())
+        return nullptr;
     jmethodID listConstructor = env->GetMethodID(listClass, "<init>", "()V");
-    jmethodID listAddMethod = env->GetMethodID(listClass, "add", "(ILjava/lang/Object;)V");
+    jmethodID listAddMethod = env->GetMethodID(listClass, "add", "(Ljava/lang/Object;)Z");
+    if (!listConstructor || !listAddMethod || env->ExceptionCheck())
+    {
+        env->DeleteLocalRef(listClass);
+        return nullptr;
+    }
     jobject jniTitleList = env->NewObject(listClass, listConstructor);
+    if (!jniTitleList || env->ExceptionCheck())
+    {
+        env->DeleteLocalRef(listClass);
+        return nullptr;
+    }
     env->DeleteLocalRef(listClass);
 
-    int index = 0;
     for (std::vector<u32>::iterator it = titleList.begin(); it != titleList.end(); it++)
     {
+        if (env->PushLocalFrame(8) < 0)
+            return nullptr;
         u32 titleId = *it;
         jobject titleData = getTitleData(env, category, titleId);
         if (!titleData)
+        {
+            env->PopLocalFrame(nullptr);
+            if (env->ExceptionCheck()) return nullptr;
             continue;
-        env->CallVoidMethod(jniTitleList, listAddMethod, index++, titleData);
-        // ArrayList retains the title; the local handle must not accumulate across titles.
-        env->DeleteLocalRef(titleData);
+        }
+        env->CallBooleanMethod(jniTitleList, listAddMethod, titleData);
+        env->PopLocalFrame(nullptr);
+        if (env->ExceptionCheck()) return nullptr;
     }
 
     return jniTitleList;
@@ -97,7 +118,7 @@ Java_me_magnum_melonds_MelonDSiNand_listTitles(JNIEnv* env, jobject thiz)
 JNIEXPORT jint JNICALL
 Java_me_magnum_melonds_MelonDSiNand_importTitle(JNIEnv* env, jobject thiz, jstring titleUri, jbyteArray tmdMetadata)
 {
-    if (!nand)
+    if (!nand || !nandMount)
         return TITLE_IMPORT_NAND_NOT_OPEN;
 
     melonDS::DSi_TMD::TitleMetadata titleMetadata;
@@ -161,13 +182,15 @@ Java_me_magnum_melonds_MelonDSiNand_importTitle(JNIEnv* env, jobject thiz, jstri
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonDSiNand_deleteTitle(JNIEnv* env, jobject thiz, jint titleId)
 {
-    if (nand)
+    if (nand && nandMount)
         nandMount->DeleteTitle(DSI_NAND_FILE_CATEGORY, (u32) titleId);
 }
 
 JNIEXPORT jboolean JNICALL
 Java_me_magnum_melonds_MelonDSiNand_importTitleFile(JNIEnv* env, jobject thiz, jint titleId, jint fileType, jstring fileUri)
 {
+    if (!nandMount)
+        return false;
     const char* filePath = env->GetStringUTFChars(fileUri, nullptr);
     if (!filePath)
         return false;
@@ -182,6 +205,8 @@ Java_me_magnum_melonds_MelonDSiNand_importTitleFile(JNIEnv* env, jobject thiz, j
 JNIEXPORT jboolean JNICALL
 Java_me_magnum_melonds_MelonDSiNand_exportTitleFile(JNIEnv* env, jobject thiz, jint titleId, jint fileType, jstring fileUri)
 {
+    if (!nandMount)
+        return false;
     const char* filePath = env->GetStringUTFChars(fileUri, nullptr);
     if (!filePath)
         return false;
@@ -199,13 +224,16 @@ Java_me_magnum_melonds_MelonDSiNand_closeNand(JNIEnv* env, jobject thiz)
     if (!nand)
         return;
 
-    nand = nullptr;
     delete nandMount;
+    nandMount = nullptr;
+    nand = nullptr;
 }
 }
 
 jobject getTitleData(JNIEnv* env, u32 category, u32 titleId)
 {
+    if (!nandMount)
+        return nullptr;
     u32 version;
     NDSHeader header;
     NDSBanner banner;
@@ -216,12 +244,30 @@ jobject getTitleData(JNIEnv* env, u32 category, u32 titleId)
     u32 iconData[32 * 32];
     MelonDSAndroid::BuildRomIcon(banner.Icon, banner.Palette, iconData);
     jbyteArray iconBytes = env->NewByteArray(32 * 32 * sizeof(u32));
+    if (!iconBytes || env->ExceptionCheck())
+        return nullptr;
     jbyte* iconArrayElements = env->GetByteArrayElements(iconBytes, NULL);
+    if (!iconArrayElements)
+    {
+        env->DeleteLocalRef(iconBytes);
+        return nullptr;
+    }
     memcpy(iconArrayElements, iconData, sizeof(iconData));
     env->ReleaseByteArrayElements(iconBytes, iconArrayElements, 0);
 
     jclass dsiWareTitleClass = env->FindClass("me/magnum/melonds/domain/model/DSiWareTitle");
+    if (!dsiWareTitleClass || env->ExceptionCheck())
+    {
+        env->DeleteLocalRef(iconBytes);
+        return nullptr;
+    }
     jmethodID dsiWareTitleConstructor = env->GetMethodID(dsiWareTitleClass, "<init>", "(Ljava/lang/String;Ljava/lang/String;J[BJJI)V");
+    if (!dsiWareTitleConstructor || env->ExceptionCheck())
+    {
+        env->DeleteLocalRef(iconBytes);
+        env->DeleteLocalRef(dsiWareTitleClass);
+        return nullptr;
+    }
 
     const char16_t* titleBegin = std::begin(banner.EnglishTitle);
     const char16_t* titleLimit = titleBegin + std::size(banner.EnglishTitle);

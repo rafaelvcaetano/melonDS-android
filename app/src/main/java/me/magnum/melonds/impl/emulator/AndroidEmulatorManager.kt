@@ -4,9 +4,12 @@ import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.MelonEmulator
@@ -32,6 +35,19 @@ import me.magnum.melonds.impl.camera.DSiCameraSourceMultiplexer
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 
+internal class RumbleEventConflator {
+    private val latest = MutableSharedFlow<EmulatorEvent>(
+        replay = 1,
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    val events: Flow<EmulatorEvent> = latest.asSharedFlow()
+
+    fun emit(event: EmulatorEvent) {
+        latest.tryEmit(event)
+    }
+}
+
 class AndroidEmulatorManager(
     private val context: Context,
     private val settingsRepository: SettingsRepository,
@@ -42,15 +58,16 @@ class AndroidEmulatorManager(
     private val cameraManager: DSiCameraSourceMultiplexer,
 ) : EmulatorManager {
 
-    private val _emulatorEvents = MutableSharedFlow<EmulatorEvent>(extraBufferCapacity = Int.MAX_VALUE)
-    override val emulatorEvents: Flow<EmulatorEvent> = _emulatorEvents.asSharedFlow()
+    private val _emulatorEvents = MutableSharedFlow<EmulatorEvent>(extraBufferCapacity = 16, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val rumbleEvents = RumbleEventConflator()
+    override val emulatorEvents: Flow<EmulatorEvent> = merge(_emulatorEvents.asSharedFlow(), rumbleEvents.events)
 
     private val achievementsSharedFlow = MutableSharedFlow<RAEvent>(replay = 0, extraBufferCapacity = Int.MAX_VALUE)
 
     private val messageQueue = EmulatorMessageQueue { type, data ->
         when (type) {
-            EmulatorEventType.EventRumbleStart -> _emulatorEvents.tryEmit(EmulatorEvent.RumbleStart(data.getInt()))
-            EmulatorEventType.EventRumbleStop -> _emulatorEvents.tryEmit(EmulatorEvent.RumbleStop)
+            EmulatorEventType.EventRumbleStart -> rumbleEvents.emit(EmulatorEvent.RumbleStart(data.getInt()))
+            EmulatorEventType.EventRumbleStop -> rumbleEvents.emit(EmulatorEvent.RumbleStop)
             EmulatorEventType.EventEmulatorStop -> getStopReason(data.getInt())?.let { _emulatorEvents.tryEmit(EmulatorEvent.Stop(it)) }
             EmulatorEventType.EventSaveFlushFailed -> _emulatorEvents.tryEmit(EmulatorEvent.SaveFlushFailed)
             EmulatorEventType.EventWildEncounterToggled -> _emulatorEvents.tryEmit(EmulatorEvent.WildEncounterToggled(data.getInt() != 0))

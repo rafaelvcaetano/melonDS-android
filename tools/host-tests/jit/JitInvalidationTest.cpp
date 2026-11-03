@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include <ARMJIT.h>
@@ -37,11 +38,12 @@
 
 using namespace melonDS;
 
-// Where direct boot drops our ARM9 binary. Everything below lives inside the first 1 KiB, so
-// the code and its literals share one 512-byte AddressRange -- which is the point of case 2.
+// Where direct boot drops our ARM9 binary. Cases 1 and 2 stay in the first 1 KiB so their
+// code and literals share one 512-byte AddressRange. The Thumb/DTCM case reaches the end of
+// the 4-KiB image to place its PC-relative literal at the adjacent DTCM window.
 static constexpr u32 CodeBase = 0x02000000;
 static constexpr u32 Arm7Base = 0x037F8000;
-static constexpr u32 Arm9BinarySize = 0x400;
+static constexpr u32 Arm9BinarySize = 0x1000;
 
 // The ARM9 binary is padded out to Arm9BinarySize with NOPs; direct boot copies it verbatim.
 static constexpr u32 Nop = 0xE1A00000;
@@ -54,6 +56,22 @@ static u32 StrPcRelative(u32 rd, u32 at, u32 target) { return 0xE58F0000 | (rd <
 static u32 BranchTo(u32 at, u32 target) { return 0xEA000000 | (((static_cast<s32>(target) - static_cast<s32>(at + 8)) >> 2) & 0xFFFFFF); }
 /// BX Rm. An indirect branch, which ends a JIT block instead of being followed into it.
 static u32 BranchExchange(u32 rm) { return 0xE12FFF10 | rm; }
+/// Thumb LDR Rd, [PC, #imm]. PC reads as (instruction address + 4) & ~3.
+static u16 ThumbLdrPcRelative(u32 rd, u32 at, u32 target)
+{
+    return 0x4800 | (rd << 8) | ((target - ((at + 4) & ~3)) >> 2);
+}
+/// Thumb STR Rd, [Rb, #imm].
+static u16 ThumbStrImm(u32 rd, u32 rb, u32 offset)
+{
+    return 0x6000 | ((offset >> 2) << 6) | (rb << 3) | rd;
+}
+/// Thumb unconditional B <target>.
+static u16 ThumbBranch(u32 at, u32 target)
+{
+    const s32 offset = (static_cast<s32>(target) - static_cast<s32>(at + 4)) >> 1;
+    return 0xE000 | (offset & 0x7FF);
+}
 
 class SyntheticRom
 {
@@ -61,6 +79,10 @@ public:
     SyntheticRom() : Words(Arm9BinarySize / 4, Nop) {}
 
     void Put(u32 address, u32 word) { Words[(address - CodeBase) / 4] = word; }
+    void Put16(u32 address, u16 halfword)
+    {
+        memcpy(reinterpret_cast<u8*>(Words.data()) + address - CodeBase, &halfword, sizeof(halfword));
+    }
 
     std::vector<u8> Build(u32 entryPoint) const
     {
@@ -94,15 +116,17 @@ private:
     std::vector<u32> Words;
 };
 
-static std::unique_ptr<NDS> Boot(const std::vector<u8>& rom, u32 entryPoint, JITArgs jitArgs = {})
+static std::unique_ptr<NDS> Boot(const std::vector<u8>& rom, u32 entryPoint,
+                                std::optional<JITArgs> jitArgs = JITArgs {})
 {
     NDSArgs args {};
     args.JIT = jitArgs;
 
     auto nds = std::make_unique<NDS>(std::move(args), nullptr);
 #if defined(__ANDROID__) || defined(__linux__)
-    JitTest::Expect(nds->JIT.FastMemoryEnabled() == jitArgs.FastMemory,
-                    "Android/Linux exercises the requested fast-memory mode");
+    if (jitArgs)
+        JitTest::Expect(nds->JIT.FastMemoryEnabled() == jitArgs->FastMemory,
+                        "Android/Linux exercises the requested fast-memory mode");
 #endif
     nds->SetNDSCart(NDSCart::ParseROM(rom.data(), static_cast<u32>(rom.size()), nullptr));
     nds->Reset();
@@ -274,6 +298,64 @@ static void test_a_literal_in_dtcm_is_not_folded(bool fastMemory, bool literalOp
     JitTest::Expect(dtcmSentinel == Sentinel, "main-RAM stores do not overwrite physical DTCM");
 }
 
+// -- 4: the Thumb literal path must also reject an untracked DTCM address --------------------
+
+static void test_thumb_literal_in_dtcm_is_not_folded(bool jit, bool literalOptimizations)
+{
+    printf("== Thumb DTCM literal: %s, literal optimization %s, fast memory off ==\n",
+           jit ? "JIT" : "interpreter", literalOptimizations ? "on" : "off");
+
+    // The ARM entry stub performs a normal BX into Thumb code. At ThumbEntry, architectural
+    // PC is (ThumbEntry + 4) & ~3 == 0x02000F04, so imm8 0x3F reaches DTCM at 0x02001000.
+    constexpr u32 ThumbEntry = 0x02000F02;
+    constexpr u32 DtcmBase = 0x02001000;
+    constexpr u32 DtcmSizeSetting = 3 << 1;
+    constexpr u32 Literal = DtcmBase;
+    constexpr u32 Result = CodeBase + 0x300;
+    constexpr u32 ResultPointer = ThumbEntry + 0x0A;
+
+    SyntheticRom rom;
+    rom.Put(CodeBase + 0, LdrPcRelative(0, CodeBase + 0, CodeBase + 8));
+    rom.Put(CodeBase + 4, BranchExchange(0));
+    rom.Put(CodeBase + 8, ThumbEntry | 1);
+    rom.Put16(ThumbEntry + 0, ThumbLdrPcRelative(0, ThumbEntry + 0, Literal));
+    rom.Put16(ThumbEntry + 2, ThumbLdrPcRelative(1, ThumbEntry + 2, ResultPointer));
+    rom.Put16(ThumbEntry + 4, ThumbStrImm(0, 1, 0));
+    rom.Put16(ThumbEntry + 6, ThumbBranch(ThumbEntry + 6, ThumbEntry));
+    rom.Put(ResultPointer, Result);
+
+    std::optional<JITArgs> jitArgs = std::nullopt;
+    if (jit)
+    {
+        JITArgs configured {};
+        configured.FastMemory = false;
+        configured.LiteralOptimizations = literalOptimizations;
+        jitArgs = configured;
+    }
+    auto nds = Boot(rom.Build(CodeBase), CodeBase, jitArgs);
+    nds->ARM9.CP15Write(0x910, DtcmBase | DtcmSizeSetting);
+    JitTest::Expect(nds->ARM9.DTCMBase == DtcmBase, "the Thumb literal DTCM window is active");
+
+    auto writeDtcm = [&nds](u32 value) {
+        memcpy(&nds->ARM9.DTCM[Literal & (DTCMPhysicalSize - 1)], &value, sizeof(value));
+    };
+    auto runAndRead = [&nds](u32 expected) {
+        nds->ARM9.R[0] = 0;
+        nds->ARM9Write32(Result, 0);
+        RunFrames(*nds, 4);
+        const u32 observed = nds->ARM9Read32(Result);
+        printf("  expected=%08x result=%08x R0=%08x\n", expected, observed, nds->ARM9.R[0]);
+        JitTest::Expect(observed == expected, "the Thumb load reads the current DTCM literal");
+    };
+
+    writeDtcm(0xAAAA1111);
+    runAndRead(0xAAAA1111);
+    writeDtcm(0xBBBB2222);
+    runAndRead(0xBBBB2222);
+    writeDtcm(0xCCCC3333);
+    runAndRead(0xCCCC3333);
+}
+
 static void test_dtcm_mapping_and_remap(u32 base, u32 sizeSetting)
 {
     printf("== DTCM mapping and remap: base %08x, setting %u ==\n", base, sizeSetting);
@@ -322,6 +404,9 @@ int main()
     test_a_literal_in_dtcm_is_not_folded(false, true);
     test_a_literal_in_dtcm_is_not_folded(true, false);
     test_a_literal_in_dtcm_is_not_folded(true, true);
+    test_thumb_literal_in_dtcm_is_not_folded(true, true);
+    test_thumb_literal_in_dtcm_is_not_folded(true, false);
+    test_thumb_literal_in_dtcm_is_not_folded(false, false);
     test_dtcm_mapping_and_remap(0x02001000, 3); // 4 KiB
     test_dtcm_mapping_and_remap(0x02002000, 4); // 8 KiB
     test_dtcm_mapping_and_remap(0x02004000, 5); // 16 KiB

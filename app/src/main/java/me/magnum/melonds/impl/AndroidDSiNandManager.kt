@@ -3,6 +3,7 @@ package me.magnum.melonds.impl
 import android.content.Context
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -18,8 +19,29 @@ import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.ConfigurationDirectoryVerifier
 import me.magnum.melonds.domain.services.DSiNandManager
 import java.io.InputStream
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
+
+internal class NandUseCounter {
+    private var users = 0
+
+    val isAcquired: Boolean
+        get() = users > 0
+
+    fun acquire(): Boolean {
+        val firstUser = users == 0
+        if (users < Int.MAX_VALUE) {
+            users++
+        }
+        return firstUser
+    }
+
+    fun release(): Boolean {
+        if (users == 0) {
+            return false
+        }
+        users--
+        return users == 0
+    }
+}
 
 class AndroidDSiNandManager(
     private val context: Context,
@@ -33,13 +55,12 @@ class AndroidDSiNandManager(
     }
 
     private val nandControlLock = Mutex()
-    private val nandUsageCount = AtomicInteger(0)
-    private val isNandOpen = AtomicBoolean(false)
+    private val nandUseCounter = NandUseCounter()
 
     override suspend fun openNand(): OpenDSiNandResult {
         return nandControlLock.withLock {
-            if (isNandOpen.get()) {
-                nandUsageCount.incrementAndGet()
+            if (nandUseCounter.isAcquired) {
+                nandUseCounter.acquire()
                 return OpenDSiNandResult.NAND_ALREADY_OPEN
             }
             val dsiDirectoryStatus = biosDirectoryVerifier.checkDsiConfigurationDirectory()
@@ -50,16 +71,14 @@ class AndroidDSiNandManager(
             val result = MelonDSiNand.openNand(settingsRepository.getEmulatorConfiguration())
             mapOpenNandReturnCodeToResult(result).also {
                 if (!it.isFailure()) {
-                    if (nandUsageCount.getAndIncrement() == 0) {
-                        isNandOpen.set(true)
-                    }
+                    nandUseCounter.acquire()
                 }
             }
         }
     }
 
     override suspend fun listTitles(): List<DSiWareTitle> = nandControlLock.withLock {
-        if (!isNandOpen.get()) {
+        if (!nandUseCounter.isAcquired) {
             return emptyList()
         }
 
@@ -68,7 +87,7 @@ class AndroidDSiNandManager(
 
     override suspend fun importTitle(titleUri: Uri): ImportDSiWareTitleResult = nandControlLock.withLock {
         withContext(Dispatchers.IO) {
-            if (!isNandOpen.get()) {
+            if (!nandUseCounter.isAcquired) {
                 return@withContext ImportDSiWareTitleResult.NAND_NOT_OPEN
             }
 
@@ -99,7 +118,7 @@ class AndroidDSiNandManager(
     }
 
     override suspend fun deleteTitle(title: DSiWareTitle): Unit = nandControlLock.withLock {
-        if (!isNandOpen.get()) {
+        if (!nandUseCounter.isAcquired) {
             return
         }
 
@@ -107,7 +126,7 @@ class AndroidDSiNandManager(
     }
 
     override suspend fun importTitleFile(title: DSiWareTitle, fileType: DSiWareTitleFileType, fileUri: Uri): Boolean = nandControlLock.withLock {
-        if (!isNandOpen.get()) {
+        if (!nandUseCounter.isAcquired) {
             return false
         }
 
@@ -115,7 +134,7 @@ class AndroidDSiNandManager(
     }
 
     override suspend fun exportTitleFile(title: DSiWareTitle, fileType: DSiWareTitleFileType, fileUri: Uri): Boolean = nandControlLock.withLock {
-        if (!isNandOpen.get()) {
+        if (!nandUseCounter.isAcquired) {
             return false
         }
 
@@ -123,9 +142,12 @@ class AndroidDSiNandManager(
     }
 
     override fun closeNand() {
-        if (nandUsageCount.decrementAndGet() == 0) {
-            isNandOpen.set(false)
-            MelonDSiNand.closeNand()
+        runBlocking(Dispatchers.IO) {
+            nandControlLock.withLock {
+                if (nandUseCounter.release()) {
+                    MelonDSiNand.closeNand()
+                }
+            }
         }
     }
 

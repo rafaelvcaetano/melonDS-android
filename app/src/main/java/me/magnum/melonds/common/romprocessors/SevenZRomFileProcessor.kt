@@ -10,6 +10,7 @@ import me.magnum.melonds.impl.NdsRomCache
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry
 import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import java.io.FileInputStream
+import java.io.FilterInputStream
 import java.io.InputStream
 
 class SevenZRomFileProcessor(private val context: Context, uriHandler: UriHandler, ndsRomCache: NdsRomCache) : CompressedRomFileProcessor(context, uriHandler, ndsRomCache) {
@@ -35,8 +36,21 @@ class SevenZRomFileProcessor(private val context: Context, uriHandler: UriHandle
                 .setMaxMemoryLimitKb(SevenZMemoryLimit.kb(deviceMemory, Runtime.getRuntime().maxMemory()))
                 .setSeekableByteChannel(fileStream.channel)
                 .get()
-            getNdsEntryInFile(sevenZFile)?.let {
-                RomFileStream(sevenZFile.getInputStream(it), SizeUnit.Bytes(it.size))
+            val entry = getNdsEntryInFile(sevenZFile)
+            if (entry == null) {
+                closeQuietly(sevenZFile)
+                null
+            } else {
+                val entryStream = object : FilterInputStream(sevenZFile.getInputStream(entry)) {
+                    override fun close() {
+                        try {
+                            super.close()
+                        } finally {
+                            sevenZFile.close()
+                        }
+                    }
+                }
+                RomFileStream(entryStream, SizeUnit.Bytes(entry.size))
             }
         } catch (e: OutOfMemoryError) {
             // Last resort: the memory limit above should turn oversized dictionaries into a MemoryLimitException, but
@@ -60,10 +74,18 @@ class SevenZRomFileProcessor(private val context: Context, uriHandler: UriHandle
     }
 
     private fun getNdsEntryInFile(sevenZFile: SevenZFile): SevenZArchiveEntry? {
+        var entries = 0
+        var precedingBytes = 0L
         do {
             val nextEntry = sevenZFile.nextEntry ?: break
+            if (++entries > ArchiveReadBudget.MAX_ENTRIES) return null
             if (!nextEntry.isDirectory && isSupportedRomFile(nextEntry.name)) {
+                if (nextEntry.size < 0 || nextEntry.size > ArchiveReadBudget.MAX_ROM_BYTES) return null
                 return nextEntry
+            }
+            if (!nextEntry.isDirectory && nextEntry.size > 0) {
+                precedingBytes += nextEntry.size
+                if (precedingBytes > ArchiveReadBudget.MAX_DISCOVERY_BYTES) return null
             }
         } while (true)
         return null

@@ -34,6 +34,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okio.Buffer
 import java.io.IOException
 import java.net.URLEncoder
 import kotlin.coroutines.resume
@@ -49,6 +50,7 @@ class RAApi(
 
     companion object {
         private const val BASE_URL = "https://retroachievements.org/dorequest.php"
+        internal const val MAX_RESPONSE_BYTES = 4 * 1024 * 1024
 
         private const val PARAMETER_USER = "u"
         private const val PARAMETER_PASSWORD = "p"
@@ -255,9 +257,7 @@ class RAApi(
         suspendRunCatching {
             executeRequest(request)
         }.suspendMapCatching { response ->
-            val body = response.body.charStream().use {
-                it.readText()
-            }
+            val body = response.use(::readBoundedBody)
             val responseJson = Json.parseToJsonElement(body).jsonObject
             val isSuccessful = responseJson["Success"]!!.jsonPrimitive.boolean
             if (!isSuccessful) {
@@ -292,9 +292,7 @@ class RAApi(
         suspendRunCatching {
             executeRequest(request)
         }.suspendMapCatching { response ->
-            val body = response.body.charStream().use {
-                it.readText()
-            }
+            val body = response.use(::readBoundedBody)
             val responseJson = Json.parseToJsonElement(body).jsonObject
             val isSuccessful = responseJson["Success"]!!.jsonPrimitive.boolean
             if (!isSuccessful) {
@@ -325,6 +323,30 @@ class RAApi(
             .build()
     }
 
+    private fun readBoundedBody(response: Response): String {
+        val body = response.body
+        val declaredLength = body.contentLength()
+        if (declaredLength > MAX_RESPONSE_BYTES) {
+            throw IOException("RetroAchievements response exceeds byte budget")
+        }
+
+        val source = body.source()
+        val buffer = Buffer()
+        var total = 0L
+        while (true) {
+            val remainingWithSentinel = MAX_RESPONSE_BYTES.toLong() - total + 1L
+            val read = source.read(buffer, minOf(8192L, remainingWithSentinel))
+            if (read == -1L) {
+                break
+            }
+            total += read
+            if (total > MAX_RESPONSE_BYTES) {
+                throw IOException("RetroAchievements response exceeds byte budget")
+            }
+        }
+        return buffer.readUtf8()
+    }
+
     private fun buildPostRequest(parameters: Map<String, String>): Request {
         val data = parameters.map {
             "${URLEncoder.encode(it.key, "utf-8")}=${URLEncoder.encode(it.value, "utf-8")}"
@@ -345,16 +367,22 @@ class RAApi(
 
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
-                    continuation.resume(response)
+                    continuation.resume(response) { _, resource, _ -> resource.close() }
                 } else {
-                    if (response.code == 401) {
-                        runBlocking {
-                            userAuthStore.clearUserToken()
+                    val failure = if (response.code == 401) {
+                        try {
+                            runBlocking {
+                                userAuthStore.clearUserToken()
+                            }
+                            UserTokenExpiredException()
+                        } catch (error: Throwable) {
+                            error
                         }
-                        continuation.resumeWithException(UserTokenExpiredException())
                     } else {
-                        continuation.resumeWithException(Exception(response.message))
+                        Exception(response.message)
                     }
+                    response.close()
+                    continuation.resumeWithException(failure)
                 }
             }
         })

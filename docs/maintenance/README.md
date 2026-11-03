@@ -3,6 +3,21 @@
 Start here for Android bug work. This index is current as of **3 November 2026**;
 dated reports are historical evidence, not fresh acceptance of later builds.
 
+Current handoff: [second independent scan, 2.1.8/49 and conservative AVD update](2026-11-03-security-followup/README.md).
+It records 66 new scan occurrences as 48 normalized cause groups, without
+recounting the previous 35, and distinguishes 62 locally closed results, two
+repository corrections with unobservable external deployment controls, one
+Android-non-applicable case and one informational reconciliation. The Security
+UI may still show these results as Open; that service state is not an upstream
+closure or a contradiction of the documented local disposition.
+
+The previous [2.1.7/48 delivery and Android-on-Mac checks](2026-11-03-nightly-2.1.7/README.md)
+is now the retained fallback evidence.
+The [app draft](2026-10-28-main/NEXT-APP-PR.md) and
+[core draft](2026-10-28-main/NEXT-CORE-PR.md) include the earlier Thor changes
+and later corrections. The installed Thor 2.1.6 APK predates the security fixes.
+No new physical installation or replacement PR publication follows from this handoff.
+
 Earlier closed unit: [DSi WMI guest payload lengths](2026-11-03-dsi-wmi-length/README.md).
 Its LAN-buffer write was red on host UBSan and the correction is green on host
 and target-instrumented Android NDK API35 ARM64 4 KiB/16 KiB component runs.
@@ -53,10 +68,10 @@ upstream PR publication still requires separate explicit authorization.
 
 ## Repositories and baseline
 
-| Layer | Checkout/repository | Latest local identity, 1 November |
+| Layer | Checkout/repository | Current reviewed identity, 3 November |
 | --- | --- | --- |
-| Android frontend, Kotlin/JNI, Oboe, SAF | This repository; [upstream](https://github.com/rafaelvcaetano/melonDS-android) | Local `main` at `1cf4fa6a` plus recorded working-tree changes; six commits ahead of the local tracking ref |
-| Android core | `melonDS-android-lib` submodule; [upstream](https://github.com/rafaelvcaetano/melonDS-android-lib) | `fd7582400bb7e35fe0d36dbb0c89b6766c1a8f2e`, local `main` plus recorded NAND changes |
+| Android frontend, Kotlin/JNI, Oboe, SAF | This repository; [upstream](https://github.com/rafaelvcaetano/melonDS-android) | `main` at `9929f530`; version 2.1.8/49 plus recorded local changes; HEAD alone does not identify the APK |
+| Android core | `melonDS-android-lib` submodule; [upstream](https://github.com/rafaelvcaetano/melonDS-android-lib) | `main` and app gitlink at `65952aec`, with the second-campaign working-tree corrections |
 | Shared core research | [melonDS-emu/melonDS](https://github.com/melonDS-emu/melonDS) | Research reference; a fix there is not automatically in the Android submodule |
 | Sacred Gold Plus | Separate sibling checkout/repository | Its owner controls ROM sources, builds and validation; do not modify it for an emulator audit |
 
@@ -123,6 +138,15 @@ alone does not authorize deletion. The old cleanup page now points to the
 current rules. Do not delete regression test sources merely because they are old.
 
 ## Security scan results and repository corrections
+
+The [second independent campaign](2026-11-03-security-followup/README.md) used
+completed scan `ab26b107-97dd-4557-9c4b-2942e5df879d`, with complete
+coordinator inventory coverage of 3,633 nonignored files including 750 core
+files. Its 66 occurrences are appended to the existing canonical
+[finding register](2026-11-03-security-remediation/FINDINGS.csv), not placed in
+a competing catalogue. The final 2.1.8/49 candidate passed host, JVM, Android
+NDK 4/16 KiB, ART/provider and in-place 2.1.7→2.1.8 AVD checks. No Thor install,
+publication or upstream status change was performed.
 
 The completed Deep Security Scan `4c41e000-6ba0-4453-aaa7-3cdbec542687`
 targets app `6a9d7a1f19cfd44ba7fccdedec9f9196d3e04108` with core `907849b3`.

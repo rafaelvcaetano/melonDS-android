@@ -14,9 +14,12 @@ import me.magnum.melonds.domain.model.Game
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.charset.Charset
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.min
 
-class UsrCheatDatabaseParser : CheatDatabaseParser {
+class UsrCheatDatabaseParser(
+    private val maxInputBytes: Long = 128L * 1024 * 1024,
+) : CheatDatabaseParser {
 
     companion object {
         private const val MAGIC_STRING = "R4 CheatCode"
@@ -26,9 +29,12 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
         private const val ENCODING_OFFSET = 0x4C
         private const val ADDRESS_BOOK_ENTRY_SIZE = 16
         private const val MASTER_CODE_SIZE = 32
-        private const val MAX_ADDRESS_BOOK_ENTRIES = 100_000
+        private const val MAX_ADDRESS_BOOK_ENTRIES = 10_000
         private const val MAX_GAME_BLOCK_SIZE = 1024 * 1024
         private const val MAX_CHEAT_CODE_BYTES = 1024 * 1024
+        private const val MAX_ITEMS_PER_GAME = 10_000
+        private const val MAX_TOTAL_CHEATS = 250_000
+        private const val MAX_TOTAL_FOLDERS = 50_000
 
         private const val FLAG_FOLDER = 0x1000
         private const val FLAG_FOLDER_ONE_HOT = 0x1100
@@ -47,6 +53,7 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
     }
 
     override fun parseCheatDatabase(databaseStream: ProgressTrackerInputStream, parseListener: CheatDatabaseParserListener) {
+        databaseStream.setMaximumReadBytes(maxInputBytes)
         val streamReader = StreamReader(databaseStream)
 
         // Read and validate header
@@ -65,6 +72,7 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
 
         // Sort entries by offset so we can read them sequentially
         val sortedEntries = gameEntries.sortedBy { it.offset }
+        val parseBudget = ParseBudget()
 
         // To reduce the time required to parse all the cheats, parsing will be done in a multithreaded context, with a producer-consumer setup. One coroutine, the producer,
         // reads game entries from the database's "address book". These entries are pushed into a Channel to be consumed by consumers. Each consumer is responsible for parsing
@@ -116,7 +124,7 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
                                     parseListener.onGameParseStart(gameName)
                                 }
                             }
-                            val game = parseGame(gameData.data, gameData.entry, cheatDatabase, charset)
+                            val game = parseGame(gameData.data, gameData.entry, cheatDatabase, charset, parseBudget)
                             if (game != null) {
                                 synchronized(parseListener) {
                                     parseListener.onGameParsed(game)
@@ -190,13 +198,21 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
         return gameName.ifBlank { null }
     }
 
-    private fun parseGame(data: ByteArray, entry: GameEntry, cheatDatabase: CheatDatabase, charset: Charset): Game? {
+    private fun parseGame(
+        data: ByteArray,
+        entry: GameEntry,
+        cheatDatabase: CheatDatabase,
+        charset: Charset,
+        budget: ParseBudget,
+    ): Game? {
         val reader = ByteArrayReader(data)
 
         val gameName = reader.readPaddedString(charset)
         // Read number of items (2 bytes) + master code enable flag (2 bytes)
         val itemHeader = reader.readBytes(4)
         val numItems = readU16LE(itemHeader, 0)
+        if (numItems > MAX_ITEMS_PER_GAME)
+            throw InvalidUsrCheatDatabaseException("Game contains $numItems items (maximum $MAX_ITEMS_PER_GAME)")
 
         // Skip master code (32 bytes)
         reader.skip(MASTER_CODE_SIZE)
@@ -219,22 +235,30 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
             if (isFolder(flags)) {
                 val folderName = reader.readNameAndDescription(charset).first
                 val folderCheats = mutableListOf<Cheat>()
+                if (!usrCheatFolderSpanFits(itemsParsed, numItems, itemCountOrSize)) {
+                    throw InvalidUsrCheatDatabaseException(
+                        "Folder contains $itemCountOrSize items beyond the game item limit"
+                    )
+                }
 
                 repeat(itemCountOrSize) {
                     itemsParsed++
                     reader.skip(4)
                     val cheat = parseCheat(reader, cheatDatabase, charset)
                     if (cheat != null) {
+                        budget.addCheat()
                         folderCheats.add(cheat)
                     }
                 }
 
                 if (folderCheats.isNotEmpty()) {
+                    budget.addFolder()
                     folders.add(CheatFolder(null, folderName, folderCheats))
                 }
             } else {
                 val cheat = parseCheat(reader, cheatDatabase, charset)
                 if (cheat != null) {
+                    budget.addCheat()
                     rootCheats.add(cheat)
                 }
             }
@@ -244,6 +268,7 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
 
         // Place root-level cheats into a default folder
         if (rootCheats.isNotEmpty()) {
+            budget.addFolder()
             folders.add(0, CheatFolder(null, gameName, rootCheats))
         }
 
@@ -310,6 +335,21 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
 
     private data class GameEntry(val gameCode: String, val checksum: String, val offset: Int)
     private class GameData(val entry: GameEntry, val data: ByteArray)
+
+    private class ParseBudget {
+        private val cheats = AtomicInteger()
+        private val folders = AtomicInteger()
+
+        fun addCheat() {
+            if (cheats.incrementAndGet() > MAX_TOTAL_CHEATS)
+                throw InvalidUsrCheatDatabaseException("Database exceeds $MAX_TOTAL_CHEATS cheats")
+        }
+
+        fun addFolder() {
+            if (folders.incrementAndGet() > MAX_TOTAL_FOLDERS)
+                throw InvalidUsrCheatDatabaseException("Database exceeds $MAX_TOTAL_FOLDERS folders")
+        }
+    }
 
     private class StreamReader(private val stream: ProgressTrackerInputStream) {
 
@@ -428,4 +468,10 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
             return Pair(name, description)
         }
     }
+}
+
+internal fun usrCheatFolderSpanFits(itemsParsed: Int, numItems: Int, folderItems: Int): Boolean {
+    if (itemsParsed < 0 || numItems < 0 || folderItems < 0) return false
+    val total = itemsParsed.toLong() + 1L + folderItems.toLong()
+    return total <= numItems.toLong() && total <= 10_000L
 }

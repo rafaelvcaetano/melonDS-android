@@ -1,5 +1,10 @@
 # Deep Security Scan remediation — 3 November 2026
 
+> **Successor:** the
+> [second independent scan](../2026-11-03-security-followup/README.md) adds 66
+> new occurrences without rewriting or recounting the 35 below. This report
+> remains the canonical evidence for the first completed campaign.
+
 ## Result
 
 Deep Security Scan `4c41e000-6ba0-4453-aaa7-3cdbec542687` reported 35

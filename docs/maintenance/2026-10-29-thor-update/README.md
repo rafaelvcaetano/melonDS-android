@@ -1,5 +1,11 @@
 # Thor update and physical checks — 29 October 2026
 
+**Retention update, 3 November:** the reproducible local 2.1.5 candidate APK was
+retired after the [2.1.7 candidate checks](../2026-11-03-nightly-2.1.7/README.md).
+The two retained update APKs are now 2.1.7 and the verified 2.1.6 fallback.
+The dated measurements, hashes, source history and original data backups below
+remain historical evidence; no published release asset was removed.
+
 The installed modified Nightly was updated **in place from 2.1.4 to 2.1.5**.
 The package, signing certificate, Android UID and original installation date
 were preserved. The emulator was never uninstalled and its data was never cleared.

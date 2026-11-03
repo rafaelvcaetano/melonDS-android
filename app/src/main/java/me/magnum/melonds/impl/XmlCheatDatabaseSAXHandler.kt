@@ -9,12 +9,37 @@ import org.xml.sax.SAXException
 import org.xml.sax.ext.LexicalHandler
 import org.xml.sax.helpers.DefaultHandler
 
+/** Linear equivalent of `\(.*?\)` replacement, including unmatched and nested-delimiter behavior. */
+internal fun stripParenthesizedSegments(value: String): String {
+    val stripped = StringBuilder(value.length)
+    var cursor = 0
+    while (cursor < value.length) {
+        val opening = value.indexOf('(', cursor)
+        if (opening < 0) {
+            stripped.append(value, cursor, value.length)
+            break
+        }
+        stripped.append(value, cursor, opening)
+        val closing = value.indexOf(')', opening + 1)
+        if (closing < 0) {
+            stripped.append(value, opening, value.length)
+            break
+        }
+        cursor = closing + 1
+    }
+    return stripped.toString()
+}
+
 class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : DefaultHandler(), LexicalHandler {
     private companion object {
         const val MAX_TEXT_CHARS = 1024 * 1024
         const val MAX_CHEATS_PER_GAME = 10_000
         const val MAX_FOLDERS_PER_GAME = 2_000
         const val MAX_TEXT_CHARS_PER_GAME = 8 * 1024 * 1024
+        const val MAX_GAMES_PER_DOCUMENT = 10_000
+        const val MAX_CHEATS_PER_DOCUMENT = 250_000
+        const val MAX_FOLDERS_PER_DOCUMENT = 50_000
+        const val MAX_TEXT_CHARS_PER_DOCUMENT = 64 * 1024 * 1024
     }
     interface HandlerListener {
         fun onCheatDatabaseParseStart(databaseName: String): CheatDatabase
@@ -51,6 +76,10 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
     private val currentGameFolders = mutableListOf<CheatFolder>()
     private var currentGameCheatCount = 0
     private var currentGameTextChars = 0
+    private var documentGameCount = 0
+    private var documentCheatCount = 0
+    private var documentFolderCount = 0
+    private var documentTextChars = 0
 
     override fun startElement(uri: String?, localName: String?, qName: String?, attributes: Attributes?) {
         if (!parsingDatabase) {
@@ -67,6 +96,8 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
 
         if (!parsingGame) {
             if (qName == "game") {
+                if (++documentGameCount > MAX_GAMES_PER_DOCUMENT)
+                    throw SAXException("Cheat XML document exceeds $MAX_GAMES_PER_DOCUMENT games")
                 parsingGame = true
             }
             return
@@ -121,7 +152,7 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
         if (parsingDatabase) {
             if (parsingDatabaseName) {
                 // Remove everything between parenthesis. Most likely it contains the DB's version
-                databaseName = textStringBuilder.toString().replace("\\(.*?\\)".toRegex(), "").trim()
+                databaseName = stripParenthesizedSegments(textStringBuilder.toString()).trim()
                 parsingDatabaseName = false
                 emitCheatDatabaseName(databaseName!!)
             }
@@ -175,6 +206,8 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
 
             if (++currentGameCheatCount > MAX_CHEATS_PER_GAME)
                 throw SAXException("Cheat XML game exceeds $MAX_CHEATS_PER_GAME cheats")
+            if (++documentCheatCount > MAX_CHEATS_PER_DOCUMENT)
+                throw SAXException("Cheat XML document exceeds $MAX_CHEATS_PER_DOCUMENT cheats")
             currentFolderCheats.add(Cheat(null, cheatDatabase!!.id!!, cheatName!!, cheatDescription, cheatCodes!!, false))
             cheatName = null
             cheatDescription = null
@@ -189,6 +222,8 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
             if (currentFolderCheats.isNotEmpty()) {
                 if (currentGameFolders.size >= MAX_FOLDERS_PER_GAME)
                     throw SAXException("Cheat XML game exceeds $MAX_FOLDERS_PER_GAME folders")
+                if (++documentFolderCount > MAX_FOLDERS_PER_DOCUMENT)
+                    throw SAXException("Cheat XML document exceeds $MAX_FOLDERS_PER_DOCUMENT folders")
                 currentGameFolders.add(CheatFolder(null, folderName!!, ArrayList(currentFolderCheats)))
             }
             folderName = null
@@ -218,7 +253,11 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
             if (parsingGame && length > MAX_TEXT_CHARS_PER_GAME - currentGameTextChars) {
                 throw SAXException("Cheat XML game exceeds $MAX_TEXT_CHARS_PER_GAME text characters")
             }
+            if (length > MAX_TEXT_CHARS_PER_DOCUMENT - documentTextChars) {
+                throw SAXException("Cheat XML document exceeds $MAX_TEXT_CHARS_PER_DOCUMENT text characters")
+            }
             if (parsingGame) currentGameTextChars += length
+            documentTextChars += length
             textStringBuilder.append(ch, start, length)
         }
     }

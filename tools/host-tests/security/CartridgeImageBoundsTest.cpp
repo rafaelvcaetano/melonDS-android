@@ -30,5 +30,11 @@ int main()
     Expect(melonDS::CartridgeImageBounds::IsGBALengthSupported(0xC0), "minimum GBA header is accepted");
     Expect(!melonDS::CartridgeImageBounds::IsGBALengthSupported(0xBF), "truncated GBA header is rejected");
     Expect(!melonDS::CartridgeImageBounds::IsGBALengthSupported(0x2000001), "GBA image above its 32 MiB address space is rejected");
+    Expect(melonDS::CartridgeImageBounds::DirectBootReadWidth(0x1001, 0x1000) == 1,
+        "direct boot copies the final partial word using only the logical ROM byte");
+    Expect(melonDS::CartridgeImageBounds::DirectBootReadWidth(0x1004, 0x1000) == 4,
+        "direct boot preserves a complete word read");
+    Expect(melonDS::CartridgeImageBounds::DirectBootReadWidth(0x1000, 0x1000) == 0,
+        "direct boot performs no read at logical EOF");
     return Failures == 0 ? 0 : 1;
 }

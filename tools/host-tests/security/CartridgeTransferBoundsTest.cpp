@@ -22,5 +22,17 @@ int main()
     Expect(!CartridgeTransferBounds::WordFits(0x3FFD, 0x4000), "partial trailing word is rejected");
     Expect(!CartridgeTransferBounds::B7LengthValid(0, 0x4000), "zero-length B7 command is rejected");
     Expect(CartridgeTransferBounds::B7LengthValid(0x4000, 0x4000), "maximum B7 transfer is accepted");
+    Expect(CartridgeTransferBounds::SpanFits(0x200, 0, 0x200),
+        "full aligned sector span fits its buffer");
+    Expect(CartridgeTransferBounds::SpanFits(0x200, 1, 0x1FF),
+        "last byte-addressed sector span fits exactly");
+    Expect(!CartridgeTransferBounds::SpanFits(0x200, 1, 0x200),
+        "offset plus sector length beyond the stack buffer is rejected");
+    Expect(!CartridgeTransferBounds::RoundedHalfwordSpanFits(0x200, 1, 0x1FF),
+        "odd transfer whose halfword tail crosses the stack buffer is rejected");
+    Expect(CartridgeTransferBounds::RoundedWordSpanFits(0x1000, 0xFFC, 1),
+        "partial direct-boot word at the image boundary is representable");
+    Expect(!CartridgeTransferBounds::RoundedWordSpanFits(0x1000, 0xFFE, 3),
+        "word-rounded direct-boot read beyond the image is rejected");
     return Failures == 0 ? 0 : 1;
 }

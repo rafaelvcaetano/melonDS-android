@@ -1,177 +1,114 @@
-# Unpublished core PR draft
+# Core PR draft — not published
 
-**Proposed title: Fix Android core memory and NAND writes**
+**Title: Harden core state and I/O**
 
-- Source: Umberto-DEV/melonDS-android-lib main; target: upstream master.
-- Baseline: 431ab4bd, the core actually shipped in the latest official Android
-  Nightly in the 29 October comparison. Final security candidate: `65952aec`.
-- [Final 2.1.6 app/core candidate identity and checks](../2026-10-31-nightly-2.1.6/README.md).
-- [Local comparison and full inventory](../2026-10-29-nightly-comparison/README.md).
-- Review copy only. Local `main` push was authorized on 3 November; upstream PR publication remains blocked pending a later explicit instruction.
-  Check document links after the authorized app push and insert current CI and
-  companion-PR links before publication.
+Updated 3 November 2026. Source: `Umberto-DEV/melonDS-android-lib:main`;
+target: `rafaelvcaetano/melonDS-android-lib:master`. Baseline `431ab4bd`;
+starting core `65952aec`; final core commit `7837518a` on `main`.
+Publication remains blocked pending the coordinated
+review and explicit approval. Evidence lives in the app repository, so all
+links below are absolute. Check final CI/URLs and add the real companion PR
+before publication.
 
 ---
 
-This updates the core used by the current Android Nightly. It fixes compatibility
-and memory-handling problems, reports incomplete NAND writes as failures and
-removes unnecessary renderer work.
+This fixes DS/DSi compatibility, JIT memory handling and failed NAND writes in
+the core used by Android Nightly. It also validates guest and saved-state data
+before accessing native buffers, and removes unnecessary renderer work.
+The scope includes the earlier Thor changes and the November corrections.
 
-### What changes
+## Compatibility and reliability fixes
 
-- **DS/DSi compatibility:** apply the correct register initialization and access
-  rules when running DS software in DSi mode.
-- **Wi-Fi:** avoid powering down the radio when automatic power saving is disabled.
-  The later [DS frame-length correction](../2026-11-03-wifi-ds-length/README.md)
-  also bounds guest data conversion to the 2048-byte LAN buffer. It is red on
-  host ASan before the fix and green on host and API35 ARM64 4 KiB/16 KiB native
-  tests afterward. Real-game networking remains open.
-  A subsequent [DSi WMI payload correction](../2026-11-03-dsi-wmi-length/README.md)
-  checks guest length, actual mailbox occupancy and LAN-buffer capacity. It is
-  host UBSan red/green and Android NDK target-source green on API35 ARM64 4 KiB
-  and 16 KiB. Full-core NDK UBSan stopped earlier at a distinct SPI cast;
-  whole-app networking and DSi HOME remain unverified.
-- **JIT memory handling:** track optimized literals correctly, fix RAM/DTCM
-  mappings and remapping, release mappings before ARM9 is destroyed, and do not
-  fold a literal whose address has no invalidation owner. The last case has a
-  fresh host/Android NDK red-green regression in the
-  [2 November repository campaign](../2026-11-02-repository-campaign/README.md).
-- **NAND import integrity:** full storage and I/O failures previously returned
-  success with truncated title data. Check write status, byte count and close
-  results for executables and title structure; reject failed source reads.
-  Serialize save FAT headers as little-endian bytes instead of unaligned stores.
-- **Existing save replacement:** stage the new bytes before moving the old save;
-  source/space/write failures preserve the existing generation. Retain a backup
-  during commit, attempt rollback and recover it on a later import after an
-  interrupted replacement. Failed FatFs renames can have already moved or
-  installed an entry, so inspect the destination and backup and restore the old
-  generation before returning failure. No power-loss atomicity is promised.
-- **Rendering:** keep unchanged Compute settings from rebuilding shaders/buffers;
-  skip unused OpenGL edge data and shaders. Replace a misleading cache-error log.
-- **Optional DNS API:** allow a frontend to supply hostname-to-IPv4 answers.
-  The table is empty by default; ordinary resolver behavior stays unchanged.
+| Area | Corrected behavior | Evidence and tests |
+| --- | --- | --- |
+| DS/DSi registers | Apply console-mode initialization and SCFG access rules consistently | [features, original authors and test contracts](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-28-refinement/INTEGRATION-REPORT.md) |
+| Wi-Fi power saving | Power down automatically only when the emulated mode requests it | [features, original authors and test contracts](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-28-refinement/INTEGRATION-REPORT.md) |
+| JIT literals/invalidation | Fold tracked literals and use the actual write mask; reject the first untracked AArch64 Thumb/DTCM fold | [baseline and test ledger](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-29-nightly-comparison/VALIDATION.md); [new Thumb RED/GREEN](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-02-core-literal-thumb/README.md) |
+| JIT teardown/DTCM | Release mappings while ARM9 exists; correct RAM aliases, window offsets, remapping and mirrors | [baseline and test ledger](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-29-nightly-comparison/VALIDATION.md) |
+| NAND imports | Fail on short source/write/close operations; serialize save FAT headers without unaligned stores | [real FatFs/crypto RED/GREEN](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-31-rtc-nand/README.md) |
+| Existing NAND saves | Stage replacement, preserve/restore the old generation on failure and recover on a later import | [replacement tests](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-31-persistence-lifecycle/README.md); [rename fault and retry RED/GREEN](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-nand-rename-fault/README.md) |
+| DS Wi-Fi frames | Bound conversion to the actual LAN buffer | [DS RED/GREEN and Android 4/16 KiB](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-wifi-ds-length/README.md) |
+| DSi WMI frames | Validate payload length against mailbox occupancy and LAN capacity | [DSi RED/GREEN and instrumentation limits](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-dsi-wmi-length/README.md) |
+| Action Replay | Require complete instruction and E-code payload words before interpretation | [ARM7 VBlank RED/GREEN and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-action-replay-length/README.md) |
+| NAND cartridge B7 | Keep save reads inside the allocation and selected 4 KiB page | [ASan/Android controls and attribution](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-nand-cart-read/README.md) |
+| Rendering | Skip unchanged Compute reconfiguration, unused OpenGL edge data/shaders and a misleading cache-error log | [features, original authors and test contracts](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-28-refinement/INTEGRATION-REPORT.md) |
 
-### Validation and limits
+The optional hostname-to-IPv4 override API is retained, empty by default.
+It is independent of the Android firmware Wi-Fi editor. OpenGL/Compute and
+high-resolution 3D already existed in the base; no new 2D upscaler is included.
 
-- **Final paired 2.1.6 candidate:** all ten NDK executables pass on Android
-  API35 ARM64/4KiB and 16KiB. The real-core/FatFs tests verify write failures,
-  exact remount readback, existing-save preservation and retry. JNI boundary
-  tests are reported separately from the core and do not certify ART.
-  The optimized app APK, its packaged native payload, signature and build flags
-  are checked. The exact APK was subsequently installed on the Thor on 1 November;
-  its library opens and all ten native targets pass on physical API33/ARM64/4KiB.
-  [Physical update and preservation scope](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-01-thor-update/README.md).
-- The paired optimized APK also completes Continue/field/SAVE/cold Continue on
-  one copied Sacred Gold Plus 1.3.1 IT save. Original personal data stays intact.
-  This exercises a DS game path, not DSi NAND imports, HOME quota or the new
-  NAND string leases in ART. The strict ROM data audit is not a blanket PASS;
-  its native variable/seed differences and limited post-ROM private-data checks
-  are retained in the physical report.
-  [Fresh commands, source/payload hashes, independent review and skips](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-31-nightly-2.1.6/README.md).
+## Security corrections
 
-- **31 October first batch:** the original import returns success with only
-  11776 of 65536 executable bytes persisted. Sixteen space/input/save scenarios
-  and three read/write/close fault cases pass after correction, with remount
-  readback, unrelated-data controls and explicit cleanup/retry. Original
-  unaligned save-header stores abort Android UBSan; corrected code passes.
-  Eight native executables pass on Android API35 ARM64/4KiB and 16KiB.
-  [Reproducer, original/patched evidence and exact boundaries](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-31-rtc-nand/README.md).
-- The authored NAND fixture is not bootable HOME firmware. Logical quota,
-  ART/JNI integration and power loss remain outside acceptance. Existing-save
-  replacement is covered by the [follow-up](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-31-persistence-lifecycle/README.md)
-  and fresh Android native tests. One-shot metadata-write failures during both
-  rename stages are now covered by the [3 November red/green unit](../2026-11-03-nand-rename-fault/README.md)
-  on host and API35 ARM64 4 KiB/16 KiB. Backup cleanup may leave the old entry
-  after a successful commit; the next import removes it without changing the
-  committed bytes. Persistent faults and ART/SAF remain untested. Interruption
-  recovery is on a later import, not merely remount/export.
-- The following results belong to the earlier 28–29 October app/core pair;
-  they are historical evidence, not fresh verification of the pending update.
+The completed scan recorded **35 unique occurrences**: 17 core-only, 15 app-only
+and 3 shared. This proposal covers 20 core/shared entries; the app covers 18.
+The union is 35. These counts are not 35 demonstrated Android exploits.
 
-- Strict UBSan reproduced the teardown defect. Android ARM64 tests cover the
-  RAM/DTCM alias, remapping, 4–32KiB windows and 4/16KiB Android pages.
-- The paired campaign ran native regressions on Android 13 and 15. Host JIT/DNS
-  checks and ARM64/x86_64 sanitized builds are recorded separately.
-- The Thor Android 13 run passes all six native targets; the optimized app also
-  loads, saves and resumes a copied game with Compute 6x on its Adreno GPU.
-  [Physical checks and measurement limits](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-29-thor-update/README.md).
-- [Before/after evidence, commands and boundaries](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-29-nightly-comparison/VALIDATION.md).
-- No new 2D upscaler, OpenCL backend, audio rate-matching patch or measured FPS,
-  power or image-quality gain is claimed. Whole-app CPU/memory observations
-  do not isolate a core change; sustained thermal and all-game checks remain open.
-- The final local source/payload identities and physical update checks are
-  recorded. Whole-app ART integration for the latest NAND changes, DSi HOME
-  behavior and every game remain outside acceptance; earlier device results do
-  not establish those properties of the new binary.
+| Area | Correction | Evidence and tests |
+| --- | --- | --- |
+| Cartridge images/transfers | Validate headers, allocation, DLDI footprint, B7 spans and restored transfer direction/position/length | [per-occurrence correction and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/FINDINGS.csv); [post-fix before/after and verification guide](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/ADVERSARIAL-REVIEW.md) |
+| Savestate records | Require complete sections, forward progress and section-local reads; cap SRAM lengths | [security report and repeatable commands](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/README.md) |
+| Restored native state | Validate scheduler callbacks, FIFO/audio state, GPU indices/counts and cross-field invariants | [per-occurrence correction and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/FINDINGS.csv) |
+| DNS | Parse only received bytes, reject oversized names and release resolver allocations | [security report and repeatable commands](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/README.md); [post-fix before/after and verification guide](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/ADVERSARIAL-REVIEW.md) |
+| Network access/LAN | Block slirp private/loopback targets; validate headers, sender/length/AID and player wire fields | [per-occurrence correction and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/FINDINGS.csv); [post-fix before/after and verification guide](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/ADVERSARIAL-REVIEW.md) |
+| Wi-Fi TX/state | Bound descriptor/frame/WEP spans; preserve valid default-reply phases, use alignment-safe reads, validate countdown/masks and initialize replies | [post-fix before/after and verification guide](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/ADVERSARIAL-REVIEW.md) |
+| Firmware | Validate image geometry and checksum/copy spans; consume a bounded immutable input snapshot | [per-occurrence correction and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/FINDINGS.csv) |
+| DSiWare/NAND | Bound save geometry and fixed-width title strings; reject truncated content before mutation | [per-occurrence correction and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/FINDINGS.csv) |
+| GBA flash | Bound bank/sector accesses and erase alignment; handle allocation failure | [per-occurrence correction and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/FINDINGS.csv) |
+| DSP/graphics | Validate pipe/page spans, transfer parity and scaling dimensions before arithmetic/copy | [per-occurrence correction and controls](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/FINDINGS.csv) |
 
-### Related work and integration
+The [security report and repeatable commands](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/README.md) links exact saved titles, all occurrence dispositions and
+reproduction commands. All 35 occurrences have source corrections; dynamic
+RED/GREEN and source-backed cases are identified separately. The [post-fix before/after and verification guide](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/ADVERSARIAL-REVIEW.md)
+records adjacent/bypass corrections without inventing additional scan IDs.
 
-- The teardown cause corresponds to [melonDS-emu/melonDS#2537](https://github.com/melonDS-emu/melonDS/issues/2537),
-  reported by maximxlss and analyzed by RSDuck. This Android-fork fix does not
-  close that separate upstream issue or claim to fix every game-specific JIT crash.
-- NAND write integrity is related to Android
-  [#1651](https://github.com/rafaelvcaetano/melonDS-android/issues/1651) and
-  [#1099](https://github.com/rafaelvcaetano/melonDS-android/issues/1099), which remain
-  partial cases: physical exhaustion is demonstrated, the HOME quota diagnosis
-  is not. No automatic closing reference is proposed for those reports.
-- Companion Android proposal: insert the new PR link after authorization.
-  Merge core first, then update the app's gitlink/URL to the accepted revision.
-- The app's firmware Wi-Fi editor does not depend on the optional DNS API.
-- Replaces the earlier proposals
-  [#19](https://github.com/rafaelvcaetano/melonDS-android-lib/pull/19) and
-  [#18](https://github.com/rafaelvcaetano/melonDS-android-lib/pull/18), recorded as
-  closed without merge; preserve contributor attribution and refresh state
-  before publication.
-- [Historical file inventory, commit history and exact Nightly baseline](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-29-nightly-comparison/README.md).
+### Second independent campaign
 
-### Additional verified core corrections, 3 November
+The completed second scan contributed 66 new occurrences across app and core,
+normalized to 48 cause groups. The core portion adds exact SD/NAND I/O and
+capacity checks, BPTWL/NWiFi/R4 bounds, finite guest-work budgets and fail-closed
+savestate invariants for scheduler, GPU, SPU, DSP, camera, RTC, AES and DMA.
+It also initializes guest-visible buffers and preserves the last valid boundary.
 
-- Bound Action Replay instruction headers and E-code payloads before copying imported cheat words to guest RAM. [ARM7 VBlank host sanitizer and Android ARM64 component evidence](../2026-11-03-action-replay-length/README.md). Full APK/ART and real-game cheat behavior remain separate checks.
-- Bound NAND cartridge B7 save reads to the allocation and 4 KiB page, adapting Arisotura’s merged [cartridge refactor #2595](https://github.com/melonDS-emu/melonDS/pull/2595) to the Android fork interface. [Host ASan and Android ARM64 component evidence](../2026-11-03-nand-cart-read/README.md). Full APK/ART and real NAND-title behavior remain separate checks.
+The exact per-occurrence disposition is in the existing
+[canonical findings register](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/FINDINGS.csv).
+The [second-campaign report](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md)
+records scan identity, causes, previous/correct behavior, commands, Android
+4/16 KiB execution, compatibility limits and the 2.1.8 AVD update. The R4 FAT
+division finding is not applicable to Android because this frontend constructs
+the core without SD storage; it is not claimed fixed for desktop frontends.
+One informational occurrence belongs to the earlier campaign and is not counted
+as a new cause.
 
-### Deep Security Scan corrections, 3 November
+## Validation and limits
 
-Deep Security Scan `4c41e000-6ba0-4453-aaa7-3cdbec542687` produced 35 saved
-occurrences. None was dismissed as a false positive: all 35 have a concrete
-correction in the paired app/core candidate. This core proposal owns or shares
-these 20 native boundaries:
+- Current paired delivery: [2.1.8/49 identity, Android-on-Mac checks and conservative AVD update](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md).
+- The final core passed the focused security suite, full host sanitizer build,
+  Action Replay budget controls, and 11 Android-native targets on API35 ARM64
+  with 4 KiB and 16 KiB pages. These remain distinct from ART and Thor evidence.
+- Recorded security validation of `65952aec`: 163 focused host ASan/UBSan
+  controls, full core sanitizer build, synthetic JIT/NAND/RTC and separate
+  DNS/JNI suites. The paired app passed 312 JVM tests, debug APK build and lint.
+  Exact commands and skips: [security report and repeatable commands](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/README.md).
+- Earlier native Android 4/16 KiB results belong to the revisions in each linked
+  report. The [earlier Thor 2.1.6/47 acceptance](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-01-thor-update/README.md) predates the security core and is not its physical acceptance.
 
-- `occ_bf9ea27628798833dda7cf7b` — Malformed cartridge images cause native out-of-bounds reads and secure-area writes.
-- `occ_2be586dc4a21fbc0f60e65fd` — Malformed savestate section metadata causes infinite loops and native overreads.
-- `occ_4c67e6080ca4afa7cee67a40` — Savestates restore unchecked cartridge transfer indices used in host memory writes.
-- `occ_2993485bc81b37540bda66df` — Crafted savestates control native callback, FIFO, audio-buffer, and table indices.
-- `occ_6b9635717a6a6448125d3010` — Guest DNS parsing can read beyond the frame and return stale native bytes.
-- `occ_46d778442f1d34d3992b75b7` — Running a ROM can proxy traffic to Android localhost and private-network services.
-- `occ_8af6b491512413f1e03d2bb8` — Guest DNS queries leak native resolver allocations.
-- `occ_9fbf5f7454cdc1a7a98c3959` — DSi title listing reads fixed-width banner text as an unbounded string.
-- `occ_2bba18cf5ac157af5fc41bcb` — Guest-controlled Wi-Fi TX descriptors overwrite native state and trigger an oversized copy.
-- `occ_6fc7ac8a4bb1383c4b1bb230` — A DSiWare save size can trap NAND import in a nonterminating loop.
-- `occ_c7156b64208b9c244aee3dec` — GPU3D savestate restoration trusts array indices and counts before native writes.
-- `occ_a558a5b137d2433c0269cf8e` — A crafted custom firmware image can make checksum updates write outside its native buffer.
-- `occ_3b5415742d7ddbfad77786f5` — A malicious document provider can turn firmware revalidation drift into a controlled heap overwrite.
-- `occ_f0001eeaf73d4f180cc706e6` — A truncated DSiWare file can create an invisible, non-reimportable NAND title.
-- `occ_0f5f2f5c076ab2aa0094b993` — GBA flash commands read and overwrite host heap beyond save RAM.
-- `occ_199e211e1856d6a8fcbf97fa` — Guest-writable firmware metadata reaches unchecked host buffer copies.
-- `occ_9e7a80234cd3366f50ce8d90` — DSi DSP HLE pipe descriptors escape mapped host memory.
-- `occ_595441428ec94336e7c4ebf7` — Zero-width DSi graphics command underflows a native transfer length.
-- `occ_a134bcef99d03aae124925a6` — Guest-controlled B7 transfers overread ROM memory and zero-length commands underflow into massive copies.
-- `occ_c9523ca984164c679e7340bb` — Savestate SRAM lengths drive unbounded cartridge allocations.
+Host macOS diagnostics do not validate Android runtime or a Mac frontend.
+NDK component tests do not certify full ART/SAF integration, game networking,
+DSi HOME/quota, persistent storage faults or power-loss atomicity. Slirp policy
+and the LAN wire format need compatibility review. No measured FPS, energy or
+all-game improvement is claimed.
 
-The app proposal lists the Android-owned occurrences. The complete mapping,
-before/after evidence, raw-source provenance and independent reproduction steps
-are in the [security remediation report](../2026-11-03-security-remediation/README.md).
+## Attribution and integration
 
-Fresh candidate validation: the ASan/UBSan core build reaches 100%; 163 focused
-native security controls pass; the complete host policy/save/JIT/NAND/RTC suite,
-DNS and JNI NAND suites pass; and the paired Android candidate passes 312 JVM
-tests, ARM64 APK build and lint. The optional differential JIT test is skipped
-because repository policy forbids committing the required external ROM.
+Preserve existing human authorship and licenses. B7 save-page behavior adapts
+Arisotura's merged [cartridge refactor #2595](https://github.com/melonDS-emu/melonDS/pull/2595).
+The teardown cause was reported by maximxlss and analyzed by RSDuck in
+[#2537](https://github.com/melonDS-emu/melonDS/issues/2537); fixing this Android
+fork does not close that separate repository's issue. Compared Thumb proposals
+and partial DSi/game issues remain in the [canonical issue/PR register](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-28-refinement/ISSUE-PR-COVERAGE.csv).
 
-The final core identity is `65952aec`, consumed by app code commit `a77ccaaa`.
-The independent post-fix review also corrected MP default-reply phase handling,
-unaligned Wi-Fi words, countdown/client-mask semantics, zero-initialized reply
-packets, DLDI footprint handling, GBA allocation failure, the 128 MiB immutable
-DSi snapshot cap, the demonstrated DNS QNAME underflow and the complete LAN
-wire protocol/player serialization boundary. The same review finished with no
-concrete residual in the assigned core and network/DSi paths. See the
-[adversarial review and reproduction procedure](../2026-11-03-security-remediation/ADVERSARIAL-REVIEW.md).
+This replaces library #18/#19, closed without merge. Review/merge core first,
+then point the app at the accepted revision and upstream URL. No replacement
+companion PR has been published.
+The new report and register rows are currently local; verify their absolute URLs
+only after a separately authorized commit/push and before publication.

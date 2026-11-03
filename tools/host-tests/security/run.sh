@@ -47,6 +47,18 @@ PY
     -o "$BUILD_DIR/dsi-save-geometry-test"
 "$BUILD_DIR/dsi-save-geometry-test"
 
+"${CXX:-clang++}" -std=c++17 -g -O1 -fsanitize=address,undefined \
+    -I"$CORE_SRC" \
+    "$REPO_ROOT/tools/host-tests/security/DSiTitleDataBoundsTest.cpp" \
+    -o "$BUILD_DIR/dsi-title-data-bounds-test"
+"$BUILD_DIR/dsi-title-data-bounds-test"
+
+"${CXX:-clang++}" -std=c++17 -g -O1 -fsanitize=address,undefined \
+    -I"$CORE_SRC" \
+    "$REPO_ROOT/tools/host-tests/security/DSiBootBoundsTest.cpp" \
+    -o "$BUILD_DIR/dsi-boot-bounds-test"
+"$BUILD_DIR/dsi-boot-bounds-test"
+
 "${CC:-clang}" -std=c11 -g -O1 -fsanitize=address,undefined \
     -I"$CORE_SRC" -c "$CORE_SRC/sha1/sha1.c" -o "$BUILD_DIR/sha1.o"
 "${CXX:-clang++}" -std=c++17 -g -O1 -fsanitize=address,undefined \
@@ -67,6 +79,25 @@ PY
     "$REPO_ROOT/tools/host-tests/security/CartridgeImageBoundsTest.cpp" \
     -o "$BUILD_DIR/cartridge-image-bounds-test"
 "$BUILD_DIR/cartridge-image-bounds-test"
+
+"${CXX:-clang++}" -std=c++17 -g -O1 -fsanitize=address,undefined \
+    -I"$CORE_SRC" \
+    "$REPO_ROOT/tools/host-tests/security/UtilsPaddingTest.cpp" \
+    "$CORE_SRC/Utils.cpp" \
+    -o "$BUILD_DIR/utils-padding-test"
+"$BUILD_DIR/utils-padding-test"
+
+"${CXX:-clang++}" -std=c++17 -g -O1 -fsanitize=address,undefined \
+    -I"$CORE_SRC" \
+    "$REPO_ROOT/tools/host-tests/security/SaveInputBoundsTest.cpp" \
+    -o "$BUILD_DIR/save-input-bounds-test"
+"$BUILD_DIR/save-input-bounds-test"
+
+"${CXX:-clang++}" -std=c++17 -g -O1 -fsanitize=address,undefined \
+    -I"$CORE_SRC" \
+    "$REPO_ROOT/tools/host-tests/security/RetroAchievementsMemoryTest.cpp" \
+    -o "$BUILD_DIR/retroachievements-memory-test"
+"$BUILD_DIR/retroachievements-memory-test"
 
 "${CXX:-clang++}" -std=c++17 -g -O1 -fsanitize=address,undefined \
     -I"$CORE_SRC" \
@@ -91,6 +122,18 @@ PY
     "$REPO_ROOT/tools/host-tests/security/DSPHLEBoundsTest.cpp" \
     -o "$BUILD_DIR/dsp-hle-bounds-test"
 "$BUILD_DIR/dsp-hle-bounds-test"
+
+"${CXX:-clang++}" -std=c++17 -g -O1 -fsanitize=address,undefined \
+    -I"$CORE_SRC" \
+    "$REPO_ROOT/tools/host-tests/security/NativeRuntimeBoundsTest.cpp" \
+    -o "$BUILD_DIR/native-runtime-bounds-test"
+"$BUILD_DIR/native-runtime-bounds-test"
+
+"${CXX:-clang++}" -std=c++17 -g -O1 -fsanitize=address,undefined \
+    -I"$CORE_SRC" \
+    "$REPO_ROOT/tools/host-tests/security/ARWorkBudgetTest.cpp" \
+    -o "$BUILD_DIR/ar-work-budget-test"
+"$BUILD_DIR/ar-work-budget-test"
 
 "${CXX:-clang++}" -std=c++17 -g -O1 -fsanitize=address,undefined \
     -I"$CORE_SRC" \

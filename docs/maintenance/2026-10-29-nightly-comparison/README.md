@@ -1,5 +1,12 @@
 # Comparison with the official Nightly Build
 
+**3 November follow-up:** upstream app/core master and the rolling Nightly asset
+still match the baseline below (checked again through GitHub REST). The frozen
+October file/commit counts are historical. Use the
+[current reconciliation, impact assessment and 2.1.7 delivery](../2026-11-03-nightly-2.1.7/README.md)
+with the canonical app/core drafts for the complete later scope. Do not read
+this October snapshot as a list of only the latest security fixes.
+
 Checked on **29 October 2026**. This compares the complete fork with the latest
 published official Nightly, not only the fixes from the last few days.
 

@@ -34,5 +34,24 @@ int main()
     Expect(!DSPHLEBounds::YuvTransferValid(2), "partial packed YUV input is rejected");
     Expect(!DSPHLEBounds::YuvTransferValid(UINT32_MAX & ~3U),
         "YUV work that overflows the scheduler delay is rejected");
+    Expect(DSPHLEBounds::G711LengthValid(0), "zero-length G.711 work is a safe no-op");
+    Expect(DSPHLEBounds::G711LengthValid(0x100000),
+        "bounded G.711 work at the supported limit is accepted");
+    Expect(!DSPHLEBounds::G711LengthValid(0x100001),
+        "G.711 work above the per-command budget is rejected");
+    Expect(DSPHLEBounds::G711TimingValid(0x100000, 31),
+        "maximum supported G.711 encode timing is representable");
+    Expect(!DSPHLEBounds::G711TimingValid(UINT32_MAX, 31),
+        "wrapping G.711 scheduler timing is rejected");
+    Expect(DSPHLEBounds::RegionSpanFits(0x00FFFFFE, 2, 0x00FFFFFF),
+        "G.711 span ending at the mapped RAM boundary is accepted");
+    Expect(!DSPHLEBounds::RegionSpanFits(0x00FFFFFF, 2, 0x00FFFFFF),
+        "G.711 span crossing a mapped RAM boundary is rejected");
+    Expect(DSPHLEBounds::MappedSpanFits(0x03000000, 0x03010000, 0x03000000, 2),
+        "G.711 span inside a mapped NWRAM window is accepted");
+    Expect(DSPHLEBounds::MappedSpanFits(0x03000000, 0x03010000, 0x0300FFFE, 2),
+        "G.711 span ending at an NWRAM window boundary is accepted");
+    Expect(!DSPHLEBounds::MappedSpanFits(0x03000000, 0x03010000, 0x0300FFFF, 2),
+        "G.711 span crossing an NWRAM window boundary is rejected");
     return Failures == 0 ? 0 : 1;
 }

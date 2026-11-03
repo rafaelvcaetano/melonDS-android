@@ -49,7 +49,9 @@ class StaticImageDSiCameraSource(
                             Toast.makeText(context, R.string.failed_to_load_image, Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        loadBitmapIntoBuffer(bitmap)
+                        if (bitmap.width == 640 && bitmap.height == 480 && !bitmap.isRecycled) {
+                            loadBitmapIntoBuffer(bitmap)
+                        }
                         bitmap.recycle()
                     }
                 }
@@ -82,7 +84,9 @@ class StaticImageDSiCameraSource(
     }
 
     override fun captureFrame(camera: CameraType, buffer: ByteArray, width: Int, height: Int, isYuv: Boolean) {
-        System.arraycopy(currentImageBuffer, 0, buffer, 0, currentImageBuffer.size)
+        if (buffer.size >= currentImageBuffer.size) {
+            System.arraycopy(currentImageBuffer, 0, buffer, 0, currentImageBuffer.size)
+        }
     }
 
     override fun dispose() {

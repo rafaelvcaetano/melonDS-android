@@ -35,6 +35,7 @@ struct JNIEnv {
     std::unordered_map<jobject, int> locals;
     int peakLocals = 0;
     int liveLocals = 0;
+    std::vector<std::vector<jobject>> localFrames;
 
     jobject allocate(JavaObject::Kind kind) {
         auto object = std::make_unique<JavaObject>();
@@ -43,6 +44,7 @@ struct JNIEnv {
         objects.push_back(std::move(object));
         ++locals[result];
         peakLocals = std::max(peakLocals, ++liveLocals);
+        if (!localFrames.empty()) localFrames.back().push_back(result);
         return result;
     }
     void requireLocal(jobject object) { assert(object && locals[object] > 0); }
@@ -76,6 +78,28 @@ struct JNIEnv {
         assert(list->kind == JavaObject::List && value->kind == JavaObject::Title);
         assert(index == static_cast<jint>(list->children.size()));
         list->children.push_back(value);
+    }
+    jboolean CallBooleanMethod(jobject list, jmethodID, jobject value) {
+        requireLocal(list); requireLocal(value);
+        assert(list->kind == JavaObject::List && value->kind == JavaObject::Title);
+        list->children.push_back(value);
+        return 1;
+    }
+    jint PushLocalFrame(jint) {
+        localFrames.emplace_back();
+        return 0;
+    }
+    jobject PopLocalFrame(jobject result) {
+        assert(!localFrames.empty());
+        auto frame = std::move(localFrames.back());
+        localFrames.pop_back();
+        for (jobject object : frame) {
+            if (locals[object] > 0) {
+                --locals[object];
+                --liveLocals;
+            }
+        }
+        return result;
     }
     jbyteArray NewByteArray(jint size) {
         auto result = allocate(JavaObject::Bytes);

@@ -4,15 +4,20 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   playstore-release:
     if: github.repository == 'rafaelvcaetano/melonDS-android' && github.actor == 'rafaelvcaetano'
     runs-on: ubuntu-latest
+    environment: production-playstore
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
+          persist-credentials: false
 
       - name: Verify immutable CI dependencies
         run: python3 .github/check_ci_integrity.py

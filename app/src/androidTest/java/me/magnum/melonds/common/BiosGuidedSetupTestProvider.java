@@ -178,7 +178,9 @@ public final class BiosGuidedSetupTestProvider extends DocumentsProvider {
             throw new FileNotFoundException("Injected output-open failure");
         }
         if (!write && node.file.getName().equals("nand.bin") &&
-                fixture.mode.equals("blocked-nand") && node.readOpens.incrementAndGet() == 2) {
+                fixture.mode.equals("blocked-nand") && node.readOpens.incrementAndGet() == 3) {
+            // getFileSize() and validateNand() consume the first two source opens. Block the
+            // subsequent copy open so the destination really contains a cancellable partial.
             return blockedNand(fixture);
         }
         fixture.activeDescriptors.incrementAndGet();

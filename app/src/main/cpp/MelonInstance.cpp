@@ -24,6 +24,7 @@
 #include "EmulatorMessageQueueJNI.h"
 #include "WfcSaveRange.h"
 #include "CartridgeImageBounds.h"
+#include "SaveInputBounds.h"
 
 using namespace std;
 using namespace melonDS;
@@ -31,6 +32,47 @@ using namespace melonDS::Platform;
 
 namespace MelonDSAndroid
 {
+namespace
+{
+bool LoadSaveSidecar(const std::string& path, bool gba, unique_ptr<u8[]>& data, u32& length)
+{
+    data.reset();
+    length = 0;
+
+    if (!Platform::CheckFileWritable(path)) return false;
+
+    FileHandle* file = Platform::OpenFile(path, FileMode::Read);
+    if (!file) return false;
+
+    const u64 rawLength = Platform::FileLength(file);
+    const bool validLength = gba ? SaveInputBounds::GBALengthValid(rawLength)
+                                 : SaveInputBounds::NDSLengthValid(rawLength);
+    if (!validLength || rawLength > UINT32_MAX)
+    {
+        CloseFile(file);
+        return false;
+    }
+
+    length = static_cast<u32>(rawLength);
+    if (length == 0)
+    {
+        CloseFile(file);
+        return true;
+    }
+
+    data.reset(new (std::nothrow) u8[length]);
+    FileRewind(file);
+    if (!data || FileRead(data.get(), length, 1, file) != 1)
+    {
+        data.reset();
+        length = 0;
+        CloseFile(file);
+        return false;
+    }
+
+    return CloseFile(file);
+}
+}
 
 namespace {
 struct WildEncounterMemory {
@@ -141,22 +183,8 @@ bool MelonInstance::loadRom(std::string romPath, std::string sramPath)
     }
 
     // SRAM file loading
-    FileHandle* sramFile = Platform::OpenFile(sramPath, FileMode::Read);
-    if (!sramFile)
-    {
+    if (!LoadSaveSidecar(sramPath, false, sramData, sramFileLength))
         return false;
-    }
-    else if (!Platform::CheckFileWritable(sramPath))
-    {
-        return false;
-    }
-
-    sramFileLength = (u32) Platform::FileLength(sramFile);
-
-    FileRewind(sramFile);
-    sramData = std::make_unique<u8[]>(sramFileLength);
-    FileRead(sramData.get(), sramFileLength, 1, sramFile);
-    CloseFile(sramFile);
 
     NDSCart::NDSCartArgs cartargs{
         // Don't load the SD card itself yet, because we don't know if
@@ -214,25 +242,8 @@ bool MelonInstance::loadGbaRom(std::string romPath, std::string sramPath)
         return false;
     }
 
-    FileHandle* saveFile = Platform::OpenFile(sramPath, FileMode::Read);
-    if (!saveFile)
-    {
+    if (!LoadSaveSidecar(sramPath, true, sramData, sramFileLength))
         return false;
-    }
-    else if (!Platform::CheckFileWritable(sramPath))
-    {
-        return false;
-    }
-
-    sramFileLength = (u32) FileLength(saveFile);
-
-    if (sramFileLength > 0)
-    {
-        FileRewind(saveFile);
-        sramData = std::make_unique<u8[]>(sramFileLength);
-        FileRead(sramData.get(), sramFileLength, 1, saveFile);
-    }
-    CloseFile(saveFile);
 
     auto cart = GBACart::ParseROM(std::move(romData), romFileLength, std::move(sramData), sramFileLength, this);
     if (!cart)

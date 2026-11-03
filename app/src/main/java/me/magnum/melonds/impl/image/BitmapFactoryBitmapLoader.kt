@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import kotlin.math.roundToInt
 
 class BitmapFactoryBitmapLoader(private val context: Context) : BitmapLoader {
 
@@ -12,33 +11,57 @@ class BitmapFactoryBitmapLoader(private val context: Context) : BitmapLoader {
         return try {
             context.contentResolver.openFileDescriptor(imageUri, "r").use { imageFileDescriptor ->
                 if (imageFileDescriptor != null) {
-                    val originalBitmap = BitmapFactory.decodeFileDescriptor(imageFileDescriptor.fileDescriptor)
-
-                    val cameraAspectRatio = 640 / 480f
-                    val sourceAspectRatio = originalBitmap.width / originalBitmap.height.toFloat()
-
-                    val scale = if (sourceAspectRatio > cameraAspectRatio) {
-                        480f / originalBitmap.height
-                    } else {
-                        originalBitmap.width / 640f
+                    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    BitmapFactory.decodeFileDescriptor(imageFileDescriptor.fileDescriptor, null, bounds)
+                    if (!StaticCameraImagePolicy.accepts(bounds.outWidth, bounds.outHeight)) {
+                        return null
                     }
 
-                    val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, (originalBitmap.width * scale).roundToInt(), (originalBitmap.height * scale).roundToInt(), true)
-                    if (!originalBitmap.sameAs(scaledBitmap)) {
-                        scaledBitmap.recycle()
+                    val options = BitmapFactory.Options().apply {
+                        inSampleSize = StaticCameraImagePolicy.sampleSize(bounds.outWidth, bounds.outHeight)
+                        inPreferredConfig = Bitmap.Config.ARGB_8888
                     }
-
-                    Bitmap.createBitmap(scaledBitmap, (scaledBitmap.width - 640) / 2, (scaledBitmap.height - 480) / 2, 640, 480).also {
-                        if (!scaledBitmap.sameAs(it)) {
-                            it.recycle()
-                        }
-                    }
+                    val decoded = BitmapFactory.decodeFileDescriptor(imageFileDescriptor.fileDescriptor, null, options)
+                        ?: return null
+                    normalize(decoded)
                 } else {
                     null
                 }
             }
         } catch (e: Throwable) {
             null
+        }
+    }
+
+    private fun normalize(decoded: Bitmap): Bitmap? {
+        if (!StaticCameraImagePolicy.accepts(decoded.width, decoded.height)) {
+            decoded.recycle()
+            return null
+        }
+
+        val crop = StaticCameraImagePolicy.centerCrop(decoded.width, decoded.height)
+        var working = if (crop.left == 0 && crop.top == 0 && crop.width == decoded.width && crop.height == decoded.height) {
+            decoded
+        } else {
+            Bitmap.createBitmap(decoded, crop.left, crop.top, crop.width, crop.height).also {
+                if (it !== decoded) decoded.recycle()
+            }
+        }
+
+        if (working.width != StaticCameraImagePolicy.TARGET_WIDTH || working.height != StaticCameraImagePolicy.TARGET_HEIGHT) {
+            working = Bitmap.createScaledBitmap(
+                working,
+                StaticCameraImagePolicy.TARGET_WIDTH,
+                StaticCameraImagePolicy.TARGET_HEIGHT,
+                true,
+            ).also { scaled ->
+                if (scaled !== working) working.recycle()
+            }
+        }
+        return working.takeIf {
+            !it.isRecycled &&
+                it.width == StaticCameraImagePolicy.TARGET_WIDTH &&
+                it.height == StaticCameraImagePolicy.TARGET_HEIGHT
         }
     }
 }

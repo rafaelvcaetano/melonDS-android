@@ -49,6 +49,48 @@ else()
 endif()
 target_link_libraries(JitInvalidationTest PRIVATE core teakra ${CMAKE_DL_LIBS})
 
+set(RTC_RESUME_DIR "${MELONDS_TEST_ROOT}/tools/host-tests/rtc-resume")
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+set(RTC_FUNCTIONS "${CMAKE_CURRENT_BINARY_DIR}/rtc-resume/ProductionFunctions.cpp")
+add_custom_command(OUTPUT "${RTC_FUNCTIONS}"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/rtc-resume"
+    COMMAND "${Python3_EXECUTABLE}" "${RTC_RESUME_DIR}/extract.py" "${RTC_FUNCTIONS}"
+    DEPENDS "${RTC_RESUME_DIR}/extract.py" "${MELONDS_TEST_ROOT}/app/src/main/cpp/MelonInstance.cpp"
+    VERBATIM)
+add_executable(RtcResumeTest "${RTC_RESUME_DIR}/RtcResumeTest.cpp" "${RTC_FUNCTIONS}"
+    "${MELONDS_TEST_ROOT}/app/src/main/cpp/RtcSync.cpp")
+target_include_directories(RtcResumeTest PRIVATE "${RTC_RESUME_DIR}")
+add_executable(NandFatTest "${MELONDS_TEST_ROOT}/tools/host-tests/nand-fat/NandFatTest.cpp")
+add_executable(ExistingSaveReplacementTest
+    "${MELONDS_TEST_ROOT}/tools/host-tests/nand-fat/ExistingSaveReplacementTest.cpp")
+add_executable(ReplacementFaultSweepTest
+    "${MELONDS_TEST_ROOT}/tools/host-tests/nand-fat/ReplacementFaultSweepTest.cpp")
+set(CORE_AUDIT_TESTS RtcResumeTest NandFatTest ExistingSaveReplacementTest ReplacementFaultSweepTest)
+# Optional immutable original source for before/after reproduction after the core changes.
+if(NAND_FAT_BASELINE_SOURCE)
+    add_executable(NandFatBaselineTest "${MELONDS_TEST_ROOT}/tools/host-tests/nand-fat/NandFatTest.cpp"
+        "${NAND_FAT_BASELINE_SOURCE}")
+    list(APPEND CORE_AUDIT_TESTS NandFatBaselineTest)
+endif()
+foreach(CORE_AUDIT_TEST IN LISTS CORE_AUDIT_TESTS)
+    if(CORE_AUDIT_TEST STREQUAL "RtcResumeTest")
+        set(CORE_AUDIT_PLATFORM "${MELONDS_TEST_ROOT}/tools/host-tests/jit/HostPlatform.cpp")
+    else()
+        set(CORE_AUDIT_PLATFORM "${MELONDS_TEST_ROOT}/tools/host-tests/nand-fat/FaultPlatform.cpp")
+    endif()
+    target_sources(${CORE_AUDIT_TEST} PRIVATE
+        "${CORE_AUDIT_PLATFORM}"
+        "${MELONDS_TEST_ROOT}/app/src/main/cpp/FileModeString.cpp"
+        AndroidDynamicLibrary.cpp)
+    target_include_directories(${CORE_AUDIT_TEST} PRIVATE "${MELONDS_TEST_ROOT}/app/src/main/cpp")
+    if(ANDROID_ABI STREQUAL "arm64-v8a")
+        target_compile_definitions(${CORE_AUDIT_TEST} PRIVATE ARCHITECTURE_ARM64=1)
+    else()
+        target_compile_definitions(${CORE_AUDIT_TEST} PRIVATE ARCHITECTURE_x86_64=1)
+    endif()
+    target_link_libraries(${CORE_AUDIT_TEST} PRIVATE core teakra ${CMAKE_DL_LIBS})
+endforeach()
+
 # Compile the production microphone callback against the real Android Oboe API.
 # The test supplies PCM directly; it does not require microphone permission/hardware.
 set(OBOE_BUILD_TESTS OFF CACHE BOOL "No Oboe test app" FORCE)
@@ -85,7 +127,7 @@ target_include_directories(MicSourceSwitchTest PRIVATE
 set(NAND_TEST_DIR "${MELONDS_TEST_ROOT}/tools/host-tests/nand-jni")
 configure_file("${MELONDS_TEST_ROOT}/app/src/main/cpp/MelonDSNandJNI.cpp"
     "${CMAKE_CURRENT_BINARY_DIR}/nand-boundary/MelonDSNandJNI.cpp" COPYONLY)
-foreach(NAND_TEST NandJniTest StorageNandTest)
+foreach(NAND_TEST NandJniTest StorageNandTest UtfLeaseTest)
     add_executable(${NAND_TEST} "${NAND_TEST_DIR}/${NAND_TEST}.cpp")
     target_include_directories(${NAND_TEST} PRIVATE
         "${CMAKE_CURRENT_BINARY_DIR}/nand-boundary"

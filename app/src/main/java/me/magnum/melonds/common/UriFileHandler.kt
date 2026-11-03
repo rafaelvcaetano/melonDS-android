@@ -12,35 +12,39 @@ class UriFileHandler(private val context: Context, private val uriHandler: UriHa
     }
 
     fun open(uriString: String, mode: String): Int {
-        val uri = uriString.toUri()
+        return try {
+            val uri = uriString.toUri()
 
-        var isWriteMode = false
-        if (mode.findAnyOf(writeModeChars) != null) {
-            isWriteMode = true
-        }
+            var isWriteMode = false
+            if (mode.findAnyOf(writeModeChars) != null) {
+                isWriteMode = true
+            }
 
-        return if (isWriteMode) {
-            if (uriHandler.fileExists(uri)) {
-                try {
-                    context.contentResolver.openFileDescriptor(uri, mode)?.detachFd()
-                } catch (_: FileNotFoundException) {
-                    null
-                }
-            } else {
-                uriHandler.createFileDocument(uri)?.let { document ->
+            if (isWriteMode) {
+                if (uriHandler.fileExists(uri)) {
                     try {
-                        context.contentResolver.openFileDescriptor(document.uri, mode)?.detachFd()
+                        context.contentResolver.openFileDescriptor(uri, mode)?.detachFd()
                     } catch (_: FileNotFoundException) {
                         null
                     }
+                } else {
+                    uriHandler.createFileDocument(uri)?.let { document ->
+                        try {
+                            context.contentResolver.openFileDescriptor(document.uri, mode)?.detachFd()
+                        } catch (_: FileNotFoundException) {
+                            null
+                        }
+                    }
                 }
-            }
-        } else {
-            try {
-                context.contentResolver.openFileDescriptor(uri, mode)?.detachFd()
-            } catch (_: Exception) {
-                null
-            }
-        } ?: FILE_NOT_FOUND
+            } else {
+                try {
+                    context.contentResolver.openFileDescriptor(uri, mode)?.detachFd()
+                } catch (_: Exception) {
+                    null
+                }
+            } ?: FILE_NOT_FOUND
+        } catch (_: Exception) {
+            FILE_NOT_FOUND
+        }
     }
 }
