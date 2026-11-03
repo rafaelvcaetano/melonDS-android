@@ -161,6 +161,13 @@ be substituted for this local update. The exact-final-APK private bytewise
 post-update comparison remains a proof gap; the full AVD data comparison used
 an earlier candidate, as the report explains. A public review APK can be added
 after physical acceptance and explicit publication approval.
+The [UD Nightly build plan](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-thor-2.1.8/NIGHTLY-PLAN.md)
+uses the upstream `gitHubNightlyRelease` variant and `.nightly` ID with a
+persistent fork signer. The `.perf` Thor update preserves its existing identity;
+changing package IDs does not migrate private data or URI grants. A fork signer
+cannot replace an upstream-signed APK. Both compile the same pinned core and
+data-format implementation; release acceptance remains required.
+
 
 ## Credits and integration
 

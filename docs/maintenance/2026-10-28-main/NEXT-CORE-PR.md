@@ -134,6 +134,11 @@ defines the APK/source identity and physical acceptance procedure. No new Thor
 result or published fork Nightly is claimed. The core PR supplies source and
 native regression tests; the companion app supplies the review APK after its
 publication is separately approved.
+The [UD Nightly build plan](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-thor-2.1.8/NIGHTLY-PLAN.md)
+uses recursive checkout of the exact core gitlink and compiles it into the app
+APK, following the upstream release topology. There is no separately installed
+core. Once accepted upstream, the app must pin that accepted revision and URL.
+
 
 ## Attribution and integration
 

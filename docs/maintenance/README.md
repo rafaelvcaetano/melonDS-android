@@ -5,6 +5,10 @@ dated reports are historical evidence, not fresh acceptance of later builds.
 
 Current delivery procedure: [Thor 2.1.8 update, PR drafts and GitHub build availability](2026-11-03-thor-2.1.8/README.md).
 Physical installation and upstream publication await separate approval.
+The [UD Nightly plan](2026-11-03-thor-2.1.8/NIGHTLY-PLAN.md) aligns the public
+release variant with upstream while preserving the existing Thor update identity.
+Both forks have only `main`; signing and release acceptance remain explicit gates.
+
 
 Current evidence: [second independent scan, 2.1.8/49 and conservative AVD update](2026-11-03-security-followup/README.md).
 The exact optimized APK also passed Continue, SAVE and new-process cold Continue

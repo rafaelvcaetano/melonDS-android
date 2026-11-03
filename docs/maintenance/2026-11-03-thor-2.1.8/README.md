@@ -4,6 +4,37 @@ Prepared 3 November 2026. Status: candidate ready for a separately authorized
 physical update; no Thor installation or upstream publication performed.
 This is a delivery procedure, not a new finding catalogue or device acceptance.
 
+## UD Nightly alignment and branches
+
+The [UD Nightly implementation plan](NIGHTLY-PLAN.md) supersedes the earlier
+proposal to publish the profiling APK as the public fork Nightly. The public
+build will use the author's `assembleGitHubNightlyRelease` variant and
+`me.magnum.melonds.nightly` ID, labeled **melonDS Android UD Nightly**. The
+Thor update below retains `.nightly.perf` to replace the existing installation
+in place. These are package identities, not different ROM/save formats.
+Matching package IDs alone does not make different signers compatible.
+
+The inspected official c42995c APK is `.nightly`, code41, signed by certificate
+`0493bb8749289f0304cc868489dd68b930c19ccc4dce2da876bfe6b9bdbabebc`.
+Our Thor certificate is different. A fork-signed `.nightly` cannot update the
+author's installation; the author must sign official upstream builds. Switching
+the Thor from `.perf` to `.nightly` would require a separately tested migration
+of exported copies and regranted URIs, outside the planned 47-to-49 update.
+
+Both GitHub fork branch lists and both local branch lists contain **only main**.
+Upstream remote-tracking refs are not additional branches in our forks.
+The recursive submodule checkout downloads our core at the gitlink commit and
+compiles it into the APK. Users install one APK, with no separate core download.
+For source builds, GitHub's plain source ZIP does not populate submodules.
+Reviewers must use a recursive Git checkout, following the upstream method,
+or initialize the existing checkout with `git submodule update --init --recursive`.
+Do not use `--remote`: reproducibility depends on the recorded gitlink.
+
+No release signing configuration is provisioned. UD release builds require a
+persistent owner-controlled fork key and actual release-variant AVD acceptance.
+The plan fixes the tasks and gates; no signed UD release APK is claimed built.
+The verified Thor candidate below remains unchanged.
+
 ## Candidate to use
 
 The canonical local APK is
@@ -152,11 +183,9 @@ the empty comment/review lists checked for the prior app #1682/core #19 PRs
 (app #1681 comments were also empty). This is limited evidence, not an assurance
 of what a future reviewer will request.
 
-After successful Thor acceptance and separate publication approval, a fork
-prerelease could provide the exact reviewed APK and SHA256SUMS, source pair,
-local package/signer identity, compatibility notes and test report. Do not call
-it an official Nightly or bundle ROMs/BIOS/saves. A core-only PR needs a source
-revision and native test evidence, not a second APK. No release, tag or asset
+The [UD Nightly plan](NIGHTLY-PLAN.md) defines release compilation, persistent
+fork signing, recursive checkout, exact-APK validation and approved publication.
+The [UD Nightly release draft](FORK-RELEASE-DRAFT.md) must receive its actual
+build/signer/hash and acceptance results before publication. A core-only PR
+needs source and native evidence, not a second APK. No release, tag or asset
 upload is performed by this handoff.
-The [optional fork test-release draft](FORK-RELEASE-DRAFT.md) is prepared for
-that later decision and must receive the actual Thor result before publication.
