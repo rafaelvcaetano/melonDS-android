@@ -6,7 +6,7 @@
 - Compared with the official **Nightly Build**, version 2.0.1 (c42995c), updated
   12 September 2026. Its app/core revisions still match upstream on 29 October.
 - [Local comparison and full inventory](../2026-10-29-nightly-comparison/README.md).
-- Review copy only. Push and PR publication require the maintainer's approval.
+- Review copy only. Local `main` push was authorized on 3 November; upstream PR publication remains blocked pending a later explicit instruction.
   The GitHub document links below become available after the authorized push;
   check them and add exact CI/companion-PR links before publication.
 
@@ -81,3 +81,8 @@ as an update on the Thor, with existing games, saves, cheats and settings preser
 - Review core first, then pin the accepted upstream revision and restore the
   upstream submodule URL. Repeat relevant checks if the core changes.
 - [Full Nightly comparison, commit/file inventories and integration notes](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-29-nightly-comparison/README.md).
+
+### Verified campaign additions, 3 November
+
+- Pair the app with the corrected core revisions for Thumb/DTCM literal handling, DSi NAND rename recovery, and DS Wi-Fi guest frame bounds. The last correction is red on host ASan before the fix and green on host and API35 ARM64 4 KiB/16 KiB native runs. [Evidence and limits](../2026-11-03-wifi-ds-length/README.md).
+- The assembled GitHubProdDebug APK was checked without installation. ART, real game networking, DSi WMI and device behavior for this new binary remain outside acceptance. No upstream PR is published.

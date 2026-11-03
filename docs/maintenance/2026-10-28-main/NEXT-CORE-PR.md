@@ -6,7 +6,7 @@
 - Baseline: 431ab4bd, the core actually shipped in the latest official Android
   Nightly. Candidate: fd758240; upstream master still matches the baseline.
 - [Local comparison and full inventory](../2026-10-29-nightly-comparison/README.md).
-- Review copy only. Push and PR publication require the maintainer's approval.
+- Review copy only. Local `main` push was authorized on 3 November; upstream PR publication remains blocked pending a later explicit instruction.
   Check document links after the authorized app push and insert current CI and
   companion-PR links before publication.
 
@@ -51,3 +51,9 @@ and memory-handling problems and removes unnecessary renderer work.
 - The app's firmware Wi-Fi editor does not depend on the optional DNS API.
 - Supersedes closed, unmerged #19/#18; preserve contributor attribution.
 - [All 17 changed files, commit history and exact Nightly baseline](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-10-29-nightly-comparison/README.md).
+
+### Verified campaign additions, 3 November
+
+- Avoid folding AArch64 literals whose DTCM addresses lack an invalidation owner; preserve existing tracked-literal behavior. [Red/green evidence](../2026-11-02-repository-campaign/README.md).
+- Restore the prior DSi save generation after ambiguous FatFs rename failures. [Fault-injection evidence](../2026-11-03-nand-rename-fault/README.md).
+- Bound DS guest Wi-Fi frame conversion to the 2048-byte native LAN buffer and preserve exact payload length. [Host ASan and Android ARM64 evidence](../2026-11-03-wifi-ds-length/README.md). DSi WMI and real-game networking remain separate checks.
