@@ -35,7 +35,7 @@ records the exact canceled scans and retained results. Neither canceled scan
 establishes complete security coverage. No ART, physical-device, game or
 whole-repository safety claim follows.
 
-Later closed units: [Action Replay instruction/payload bounds](2026-11-03-action-replay-length/README.md) and [NAND cartridge B7 page reads](2026-11-03-nand-cart-read/README.md). Both have host sanitizer RED/GREEN and Android NDK target-source execution on API35 ARM64 4 KiB/16 KiB. The latest app gitlink includes these changes; the previous APK predates them. Full APK/ART and real-game acceptance remain pending.
+Later corrected units: [Action Replay instruction/payload bounds](2026-11-03-action-replay-length/README.md) and [NAND cartridge B7 page reads](2026-11-03-nand-cart-read/README.md). Both have host sanitizer RED/GREEN and Android NDK execution on API35 ARM64 4 KiB/16 KiB. The 2.1.7 APK predates them; 2.1.8 includes them and has separate real-app homebrew and ART/provider checks. Direct DSi WMI/game-specific and Thor acceptance remain pending.
 
 Delivery: [modified Nightly 2.1.6 / 47, APK identity and final checks](2026-10-31-nightly-2.1.6/README.md).
 Installed in place on the Thor after explicit authorization:
