@@ -58,3 +58,4 @@ and memory-handling problems and removes unnecessary renderer work.
 - Restore the prior DSi save generation after ambiguous FatFs rename failures. [Fault-injection evidence](../2026-11-03-nand-rename-fault/README.md).
 - Bound DS guest Wi-Fi frame conversion to the 2048-byte native LAN buffer and preserve exact payload length. [Host ASan and Android ARM64 evidence](../2026-11-03-wifi-ds-length/README.md).
 - Reject incomplete or forged DSi WMI guest payload lengths before reading the mailbox or writing the LAN buffer. [Public SDIO host and Android ARM64 evidence](../2026-11-03-dsi-wmi-length/README.md). Full APK/ART and real-game networking remain separate checks.
+- Bound Action Replay instruction headers and E-code payloads before copying imported cheat words to guest RAM. [ARM7 VBlank host sanitizer and Android ARM64 component evidence](../2026-11-03-action-replay-length/README.md). Full APK/ART and real-game cheat behavior remain separate checks.
