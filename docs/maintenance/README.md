@@ -81,3 +81,16 @@ original backups and unique data: it was not deleted as an old test. Remaining
 `build` folders also contain saves, APK baselines and evidence, so their name
 alone does not authorize deletion. The old cleanup page now points to the
 current rules. Do not delete regression test sources merely because they are old.
+
+## Security scan results and repository corrections
+
+The original Daybreak scan targets app `1cc24ead` and remains canceled. Its live context reports `remediationAvailable: false` with the exact reason `Remediation is available only for successfully completed scans.` Checked on 3 November 2026. Repository commits and reports do not automatically close Security workbench findings. No scan was restarted for this check.
+
+| Original Security title/rule | Current local correction | Recorded verification |
+| --- | --- | --- |
+| Guest-controlled Wi-Fi lengths can overflow DS and DSi native LAN buffers (`guest-wifi-length-underflow`, three occurrences) | DS `c8d2f94a`; DSi `23700602` | Separate DS and DSi host sanitizer RED/GREEN and API35 ARM64 4/16 KiB component evidence |
+| A malicious DS ROM can overflow the host Wi-Fi bridge heap buffer (`memory-safety.heap-buffer-overflow`) | DS `c8d2f94a`; overlapping DS Wi-Fi cause | Same DS unit; do not count as another independently fixed cause |
+| Action Replay E-code length reads beyond the imported code vector (`native-memory-safety.action-replay-payload-bounds`) | `4e989e46` | Host sanitizer RED/GREEN; ten component modes on host and API35 ARM64 4/16 KiB |
+| NAND cartridge transfers disclose host memory past the save allocation (`nds-nand-cart-oob-read`) | `907849b3` | Host ASan source over-read RED/GREEN; six component modes on host and API35 ARM64 4/16 KiB; no disclosure exploit collected |
+
+These mappings cover four corrected causes across six saved scan occurrences. They are not blanket closure verdicts for every subclaim, duplicate, related path or whole-app impact in those occurrences. Per-occurrence verification and Security status reconciliation remain pending. AArch64 literal and DSi NAND rename fixes were separate functional-audit findings, not additional closed Daybreak scan records. Full APK/ART acceptance of the latest combined core remains pending.
