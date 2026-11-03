@@ -95,6 +95,6 @@ The isolated native test proves the parser's local memory and length contract on
 
 Storage deviation: the small host and NDK executables used under 4 MiB, but required app assembly rewrote a 68,142,245-byte APK, exceeding the unit's initial 50 MiB new-output ceiling. The current candidate APK is retained as the only new package; free space remains about 18 GiB, above the 10 GiB floor. The build directory grew about 1.2 MiB across `.cxx`, native intermediates and APK paths after replacing old outputs. No generic cleanup occurred.
 
-Local core commit: `c8d2f94aa52e43f71043982b4402d84a093cbece` (`Bound DS Wi-Fi frame conversion to LAN buffer`). The app gitlink, reproducer, dated report and canonical register update follow in a separate scoped local commit. No PR was opened.
+Local core commit: `c8d2f94aa52e43f71043982b4402d84a093cbece` (`Bound DS Wi-Fi frame conversion to LAN buffer`). App gitlink, reproducer and dated report: `9cb77bd512f27eb3157d75aa8bf5a12029a40992`; canonical index, coverage register and PR draft deltas: `e3bae3f5` (full hash in local Git history). No PR was opened.
 
 Private receipt: `local/reports/ds-2026-11-03/wifi-ds/receipt.json`, checked with the canonical `verifiche` validator at `d8a11722f5cc0535f4d58ea6a1ab52c214797fdb` as `PASS=1` for consistency and evidence integrity only. This is not a security certification.
