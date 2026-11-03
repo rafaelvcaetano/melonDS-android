@@ -47,11 +47,17 @@ int main()
         "G.711 span ending at the mapped RAM boundary is accepted");
     Expect(!DSPHLEBounds::RegionSpanFits(0x00FFFFFF, 2, 0x00FFFFFF),
         "G.711 span crossing a mapped RAM boundary is rejected");
-    Expect(DSPHLEBounds::MappedSpanFits(0x03000000, 0x03010000, 0x03000000, 2),
+    Expect(DSPHLEBounds::NWRAMSpanFits(0x03000000, 0x03010000, 0x03000000, 2),
         "G.711 span inside a mapped NWRAM window is accepted");
-    Expect(DSPHLEBounds::MappedSpanFits(0x03000000, 0x03010000, 0x0300FFFE, 2),
+    Expect(DSPHLEBounds::NWRAMSpanFits(0x03000000, 0x03010000, 0x0300FFFE, 2),
         "G.711 span ending at an NWRAM window boundary is accepted");
-    Expect(!DSPHLEBounds::MappedSpanFits(0x03000000, 0x03010000, 0x0300FFFF, 2),
+    Expect(!DSPHLEBounds::NWRAMSpanFits(0x03000000, 0x03010000, 0x0300FFFF, 2),
         "G.711 span crossing an NWRAM window boundary is rejected");
+    Expect(DSPHLEBounds::NWRAMSpanFits(
+               0x03FF0000, 0x04010000, 0x03FFFFFE, 2),
+        "G.711 span ending at the ARM9 NWRAM aperture is accepted");
+    Expect(!DSPHLEBounds::NWRAMSpanFits(
+               0x03FF0000, 0x04010000, 0x03FFFFFF, 2),
+        "G.711 span cannot escape the ARM9 NWRAM aperture");
     return Failures == 0 ? 0 : 1;
 }

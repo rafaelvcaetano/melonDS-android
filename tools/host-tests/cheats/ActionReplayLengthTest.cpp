@@ -44,7 +44,7 @@ int main(int argc, char** argv)
         cheat.Code = {0xC0000000, 0xFFFFFFFF, 0xD1000000, 0};
     else if (mode == "copy-budget")
         cheat.Code = {0xF2000000, 0xFFFFFFFF};
-    else if (mode == "exact-budget")
+    else if (mode == "exact-budget" || mode == "frame-fairness")
     {
         cheat.Code.reserve(ARWorkBudget::MaxOperations * 2);
         for (u64 i = 0; i < ARWorkBudget::MaxOperations; i++)
@@ -57,6 +57,13 @@ int main(int argc, char** argv)
         return 2;
 
     nds->AREngine.Cheats.push_back(std::move(cheat));
+    if (mode == "frame-fairness")
+    {
+        ARCode later {};
+        later.Enabled = true;
+        later.Code = {0x02000000, 0xCAFEBABE};
+        nds->AREngine.Cheats.push_back(std::move(later));
+    }
     nds->IE[1] = 1 << IRQ_VBlank;
     nds->IF[1] = 1 << IRQ_VBlank;
     nds->ARM7.CPSR &= ~0x80;
@@ -94,6 +101,29 @@ int main(int argc, char** argv)
     }
     else if (mode == "exact-budget" && nds->AREngine.Cheats[0].BudgetExceeded)
         return 7;
+    else if (mode == "frame-fairness")
+    {
+        if (first != 0 || !nds->AREngine.Cheats[0].Enabled ||
+            !nds->AREngine.Cheats[1].Enabled)
+            return 8;
+
+        // A second VBlank delivery in the same emulated frame must not mint a
+        // fresh budget or execute the deferred cheat.
+        nds->ARM7.CPSR &= ~0x80;
+        nds->ARM7.TriggerIRQ();
+        if (nds->ARM7Read32(0x02000000) != 0)
+            return 9;
+
+        // On the next frame, resume from the deferred cheat rather than
+        // restarting at the expensive first entry forever.
+        nds->NumFrames++;
+        nds->ARM7.CPSR &= ~0x80;
+        nds->ARM7.TriggerIRQ();
+        if (nds->ARM7Read32(0x02000000) != 0xCAFEBABE)
+            return 10;
+        if (!nds->AREngine.Cheats[0].Enabled || !nds->AREngine.Cheats[1].Enabled)
+            return 11;
+    }
 
     std::printf("%s: PASS first=%08X second=%08X\n", mode.c_str(), first, second);
     return 0;
