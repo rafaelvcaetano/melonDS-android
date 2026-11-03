@@ -22,6 +22,7 @@
     "core_branch": "main",
     "core_snapshot_head": "65952aec868bedd2dc33151ed850804e3e13df05",
     "core_final_commit": "7837518a",
+    "app_final_source_commit": "4ffbc794772f956da192341df40fd129f8fbb57a",
     "working_tree_required_for_binary": true
   },
   "disposition": {
@@ -50,7 +51,7 @@
   "candidate": {
     "path": "local/notes/pr-review-2026-11-03/candidate/melonDS-2.1.8-nightly-profiling.apk",
     "bytes": 85676746,
-    "sha256": "67a09e90d361cb66ba07982d732e5167a4369a8bf11c92e5a095129261765627",
+    "sha256": "4387d1d39cdba6c0c1507683709e8af902806e7f8c104bc2e24d0ca93a300199",
     "package": "me.magnum.melonds.nightly.perf",
     "version_name": "2.1.8 GH (NIGHTLY) (PROFILING)",
     "version_code": 49,
@@ -78,7 +79,11 @@
     "preferences_expected_delta_only": true,
     "persisted_uri_permission_preserved": true,
     "runtime_homebrew_direct": "pass",
-    "runtime_homebrew_zip": "pass"
+    "runtime_homebrew_zip": "pass",
+    "exact_rebuilt_apk_same_version_install_r": "success",
+    "exact_rebuilt_apk_cold_launcher": "pass",
+    "exact_rebuilt_apk_prior_zip_entries_identical": 1349,
+    "exact_rebuilt_apk_only_changed_entry": "META-INF/version-control-info.textproto"
   },
   "cleanup": {
     "known_allocated_bytes_removed": 2248740864,

@@ -187,17 +187,29 @@ soltanto dal Gradle:
 | --- | --- |
 | Percorso canonico | `local/notes/pr-review-2026-11-03/candidate/melonDS-2.1.8-nightly-profiling.apk` |
 | Byte | 85.676.746 |
-| SHA-256 | `67a09e90d361cb66ba07982d732e5167a4369a8bf11c92e5a095129261765627` |
+| SHA-256 | `4387d1d39cdba6c0c1507683709e8af902806e7f8c104bc2e24d0ca93a300199` |
 | Package | `me.magnum.melonds.nightly.perf` |
 | Versione | `2.1.8 GH (NIGHTLY) (PROFILING)` / 49 |
 | API | min 24, target/compile 37 |
 | ABI presenti | `arm64-v8a`, `armeabi-v7a`, `x86_64` |
 | Firma | APK Signature Scheme v2; certificato SHA-256 `41ad82cd4365c73195128975cf0b920699f8833093507957dc2d0f9d6bb0b4b1` |
 | Modalità | `RelWithDebInfo`, resource optimization; non debuggable e non testOnly |
+| Revisione incorporata | app `4ffbc794772f956da192341df40fd129f8fbb57a`, core gitlink `7837518a` |
 
 È quindi un APK GitHub Nightly universale compatibile ARM64, non un file
 ARM64-only. Sono conservati soltanto il candidato corrente e il fallback
 2.1.7/48 per questo target.
+
+La ricompilazione dopo i commit conserva 1.349 delle 1.350 entry ZIP
+byte-identiche al candidato provato nell'aggiornamento AVD; l'unica entry
+diversa è `META-INF/version-control-info.textproto`, che ora identifica
+`4ffbc794`. Firma, package e versionCode sono stati riletti dall'APK
+ricompilato. L'APK esatto è stato inoltre installato con `-r` sull'AVD già
+popolato: UID e firstInstallTime sono rimasti invariati, il launcher reale
+`RomListActivity` è ripartito da cold start e non è comparso un fatal o ANR
+nella lettura limitata dei log. Un primo tentativo di avviare `MainActivity`
+ha fallito perché quella classe non è il launcher: errore dell'harness,
+corretto usando il manifest dell'APK.
 
 ## Aggiornamento conservativo sull'AVD
 
