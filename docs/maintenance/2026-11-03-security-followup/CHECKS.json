@@ -157,10 +157,12 @@
   "sacred_gold_plus_modified": false,
   "published": false,
   "security_ui": {
-    "first_scan_findings_closed_in_service": "non verificabile",
-    "second_scan_findings_closed_in_service": "non verificabile",
-    "observed_first_page_state": "Open",
-    "closure_blocker": "Mac Security UI locked; available service tool requires UI actionToken/requestId and remediation verified does not close triage; user directed to proceed without interface"
+    "first_scan_findings_closed_in_service": 0,
+    "second_scan_findings_closed_in_service": 0,
+    "first_scan_open_verified": 35,
+    "second_scan_open_verified": 66,
+    "verification_method": "get_codex_security_scan_context for each occurrence ID; 101/101 returned triage.open",
+    "closure_blocker": "Computer Use refused com.openai.codex for safety reasons; available service tool requires UI actionToken/requestId and remediation verified does not close triage"
   },
   "fork_main_pushed": true,
   "upstream_published": false,

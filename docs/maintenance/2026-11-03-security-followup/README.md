@@ -65,14 +65,16 @@ compilato in Nightly, **59 occurrence / 43 gruppi** erano associabili al
 runtime potenzialmente presente nell'APK. È una relazione sorgente/build, non
 una riproduzione dinamica di ciascun caso nel binario.
 
-Nella prima pagina interrogata di entrambe le scansioni, i risultati erano
-ancora marcati **Open** (`triage.open`, `remediation.idle`). Lo stato remoto
-di tutte le righe non è verificabile. L'unico controllo di remediation esposto
-richiede `requestId`, `actionToken` ed `expectedVersion` ottenuti dal flusso UI;
-anche lo stadio `verified` non chiude il triage. L'interfaccia Mac era bloccata
-alla schermata di login e l'utente ha chiesto di proseguire senza interfaccia
-per ora. Nessuna riga è stata marcata Closed per supposizione: le disposizioni
-qui sotto sono tecniche e locali, distinte dallo stato Security e da un'eventuale
+Il 3 novembre, dopo la remediation, il contesto Security è stato riletto per
+ciascuno dei 101 ID: **35/35** risultati della prima scansione e **66/66**
+della seconda risultavano ancora `triage.open`. La prima pagina di ciascuna
+scansione mostrava anche `remediation.idle`. L'unico controllo di remediation
+esposto richiede `requestId`, `actionToken` ed `expectedVersion` ottenuti dal
+flusso UI; anche lo stadio `verified` non chiude il triage. Un primo accesso
+all'interfaccia Mac era stato bloccato dalla schermata di login; al successivo
+tentativo Computer Use ha rifiutato l'app ChatGPT per motivi di sicurezza.
+Nessuna riga è stata marcata Closed per supposizione: le disposizioni qui sotto
+sono tecniche e locali, distinte dallo stato Security e da un'eventuale
 pubblicazione upstream. I commit di codice sono stati inviati sui `main` dei fork.
 
 ## Identità iniziale e conservazione
