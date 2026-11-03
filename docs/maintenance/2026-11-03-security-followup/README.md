@@ -148,6 +148,22 @@ Le correzioni principali sono:
 | Lifecycle | enumerazione NAND e thread nativi potevano sopravvivere all'owner; update disabilitato poteva ancora contattare GitHub | contatori/lease seguono il ciclo di vita; il repository production update è un no-op |
 | Build/release | artefatti Gradle e azioni annidate potevano sfuggire alla policy; un tag poteva raggiungere release production | metadata di verifica, pin immutabili, controllo CI, source/actor gate e ambiente production; protezione esterna dell'ambiente/tag non verificabile localmente |
 
+Una verifica **successiva** e in sola lettura dell'API GitHub ha reso più
+preciso il limite dei due finding release: `gh api
+repos/Umberto-DEV/melonDS-android/environments` ha restituito zero ambienti;
+`gh api repos/Umberto-DEV/melonDS-android/rulesets` ha restituito `[]`;
+`gh api repos/rafaelvcaetano/melonDS-android/environments` ha elencato solo
+`copilot`, senza `production-github-release` o `production-playstore`. La vecchia
+API `tags/protection` ha risposto 404, dunque la protezione tag resta non
+verificata. Nel fork entrambi i job sono esclusi dal gate
+`github.repository == 'rafaelvcaetano/melonDS-android'`; sul codice destinato
+all'upstream richiedono anche `github.actor == 'rafaelvcaetano'`. Il workflow
+Play Store è ora manuale e usa `status: draft`; quello GitHub Release conserva
+il trigger per tag autorizzato. I due ambienti production **non hanno una
+protezione reviewer dimostrata**. I due finding restano quindi nella categoria
+repository corretto / controllo esterno non completato, e nessuna release è
+stata lanciata.
+
 Il record R4 FAT divide-by-zero è non applicabile al target: Android non collega
 uno storage SD al core R4, precondizione necessaria al percorso. Non viene
 presentato come fix desktop o come prova che altri frontend siano immuni.

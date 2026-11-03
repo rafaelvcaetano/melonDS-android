@@ -162,5 +162,18 @@
     "closure_blocker": "Mac Security UI locked; available service tool requires UI actionToken/requestId and remediation verified does not close triage; user directed to proceed without interface"
   },
   "fork_main_pushed": true,
-  "upstream_published": false
+  "upstream_published": false,
+  "external_release_controls": {
+    "github_api_checked": "2026-11-03",
+    "fork_environments": [],
+    "fork_rulesets": [],
+    "upstream_environments": [
+      "copilot"
+    ],
+    "required_production_environments_present": false,
+    "tag_protection_api": "HTTP 404; not verified",
+    "fork_release_job_gate": "github.repository restricts jobs to rafaelvcaetano/melonDS-android",
+    "upstream_actor_gate": "rafaelvcaetano",
+    "production_release_executed": false
+  }
 }

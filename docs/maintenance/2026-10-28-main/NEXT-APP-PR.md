@@ -80,8 +80,9 @@ changes need compatibility review before upstream acceptance.
 
 Completed scan `ab26b107-97dd-4557-9c4b-2942e5df879d` added **66 occurrences**
 without recounting the earlier 35. They normalize to 48 cause groups: 62 results
-are corrected locally, two release findings have repository corrections but
-retain unverified external-environment controls, one R4 path is not applicable
+are corrected in repository code, two release findings have repository gates but
+the required production environments are absent in the observed GitHub API
+and tag protection remains unverified, one R4 path is not applicable
 to Android, and one result is an informational reconciliation. Exact IDs,
 severity, disposition and evidence remain in the canonical register.
 
@@ -91,7 +92,7 @@ severity, disposition and evidence remain in the canonical register.
 | NAND/SAF lifecycle | Bound guided copies/title enumeration, keep leases until work completes and fail exact I/O without adopting incomplete state | [per-occurrence dispositions](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-remediation/FINDINGS.csv) |
 | Cheat, camera and achievements | Add document/pixel/response budgets, memory-region bounds and deterministic JNI/resource release | [second-campaign verification](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md#prove-primadopo-e-verifiche-finali) |
 | Savestate and native bridge | Restore the pre-load state on semantic rejection; reject invalid dimensions, queue state and native indices before use | [cause reconciliation and limits](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md#ricerca-smentite-e-correzioni) |
-| Update and release trust | Disable production GitHub polling when updates are disabled; verify Gradle artifacts and gate production release provenance | [scan/configuration and external limits](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md#scansione-e-configurazione-osservabile) |
+| Update and release trust | Disable production GitHub polling when updates are disabled; verify Gradle artifacts and gate production release provenance; production environment protection remains a publication prerequisite | [release control checks and limits](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md#ricerca-smentite-e-correzioni) |
 
 Post-scan verification also corrected three paired-core boundaries without
 recounting them as scan occurrences: Action Replay now carries one frame budget
