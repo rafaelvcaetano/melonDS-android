@@ -51,8 +51,6 @@ the same canonical [FINDINGS.csv](FINDINGS.csv); this section does not replace
 the first campaign or count its 35 occurrences again. “Open” in the Security
 results UI is a service workflow state, not the local technical disposition.
 
-| Occurrence | Severity | Saved title |
-| --- | --- | --- |
 | Occurrence | Severity | Primary origin | Saved title |
 | --- | --- | --- | --- |
 | `occ_09abfa72b6bd218ba5427fa8` | high | `melonDS-android-lib/src/DSi.cpp` | Running a crafted DSi ROM can read beyond the BPTWL register array into host memory |

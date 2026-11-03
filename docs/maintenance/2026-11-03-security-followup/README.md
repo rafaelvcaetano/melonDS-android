@@ -27,6 +27,9 @@ per riga sono nel registro canonico
 [vista Markdown delle 101 occurrence](FINDING-DETAILS.md) collega ogni ID a
 riepilogo, percorso, prova, controprova, limitazioni, rimedio, patch e
 prima/dopo, mantenendo il CSV come registro canonico.
+La stessa vista include la [guida alle azioni nell'interfaccia
+Security](FINDING-DETAILS.md#chiusura-delle-schede-nellinterfaccia-security),
+con un motivo consigliato per ogni ID e i casi che devono restare aperti.
 
 ### Risposta sulla 2.1.7 e provenienza
 
