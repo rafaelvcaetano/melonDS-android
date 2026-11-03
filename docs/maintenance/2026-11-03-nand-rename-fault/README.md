@@ -114,7 +114,12 @@ logging was removed from final core source. The final source is SHA-256
 `51ddc44f7c1ad7e6e26d0958ee3449eff6f1742e9e395bc442b5dd4bf7550c5c`.
 The local core commit is `851d7c399d0fbcc65ab0aab4931f27503b923403`
 (`Restore DSi saves after failed NAND renames`), on `main`; no upstream
-publication was performed.
+publication was performed. The app gitlink/report commit is
+`3392d3d330f0c6e7d1d3ecc7782c1a14c99b4de5` (`Update core for DSi save
+rename recovery`), also on local `main`. The fault-injection harness and
+Android runner updates remain in the preserved local working tree; they must
+be integrated deliberately before a future PR, rather than staging unrelated
+pre-existing changes with the gitlink.
 
 | Layer | Final result |
 | --- | --- |
@@ -170,3 +175,8 @@ The test uses the production core and FatFs on synthetic NAND, but host test
 platform hooks inject the physical write failure. This is Android NDK native
 execution, not whole-app ART/SAF or guest behavior. No firmware, BIOS, NAND,
 save, ROM or database from the user was read or modified.
+
+Private receipt:
+`local/reports/ds-2026-11-03/nand-rename/receipt.json`, checked by the
+canonical `verifiche` validator at `d8a11722f5cc0535f4d58ea6a1ab52c214797fdb`
+as `PASS=1` consistency only, not a security certificate.
