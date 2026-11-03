@@ -59,6 +59,32 @@ constexpr u32 kSubnetAddr = 0x0A400000;
 constexpr u32 kDNSAddr    = kSubnetAddr | 0x02;
 constexpr u32 kClientAddr = kSubnetAddr | 0x10;
 
+void StoreBE16(u8* destination, u16 value)
+{
+    value = htons(value);
+    std::memcpy(destination, &value, sizeof(value));
+}
+
+void StoreBE32(u8* destination, u32 value)
+{
+    value = htonl(value);
+    std::memcpy(destination, &value, sizeof(value));
+}
+
+u16 ReadBE16(const u8* source)
+{
+    u16 value;
+    std::memcpy(&value, source, sizeof(value));
+    return ntohs(value);
+}
+
+u32 ReadBE32(const u8* source)
+{
+    u32 value;
+    std::memcpy(&value, source, sizeof(value));
+    return ntohl(value);
+}
+
 u32 ParseIPv4(const std::string& dotted)
 {
     struct in_addr addr {};
@@ -119,27 +145,27 @@ std::vector<u8> BuildDNSQuery(const std::string& name, u16 qtype, u16 id)
     // Ethernet
     pkt[0] = 0x00; pkt[1] = 0xAB; pkt[2] = 0x33; pkt[3] = 0x28; pkt[4] = 0x99; pkt[5] = 0x01; // dest (server)
     pkt[6] = 0x02; pkt[7] = 0x00; pkt[8] = 0x00; pkt[9] = 0x00; pkt[10] = 0x00; pkt[11] = 0x01; // src (guest)
-    *(u16*)&pkt[0xC] = htons(0x0800);
+    StoreBE16(&pkt[0xC], 0x0800);
 
     // IPv4
     u8* ip = &pkt[0xE];
     ip[0] = 0x45;
     ip[1] = 0x00;
-    *(u16*)&ip[2] = htons((u16)(20 + 8 + dns.size())); // total length
-    *(u16*)&ip[4] = htons(1); // identification
-    *(u16*)&ip[6] = 0;        // flags/fragment
+    StoreBE16(&ip[2], static_cast<u16>(20 + 8 + dns.size())); // total length
+    StoreBE16(&ip[4], 1); // identification
+    StoreBE16(&ip[6], 0); // flags/fragment
     ip[8] = 64;               // TTL
     ip[9] = 0x11;             // UDP
-    *(u16*)&ip[10] = 0;       // checksum, unchecked by Net_Slirp
-    *(u32*)&ip[12] = htonl(kClientAddr); // source IP
-    *(u32*)&ip[16] = htonl(kDNSAddr);    // destination IP
+    StoreBE16(&ip[10], 0); // checksum, unchecked by Net_Slirp
+    StoreBE32(&ip[12], kClientAddr); // source IP
+    StoreBE32(&ip[16], kDNSAddr); // destination IP
 
     // UDP
     u8* udp = &pkt[0x22];
-    *(u16*)&udp[0] = htons(33445);            // source port
-    *(u16*)&udp[2] = htons(53);               // destination port
-    *(u16*)&udp[4] = htons((u16)(8 + dns.size()));
-    *(u16*)&udp[6] = 0; // checksum, unchecked by Net_Slirp
+    StoreBE16(&udp[0], 33445); // source port
+    StoreBE16(&udp[2], 53); // destination port
+    StoreBE16(&udp[4], static_cast<u16>(8 + dns.size()));
+    StoreBE16(&udp[6], 0); // checksum, unchecked by Net_Slirp
 
     std::memcpy(&pkt[0x2A], dns.data(), dns.size());
     return pkt;
@@ -155,7 +181,7 @@ bool FirstAnswerAddress(const std::vector<u8>& resp, size_t questionLen, u32& ad
         return false;
 
     const u8* dns = &resp[0x2A];
-    u16 ancount = ntohs(*(const u16*)&dns[6]);
+    u16 ancount = ReadBE16(&dns[6]);
     if (ancount == 0)
         return false;
 
@@ -164,7 +190,7 @@ bool FirstAnswerAddress(const std::vector<u8>& resp, size_t questionLen, u32& ad
         return false;
 
     const u8* rdata = &resp[answerOffset + 12];
-    addr = ntohl(*(const u32*)rdata);
+    addr = ReadBE32(rdata);
     return true;
 }
 
@@ -248,6 +274,57 @@ int main()
         bool gotWrongOverride = hasAnswer && (addr == kasumiAddr || addr == wiiLinkAddr);
         Expect(!gotWrongOverride,
             "name absent from the table never resolves to an override address");
+    }
+
+    // 4) The declared frame length is the trust boundary. Bytes that happen to exist
+    // after it in a reused LAN buffer must never be parsed or reflected.
+    {
+        lastResponse.clear();
+        auto query = BuildDNSQuery(kasumiHost, 1 /* A */, 0xBEEF);
+        query.resize(2048, 0xA5); // model the reusable Android LAN buffer's stale suffix
+        slirp.SendPacket(query.data(), 14); // Ethernet header only
+        Expect(lastResponse.empty(), "truncated frame cannot consume stale LAN-buffer bytes");
+    }
+
+    // 5) A label must fit entirely inside the UDP/DNS payload, including QTYPE/QCLASS.
+    {
+        lastResponse.clear();
+        auto query = BuildDNSQuery(kasumiHost, 1 /* A */, 0xCAFE);
+        query[0x2A + 12] = 63; // declared label extends beyond the supplied frame
+        const int truncatedLength = 0x2A + 12 + 5;
+        query.resize(2048, 0x5A);
+        slirp.SendPacket(query.data(), truncatedLength);
+        Expect(lastResponse.empty(), "truncated DNS label is rejected before reading its suffix");
+    }
+
+    // 6) The first IPv4 fragment contains a UDP header whose declared datagram is
+    // intentionally larger than this fragment. It must bypass DNS parsing and
+    // remain a valid packet for the IP reassembly layer.
+    {
+        lastResponse.clear();
+        auto fragment = BuildDNSQuery(kasumiHost, 1 /* A */, 0xFACE);
+        const u16 fullUdpLength = ReadBE16(&fragment[0x22 + 4]);
+        fragment.resize(14 + 20 + 8 + 8);
+        u8* ip = &fragment[14];
+        StoreBE16(&ip[2], static_cast<u16>(fragment.size() - 14));
+        StoreBE16(&ip[6], 0x2000); // more fragments, offset zero
+        StoreBE16(&fragment[0x22 + 4], fullUdpLength);
+        Expect(slirp.SendPacket(fragment.data(), static_cast<int>(fragment.size())) ==
+                static_cast<int>(fragment.size()),
+            "fragmented UDP is passed to the IP layer instead of rejected as a short datagram");
+        Expect(lastResponse.empty(), "fragmented DNS is not parsed before IP reassembly");
+    }
+
+    // 7) Four maximum labels fill the 255-byte presentation buffer exactly. A
+    // fifth label must be rejected without unsigned-capacity underflow.
+    {
+        lastResponse.clear();
+        const std::string label(63, 'a');
+        auto query = BuildDNSQuery(
+            label + "." + label + "." + label + "." + label + ".z", 1, 0xD00D);
+        slirp.SendPacket(query.data(), static_cast<int>(query.size()));
+        Expect(lastResponse.empty(),
+            "DNS name beyond 255 presentation bytes is rejected without overflow");
     }
 
     if (failures == 0)

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Preferences may contain credentials during an upgrade migration. The
+         explicit in-app backup exports only an allowlisted, credential-free set. -->
+    <exclude domain="sharedpref" path="." />
+    <!-- Files depend on migration metadata stored in the excluded preference
+         domain and include authorization-bearing ROM provider URIs. Keep the
+         platform snapshot internally consistent; the explicit in-app backup
+         handles allowlisted settings/layouts instead. -->
+    <exclude domain="file" path="." />
+</full-backup-content>

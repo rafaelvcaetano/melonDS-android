@@ -47,6 +47,36 @@ int main() {
         }
         check(bounded, "temporary JNI local references leaked or grew with title count");
         std::cout << "PASS: title content/order survives temporary local cleanup; constant JNI ref usage\n";
+
+        {
+            Audit::titleInfoValid = false;
+            JNIEnv env;
+            check(getTitleData(&env, DSI_NAND_FILE_CATEGORY, 42) == nullptr,
+                "invalid or truncated title metadata is skipped");
+            Audit::titleInfoValid = true;
+        }
+
+        {
+            Audit::unterminatedTitle = true;
+            JNIEnv env;
+            auto title = getTitleData(&env, DSI_NAND_FILE_CATEGORY, 42);
+            check(title && title->children[0]->text.size() == 128,
+                "fixed-width title is bounded to 128 UTF-16 code units");
+            check(title->children[1]->text.empty(),
+                "title without separator has an empty producer");
+            env.DeleteLocalRef(title);
+            Audit::unterminatedTitle = false;
+        }
+
+        {
+            Audit::malformedTitle = true;
+            JNIEnv env;
+            auto title = getTitleData(&env, DSI_NAND_FILE_CATEGORY, 42);
+            check(title != nullptr, "malformed UTF-16 title escaped the JNI boundary");
+            check(!env.ExceptionCheck(), "malformed UTF-16 title raised a JNI exception");
+            env.DeleteLocalRef(title);
+            Audit::malformedTitle = false;
+        }
     } catch (const std::exception& e) {
         std::cerr << "FAIL: " << e.what() << '\n';
         return 1;

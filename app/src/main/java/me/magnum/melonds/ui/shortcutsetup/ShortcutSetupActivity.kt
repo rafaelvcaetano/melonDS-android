@@ -12,6 +12,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import me.magnum.melonds.ui.emulator.model.EmulatorLaunchContract
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -82,9 +83,7 @@ class ShortcutSetupActivity : AppCompatActivity() {
     }
 
     private fun onRomSelected(rom: Rom) {
-        val intent = Intent("${packageName}.LAUNCH_ROM").apply {
-            putExtra(EmulatorActivity.KEY_URI, rom.uri.toString())
-        }
+        val intent = EmulatorLaunchContract.createRomIntent(this, rom.uri)
 
         lifecycleScope.launch {
             val romIcon = viewModel.getRomIcon(rom)

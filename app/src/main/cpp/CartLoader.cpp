@@ -1,7 +1,9 @@
 #include <optional>
+#include <new>
 #include "CartLoader.h"
 #include "Platform.h"
 #include "SDCardArgsBuilder.h"
+#include "CartridgeImageBounds.h"
 
 using namespace melonDS;
 using namespace melonDS::Platform;
@@ -21,7 +23,7 @@ std::optional<NDSCart::NDSCartArgs> BuildNdsCartArgs(EmulatorConfiguration confi
     if (!romFile) return std::nullopt;
 
     u64 length = Platform::FileLength(romFile);
-    if (length > 0x40000000)
+    if (!CartridgeImageBounds::IsNDSLengthSupported(length))
     {
         Platform::CloseFile(romFile);
         return std::nullopt;
@@ -29,7 +31,12 @@ std::optional<NDSCart::NDSCartArgs> BuildNdsCartArgs(EmulatorConfiguration confi
 
     romFileLength = (u32) length;
     Platform::FileRewind(romFile);
-    romData = std::make_unique<u8[]>(romFileLength);
+    romData.reset(new (std::nothrow) u8[romFileLength]);
+    if (!romData)
+    {
+        Platform::CloseFile(romFile);
+        return std::nullopt;
+    }
     size_t nread = Platform::FileRead(romData.get(), (size_t) romFileLength, 1, romFile);
     Platform::CloseFile(romFile);
     if (nread != 1)
@@ -44,18 +51,32 @@ std::optional<NDSCart::NDSCartArgs> BuildNdsCartArgs(EmulatorConfiguration confi
     {
         return std::nullopt;
     }
-    else if (!Platform::CheckFileWritable(romPath))
+    else if (!Platform::CheckFileWritable(sramPath))
     {
+        CloseFile(sramFile);
         return std::nullopt;
     }
 
     if (sramFile)
     {
-        sramFileLength = (u32) Platform::FileLength(sramFile);
+        const u64 rawSramLength = Platform::FileLength(sramFile);
+        if (rawSramLength > UINT32_MAX)
+        {
+            CloseFile(sramFile);
+            return std::nullopt;
+        }
+        sramFileLength = static_cast<u32>(rawSramLength);
 
         FileRewind(sramFile);
-        sramData = std::make_unique<u8[]>(sramFileLength);
-        FileRead(sramData.get(), sramFileLength, 1, sramFile);
+        if (sramFileLength)
+        {
+            sramData.reset(new (std::nothrow) u8[sramFileLength]);
+            if (!sramData || FileRead(sramData.get(), sramFileLength, 1, sramFile) != 1)
+            {
+                CloseFile(sramFile);
+                return std::nullopt;
+            }
+        }
         CloseFile(sramFile);
     }
 

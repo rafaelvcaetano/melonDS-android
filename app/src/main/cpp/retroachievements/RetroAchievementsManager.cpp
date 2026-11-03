@@ -138,13 +138,23 @@ bool RetroAchievementsManager::DoSavestate(Savestate* savestate)
     }
     else
     {
-        u32 rcheevosStateSize;
+        static constexpr u32 MaxRcheevosStateSize = 16 * 1024 * 1024;
+        u32 rcheevosStateSize = 0;
         savestate->Var32(&rcheevosStateSize);
-        u8* rcheevosStateBuffer = new u8[rcheevosStateSize];
-        savestate->VarArray(rcheevosStateBuffer, rcheevosStateSize);
+        if (savestate->Error || rcheevosStateSize > MaxRcheevosStateSize ||
+            rcheevosStateSize > savestate->RemainingInSection())
+        {
+            savestate->Error = true;
+            return false;
+        }
 
-        int result = rc_runtime_deserialize_progress(&rcheevosRuntime, rcheevosStateBuffer, nullptr);
-        delete[] rcheevosStateBuffer;
+        std::vector<u8> rcheevosStateBuffer(rcheevosStateSize);
+        savestate->VarArray(rcheevosStateBuffer.data(), rcheevosStateSize);
+        if (savestate->Error)
+            return false;
+
+        int result = rc_runtime_deserialize_progress_sized(
+            &rcheevosRuntime, rcheevosStateBuffer.data(), rcheevosStateSize, nullptr);
 
         if (result != RC_OK)
             return false;

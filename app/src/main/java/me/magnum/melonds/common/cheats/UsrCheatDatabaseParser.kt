@@ -26,6 +26,9 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
         private const val ENCODING_OFFSET = 0x4C
         private const val ADDRESS_BOOK_ENTRY_SIZE = 16
         private const val MASTER_CODE_SIZE = 32
+        private const val MAX_ADDRESS_BOOK_ENTRIES = 100_000
+        private const val MAX_GAME_BLOCK_SIZE = 1024 * 1024
+        private const val MAX_CHEAT_CODE_BYTES = 1024 * 1024
 
         private const val FLAG_FOLDER = 0x1000
         private const val FLAG_FOLDER_ONE_HOT = 0x1100
@@ -91,8 +94,11 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
                         startOffset + 1024 * 1024
                     }
 
-                    val blockSize = endOffset - startOffset
-                    val data = streamReader.readBytesOrUntilEnd(blockSize)
+                    val blockSize = endOffset.toLong() - startOffset.toLong()
+                    if (blockSize <= 0 || blockSize > MAX_GAME_BLOCK_SIZE) {
+                        throw InvalidUsrCheatDatabaseException("Game data block is $blockSize bytes (maximum $MAX_GAME_BLOCK_SIZE)")
+                    }
+                    val data = streamReader.readBytesOrUntilEnd(blockSize.toInt())
                     channel.send(GameData(entry, data))
                 }
                 channel.close()
@@ -167,6 +173,9 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
             val gameCode = String(gameCodeBytes, Charsets.US_ASCII)
             val checksum = String.format("%08X", crc)
             entries.add(GameEntry(gameCode, checksum, offset))
+            if (entries.size > MAX_ADDRESS_BOOK_ENTRIES) {
+                throw InvalidUsrCheatDatabaseException("Address book contains too many entries")
+            }
         }
 
         return entries
@@ -259,6 +268,9 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
         // Read code chunk count (4 bytes, little-endian)
         val countBytes = reader.readBytes(4)
         val codeChunkCount = readI32LE(countBytes, 0)
+        if (codeChunkCount < 0 || codeChunkCount > MAX_CHEAT_CODE_BYTES / 4 || codeChunkCount > reader.remaining / 4) {
+            throw InvalidUsrCheatDatabaseException("Invalid cheat code chunk count: $codeChunkCount")
+        }
         val codeBytes = reader.readBytes(codeChunkCount * 4)
         // Convert little endian to big endian
         for (i in 0 until codeChunkCount) {
@@ -357,9 +369,10 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
     private class ByteArrayReader(private val data: ByteArray) {
         var position = 0
             private set
+        val remaining get() = data.size - position
 
         fun readBytes(count: Int): ByteArray {
-            if (position + count > data.size) {
+            if (count < 0 || count > data.size - position) {
                 throw InvalidUsrCheatDatabaseException("Unexpected end of data at position $position (requested $count bytes, available ${data.size - position})")
             }
             val result = data.copyOfRange(position, position + count)

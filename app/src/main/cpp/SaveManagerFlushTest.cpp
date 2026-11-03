@@ -324,6 +324,19 @@ static void test_consecutive_wfc_edits_keep_extended_slots()
     }
 }
 
+static void test_invalid_flush_range_is_rejected()
+{
+    const std::string path = testPath("invalid-range.sav");
+    std::vector<u8> original(32, 0x41);
+    std::vector<u8> attacker(32, 0x99);
+    SaveManager manager(path);
+    manager.RequestFlush(original.data(), original.size(), 0, original.size());
+    manager.RequestFlush(attacker.data(), attacker.size(), 33, 4);
+    manager.CheckFlush();
+    expect(manager.FlushSecondaryBuffer(), "valid data still flushes after an invalid range");
+    expect(readWholeFile(path) == original, "out-of-range firmware flush is rejected without copying");
+}
+
 int main()
 {
     char directoryTemplate[] = "/tmp/melonds-savemanager-testXXXXXX";
@@ -343,6 +356,7 @@ int main()
     test_manager_without_a_path_is_destroyed_safely();
     test_failing_flush_reports_once_per_episode();
     test_consecutive_wfc_edits_keep_extended_slots();
+    test_invalid_flush_range_is_rejected();
 
     if (failures != 0)
     {

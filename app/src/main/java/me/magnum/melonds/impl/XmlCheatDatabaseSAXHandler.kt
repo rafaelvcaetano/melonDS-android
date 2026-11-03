@@ -5,9 +5,17 @@ import me.magnum.melonds.domain.model.CheatDatabase
 import me.magnum.melonds.domain.model.CheatFolder
 import me.magnum.melonds.domain.model.Game
 import org.xml.sax.Attributes
+import org.xml.sax.SAXException
+import org.xml.sax.ext.LexicalHandler
 import org.xml.sax.helpers.DefaultHandler
 
-class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : DefaultHandler() {
+class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : DefaultHandler(), LexicalHandler {
+    private companion object {
+        const val MAX_TEXT_CHARS = 1024 * 1024
+        const val MAX_CHEATS_PER_GAME = 10_000
+        const val MAX_FOLDERS_PER_GAME = 2_000
+        const val MAX_TEXT_CHARS_PER_GAME = 8 * 1024 * 1024
+    }
     interface HandlerListener {
         fun onCheatDatabaseParseStart(databaseName: String): CheatDatabase
         fun onGameParseStart(gameName: String)
@@ -41,6 +49,8 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
 
     private val currentFolderCheats = mutableListOf<Cheat>()
     private val currentGameFolders = mutableListOf<CheatFolder>()
+    private var currentGameCheatCount = 0
+    private var currentGameTextChars = 0
 
     override fun startElement(uri: String?, localName: String?, qName: String?, attributes: Attributes?) {
         if (!parsingDatabase) {
@@ -163,6 +173,8 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
             parsingCheatDescription = false
             parsingCheatCodes = false
 
+            if (++currentGameCheatCount > MAX_CHEATS_PER_GAME)
+                throw SAXException("Cheat XML game exceeds $MAX_CHEATS_PER_GAME cheats")
             currentFolderCheats.add(Cheat(null, cheatDatabase!!.id!!, cheatName!!, cheatDescription, cheatCodes!!, false))
             cheatName = null
             cheatDescription = null
@@ -175,6 +187,8 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
             parsingFolderName = false
 
             if (currentFolderCheats.isNotEmpty()) {
+                if (currentGameFolders.size >= MAX_FOLDERS_PER_GAME)
+                    throw SAXException("Cheat XML game exceeds $MAX_FOLDERS_PER_GAME folders")
                 currentGameFolders.add(CheatFolder(null, folderName!!, ArrayList(currentFolderCheats)))
             }
             folderName = null
@@ -190,12 +204,21 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
                 emitGame(Game(null, gameName!!, gameCode!!, gameChecksum!!, ArrayList(currentGameFolders)))
             }
             currentGameFolders.clear()
+            currentGameCheatCount = 0
+            currentGameTextChars = 0
             gameName = null
         }
     }
 
     override fun characters(ch: CharArray?, start: Int, length: Int) {
         if (parsingText && ch != null) {
+            if (length > MAX_TEXT_CHARS - textStringBuilder.length) {
+                throw SAXException("Cheat XML text field exceeds $MAX_TEXT_CHARS characters")
+            }
+            if (parsingGame && length > MAX_TEXT_CHARS_PER_GAME - currentGameTextChars) {
+                throw SAXException("Cheat XML game exceeds $MAX_TEXT_CHARS_PER_GAME text characters")
+            }
+            if (parsingGame) currentGameTextChars += length
             textStringBuilder.append(ch, start, length)
         }
     }
@@ -203,6 +226,18 @@ class XmlCheatDatabaseSAXHandler(private val listener: HandlerListener) : Defaul
     override fun endDocument() {
         listener.onParseComplete()
     }
+
+    override fun resolveEntity(publicId: String?, systemId: String?) =
+        throw SAXException("External entities are not allowed in cheat XML")
+
+    override fun startDTD(name: String?, publicId: String?, systemId: String?) =
+        throw SAXException("DTD declarations are not allowed in cheat XML")
+    override fun endDTD() = Unit
+    override fun startEntity(name: String?) = Unit
+    override fun endEntity(name: String?) = Unit
+    override fun startCDATA() = Unit
+    override fun endCDATA() = Unit
+    override fun comment(ch: CharArray?, start: Int, length: Int) = Unit
 
     private fun emitCheatDatabaseName(databaseName: String) {
         cheatDatabase = listener.onCheatDatabaseParseStart(databaseName)

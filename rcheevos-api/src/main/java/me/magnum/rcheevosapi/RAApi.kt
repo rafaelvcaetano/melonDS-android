@@ -81,7 +81,7 @@ class RAApi(
     }
 
     suspend fun login(username: String, password: String): Result<Unit> {
-        return get<UserLoginDto>(
+        return post<UserLoginDto>(
             mapOf(
                 PARAMETER_REQUEST to REQUEST_LOGIN,
                 PARAMETER_USER to username,
@@ -108,7 +108,7 @@ class RAApi(
             return Result.failure(UserNotAuthenticatedException())
         }
 
-        return get<UserUnlocksDto>(
+        return post<UserUnlocksDto>(
             mapOf(
                 PARAMETER_REQUEST to REQUEST_USER_UNLOCKED_ACHIEVEMENTS,
                 PARAMETER_USER to userAuth.username,
@@ -127,7 +127,7 @@ class RAApi(
             return Result.failure(UserNotAuthenticatedException())
         }
 
-        return get<GameAchievementSetsDto>(
+        return post<GameAchievementSetsDto>(
             mapOf(
                 PARAMETER_REQUEST to REQUEST_ACHIEVEMENT_SETS,
                 PARAMETER_USER to userAuth.username,
@@ -166,7 +166,7 @@ class RAApi(
 
         val signature = signatureProvider.provideAchievementSignature(achievementId, userAuth, forHardcoreMode)
 
-        return get<AwardAchievementResponseDto>(
+        return post<AwardAchievementResponseDto>(
             mapOf(
                 PARAMETER_REQUEST to REQUEST_AWARD_ACHIEVEMENT,
                 PARAMETER_USER to userAuth.username,
@@ -198,7 +198,7 @@ class RAApi(
 
         val signature = signatureProvider.provideLeaderboardSignature(leaderboardId, value, userAuth)
 
-        return get<RASubmitLeaderboardEntryResponseDto>(
+        return post<RASubmitLeaderboardEntryResponseDto>(
             mapOf(
                 PARAMETER_REQUEST to REQUEST_SUBMIT_LEADERBOARD_ENTRY,
                 PARAMETER_USER to userAuth.username,

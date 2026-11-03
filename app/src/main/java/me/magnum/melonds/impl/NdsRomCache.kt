@@ -13,6 +13,11 @@ import me.magnum.melonds.domain.model.SizeUnit
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import java.io.File
 import java.io.FileOutputStream
+import java.io.FilterOutputStream
+import java.io.IOException
+import java.io.OutputStream
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import java.util.*
 
 class NdsRomCache(private val context: Context, private val settingsRepository: SettingsRepository) {
@@ -40,7 +45,7 @@ class NdsRomCache(private val context: Context, private val settingsRepository: 
     }
 
     fun getCachedRomFile(rom: Rom, forUse: Boolean = false): Uri? {
-        val romHash = rom.uri.hashCode().toString()
+        val romHash = cacheKey(rom)
         val romCacheDir = context.externalCacheDir?.let { File(it, ROMS_CACHE_DIR) }
         if (romCacheDir == null || !romCacheDir.isDirectory) {
             return null
@@ -74,15 +79,33 @@ class NdsRomCache(private val context: Context, private val settingsRepository: 
         val tempCachedFile = File(romCacheDir, TEMP_FILE_NAME)
 
         try {
-            val romFileSize = romExtractor.getExtractedRomFileSize()
-            freeCacheSpaceIfRequired(romFileSize)
+            tempCachedFile.delete()
+            val declaredRomFileSize = romExtractor.getExtractedRomFileSize()
+            val maxCacheSize = settingsRepository.getRomCacheMaxSize()
+            if (maxCacheSize.toBytes() < 0 || (declaredRomFileSize != null && declaredRomFileSize.toBytes() < 0)) {
+                throw IOException("Invalid ROM cache size")
+            }
+            if (declaredRomFileSize != null && declaredRomFileSize > maxCacheSize) {
+                throw IOException("ROM is larger than the configured cache limit")
+            }
+            val extractionLimit = declaredRomFileSize ?: maxCacheSize
 
-            tempCachedFile.outputStream().use {
-                val success = romExtractor.saveRomFile(it)
+            tempCachedFile.outputStream().use { fileStream ->
+                val success = romExtractor.saveRomFile(
+                    BoundedOutputStream(fileStream, extractionLimit.toBytes()) { projectedSize ->
+                        ensureCacheBudgetForTemp(projectedSize, tempCachedFile, maxCacheSize.toBytes())
+                    },
+                )
                 if (success) {
-                    val romHash = rom.uri.hashCode().toString()
+                    // Unknown-size ZIP entries are extracted transactionally first.
+                    // Evict only the space actually needed, and never erase a valid
+                    // cache merely because the archive omitted its size metadata.
+                    freeCacheSpaceIfRequired(SizeUnit.Bytes(tempCachedFile.length()), tempCachedFile)
+                    val romHash = cacheKey(rom)
                     val cachedFile = File(romCacheDir, romHash)
-                    tempCachedFile.renameTo(cachedFile)
+                    if ((cachedFile.exists() && !cachedFile.delete()) || !tempCachedFile.renameTo(cachedFile)) {
+                        throw IOException("Failed to publish extracted ROM cache entry")
+                    }
                     cacheModifiedSubject.trySend(Unit)
                 } else {
                     tempCachedFile.delete()
@@ -94,26 +117,42 @@ class NdsRomCache(private val context: Context, private val settingsRepository: 
         }
     }
 
-    private fun calculateCacheSize(): SizeUnit {
+    private fun calculateCacheSize(excludedFile: File? = null): SizeUnit {
         val romCacheDir = context.externalCacheDir?.let { File(it, ROMS_CACHE_DIR) }
-        val cacheSize = romCacheDir?.listFiles()?.sumOf { file: File -> file.length() } ?: 0L
+        val cacheSize = romCacheDir?.listFiles()
+            ?.filterNot { it == excludedFile }
+            ?.sumOf { file: File -> file.length() } ?: 0L
         return SizeUnit.Bytes(cacheSize)
     }
 
-    private fun freeCacheSpaceIfRequired(requiredSize: SizeUnit) {
-        val currentCacheSize = calculateCacheSize()
+    private fun freeCacheSpaceIfRequired(requiredSize: SizeUnit, excludedFile: File? = null) {
+        val currentCacheSize = calculateCacheSize(excludedFile)
         val maxCacheSize = settingsRepository.getRomCacheMaxSize()
 
         val requiredCacheSize = currentCacheSize + requiredSize
         if (requiredCacheSize > maxCacheSize) {
-            freeCacheSpace(requiredCacheSize - maxCacheSize)
+            freeCacheSpace(requiredCacheSize - maxCacheSize, excludedFile)
         }
     }
 
-    private fun freeCacheSpace(sizeToFree: SizeUnit) {
+    private fun ensureCacheBudgetForTemp(projectedTempSize: Long, tempFile: File, maxCacheBytes: Long) {
+        val currentBytes = calculateCacheSize(tempFile).toBytes()
+        if (currentBytes > maxCacheBytes - projectedTempSize) {
+            freeCacheSpace(SizeUnit.Bytes(currentBytes - (maxCacheBytes - projectedTempSize)), tempFile)
+        }
+
+        val remainingBytes = calculateCacheSize(tempFile).toBytes()
+        if (remainingBytes > maxCacheBytes - projectedTempSize) {
+            throw IOException("Unable to keep ROM extraction within the configured cache limit")
+        }
+    }
+
+    private fun freeCacheSpace(sizeToFree: SizeUnit, excludedFile: File? = null) {
         val romCacheDir = context.externalCacheDir?.let { File(it, ROMS_CACHE_DIR) }
         // Use the last modified timestamp to determine the last time the ROM was used. The timestamp must be updated whenever the ROM is requested for use
-        val romFilesByCreationDate = romCacheDir?.listFiles()?.sortedBy { file: File -> file.lastModified() } ?: return
+        val romFilesByCreationDate = romCacheDir?.listFiles()
+            ?.filterNot { it == excludedFile }
+            ?.sortedBy { file: File -> file.lastModified() } ?: return
         var freedBytes = SizeUnit.Bytes(0)
 
         for (file in romFilesByCreationDate) {
@@ -130,12 +169,45 @@ class NdsRomCache(private val context: Context, private val settingsRepository: 
         /**
          * Returns the uncompressed size of the ROM file to be extracted.
          */
-        fun getExtractedRomFileSize(): SizeUnit
+        fun getExtractedRomFileSize(): SizeUnit?
 
         /**
          * Requests the ROM to be extracted into the given [FileOutputStream]. This function should return true if the operation was successful or false if a problem occurred
          * or the operation was interrupted. If false is returned, the cached file is deleted.
          */
-        fun saveRomFile(fileStream: FileOutputStream): Boolean
+        fun saveRomFile(fileStream: OutputStream): Boolean
+    }
+
+    private fun cacheKey(rom: Rom): String {
+        return MessageDigest.getInstance("SHA-256")
+            .digest(rom.uri.toString().toByteArray(StandardCharsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
+    }
+
+    private class BoundedOutputStream(
+        output: OutputStream,
+        private val limit: Long,
+        private val beforeWrite: (projectedSize: Long) -> Unit,
+    ) : FilterOutputStream(output) {
+        private var written = 0L
+
+        override fun write(value: Int) {
+            requireCapacity(1)
+            beforeWrite(written + 1)
+            out.write(value)
+            written++
+        }
+
+        override fun write(buffer: ByteArray, offset: Int, length: Int) {
+            if (offset < 0 || length < 0 || length > buffer.size - offset) throw IndexOutOfBoundsException()
+            requireCapacity(length.toLong())
+            beforeWrite(written + length)
+            out.write(buffer, offset, length)
+            written += length
+        }
+
+        private fun requireCapacity(count: Long) {
+            if (count > limit - written) throw IOException("Extracted ROM exceeds its declared size")
+        }
     }
 }

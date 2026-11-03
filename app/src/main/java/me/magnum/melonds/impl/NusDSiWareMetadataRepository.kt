@@ -8,14 +8,27 @@ import java.net.URL
 import java.net.URLConnection
 
 class NusDSiWareMetadataRepository(
+    private val metadataBaseUrl: URL? = null,
     private val openConnection: (URL) -> URLConnection = { it.openConnection() },
 ) : DSiWareMetadataRepository {
 
+    /** Keeps the existing injected-transport test seam without enabling a production endpoint. */
+    internal constructor(openConnection: (URL) -> URLConnection) : this(
+        metadataBaseUrl = URL("https://metadata.invalid/"),
+        openConnection = openConnection,
+    )
+
     override suspend fun getDSiWareTitleMetadata(categoryId: UInt, titleId: UInt): ByteArray = withContext(Dispatchers.IO) {
+        val baseUrl = metadataBaseUrl
+            ?: throw SecurityException("No authenticated DSiWare metadata source is configured")
+        if (baseUrl.protocol != "https") {
+            throw SecurityException("DSiWare metadata requires an authenticated HTTPS source")
+        }
+
         val categoryIdHex = categoryId.toString(16).padStart(8, '0')
         val titleIdHex = titleId.toString(16).padStart(8, '0')
-        val url = "http://nus.cdn.t.shop.nintendowifi.net/ccs/download/$categoryIdHex$titleIdHex/tmd"
-        val connection = openConnection(URL(url)).apply {
+        val url = baseUrl.toURI().resolve("$categoryIdHex$titleIdHex/tmd").toURL()
+        val connection = openConnection(url).apply {
             connectTimeout = 10_000
             readTimeout = 10_000
         }

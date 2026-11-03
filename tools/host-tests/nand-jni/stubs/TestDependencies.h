@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <cstdio>
@@ -17,6 +18,9 @@ inline std::string biosPath;
 inline std::string nandPath;
 inline std::filesystem::path titleRoot;
 inline bool failExecutableImport = false;
+inline bool titleInfoValid = true;
+inline bool unterminatedTitle = false;
+inline bool malformedTitle = false;
 inline std::filesystem::path titlePath(u32 category, u32 id) {
     char relative[100]; std::snprintf(relative, sizeof(relative), "%08x/%08x", category, id);
     return titleRoot / relative;
@@ -45,7 +49,22 @@ struct NANDMount {
     std::vector<u32> titles;
     explicit NANDMount(NANDImage&) {}
     void ListTitles(u32, std::vector<u32>& output) { output = titles; }
-    void GetTitleInfo(u32, u32, u32&, NDSHeader*, NDSBanner*) {}
+    bool GetTitleInfo(u32, u32, u32& version, NDSHeader* header, NDSBanner* banner) {
+        if (!Audit::titleInfoValid) return false;
+        version = 0;
+        if (header) *header = NDSHeader{};
+        if (banner) {
+            *banner = NDSBanner{};
+            if (Audit::unterminatedTitle)
+                std::fill(std::begin(banner->EnglishTitle), std::end(banner->EnglishTitle), u'A');
+            if (Audit::malformedTitle) {
+                banner->EnglishTitle[0] = static_cast<char16_t>(0xD800);
+                banner->EnglishTitle[1] = u'X';
+                banner->EnglishTitle[2] = u'\0';
+            }
+        }
+        return true;
+    }
     bool TitleExists(u32 category, u32 id) { return std::filesystem::exists(Audit::titlePath(category, id) / "complete.app"); }
     void DeleteTitle(u32 category, u32 id) { std::filesystem::remove_all(Audit::titlePath(category, id)); }
     bool ImportTitle(const char*, const DSi_TMD::TitleMetadata& tmd, bool) {

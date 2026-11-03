@@ -4,6 +4,7 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <filesystem>
+#include <new>
 #include <GLES3/gl3.h>
 #include "Args.h"
 #include "GPU3D_Compute.h"
@@ -22,6 +23,7 @@
 #include "SDCardArgsBuilder.h"
 #include "EmulatorMessageQueueJNI.h"
 #include "WfcSaveRange.h"
+#include "CartridgeImageBounds.h"
 
 using namespace std;
 using namespace melonDS;
@@ -117,7 +119,7 @@ bool MelonInstance::loadRom(std::string romPath, std::string sramPath)
         return false;
 
     u64 length = Platform::FileLength(romFile);
-    if (length > 0x40000000)
+    if (!CartridgeImageBounds::IsNDSLengthSupported(length))
     {
         Platform::CloseFile(romFile);
         return false;
@@ -125,7 +127,12 @@ bool MelonInstance::loadRom(std::string romPath, std::string sramPath)
 
     romFileLength = (u32) length;
     Platform::FileRewind(romFile);
-    romData = make_unique<u8[]>(romFileLength);
+    romData.reset(new (std::nothrow) u8[romFileLength]);
+    if (!romData)
+    {
+        Platform::CloseFile(romFile);
+        return false;
+    }
     size_t nread = Platform::FileRead(romData.get(), (size_t) romFileLength, 1, romFile);
     Platform::CloseFile(romFile);
     if (nread != 1)
@@ -191,7 +198,7 @@ bool MelonInstance::loadGbaRom(std::string romPath, std::string sramPath)
         return false;
 
     u64 length = Platform::FileLength(romFile);
-    if (length > 0x40000000)
+    if (!CartridgeImageBounds::IsGBALengthSupported(length))
     {
         Platform::CloseFile(romFile);
         return false;
@@ -639,7 +646,7 @@ void extractWfcSlotData(const Firmware::WifiAccessPoint& accessPoint, WfcSlotDat
 
 bool wfcAccessPointsInBounds(const Firmware& firmware)
 {
-    if (!firmware.Buffer() || firmware.Length() == 0)
+    if (!firmware.IsLayoutValid())
         return false;
 
     u32 userDataOffset = firmware.GetUserDataOffset();
@@ -659,7 +666,7 @@ bool wfcAccessPointsInBounds(const Firmware& firmware)
 static bool firmwareOwnsExtendedAccessPoints(const Firmware& firmware)
 {
     return firmware.GetHeader().ConsoleType == Firmware::FirmwareConsoleType::DSi
-        || firmware.GetHeader().Identifier == GENERATED_FIRMWARE_IDENTIFIER;
+        || firmware.IsGenerated();
 }
 
 bool MelonInstance::readWfcSlots(WfcSlotData slots[3])

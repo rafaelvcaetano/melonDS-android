@@ -80,6 +80,7 @@ class SharedPreferencesSettingsRepository(
     private fun readControllerConfigurationFromDisk(): ControllerConfiguration {
         return try {
             val configFile = File(context.filesDir, CONTROLLER_CONFIG_FILE)
+            SettingsRestoreRecovery.recoverFile(configFile)
             configFile.inputStream().use {
                 val loadedConfiguration = json.decodeFromStream<ControllerConfigurationDto>(it)
                 loadedConfiguration.toControllerConfiguration()

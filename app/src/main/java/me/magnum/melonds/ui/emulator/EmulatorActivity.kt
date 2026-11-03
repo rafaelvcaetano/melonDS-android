@@ -88,6 +88,7 @@ import me.magnum.melonds.ui.emulator.input.FrontendInputHandler
 import me.magnum.melonds.ui.emulator.input.InputProcessor
 import me.magnum.melonds.ui.emulator.input.MelonTouchHandler
 import me.magnum.melonds.ui.emulator.model.EmulatorOverlay
+import me.magnum.melonds.ui.emulator.model.EmulatorLaunchContract
 import me.magnum.melonds.ui.emulator.model.EmulatorState
 import me.magnum.melonds.ui.emulator.model.EmulatorUiEvent
 import me.magnum.melonds.ui.emulator.model.LaunchArgs
@@ -116,16 +117,17 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class EmulatorActivity : AppCompatActivity() {
     companion object {
-        const val KEY_ROM = "rom"
-        const val KEY_PATH = "PATH"
-        const val KEY_URI = "uri"
-        const val KEY_BOOT_FIRMWARE_CONSOLE = "boot_firmware_console"
-        const val KEY_BOOT_FIRMWARE_ONLY = "boot_firmware_only"
+        const val KEY_ROM = EmulatorLaunchContract.KEY_ROM
+        const val KEY_PATH = EmulatorLaunchContract.KEY_PATH
+        const val KEY_URI = EmulatorLaunchContract.KEY_URI
+        const val KEY_BOOT_FIRMWARE_CONSOLE = EmulatorLaunchContract.KEY_BOOT_FIRMWARE_CONSOLE
+        const val KEY_BOOT_FIRMWARE_ONLY = EmulatorLaunchContract.KEY_BOOT_FIRMWARE_ONLY
         private const val KEY_LID_CLOSED_BY_SCREEN_OFF = "lid_closed_by_screen_off"
 
         fun getRomEmulatorActivityIntent(context: Context, rom: Rom): Intent {
             return Intent(context, EmulatorActivity::class.java).apply {
-                putExtra(KEY_ROM, RomParcelable(rom))
+                data = rom.uri
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
         }
 
@@ -141,12 +143,23 @@ class EmulatorActivity : AppCompatActivity() {
     private val viewModel: EmulatorViewModel by viewModels(
         extrasProducer = {
             val extras = MutableCreationExtras(defaultViewModelCreationExtras)
-            // Inject intent data into view-model creation extras to make it accessible through the SavedStateHandle
-            intent.data?.let { dataUri ->
-                val existingExtras = extras[DEFAULT_ARGS_KEY]?.let { Bundle(it) } ?: Bundle()
+            // Rebuild the launch arguments instead of copying untrusted extras from the
+            // exported activity into SavedStateHandle.
+            val existingExtras = Bundle()
+            val launchArgs = LaunchArgs.fromIntent(intent)
+            when (launchArgs) {
+                is LaunchArgs.RomUri -> {
+                    val dataUri = launchArgs.uri
                 existingExtras.putString(KEY_URI, dataUri.toString())
-                extras[DEFAULT_ARGS_KEY] = existingExtras
+                    existingExtras.putBoolean(EmulatorLaunchContract.KEY_URI_AUTHORIZED, true)
+                }
+                is LaunchArgs.Firmware -> {
+                    existingExtras.putBoolean(KEY_BOOT_FIRMWARE_ONLY, true)
+                    existingExtras.putInt(KEY_BOOT_FIRMWARE_CONSOLE, launchArgs.consoleType.ordinal)
+                }
+                else -> Unit
             }
+            extras[DEFAULT_ARGS_KEY] = existingExtras
             extras
         }
     )

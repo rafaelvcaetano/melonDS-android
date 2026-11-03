@@ -13,6 +13,8 @@ using jint = int;
 using jlong = long long;
 using jbyte = signed char;
 using jboolean = unsigned char;
+using jchar = std::uint16_t;
+using jsize = int;
 struct JavaObject {
     enum Kind { Class, List, Title, String, Bytes } kind;
     std::string text;
@@ -95,6 +97,24 @@ struct JNIEnv {
     jstring NewStringUTF(const char* value) {
         auto result = allocate(JavaObject::String);
         if (result) result->text = value;
+        return result;
+    }
+    jstring NewString(const jchar* value, jsize length) {
+        auto result = allocate(JavaObject::String);
+        if (!result || !value || length < 0) return result;
+        for (jsize index = 0; index < length; ++index) {
+            const std::uint32_t code = value[index];
+            if (code < 0x80) result->text.push_back(static_cast<char>(code));
+            else if (code < 0x800) {
+                result->text.push_back(static_cast<char>(0xC0 | (code >> 6)));
+                result->text.push_back(static_cast<char>(0x80 | (code & 0x3F)));
+            } else {
+                const std::uint32_t safe = (code >= 0xD800 && code <= 0xDFFF) ? 0xFFFD : code;
+                result->text.push_back(static_cast<char>(0xE0 | (safe >> 12)));
+                result->text.push_back(static_cast<char>(0x80 | ((safe >> 6) & 0x3F)));
+                result->text.push_back(static_cast<char>(0x80 | (safe & 0x3F)));
+            }
+        }
         return result;
     }
     const char* GetStringUTFChars(jstring string, jboolean* copy) {

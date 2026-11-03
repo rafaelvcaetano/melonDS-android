@@ -18,18 +18,21 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
 
-      - uses: actions/setup-java@v6.1.0
+      - name: Verify immutable CI dependencies
+        run: python3 .github/check_ci_integrity.py
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           java-version: '21'
           distribution: zulu
           cache: gradle
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v4.0.4
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
         with:
           # Keep SDK provisioning independent of action defaults.
           packages: platform-tools
@@ -54,7 +57,7 @@ jobs:
 
       - name: Update GitHub Nightly Release
         id: update_release
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1
         with:
           allowUpdates: true
           prerelease: true
@@ -66,7 +69,7 @@ jobs:
           artifactContentType: application/vnd.android.package-archive
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v7.0.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: melonDS-android
           path: app/build/outputs/apk/gitHubNightly/release/app-gitHub-nightly-release.apk
@@ -77,19 +80,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
           persist-credentials: false
 
-      - uses: actions/setup-java@v6.1.0
+      - name: Verify immutable CI dependencies
+        run: python3 .github/check_ci_integrity.py
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           java-version: '21'
           distribution: zulu
           cache: gradle
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v4.0.4
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
         with:
           packages: platform-tools
 
@@ -103,7 +109,7 @@ jobs:
 
       - name: Upload unit-test results
         if: always()
-        uses: actions/upload-artifact@v7.0.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: melonDS-unit-test-results
           path: app/build/test-results/testGitHubNightlyDebugUnitTest/*.xml
@@ -112,7 +118,7 @@ jobs:
 
       # Debug signing and the .dev application ID keep this separate from releases.
       - name: Upload debug test build
-        uses: actions/upload-artifact@v7.0.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: melonDS-android-debug-test-build-arm64
           path: app/build/intermediates/apk/gitHubNightly/debug/app-gitHub-nightly-debug.apk
@@ -121,7 +127,7 @@ jobs:
 
       - name: Upload lint results
         if: always()
-        uses: actions/upload-artifact@v7.0.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: melonDS-lint-results
           path: app/build/reports/lint-results-gitHubNightlyDebug.*
@@ -145,14 +151,18 @@ jobs:
       UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
       REQUIRE_CORE_TESTS: '1'
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
           persist-credentials: false
+      - name: Verify immutable CI dependencies
+        run: python3 .github/check_ci_integrity.py
       - name: Build instrumented core
         run: bash tools/core-host-sanitize.sh
       - name: Test native policies, saves and JIT invalidation
         run: bash tools/host-tests.sh
+      - name: Test security boundary regressions
+        run: bash tools/host-tests/security/run.sh
       - name: Test DNS packets
         run: bash tools/host-tests/dns/run.sh
       - name: Test NAND JNI reference lifetime

@@ -130,13 +130,14 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
 
     private fun loadLayouts(): List<LayoutConfiguration> {
         val dataFile = File(context.filesDir, DATA_FILE)
+        SettingsRestoreRecovery.recoverFile(dataFile)
         if (!dataFile.isFile) {
             return emptyList()
         }
 
         return try {
-            val layouts = gson.fromJson<List<LayoutConfigurationDto>>(FileReader(dataFile), layoutListType)?.map {
-                it.toModel()
+            val layouts = gson.fromJson<List<LayoutConfigurationDto>>(FileReader(dataFile), layoutListType)?.mapNotNull {
+                runCatching { it.toModel() }.getOrNull()
             }
             layouts ?: emptyList()
         } catch (_: Exception) {

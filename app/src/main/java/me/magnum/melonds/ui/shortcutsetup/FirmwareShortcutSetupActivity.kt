@@ -1,7 +1,6 @@
 package me.magnum.melonds.ui.shortcutsetup
 
 import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -16,10 +15,7 @@ abstract class FirmwareShortcutSetupActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val console = getConsoleType()
-        val intent = Intent("${packageName}.LAUNCH_FIRMWARE").apply {
-            putExtra(EmulatorActivity.KEY_BOOT_FIRMWARE_ONLY, true)
-            putExtra(EmulatorActivity.KEY_BOOT_FIRMWARE_CONSOLE, console.ordinal)
-        }
+        val intent = EmulatorActivity.getFirmwareEmulatorActivityIntent(this, console)
 
         val shortcutInfo = ShortcutInfoCompat.Builder(this, console.name.lowercase())
             .setShortLabel(getConsoleName(console))

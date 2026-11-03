@@ -14,10 +14,10 @@ import me.magnum.melonds.extensions.isBlank
 import me.magnum.melonds.extensions.nameWithoutExtension
 import me.magnum.melonds.impl.NdsRomCache
 import me.magnum.melonds.utils.RomProcessor
-import java.io.FileOutputStream
 import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
+import java.io.OutputStream
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.coroutines.resume
@@ -142,11 +142,11 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
         // never held across a suspension point
         readArchivedRom(rom.uri) { romFileStream ->
             ndsRomCache.cacheRom(rom, object : NdsRomCache.RomExtractor {
-                override fun getExtractedRomFileSize(): SizeUnit {
+                override fun getExtractedRomFileSize(): SizeUnit? {
                     return romFileStream.romFileSize
                 }
 
-                override fun saveRomFile(fileStream: FileOutputStream): Boolean {
+                override fun saveRomFile(fileStream: OutputStream): Boolean {
                     val buffer = ByteArray(8192)
 
                     try {
@@ -182,5 +182,5 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
      */
     abstract fun getNdsEntryStreamInFileStream(fileStream: InputStream): RomFileStream?
 
-    class RomFileStream(stream: InputStream, val romFileSize: SizeUnit) : FilterInputStream(stream)
+    class RomFileStream(stream: InputStream, val romFileSize: SizeUnit?) : FilterInputStream(stream)
 }

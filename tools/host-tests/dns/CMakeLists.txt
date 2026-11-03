@@ -36,3 +36,8 @@ add_subdirectory("${CORE_LIB}/src/net" ./net-utils)
 
 add_executable(dns_override_test dns_override_test.cpp)
 target_link_libraries(dns_override_test PRIVATE net-utils)
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    target_compile_options(dns_override_test PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+    target_link_options(dns_override_test PRIVATE -fsanitize=address,undefined)
+    target_compile_options(net-utils PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+endif()

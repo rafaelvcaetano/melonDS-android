@@ -37,8 +37,12 @@ object RAModule {
 
     @Provides
     @Singleton
-    fun provideRAUserAuthStore(sharedPreferences: SharedPreferences): RAUserAuthStore {
-        return AndroidRAUserAuthStore(sharedPreferences)
+    fun provideRAUserAuthStore(@ApplicationContext context: Context, sharedPreferences: SharedPreferences): RAUserAuthStore {
+        val isolatedPreferences = context.getSharedPreferences(
+            AndroidRAUserAuthStore.PREFERENCES_NAME,
+            Context.MODE_PRIVATE,
+        )
+        return AndroidRAUserAuthStore(isolatedPreferences, sharedPreferences)
     }
 
     @Provides

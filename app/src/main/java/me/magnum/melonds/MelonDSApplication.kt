@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import me.magnum.melonds.common.UriFileHandler
 import me.magnum.melonds.common.uridelegates.UriHandler
 import me.magnum.melonds.domain.repositories.SettingsRepository
+import me.magnum.melonds.impl.SettingsRestoreRecovery
 import me.magnum.melonds.migrations.Migrator
 import javax.inject.Inject
 
@@ -36,6 +37,7 @@ class MelonDSApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        SettingsRestoreRecovery.recoverAll(filesDir)
         enableStrictModeOnDebuggableBuilds()
         createNotificationChannels()
         applyTheme()

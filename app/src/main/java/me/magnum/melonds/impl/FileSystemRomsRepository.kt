@@ -134,7 +134,9 @@ class FileSystemRomsRepository(
 
         // ROM is not known. Create a new ROM from the URI
         Log.i(TAG, "getRomAtUri: no cached ROM matched for $uri, falling back to ad-hoc import")
-        romFileProcessorFactory.getFileRomProcessorForDocument(uri)?.getRomFromUri(uri, null)
+        runCatching {
+            romFileProcessorFactory.getFileRomProcessorForDocument(uri)?.getRomFromUri(uri, null)
+        }.getOrNull()
     }
 
     // Matches [uri] against a cached ROM's URI by comparing their SAF document IDs directly
@@ -156,12 +158,16 @@ class FileSystemRomsRepository(
     }
 
     private fun findRomBySize(roms: List<Rom>, uri: Uri): Rom? {
-        val incomingDoc = DocumentFile.fromSingleUri(context, uri)?.takeIf { it.exists() } ?: return null
-        val incomingSize = incomingDoc.length()
+        val incomingSize = runCatching {
+            val incomingDoc = DocumentFile.fromSingleUri(context, uri)?.takeIf { it.exists() }
+                ?: return@runCatching null
+            incomingDoc.length()
+        }.getOrNull() ?: return null
 
         return roms.find { rom ->
-            val romDoc = DocumentFile.fromSingleUri(context, rom.uri)
-            romDoc?.length() == incomingSize
+            runCatching {
+                DocumentFile.fromSingleUri(context, rom.uri)?.length() == incomingSize
+            }.getOrDefault(false)
         }
     }
 

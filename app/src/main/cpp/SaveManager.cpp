@@ -132,6 +132,14 @@ void SaveManager::SetPath(std::string path, bool reload)
 
 void SaveManager::RequestFlush(const u8* savedata, u32 savelen, u32 writeoffset, u32 writelen)
 {
+    if (!savedata || savelen == 0 || writeoffset >= savelen || writelen > savelen)
+    {
+        Log(LogLevel::Error,
+            "SaveManager: rejected invalid flush range offset=%u length=%u save=%u\n",
+            writeoffset, writelen, savelen);
+        return;
+    }
+
     if (Length != savelen)
     {
         Length = savelen;
@@ -141,13 +149,12 @@ void SaveManager::RequestFlush(const u8* savedata, u32 savelen, u32 writeoffset,
     }
     else
     {
-        if ((writeoffset+writelen) > savelen)
+        const u32 bytesToEnd = savelen - writeoffset;
+        if (writelen > bytesToEnd)
         {
-            u32 len = savelen - writeoffset;
-            memcpy(&Buffer[writeoffset], &savedata[writeoffset], len);
-            len = writelen - len;
-            if (len > savelen) len = savelen;
-            memcpy(&Buffer[0], &savedata[0], len);
+            memcpy(&Buffer[writeoffset], &savedata[writeoffset], bytesToEnd);
+            const u32 wrappedLength = writelen - bytesToEnd;
+            memcpy(&Buffer[0], &savedata[0], wrappedLength);
         }
         else
         {

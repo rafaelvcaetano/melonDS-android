@@ -17,4 +17,6 @@ dependencies {
     implementation(libs.kotlin.coroutines)
     implementation(libs.kotlin.serialization)
     implementation(libs.okhttp)
+
+    testImplementation(libs.junit)
 }

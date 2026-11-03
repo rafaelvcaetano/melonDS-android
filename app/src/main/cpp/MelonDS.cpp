@@ -330,7 +330,17 @@ namespace MelonDSAndroid
             return false;
         }
 
-        size_t size = Platform::FileLength(saveStateFile);
+        static constexpr u64 MaxSavestateFileSize = 128ULL * 1024 * 1024;
+        const u64 fileSize = Platform::FileLength(saveStateFile);
+        if (fileSize < 16 || fileSize > MaxSavestateFileSize || fileSize > UINT32_MAX)
+        {
+            Platform::Log(Platform::LogLevel::Error,
+                "Rejected invalid %llu-byte state file \"%s\"\n",
+                static_cast<unsigned long long>(fileSize), path);
+            Platform::CloseFile(saveStateFile);
+            return false;
+        }
+        const size_t size = static_cast<size_t>(fileSize);
 
         // Allocate exactly as much memory as we need for the savestate
         std::vector<u8> buffer(size);

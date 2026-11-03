@@ -1,7 +1,6 @@
 #include <jni.h>
 #include <string>
-#include <locale>
-#include <codecvt>
+#include <algorithm>
 #include "DSi_NAND.h"
 #include "ROMManager.h"
 #include "Platform.h"
@@ -85,6 +84,8 @@ Java_me_magnum_melonds_MelonDSiNand_listTitles(JNIEnv* env, jobject thiz)
     {
         u32 titleId = *it;
         jobject titleData = getTitleData(env, category, titleId);
+        if (!titleData)
+            continue;
         env->CallVoidMethod(jniTitleList, listAddMethod, index++, titleData);
         // ArrayList retains the title; the local handle must not accumulate across titles.
         env->DeleteLocalRef(titleData);
@@ -167,13 +168,13 @@ Java_me_magnum_melonds_MelonDSiNand_deleteTitle(JNIEnv* env, jobject thiz, jint 
 JNIEXPORT jboolean JNICALL
 Java_me_magnum_melonds_MelonDSiNand_importTitleFile(JNIEnv* env, jobject thiz, jint titleId, jint fileType, jstring fileUri)
 {
-    jboolean isFilePathCopy;
-    const char* filePath = env->GetStringUTFChars(fileUri, &isFilePathCopy);
+    const char* filePath = env->GetStringUTFChars(fileUri, nullptr);
+    if (!filePath)
+        return false;
 
     bool result = nandMount->ImportTitleData(DSI_NAND_FILE_CATEGORY, (u32) titleId, fileType, filePath);
 
-    if (isFilePathCopy)
-        env->ReleaseStringUTFChars(fileUri, filePath);
+    env->ReleaseStringUTFChars(fileUri, filePath);
 
     return result;
 }
@@ -181,13 +182,13 @@ Java_me_magnum_melonds_MelonDSiNand_importTitleFile(JNIEnv* env, jobject thiz, j
 JNIEXPORT jboolean JNICALL
 Java_me_magnum_melonds_MelonDSiNand_exportTitleFile(JNIEnv* env, jobject thiz, jint titleId, jint fileType, jstring fileUri)
 {
-    jboolean isFilePathCopy;
-    const char* filePath = env->GetStringUTFChars(fileUri, &isFilePathCopy);
+    const char* filePath = env->GetStringUTFChars(fileUri, nullptr);
+    if (!filePath)
+        return false;
 
     bool result = nandMount->ExportTitleData(DSI_NAND_FILE_CATEGORY, (u32) titleId, fileType, filePath);
 
-    if (isFilePathCopy)
-        env->ReleaseStringUTFChars(fileUri, filePath);
+    env->ReleaseStringUTFChars(fileUri, filePath);
 
     return result;
 }
@@ -209,7 +210,8 @@ jobject getTitleData(JNIEnv* env, u32 category, u32 titleId)
     NDSHeader header;
     NDSBanner banner;
 
-    nandMount->GetTitleInfo(category, titleId, version, &header, &banner);
+    if (!nandMount->GetTitleInfo(category, titleId, version, &header, &banner))
+        return nullptr;
 
     u32 iconData[32 * 32];
     MelonDSAndroid::BuildRomIcon(banner.Icon, banner.Palette, iconData);
@@ -221,15 +223,27 @@ jobject getTitleData(JNIEnv* env, u32 category, u32 titleId)
     jclass dsiWareTitleClass = env->FindClass("me/magnum/melonds/domain/model/DSiWareTitle");
     jmethodID dsiWareTitleConstructor = env->GetMethodID(dsiWareTitleClass, "<init>", "(Ljava/lang/String;Ljava/lang/String;J[BJJI)V");
 
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
-    std::string englishTitle = convert.to_bytes(banner.EnglishTitle);
+    const char16_t* titleBegin = std::begin(banner.EnglishTitle);
+    const char16_t* titleLimit = titleBegin + std::size(banner.EnglishTitle);
+    const char16_t* titleEnd = std::find(titleBegin, titleLimit, u'\0');
+    const char16_t* separator = std::find(titleBegin, titleEnd, u'\n');
+    const char16_t* producerBegin = separator == titleEnd ? titleEnd : separator + 1;
 
-    size_t pos = englishTitle.find("\n");
-    std::string title = englishTitle.substr(0, pos);
-    std::string producer = englishTitle.substr(pos + 1);
-
-    jstring jniTitle = env->NewStringUTF(title.c_str());
-    jstring jniProducer = env->NewStringUTF(producer.c_str());
+    // JNI NewString copies a bounded UTF-16 sequence directly. Unlike
+    // wstring_convert::to_bytes, it cannot throw std::range_error for an
+    // isolated surrogate supplied by a malformed banner.
+    jstring jniTitle = env->NewString(reinterpret_cast<const jchar*>(titleBegin),
+        static_cast<jsize>(separator - titleBegin));
+    jstring jniProducer = env->NewString(reinterpret_cast<const jchar*>(producerBegin),
+        static_cast<jsize>(titleEnd - producerBegin));
+    if (!jniTitle || !jniProducer || env->ExceptionCheck())
+    {
+        env->DeleteLocalRef(jniTitle);
+        env->DeleteLocalRef(jniProducer);
+        env->DeleteLocalRef(iconBytes);
+        env->DeleteLocalRef(dsiWareTitleClass);
+        return nullptr;
+    }
     jobject titleObject = env->NewObject(
         dsiWareTitleClass,
         dsiWareTitleConstructor,

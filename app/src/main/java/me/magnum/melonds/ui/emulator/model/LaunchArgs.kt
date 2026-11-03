@@ -6,9 +6,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.rom.Rom
-import me.magnum.melonds.extensions.parcelable
-import me.magnum.melonds.parcelables.RomParcelable
-import me.magnum.melonds.ui.emulator.EmulatorActivity
 
 sealed class LaunchArgs {
     data class RomObject(val rom: Rom) : LaunchArgs()
@@ -27,74 +24,51 @@ sealed class LaunchArgs {
 
     companion object {
         fun fromSavedStateHandle(savedStateHandle: SavedStateHandle): LaunchArgs? {
-            return if (savedStateHandle.get<Boolean>(EmulatorActivity.KEY_BOOT_FIRMWARE_ONLY) == true) {
-                val consoleTypeParameter = savedStateHandle.get<Int>(EmulatorActivity.KEY_BOOT_FIRMWARE_CONSOLE)
+            val bootFirmware = savedStateHandle.get<Any>(EmulatorLaunchContract.KEY_BOOT_FIRMWARE_ONLY) as? Boolean
+            return if (bootFirmware == true) {
+                val consoleTypeParameter = savedStateHandle.get<Any>(EmulatorLaunchContract.KEY_BOOT_FIRMWARE_CONSOLE) as? Int
                 if (consoleTypeParameter != null) {
-                    val firmwareConsoleType = ConsoleType.entries[consoleTypeParameter]
-                    Firmware(firmwareConsoleType)
+                    ConsoleType.entries.getOrNull(consoleTypeParameter)?.let(::Firmware)
                 } else {
                     null
                 }
             } else {
-                val romParcelable = savedStateHandle.get<RomParcelable>(EmulatorActivity.KEY_ROM)
-                if (romParcelable != null) {
-                    RomObject(romParcelable.rom)
-                } else {
-                    val uri = when (val uriEntry = savedStateHandle.get<Any>(EmulatorActivity.KEY_URI)) {
-                        is String -> uriEntry.toUri()
-                        is Uri -> uriEntry
-                        else -> null
-                    }
-
-                    if (uri != null) {
-                        RomUri(uri)
-                    } else {
-                        val path = savedStateHandle.get<String>(EmulatorActivity.KEY_PATH)
-                        if (path != null) {
-                            RomPath(path)
-                        } else {
-                            null
-                        }
-                    }
+                val uri = when (val uriEntry = savedStateHandle.get<Any>(EmulatorLaunchContract.KEY_URI)) {
+                    is String -> uriEntry.toUri()
+                    is Uri -> uriEntry
+                    else -> null
                 }
+
+                val authorized = savedStateHandle.get<Any>(EmulatorLaunchContract.KEY_URI_AUTHORIZED) as? Boolean
+                if (uri?.scheme == "content" && authorized == true) {
+                    RomUri(uri)
+                } else null
             }
         }
 
         fun fromIntent(intent: Intent): LaunchArgs? {
-            val extras = intent.extras
-            val bootFirmwareOnly = extras?.getBoolean(EmulatorActivity.KEY_BOOT_FIRMWARE_ONLY) ?: false
+            val extras = runCatching { intent.extras }.getOrNull()
+            @Suppress("DEPRECATION")
+            val bootFirmwareOnly = runCatching {
+                extras?.get(EmulatorLaunchContract.KEY_BOOT_FIRMWARE_ONLY) as? Boolean
+            }.getOrNull() == true
 
             return if (bootFirmwareOnly) {
-                val consoleTypeParameter = extras.getInt(EmulatorActivity.KEY_BOOT_FIRMWARE_CONSOLE, -1)
-                if (consoleTypeParameter == -1) {
-                    null
-                } else {
-                    val firmwareConsoleType = ConsoleType.entries[consoleTypeParameter]
-                    Firmware(firmwareConsoleType)
-                }
+                @Suppress("DEPRECATION")
+                val consoleTypeParameter = runCatching {
+                    extras?.get(EmulatorLaunchContract.KEY_BOOT_FIRMWARE_CONSOLE) as? Int
+                }.getOrNull()
+                consoleTypeParameter?.let { ConsoleType.entries.getOrNull(it) }?.let(::Firmware)
             } else {
-                val romParcelable = extras?.parcelable<RomParcelable>(EmulatorActivity.KEY_ROM)
-
-                when {
-                    romParcelable?.rom != null -> RomObject(romParcelable.rom)
-                    intent.data != null -> RomUri(intent.data!!)
-                    extras?.containsKey(EmulatorActivity.KEY_PATH) == true -> {
-                        val romPath = extras.getString(EmulatorActivity.KEY_PATH)!!
-                        RomPath(romPath)
-                    }
-                    extras?.containsKey(EmulatorActivity.KEY_URI) == true -> {
-                        @Suppress("DEPRECATION")
-                        val uri = when (val uriEntry = extras.get(EmulatorActivity.KEY_URI)) {
-                            is String -> uriEntry.toUri()
-                            is Uri -> uriEntry
-                            else -> null
-                        }
-
-                        uri?.let { RomUri(it) }
-                    }
-                    else -> null
-                }
+                authorizedContentUri(intent)?.let(::RomUri)
             }
+        }
+
+        fun authorizedContentUri(intent: Intent): Uri? {
+            if (intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION == 0) return null
+            // Android URI grants apply to Intent.data and ClipData, not to a
+            // custom extra. Treat only the platform-authorized field as input.
+            return intent.data?.takeIf { it.scheme == "content" }
         }
     }
 }
