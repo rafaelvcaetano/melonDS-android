@@ -265,6 +265,14 @@ soltanto dal Gradle:
 È un APK GitHub Nightly ottimizzato per il target ARM64. La presenza di librerie
 terze x86/ARM32 non prova che l'emulatore funzioni su quelle ABI. Restano il
 candidato corrente e il fallback 2.1.7/48 per questo target.
+Il package `.nightly.perf` e il certificato verificato rendono questo APK un
+aggiornamento del **candidato locale 2.1.7/48 con la stessa identità**. Il
+variant Nightly standard nel Gradle usa `.nightly` senza `.perf`: il presente
+APK non può aggiornarlo in-place perché Android richiede lo stesso
+`applicationId`. L'identità dell'APK Nightly ufficiale pubblicato non è stata
+verificata in questa campagna; l'eventuale compatibilità di una futura build
+upstream richiederà il suo package e la sua firma, oltre a prove di migrazione
+separatamente documentate.
 
 Firma, package, versionCode, minSdk, flag e librerie native sono stati riletti
 dall'APK ricompilato. L'APK esatto è stato inoltre installato con `-r` sull'AVD

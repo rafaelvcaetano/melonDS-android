@@ -119,6 +119,9 @@ patch and remaining proof limits.
   is green.
 - Final optimized update candidate: 2.1.8/49, SHA-256
   `195b5748fc59bac74eadee148f0a1a7b440e47b51dcc5f70fdcd384e855932cb`.
+  Its `.nightly.perf` package and matching certificate update the local 2.1.7/48
+  candidate. The standard Nightly source variant uses `.nightly`; this APK is
+  not an in-place update for a differently identified upstream Nightly APK.
 - Final second-campaign checks include host sanitizers, JVM/API, optimized APK
   build and lint, 11 NDK targets on ARM64 4/16 KiB, 55 default ART/provider cases
   (52 pass, three opt-in skips) plus the separately passing WorkManager case,
