@@ -1,0 +1,90 @@
+{
+  "date": "2026-11-04",
+  "scope": "Physical in-place update and bounded data preservation, not all-game acceptance",
+  "device": {
+    "family": "AYN Thor",
+    "api": 33,
+    "abi": "arm64-v8a",
+    "page_bytes": 4096
+  },
+  "package": "me.magnum.melonds.nightly.perf",
+  "before": {
+    "version_code": 47,
+    "version": "2.1.6",
+    "apk_sha256": "2dc30348bc52d412b6bd8ac6e41774c012ad44e566e01011838b1160b62d05a0"
+  },
+  "after": {
+    "version_code": 49,
+    "version": "2.1.8-UD GH (NIGHTLY)",
+    "apk_bytes": 10996321,
+    "apk_sha256": "68f31a9059fbd6866d8892ac014d5c17ea4fe673440eae799b7ac18c5f7ceca2",
+    "installed_hash_matches": true,
+    "certificate_sha256": "41ad82cd4365c73195128975cf0b920699f8833093507957dc2d0f9d6bb0b4b1",
+    "release_optimized": true,
+    "debuggable": false,
+    "test_only": false,
+    "app_executable_source": "4809d38fd8dfe2745a1605377a5825516a6aec58",
+    "core_source": "2bb701ffd6b2cdd6260796eac5b1d4173a5e72fa"
+  },
+  "preservation": {
+    "UID": true,
+    "firstInstallTime": true,
+    "before_launch_credential_private_files_byte_identical": 17,
+    "after_launch_accepted": true,
+    "database": {
+      "integrity": "ok",
+      "schema_version": 8,
+      "logical_sha256": "352a2f007979857a810711a198e602d0509771055abc6189785f39175236959f",
+      "table_counts": {
+        "android_metadata": 1,
+        "cheat": 709658,
+        "cheat_database": 2,
+        "cheat_folder": 30341,
+        "game": 4255,
+        "ra_achievement": 0,
+        "ra_achievement_set": 0,
+        "ra_game": 0,
+        "ra_game_hash_library": 0,
+        "ra_game_set_metadata": 0,
+        "ra_leaderboard": 0,
+        "ra_pending_achievement_award": 0,
+        "ra_user_achievement": 0,
+        "room_master_table": 1,
+        "sqlite_sequence": 4
+      }
+    },
+    "library_records": 11,
+    "all_original_ROM_record_fields_equal_by_unique_URI": true,
+    "expected_legacy_storageNameVersion": 0,
+    "controllers_layouts_wfc_state_screenshot_byte_identical": true,
+    "persisted_URI_grants_unchanged": 3,
+    "runtime_permissions_unchanged": 4,
+    "protected_external_files_unchanged": 41,
+    "NDS_file_inventory_unchanged": true,
+    "historical_paths_absent_before_update": 7,
+    "unexpected_changes": 0
+  },
+  "runtime": {
+    "library_cold_start": true,
+    "fatal_or_ANR_markers": 0,
+    "personal_game_launch_or_SAVE_performed": false,
+    "hierarchy_capture": "empty file; actual screenshot and resumed activity used"
+  },
+  "cleanup": {
+    "helper_removed": true,
+    "verified_transport_ZIPs_removed": 6,
+    "transport_bytes_removed": 88173731,
+    "protected_Mac_backups_retained": true,
+    "microSD_directories_created": false,
+    "target_uninstalled": false,
+    "clear_data": false
+  },
+  "limitations": [
+    "No personal-game or old-savestate runtime acceptance on Thor",
+    "No physical power-loss or complete customBIOS/NAND acceptance",
+    "Preservation covers inventoried files, not all storage",
+    "Inherited update checker still follows upstream; use fork-signed downloads",
+    "Older APK retained; in-place downgrade not tested"
+  ],
+  "upstream_PRs_published": false
+}

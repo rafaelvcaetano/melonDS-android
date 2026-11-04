@@ -38,7 +38,7 @@ certify all games or physical-device behavior. See the [validation report](https
 The paired app provides a signed UD Nightly [review build](https://github.com/Umberto-DEV/melonDS-android/releases/tag/ud-nightly-2.1.8)
 with its exact APK/source identity and acceptance results. The app build checks out
 this core recursively at its pinned Git commit and compiles it into the APK;
-users do not install a separate library. Review and merge core first, then pin
+users do not install a separate library. The [paired legacy-package physical update](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-04-thor-update/README.md) preserves the inventoried data; physical game compatibility remains separate. Review and merge core first, then pin
 the app to the accepted upstream revision.
 
 Compatibility changes needing review include blocking private/loopback network

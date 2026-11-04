@@ -1,6 +1,8 @@
 # Maintenance and bug research
 
-Current English release evidence: [UD Nightly2.1.8 packaging, source patches and update checks](2026-11-04-ud-nightly/README.md).
+Current physical delivery: [Thor 2.1.8/49 update, verified data preservation and limitations](2026-11-04-thor-update/README.md).
+
+Current English release evidence: [UD Nightly 2.1.8 packaging, source patches and update checks](2026-11-04-ud-nightly/README.md).
 
 Start here for Android bug work. This index is current as of **4 November 2026**;
 dated reports are historical evidence, not fresh acceptance of later builds.
@@ -12,7 +14,8 @@ the legacy candidate separately from later UD release builds.
 Current evidence: [second independent scan, 2.1.8/49 and conservative AVD update](2026-11-03-security-followup/README.md).
 The exact optimized APK also passed Continue, SAVE and new-process cold Continue
 on a copied SGP 1.2.5 IT ROM/save in the dedicated Android AVD; its original
-inputs were rehashed unchanged. Thor remains on the prior installed build.
+inputs were rehashed unchanged. Those3 November results preceded the separate
+4 November physical update linked above.
 The [finding-by-finding Markdown view](2026-11-03-security-followup/FINDING-DETAILS.md)
 provides source-pinned attack paths, checks, counterevidence, fixes and limits;
 the CSV below remains the canonical disposition register.
@@ -27,8 +30,9 @@ The previous [2.1.7/48 delivery and Android-on-Mac checks](2026-11-03-nightly-2.
 is now the retained fallback evidence.
 The [app draft](2026-10-28-main/NEXT-APP-PR.md) and
 [core draft](2026-10-28-main/NEXT-CORE-PR.md) include the earlier Thor changes
-and later corrections. The installed Thor 2.1.6 APK predates the security fixes.
-No new physical installation or replacement PR publication follows from this handoff.
+and later corrections. The historical 2.1.6 APK predates the security fixes;
+the4 November physical 2.1.8 update has its own identity and acceptance report.
+Replacement upstream PR publication remains pending explicit approval.
 
 Earlier closed unit: [DSi WMI guest payload lengths](2026-11-03-dsi-wmi-length/README.md).
 Its LAN-buffer write was red on host UBSan and the correction is green on host
@@ -49,7 +53,7 @@ Later corrected units: [Action Replay instruction/payload bounds](2026-11-03-act
 Delivery: [modified Nightly 2.1.6 / 47, APK identity and final checks](2026-10-31-nightly-2.1.6/README.md).
 Installed in place on the Thor after explicit authorization:
 [2.1.6 physical update, data preservation and native checks](2026-11-01-thor-update/README.md).
-The ten native targets pass on API35 ARM64/4KiB and 16KiB and on Thor API33/4KiB;
+The ten native targets pass on API35 ARM64/4 KiB and 16 KiB and on Thor API 33/4 KiB;
 those executions remain separate from ART and whole-game acceptance.
 
 Latest NAND recheck: [API35 ARM64 4 KiB/16 KiB import and replacement
@@ -61,7 +65,7 @@ logical quota remain outside acceptance.
 
 Earlier focused batch: [RTC resume and NAND import integrity](2026-10-31-rtc-nand/README.md).
 Two demonstrated core causes corrected in the working tree; Android native
-API35 ARM64/4KiB/16KiB checks are separate from whole-app and HOME quota acceptance.
+API35 ARM64/4 KiB/16 KiB checks are separate from whole-app and HOME quota acceptance.
 
 Follow-up: [save replacement and JNI lease corrections; Surface/teardown limits](2026-10-31-persistence-lifecycle/README.md).
 

@@ -41,6 +41,7 @@ The signed [UD Nightly review build](https://github.com/Umberto-DEV/melonDS-andr
 has separate [APK identity and acceptance results](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-04-ud-nightly/README.md),
 including 349 local JVM/API tests, actual optimized-release Android checks and
 the successful [app CI](https://github.com/Umberto-DEV/melonDS-android/actions/runs/41892532022).
+The [physical 47-to-49 update](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-04-thor-update/README.md) preserves the inventoried data and permissions; physical gameplay review remains separate.
 The app pins the companion core; review core first, then use its accepted
 upstream revision. A source patch cannot supply the author's signing key.
 
@@ -51,5 +52,6 @@ reports and other partial cases remain in the [issue coverage register](https://
 This replaces #1681/#1682, closed without merge; it does not close partial cases.
 
 Credits: takanuva15 (#1677), WailAbou (#1606/#1608), dysprosium (#1625),
-N3MI-DG (#1648), DLCSharp (#1589), and selected fixes from corigne (#1666).
+N3MI-DG (#1648), DLCSharp (#1589), selected fixes from corigne (#1666),
+and QiuYucheng2003 for the JNI leak report (#1678).
 Existing backup-manager and DAT authorship is retained.

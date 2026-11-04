@@ -12,13 +12,13 @@ remain separate: a fork correction is not an upstream issue closure.
 | Field | Verified value |
 | --- | --- |
 | Artifact | `melonDS-UD-nightly-2.1.8.apk` |
-| Package/version | `me.magnum.melonds.nightly`, `2.1.8-UD GH (NIGHTLY)`, code49 |
+| Package/version | `me.magnum.melonds.nightly`, `2.1.8-UD GH (NIGHTLY)`, code 49 |
 | SHA-256 | `b5c05665ceb7c47a2f208961acb64cc29aea4bcc3e151a654de79fbd78b5be1b` |
 | Size | 20,761,895 bytes |
 | Certificate SHA-256 | `832a0223e29802245c0e9f8ca24c8358e7d21cfe0dbea347845fda751f950d86` |
 | Build | `gitHubNightlyRelease`, R8/resource shrinking, optimized native code |
-| API/ABIs | min24, target37; ARM64, ARM32 and x86-64 frontends |
-| Flags/signature | Not debuggable, not testOnly; APK v2 verified; 16KiB ZIP alignment passes |
+| API/ABIs | min 24, target 37; ARM64, ARM32 and x86-64 frontends |
+| Flags/signature | Not debuggable, not testOnly; APK v2 verified; 16 KiB ZIP alignment passes |
 | Executable app source | `4809d38fd8dfe2745a1605377a5825516a6aec58` |
 | Core source | `2bb701ffd6b2cdd6260796eac5b1d4173a5e72fa` |
 
@@ -47,7 +47,7 @@ The persistent UD private key and encrypted recovery bundle remain local and
 excluded from Git and downloads. An independent off-Mac recovery copy remains
 the owner's responsibility. No signing credentials or personal data are bundled.
 
-## Release and physical-device preparation
+## Release and physical update
 
 Seven release assets are provided on the [app download page](https://github.com/Umberto-DEV/melonDS-android/releases/tag/ud-nightly-2.1.8).
 Uploaded sizes and SHA-256 digests were verified; an actual downloaded APK
@@ -59,15 +59,17 @@ redistributable BIOS replacements and their copyright/license; no personal
 system images or game/save inputs are distributed.
 
 The physical-device preparation verified private snapshots before target
-Application/provider startup, including Room schema8 with 709,658 cheats,
+Application/provider startup, including Room schema 8 with 709,658 cheats,
 30,341 folders and 4,255 games; 11 library records, controller/layout files
 and three persisted URI grants are recorded. All 41 present protected external
 files were backed up, verified and rehashed unchanged. Seven historical paths
 were already absent before this work and were not restored or deleted.
-The temporary helper and its two verified transport ZIPs were removed; the
-Mac backups remain protected. The device remains on 2.1.6/47 with unchanged
-UID. No app update, original game SAVE, clear-data or target uninstall was
-performed. This is backup preparation, not physical acceptance of 2.1.8.
+The initial preparation helper and transport copies were removed. A fresh
+baseline was captured before the subsequent [physical 47-to-49 update](../2026-11-04-thor-update/README.md).
+That report verifies the installed ARM64 APK, database and protected files,
+expected cache/metadata changes, permissions, real library startup and cleanup.
+No original game was launched or saved during physical acceptance; gameplay
+on the Thor remains the owner's separate review.
 
 Campaign cleanup retained regression source and small reports, removed
 3,169,377,590 bytes of reproducible build outputs, 20,770,620 bytes of synthetic
@@ -109,12 +111,12 @@ source exports and every changed file is compared with the fork. The app patch
 leaves `.gitmodules` and the gitlink for the reviewer to select.
 
 Internal prompts, agent instructions, operational plans, signing material,
-Commercial game images, personal BIOS/firmware, NAND and saves are excluded from downloadable packages.
+commercial game images, personal BIOS/firmware, NAND and saves are excluded from downloadable packages.
 Technical reports, regression source tests, credits and licenses are retained.
 
 ## Actual Android release evidence
 
-On ARM64/API35/16KiB (`emulator-5554`), the exact final public APK
+On ARM64/API35/16 KiB (`emulator-5554`), the exact final public APK
 `b5c05665ceb7c47a2f208961acb64cc29aea4bcc3e151a654de79fbd78b5be1b`
 passed direct and ZIP homebrew loading, complementary red/blue DS rendering
 and normal Exit to the library. The level selector showed “Choose a level”,
@@ -150,7 +152,7 @@ and Cancel were checked, and custom BIOS mode was restored disabled. The
 missing-files result belongs to the earlier APK; complete valid custom
 BIOS/DSi NAND adoption was not repeated on this final release.
 
-On ARM64/API35/4KiB (`emulator-5556`), UD-over-official installation was
+On ARM64/API35/4 KiB (`emulator-5556`), UD-over-official installation was
 correctly rejected with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`; the official
 synthetic test install remained unchanged. Only that newly created test
 package was removed afterward. A synthetic public UD48-to-UD49 update
@@ -174,7 +176,7 @@ runtime logs contained no Fatal/ANR markers. This fixture had no populated
 Room database; the public APK's separate failed-import test supplies that
 narrow database-preservation evidence.
 
-Earlier [native sanitizer, Android 4/16KiB and ART/provider evidence](../2026-11-03-security-followup/README.md)
+Earlier [native sanitizer, Android 4/16 KiB and ART/provider evidence](../2026-11-03-security-followup/README.md)
 supports the unchanged core/runtime logic but is not a fresh exploit execution
 for every finding in this APK. Mid-stream import cancellation, valid personal
 BIOS/NAND adoption, all games, ARM32/x86-64 execution and power-loss recovery
@@ -193,16 +195,18 @@ This static check complements runtime data comparison; [Room migration
 guidance](https://developer.android.com/training/data-storage/room/migrating-db-versions)
 explains why signing alone is not a migration test.
 
-The Thor's existing `.nightly.perf` package retains its own certificate. Its
-separate ARM64 update uses release optimization and passed the legacy-package
-AVD check above. Before physical installation, private snapshots must precede
-target provider/Application startup; database rows, preferences/layouts, grants
-and external hashes must be compared. Installing the app does not require
-modifying ROM/raw save files.
-Preserving old savestate bytes does not certify every old state or game.
-The physical Thor update is **pending**. The AVD results above do not establish
-physical-device success; its later report must record exact before/after
-identities and data comparisons.
+The Thor's existing `.nightly.perf` package retained its certificate through
+the separate ARM64 release update. The [physical update report](../2026-11-04-thor-update/README.md)
+records 2.1.6/47 to 2.1.8/49, all 41 inventoried external files unchanged,
+unchanged database/cheats/layouts/controller files and document permissions,
+and the expected version/cache metadata changes after startup. It does not
+certify every old savestate or game. The temporary helper was removed.
+
+The inherited in-app update checker still follows the original project. Use
+fork release downloads for UD-signed updates; source patches do not supply
+the original developer's signing key. Published release assets retain the
+`aef762d6` source distribution checkpoint; later physical reports on main do
+not replace those immutable files or change their APK identity.
 
 ## Upstream review
 

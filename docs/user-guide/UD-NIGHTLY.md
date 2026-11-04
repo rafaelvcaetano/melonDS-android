@@ -55,6 +55,8 @@ An APK update preserves an existing installation only when Android accepts its p
 
 The persistent UD release certificate's SHA-256 fingerprint is `832a0223e29802245c0e9f8ca24c8358e7d21cfe0dbea347845fda751f950d86`. Release notes must identify the exact APK digest and certificate; verify both before installing.
 
+Use this fork's [release downloads](https://github.com/Umberto-DEV/melonDS-android/releases) for UD updates. The inherited in-app update checker follows the original project and does not distribute fork-signed updates. An official APK cannot replace the UD signer; it also has a different package from the legacy `.nightly.perf` installation.
+
 For a supported same-package, same-signer update:
 
 1. Complete an in-game save and close the game normally.
@@ -66,7 +68,7 @@ Never uninstall or clear app data to make a mismatched update install. A differe
 
 A source patch applies to documented app/core revisions. It does not modify an installed APK or preserve the original author's signature. The author can review the patch, build it and sign an official update with their own key.
 
-[Candidate identities, update acceptance and limits](../maintenance/2026-11-03-thor-2.1.8/README.md) · [Verification evidence](../maintenance/2026-11-03-security-followup/README.md)
+[Public release identities and Android checks](../maintenance/2026-11-04-ud-nightly/README.md) · [Physical legacy-package update and limits](../maintenance/2026-11-04-thor-update/README.md)
 
 ## Contributor and issue status
 
