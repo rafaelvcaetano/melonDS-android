@@ -1,5 +1,7 @@
 # Upstream RTC alignment — 4 November 2026
 
+Subsequent, separately authorized physical delivery: [Thor 2.1.9/50](../2026-11-04-thor-rtc-update/README.md). The results below retain the original diagnostic APK identity.
+
 The Android fork integrates upstream `master` at
 [`fa214944`](https://github.com/rafaelvcaetano/melonDS-android/commit/fa214944bb6be20ba4460a627162541c81c07c7b),
 the merge of [Komalis's PR #1664](https://github.com/rafaelvcaetano/melonDS-android/pull/1664).

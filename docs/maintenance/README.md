@@ -1,5 +1,7 @@
 # Maintenance and bug research
 
+Current physical RTC delivery: [Thor 2.1.9/50, exact APK and data-preservation checks](2026-11-04-thor-rtc-update/README.md). Public downloads remain at the immutable 2.1.8 pre-release.
+
 Current source alignment: [upstream PR #1664, four commits and RTC resolution](2026-11-04-upstream-alignment/README.md). This source integration is newer than the published 2.1.8 APKs.
 
 Current physical delivery: [Thor 2.1.8/49 update, verified data preservation and limitations](2026-11-04-thor-update/README.md).

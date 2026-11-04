@@ -8,6 +8,8 @@ Check each release for its exact version, Android package, CPU architectures, si
 
 [UD Nightly2.1.8 downloads](https://github.com/Umberto-DEV/melonDS-android/releases/tag/ud-nightly-2.1.8) include the APK, complete source archive, checked source patches and checksums. See the [release verification](docs/maintenance/2026-11-04-ud-nightly/README.md).
 
+Current source version is 2.1.9/50 after the upstream RTC merge. An authorized [Thor update test](docs/maintenance/2026-11-04-thor-rtc-update/README.md) is separate from the published 2.1.8 downloads.
+
 ## What is new compared with official Nightly?
 
 The documented comparison starts from official app revision `c42995ca` and core revision `431ab4bd`. Current main also integrates [upstream PR #1664](docs/maintenance/2026-11-04-upstream-alignment/README.md) at `fa214944`. Resume clock synchronization is now upstream; this fork retains its forward-only policy. The published 2.1.8 APKs and source patches keep their original identities and baseline. Features already present upstream retain their original attribution, including DAT cheat support, OpenGL/Compute rendering and the settings backup implementation.

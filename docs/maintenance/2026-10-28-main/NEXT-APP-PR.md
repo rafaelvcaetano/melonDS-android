@@ -45,6 +45,7 @@ The [physical 47-to-49 update](https://github.com/Umberto-DEV/melonDS-android/bl
 Current main also adopts the upstream stopped-session resume guard while retaining
 the fork's forward-only RTC policy and setting. This [source alignment](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-04-upstream-alignment/README.md)
 is newer than the published 2.1.8 review APK; that APK is not relabeled as testing this change.
+A separate optimized [2.1.9/50 Thor update](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-04-thor-rtc-update/README.md) exercises the integrated source with verified data preservation; owner gameplay review remains pending. Public downloads remain at 2.1.8.
 The app pins the companion core; review core first, then use its accepted
 upstream revision. A source patch cannot supply the author's signing key.
 

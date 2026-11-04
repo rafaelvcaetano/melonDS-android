@@ -1,0 +1,102 @@
+{
+  "date": "2026-11-04",
+  "scope": "Authorized Thor49-to50 update after upstream RTC integration; physical gameplay review remains with owner",
+  "source": {
+    "app": "d8f18d0017b4a4d97690ccb783eb5b12838537c6",
+    "core": "2bb701ffd6b2cdd6260796eac5b1d4173a5e72fa",
+    "upstream_app": "fa214944bb6be20ba4460a627162541c81c07c7b"
+  },
+  "apk": {
+    "sha256": "c66d46c5a53ae66f03515855b1fb70800d85baaad9dcd847d3224bf9af8736c1",
+    "bytes": 10996321,
+    "package": "me.magnum.melonds.nightly.perf",
+    "version_code": 50,
+    "version_name": "2.1.9-UD GH (NIGHTLY)",
+    "certificate_sha256": "41ad82cd4365c73195128975cf0b920699f8833093507957dc2d0f9d6bb0b4b1",
+    "frontend_abi": "arm64-v8a",
+    "min_api": 24,
+    "target_api": 37,
+    "mode": "release/R8/resource shrinking",
+    "16k_zip_alignment": true
+  },
+  "apk_flags": {
+    "debuggable": false,
+    "test_only": false
+  },
+  "before": {
+    "version_code": 49,
+    "sha256": "68f31a9059fbd6866d8892ac014d5c17ea4fe673440eae799b7ac18c5f7ceca2"
+  },
+  "physical": {
+    "helper_removed": true,
+    "transport_files_removed": 8,
+    "transport_bytes_removed": 116770972,
+    "Mac_backups_retained": true,
+    "target_package": "me.magnum.melonds.nightly.perf",
+    "installed_code": 50,
+    "runtime_permissions_equal": true,
+    "runtime_permission_count": 4,
+    "URI_permissions_equal": true,
+    "URI_permission_count": 3,
+    "database_rows": 744262,
+    "cheats": 709658,
+    "external_files_unchanged": 42,
+    "no_game_started": true,
+    "no_target_uninstall_or_clear_data": true,
+    "ready_to_disconnect": true
+  },
+  "local_tests": {
+    "app": {
+      "tests": 345,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "api": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "release_lint": {
+      "Warning": 479
+    }
+  },
+  "avd": {
+    "before_code": 49,
+    "after_code": 50,
+    "uid_preserved": true,
+    "firstInstallTime_preserved": true,
+    "protected_private_files_byte_identical": 6,
+    "cache_file_removed": true,
+    "Room_populated_database": "not present; skipped",
+    "harness_limit": "Android35 uses appId instead of userId; initial identity parser failed after install; original dumps establish unchanged identity",
+    "real_app_homebrew": "launch/pause/resume/frame alternation/normal Exit passed",
+    "apk_sha256": "c66d46c5a53ae66f03515855b1fb70800d85baaad9dcd847d3224bf9af8736c1"
+  },
+  "ci": {
+    "integration_run": "https://github.com/Umberto-DEV/melonDS-android/actions/runs/41910599189",
+    "tested_app": "dba4cb1a243e6b8c3a0f2ea6f2667610a8ae976b",
+    "integration_status": "success",
+    "native_production_code_unchanged_by_version_bump": true
+  },
+  "cleanup": {
+    "removed_bytes": 830865328,
+    "removed_files": 16001,
+    "free_bytes": 14704640000,
+    "canonical_apk_preserved": true,
+    "root_build_protected": true
+  },
+  "limits": [
+    "No personal game launched or saved",
+    "No all-game RTC/networking acceptance",
+    "AVD had no populated Room database; actual populated database comparison performed on Thor",
+    "Published2.1.8 pre-release assets unchanged; no new release or upstream PR published"
+  ],
+  "skips": [
+    "lintVitalReportGitHubNightlyRelease and lintVitalGitHubNightlyRelease skipped by Gradle; full lintGitHubNightlyRelease executed successfully",
+    "Upstream-only signing/publishing CI job skipped on the fork",
+    "Populated Room database absent on the small AVD; compared on Thor instead",
+    "No exact2.1.9 optimized-APK run on16KiB AVD; native RTC execution there is separate integration evidence"
+  ]
+}
