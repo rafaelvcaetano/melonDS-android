@@ -26,6 +26,13 @@ The core's latest commit changes its README; native code remains the tested
 `ac5e6ba0` correction set. Publication manifests distinguish executable source
 from later documentation-only commits. Both forks have only `main`.
 
+The core CI passed at `2bb701ff` ([run 41869978455](https://github.com/Umberto-DEV/melonDS-android-lib/actions/runs/41869978455)).
+The app's last successful CI predates the selector wording change. The new app
+workflow dispatch was rejected with HTTP422, “Actions has been disabled for
+this repository,” although the API reports repository Actions enabled and the
+workflow active. This is an unresolved service/configuration blocker, not a
+successful CI run. The final local builds and Android checks below passed.
+
 The persistent UD private key and encrypted recovery bundle remain local and
 excluded from Git and downloads. An independent off-Mac recovery copy remains
 the owner's responsibility. No signing credentials or personal data are bundled.
