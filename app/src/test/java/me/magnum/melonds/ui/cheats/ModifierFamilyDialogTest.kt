@@ -44,8 +44,8 @@ class ModifierFamilyDialogTest {
     private fun levelFamily(): ModifierFamily = ModifierFamilies.recognize("49 - Wild · level 1-100",
         (1..10).map { Cheat(100L + it, 1, "Level $it", null, "52246C94 28038800 12247BEC %08X D2000000 00000000".format(0x2000 + it), false) }).single()
     private val names = listOf("Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon")
-    private fun enumerated(activeIndex: Int? = null): ModifierFamily = ModifierFamilies.recognize("Wild Pokemon Modifier - Generation 1",
-        names.mapIndexed { i, n -> Cheat(10L + i, 1, n, null,
+    private fun enumerated(activeIndex: Int? = null, folderName: String = "Wild Pokemon Modifier - Generation 1", labels: List<String> = names): ModifierFamily = ModifierFamilies.recognize(folderName,
+        labels.mapIndexed { i, n -> Cheat(10L + i, 1, n, null,
             "94000130 FFFB0000 6214617C 00000000 B214617C 00000000 C0000000 0000002F 00005DD4 %08X DC000000 00000004 D2000000 00000000".format(i + 1), i == activeIndex) }).single()
 
     @Test fun searchSelectValidateAndConfirm() {
@@ -269,10 +269,52 @@ class ModifierFamilyDialogTest {
         var result: Pair<Int, Int?>? = null
         compose.setContent { MelonTheme { ModifierFamilyDialog(levelFamily(), {}, {}, { v, l -> result = v to l }) } }
         compose.onNodeWithText("Level 1–100").assertDoesNotExist()
-        compose.onNodeWithText("Search name or Pokédex number").performTextInput("7")
+        compose.onNodeWithText("Choose a level").assertExists()
+        compose.onNodeWithText("Choose a Pokémon").assertDoesNotExist()
+        compose.onNodeWithText("Search levels").performTextInput("999")
+        compose.onNodeWithText("No levels found").assertExists()
+        compose.onNodeWithText("Search levels").performTextReplacement("7")
         compose.onNodeWithText("Level 7").performClick()
         compose.onNodeWithText("Enable").performClick()
         assertEquals(0x2007 to null, result)
+    }
+
+    @Test fun natureFamilyUsesNatureLabelsAndConfirmsTheOriginalValue() {
+        val family = enumerated(folderName = "Wild Nature Modifier", labels = listOf("Hardy", "Lonely", "Modest", "Adamant", "Brave"))
+        var result: Pair<Int, Int?>? = null
+        compose.setContent { MelonTheme { ModifierFamilyDialog(family, {}, {}, { v, l -> result = v to l }) } }
+        compose.onNodeWithText("Choose a nature").assertExists()
+        compose.onNodeWithText("Search natures").performTextInput("not a nature")
+        compose.onNodeWithText("No natures found").assertExists()
+        compose.onNodeWithText("Search natures").performTextReplacement("mod")
+        compose.onNodeWithText("Modest").performClick()
+        compose.onNodeWithText("Enable").performClick()
+        assertEquals(3 to null, result)
+    }
+
+    @Test fun starterSpeciesFamilyIdentifiesTheChoiceWithoutChangingSpeciesSearch() {
+        var result: Pair<Int, Int?>? = null
+        val family = enumerated(folderName = "Starter #1 Modifier - Generation 1")
+        compose.setContent { MelonTheme { ModifierFamilyDialog(family, {}, {}, { v, l -> result = v to l }) } }
+        compose.onNodeWithText("Choose a starter Pokémon").assertExists()
+        compose.onNodeWithText("Search name or Pokédex number").performTextInput("charm")
+        compose.onNodeWithText("Charmander").performClick()
+        assertNull(result)
+        compose.onNodeWithText("Enable").performClick()
+        assertEquals(4 to null, result)
+    }
+
+    @Test fun unclassifiedFamilyUsesOptionLabelsAndDoesNotInventPokemonInstructions() {
+        val family = enumerated(folderName = "Music selection", labels = (1..5).map { "Theme $it" })
+        var confirmed = false
+        compose.setContent { MelonTheme { ModifierFamilyDialog(family, {}, {}, { _, _ -> confirmed = true }) } }
+        compose.onNodeWithText("Choose an option").assertExists()
+        compose.onNodeWithText("Search options").performTextInput("missing")
+        compose.onNodeWithText("No options found").assertExists()
+        compose.onNodeWithText("No Pokémon found").assertDoesNotExist()
+        compose.onNodeWithText("How it works").performClick()
+        compose.onNodeWithText("Choose a value, then select Enable to apply it. Selecting a value alone does not enable the cheat. Follow any instructions supplied with the cheat.").assertExists()
+        assertFalse(confirmed)
     }
 
     @Test fun loadFormActiveFamilyOffersDisable() {

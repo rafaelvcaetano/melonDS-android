@@ -16,4 +16,15 @@
     <string name="modifier_family_disable">Disattiva</string>
     <string name="modifier_family_show_code">Mostra codice</string>
     <string name="modifier_family_active">Attivo</string>
+    <string name="modifier_family_choose_starter">Scegli un Pokémon iniziale</string>
+    <string name="modifier_family_choose_level">Scegli un livello</string>
+    <string name="modifier_family_choose_nature">Scegli una natura</string>
+    <string name="modifier_family_choose_option">Scegli un’opzione</string>
+    <string name="modifier_family_search_level">Cerca livelli</string>
+    <string name="modifier_family_search_nature">Cerca nature</string>
+    <string name="modifier_family_search_options">Cerca opzioni</string>
+    <string name="modifier_family_no_levels">Nessun livello trovato</string>
+    <string name="modifier_family_no_natures">Nessuna natura trovata</string>
+    <string name="modifier_family_no_options">Nessuna opzione trovata</string>
+    <string name="modifier_family_help">Scegli un valore, poi seleziona Attiva per applicarlo. La sola selezione di un valore non attiva il trucco. Segui le eventuali istruzioni del trucco.</string>
 </resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="modifier_family_choose_starter">Elige un Pokémon inicial</string>
+    <string name="modifier_family_choose_level">Elige un nivel</string>
+    <string name="modifier_family_choose_nature">Elige una naturaleza</string>
+    <string name="modifier_family_choose_option">Elige una opción</string>
+    <string name="modifier_family_search_level">Buscar niveles</string>
+    <string name="modifier_family_search_nature">Buscar naturalezas</string>
+    <string name="modifier_family_search_options">Buscar opciones</string>
+    <string name="modifier_family_no_levels">No se encontraron niveles</string>
+    <string name="modifier_family_no_natures">No se encontraron naturalezas</string>
+    <string name="modifier_family_no_options">No se encontraron opciones</string>
+    <string name="modifier_family_help">Elige un valor y selecciona Activar para aplicarlo. Seleccionar un valor no activa el truco por sí solo. Sigue las instrucciones incluidas con el truco.</string>
+</resources>

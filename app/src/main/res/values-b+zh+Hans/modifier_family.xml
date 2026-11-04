@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="modifier_family_choose_starter">选择初始宝可梦</string>
+    <string name="modifier_family_choose_level">选择等级</string>
+    <string name="modifier_family_choose_nature">选择性格</string>
+    <string name="modifier_family_choose_option">选择选项</string>
+    <string name="modifier_family_search_level">搜索等级</string>
+    <string name="modifier_family_search_nature">搜索性格</string>
+    <string name="modifier_family_search_options">搜索选项</string>
+    <string name="modifier_family_no_levels">未找到等级</string>
+    <string name="modifier_family_no_natures">未找到性格</string>
+    <string name="modifier_family_no_options">未找到选项</string>
+    <string name="modifier_family_help">选择数值后，点击启用以应用。仅选择数值不会启用作弊码。请遵循作弊码附带的说明。</string>
+</resources>

@@ -16,4 +16,15 @@
     <string name="modifier_family_disable">Disable</string>
     <string name="modifier_family_show_code">Show code</string>
     <string name="modifier_family_active">Active</string>
+    <string name="modifier_family_choose_starter">Choose a starter Pokémon</string>
+    <string name="modifier_family_choose_level">Choose a level</string>
+    <string name="modifier_family_choose_nature">Choose a nature</string>
+    <string name="modifier_family_choose_option">Choose an option</string>
+    <string name="modifier_family_search_level">Search levels</string>
+    <string name="modifier_family_search_nature">Search natures</string>
+    <string name="modifier_family_search_options">Search options</string>
+    <string name="modifier_family_no_levels">No levels found</string>
+    <string name="modifier_family_no_natures">No natures found</string>
+    <string name="modifier_family_no_options">No options found</string>
+    <string name="modifier_family_help">Choose a value, then select Enable to apply it. Selecting a value alone does not enable the cheat. Follow any instructions supplied with the cheat.</string>
 </resources>

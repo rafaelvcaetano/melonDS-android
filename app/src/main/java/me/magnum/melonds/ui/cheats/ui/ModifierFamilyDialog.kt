@@ -57,7 +57,28 @@ fun ModifierFamilyDialog(family: ModifierFamily, onDismiss: () -> Unit, onDisabl
     val selected = family.options.firstOrNull { it.value == value }
     val levelValue = level.toIntOrNull()?.takeIf { it in 1..100 }
     val canConfirm = (levelOnly || selected != null) && (!showsLevelField || levelValue != null)
-    val help = family.instructions ?: stringResource(R.string.wild_encounter_help)
+    val chooseLabel = when (family.kind) {
+        ModifierKind.SPECIES -> if (family.role.startsWith("STARTER")) R.string.modifier_family_choose_starter else R.string.wild_encounter_choose
+        ModifierKind.LEVEL -> R.string.modifier_family_choose_level
+        ModifierKind.NATURE -> R.string.modifier_family_choose_nature
+        ModifierKind.GENERIC -> R.string.modifier_family_choose_option
+    }
+    val searchLabel = when (family.kind) {
+        ModifierKind.SPECIES -> R.string.wild_encounter_search
+        ModifierKind.LEVEL -> R.string.modifier_family_search_level
+        ModifierKind.NATURE -> R.string.modifier_family_search_nature
+        ModifierKind.GENERIC -> R.string.modifier_family_search_options
+    }
+    val noResultsLabel = when (family.kind) {
+        ModifierKind.SPECIES -> R.string.wild_encounter_no_results
+        ModifierKind.LEVEL -> R.string.modifier_family_no_levels
+        ModifierKind.NATURE -> R.string.modifier_family_no_natures
+        ModifierKind.GENERIC -> R.string.modifier_family_no_options
+    }
+    val help = family.instructions ?: stringResource(
+        if (family.nativeSelector && family.kind == ModifierKind.SPECIES && family.role == "WILD")
+            R.string.wild_encounter_help else R.string.modifier_family_help
+    )
 
     if (showHelp) {
         AlertDialog(onDismissRequest = { showHelp = false }, title = { Text(family.title) },
@@ -122,7 +143,7 @@ fun ModifierFamilyDialog(family: ModifierFamily, onDismiss: () -> Unit, onDisabl
                                 if (!levelOnly) {
                                     OutlinedTextField(
                                         modifier = Modifier.weight(1f), value = query, onValueChange = { query = it },
-                                        label = { Text(stringResource(R.string.wild_encounter_search)) }, singleLine = true,
+                                        label = { Text(stringResource(searchLabel)) }, singleLine = true,
                                         colors = melonOutlinedTextFieldColors(),
                                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                                         keyboardActions = keyboardActions,
@@ -146,9 +167,9 @@ fun ModifierFamilyDialog(family: ModifierFamily, onDismiss: () -> Unit, onDisabl
                         }
                         if (!levelOnly) {
                             item(key = "selection") {
-                                Text(selected?.label ?: stringResource(R.string.wild_encounter_choose))
+                                Text(selected?.label ?: stringResource(chooseLabel))
                                 if (family.kind == ModifierKind.SPECIES && value == 201) Text(stringResource(R.string.wild_encounter_unown), style = MaterialTheme.typography.caption)
-                                if (matches.isEmpty()) Text(stringResource(R.string.wild_encounter_no_results))
+                                if (matches.isEmpty()) Text(stringResource(noResultsLabel))
                                 Spacer(Modifier.height(8.dp))
                             }
                             items(matches, key = { it.value }) { option ->

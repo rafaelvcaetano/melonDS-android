@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="modifier_family_choose_starter">Choisir un Pokémon de départ</string>
+    <string name="modifier_family_choose_level">Choisir un niveau</string>
+    <string name="modifier_family_choose_nature">Choisir une nature</string>
+    <string name="modifier_family_choose_option">Choisir une option</string>
+    <string name="modifier_family_search_level">Rechercher des niveaux</string>
+    <string name="modifier_family_search_nature">Rechercher des natures</string>
+    <string name="modifier_family_search_options">Rechercher des options</string>
+    <string name="modifier_family_no_levels">Aucun niveau trouvé</string>
+    <string name="modifier_family_no_natures">Aucune nature trouvée</string>
+    <string name="modifier_family_no_options">Aucune option trouvée</string>
+    <string name="modifier_family_help">Choisissez une valeur, puis sélectionnez Activer pour l’appliquer. Choisir une valeur ne suffit pas à activer le code. Suivez les instructions fournies avec le code.</string>
+</resources>

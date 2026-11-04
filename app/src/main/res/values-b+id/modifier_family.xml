@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="modifier_family_choose_starter">Pilih Pokémon awal</string>
+    <string name="modifier_family_choose_level">Pilih level</string>
+    <string name="modifier_family_choose_nature">Pilih sifat</string>
+    <string name="modifier_family_choose_option">Pilih opsi</string>
+    <string name="modifier_family_search_level">Cari level</string>
+    <string name="modifier_family_search_nature">Cari sifat</string>
+    <string name="modifier_family_search_options">Cari opsi</string>
+    <string name="modifier_family_no_levels">Level tidak ditemukan</string>
+    <string name="modifier_family_no_natures">Sifat tidak ditemukan</string>
+    <string name="modifier_family_no_options">Opsi tidak ditemukan</string>
+    <string name="modifier_family_help">Pilih nilai, lalu pilih Aktifkan untuk menerapkannya. Memilih nilai saja tidak mengaktifkan cheat. Ikuti petunjuk yang disertakan dengan cheat.</string>
+</resources>

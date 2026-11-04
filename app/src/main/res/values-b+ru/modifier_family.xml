@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="modifier_family_choose_starter">Выберите стартового покемона</string>
+    <string name="modifier_family_choose_level">Выберите уровень</string>
+    <string name="modifier_family_choose_nature">Выберите характер</string>
+    <string name="modifier_family_choose_option">Выберите вариант</string>
+    <string name="modifier_family_search_level">Поиск уровней</string>
+    <string name="modifier_family_search_nature">Поиск характеров</string>
+    <string name="modifier_family_search_options">Поиск вариантов</string>
+    <string name="modifier_family_no_levels">Уровни не найдены</string>
+    <string name="modifier_family_no_natures">Характеры не найдены</string>
+    <string name="modifier_family_no_options">Варианты не найдены</string>
+    <string name="modifier_family_help">Выберите значение, затем нажмите Включить, чтобы применить его. Сам выбор значения не включает чит. Следуйте инструкциям, приложенным к читу.</string>
+</resources>
