@@ -33,6 +33,23 @@ this repository,” although the API reports repository Actions enabled and the
 workflow active. This is an unresolved service/configuration blocker, not a
 successful CI run. The final local builds and Android checks below passed.
 
+The public Actions page subsequently identified the missing condition: GitHub
+has stopped workflow execution on this fork because of Actions usage scale,
+and offers maintainers re-enablement. The latest dispatch again returned
+HTTP422 before creating a run. This is not a compiler, lint or test failure;
+the previous app run `41728424971` passed at `6b364a53`.
+
+The workflow now avoids automatic full builds for pushes changing only
+`docs/**` or the root README. Code/build/workflow/submodule changes still
+trigger verification; pull-request and manual triggers retain their coverage.
+Fork runs share a workflow/branch concurrency group and superseded runs are
+cancelled. Upstream running workflows are not cancelled by this setting.
+These workload reductions do not themselves lift GitHub's existing suspension.
+Reconfirming the existing repository permissions through the supported API
+succeeded without changing their values, but a subsequent dispatch still
+returned HTTP422 and the suspension banner remained. Re-enablement through
+the authenticated maintainer interface remains pending; no new run was created.
+
 The persistent UD private key and encrypted recovery bundle remain local and
 excluded from Git and downloads. An independent off-Mac recovery copy remains
 the owner's responsibility. No signing credentials or personal data are bundled.

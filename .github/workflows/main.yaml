@@ -3,12 +3,19 @@ name: melonDS Android Nightly Build
 on:
   push:
     branches: [ '**' ]
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
   pull_request:
     branches: [ master ]
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.repository != 'rafaelvcaetano/melonDS-android' }}
 
 jobs:
   # Only trusted upstream master builds may sign and publish a nightly release.
