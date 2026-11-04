@@ -39,7 +39,8 @@ and copied-ROM Continue/SAVE/cold Continue. These results belong to the APKs
 identified in the [validation report](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md).
 The signed [UD Nightly review build](https://github.com/Umberto-DEV/melonDS-android/releases/tag/ud-nightly-2.1.8)
 has separate [APK identity and acceptance results](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-04-ud-nightly/README.md),
-including 349 JVM/API tests and actual optimized-release Android checks.
+including 349 local JVM/API tests, actual optimized-release Android checks and
+the successful [app CI](https://github.com/Umberto-DEV/melonDS-android/actions/runs/41892532022).
 The app pins the companion core; review core first, then use its accepted
 upstream revision. A source patch cannot supply the author's signing key.
 

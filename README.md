@@ -6,7 +6,7 @@ UD Nightly is a fork of [melonDS Android](https://github.com/rafaelvcaetano/melo
 
 Check each release for its exact version, Android package, CPU architectures, signing certificate and test results. An older release does not establish that the latest source has been packaged or tested on your device.
 
-UD Nightly2.1.8 is currently staged as a draft while its latest app CI run is blocked. It is not yet a public download. See the [current release status](docs/maintenance/2026-11-04-ud-nightly/README.md).
+[UD Nightly2.1.8 downloads](https://github.com/Umberto-DEV/melonDS-android/releases/tag/ud-nightly-2.1.8) include the APK, complete source archive, checked source patches and checksums. See the [release verification](docs/maintenance/2026-11-04-ud-nightly/README.md).
 
 ## What is new compared with official Nightly?
 
