@@ -328,6 +328,7 @@ Java_me_magnum_melonds_MelonEmulator_resumeEmulation(JNIEnv* env, jobject thiz)
 
     if (!stop) {
         paused = false;
+        MelonDSAndroid::resume();
         if (started) {
             pthread_cond_broadcast(&emuThreadCond);
         }
@@ -336,8 +337,6 @@ Java_me_magnum_melonds_MelonEmulator_resumeEmulation(JNIEnv* env, jobject thiz)
     if (started) {
         pthread_mutex_unlock(&emuThreadMutex);
     }
-
-    MelonDSAndroid::resume();
 }
 
 JNIEXPORT void JNICALL
