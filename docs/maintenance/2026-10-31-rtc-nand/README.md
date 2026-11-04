@@ -3,8 +3,8 @@
 Verifica successiva: [candidata 2.1.6, correzioni aggiuntive e controlli finali](../2026-10-31-nightly-2.1.6/README.md).
 Le identità e i risultati di questo rapporto restano riferiti al primo lotto.
 
-Primo lotto del [mandato](../NEW-CHAT-PROMPT.md), con
-[piano e confini](PLAN.md). Due piste iniziali: RTC #2653 e quota DSi #1651.
+Verifica di RTC #2653 e quota DSi #1651 secondo il
+[metodo di verifica](../AUDIT-METHOD.md).
 Non è un nuovo censimento. Risultato: **due cause corrette nel core**, nessuna
 nuova modifica RTC; quota logica e boot HOME restano aperti.
 
@@ -13,8 +13,8 @@ nuova modifica RTC; quota logica e boot HOME restano aperti.
 - App `main`, `1cf4fa6adf3c7a8621734754d907ea0d27824fe9`;
   core `main`, `fd7582400bb7e35fe0d36dbb0c89b6766c1a8f2e` più diff non committata
   in `src/DSi_NAND.cpp`. Nessun cambio di branch, commit, push o PR.
-- Le modifiche iniziali di `AGENTS.md`, il piano cheat e il dossier ventuno
-  non sono stati modificati. Il core era pulito all'avvio.
+- Il materiale locale preesistente non è stato modificato. Il core era pulito
+  all'avvio.
 - APK compilata: `me.magnum.melonds.nightly.dev`, GitHubNightlyDebug, ARM64,
   versionCode 46 / `2.1.5 GH (NIGHTLY)`, min API 24. SHA-256:
   `46bc7c6b179065a3a89ea0ffd461264fb7422357804c01d30204584583c5b880`.

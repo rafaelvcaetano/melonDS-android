@@ -68,17 +68,14 @@ compilato in Nightly, **59 occurrence / 43 gruppi** erano associabili al
 runtime potenzialmente presente nell'APK. È una relazione sorgente/build, non
 una riproduzione dinamica di ciascun caso nel binario.
 
-Il 3 novembre, dopo la remediation, il contesto Security è stato riletto per
-ciascuno dei 101 ID: **35/35** risultati della prima scansione e **66/66**
-della seconda risultavano ancora `triage.open`. La prima pagina di ciascuna
-scansione mostrava anche `remediation.idle`. L'unico controllo di remediation
-esposto richiede `requestId`, `actionToken` ed `expectedVersion` ottenuti dal
-flusso UI; anche lo stadio `verified` non chiude il triage. Un primo accesso
-all'interfaccia Mac era stato bloccato dalla schermata di login; al successivo
-tentativo Computer Use ha rifiutato l'app ChatGPT per motivi di sicurezza.
-Nessuna riga è stata marcata Closed per supposizione: le disposizioni qui sotto
-sono tecniche e locali, distinte dallo stato Security e da un'eventuale
-pubblicazione upstream. I commit di codice sono stati inviati sui `main` dei fork.
+Il 3 novembre, dopo la remediation, lo stato del registro dei risultati è
+stato riletto per ciascuno dei 101 ID: **35/35** risultati della prima scansione
+e **66/66** della seconda risultavano ancora `triage.open`. La prima pagina di
+ciascuna scansione mostrava anche `remediation.idle`. L'interfaccia disponibile
+non consentiva di automatizzare la chiusura del triage. Nessuna riga è stata
+marcata Closed per supposizione: le disposizioni qui sotto sono tecniche e
+locali, distinte dallo stato del registro e dalla pubblicazione upstream.
+I commit di codice sono stati inviati sui `main` dei fork.
 
 ## Identità iniziale e conservazione
 
@@ -102,7 +99,7 @@ codice di produzione del commit app `0018cddb` e il core `ac5e6ba0`.
 `starting-local-files.json` consentono di distinguere lo stato preesistente.
 Non sono stati usati branch aggiuntivi, worktree, clone, reset, stash o rebase.
 
-## Scansione e configurazione osservabile
+## Identità e copertura della scansione
 
 | Campo | Valore |
 | --- | --- |
@@ -110,21 +107,16 @@ Non sono stati usati branch aggiuntivi, worktree, clone, reset, stash o rebase.
 | Avvio | `2026-11-03T13:56:06.766246Z` |
 | Completamento/sigillo | `2026-11-03T17:44:41.144905Z` |
 | Stato | `completed`; un avvio, stessa chiamata/cella, una finalizzazione, nessun rilancio |
-| Programma/accesso | Daybreak `Daybreak Blue`, accesso concesso; controllo `2026-11-03T13:55:57.305Z`, non stale |
-| Chat | reasoning richiesto `xhigh` |
-| Modello/reasoning dei worker | **non verificabile**: non esposto dall'interfaccia Security |
 | Modalità | `deep_repository`; include `.`; nessuna esclusione o area differita |
 | Revisione root | app `9929f530df6f60b86d50c324f4aec83747e5745b` |
 | Revisione annidata | core `65952aec868bedd2dc33151ed850804e3e13df05` |
-| Snapshot | `codex-security-snapshot/v1:sha256:9ff048237b8d1dae0db1f928f1ad74e89e50d1c13f23bd135df8aa77722c4c22` |
+| Snapshot SHA-256 | `9ff048237b8d1dae0db1f928f1ad74e89e50d1c13f23bd135df8aa77722c4c22` |
 | Target ID | `target_sha256_dfd59708cd87aac8cb3977fa42ae8e93a01b153a892ffa91c1795a3ade93a6e3` |
 | Copertura coordinatore | `complete`: 3.633 file non ignorati, inclusi 750 del core |
 | Gravità | 17 high, 33 medium, 15 low, 1 informational |
 | Prima posizione | 38 app/shared, 28 core; è una classificazione per posizione primaria, non ownership PR |
 
-La configurazione della chat, il diritto di accesso Daybreak e la configurazione
-dei worker sono tre elementi distinti. Nessun valore non esposto è stato
-inferito. Durante lo snapshot i sorgenti non sono stati modificati. La fase di
+Durante lo snapshot i sorgenti non sono stati modificati. La fase di
 remediation è iniziata soltanto dopo il completamento e il sigillo della stessa
 scansione. Gli artefatti del coordinatore non sono stati ricreati a mano:
 
@@ -199,7 +191,7 @@ restano source-backed con chiamante e controllo negativo, non RED dinamici.
 | ART/provider | Sul binario di test finale: suite default 55 casi, 52 pass e 3 skip opt-in previsti; WorkManager reale separato 1 pass; zero fallimenti | debug/test APK `.dev`, non APK ottimizzato `.perf`; UI capture e fallback GLES opt-in non ripetuti in questo ultimo ciclo |
 | APK ottimizzato `.perf` | homebrew diretta e ZIP avviate; SGP 1.2.5 IT su copie: Continue, SAVE, nuovo processo e cold Continue al Centro Pokémon; Exit normale | una sola ROM/save realistica e un AVD 16 KiB; non certifica altri giochi o Thor |
 | Integrità CI | checker locale pass; [CI core finale](https://github.com/Umberto-DEV/melonDS-android-lib/actions/runs/41704485288) verde sui runner x86-64 e ARM64; [CI app finale](https://github.com/Umberto-DEV/melonDS-android/actions/runs/41704565464) verde nei job JVM/lint/ARM64 debug e native sanitizer Linux x86-64/ARM64 | il job legacy `build` risulta skipped, distinto dai tre job eseguiti |
-| Sorgenti | `git diff --check` app/core pass; commit core `ac5e6ba0`, app `0018cddb` su `main` dei fork | `AGENTS.md` e materiale storico locale preesistente restano fuori dai commit |
+| Sorgenti | `git diff --check` app/core pass; commit core `ac5e6ba0`, app `0018cddb` su `main` dei fork | materiale operativo e storico locale preesistente resta fuori dai commit |
 
 I log finali e i piccoli report Gradle sono conservati nel dossier locale
 `local/notes/pr-review-2026-11-03/final-verification/`. I comandi NDK sono

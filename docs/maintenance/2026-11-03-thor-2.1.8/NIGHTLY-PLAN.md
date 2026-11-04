@@ -1,7 +1,5 @@
 # UD Nightly Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-
 **Goal:** Build a reproducible UD Nightly using the upstream Nightly release
 variant and pinned core, while preserving the existing Thor update identity.
 

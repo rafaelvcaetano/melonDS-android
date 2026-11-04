@@ -12,8 +12,8 @@ GPU Adreno, controller, doppio display o driver fisici della Thor.
 
 [Riepilogo completo, prima/dopo e bozze PR](INTEGRATION-REPORT.md).
 
-[Mandato](../../superpowers/specs/2026-10-28-thor-refinement-design.md) ·
-[Piano e gate residui](../../superpowers/plans/2026-10-28-thor-refinement.md) ·
+[Funzioni e correzioni](INTEGRATION-REPORT.md) ·
+[Verifiche e limiti](VALIDATION.md) ·
 [Revisioni indipendenti](INDEPENDENT-REVIEW.md).
 
 ## Censimento riutilizzato
@@ -139,13 +139,13 @@ Conservare campioni, unità, variazione ed esclusioni; niente percentuali invent
 Il percorso Compute è **OpenGL ES3.2/GLSL, non OpenCL**. La scala6x migliora il
 raster3D e non aggiunge automaticamente dettaglio agli sprite2D. Le ipotesi
 rimaste sono visibilità tra passaggi GPU, riuso delle texture e costo degli span.
-Il [piano dell'esperimento di visibilità](../../superpowers/plans/2026-10-28-compute-visibility-experiment.md)
-è pronto, ma non è una patch prestazionale applicata. Una stima di memoria logica
+L'esperimento di visibilità GPU non è stato eseguito e non costituisce una
+patch prestazionale applicata; i [limiti di verifica](VALIDATION.md) restano aperti. Una stima di memoria logica
 non è una misura di RAM risparmiata. Non ridurre scala o slot per simulare qualità
 equivalente; lo screenshot interno256×384 non certifica qualità6x. Il port
 upstream dell'upscaling2D richiede un lavoro strutturale separato.
 
-I due finding Daybreak esistenti sono stati riusati e verificati. Non è stato
+I due risultati di analisi esistenti sono stati riusati e verificati. Non è stato
 lanciato un secondo audit generico duplicato. Il prossimo mandato è circoscritto
 alla diff immutabile e ai confini residui, con chiamanti, input raggiungibile,
 controllo fallente, impatto e limiti; dettagli nel piano. La revisione indipendente

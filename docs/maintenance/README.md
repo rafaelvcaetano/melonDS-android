@@ -75,7 +75,6 @@ Pushing accepted local `main` commits is authorized as of 3 November;
 upstream PR publication still requires separate explicit authorization.
 
 - [Audit method and data/storage rules](AUDIT-METHOD.md)
-- [Prompt for a new investigation chat](NEW-CHAT-PROMPT.md)
 - [Test tools and their boundaries](../../tools/README.md)
 - [Android native test runner](../../tools/android-tests/README.md)
 

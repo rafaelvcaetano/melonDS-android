@@ -24,18 +24,15 @@ repository is bug-free or fully secure.
 
 ## Independent Deep Security Scan
 
-`codex-security:deep-security-scan` was invoked once for the whole checkout,
-including the submodule, after the advisory access check returned
-`status=granted`, `programs=Daybreak Blue`, `stale=false`, checked at
-`2026-11-02T20:30:53.119Z`. The scan call emitted no draft, scan ID, manifest,
+One independent repository-wide security review was started for the whole
+checkout, including the core submodule. The review emitted no draft, scan ID, manifest,
 findings or coverage within the 45-minute initial unit budget. The exact
 terminal result after the bounded stop was `Script terminated`.
 
 The scan is therefore **BLOCKED by budget**, not PASS. It was not restarted,
 manually reconstructed or finalized. Manual review and runtime verification
-continued as an independent track. Access to Daybreak Blue is recorded; this
-chat does not expose an independently inspectable model/reasoning attestation,
-so no functional result is attributed to an unverified backend label.
+continued as an independent track. The report makes no claim of completed
+security coverage from that interrupted operation.
 
 ## Surface matrix
 

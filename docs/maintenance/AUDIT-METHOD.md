@@ -1,9 +1,9 @@
 # Android bug audit method
 
-The workflow in [AGENTS.md](../../AGENTS.md) is authoritative. Work on `main`,
-preserve existing edits and contributor attribution, and keep the publication
-gate. This method covers correctness, data integrity, resource lifetime and
-performance in melonDS Android; a general security scan alone is insufficient.
+This method covers correctness, data integrity, resource lifetime and
+performance in melonDS Android. Preserve contributor attribution and original
+test inputs. A general security scan alone is insufficient to establish
+runtime behavior or data preservation.
 
 ## Establish the target before selecting a bug
 

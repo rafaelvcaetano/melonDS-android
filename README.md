@@ -1,73 +1,78 @@
-# melonDS Android port
-Android port of [melonDS](https://melonds.kuribo64.net/), a DS and DSi emulator.
+# melonDS Android UD Nightly
 
-## This fork
+UD Nightly is a fork of [melonDS Android](https://github.com/rafaelvcaetano/melonDS-android), the Android port of the [melonDS](https://melonds.kuribo64.net/) Nintendo DS and DSi emulator. It adds easier setup and controls, and includes fixes for saves, imports, Android lifecycle handling and the native core.
 
-Development uses a single branch, `main`, in this repository and its [Android core fork](https://github.com/Umberto-DEV/melonDS-android-lib/tree/main). The latest source includes the Sacred Gold Plus wild Pokémon picker, grouped cheat selectors, cheat search and Wi-Fi settings. [Earlier picker usage and validation](docs/ventuno/SGP-CHEATS-2.1.1.md) remains available as historical documentation.
+[Downloads and release notes](https://github.com/Umberto-DEV/melonDS-android/releases) · [Feature and update guide](docs/user-guide/UD-NIGHTLY.md) · [Android core fork](https://github.com/Umberto-DEV/melonDS-android-lib)
 
-## Maintenance
+Check each release for its exact version, Android package, CPU architectures, signing certificate and test results. An older release does not establish that the latest source has been packaged or tested on your device.
 
-[Bug research and current evidence](docs/maintenance/README.md) is the entry point
-for issue triage, validation boundaries and storage retention. The
-[new-chat prompt](docs/maintenance/NEW-CHAT-PROMPT.md) starts a bounded Android
-investigation without duplicating the historical issue census.
+## What is new compared with official Nightly?
 
-[<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80">](https://play.google.com/store/apps/details?id=me.magnum.melonds&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1)[<img src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.png" alt="Get it on GitHub" height="80">](https://github.com/rafaelvcaetano/melonDS-android/releases/latest)
+The documented comparison starts from official app revision `c42995ca` and core revision `431ab4bd`. Features already present upstream retain their original attribution, including DAT cheat support, OpenGL/Compute rendering and the settings backup implementation.
 
-|Rom List|Dark Theme|Pocket Physics|Layout Editor|
-|---|---|---|---|
-|![Screenshot 1](./.github/images/screenshot_mobile0.png)|![Screenshot 2](./.github/images/screenshot_mobile1.png)|![Screenshot 3](./.github/images/screenshot_mobile2.png)|![Screenshot 4](./.github/images/screenshot_mobile3.png)|
+- **Guided BIOS and firmware setup:** select your files, see separate DS and DSi results, and retry a failed copy without adopting an incomplete file. [Setup details](docs/user-guide/UD-NIGHTLY.md#bios-and-firmware-setup)
+- **Three firmware Wi-Fi connection slots:** edit names and DNS settings, then enable or disable connections from the pause menu. [Connection settings](docs/user-guide/UD-NIGHTLY.md#online-connection-settings)
+- **Cheat search and grouped choices:** search names, folders and selector options. Supported code families can appear as a species, level, nature or starter choice. Finding a result does not enable it. [Cheat changes](docs/user-guide/UD-NIGHTLY.md#cheat-search-and-import)
+- **Settings and layout backup/restore:** the existing upstream backup manager is accessible, with validation and refreshed controller settings after restore. [Backup and restore](docs/user-guide/UD-NIGHTLY.md#settings-and-controls)
+- **More input options:** hold to fast-forward, combination hotkeys, optional fast-forward mute, sleep/lid handling and optional forward-only clock synchronization. [Controls](docs/user-guide/UD-NIGHTLY.md#settings-and-controls)
 
-# Missing Features
-*  Local Multiplayer
-*  DSi SD card support
-*  Customizable button skins
-*  More display filters
+## Bug fixes
 
-# Performance
-Performance is solid on 64 bit devices with thread rendering and JIT enabled, and should run at full speed on flagship devices. Performance on older devices, specially
-32 bit devices, is very poor due to the lack of JIT support.
+Each linked report describes the previous behavior, correction, tests and limits.
 
-# Integration with third-party frontends
-It's possible to launch melonDS from third part frontends. For that, you will need to have the ROMs you want to launch already scanned by melonDS. Then, you can configure your
-third-party frontend with the following configuration:
-*  Package name: `me.magnum.melonds`
-*  Activity name: `me.magnum.melonds.ui.emulator.EmulatorActivity`
-*  Parameters (choose one):
-    * Intent data (preferred) - a URI of the NDS ROM (ZIP and 7z files are supported). Ensure [read permission is granted](https://developer.android.com/reference/android/content/Intent#FLAG_GRANT_READ_URI_PERMISSION)
-    * `uri` (deprecated) - a string with the [SAF](https://developer.android.com/guide/topics/providers/create-document-provider) URI of the NDS ROM (ZIP and 7z files are supported)
-    * `PATH` (deprecated) - a string with the absolute path to the NDS ROM (ZIP and 7z files are supported)
+- **Failed cheat imports preserve the previous database.** Invalid input, cancellation and write failures are handled before replacement is committed; a later import can be retried. [Import evidence](docs/maintenance/2026-10-28-android-bugfixes/VALIDATION.md)
+- **Save and NAND failures receive explicit recovery.** Changes retain pending save writes and preserve or recover the previous NAND save generation when replacement fails. [Save checks](docs/maintenance/2026-10-28-main/VALIDATION.md) · [NAND failure and retry](docs/maintenance/2026-11-03-nand-rename-fault/README.md)
+- **ROM scanning recovers after errors.** Scans are serialized, published lists remain stable, and compressed input is limited before expensive work. [Library and archive checks](docs/maintenance/2026-10-28-refinement/INTEGRATION-REPORT.md)
+- **Android input, audio and display transitions are corrected.** This includes interrupted input, microphone sample limits, session ownership and software-renderer fallback. [Before/after behavior](docs/maintenance/2026-10-28-android-bugfixes/REPORT.md)
+- **Untrusted files and emulated hardware state are checked before native access.** Bounds, sizes and work limits cover cartridge data, savestates, firmware, Wi-Fi, DSP, cheats and Android file providers. [Individual findings and fixes](docs/maintenance/2026-11-03-security-followup/FINDING-DETAILS.md)
+- **The shared core fixes JIT, cartridge and DS/DSi state handling.** [Core changes and evidence](https://github.com/Umberto-DEV/melonDS-android-lib#changes-in-this-fork)
 
-### Pegasus metadata files
-* [melonds.metadata.txt](./.github/pegasus/melonds.metadata.txt) 
-* [melonds-nightly.metadata.txt](./.github/pegasus/melonds-nightly.metadata.txt) 
+The [issue and PR coverage register](docs/maintenance/2026-10-28-refinement/ISSUE-PR-COVERAGE.csv) distinguishes complete local fixes, partial coverage and work not integrated. A fix in this fork does not close an upstream issue or merge another contributor's PR.
 
-### Info regarding save files
-When launching ROMs from third-party frontends, if melonDS hasn't scanned that particular ROM previously, it won't be able to create the save file next to the ROM file if the
-option "Save next to ROM file" is enabled in the settings or the save file directory is not set. Instead, melonDS will create a save file in
-`Android/data/me.magnum.melonds/files/saves`
+## Install or update
 
-# Nightly Builds
+Use the APK listed in a release and verify its SHA-256 checksum before installing. ROMs, BIOS, firmware, NAND and game saves are not included.
 
-To have access to the latest changes, you can install nightly builds that you can find [here](https://github.com/rafaelvcaetano/melonDS-android/releases/tag/nightly-release).
+- **New UD installation:** use the standalone UD Nightly APK and select your own game and system files.
+- **Existing UD installation:** an in-place update requires the same Android package and signing certificate, with a higher version code. Back up saves, settings, layouts, cheats and system files first. Keep the app installed; do not clear its data as an update step.
+- **Official Nightly installation:** UD Nightly follows the `.nightly` package name but has a different signing identity. Android will reject replacing the author's signed APK with a fork-signed APK.
+- **Earlier `.nightly.perf` installation:** use its explicitly labeled compatible update. The public `.nightly` APK cannot update it in place. Private databases and saved document permissions do not transfer automatically between package names.
 
-Be aware that these builds can contain more bugs than usual and you may need to clear your app data to get it to work properly after updates.
+A source patch is for developers applying changes to the documented source revision and rebuilding. It cannot turn the author's signed APK into an update signed by this fork. [Installation and update details](docs/user-guide/UD-NIGHTLY.md#installation-and-data-preservation)
 
-# Building
-To build the project you will need Android SDK, NDK and CMake.
+The persistent UD release signing certificate has SHA-256 fingerprint `832a0223e29802245c0e9f8ca24c8358e7d21cfe0dbea347845fda751f950d86`. Verify the downloaded APK against its release manifest. Earlier `.perf` builds use a different preserved local identity and require their separately labeled update.
 
-## Build steps:
-1.  Clone the project, including submodules with:
-    
-    `git clone --recurse-submodules https://github.com/rafaelvcaetano/melonDS-android.git`
-2.  Install the Android SDK, NDK and CMake
-3.  Build with:
-    1.  Unix: `./gradlew :app:assembleGitHubProdDebug`
-    2.  Windows: `gradlew.bat :app:assembleGitHubProdDebug`
-4.  The generated APK can be found at `app/gitHubProd/debug`
+## Supported behavior and limits
 
-If you want to create a release build, you will need to modify your `local.properties` file to include the following fields:  
-*  `MELONDS_KEYSTORE=<path_to_your_keystore>`
-*  `MELONDS_KEYSTORE_PASSWORD=<keystore_password>`
-*  `MELONDS_KEY_ALIAS=<name_of_your_key_alias>`
-*  `MELONDS_KEY_PASSWORD=<key_alias_password>`
+DS/DSi emulation, supported ROM archives and the existing renderers remain available. Local multiplayer, DSi SD-card support, new casting controls and broad device-specific compatibility are not claimed by these changes. Online settings do not guarantee that a game, access point or community server will connect.
+
+Testing includes JVM/API checks, native sanitizers, Android native tests on ARM64 4 KiB and 16 KiB environments, and real-app tests on Android emulators. Physical-device results and skipped checks are recorded separately in the [verification reports](docs/maintenance/README.md). Test success does not certify every game, Android version or device. No measured battery, CPU, GPU, RAM or frame-rate improvement is claimed without a corresponding comparison.
+
+## Building
+
+Both fork repositories use `main`. The app pins the exact core revision as a Git submodule and compiles it into the APK; end users do not install the core separately.
+
+```sh
+git clone --recurse-submodules --branch main https://github.com/Umberto-DEV/melonDS-android.git
+cd melonds-android
+./gradlew :app:assembleGitHubNightlyDebug
+```
+
+A plain source ZIP does not contain submodule contents. In an existing checkout, use `git submodule update --init --recursive`; do not use `--remote` when reproducing a pinned build. The debug build has a separate `.dev` ID and is not the release update.
+
+Use Java 21 and the SDK, NDK and CMake versions declared by the project. Release builds use `:app:assembleGitHubNightlyRelease` and require an owner-controlled signing key configured in untracked `local.properties`:
+
+```properties
+MELONDS_KEYSTORE=/path/to/keystore
+MELONDS_KEYSTORE_PASSWORD=<store password>
+MELONDS_KEY_ALIAS=<key alias>
+MELONDS_KEY_PASSWORD=<key password>
+```
+
+Keep signing material and passwords out of Git, artifacts and logs. Published UD updates must preserve their signing identity.
+
+## Credits and license
+
+Rafael Caetano maintains the upstream Android port; melonDS and its contributors provide the core. This fork preserves their licenses and credits. Adapted app work includes takanuva15 (cheat search), WailAbou (hotkeys and hold to fast-forward), dysprosium (fast-forward mute), N3MI-DG (external launches), DLCSharp (sleep/lid behavior) and selected fixes by corigne. The evidence documents retain the corresponding PR links and scope.
+
+See [LICENSE](LICENSE), the [core contributor guide](https://github.com/Umberto-DEV/melonDS-android-lib/blob/main/CONTRIBUTING.md) and the original projects for licensing and contributor information. Game and system files are not distributed here.

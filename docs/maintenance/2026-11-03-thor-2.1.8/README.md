@@ -148,6 +148,8 @@ After Thor acceptance, append its exact APK/source identities and limitations
 to both drafts; recheck upstream changes and links before requesting final
 publication approval. No replacement PR currently exists.
 
+The [maintainer explicitly requested one PR per feature or fix](https://github.com/rafaelvcaetano/melonDS-android/pull/1672#issuecomment-5637055233). The two overview drafts must be scoped accordingly before submission; no additional branch or PR is created by this preparation.
+
 ### Issue and PR status
 
 No upstream issue was closed by this campaign. The canonical

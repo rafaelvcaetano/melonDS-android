@@ -5,16 +5,12 @@
     "status": "completed",
     "started_at": "2026-11-03T13:56:06.766246Z",
     "sealed_at": "2026-11-03T17:44:41.144905Z",
-    "program": "Daybreak Blue",
-    "chat_reasoning_requested": "xhigh",
-    "worker_model": "non verificabile",
-    "worker_reasoning": "non verificabile",
     "coverage": "complete",
     "inventory_files": 3633,
     "nested_core_files": 750,
-    "snapshot_digest": "codex-security-snapshot/v1:sha256:9ff048237b8d1dae0db1f928f1ad74e89e50d1c13f23bd135df8aa77722c4c22",
     "findings_sha256": "3e009c6f8476a350b13086ccd21f6c0905dad980432b0a69f6a4b67f29e22430",
-    "coverage_sha256": "5d9167a65165b3e1a12a9f3f983decf2287042a3f2e932e536191ca2a9748a3"
+    "coverage_sha256": "5d9167a65165b3e1a12a9f3f983decf2287042a3f2e932e536191ca2a9748a3",
+    "snapshot_sha256": "9ff048237b8d1dae0db1f928f1ad74e89e50d1c13f23bd135df8aa77722c4c22"
   },
   "identities": {
     "app_branch": "main",
@@ -161,8 +157,8 @@
     "second_scan_findings_closed_in_service": 0,
     "first_scan_open_verified": 35,
     "second_scan_open_verified": 66,
-    "verification_method": "get_codex_security_scan_context for each occurrence ID; 101/101 returned triage.open",
-    "closure_blocker": "Computer Use refused com.openai.codex for safety reasons; available service tool requires UI actionToken/requestId and remediation verified does not close triage"
+    "verification_method": "Per-occurrence service readback; 101/101 returned triage.open",
+    "closure_blocker": "Available interface could not automate triage closure; source remediation and saved triage state remain separate"
   },
   "fork_main_pushed": true,
   "upstream_published": false,

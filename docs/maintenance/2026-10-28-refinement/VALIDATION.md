@@ -94,7 +94,7 @@ white-on-white capture. Done returns the explicit actions without confirmation.
 Native Activity rotation during external-provider BIOS copy, spoken TalkBack,
 physical mic/controller/display behavior, ordinary startup duration and
 CPU/GPU/energy comparisons remain separate gates. The selected GPU experiment
-is [documented but not executed](../../superpowers/plans/2026-10-28-compute-visibility-experiment.md).
+has not been executed; no GPU visibility or performance acceptance is claimed.
 Do not use emulator timings, logical texture sizes or SurfaceFlinger refreshes
 as physical Thor improvements.
 

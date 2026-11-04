@@ -1,17 +1,17 @@
 # Deep Security Scan artifact reconciliation
 
-Date: 3 November 2026. This is a read-only reconciliation of existing Codex
-Security outputs, not a new scan or a validation of their findings. The
+Date: 3 November 2026. This is a read-only reconciliation of existing security-review
+outputs, not a new scan or a validation of their findings. The
 2 November repository-campaign report recorded a detached waiter as a block
 before the retained artifacts became visible. That historical statement is
 superseded here; the original report is preserved.
 
 ## Exact state
 
-| Target revision | UI model shown by user | Manifest start/end (UTC) | Durable status | Retained records | Coverage |
-| --- | --- | --- | --- | --- | --- |
-| App `1cc24ead`, original core `403c4683` | GPT-Daybreak-Blue-Latest · Alto | 2026-11-02 20:31:03 / 2026-11-03 05:18:47 | `canceled` | 87: 16 high, 55 medium, 16 low | `partial`; 385 surface entries, 125 deferred, 93 open questions |
-| App `03feb66e`, core `f76940fc` | GPT-6 Sol · Molto alto | 2026-11-03 05:20:01 / 05:41:21 | `canceled` | 30: 1 high, 10 medium, 19 low | `partial`; 105 surface entries, 23 deferred, 15 open questions |
+| Target revision | Manifest start/end (UTC) | Durable status | Retained records | Coverage |
+| --- | --- | --- | --- | --- |
+| App `1cc24ead`, original core `403c4683` | 2026-11-02 20:31:03 / 2026-11-03 05:18:47 | `canceled` | 87: 16 high, 55 medium, 16 low | `partial`; 385 surface entries, 125 deferred, 93 open questions |
+| App `03feb66e`, core `f76940fc` | 2026-11-03 05:20:01 / 05:41:21 | `canceled` | 30: 1 high, 10 medium, 19 low | `partial`; 105 surface entries, 23 deferred, 15 open questions |
 
 The first manifest ID is `0abee950-c616-43b2-9913-27def27aab63`; the
 second is `68db7fdc-0353-4bcc-bf54-50309ec8654e`. The second coordinator
@@ -24,14 +24,10 @@ distinct rule IDs; the 16 high records include 11 rule IDs. Neither count is
 the number of independently reproduced local bugs. Scan token-use metrics
 are not present in the inspected manifests, so no token total is asserted.
 
-Canonical private artifacts stay in the Codex Security state directory; they
-were not copied into the project. For each revision the subdirectory under
-`/Users/umbertocipriano/.codex/state/plugins/codex-security/scans/melonds-android/`
-is respectively
-`1cc24ead4ba0f1e733b5d828df6a4b23ccf081b0_20261102T203103Z_vd4mysaa`
-and
-`03feb66ef321e466fb533804f9a86530cfdb7a33_20261103T052001Z_224gj8_9`.
-Each has `scan-manifest.json`, `findings.json`, `coverage.json` and `report.md`.
+Canonical private artifacts are retained outside the project and were not
+copied into the public source tree. The scan IDs, source revisions and artifact
+hashes in this report identify the original records. Each retained set contains
+`scan-manifest.json`, `findings.json`, `coverage.json` and `report.md`.
 
 | Artifact | Original SHA-256 | Later SHA-256 |
 | --- | --- | --- |

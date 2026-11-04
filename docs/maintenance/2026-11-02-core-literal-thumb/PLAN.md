@@ -27,8 +27,6 @@ does not infer an app lifecycle or game-specific cause from a core result.
 - Initial budget: 45 minutes and at most 50 MiB of retained raw output.
 - Disk gate: retain at least 10 GiB free. Reuse the existing incremental host
   and NDK build trees; do not create another APK or duplicate ROM tree.
-- Backend limitation: this Codex session has no independently inspectable
-  Daybreak Blue/SOL 6 attestation, so no result will be attributed to it.
 
 ## Hypothesis and oracle
 
