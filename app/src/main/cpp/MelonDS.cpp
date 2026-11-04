@@ -225,6 +225,9 @@ namespace MelonDSAndroid
 
     void resume()
     {
+        if (instance && currentConfiguration && currentConfiguration->syncRtcOnResume)
+            instance->syncRtcToSystem();
+
         startAudio();
     }
 
@@ -396,4 +399,3 @@ namespace MelonDSAndroid
         openGlContext->Release();
     }
 }
-
