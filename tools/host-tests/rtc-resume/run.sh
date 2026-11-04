@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 repo="$(cd "$(dirname "$0")/../../.." && pwd)"
+bash "$repo/tools/host-tests/rtc-resume/run-dispatch.sh"
 build="$repo/build/host-tests/rtc-resume"
 mkdir -p "$build"
 core="$repo/app/build/core-host"

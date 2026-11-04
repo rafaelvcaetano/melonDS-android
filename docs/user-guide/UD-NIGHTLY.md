@@ -2,6 +2,8 @@
 
 This guide describes the fork's changes relative to official Nightly app `c42995ca` and core `431ab4bd`. Release notes identify the exact source and APK that a download contains. Source changes are not a test result for an unbuilt APK.
 
+Current main has integrated [upstream RTC PR #1664](../maintenance/2026-11-04-upstream-alignment/README.md). The published 2.1.8 artifacts predate this source merge. Emulator-resume synchronization now exists upstream; the fork retains its existing default-off, forward-only, 30-second policy and preference key.
+
 ## BIOS and firmware setup
 
 Guided setup checks the files selected for DS and DSi mode and reports the results separately. A failed or incomplete copy is rejected before it becomes the active setting. Errors identify the failed step and allow retry.

@@ -339,11 +339,9 @@ Java_me_magnum_melonds_MelonEmulator_resumeEmulation(JNIEnv* env, jobject thiz)
         pthread_mutex_lock(&emuThreadMutex);
     }
 
-    // Resume before the emulation thread is released: onResumed() writes the RTC, which must not
-    // run in parallel with a frame.
-    MelonDSAndroid::resume();
-
     if (!stop) {
+        // Resume under the emulator mutex, before releasing the frame loop.
+        MelonDSAndroid::resume();
         paused = false;
         if (started) {
             pthread_cond_broadcast(&emuThreadCond);

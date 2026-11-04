@@ -10,7 +10,7 @@ Check each release for its exact version, Android package, CPU architectures, si
 
 ## What is new compared with official Nightly?
 
-The documented comparison starts from official app revision `c42995ca` and core revision `431ab4bd`. Features already present upstream retain their original attribution, including DAT cheat support, OpenGL/Compute rendering and the settings backup implementation.
+The documented comparison starts from official app revision `c42995ca` and core revision `431ab4bd`. Current main also integrates [upstream PR #1664](docs/maintenance/2026-11-04-upstream-alignment/README.md) at `fa214944`. Resume clock synchronization is now upstream; this fork retains its forward-only policy. The published 2.1.8 APKs and source patches keep their original identities and baseline. Features already present upstream retain their original attribution, including DAT cheat support, OpenGL/Compute rendering and the settings backup implementation.
 
 - **Guided BIOS and firmware setup:** select your files, see separate DS and DSi results, and retry a failed copy without adopting an incomplete file. [Setup details](docs/user-guide/UD-NIGHTLY.md#bios-and-firmware-setup)
 - **Three firmware Wi-Fi connection slots:** edit names and DNS settings, then enable or disable connections from the pause menu. [Connection settings](docs/user-guide/UD-NIGHTLY.md#online-connection-settings)
@@ -87,6 +87,6 @@ Keep signing material and passwords out of Git, artifacts and logs. Published UD
 
 ## Credits and license
 
-Rafael Caetano maintains the upstream Android port; melonDS and its contributors provide the core. This fork preserves their licenses and credits. Adapted app work includes takanuva15 (cheat search), WailAbou (hotkeys and hold to fast-forward), dysprosium (fast-forward mute), N3MI-DG (external launches), DLCSharp (sleep/lid behavior) and selected fixes by corigne. The evidence documents retain the corresponding PR links and scope.
+Rafael Caetano maintains the upstream Android port; melonDS and its contributors provide the core. This fork preserves their licenses and credits. Adapted app work includes takanuva15 (cheat search), WailAbou (hotkeys and hold to fast-forward), dysprosium (fast-forward mute), N3MI-DG (external launches), DLCSharp (sleep/lid behavior), selected fixes by corigne, and Benjamin BONVARLET/Komalis (RTC PR #1664). The evidence documents retain the corresponding PR links and scope.
 
 See [LICENSE](LICENSE), the [core contributor guide](https://github.com/Umberto-DEV/melonDS-android-lib/blob/main/CONTRIBUTING.md) and the original projects for licensing and contributor information. Game and system files are not distributed here.

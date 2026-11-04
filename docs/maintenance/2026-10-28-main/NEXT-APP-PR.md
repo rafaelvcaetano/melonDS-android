@@ -12,7 +12,7 @@ Submission scope: this is the short fork review summary. Before opening an upstr
 This makes Android Nightly easier to set up and adds controls for cheats,
 firmware Wi-Fi settings and gameplay. It also improves how the app handles
 failed saves, imports and file access. The comparison starts from official
-Nightly `c42995ca` and its core `431ab4bd`.
+master `fa214944` (including merged RTC PR #1664) and core `431ab4bd`.
 
 - Add guided BIOS/firmware setup with separate DS and DSi results, clear errors
   and retry. Incomplete setup files are rejected before use.
@@ -42,6 +42,9 @@ has separate [APK identity and acceptance results](https://github.com/Umberto-DE
 including 349 local JVM/API tests, actual optimized-release Android checks and
 the successful [app CI](https://github.com/Umberto-DEV/melonDS-android/actions/runs/41892532022).
 The [physical 47-to-49 update](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-04-thor-update/README.md) preserves the inventoried data and permissions; physical gameplay review remains separate.
+Current main also adopts the upstream stopped-session resume guard while retaining
+the fork's forward-only RTC policy and setting. This [source alignment](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-04-upstream-alignment/README.md)
+is newer than the published 2.1.8 review APK; that APK is not relabeled as testing this change.
 The app pins the companion core; review core first, then use its accepted
 upstream revision. A source patch cannot supply the author's signing key.
 
@@ -53,5 +56,6 @@ This replaces #1681/#1682, closed without merge; it does not close partial cases
 
 Credits: takanuva15 (#1677), WailAbou (#1606/#1608), dysprosium (#1625),
 N3MI-DG (#1648), DLCSharp (#1589), selected fixes from corigne (#1666),
+Benjamin BONVARLET/Komalis for the now-merged RTC PR #1664,
 and QiuYucheng2003 for the JNI leak report (#1678).
 Existing backup-manager and DAT authorship is retained.
