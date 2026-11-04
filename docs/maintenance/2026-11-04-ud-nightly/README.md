@@ -37,6 +37,34 @@ The persistent UD private key and encrypted recovery bundle remain local and
 excluded from Git and downloads. An independent off-Mac recovery copy remains
 the owner's responsibility. No signing credentials or personal data are bundled.
 
+## Release and physical-device preparation
+
+Release status: both fork releases are **drafts**, pending the current app CI
+blocker. Seven app assets were uploaded with matching sizes and SHA-256
+digests; an actual downloaded APK was rehashed successfully. The source
+archive contains 3,464 files including pinned submodules. Both source patches
+pass application checks and byte comparisons for all 399 app and 77 core
+changed files. The source retains the unchanged upstream freely
+redistributable BIOS replacements and their copyright/license; no personal
+system images or game/save inputs are distributed.
+
+The physical-device preparation verified private snapshots before target
+Application/provider startup, including Room schema8 with 709,658 cheats,
+30,341 folders and 4,255 games; 11 library records, controller/layout files
+and three persisted URI grants are recorded. All 41 present protected external
+files were backed up, verified and rehashed unchanged. Seven historical paths
+were already absent before this work and were not restored or deleted.
+The temporary helper and its two verified transport ZIPs were removed; the
+Mac backups remain protected. The device remains on 2.1.6/47 with unchanged
+UID. No app update, original game SAVE, clear-data or target uninstall was
+performed. This is backup preparation, not physical acceptance of 2.1.8.
+
+Campaign cleanup retained regression source and small reports, removed
+3,169,377,590 bytes of reproducible build outputs, 20,770,620 bytes of synthetic
+APK intermediates and 134,327,778 bytes of AVD working copies. Per-file
+deletion manifests and retained-copy hashes precede cleanup. Both campaign
+AVDs were stopped; the shared ADB server was left running.
+
 ## Selector wording corrected during release testing
 
 The real release showed a level selector with level values but the prompt

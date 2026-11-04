@@ -2,7 +2,7 @@
 
 Current English release evidence: [UD Nightly2.1.8 packaging, source patches and update checks](2026-11-04-ud-nightly/README.md).
 
-Start here for Android bug work. This index is current as of **3 November 2026**;
+Start here for Android bug work. This index is current as of **4 November 2026**;
 dated reports are historical evidence, not fresh acceptance of later builds.
 
 User-facing features and update requirements: [UD Nightly guide](../user-guide/UD-NIGHTLY.md).

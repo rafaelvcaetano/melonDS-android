@@ -6,6 +6,8 @@ UD Nightly is a fork of [melonDS Android](https://github.com/rafaelvcaetano/melo
 
 Check each release for its exact version, Android package, CPU architectures, signing certificate and test results. An older release does not establish that the latest source has been packaged or tested on your device.
 
+UD Nightly2.1.8 is currently staged as a draft while its latest app CI run is blocked. It is not yet a public download. See the [current release status](docs/maintenance/2026-11-04-ud-nightly/README.md).
+
 ## What is new compared with official Nightly?
 
 The documented comparison starts from official app revision `c42995ca` and core revision `431ab4bd`. Features already present upstream retain their original attribution, including DAT cheat support, OpenGL/Compute rendering and the settings backup implementation.
@@ -43,7 +45,7 @@ The [issue and PR coverage register](docs/maintenance/2026-10-28-refinement/ISSU
 
 ## Install or update
 
-Use the APK listed in a release and verify its SHA-256 checksum before installing. ROMs, BIOS, firmware, NAND and game saves are not included.
+Use the APK listed in a release and verify its SHA-256 checksum before installing. Commercial game images, personal BIOS/firmware, NAND and game saves are not included. The source retains the upstream freely redistributable BIOS replacement and its license.
 
 - **New UD installation:** use the standalone UD Nightly APK and select your own game and system files.
 - **Existing UD installation:** an in-place update requires the same Android package and signing certificate, with a higher version code. Back up saves, settings, layouts, cheats and system files first. Keep the app installed; do not clear its data as an update step.
