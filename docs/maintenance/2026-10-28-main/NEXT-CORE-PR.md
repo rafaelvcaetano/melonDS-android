@@ -35,7 +35,7 @@ host sanitizers, native Android ARM64 tests on 4 KiB and 16 KiB page sizes,
 and execution through the paired app. Host checks and component tests do not
 certify all games or physical-device behavior. See the [validation report](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md).
 
-The paired app will provide a signed UD Nightly [review build](https://github.com/Umberto-DEV/melonDS-android/releases)
+The paired app provides a signed UD Nightly [review build](https://github.com/Umberto-DEV/melonDS-android/releases/tag/ud-nightly-2.1.8)
 with its exact APK/source identity and acceptance results. The app build checks out
 this core recursively at its pinned Git commit and compiles it into the APK;
 users do not install a separate library. Review and merge core first, then pin

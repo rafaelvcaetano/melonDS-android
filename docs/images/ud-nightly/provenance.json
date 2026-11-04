@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-04",
+  "app": "melonDS Android UD Nightly 2.1.8 (49)",
+  "package": "me.magnum.melonds.nightly",
+  "apk_sha256": "b5c05665ceb7c47a2f208961acb64cc29aea4bcc3e151a654de79fbd78b5be1b",
+  "app_revision": "4809d38fd8dfe2745a1605377a5825516a6aec58",
+  "core_revision_prefix": "2bb701ff",
+  "runtime": "Android API 35 ARM64 AVD, 16 KiB pages",
+  "data": "Synthetic cheat fixture mapped to a generated homebrew ROM; all cheats disabled. WFC defaults shown without personal names. Guided setup prompt only, no system files included.",
+  "processing": "Original adb screencap PNGs, copied without image editing.",
+  "images": [
+    {
+      "file": "guided-bios-setup.png",
+      "sha256": "4ea2ee3b15645df1930d5952fcc3fea2fcabf1368568300ac1df31adf3ebb1aa",
+      "bytes": 255456,
+      "source_capture": "final-guided-bios.png"
+    },
+    {
+      "file": "cheat-search.png",
+      "sha256": "2bc18849b261bc83afba3b6236fe27f166fac8b7ea56647665ee38b4268a9485",
+      "bytes": 136315,
+      "source_capture": "final-cheat-search.png"
+    },
+    {
+      "file": "cheat-level-selector.png",
+      "sha256": "bb9d5d0e4e4a3a00266fe640eee9b33fdf38f002246ee0079f9580850ab860b4",
+      "bytes": 86895,
+      "source_capture": "final-level-selector.png"
+    },
+    {
+      "file": "cheat-species-selector.png",
+      "sha256": "65bea2f110e8d57d2b8d9b14d4c32751211f811e08cb2612e4f19bf2becba109",
+      "bytes": 126807,
+      "source_capture": "final-species-selector.png"
+    },
+    {
+      "file": "wfc-slots.png",
+      "sha256": "cc053dc7a5b8f5967582d402058c2679b496f26a18ff4df6a65806c8873d8eeb",
+      "bytes": 141205,
+      "source_capture": "final-wfc-slots.png"
+    }
+  ]
+}

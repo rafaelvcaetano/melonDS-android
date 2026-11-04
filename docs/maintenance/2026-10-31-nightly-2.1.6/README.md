@@ -7,8 +7,9 @@ executed at delivery on 31 October.
 
 **The APK is built and checked for an update from the documented Thor 2.1.5.
 It has not been installed or executed.** Physical acceptance remains pending.
-This delivery follows the [update mandate](../NEXT-UPDATE.md) and retains the
-existing modified Nightly features, configuration and contributor credits.
+This delivery retains the modified Nightly features, configuration and
+contributor credits. The [UD Nightly guide](../../user-guide/UD-NIGHTLY.md)
+explains the package and signer requirements for later updates.
 
 ## Canonical artifact and identity
 

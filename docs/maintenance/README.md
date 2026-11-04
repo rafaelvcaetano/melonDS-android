@@ -1,14 +1,13 @@
 # Maintenance and bug research
 
+Current English release evidence: [UD Nightly2.1.8 packaging, source patches and update checks](2026-11-04-ud-nightly/README.md).
+
 Start here for Android bug work. This index is current as of **3 November 2026**;
 dated reports are historical evidence, not fresh acceptance of later builds.
 
-Current delivery procedure: [Thor 2.1.8 update, PR drafts and GitHub build availability](2026-11-03-thor-2.1.8/README.md).
-Physical installation and upstream publication await separate approval.
-The [UD Nightly plan](2026-11-03-thor-2.1.8/NIGHTLY-PLAN.md) aligns the public
-release variant with upstream while preserving the existing Thor update identity.
-Both forks have only `main`; signing and release acceptance remain explicit gates.
-
+User-facing features and update requirements: [UD Nightly guide](../user-guide/UD-NIGHTLY.md).
+The [2.1.8 compatibility reference](2026-11-03-thor-2.1.8/README.md) identifies
+the legacy candidate separately from later UD release builds.
 
 Current evidence: [second independent scan, 2.1.8/49 and conservative AVD update](2026-11-03-security-followup/README.md).
 The exact optimized APK also passed Continue, SAVE and new-process cold Continue
@@ -66,13 +65,8 @@ API35 ARM64/4KiB/16KiB checks are separate from whole-app and HOME quota accepta
 
 Follow-up: [save replacement and JNI lease corrections; Surface/teardown limits](2026-10-31-persistence-lifecycle/README.md).
 
-Current delivery mandate: [next modified Nightly update and paired PR drafts](NEXT-UPDATE.md).
-Verified defects may be corrected locally; the target is the next update after
-the documented Thor 2.1.5/46, now delivered as installed 2.1.6/47. The coordinated
-SGP 1.3.1 IT update and copied-save checks are in the same physical report.
-Installation was authorized on 1 November;
-Pushing accepted local `main` commits is authorized as of 3 November;
-upstream PR publication still requires separate explicit authorization.
+The [1 November physical report](2026-11-01-thor-update/README.md) records the
+installed 2.1.6/47 build, data preservation checks and its distinct limitations.
 
 - [Audit method and data/storage rules](AUDIT-METHOD.md)
 - [Test tools and their boundaries](../../tools/README.md)

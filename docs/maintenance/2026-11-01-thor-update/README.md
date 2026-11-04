@@ -15,7 +15,7 @@ This supersedes the installation gate in the original delivery mandate.
 | After | Modified 2.1.6 / versionCode 47 |
 | Installed APK SHA-256 | `2dc30348bc52d412b6bd8ac6e41774c012ad44e566e01011838b1160b62d05a0` |
 | Certificate SHA-256 | `41ad82cd4365c73195128975cf0b920699f8833093507957dc2d0f9d6bb0b4b1` |
-| UID | 10126, unchanged |
+| UID | Unchanged across the update |
 | First installation | 12 September 2026, unchanged |
 
 The installed APK hash was read from Android's actual package path and matches

@@ -233,7 +233,7 @@ toccato, solo lo scratchpad di sessione. I contenuti erano comunque già stati i
 Il pulsante toccato (primo dopo L nel layout predefinito, icona freccia curva su schermo, coordinate ~367,1800) è il **coperchio** (BUTTON_HINGE, DefaultLayoutProvider.kt:159), non «scambia schermi» (assente dal layout predefinito). Chiudere il coperchio manda HGSS in stand-by: il gioco azzera POWCNT bit0 (log "CLEARING POWCNT BIT0") e gli schermi si spengono: comportamento corretto del DS. Riprova: chiusura → schermo spento; riapertura al secondo tocco → il gioco riprende (screenshot con intro in corso, FPS 60). Nessuna regressione.
 
 ### Gestore connessioni WFC e backup (build 43 commit)
-AVD `melonds-test` (`-s emulator-5554`, mai `20e51bf7`), già acceso. `me.magnum.melonds.nightly.dev`
+AVD `melonds-test` (`-s emulator-5554`, mai il seriale del dispositivo fisico), già acceso. `me.magnum.melonds.nightly.dev`
 installato all'inizio prova (build normale); BIOS reali in `/sdcard/Download/bios/ds/` già presenti (pushati
 da sessione precedente). Sessione ripresa da uno stato lasciato da un agente precedente interrotto: i punti
 1 e 2 sono stati riverificati, il punto 3 è stato completato.

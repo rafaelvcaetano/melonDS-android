@@ -5,7 +5,7 @@ Il target è melonDS Android. La macchina di sviluppo compila mediante NDK; i ri
 ## Stato del repository
 
 - App e libreria hanno soltanto `main`, sia localmente sia nei fork GitHub di Umberto-DEV; entrambi i default sono `main`.
-- Tutte le nove punte dei branch locali originali sono ancora antenati dei rispettivi `main`. Bundle, patch e file locali iniziali sono conservati in `/Users/umbertocipriano/Developer/melonds-backup-20261028-125946`.
+- Tutte le nove punte dei branch locali originali sono ancora antenati dei rispettivi `main`. Bundle, patch e file locali iniziali sono conservati nella directory privata dei backup.
 - PR app #1682 e core #19 archiviate e chiuse. Nessuna nuova PR aperta. Le descrizioni future sono in `NEXT-APP-PR.md` e `NEXT-CORE-PR.md`, con fonti, crediti e riferimenti precedenti conservati.
 - Una futura PR partirà dal nostro `main` e avrà come destinazione il default upstream `master`. La pubblicazione resta bloccata dall'utente.
 

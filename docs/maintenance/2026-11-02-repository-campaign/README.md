@@ -196,7 +196,7 @@ comparisons, not fixes for this exact cause.
 - Android NDK executable SHA-256:
   `d36384dd5497a0ddb1415b35dd524836971dfa44d87809f29f7b14cdb88bf5f2`.
 - Private receipt: `local/reports/ds-2026-11-02/repository-campaign/receipt.json`.
-  It is validated offline with `/Users/umbertocipriano/Developer/verifiche` at
+  It is validated offline with the retained local verification tools at revision
   `d8a11722f5cc0535f4d58ea6a1ab52c214797fdb`; receipt consistency does not
   certify security.
 

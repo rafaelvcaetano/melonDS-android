@@ -16,6 +16,18 @@ The documented comparison starts from official app revision `c42995ca` and core 
 - **Settings and layout backup/restore:** the existing upstream backup manager is accessible, with validation and refreshed controller settings after restore. [Backup and restore](docs/user-guide/UD-NIGHTLY.md#settings-and-controls)
 - **More input options:** hold to fast-forward, combination hotkeys, optional fast-forward mute, sleep/lid handling and optional forward-only clock synchronization. [Controls](docs/user-guide/UD-NIGHTLY.md#settings-and-controls)
 
+## Screenshots
+
+These are actual UD Nightly 2.1.8 screens on an Android 15 emulator, using synthetic data. The cheat examples remain disabled. [Capture identity and checksums](docs/images/ud-nightly/provenance.json)
+
+| Guided BIOS setup | Cheat search | Level selector |
+| --- | --- | --- |
+| ![Guided BIOS setup instructions](docs/images/ud-nightly/guided-bios-setup.png) | ![Search results for Level in synthetic cheats](docs/images/ud-nightly/cheat-search.png) | ![Level choices with level-specific search text](docs/images/ud-nightly/cheat-level-selector.png) |
+
+| Species selector | Firmware connection slots |
+| --- | --- |
+| ![Species choices in a synthetic cheat database](docs/images/ud-nightly/cheat-species-selector.png) | ![Editable second and third firmware Wi-Fi slots](docs/images/ud-nightly/wfc-slots.png) |
+
 ## Bug fixes
 
 Each linked report describes the previous behavior, correction, tests and limits.
@@ -25,7 +37,7 @@ Each linked report describes the previous behavior, correction, tests and limits
 - **ROM scanning recovers after errors.** Scans are serialized, published lists remain stable, and compressed input is limited before expensive work. [Library and archive checks](docs/maintenance/2026-10-28-refinement/INTEGRATION-REPORT.md)
 - **Android input, audio and display transitions are corrected.** This includes interrupted input, microphone sample limits, session ownership and software-renderer fallback. [Before/after behavior](docs/maintenance/2026-10-28-android-bugfixes/REPORT.md)
 - **Untrusted files and emulated hardware state are checked before native access.** Bounds, sizes and work limits cover cartridge data, savestates, firmware, Wi-Fi, DSP, cheats and Android file providers. [Individual findings and fixes](docs/maintenance/2026-11-03-security-followup/FINDING-DETAILS.md)
-- **The shared core fixes JIT, cartridge and DS/DSi state handling.** [Core changes and evidence](https://github.com/Umberto-DEV/melonDS-android-lib#changes-in-this-fork)
+- **The shared core fixes JIT, cartridge and DS/DSi state handling.** [Core changes and evidence](https://github.com/Umberto-DEV/melonDS-android-lib#changes-from-the-official-android-core)
 
 The [issue and PR coverage register](docs/maintenance/2026-10-28-refinement/ISSUE-PR-COVERAGE.csv) distinguishes complete local fixes, partial coverage and work not integrated. A fix in this fork does not close an upstream issue or merge another contributor's PR.
 
@@ -38,7 +50,7 @@ Use the APK listed in a release and verify its SHA-256 checksum before installin
 - **Official Nightly installation:** UD Nightly follows the `.nightly` package name but has a different signing identity. Android will reject replacing the author's signed APK with a fork-signed APK.
 - **Earlier `.nightly.perf` installation:** use its explicitly labeled compatible update. The public `.nightly` APK cannot update it in place. Private databases and saved document permissions do not transfer automatically between package names.
 
-A source patch is for developers applying changes to the documented source revision and rebuilding. It cannot turn the author's signed APK into an update signed by this fork. [Installation and update details](docs/user-guide/UD-NIGHTLY.md#installation-and-data-preservation)
+A [source patch](docs/user-guide/SOURCE-PATCHES.md) is for developers applying changes to the documented source revision and rebuilding. It cannot turn the author's signed APK into an update signed by this fork. [Installation and update details](docs/user-guide/UD-NIGHTLY.md#installation-and-data-preservation)
 
 The persistent UD release signing certificate has SHA-256 fingerprint `832a0223e29802245c0e9f8ca24c8358e7d21cfe0dbea347845fda751f950d86`. Verify the downloaded APK against its release manifest. Earlier `.perf` builds use a different preserved local identity and require their separately labeled update.
 
@@ -55,7 +67,7 @@ Both fork repositories use `main`. The app pins the exact core revision as a Git
 ```sh
 git clone --recurse-submodules --branch main https://github.com/Umberto-DEV/melonDS-android.git
 cd melonds-android
-./gradlew :app:assembleGitHubNightlyDebug
+sh ./gradlew :app:assembleGitHubNightlyDebug
 ```
 
 A plain source ZIP does not contain submodule contents. In an existing checkout, use `git submodule update --init --recursive`; do not use `--remote` when reproducing a pinned build. The debug build has a separate `.dev` ID and is not the release update.

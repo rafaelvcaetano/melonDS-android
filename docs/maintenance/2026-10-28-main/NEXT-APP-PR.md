@@ -37,8 +37,9 @@ Validation includes JVM/API tests, lint, Android builds, native sanitizer
 checks, ARM64 Android execution with 4 KiB and 16 KiB pages, ART/provider tests,
 and copied-ROM Continue/SAVE/cold Continue. These results belong to the APKs
 identified in the [validation report](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-03-security-followup/README.md).
-The forthcoming signed UD Nightly release will have its own APK identity and
-acceptance results on the [fork's download page](https://github.com/Umberto-DEV/melonDS-android/releases).
+The signed [UD Nightly review build](https://github.com/Umberto-DEV/melonDS-android/releases/tag/ud-nightly-2.1.8)
+has separate [APK identity and acceptance results](https://github.com/Umberto-DEV/melonDS-android/blob/main/docs/maintenance/2026-11-04-ud-nightly/README.md),
+including 349 JVM/API tests and actual optimized-release Android checks.
 The app pins the companion core; review core first, then use its accepted
 upstream revision. A source patch cannot supply the author's signing key.
 
