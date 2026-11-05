@@ -10,6 +10,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 
+/** Displays text with case-insensitive occurrences of [query] visually highlighted. */
 @Composable
 fun HighlightedText(
     text: String,

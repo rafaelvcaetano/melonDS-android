@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -87,7 +88,17 @@ class CheatsViewModel @Inject constructor(
                 } else {
                     emit(CheatsScreenUiState.Loading())
                     cheatsRepository.getAllGameCheats(it)
-                        .map { CheatsScreenUiState.Ready(it) }
+                        // Reflect pending toggles in folder and cheat search results before they are committed.
+                        .combine(modifiedCheatSet) { folders, modifiedCheats ->
+                            val updatedFolders = folders.map { folder ->
+                                folder.copy(
+                                    cheats = folder.cheats.map { cheat ->
+                                        modifiedCheats.firstOrNull { it.id == cheat.id } ?: cheat
+                                    }
+                                )
+                            }
+                            CheatsScreenUiState.Ready(updatedFolders)
+                        }
                         .collect(this)
                 }
             }
@@ -266,10 +277,13 @@ class CheatsViewModel @Inject constructor(
 
     fun deleteCheat(cheat: Cheat) {
         val selectedFolder = savedStateHandle.get<CheatFolderParcelable>(KEY_SELECTED_FOLDER) ?: return
+        deleteCheat(cheat, selectedFolder.toCheatFolder())
+    }
 
+    fun deleteCheat(cheat: Cheat, folder: CheatFolder) {
         viewModelScope.launch {
             cheatsRepository.deleteCheat(cheat)
-            deletedCheats.add(DeletedCheat(cheat, selectedFolder.toCheatFolder()))
+            deletedCheats.add(DeletedCheat(cheat, folder))
         }
     }
 
