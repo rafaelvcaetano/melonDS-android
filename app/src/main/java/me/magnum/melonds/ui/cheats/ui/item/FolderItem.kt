@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.runtime.Composable
@@ -23,6 +22,7 @@ import me.magnum.melonds.ui.theme.MelonTheme
 fun FolderItem(
     modifier: Modifier,
     folder: CheatFolder,
+    highlightQuery: String = "",
     onClick: () -> Unit,
 ) {
     Row(
@@ -38,9 +38,10 @@ fun FolderItem(
             contentDescription = null,
             tint = MaterialTheme.colors.secondary,
         )
-        Text(
+        HighlightedText(
             modifier = Modifier.weight(1f),
             text = folder.name,
+            query = highlightQuery,
         )
     }
 }

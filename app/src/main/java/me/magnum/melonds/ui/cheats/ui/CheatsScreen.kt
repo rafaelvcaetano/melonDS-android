@@ -4,12 +4,16 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -19,9 +23,13 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.SnackbarResult
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.CheckBox
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
@@ -29,13 +37,25 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -58,15 +78,25 @@ fun CheatsScreen(
     val enabledCheatsTitle = stringResource(R.string.enabled_cheats)
     val navController = rememberNavController()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route?.substringBefore("/")
+    val isSearchRoute = currentRoute == CheatsNavigation.Search.serializer().descriptor.serialName
+    val searchFolderName = if (currentRoute == CheatsNavigation.FolderCheats.serializer().descriptor.serialName) {
+        currentBackStackEntry?.toRoute<CheatsNavigation.FolderCheats>()?.folderName
+    } else {
+        null
+    }
+    var isSearchActive by rememberSaveable { mutableStateOf(false) }
+    var searchFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(""))
+    }
+    val searchQuery = searchFieldValue.text
     val showEnabledCheatsButton by remember(currentBackStackEntry) {
         derivedStateOf {
-            val currentRoute = currentBackStackEntry?.destination?.route?.substringBefore("/")
             currentRoute == CheatsNavigation.GameFolders.serializer().descriptor.serialName || currentRoute == CheatsNavigation.FolderCheats.serializer().descriptor.serialName
         }
     }
     val appBarTitle by remember(currentBackStackEntry) {
         derivedStateOf {
-            val currentRoute = currentBackStackEntry?.destination?.route?.substringBefore("/")
             when (currentRoute) {
                 CheatsNavigation.GameFolders.serializer().descriptor.serialName -> currentBackStackEntry?.toRoute<CheatsNavigation.GameFolders>()?.gameName
                 CheatsNavigation.FolderCheats.serializer().descriptor.serialName -> currentBackStackEntry?.toRoute<CheatsNavigation.FolderCheats>()?.folderName
@@ -100,17 +130,28 @@ fun CheatsScreen(
     }
     LaunchedEffect(Unit) {
         viewModel.openCheatsEvent.collect {
+            isSearchActive = false
             navController.navigate(CheatsNavigation.FolderCheats(it.newTitle))
         }
     }
     LaunchedEffect(Unit) {
         viewModel.openEnabledCheatsEvent.collect {
+            isSearchActive = false
             navController.navigate(CheatsNavigation.EnabledCheats)
         }
     }
 
     BackHandler {
-        navigateBack()
+        if (isSearchRoute) {
+            navController.navigateUp()
+            isSearchActive = false
+            searchFieldValue = TextFieldValue("")
+        } else if (isSearchActive) {
+            isSearchActive = false
+            searchFieldValue = TextFieldValue("")
+        } else {
+            navigateBack()
+        }
     }
 
     Scaffold(
@@ -118,7 +159,26 @@ fun CheatsScreen(
         scaffoldState = scaffoldState,
         topBar = {
             Box(Modifier.background(MaterialTheme.colors.primaryVariant).statusBarsPadding()) {
-                TopAppBar(
+                if (isSearchActive || isSearchRoute) {
+                    CheatsSearchTopBar(
+                        query = searchFieldValue,
+                        onQueryChange = { value ->
+                            searchFieldValue = value
+                            val query = value.text
+                            if (query.isNotEmpty() && !isSearchRoute) {
+                                navController.navigate(CheatsNavigation.Search(query, searchFolderName)) {
+                                    launchSingleTop = true
+                                }
+                            }
+                        },
+                        onClose = {
+                            if (isSearchRoute) navController.navigateUp()
+                            isSearchActive = false
+                            searchFieldValue = TextFieldValue("")
+                        },
+                        onEnabledCheatsClick = { viewModel.openEnabledCheats() },
+                    )
+                } else TopAppBar(
                     title = {
                         Text(
                             text = appBarTitle ?: stringResource(R.string.cheats),
@@ -136,6 +196,21 @@ fun CheatsScreen(
                         }
                     },
                     actions = {
+                        if (currentRoute == CheatsNavigation.GameFolders.serializer().descriptor.serialName ||
+                            currentRoute == CheatsNavigation.FolderCheats.serializer().descriptor.serialName
+                        ) {
+                            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
+                                IconButton(onClick = {
+                                    searchFieldValue = TextFieldValue("")
+                                    isSearchActive = true
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Search,
+                                        contentDescription = stringResource(R.string.hint_search),
+                                    )
+                                }
+                            }
+                        }
                         if (showEnabledCheatsButton) {
                             CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
                                 IconButton(onClick = { viewModel.openEnabledCheats() }) {
@@ -207,6 +282,32 @@ fun CheatsScreen(
                     },
                 )
             }
+            composable<CheatsNavigation.Search> { backStackEntry ->
+                val folders by viewModel.folders.collectAsStateWithLifecycle(CheatsScreenUiState.Loading())
+                val searchRoute = backStackEntry.toRoute<CheatsNavigation.Search>()
+
+                CheatSearchScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = padding,
+                    folders = folders,
+                    query = searchQuery,
+                    folderName = searchRoute.folderName,
+                    onCheatClick = { viewModel.toggleCheat(it) },
+                    onUpdateCheat = viewModel::updateCheat,
+                    onDeleteCheatClick = { folder, cheat ->
+                        coroutineScope.launch {
+                            val result = snackbarHostState.showSnackbar(
+                                message = resources.getString(R.string.cheat_deleted, cheat.name),
+                                actionLabel = resources.getString(R.string.undo),
+                            )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                viewModel.undoCheatDeletion(cheat)
+                            }
+                        }
+                        viewModel.deleteCheat(cheat, folder)
+                    },
+                )
+            }
             composable<CheatsNavigation.EnabledCheats> {
                 val cheats by viewModel.selectedGameCheats.collectAsStateWithLifecycle(CheatsScreenUiState.Loading())
 
@@ -216,6 +317,71 @@ fun CheatsScreen(
                     cheats = cheats,
                     onCheatClick = { viewModel.toggleCheat(it.cheat) }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CheatsSearchTopBar(
+    query: TextFieldValue,
+    onQueryChange: (TextFieldValue) -> Unit,
+    onClose: () -> Unit,
+    onEnabledCheatsClick: () -> Unit,
+) {
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
+    TopAppBar(
+        backgroundColor = MaterialTheme.colors.primary,
+        contentColor = MaterialTheme.colors.onPrimary,
+        windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextField(
+                modifier = Modifier.weight(1f).focusRequester(focusRequester),
+                value = query,
+                onValueChange = onQueryChange,
+                placeholder = {
+                    Text(
+                        text = stringResource(R.string.hint_search),
+                        color = MaterialTheme.colors.onPrimary.copy(alpha = 0.6f),
+                    )
+                },
+                leadingIcon = {
+                    IconButton(onClick = onClose) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.close),
+                            tint = MaterialTheme.colors.onPrimary,
+                        )
+                    }
+                },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { keyboardController?.hide() }),
+                colors = TextFieldDefaults.textFieldColors(
+                    textColor = MaterialTheme.colors.onPrimary,
+                    backgroundColor = Color.Transparent,
+                    cursorColor = MaterialTheme.colors.onPrimary,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                ),
+            )
+            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
+                IconButton(onClick = onEnabledCheatsClick) {
+                    Icon(
+                        painter = rememberVectorPainter(Icons.Outlined.CheckBox),
+                        contentDescription = stringResource(R.string.enabled_cheats),
+                    )
+                }
             }
         }
     }
