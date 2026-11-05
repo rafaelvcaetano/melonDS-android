@@ -36,7 +36,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
     override fun getRomFromUri(romUri: Uri, parentUri: Uri?): Rom? {
         return try {
             context.contentResolver.openInputStream(romUri)?.use { stream ->
-                getNdsEntryStreamInFileStream(stream)?.use { romFileStream ->
+                getNdsEntryStreamInFileStream(stream, romUri)?.use { romFileStream ->
                     val romDocument = uriHandler.getUriDocument(romUri)
                     getRomMetadataInZipEntry(romFileStream)?.let { romMetadata ->
                         val romName = romMetadata.romTitle.takeUnless { it.isBlank() } ?: romDocument?.nameWithoutExtension ?: ""
@@ -106,7 +106,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
             context.contentResolver.openInputStream(cachedRomUri)
         } else {
             context.contentResolver.openInputStream(rom.uri)?.let {
-                getNdsEntryStreamInFileStream(it)
+                getNdsEntryStreamInFileStream(it, rom.uri)
             }
         }
     }
@@ -117,7 +117,7 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
 
     private suspend fun extractRomFile(rom: Rom): Uri? = suspendCoroutine { continuation ->
         context.contentResolver.openInputStream(rom.uri)?.use {
-            getNdsEntryStreamInFileStream(it)?.use { romFileStream ->
+            getNdsEntryStreamInFileStream(it, rom.uri)?.use { romFileStream ->
                 ndsRomCache.cacheRom(rom, object : NdsRomCache.RomExtractor {
                     override fun getExtractedRomFileSize(): SizeUnit {
                         return romFileStream.romFileSize
@@ -156,9 +156,10 @@ abstract class CompressedRomFileProcessor(private val context: Context, private 
     }
 
     /**
-     * Retrieves the [RomFileStream] that points to the ROM in the compressed file. May return null if a ROM entry was not found in the compressed archive.
+     * Retrieves the [RomFileStream] that points to the ROM in the compressed file. May return null if a ROM entry was not found in the compressed archive. The
+     * [romUri] of the compressed file is provided so that implementations can report errors that reference the file.
      */
-    abstract fun getNdsEntryStreamInFileStream(fileStream: InputStream): RomFileStream?
+    abstract fun getNdsEntryStreamInFileStream(fileStream: InputStream, romUri: Uri): RomFileStream?
 
     class RomFileStream(stream: InputStream, val romFileSize: SizeUnit) : FilterInputStream(stream)
 }
