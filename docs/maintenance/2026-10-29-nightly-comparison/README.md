@@ -149,8 +149,9 @@ two-dot and PR three-dot file diffs are equal. No rebase or history rewrite was 
   parts of #1666. Audio #1676/lib #17 and the full process-death recovery are not imported.
 - Previous app #1682/#1681 and lib #19/#18 were closed without merge. No new issue
   or PR is closed or published by this comparison.
-- [App draft](../2026-10-28-main/NEXT-APP-PR.md) and
-  [core draft](../2026-10-28-main/NEXT-CORE-PR.md) use short English sections and bullets.
+- The current [app overview](../../../README.md#whats-new) and
+  [core overview](https://github.com/Umberto-DEV/melonDS-android-lib#whats-new)
+  summarize features, fixes and contributor attribution. Submission drafts remain local.
 
 Review the core first, then the app. Before publishing:
 

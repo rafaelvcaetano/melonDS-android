@@ -621,4 +621,9 @@
         <item>底部</item>
         <item>右侧</item>
     </string-array>
+    <string name="forget_rom_title">从游戏库中移除</string>
+    <string name="forget_rom_summary">仅移除此条目，保留所有文件</string>
+    <string name="forget_rom_action">移除</string>
+    <string name="forget_rom_confirmation">要从游戏库中移除 %1$s 吗？\n\n%2$s\n\n仅移除此条目的设置和游玩历史。ROM、游戏存档、即时存档、金手指及其他条目均保持不变。如果 ROM 文件仍然存在，扫描时可能会再次添加。</string>
+    <string name="forget_rom_failed">无法保存更改，已保留此条目。请重试。</string>
 </resources>

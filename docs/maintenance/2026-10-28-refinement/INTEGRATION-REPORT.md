@@ -157,8 +157,10 @@ di startup prive di A/B confrontabile.
 
 ## 6. Bozze delle due PR
 
-Le bozze pronte sono [app](../2026-10-28-main/NEXT-APP-PR.md) e
-[lib](../2026-10-28-main/NEXT-CORE-PR.md). Titolo/problema iniziale, comportamento
+Le bozze di questa revisione restano locali. Le panoramiche correnti di
+[app](../../../README.md#whats-new) e
+[lib](https://github.com/Umberto-DEV/melonDS-android-lib#whats-new) riassumono
+funzioni, correzioni e crediti. Titolo/problema iniziale, comportamento
 prima/dopo, provenienza, verifiche con build esatta e limiti devono stare nel
 corpo; il dettaglio per issue resta in questa matrice, senza una lista di chiusure
 indiscriminate. Solo la correlazione JNI precisa usa il riferimento automatico

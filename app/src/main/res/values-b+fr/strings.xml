@@ -446,4 +446,9 @@
         <item>Ajuster en bas</item>
         <item>Ajuster à droite</item>
     </string-array>
+    <string name="forget_rom_title">Retirer de la bibliothèque</string>
+    <string name="forget_rom_summary">Retirer uniquement cette entrée ; conserver les fichiers</string>
+    <string name="forget_rom_action">Retirer</string>
+    <string name="forget_rom_confirmation">Retirer %1$s de la bibliothèque ?\n\n%2$s\n\nSeuls les paramètres et l’historique de cette entrée seront supprimés. Les ROM, sauvegardes, états de sauvegarde, codes de triche et autres entrées resteront inchangés. Si le fichier ROM existe encore, une analyse pourra le rajouter.</string>
+    <string name="forget_rom_failed">Impossible d’enregistrer la modification. L’entrée a été conservée. Réessayez.</string>
 </resources>

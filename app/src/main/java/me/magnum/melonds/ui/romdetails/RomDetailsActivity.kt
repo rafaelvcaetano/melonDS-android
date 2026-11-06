@@ -2,15 +2,20 @@ package me.magnum.melonds.ui.romdetails
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.net.toUri
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.ConsoleType
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.ui.common.rom.EmulatorLaunchValidatorDelegate
@@ -27,6 +32,7 @@ class RomDetailsActivity : AppCompatActivity() {
 
     private val romDetailsViewModel by viewModels<RomDetailsViewModel>()
     private val romRetroAchievementsViewModel by viewModels<RomDetailsRetroAchievementsViewModel>()
+    private var forgettingRom = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -70,6 +76,7 @@ class RomDetailsActivity : AppCompatActivity() {
                     onRomConfigUpdate = {
                         romDetailsViewModel.onRomConfigUpdateEvent(it)
                     },
+                    onForgetRom = { confirmForgetRom(rom) },
                     onRetroAchievementsLogin = { username, password ->
                         romRetroAchievementsViewModel.login(username, password)
                     },
@@ -82,6 +89,29 @@ class RomDetailsActivity : AppCompatActivity() {
                 )
             }
         }
+    }
+
+    private fun confirmForgetRom(rom: Rom) {
+        if (forgettingRom) return
+        AlertDialog.Builder(this)
+            .setTitle(R.string.forget_rom_title)
+            .setMessage(getString(R.string.forget_rom_confirmation, rom.config.customName ?: rom.name, rom.uri.toString()))
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.forget_rom_action) { _, _ ->
+                forgettingRom = true
+                lifecycleScope.launch {
+                    try {
+                        if (romDetailsViewModel.forgetRom()) {
+                            finish()
+                        } else {
+                            Toast.makeText(this@RomDetailsActivity, R.string.forget_rom_failed, Toast.LENGTH_LONG).show()
+                        }
+                    } finally {
+                        forgettingRom = false
+                    }
+                }
+            }
+            .show()
     }
 
     private fun launchViewAchievementIntent(achievementUrl: String) {

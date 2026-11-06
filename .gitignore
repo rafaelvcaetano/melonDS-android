@@ -12,3 +12,15 @@
 /app/src/androidTest/assets/fallback-homebrew.nds
 /app/src/androidTest/assets/arm9-listing.txt
 /app/src/androidTest/assets/fixture.json
+
+# Local instructions, audit workspaces and unpublished submission drafts.
+/docs/maintenance/2026-10-28-main/NEXT-APP-PR.md
+/docs/maintenance/2026-10-28-main/NEXT-CORE-PR.md
+/docs/maintenance/2026-11-02-core-literal-thumb/PLAN.md
+/docs/ventuno/PR-DRAFT-APP.md
+/docs/ventuno/PR-DRAFT-CORE.md
+/docs/superpowers/
+/docs/ventuno/audit-2026-10-24/
+/AGENTS.md
+/CLAUDE.md
+/local/

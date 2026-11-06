@@ -55,6 +55,7 @@ fun RomConfigUi(
     rom: Rom,
     romConfigUiState: RomConfigUiState,
     onConfigUpdate: (RomConfigUpdateEvent) -> Unit,
+    onForgetRom: () -> Unit,
 ) {
     when (romConfigUiState) {
         is RomConfigUiState.Loading -> Loading(modifier.padding(contentPadding))
@@ -64,6 +65,7 @@ fun RomConfigUi(
             rom = rom,
             romConfig = romConfigUiState.romConfigUiModel,
             onConfigUpdate = onConfigUpdate,
+            onForgetRom = onForgetRom,
         )
     }
 }
@@ -85,6 +87,7 @@ private fun Content(
     rom: Rom,
     romConfig: RomConfigUiModel,
     onConfigUpdate: (RomConfigUpdateEvent) -> Unit,
+    onForgetRom: () -> Unit,
 ) {
     Column(
         modifier = modifier.verticalScroll(rememberScrollState())
@@ -198,6 +201,12 @@ private fun Content(
             }
         }
 
+        ActionLauncherItem(
+            name = stringResource(R.string.forget_rom_title),
+            value = stringResource(R.string.forget_rom_summary),
+            onLaunchAction = onForgetRom,
+        )
+
         Spacer(Modifier.height(contentPadding.calculateBottomPadding()))
     }
 }
@@ -227,6 +236,7 @@ private fun PreviewRomConfigUi() {
                 ),
             ),
             onConfigUpdate = { },
+            onForgetRom = { },
         )
     }
 }

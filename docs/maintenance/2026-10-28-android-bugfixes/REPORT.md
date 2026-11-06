@@ -55,7 +55,7 @@ Le richieste ampie non sono classificate come bug “impossibili”: mancano una
 
 ## PR, provenienza e prossima pubblicazione
 
-Le descrizioni originali rimangono intatte: [app#1682](../2026-10-28-main/app-pr.md), [core#19](../2026-10-28-main/core-pr.md), relativi JSON e commenti nella stessa cartella. Le due proposte furono chiuse durante il consolidamento. Le bozze aggiornate rimangono [app](../2026-10-28-main/NEXT-APP-PR.md) e [core](../2026-10-28-main/NEXT-CORE-PR.md).
+Le descrizioni originali rimangono intatte: [app#1682](../2026-10-28-main/app-pr.md), [core#19](../2026-10-28-main/core-pr.md), relativi JSON e commenti nella stessa cartella. Le due proposte furono chiuse durante il consolidamento. Le bozze aggiornate rimangono locali; le panoramiche correnti di [app](../../../README.md#whats-new) e [core](https://github.com/Umberto-DEV/melonDS-android-lib#whats-new) riassumono funzioni, correzioni e crediti.
 
 La futura sorgente è il `main` del nostro fork; il target upstream è `master`. Restano i contributi/crediti già conservati: takanuva15#1677, WailAbou#1606/#1608, dysprosium#1625, N3MI-DG#1648, DLCSharp#1589, corigne per parti di#1666. Questa campagna aggiunge correzioni originali; non incorpora nuove patch di terzi senza attribuzione.
 

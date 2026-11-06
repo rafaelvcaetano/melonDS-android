@@ -623,4 +623,9 @@
         <item>Pas bawah</item>
         <item>Pas kanan</item>
     </string-array>
+    <string name="forget_rom_title">Hapus dari pustaka</string>
+    <string name="forget_rom_summary">Hapus entri ini saja; pertahankan semua berkas</string>
+    <string name="forget_rom_action">Hapus</string>
+    <string name="forget_rom_confirmation">Hapus %1$s dari pustaka?\n\n%2$s\n\nHanya pengaturan dan riwayat entri ini yang akan dihapus. ROM, simpanan permainan, status tersimpan, cheat, dan entri lain tidak berubah. Jika berkas ROM masih ada, pemindaian dapat menambahkannya kembali.</string>
+    <string name="forget_rom_failed">Perubahan tidak dapat disimpan. Entri tetap dipertahankan. Coba lagi.</string>
 </resources>

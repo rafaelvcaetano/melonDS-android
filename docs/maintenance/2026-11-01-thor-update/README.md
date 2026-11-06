@@ -192,5 +192,5 @@ verified fallback, current original save/ROM backups and unique test evidence
 remain. All app/core source changes and pre-existing work remain on main.
 No push, PR, release or upstream message was published.
 
-- [App PR draft](../2026-10-28-main/NEXT-APP-PR.md)
-- [Core PR draft](../2026-10-28-main/NEXT-CORE-PR.md)
+- [Current app overview](../../../README.md#whats-new)
+- [Current core overview](https://github.com/Umberto-DEV/melonDS-android-lib#whats-new)

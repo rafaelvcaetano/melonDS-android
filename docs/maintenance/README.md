@@ -32,9 +32,10 @@ closure or a contradiction of the documented local disposition.
 
 The previous [2.1.7/48 delivery and Android-on-Mac checks](2026-11-03-nightly-2.1.7/README.md)
 is now the retained fallback evidence.
-The [app draft](2026-10-28-main/NEXT-APP-PR.md) and
-[core draft](2026-10-28-main/NEXT-CORE-PR.md) include the earlier Thor changes
-and later corrections. The historical 2.1.6 APK predates the security fixes;
+The current [app overview](../../README.md#whats-new) and
+[core overview](https://github.com/Umberto-DEV/melonDS-android-lib#whats-new)
+summarize the earlier Thor changes and later corrections. Submission drafts
+remain local. The historical 2.1.6 APK predates the security fixes;
 the4 November physical 2.1.8 update has its own identity and acceptance report.
 Replacement upstream PR publication remains pending explicit approval.
 

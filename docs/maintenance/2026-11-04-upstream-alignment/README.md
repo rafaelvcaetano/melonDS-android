@@ -156,7 +156,7 @@ Existing protected fixtures and unrelated root build data were preserved.
 PR #1664 is merged upstream. Issues #1652, #1604 and #1618 remained open at this check;
 a merged feature is not a claim to have closed every RTC symptom. The existing
 [coverage register](../2026-10-28-refinement/ISSUE-PR-COVERAGE.csv) records that
-distinction. The [app PR draft](../2026-10-28-main/NEXT-APP-PR.md) uses the updated
-upstream source baseline; historical release reports and patches retain their
+distinction. For the current source baseline and feature summary, see the
+[app overview](../../../README.md#whats-new); historical release reports and patches retain their
 original baseline. No upstream PR/comment or new release was published for
 this alignment, and no operation was performed on the Thor.

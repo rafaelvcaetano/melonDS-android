@@ -158,8 +158,8 @@ is green at `c543c367`; [core CI](https://github.com/Umberto-DEV/melonDS-android
 is green at `fd758240`. The new app commits/version are local and have not run in
 remote CI. Local passing tests do not make that exact new commit remotely green.
 
-- [App draft](../2026-10-28-main/NEXT-APP-PR.md)
-- [Core draft](../2026-10-28-main/NEXT-CORE-PR.md)
+- [Current app overview](../../../README.md#whats-new)
+- [Current core overview](https://github.com/Umberto-DEV/melonDS-android-lib#whats-new)
 - [Integrated features and per-issue coverage](../2026-10-28-refinement/INTEGRATION-REPORT.md)
 
 No upstream issue or PR was closed by this session. Publish only after explicit

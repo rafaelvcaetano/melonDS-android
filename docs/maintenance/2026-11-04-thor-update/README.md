@@ -132,7 +132,9 @@ working copies were cleaned, with manifests before deletion. The two campaign
 AVDs were already stopped; the shared ADB server was preserved. Coordination
 with the separate ROM work confirmed it was not using Thor/ADB.
 
-The [app](../2026-10-28-main/NEXT-APP-PR.md) and
-[core](../2026-10-28-main/NEXT-CORE-PR.md) drafts remain unpublished upstream.
+Submission drafts remain local and unpublished upstream. The current
+[app overview](../../../README.md#whats-new) and
+[core overview](https://github.com/Umberto-DEV/melonDS-android-lib#whats-new)
+summarize features, fixes and credits.
 Local corrections do not close upstream issues. The owner's physical gameplay
 review and explicit approval remain required before any upstream PR is opened.

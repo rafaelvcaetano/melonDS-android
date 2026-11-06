@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.util.Log
+import android.util.AtomicFile
 import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -34,8 +35,7 @@ import me.magnum.melonds.impl.dtos.rom.RomDto
 import me.magnum.melonds.utils.FileUtils
 import me.magnum.melonds.utils.SubjectSharedFlow
 import java.io.File
-import java.io.FileReader
-import java.io.OutputStreamWriter
+import java.io.FileOutputStream
 import java.lang.reflect.Type
 import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
@@ -63,12 +63,16 @@ class FileSystemRomsRepository(
     private val scanningStatus = MutableStateFlow(RomScanningStatus.NOT_SCANNING)
     private val scanMutex = Mutex()
     private val roms: ArrayList<Rom> = ArrayList()
+    private var lastSavedRomData: String? = null
     private var areRomsLoaded = AtomicBoolean(false)
 
     init {
         coroutineScope.launch {
             romsChannel.collect {
-                saveRomData(it)
+                // An older queued emission must not restore a subsequently forgotten ROM.
+                synchronized(roms) {
+                    if (areRomsLoaded.get()) saveRomData(roms.toList())
+                }
             }
         }
 
@@ -201,13 +205,11 @@ class FileSystemRomsRepository(
     }
 
     override fun invalidateRoms() {
-        if (areRomsLoaded.compareAndSet(true, false)) {
-            synchronized(roms) { roms.clear() }
-        }
-
-        val cacheFile = File(context.filesDir, ROM_DATA_FILE)
-        if (cacheFile.isFile) {
-            cacheFile.delete()
+        synchronized(roms) {
+            areRomsLoaded.set(false)
+            roms.clear()
+            AtomicFile(File(context.filesDir, ROM_DATA_FILE)).delete()
+            lastSavedRomData = null
         }
     }
 
@@ -236,10 +238,17 @@ class FileSystemRomsRepository(
         }
     }
 
-    private fun removeRom(rom: Rom, notifyChanged: Boolean = true) {
-        synchronized(roms) {
-            if (roms.removeAll { it.hasSameFileAsRom(rom) } && notifyChanged) {
+    override suspend fun forgetRom(rom: Rom): Boolean = withContext(fileAccessDispatcher) {
+        getRoms().first()
+        scanMutex.withLock {
+            synchronized(roms) {
+                val retained = roms.filterNot { it.hasSameFileAsRom(rom) }
+                if (retained.size == roms.size) return@synchronized true
+                if (!saveRomData(retained)) return@synchronized false
+                roms.clear()
+                roms.addAll(retained)
                 onRomsChanged()
+                true
             }
         }
     }
@@ -337,31 +346,33 @@ class FileSystemRomsRepository(
 
     private fun getCachedRoms(): List<Rom> {
         val cacheFile = File(context.filesDir, ROM_DATA_FILE)
-        if (!cacheFile.isFile) {
-            return emptyList()
-        }
-
         return runCatching {
-            FileReader(cacheFile).use { reader ->
+            AtomicFile(cacheFile).openRead().bufferedReader().use { reader ->
                 gson.fromJson<List<RomDto>>(reader, romListType).map { it.toModel() }
             }
         }.getOrElse { emptyList() }
     }
 
-    private fun saveRomData(romData: List<Rom>) {
-        val cacheFile = File(context.filesDir, ROM_DATA_FILE)
+    private fun saveRomData(romData: List<Rom>): Boolean {
+        val cacheFile = AtomicFile(File(context.filesDir, ROM_DATA_FILE))
+        var stream: FileOutputStream? = null
 
         try {
             val romDtos = romData.map {
                 RomDto.fromModel(it)
             }
             val romsJson = gson.toJson(romDtos)
+            if (romsJson == lastSavedRomData && cacheFile.baseFile.isFile) return true
 
-            OutputStreamWriter(cacheFile.outputStream()).use {
-                it.write(romsJson)
-            }
+            stream = cacheFile.startWrite()
+            stream.write(romsJson.toByteArray(Charsets.UTF_8))
+            cacheFile.finishWrite(stream)
+            lastSavedRomData = romsJson
+            return true
         } catch (e: Exception) {
+            cacheFile.failWrite(stream)
             Log.e(TAG, "Failed to save ROM data", e)
+            return false
         }
     }
 }

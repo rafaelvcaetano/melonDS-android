@@ -19,5 +19,7 @@ interface RomsRepository {
     fun setRomLastPlayed(rom: Rom, lastPlayed: Date)
     fun addRomPlayTime(rom: Rom, playTime: Duration)
     fun rescanRoms()
+    /** Persistently forget only this URI's library metadata, never its files or URI grants. */
+    suspend fun forgetRom(rom: Rom): Boolean
     fun invalidateRoms()
 }

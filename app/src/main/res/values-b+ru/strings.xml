@@ -627,4 +627,9 @@
         <item>Внизу</item>
         <item>Справа</item>
     </string-array>
+    <string name="forget_rom_title">Убрать из библиотеки</string>
+    <string name="forget_rom_summary">Убрать только эту запись; сохранить все файлы</string>
+    <string name="forget_rom_action">Убрать</string>
+    <string name="forget_rom_confirmation">Убрать %1$s из библиотеки?\n\n%2$s\n\nБудут удалены только настройки и история этой записи. ROM, сохранения игр, состояния, читы и другие записи останутся без изменений. Если файл ROM ещё существует, сканирование может добавить его снова.</string>
+    <string name="forget_rom_failed">Не удалось сохранить изменение. Запись сохранена. Повторите попытку.</string>
 </resources>

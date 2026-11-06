@@ -388,4 +388,9 @@
         <item>Ajustar em baixo</item>
         <item>Ajustar à direita</item>
     </string-array>
+    <string name="forget_rom_title">Remover da biblioteca</string>
+    <string name="forget_rom_summary">Remover apenas esta entrada; manter todos os arquivos</string>
+    <string name="forget_rom_action">Remover</string>
+    <string name="forget_rom_confirmation">Remover %1$s da biblioteca?\n\n%2$s\n\nSomente as configurações e o histórico desta entrada serão removidos. ROMs, jogos salvos, estados salvos, trapaças e outras entradas permanecerão inalterados. Se o arquivo ROM ainda existir, uma busca poderá adicioná-lo novamente.</string>
+    <string name="forget_rom_failed">Não foi possível salvar a alteração. A entrada foi mantida. Tente novamente.</string>
 </resources>

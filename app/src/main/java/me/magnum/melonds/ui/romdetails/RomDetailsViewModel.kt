@@ -95,6 +95,8 @@ class RomDetailsViewModel @Inject constructor(
         return RomIcon(romIconBitmap, iconFiltering)
     }
 
+    suspend fun forgetRom(): Boolean = romsRepository.forgetRom(_rom.value)
+
     private fun saveRomConfig(newConfig: RomConfig) {
         if (newConfig.gbaSlotConfig is RomGbaSlotConfig.GbaRom) {
             newConfig.gbaSlotConfig.romPath?.let { uriPermissionManager.persistFilePermissions(it, Permission.READ) }

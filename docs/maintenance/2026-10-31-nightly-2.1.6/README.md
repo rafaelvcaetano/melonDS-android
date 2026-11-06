@@ -145,11 +145,12 @@ is inferred from these checks.
 
 ## Drafts and publication gate
 
-- [App PR draft](../2026-10-28-main/NEXT-APP-PR.md).
-- [Core PR draft](../2026-10-28-main/NEXT-CORE-PR.md).
+- [Current app overview](../../../README.md#whats-new).
+- [Current core overview](https://github.com/Umberto-DEV/melonDS-android-lib#whats-new).
 - [Canonical issue/PR dispositions](../2026-10-28-refinement/ISSUE-PR-COVERAGE.csv).
 
-Drafts distinguish local fixes, partial issue coverage, adapted community work
+The submission drafts remain local. They distinguish local fixes, partial issue
+coverage, adapted community work
 and old proposals closed without merge. They link detailed dated evidence and
 preserve contributor attribution. Main is the eventual fork source; upstream
 master is the target. Draft approval and explicit publication permission remain

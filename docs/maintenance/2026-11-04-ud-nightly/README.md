@@ -210,8 +210,9 @@ not replace those immutable files or change their APK identity.
 
 ## Upstream review
 
-The short [app](../2026-10-28-main/NEXT-APP-PR.md) and
-[core](../2026-10-28-main/NEXT-CORE-PR.md) drafts retain human credits and links.
+The current [app overview](../../../README.md#whats-new) and
+[core overview](https://github.com/Umberto-DEV/melonDS-android-lib#whats-new)
+summarize features, fixes and human credits. Submission drafts remain local.
 The [maintainer requested one PR per feature or fix](https://github.com/rafaelvcaetano/melonDS-android/pull/1672#issuecomment-5637055233),
 so submission scope must be narrowed before publishing upstream. No upstream
 PR or issue is created or closed by this fork release.

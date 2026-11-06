@@ -11,15 +11,18 @@ import android.database.MatrixCursor
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import android.os.Build
 import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
 import androidx.test.core.app.ApplicationProvider
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -61,6 +64,7 @@ import kotlin.time.Duration.Companion.minutes
 class FileSystemRomsRepositoryTest {
     @get:Rule val temporaryFolder = TemporaryFolder()
     private lateinit var context: Context
+    private lateinit var cacheDirectory: File
     private lateinit var provider: RomDocumentsProvider
     private lateinit var dispatcher: RecordingDispatcher
     private lateinit var repository: FileSystemRomsRepository
@@ -71,8 +75,8 @@ class FileSystemRomsRepositoryTest {
 
     @Before fun setUp() {
         val app = ApplicationProvider.getApplicationContext<Context>()
-        val files = temporaryFolder.newFolder("private")
-        context = object : ContextWrapper(app) { override fun getFilesDir() = files }
+        cacheDirectory = temporaryFolder.newFolder("private")
+        context = object : ContextWrapper(app) { override fun getFilesDir() = cacheDirectory }
         provider = RomDocumentsProvider(temporaryFolder.newFolder("documents"))
         provider.attachInfo(context, ProviderInfo().apply { authority = AUTHORITY })
         ShadowContentResolver.registerProviderInternal(AUTHORITY, provider)
@@ -154,6 +158,118 @@ class FileSystemRomsRepositoryTest {
         assertTrue(snapshot.isEmpty())
         assertTrue(repository.getRoms().first().isEmpty())
         assertEquals(0, provider.openCount.get())
+    }
+
+    @Test fun forgettingOneRomPreservesOtherMetadataAndAllFiles() = runBlocking {
+        provider.add("selected.nds", "Same title")
+        provider.add("retained.nds", "Same title")
+        val selected = rom("selected.nds", "Same title")
+        val retained = rom("retained.nds", "Same title").copy(
+            config = RomConfig(customName = "Keep my settings"),
+            lastPlayed = Date(321_000), totalPlayTime = 11.minutes, storageNameVersion = 0,
+        )
+        writeCache(selected, retained)
+        val save = File(context.filesDir, "personal.sav").apply { writeBytes(byteArrayOf(1, 2, 3, 4)) }
+        repository.getRoms().first()
+        dispatcher.awaitIdle()
+
+        assertTrue(repository.forgetRom(selected))
+
+        assertEquals(listOf(retained), repository.getRoms().first())
+        assertEquals(listOf(retained), readCache())
+        for (rom in listOf(selected, retained)) {
+            assertEquals("Same title", context.contentResolver.openInputStream(rom.uri)!!.bufferedReader().use { it.readText() })
+        }
+        assertArrayEquals(byteArrayOf(1, 2, 3, 4), save.readBytes())
+        assertEquals("Forgetting must not request document deletion", 0, provider.deleteCount.get())
+        assertTrue(repository.forgetRom(selected)) // Repeating the action does not affect another URI.
+        assertEquals(listOf(retained), readCache())
+    }
+
+    @Test fun forgettingUnavailableRomDoesNotRequireProviderAccess() = runBlocking {
+        val selected = rom("missing.nds", "Old test copy")
+        val retained = rom("retained.nds", "Personal game").copy(config = RomConfig(customName = "Keep me"))
+        writeCache(selected, retained)
+        provider.failQuery = true
+        repository.getRoms().first()
+        dispatcher.awaitIdle()
+
+        assertTrue(repository.forgetRom(selected))
+
+        assertEquals(listOf(retained), repository.getRoms().first())
+        assertEquals(listOf(retained), readCache())
+        assertEquals(0, provider.openCount.get())
+    }
+
+    @Test fun forgettingWaitsForActiveScanSoItsResultCannotRestoreTheRecord() = runBlocking {
+        provider.add("selected.nds", "Test copy")
+        val selected = rom("selected.nds", "Test copy")
+        writeCache(selected)
+        val gate = scanGate()
+        beforeRead = { gate.block() }
+        repository.getRoms().first()
+        gate.awaitEntry()
+
+        val forgotten = async(start = CoroutineStart.UNDISPATCHED) { repository.forgetRom(selected) }
+        assertFalse("Removal must serialize with the active scan", forgotten.isCompleted)
+        gate.release.countDown()
+        assertTrue(withTimeout(5_000) { forgotten.await() })
+        dispatcher.awaitIdle()
+
+        assertTrue(repository.getRoms().first().isEmpty())
+        assertTrue(readCache().isEmpty())
+    }
+
+    @Test fun failedForgetWriteKeepsTheOriginalLibrary() = runBlocking {
+        val selected = rom("missing.nds", "Old test copy")
+        val retained = rom("retained.nds", "Personal game").copy(config = RomConfig(customName = "Keep me"))
+        writeCache(selected, retained)
+        provider.failQuery = true
+        repository.getRoms().first()
+        dispatcher.awaitIdle()
+        val originalDirectory = cacheDirectory
+        // A real filesystem failure: the destination's parent is a regular file.
+        cacheDirectory = temporaryFolder.newFile("not-a-directory")
+        try {
+            assertFalse(repository.forgetRom(selected))
+            assertEquals(listOf(selected, retained), repository.getRoms().first())
+        } finally {
+            cacheDirectory = originalDirectory
+        }
+        assertEquals(listOf(selected, retained), readCache())
+    }
+
+    @Test @Config(sdk = [28, 35])
+    fun invalidationDoesNotRestoreAtomicBackupAndRescanPersistsSameLibrary() = runBlocking {
+        val retained = rom("retained.nds", "Personal game")
+        val obsolete = rom("obsolete.nds", "Test copy")
+        writeCache(retained, obsolete)
+        provider.failQuery = true
+        repository.getRoms().first()
+        dispatcher.awaitIdle()
+        assertTrue(repository.forgetRom(obsolete))
+        val cache = File(context.filesDir, "rom_data.json")
+        cache.copyTo(File(cache.path + ".bak"))
+        if (Build.VERSION.SDK_INT >= 30) File(cache.path + ".new").writeText("interrupted write")
+
+        repository.invalidateRoms()
+        repository.getRoms().first()
+        dispatcher.awaitIdle()
+        assertTrue("Invalidation must not reload the pending old cache", repository.getRoms().first().isEmpty())
+
+        provider.failQuery = false
+        provider.add("retained.nds", "Personal game")
+        repository.rescanRoms()
+        dispatcher.awaitIdle()
+        // A synchronous no-op removal waits for scanning and the list lock.
+        assertTrue(repository.forgetRom(obsolete))
+        assertEquals(listOf(retained), repository.getRoms().first())
+        repository.rescanRoms()
+        dispatcher.awaitIdle()
+        assertTrue(repository.forgetRom(obsolete))
+        assertEquals(listOf(retained), readCache())
+        assertFalse(File(cache.path + ".bak").exists())
+        assertFalse(File(cache.path + ".new").exists())
     }
 
     @Test fun cachedRomsRemainUsableDuringSlowScan() = runBlocking {
@@ -270,6 +386,9 @@ class FileSystemRomsRepositoryTest {
         File(context.filesDir, "rom_data.json").writeText(gson.toJson(roms.map(RomDto::fromModel)))
     }
 
+    private fun readCache(): List<Rom> =
+        gson.fromJson(File(context.filesDir, "rom_data.json").readText(), Array<RomDto>::class.java).map { it.toModel() }
+
     private fun scanGate() = ScanGate().also { gates += it }
 
     private class ScanGate {
@@ -320,6 +439,7 @@ class FileSystemRomsRepositoryTest {
         val childrenQueryCount = AtomicInteger()
         val metadataQueryCount = AtomicInteger()
         val openCount = AtomicInteger()
+        val deleteCount = AtomicInteger()
         @Volatile var failOpen = false
         @Volatile var failQuery = false
         @Volatile var cyclicDirectory = false
@@ -363,7 +483,10 @@ class FileSystemRomsRepositoryTest {
         override fun getType(uri: Uri) = "application/octet-stream"
         override fun insert(uri: Uri, values: ContentValues?): Uri? = error("unused")
         override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int = error("unused")
-        override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int = error("unused")
+        override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int {
+            deleteCount.incrementAndGet()
+            error("Deleting ROM files is not a library operation")
+        }
     }
 
     companion object { private const val AUTHORITY = "me.magnum.melonds.rom-scan-test" }

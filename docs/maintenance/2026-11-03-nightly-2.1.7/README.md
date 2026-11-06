@@ -4,8 +4,10 @@
 > [second independent scan and 2.1.8/49 delivery](../2026-11-03-security-followup/README.md).
 > This page remains the immutable evidence for the retained 2.1.7/48 fallback.
 
-Revisione del 3 novembre 2026. Le bozze canoniche sono [app](../2026-10-28-main/NEXT-APP-PR.md)
-e [core](../2026-10-28-main/NEXT-CORE-PR.md). Titoli proposti:
+Revisione del 3 novembre 2026. Le bozze della revisione restano locali; le
+panoramiche correnti sono [app](../../../README.md#whats-new) e
+[core](https://github.com/Umberto-DEV/melonDS-android-lib#whats-new).
+Titoli proposti allora:
 
 - App: **Improve setup, cheats and Android reliability**.
 - Core: **Fix core memory handling and NAND saves**.

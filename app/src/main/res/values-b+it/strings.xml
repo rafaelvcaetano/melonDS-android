@@ -505,4 +505,9 @@
         <item>Adatta in basso</item>
         <item>Adatta a destra</item>
     </string-array>
+    <string name="forget_rom_title">Rimuovi dalla libreria</string>
+    <string name="forget_rom_summary">Rimuove solo questa voce; conserva tutti i file</string>
+    <string name="forget_rom_action">Rimuovi</string>
+    <string name="forget_rom_confirmation">Rimuovere %1$s dalla libreria?\n\n%2$s\n\nSaranno rimosse solo le impostazioni e la cronologia di gioco di questa voce. ROM, salvataggi, stati di salvataggio, trucchi e altre voci resteranno invariati. Se il file ROM esiste ancora, una scansione può aggiungerlo di nuovo.</string>
+    <string name="forget_rom_failed">Impossibile salvare la modifica alla libreria. La voce è stata conservata. Riprova.</string>
 </resources>

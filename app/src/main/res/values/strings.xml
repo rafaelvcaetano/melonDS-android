@@ -715,4 +715,9 @@
     <string name="multiplayer_error_discovery_failed">Discovery failed</string>
     <string name="multiplayer_error_lan_init_failed">Failed to initialize LAN session</string>
     <string name="multiplayer_error_permission_denied">Required permissions not granted</string>
+    <string name="forget_rom_title">Remove from library</string>
+    <string name="forget_rom_summary">Remove only this entry; keep all files</string>
+    <string name="forget_rom_action">Remove</string>
+    <string name="forget_rom_confirmation">Remove %1$s from the library?\n\n%2$s\n\nOnly this entry’s settings and play history will be removed. ROMs, saves, save states, cheats and other library entries will stay unchanged. If the ROM file still exists, scanning can add it again.</string>
+    <string name="forget_rom_failed">Could not save the library change. The entry was kept. Please try again.</string>
 </resources>
