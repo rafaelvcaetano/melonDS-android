@@ -40,6 +40,14 @@ class InputSetupViewModel @Inject constructor(private val settingsRepository: Se
         focusOnNextInput(inputUnderAssignment)
     }
 
+    fun updateInputAssignedKeyCombination(keys: List<Int>) {
+        val inputUnderAssignment = _inputUnderAssignment.value ?: return
+        val distinctKeys = keys.distinct()
+        val inputType = InputConfig.Assignment.Key(null, distinctKeys.last(), distinctKeys.dropLast(1))
+        setInputAssignment(inputUnderAssignment, inputType)
+        focusOnNextInput(inputUnderAssignment)
+    }
+
     fun updateInputAssignedAxis(axis: Int, direction: InputConfig.Assignment.Axis.Direction) {
         val inputUnderAssignment = _inputUnderAssignment.value ?: return
         val inputType = InputConfig.Assignment.Axis(null, axis, direction)
