@@ -17,8 +17,12 @@ interface SettingsRepository {
 
     fun getTheme(): Theme
     fun getFastForwardSpeedMultiplier(): Float
+    fun getFastForwardAudioMuteThreshold(): Float
+    fun isFastForwardPitchPreserveEnabled(): Boolean
     fun isRewindEnabled(): Boolean
     fun getRewindWindowPosition(): RewindWindowPosition
+    fun getRewindPeriod(): Int
+    fun getRewindWindow(): Int
     fun isSustainedPerformanceModeEnabled(): Boolean
 
     fun getRomSearchDirectories(): Array<Uri>
@@ -44,6 +48,9 @@ interface SettingsRepository {
     fun getDSiCameraStaticImage(): Uri?
 
     fun isSoundEnabled(): Boolean
+    fun getVolume(): Int
+    fun getAudioInterpolation(): AudioInterpolation
+    fun getAudioBitrate(): AudioBitrate
     fun getAudioLatency(): AudioLatency
     fun getMicSource(): MicSource
 

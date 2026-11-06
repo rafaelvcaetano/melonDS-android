@@ -168,6 +168,16 @@
     <string name="category_system_summary">固件设置，自定义 BIOS，JIT</string>
     <string name="theme">主题</string>
     <string name="fast_forward_max_speed">快进最高速度</string>
+
+    <string name="fast_forward_audio_mute_threshold_title">快进音频静音阈值</string>
+    <string name="fast_forward_audio_mute_threshold_entry_never">从不</string>
+    <string name="fast_forward_audio_mute_threshold_entry_1_5x">超过 1.5 倍</string>
+    <string name="fast_forward_audio_mute_threshold_entry_2x">超过 2 倍</string>
+    <string name="fast_forward_audio_mute_threshold_entry_3x">超过 3 倍</string>
+    <string name="fast_forward_audio_mute_threshold_entry_4x">超过 4 倍</string>
+    <string name="fast_forward_audio_mute_threshold_entry_8x">超过 8 倍</string>
+    <string name="fast_forward_pitch_preserve_title">快进音高保持</string>
+    <string name="fast_forward_pitch_preserve_summary">对所有加速倍速生效；进入加速瞬间约有 0.1 秒静音；若帧率受影响请关闭本选项。若初始化失败会自动关闭，重开选项即可重试。</string>
     <string name="rewind_description">启用后，系统将定期自动保存即时存档。每当您想倒退一段时间时，只需打开倒带界面并选择要恢复的存档。\n\n请注意，启用此功能后，如果您的设备性能不足，可能会偶尔发生卡顿。此外，还会使用大量内存，具体取决于保存存档的频率以及保存的时长。</string>
     <string name="rewind_save_period">保存间隔</string>
     <string name="rewind_length">倒带长度</string>

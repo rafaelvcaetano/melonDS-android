@@ -150,6 +150,16 @@
     <string name="category_system_summary">Impostazioni firmware, BIOS personalizzato, JIT</string>
     <string name="theme">Tema</string>
     <string name="fast_forward_max_speed">Velocità massima dell\'avanzamento rapido</string>
+
+    <string name="fast_forward_audio_mute_threshold_title">Soglia di silenziamento audio dell\'avanzamento rapido</string>
+    <string name="fast_forward_audio_mute_threshold_entry_never">Mai</string>
+    <string name="fast_forward_audio_mute_threshold_entry_1_5x">Oltre 1.5x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_2x">Oltre 2x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_3x">Oltre 3x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_4x">Oltre 4x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_8x">Oltre 8x</string>
+    <string name="fast_forward_pitch_preserve_title">Preservazione del tono dell\'avanzamento rapido</string>
+    <string name="fast_forward_pitch_preserve_summary">Funziona a tutte le velocità di avanzamento rapido. All\'attivazione dell\'avanzamento rapido c\'è circa 0,1 secondo di silenzio. Disattiva questa opzione se la frequenza dei fotogrammi ne risente. Disattivata automaticamente se l\'inizializzazione fallisce; riattivala per riprovare.</string>
     <string name="rewind_description">Se abilitato, lo stato viene periodicamente salvato in maniera automatica. Ogni volta che si desidera tornare indietro di un breve lasso di tempo, è sufficiente aprire la schermata di riavvolgimento e selezionare lo stato da cui si desidera ripartire.\n\nAttenzione: attivando questa funzionalità, si potrebbero verificare dei rallentamenti se il dispositivo non è sufficientemente potente. Viene inoltre utilizzata una quantità considerevole di memoria, a seconda della frequenza con cui si desidera salvare lo stato e di quanto a lungo deve essere conservato.</string>
     <string name="rewind_save_period">Periodo di salvataggio</string>
     <string name="rewind_length">Durata riavvolgimento</string>

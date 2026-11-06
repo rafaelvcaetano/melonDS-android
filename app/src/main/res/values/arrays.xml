@@ -109,6 +109,16 @@
         <item>8</item>
     </string-array>
 
+    <!-- 加速音频静音阈值（D7/U4）：0 = 从不静音（缺省），其余为静音线倍速 -->
+    <string-array name="fast_forward_audio_mute_threshold_values">
+        <item>0</item>
+        <item>1.5</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>8</item>
+    </string-array>
+
     <string-array name="save_state_location_values">
         <item>save_dir</item>
         <item>rom_dir</item>

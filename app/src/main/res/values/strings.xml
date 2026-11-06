@@ -483,6 +483,26 @@
         <item>8x</item>
     </string-array>
 
+    <string name="fast_forward_audio_mute_threshold_title">Fast-forward audio mute threshold</string>
+    <string name="fast_forward_audio_mute_threshold_entry_never">Never</string>
+    <string name="fast_forward_audio_mute_threshold_entry_1_5x">Above 1.5x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_2x">Above 2x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_3x">Above 3x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_4x">Above 4x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_8x">Above 8x</string>
+
+    <string-array name="fast_forward_audio_mute_threshold_options">
+        <item>@string/fast_forward_audio_mute_threshold_entry_never</item>
+        <item>@string/fast_forward_audio_mute_threshold_entry_1_5x</item>
+        <item>@string/fast_forward_audio_mute_threshold_entry_2x</item>
+        <item>@string/fast_forward_audio_mute_threshold_entry_3x</item>
+        <item>@string/fast_forward_audio_mute_threshold_entry_4x</item>
+        <item>@string/fast_forward_audio_mute_threshold_entry_8x</item>
+    </string-array>
+
+    <string name="fast_forward_pitch_preserve_title">Fast-forward pitch preservation</string>
+    <string name="fast_forward_pitch_preserve_summary">Works at all fast-forward speeds. Expect about 0.1 second of silence when fast-forward starts. Turn this off if the frame rate is affected. Automatically disabled if initialization fails; toggle it back on to retry.</string>
+
     <string-array name="rom_icon_filtering_options">
         <item>None (Pixelated)</item>
         <item>Linear (Smooth)</item>

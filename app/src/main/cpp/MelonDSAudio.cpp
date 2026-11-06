@@ -64,7 +64,9 @@ namespace MelonDSAndroid
 
         oboe::Result result = streamBuilder.openStream(audioStream);
         audioStream->setPerformanceHintEnabled(true);
-        audioStream->setBufferSizeInFrames(std::min(audioStream->getBufferCapacityInFrames(), 2048));
+        // 输出缓冲上限 1024（≈21ms）：2048 时系统侧管道沉淀至多 43ms，是音画延迟构成中
+        // SoundTouch 之外的第二大项；1024 仍大于典型突发块（192-480）×2，抗调度抖动余量足够
+        audioStream->setBufferSizeInFrames(std::min(audioStream->getBufferCapacityInFrames(), 1024));
         if (result != oboe::Result::OK) {
             Log(Error, "Failed to init audio stream");
             outputCallback = nullptr;

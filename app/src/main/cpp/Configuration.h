@@ -72,6 +72,8 @@ typedef struct
     char* dsiNandPath;
     char* internalFilesDir;
     float fastForwardSpeedMultiplier;
+    float fastForwardAudioMuteThreshold;
+    bool fastForwardPitchPreserve;
     bool showBootScreen;
     bool useJit;
     bool syncRtcOnResume;

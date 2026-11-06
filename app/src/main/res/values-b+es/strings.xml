@@ -139,6 +139,16 @@
     <string name="category_system_summary">Configuración de firmware, BIOS customizado, JIT</string>
     <string name="theme">Tema</string>
     <string name="fast_forward_max_speed">Velocidad máxima avance rápido</string>
+
+    <string name="fast_forward_audio_mute_threshold_title">Umbral de silencio de audio del avance rápido</string>
+    <string name="fast_forward_audio_mute_threshold_entry_never">Nunca</string>
+    <string name="fast_forward_audio_mute_threshold_entry_1_5x">Más de 1,5x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_2x">Más de 2x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_3x">Más de 3x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_4x">Más de 4x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_8x">Más de 8x</string>
+    <string name="fast_forward_pitch_preserve_title">Conservación del tono del avance rápido</string>
+    <string name="fast_forward_pitch_preserve_summary">Funciona a todas las velocidades de avance rápido. Habrá unos 0,1 segundos de silencio al iniciar el avance rápido. Desactiva esta opción si la tasa de fotogramas se ve afectada. Se desactiva automáticamente si falla la inicialización; vuelve a activarla para reintentar.</string>
     <string name="rewind_description">Cuando está habilitado, un estado de guardado se guarda periódicamente de forma automática. Siempre que desee retroceder en su progreso por un corto período de tiempo, simplemente abra la pantalla de rebobinado y seleccione el estado desde el que desea reanudar.\n\nTenga en cuenta que al habilitar esta función, puede experimentar tartamudeos ocasionales si su dispositivo no es lo suficientemente potente. También se utiliza una cantidad considerable de memoria dependiendo de la frecuencia con la que desee que se capture el estado y durante cuánto tiempo se debe mantener.</string>
     <string name="rewind_save_period">Período de guardado</string>
     <string name="rewind_length">Duración de rebobinado</string>

@@ -140,6 +140,16 @@
     <string name="category_system_summary">Paramètres du firmware, BIOS personnalisé, JAT</string>
     <string name="theme">Thème</string>
     <string name="fast_forward_max_speed">Vitesse maximale de l\'avance rapide</string>
+
+    <string name="fast_forward_audio_mute_threshold_title">Seuil de coupure du son de l\'avance rapide</string>
+    <string name="fast_forward_audio_mute_threshold_entry_never">Jamais</string>
+    <string name="fast_forward_audio_mute_threshold_entry_1_5x">Au-dessus de x1,5</string>
+    <string name="fast_forward_audio_mute_threshold_entry_2x">Au-dessus de x2</string>
+    <string name="fast_forward_audio_mute_threshold_entry_3x">Au-dessus de x3</string>
+    <string name="fast_forward_audio_mute_threshold_entry_4x">Au-dessus de x4</string>
+    <string name="fast_forward_audio_mute_threshold_entry_8x">Au-dessus de x8</string>
+    <string name="fast_forward_pitch_preserve_title">Préservation de la tonalité de l\'avance rapide</string>
+    <string name="fast_forward_pitch_preserve_summary">Fonctionne à toutes les vitesses d\'avance rapide. Un silence d\'environ 0,1 seconde se produit au démarrage de l\'avance rapide. Désactivez cette option si la fréquence d\'images est affectée. Désactivée automatiquement en cas d\'échec de l\'initialisation ; réactivez-la pour réessayer.</string>
     <string name="rewind_description">Lorsque le rembobinage est activé, une sauvegarde d\'état est périodiquement enregistrée automatiquement. Lorsque vous souhaitez revenir à une progression antérieure, il vous suffit d\'ouvrir l\'écran de rembobinage et de sélectionner l\'état à partir duquel vous souhaitez reprendre votre progression.\n\nVeuillez noter qu\'en activant cette fonction, vous pouvez rencontrer des bégaiements occasionnels si votre appareil n\'est pas assez puissant. Une quantité considérable de mémoire est également utilisée en fonction de la fréquence à laquelle vous souhaitez que l\'état soit capturé et de la durée pendant laquelle il doit être conservé.</string>
     <string name="rewind_save_period">Période de sauvegarde</string>
     <string name="rewind_length">Longueur du rembobinage</string>
