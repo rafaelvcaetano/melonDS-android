@@ -37,7 +37,6 @@
         android:appCategory="game"
         android:enableOnBackInvokedCallback="true"
         android:isGame="true"
-        android:largeHeap="true"
         android:theme="@style/AppTheme">
 
         <meta-data
