@@ -4,6 +4,8 @@
 #include "Configuration.h"
 #include "MelonInstance.h"
 #include "types.h"
+#include <cstdint>
+#include <vector>
 
 namespace MelonDSAndroid
 {
@@ -11,6 +13,10 @@ namespace MelonDSAndroid
     extern void userDisableMic();
     extern void enableMic();
     extern void disableMic();
+    extern void setAutoMicMode(int mode);
+    extern void startAudioCapture(int maxSeconds);
+    extern void captureAudio(const int16_t* stereoSamples, int frames);
+    extern std::vector<int16_t> stopAudioCapture();
     extern int readMic(melonDS::s16* data, int maxlength);
 
     extern void setupAudio(AudioSettings audioSettings);
