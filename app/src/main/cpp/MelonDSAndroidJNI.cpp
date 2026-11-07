@@ -548,6 +548,29 @@ Java_me_magnum_melonds_MelonEmulator_setMicrophoneEnabled(JNIEnv* env, jobject t
 }
 
 JNIEXPORT void JNICALL
+Java_me_magnum_melonds_MelonEmulator_setAutoMicMode(JNIEnv* env, jobject thiz, jint mode)
+{
+    MelonDSAndroid::setAutoMicMode(mode);
+}
+
+JNIEXPORT void JNICALL
+Java_me_magnum_melonds_MelonEmulator_startAudioCapture(JNIEnv* env, jobject thiz, jint maxSeconds)
+{
+    MelonDSAndroid::startAudioCapture(maxSeconds);
+}
+
+JNIEXPORT jshortArray JNICALL
+Java_me_magnum_melonds_MelonEmulator_stopAudioCapture(JNIEnv* env, jobject thiz)
+{
+    std::vector<int16_t> samples = MelonDSAndroid::stopAudioCapture();
+    jshortArray result = env->NewShortArray((jsize) samples.size());
+    if (result != nullptr && !samples.empty())
+        env->SetShortArrayRegion(result, 0, (jsize) samples.size(), (const jshort*) samples.data());
+
+    return result;
+}
+
+JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jobject thiz, jobject emulatorConfiguration)
 {
     MelonDSAndroid::EmulatorConfiguration newConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
