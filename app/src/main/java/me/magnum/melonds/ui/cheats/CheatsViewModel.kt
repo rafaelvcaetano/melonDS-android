@@ -4,9 +4,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -104,6 +107,29 @@ class CheatsViewModel @Inject constructor(
             }
         }.shareIn(viewModelScope, started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 1000L), replay = 1)
     }
+
+    fun searchCheats(
+        query: String,
+        folderName: String?,
+    ): Flow<CheatsScreenUiState<List<Pair<CheatFolder, Cheat>>>> = folders
+        .map { folderState ->
+            when (folderState) {
+                is CheatsScreenUiState.Loading -> CheatsScreenUiState.Loading()
+                is CheatsScreenUiState.Ready -> {
+                    val results = folderState.data.asSequence()
+                        .filter { folderName == null || it.name == folderName }
+                        .flatMap { folder ->
+                            val folderMatches = query.isNotBlank() && folder.name.contains(query, ignoreCase = true)
+                            folder.cheats.asSequence()
+                                .filter { query.isBlank() || folderMatches || it.name.contains(query, ignoreCase = true) }
+                                .map { cheat -> folder to cheat }
+                        }
+                        .toList()
+                    CheatsScreenUiState.Ready(results)
+                }
+            }
+        }
+        .flowOn(Dispatchers.Default)
 
     val folderCheats by lazy {
         selectedCheatFolder.filterNotNull()

@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -17,7 +18,7 @@ fun HighlightedText(
     query: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colors.onSurface,
-    style: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.body1,
+    style: TextStyle = MaterialTheme.typography.body1,
     maxLines: Int = Int.MAX_VALUE,
 ) {
     val highlightStyle = SpanStyle(

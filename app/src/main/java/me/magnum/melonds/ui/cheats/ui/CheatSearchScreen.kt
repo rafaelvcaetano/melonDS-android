@@ -1,5 +1,7 @@
 package me.magnum.melonds.ui.cheats.ui
 
+import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -13,7 +15,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,9 +37,9 @@ import me.magnum.melonds.ui.cheats.ui.item.CheatInFolderItem
 fun CheatSearchScreen(
     modifier: Modifier,
     contentPadding: PaddingValues,
-    folders: CheatsScreenUiState<List<CheatFolder>>,
+    searchResults: CheatsScreenUiState<List<Pair<CheatFolder, Cheat>>>,
     query: String,
-    folderName: String?,
+    onBack: () -> Unit,
     onCheatClick: (Cheat) -> Unit,
     onUpdateCheat: (Cheat, CheatSubmissionForm) -> Unit,
     onDeleteCheatClick: (CheatFolder, Cheat) -> Unit,
@@ -47,26 +48,14 @@ fun CheatSearchScreen(
         mutableStateOf(CheatFormDialogState.Hidden)
     }
 
-    when (folders) {
+    when (searchResults) {
         is CheatsScreenUiState.Loading -> LoadingScreen(modifier.padding(contentPadding))
         is CheatsScreenUiState.Ready -> {
-            val searchResults = remember(folders.data, query, folderName) {
-                folders.data.asSequence()
-                    .filter { folderName == null || it.name == folderName }
-                    .flatMap { folder ->
-                        val folderMatches = query.isNotBlank() && folder.name.contains(query, ignoreCase = true)
-                        folder.cheats.asSequence()
-                            .filter { query.isBlank() || folderMatches || it.name.contains(query, ignoreCase = true) }
-                            .map { cheat -> folder to cheat }
-                    }
-                    .toList()
-            }
-
-            if (searchResults.isEmpty()) {
+            if (searchResults.data.isEmpty()) {
                 Box(modifier.fillMaxSize().padding(contentPadding)) {
                     Text(
                         modifier = Modifier.padding(24.dp).align(Alignment.Center),
-                        text = stringResource(R.string.no_cheats_found),
+                        text = stringResource(R.string.no_cheats_found_from_search),
                         textAlign = TextAlign.Center,
                     )
                 }
@@ -80,7 +69,10 @@ fun CheatSearchScreen(
                         bottom = contentPadding.calculateBottomPadding() + 16.dp,
                     ),
                 ) {
-                    items(searchResults) { (folder, cheat) ->
+                    items(
+                        items = searchResults.data,
+                        key = { (folder, cheat) -> "${folder.id ?: folder.name}:${cheat.id ?: cheat.code}" },
+                    ) { (folder, cheat) ->
                         CheatInFolderItem(
                             modifier = Modifier.fillMaxWidth(),
                             cheatInFolder = CheatInFolder(cheat, folder.name),
@@ -106,4 +98,8 @@ fun CheatSearchScreen(
             cheatFormDialogState = CheatFormDialogState.Hidden
         },
     )
+
+    BackHandler {
+        onBack()
+    }
 }

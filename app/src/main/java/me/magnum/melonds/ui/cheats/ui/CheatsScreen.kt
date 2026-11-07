@@ -7,13 +7,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -35,7 +35,6 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ProvideTextStyle
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -56,6 +56,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -90,27 +91,36 @@ fun CheatsScreen(
         mutableStateOf(TextFieldValue(""))
     }
     val searchQuery = searchFieldValue.text
-    val showEnabledCheatsButton by remember(currentBackStackEntry) {
-        derivedStateOf {
-            currentRoute == CheatsNavigation.GameFolders.serializer().descriptor.serialName || currentRoute == CheatsNavigation.FolderCheats.serializer().descriptor.serialName
+    val isSearchVisible = isSearchActive || isSearchRoute
+    val searchFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(isSearchVisible) {
+        if (isSearchVisible) searchFocusRequester.requestFocus()
+    }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val showEnabledCheatsButton = remember(currentRoute) {
+        currentRoute == CheatsNavigation.GameFolders.serializer().descriptor.serialName ||
+            currentRoute == CheatsNavigation.FolderCheats.serializer().descriptor.serialName ||
+                currentRoute == CheatsNavigation.Search.serializer().descriptor.serialName
+    }
+    val appBarTitle = remember(currentRoute) {
+        when (currentRoute) {
+            CheatsNavigation.GameFolders.serializer().descriptor.serialName -> currentBackStackEntry?.toRoute<CheatsNavigation.GameFolders>()?.gameName
+            CheatsNavigation.FolderCheats.serializer().descriptor.serialName -> currentBackStackEntry?.toRoute<CheatsNavigation.FolderCheats>()?.folderName
+            CheatsNavigation.EnabledCheats.serializer().descriptor.serialName -> enabledCheatsTitle
+            else -> null
         }
     }
-    val appBarTitle by remember(currentBackStackEntry) {
-        derivedStateOf {
-            when (currentRoute) {
-                CheatsNavigation.GameFolders.serializer().descriptor.serialName -> currentBackStackEntry?.toRoute<CheatsNavigation.GameFolders>()?.gameName
-                CheatsNavigation.FolderCheats.serializer().descriptor.serialName -> currentBackStackEntry?.toRoute<CheatsNavigation.FolderCheats>()?.folderName
-                CheatsNavigation.EnabledCheats.serializer().descriptor.serialName -> enabledCheatsTitle
-                else -> null
-            }
-        }
-    }
+    // Start inset for the title when there is a navigation icon provided (copied from AppBar.kt)
+    val titleIconModifier = Modifier.fillMaxHeight().width(68.dp)
     val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState)
     val coroutineScope = rememberCoroutineScope()
     val navigateBack = {
-        if (navController.previousBackStackEntry == null) {
+        if (isSearchActive) {
+            isSearchActive = false
+            searchFieldValue = TextFieldValue("")
+        } else if (navController.previousBackStackEntry == null) {
             // The first screen (the loading screen) is not considered as an entry. So, previousBackStackEntry will be null
             viewModel.commitCheatChanges()
         } else {
@@ -142,16 +152,7 @@ fun CheatsScreen(
     }
 
     BackHandler {
-        if (isSearchRoute) {
-            navController.navigateUp()
-            isSearchActive = false
-            searchFieldValue = TextFieldValue("")
-        } else if (isSearchActive) {
-            isSearchActive = false
-            searchFieldValue = TextFieldValue("")
-        } else {
-            navigateBack()
-        }
+        navigateBack()
     }
 
     Scaffold(
@@ -159,55 +160,93 @@ fun CheatsScreen(
         scaffoldState = scaffoldState,
         topBar = {
             Box(Modifier.background(MaterialTheme.colors.primaryVariant).statusBarsPadding()) {
-                if (isSearchActive || isSearchRoute) {
-                    CheatsSearchTopBar(
-                        query = searchFieldValue,
-                        onQueryChange = { value ->
-                            searchFieldValue = value
-                            val query = value.text
-                            if (query.isNotEmpty() && !isSearchRoute) {
-                                navController.navigate(CheatsNavigation.Search(query, searchFolderName)) {
-                                    launchSingleTop = true
+                TopAppBar(
+                    backgroundColor = MaterialTheme.colors.primary,
+                    contentColor = MaterialTheme.colors.onPrimary,
+                    windowInsets = WindowInsets.safeDrawing.exclude(WindowInsets(bottom = Int.MAX_VALUE)),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (isSearchVisible) {
+                            TextField(
+                                modifier = Modifier.weight(1f).focusRequester(searchFocusRequester),
+                                value = searchFieldValue,
+                                onValueChange = { value ->
+                                    searchFieldValue = value
+                                    val query = value.text
+                                    if (query.isNotEmpty() && !isSearchRoute) {
+                                        navController.navigate(CheatsNavigation.Search(query, searchFolderName)) {
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                },
+                                placeholder = {
+                                    Text(
+                                        text = stringResource(R.string.hint_search),
+                                        color = MaterialTheme.colors.onPrimary.copy(alpha = 0.6f),
+                                    )
+                                },
+                                leadingIcon = {
+                                    IconButton(onClick = {
+                                        if (isSearchRoute) navController.navigateUp()
+                                        isSearchActive = false
+                                        searchFieldValue = TextFieldValue("")
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = stringResource(R.string.close),
+                                            tint = MaterialTheme.colors.onPrimary,
+                                        )
+                                    }
+                                },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                                keyboardActions = KeyboardActions(onSearch = { keyboardController?.hide() }),
+                                colors = TextFieldDefaults.textFieldColors(
+                                    textColor = MaterialTheme.colors.onPrimary,
+                                    backgroundColor = Color.Transparent,
+                                    cursorColor = MaterialTheme.colors.onPrimary,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                ),
+                            )
+                        } else {
+                            Row(titleIconModifier, verticalAlignment = Alignment.CenterVertically) {
+                                CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
+                                    IconButton(onClick = { navigateBack() }) {
+                                        Icon(
+                                            painter = rememberVectorPainter(Icons.AutoMirrored.Filled.ArrowBack),
+                                            contentDescription = null,
+                                        )
+                                    }
                                 }
                             }
-                        },
-                        onClose = {
-                            if (isSearchRoute) navController.navigateUp()
-                            isSearchActive = false
-                            searchFieldValue = TextFieldValue("")
-                        },
-                        onEnabledCheatsClick = { viewModel.openEnabledCheats() },
-                    )
-                } else TopAppBar(
-                    title = {
-                        Text(
-                            text = appBarTitle ?: stringResource(R.string.cheats),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
-                    backgroundColor = MaterialTheme.colors.primary,
-                    navigationIcon = {
-                        IconButton(onClick = { navigateBack() }) {
-                            Icon(
-                                painter = rememberVectorPainter(Icons.AutoMirrored.Filled.ArrowBack),
-                                contentDescription = null,
-                            )
-                        }
-                    },
-                    actions = {
-                        if (currentRoute == CheatsNavigation.GameFolders.serializer().descriptor.serialName ||
-                            currentRoute == CheatsNavigation.FolderCheats.serializer().descriptor.serialName
-                        ) {
-                            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
-                                IconButton(onClick = {
-                                    searchFieldValue = TextFieldValue("")
-                                    isSearchActive = true
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Search,
-                                        contentDescription = stringResource(R.string.hint_search),
-                                    )
+                            Row(Modifier.fillMaxHeight().weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                                ProvideTextStyle(value = MaterialTheme.typography.h6) {
+                                    CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
+                                        Text(
+                                            text = appBarTitle ?: stringResource(R.string.cheats),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                    }
+                                }
+                            }
+                            if (currentRoute == CheatsNavigation.GameFolders.serializer().descriptor.serialName ||
+                                currentRoute == CheatsNavigation.FolderCheats.serializer().descriptor.serialName
+                            ) {
+                                CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
+                                    IconButton(onClick = {
+                                        searchFieldValue = TextFieldValue("")
+                                        isSearchActive = true
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Search,
+                                            contentDescription = stringResource(R.string.hint_search),
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -221,9 +260,8 @@ fun CheatsScreen(
                                 }
                             }
                         }
-                    },
-                    windowInsets = WindowInsets.safeDrawing.exclude(WindowInsets(bottom = Int.MAX_VALUE)),
-                )
+                    }
+                }
             }
         },
         backgroundColor = MaterialTheme.colors.surface,
@@ -257,6 +295,9 @@ fun CheatsScreen(
                     onFolderClick = { viewModel.setSelectedFolder(it) },
                     onAddFolder = { viewModel.addFolder(it) },
                 )
+                BackHandler {
+                    navigateBack()
+                }
             }
             composable<CheatsNavigation.FolderCheats> {
                 val cheats by viewModel.folderCheats.collectAsStateWithLifecycle(CheatsScreenUiState.Loading())
@@ -281,17 +322,32 @@ fun CheatsScreen(
                         viewModel.deleteCheat(it)
                     },
                 )
+                BackHandler {
+                    navigateBack()
+                }
             }
             composable<CheatsNavigation.Search> { backStackEntry ->
-                val folders by viewModel.folders.collectAsStateWithLifecycle(CheatsScreenUiState.Loading())
                 val searchRoute = backStackEntry.toRoute<CheatsNavigation.Search>()
+                val searchResultsFlow = remember(searchQuery, searchRoute.folderName) {
+                    viewModel.searchCheats(searchQuery, searchRoute.folderName)
+                }
+                val searchResults by searchResultsFlow.collectAsStateWithLifecycle(CheatsScreenUiState.Loading())
 
                 CheatSearchScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = padding,
-                    folders = folders,
+                    searchResults = searchResults,
                     query = searchQuery,
-                    folderName = searchRoute.folderName,
+                    onBack = {
+                        if (searchFieldValue.text.isNotEmpty()) {
+                            // 1st back: just clear the field, stay on the search screen
+                            searchFieldValue = TextFieldValue("")
+                        } else {
+                            // 2nd back: dismiss the search screen
+                            navController.navigateUp()
+                            isSearchActive = false
+                        }
+                    },
                     onCheatClick = { viewModel.toggleCheat(it) },
                     onUpdateCheat = viewModel::updateCheat,
                     onDeleteCheatClick = { folder, cheat ->
@@ -317,71 +373,6 @@ fun CheatsScreen(
                     cheats = cheats,
                     onCheatClick = { viewModel.toggleCheat(it.cheat) }
                 )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CheatsSearchTopBar(
-    query: TextFieldValue,
-    onQueryChange: (TextFieldValue) -> Unit,
-    onClose: () -> Unit,
-    onEnabledCheatsClick: () -> Unit,
-) {
-    val focusRequester = remember { FocusRequester() }
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
-
-    TopAppBar(
-        backgroundColor = MaterialTheme.colors.primary,
-        contentColor = MaterialTheme.colors.onPrimary,
-        windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TextField(
-                modifier = Modifier.weight(1f).focusRequester(focusRequester),
-                value = query,
-                onValueChange = onQueryChange,
-                placeholder = {
-                    Text(
-                        text = stringResource(R.string.hint_search),
-                        color = MaterialTheme.colors.onPrimary.copy(alpha = 0.6f),
-                    )
-                },
-                leadingIcon = {
-                    IconButton(onClick = onClose) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.close),
-                            tint = MaterialTheme.colors.onPrimary,
-                        )
-                    }
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { keyboardController?.hide() }),
-                colors = TextFieldDefaults.textFieldColors(
-                    textColor = MaterialTheme.colors.onPrimary,
-                    backgroundColor = Color.Transparent,
-                    cursorColor = MaterialTheme.colors.onPrimary,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                ),
-            )
-            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
-                IconButton(onClick = onEnabledCheatsClick) {
-                    Icon(
-                        painter = rememberVectorPainter(Icons.Outlined.CheckBox),
-                        contentDescription = stringResource(R.string.enabled_cheats),
-                    )
-                }
             }
         }
     }
