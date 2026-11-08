@@ -10,13 +10,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.Checkbox
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.domain.model.CheatInFolder
@@ -28,8 +30,13 @@ import me.magnum.melonds.ui.theme.MelonTheme
 fun CheatInFolderItem(
     modifier: Modifier,
     cheatInFolder: CheatInFolder,
+    highlightQuery: String = "",
+    onEditClick: (() -> Unit)? = null,
+    onDeleteClick: (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
+    var showCheatOptions by remember { mutableStateOf(false) }
+
     Row(
         modifier = modifier
             .clickable(onClick = onClick)
@@ -42,7 +49,7 @@ fun CheatInFolderItem(
             onCheckedChange = null,
         )
 
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -52,21 +59,33 @@ fun CheatInFolderItem(
                     imageVector = Icons.Filled.Folder,
                     contentDescription = null,
                 )
-                Text(
+                HighlightedText(
                     modifier = Modifier.weight(1f),
                     text = cheatInFolder.folderName,
+                    query = highlightQuery,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                 )
             }
 
-            Text(cheatInFolder.cheat.name)
+            HighlightedText(
+                text = cheatInFolder.cheat.name,
+                query = highlightQuery,
+            )
             if (cheatInFolder.cheat.description?.isNotBlank() == true) {
                 CaptionText(
                     text = cheatInFolder.cheat.description,
                     style = MaterialTheme.typography.body2,
                 )
             }
+        }
+
+        if (onEditClick != null || onDeleteClick != null) {
+            CheatOptionsMenu(
+                expanded = showCheatOptions,
+                onExpandedChange = { showCheatOptions = it },
+                onEditClick = onEditClick,
+                onDeleteClick = onDeleteClick,
+            )
         }
     }
 }

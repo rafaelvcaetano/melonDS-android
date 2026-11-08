@@ -7,18 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Checkbox
-import androidx.compose.material.ContentAlpha
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,9 +24,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.Cheat
 import me.magnum.melonds.ui.common.MelonPreviewSet
 import me.magnum.melonds.ui.common.component.text.CaptionText
@@ -94,43 +83,17 @@ fun CheatItem(
         }
 
         // Cheat can always be edited even if it's not valid
-        CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
-            IconButton(
-                modifier = Modifier
-                    .focusRequester(optionsFocusRequester)
-                    .focusProperties {
-                        start = mainFocusRequester
-                    },
-                onClick = { showCheatOptions = true },
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = stringResource(R.string.options),
-                )
-
-                DropdownMenu(
-                    expanded = showCheatOptions,
-                    onDismissRequest = { showCheatOptions = false },
-                ) {
-                    DropdownMenuItem(
-                        onClick = {
-                            showCheatOptions = false
-                            onEditClick()
-                        },
-                    ) {
-                        Text(stringResource(R.string.edit))
-                    }
-                    DropdownMenuItem(
-                        onClick = {
-                            showCheatOptions = false
-                            onDeleteClick()
-                        },
-                    ) {
-                        Text(stringResource(R.string.delete))
-                    }
-                }
-            }
-        }
+        CheatOptionsMenu(
+            modifier = Modifier
+                .focusRequester(optionsFocusRequester)
+                .focusProperties {
+                    start = mainFocusRequester
+                },
+            expanded = showCheatOptions,
+            onExpandedChange = { showCheatOptions = it },
+            onEditClick = onEditClick,
+            onDeleteClick = onDeleteClick,
+        )
     }
 }
 
