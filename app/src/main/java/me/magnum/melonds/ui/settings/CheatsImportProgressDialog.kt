@@ -1,7 +1,10 @@
 package me.magnum.melonds.ui.settings
 
+import android.Manifest
 import android.app.Dialog
+import android.os.Build
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
@@ -13,14 +16,16 @@ import kotlinx.coroutines.launch
 import me.magnum.melonds.R
 import me.magnum.melonds.databinding.DialogCheatsImportProgressBinding
 import me.magnum.melonds.domain.model.CheatImportProgress
+import me.magnum.melonds.extensions.isNotificationPermissionGranted
 import me.magnum.melonds.ui.settings.viewmodel.CheatsPreferencesViewModel
-import kotlin.getValue
 
 @AndroidEntryPoint
 class CheatsImportProgressDialog : DialogFragment() {
 
     private val viewModel by viewModels<CheatsPreferencesViewModel>()
     private lateinit var binding: DialogCheatsImportProgressBinding
+
+    private val notificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         binding = DialogCheatsImportProgressBinding.inflate(layoutInflater)
@@ -29,10 +34,21 @@ class CheatsImportProgressDialog : DialogFragment() {
             .setTitle(R.string.importing_cheats)
             .setView(binding.root)
             .setPositiveButton(R.string.move_to_background) { dialog, _ ->
+                requestNotificationPermission()
                 dialog.dismiss()
             }
             .setCancelable(false)
             .create()
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return
+        }
+
+        if (!requireContext().isNotificationPermissionGranted()) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
 
     override fun onStart() {
