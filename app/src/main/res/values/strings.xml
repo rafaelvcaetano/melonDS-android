@@ -54,6 +54,7 @@
     <string name="action_boot_firmware">Boot firmware</string>
     <string name="action_refresh_rom_list">Refresh ROM list</string>
     <string name="hint_search_roms">Search ROMs…</string>
+    <string name="hint_search">Search…</string>
     <string name="update_available">Update available: %1$s</string>
     <string name="nightly_update_available">Nightly update available</string>
     <string name="nightly_update_available_message">Do you want to download it now?</string>
@@ -298,6 +299,7 @@
     <string name="move_to_background">Move to background</string>
     <string name="failed_save_cheat_changes">Could not save cheat changes</string>
     <string name="no_cheats_found">Could not find cheats for the current ROM. Try importing a different cheat database.</string>
+    <string name="no_cheats_found_from_search">No cheats matching your search were found</string>
     <string name="enabled_cheats">Enabled cheats</string>
     <string name="no_enabled_cheats_for_rom">You haven\'t enabled any cheat for this ROM</string>
     <string name="folder_is_empty">This folder is empty. Try adding your own cheat code</string>

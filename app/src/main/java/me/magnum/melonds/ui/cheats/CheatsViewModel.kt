@@ -4,17 +4,21 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -87,12 +91,45 @@ class CheatsViewModel @Inject constructor(
                 } else {
                     emit(CheatsScreenUiState.Loading())
                     cheatsRepository.getAllGameCheats(it)
-                        .map { CheatsScreenUiState.Ready(it) }
+                        // Reflect pending toggles in folder and cheat search results before they are committed.
+                        .combine(modifiedCheatSet) { folders, modifiedCheats ->
+                            val updatedFolders = folders.map { folder ->
+                                folder.copy(
+                                    cheats = folder.cheats.map { cheat ->
+                                        modifiedCheats.firstOrNull { it.id == cheat.id } ?: cheat
+                                    }
+                                )
+                            }
+                            CheatsScreenUiState.Ready(updatedFolders)
+                        }
                         .collect(this)
                 }
             }
         }.shareIn(viewModelScope, started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 1000L), replay = 1)
     }
+
+    fun searchCheats(
+        query: String,
+        folderName: String?,
+    ): Flow<CheatsScreenUiState<List<Pair<CheatFolder, Cheat>>>> = folders
+        .map { folderState ->
+            when (folderState) {
+                is CheatsScreenUiState.Loading -> CheatsScreenUiState.Loading()
+                is CheatsScreenUiState.Ready -> {
+                    val results = folderState.data.asSequence()
+                        .filter { folderName == null || it.name == folderName }
+                        .flatMap { folder ->
+                            val folderMatches = query.isNotBlank() && folder.name.contains(query, ignoreCase = true)
+                            folder.cheats.asSequence()
+                                .filter { query.isBlank() || folderMatches || it.name.contains(query, ignoreCase = true) }
+                                .map { cheat -> folder to cheat }
+                        }
+                        .toList()
+                    CheatsScreenUiState.Ready(results)
+                }
+            }
+        }
+        .flowOn(Dispatchers.Default)
 
     val folderCheats by lazy {
         selectedCheatFolder.filterNotNull()
@@ -266,10 +303,13 @@ class CheatsViewModel @Inject constructor(
 
     fun deleteCheat(cheat: Cheat) {
         val selectedFolder = savedStateHandle.get<CheatFolderParcelable>(KEY_SELECTED_FOLDER) ?: return
+        deleteCheat(cheat, selectedFolder.toCheatFolder())
+    }
 
+    fun deleteCheat(cheat: Cheat, folder: CheatFolder) {
         viewModelScope.launch {
             cheatsRepository.deleteCheat(cheat)
-            deletedCheats.add(DeletedCheat(cheat, selectedFolder.toCheatFolder()))
+            deletedCheats.add(DeletedCheat(cheat, folder))
         }
     }
 
