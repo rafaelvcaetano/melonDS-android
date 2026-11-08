@@ -13,4 +13,6 @@ sealed class RomConfigUpdateEvent {
     data class GbaRomPathUpdate(val gbaRomPath: Uri?) : RomConfigUpdateEvent()
     data class GbaSavePathUpdate(val gbaSavePath: Uri?) : RomConfigUpdateEvent()
     data class CustomNameUpdate(val customName: String?) : RomConfigUpdateEvent()
+    // notifies RomDetailsViewModel to refresh the cheat count
+    object CheatActivityReturned : RomConfigUpdateEvent()
 }

@@ -198,8 +198,12 @@ object MelonModule {
 
     @Provides
     @Singleton
-    fun provideRomDetailsUiMapper(@ApplicationContext context: Context, layoutsRepository: LayoutsRepository): RomDetailsUiMapper {
-        return RomDetailsUiMapper(context, layoutsRepository)
+    fun provideRomDetailsUiMapper(
+        @ApplicationContext context: Context,
+        layoutsRepository: LayoutsRepository,
+        cheatsRepository: CheatsRepository,
+    ): RomDetailsUiMapper {
+        return RomDetailsUiMapper(context, layoutsRepository, cheatsRepository)
     }
 
     @Provides
