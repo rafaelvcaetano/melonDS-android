@@ -168,6 +168,16 @@
     <string name="category_system_summary">Настройки прошивки, выбор BIOS, JIT</string>
     <string name="theme">Тема оформления</string>
     <string name="fast_forward_max_speed">Максимальное ускорение</string>
+
+    <string name="fast_forward_audio_mute_threshold_title">Порог отключения звука при ускорении</string>
+    <string name="fast_forward_audio_mute_threshold_entry_never">Никогда</string>
+    <string name="fast_forward_audio_mute_threshold_entry_1_5x">Выше 1.5x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_2x">Выше 2x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_3x">Выше 3x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_4x">Выше 4x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_8x">Выше 8x</string>
+    <string name="fast_forward_pitch_preserve_title">Сохранение тона при ускорении</string>
+    <string name="fast_forward_pitch_preserve_summary">Работает на любой скорости ускорения. При включении ускорения возникает тишина около 0,1 секунды. Отключите эту опцию, если страдает частота кадров. Автоматически отключается при сбое инициализации; включите снова для повтора.</string>
     <string name="rewind_description">Включает автоматическое сохранение через заданный период времени. Для возврата к любой точке геймплея откройте меню обратной перемотки и выберите сохранение, с которого хотите продолжить.\n\nВозможно снижение производительности при недостаточной мощности устройства. В зависимости от конфигурации может потребоваться значительный объём свободной памяти.</string>
     <string name="rewind_save_period">Частота сохранений</string>
     <string name="rewind_length">Буфер перемотки</string>

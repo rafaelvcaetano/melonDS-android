@@ -168,6 +168,16 @@
     <string name="category_system_summary">Pengaturan firmware, BIOS kustom, JIT</string>
     <string name="theme">Tema</string>
     <string name="fast_forward_max_speed">Maju-cepat kecepatan maks</string>
+
+    <string name="fast_forward_audio_mute_threshold_title">Ambang bisu audio maju-cepat</string>
+    <string name="fast_forward_audio_mute_threshold_entry_never">Tidak pernah</string>
+    <string name="fast_forward_audio_mute_threshold_entry_1_5x">Di atas 1.5x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_2x">Di atas 2x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_3x">Di atas 3x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_4x">Di atas 4x</string>
+    <string name="fast_forward_audio_mute_threshold_entry_8x">Di atas 8x</string>
+    <string name="fast_forward_pitch_preserve_title">Pertahankan nada maju-cepat</string>
+    <string name="fast_forward_pitch_preserve_summary">Berfungsi pada semua kecepatan maju-cepat. Ada senyap sekitar 0,1 detik saat maju-cepat dimulai. Matikan opsi ini jika frame rate terpengaruh. Nonaktif otomatis jika inisialisasi gagal; nyalakan kembali untuk mencoba lagi.</string>
     <string name="rewind_description">Ketika diaktifkan, status penyimpanan disimpan otomatis secara berkala. Kapan pun anda ingin kembali ke kemajuan anda dalam waktu singkat, cukup buka layar putar ulang dan pilih status yang ingin anda lanjutkan.\n\nKetahuilah bawah dengan mengaktifkan fitur ini, anda mungkin sesekali mengalami lag jika perangkat anda tidak cukup kuat. Sejumlah besar memori juga digunakan tergantung pada seberapa sering anda ingin status ditangkap dan seberapa lama harus disimpan.</string>
     <string name="rewind_save_period">Periode penyimpanan</string>
     <string name="rewind_length">Panjang putar ulang</string>

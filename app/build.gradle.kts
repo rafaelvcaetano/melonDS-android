@@ -57,6 +57,16 @@ android {
         }
         getByName("debug") {
             applicationIdSuffix = ".dev"
+            externalNativeBuild {
+                cmake {
+                    // AGP 默认把 debug 变体的 native 构建钉在 CMake Debug（-O0 无优化），
+                    // 模拟核心整库慢 3-10 倍，加速帧率被压回常速水平。覆写为 RelWithDebInfo：
+                    // -O2 优化 + 保留调试符号（USB 调试断点仍可用）。副作用：NDEBUG 被定义，
+                    // assert 与 OboeCallback 的 audio-probe 调试探针被编译剔除——需要探针
+                    // 标定参数时临时删掉本覆写换回纯 Debug 构建即可
+                    arguments += listOf("-DCMAKE_BUILD_TYPE=RelWithDebInfo")
+                }
+            }
         }
     }
 

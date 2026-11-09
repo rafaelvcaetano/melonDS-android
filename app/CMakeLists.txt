@@ -19,6 +19,7 @@ add_subdirectory(${OBOE} ./oboe)
 add_subdirectory(${FAAD2} ./faad2)
 add_subdirectory(${RCHEEVOS} ./rcheevos)
 add_subdirectory(${ANDROID-CPP}/enet ./enet)
+add_subdirectory(${ANDROID-CPP}/soundtouch ./soundtouch)
 target_include_directories(enet INTERFACE ${ANDROID-CPP}/enet/include)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${CORE-LIB}/cmake")
 add_subdirectory(${CORE-LIB}/src/net ./net-utils)
@@ -71,4 +72,4 @@ target_include_directories(melonDS-android-frontend PUBLIC
         ${FAAD2}/include
         ${RCHEEVOS}/include
 )
-target_link_libraries(melonDS-android-frontend android core net-utils oboe faad enet rcheevos EGL GLESv3)
+target_link_libraries(melonDS-android-frontend android core net-utils oboe faad enet rcheevos soundtouch EGL GLESv3)

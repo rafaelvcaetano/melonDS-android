@@ -157,6 +157,8 @@ class SharedPreferencesSettingsRepository(
             dsiNandUri = dsiDirDocument?.findFile("nand.bin")?.uri,
             internalDirectory = context.filesDir.absolutePath,
             fastForwardSpeedMultiplier = getFastForwardSpeedMultiplier(),
+            fastForwardAudioMuteThreshold = getFastForwardAudioMuteThreshold(),
+            fastForwardPitchPreserve = isFastForwardPitchPreserveEnabled(),
             rewindEnabled = isRewindEnabled(),
             rewindPeriodSeconds = getRewindPeriod(),
             rewindWindowSeconds = getRewindWindow(),
@@ -182,6 +184,17 @@ class SharedPreferencesSettingsRepository(
     override fun getFastForwardSpeedMultiplier(): Float {
         val speedMultiplierPreference = preferences.getString("fast_forward_speed_multiplier", "-1")!!
         return speedMultiplierPreference.toFloat()
+    }
+
+    override fun getFastForwardAudioMuteThreshold(): Float {
+        // 缺省 "0" = 从不静音（设置项默认关闭，未开启时回调路径零行为差异）
+        val audioMuteThresholdPreference = preferences.getString("fast_forward_audio_mute_threshold", "0")!!
+        return audioMuteThresholdPreference.toFloat()
+    }
+
+    override fun isFastForwardPitchPreserveEnabled(): Boolean {
+        // 缺省 false = 音高保持关闭（设置项默认关闭，未开启时回调路径零行为差异）
+        return preferences.getBoolean("fast_forward_pitch_preserve", false)
     }
 
     override fun isRewindEnabled(): Boolean {
@@ -343,24 +356,24 @@ class SharedPreferencesSettingsRepository(
         return preferences.getBoolean("sound_enabled", true)
     }
 
-    private fun getRewindPeriod(): Int {
+    override fun getRewindPeriod(): Int {
         return preferences.getInt("rewind_period", 10)
     }
 
-    private fun getRewindWindow(): Int {
+    override fun getRewindWindow(): Int {
         return preferences.getInt("rewind_window", 6) * 10
     }
 
-    private fun getVolume(): Int {
+    override fun getVolume(): Int {
         return preferences.getInt("volume", 256).coerceIn(0, 256)
     }
 
-    private fun getAudioInterpolation(): AudioInterpolation {
+    override fun getAudioInterpolation(): AudioInterpolation {
         val interpolationPreference = preferences.getString("audio_interpolation", "none")!!
         return enumValueOfIgnoreCase(interpolationPreference)
     }
 
-    private fun getAudioBitrate(): AudioBitrate {
+    override fun getAudioBitrate(): AudioBitrate {
         val bitratePreference = preferences.getString("audio_bitrate", "auto")!!
         return enumValueOfIgnoreCase(bitratePreference)
     }
