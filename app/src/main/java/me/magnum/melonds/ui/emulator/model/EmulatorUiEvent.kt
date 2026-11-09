@@ -20,5 +20,6 @@ sealed class EmulatorUiEvent {
     }
     data object ShowAchievementList : EmulatorUiEvent()
     data object ShowPendingSubmissionsDialog : EmulatorUiEvent()
+    data object ShowAutoFluteMenu : EmulatorUiEvent()
     data object CloseEmulator : EmulatorUiEvent()
 }

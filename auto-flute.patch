@@ -1,0 +1,1468 @@
+diff -ruN a/app/src/main/cpp/MelonDSAndroidJNI.cpp b/app/src/main/cpp/MelonDSAndroidJNI.cpp
+--- a/app/src/main/cpp/MelonDSAndroidJNI.cpp	2026-11-05 05:59:03.000000000 +0530
++++ b/app/src/main/cpp/MelonDSAndroidJNI.cpp	2026-11-07 10:04:00.706789717 +0530
+@@ -548,6 +548,29 @@
+ }
+ 
+ JNIEXPORT void JNICALL
++Java_me_magnum_melonds_MelonEmulator_setAutoMicMode(JNIEnv* env, jobject thiz, jint mode)
++{
++    MelonDSAndroid::setAutoMicMode(mode);
++}
++
++JNIEXPORT void JNICALL
++Java_me_magnum_melonds_MelonEmulator_startAudioCapture(JNIEnv* env, jobject thiz, jint maxSeconds)
++{
++    MelonDSAndroid::startAudioCapture(maxSeconds);
++}
++
++JNIEXPORT jshortArray JNICALL
++Java_me_magnum_melonds_MelonEmulator_stopAudioCapture(JNIEnv* env, jobject thiz)
++{
++    std::vector<int16_t> samples = MelonDSAndroid::stopAudioCapture();
++    jshortArray result = env->NewShortArray((jsize) samples.size());
++    if (result != nullptr && !samples.empty())
++        env->SetShortArrayRegion(result, 0, (jsize) samples.size(), (const jshort*) samples.data());
++
++    return result;
++}
++
++JNIEXPORT void JNICALL
+ Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jobject thiz, jobject emulatorConfiguration)
+ {
+     MelonDSAndroid::EmulatorConfiguration newConfiguration = MelonDSAndroidConfiguration::buildEmulatorConfiguration(env, emulatorConfiguration);
+diff -ruN a/app/src/main/cpp/MelonDSAudio.cpp b/app/src/main/cpp/MelonDSAudio.cpp
+--- a/app/src/main/cpp/MelonDSAudio.cpp	2026-11-05 05:59:03.000000000 +0530
++++ b/app/src/main/cpp/MelonDSAudio.cpp	2026-11-07 10:04:00.705857699 +0530
+@@ -3,9 +3,27 @@
+ #include "mic_blow.h"
+ #include "OboeCallback.h"
+ #include <oboe/Oboe.h>
++#include <atomic>
++#include <mutex>
++#include <vector>
++#include <cstdint>
+ 
+ #define MIC_BUFFER_SIZE 2048
+ 
++// Auto flute override. Written from the UI thread, read from the emulation thread.
++// 0 = disabled (normal microphone behaviour)
++// 1 = engaged, silent (game hears no input regardless of the configured mic source)
++// 2 = engaged, blowing (game hears the built-in blow sample regardless of the configured mic source)
++std::atomic<int> autoMicMode{0};
++
++// Game audio capture (used to transcribe songs played by in-game characters).
++// Holds mono 48 kHz samples. Written from the audio thread, read once capture stops.
++#define CAPTURE_SAMPLE_RATE 48000
++std::mutex captureMutex;
++std::vector<int16_t> captureBuffer;
++size_t captureMaxSamples = 0;
++std::atomic<bool> captureActive{false};
++
+ std::weak_ptr<MelonDSAndroid::MelonInstance> activeInstance;
+ 
+ std::shared_ptr<oboe::AudioStream> audioStream;
+@@ -168,10 +186,60 @@
+             micInputStream->requestStop();
+     }
+ 
++    void startAudioCapture(int maxSeconds)
++    {
++        std::lock_guard<std::mutex> lock(captureMutex);
++        captureMaxSamples = (size_t) CAPTURE_SAMPLE_RATE * maxSeconds;
++        captureBuffer.clear();
++        captureBuffer.reserve(captureMaxSamples);
++        captureActive.store(true);
++    }
++
++    void captureAudio(const int16_t* stereoSamples, int frames)
++    {
++        if (!captureActive.load(std::memory_order_relaxed))
++            return;
++
++        // Never block the audio thread. If the lock is taken (capture is being stopped) just skip this chunk
++        std::unique_lock<std::mutex> lock(captureMutex, std::try_to_lock);
++        if (!lock.owns_lock())
++            return;
++
++        size_t room = captureMaxSamples - captureBuffer.size();
++        size_t count = (size_t) frames < room ? (size_t) frames : room;
++        for (size_t i = 0; i < count; i++)
++            captureBuffer.push_back((int16_t) (((int) stereoSamples[i * 2] + (int) stereoSamples[i * 2 + 1]) / 2));
++    }
++
++    std::vector<int16_t> stopAudioCapture()
++    {
++        captureActive.store(false);
++        std::lock_guard<std::mutex> lock(captureMutex);
++        std::vector<int16_t> result = std::move(captureBuffer);
++        captureBuffer = std::vector<int16_t>();
++        return result;
++    }
++
++    void setAutoMicMode(int mode)
++    {
++        autoMicMode.store(mode, std::memory_order_relaxed);
++    }
++
+     int readMic(s16* data, int maxlength)
+     {
+         int micSource = actualMicSource;
+-        if (!isMicInputEnabled)
++        int autoMode = autoMicMode.load(std::memory_order_relaxed);
++        if (autoMode == 2)
++        {
++            // Auto flute is blowing. Use the built-in blow sample (source 1)
++            micSource = 1;
++        }
++        else if (autoMode == 1)
++        {
++            // Auto flute is engaged but between notes. Feed silence so that a real microphone can't interfere
++            micSource = 0;
++        }
++        else if (!isMicInputEnabled)
+         {
+             micSource = 0;
+         }
+diff -ruN a/app/src/main/cpp/MelonDSAudio.h b/app/src/main/cpp/MelonDSAudio.h
+--- a/app/src/main/cpp/MelonDSAudio.h	2026-11-05 05:59:03.000000000 +0530
++++ b/app/src/main/cpp/MelonDSAudio.h	2026-11-07 10:04:00.706216400 +0530
+@@ -4,6 +4,8 @@
+ #include "Configuration.h"
+ #include "MelonInstance.h"
+ #include "types.h"
++#include <cstdint>
++#include <vector>
+ 
+ namespace MelonDSAndroid
+ {
+@@ -11,6 +13,10 @@
+     extern void userDisableMic();
+     extern void enableMic();
+     extern void disableMic();
++    extern void setAutoMicMode(int mode);
++    extern void startAudioCapture(int maxSeconds);
++    extern void captureAudio(const int16_t* stereoSamples, int frames);
++    extern std::vector<int16_t> stopAudioCapture();
+     extern int readMic(melonDS::s16* data, int maxlength);
+ 
+     extern void setupAudio(AudioSettings audioSettings);
+diff -ruN a/app/src/main/cpp/OboeCallback.cpp b/app/src/main/cpp/OboeCallback.cpp
+--- a/app/src/main/cpp/OboeCallback.cpp	2026-11-05 05:59:03.000000000 +0530
++++ b/app/src/main/cpp/OboeCallback.cpp	2026-11-07 10:04:00.706537173 +0530
+@@ -2,6 +2,7 @@
+ #include "types.h"
+ #include "Platform.h"
+ #include "SPU.h"
++#include "MelonDSAudio.h"
+ 
+ using namespace melonDS;
+ 
+@@ -37,6 +38,9 @@
+         return oboe::DataCallbackResult::Continue;
+     }
+ 
++    // Tap the audio before volume scaling is applied so that captures don't depend on the user's volume setting
++    MelonDSAndroid::captureAudio((const int16_t*) audioData, num_in);
++
+     if (_volume < 256)
+     {
+         s16* samples = (s16*) audioData;
+diff -ruN a/app/src/main/java/me/magnum/melonds/MelonEmulator.kt b/app/src/main/java/me/magnum/melonds/MelonEmulator.kt
+--- a/app/src/main/java/me/magnum/melonds/MelonEmulator.kt	2026-11-05 05:59:03.000000000 +0530
++++ b/app/src/main/java/me/magnum/melonds/MelonEmulator.kt	2026-11-07 10:04:00.707078325 +0530
+@@ -135,6 +135,23 @@
+ 
+     external fun setMicrophoneEnabled(enabled: Boolean)
+ 
++    /**
++     * Overrides the microphone input fed to the emulated console. Used by the auto flute.
++     * @param mode 0 = disabled (normal microphone behaviour), 1 = silence, 2 = blowing
++     */
++    external fun setAutoMicMode(mode: Int)
++
++    /**
++     * Starts capturing the game's audio output (mono, 48 kHz). Audio is only captured while the game is running
++     * and sound output is enabled.
++     */
++    external fun startAudioCapture(maxSeconds: Int)
++
++    /**
++     * Stops the audio capture and returns the captured mono 48 kHz samples.
++     */
++    external fun stopAudioCapture(): ShortArray
++
+     external fun updateEmulatorConfiguration(emulatorConfiguration: EmulatorConfiguration)
+ 
+     external fun updateMotionData(ax: Float, ay: Float, az: Float, rx: Float, ry: Float, rz: Float)
+diff -ruN a/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorActivity.kt b/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorActivity.kt
+--- a/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorActivity.kt	2026-11-05 05:59:03.000000000 +0530
++++ b/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorActivity.kt	2026-11-07 10:05:58.543710698 +0530
+@@ -15,6 +15,8 @@
+ import android.view.ViewGroup
+ import android.view.Window
+ import android.view.WindowManager
++import android.widget.EditText
++import android.widget.FrameLayout
+ import android.widget.Toast
+ import androidx.activity.OnBackPressedCallback
+ import androidx.activity.result.contract.ActivityResultContracts
+@@ -46,9 +48,11 @@
+ import androidx.window.layout.WindowInfoTracker
+ import com.squareup.picasso.Picasso
+ import dagger.hilt.android.AndroidEntryPoint
++import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.flow.collectLatest
+ import kotlinx.coroutines.flow.filterIsInstance
+ import kotlinx.coroutines.launch
++import kotlinx.coroutines.withContext
+ import me.magnum.melonds.MelonEmulator
+ import me.magnum.melonds.R
+ import me.magnum.melonds.common.PermissionHandler
+@@ -75,6 +79,13 @@
+ import me.magnum.melonds.parcelables.RomParcelable
+ import me.magnum.melonds.ui.cheats.CheatsActivity
+ import me.magnum.melonds.ui.common.rom.EmulatorLaunchValidatorDelegate
++import me.magnum.melonds.ui.emulator.autoflute.AutoFluteController
++import me.magnum.melonds.ui.emulator.autoflute.FluteCalibration
++import me.magnum.melonds.ui.emulator.autoflute.FluteEvent
++import me.magnum.melonds.ui.emulator.autoflute.FluteSongBuilder
++import me.magnum.melonds.ui.emulator.autoflute.PitchAnalyzer
++import me.magnum.melonds.ui.emulator.autoflute.FluteSong
++import me.magnum.melonds.ui.emulator.autoflute.FluteSongStore
+ import me.magnum.melonds.ui.emulator.component.EmulatorOverlayTracker
+ import me.magnum.melonds.ui.emulator.input.ConnectedControllerManager
+ import me.magnum.melonds.ui.emulator.input.EmulatorMotionManager
+@@ -98,6 +109,7 @@
+ import me.magnum.melonds.ui.emulator.render.ExternalPresentation
+ import me.magnum.melonds.ui.emulator.render.FrameRenderCoordinator
+ import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
++import me.magnum.melonds.ui.emulator.rom.RomPauseMenuOption
+ import me.magnum.melonds.ui.emulator.rom.SaveStateAdapter
+ import me.magnum.melonds.ui.emulator.ui.AchievementListDialog
+ import me.magnum.melonds.ui.emulator.ui.AchievementUpdatesUi
+@@ -106,6 +118,7 @@
+ import me.magnum.melonds.ui.layouteditor.model.LayoutTarget
+ import me.magnum.melonds.ui.settings.SettingsActivity
+ import me.magnum.melonds.ui.theme.MelonTheme
++import java.io.File
+ import java.text.SimpleDateFormat
+ import javax.inject.Inject
+ 
+@@ -193,6 +206,8 @@
+     private lateinit var frameRenderCoordinator: FrameRenderCoordinator
+     private lateinit var choreographerFrameRenderer: ChoreographerFrameRenderer
+     private lateinit var mainScreenRenderer: DSRenderer
++    private lateinit var autoFluteController: AutoFluteController
++    private lateinit var fluteSongStore: FluteSongStore
+     private lateinit var melonTouchHandler: MelonTouchHandler
+     private lateinit var nativeInputListener: INativeInputListener
+     private val frontendInputHandler = object : FrontendInputHandler() {
+@@ -225,6 +240,7 @@
+         }
+ 
+         override fun onResetPressed() {
++            autoFluteController.stop()
+             viewModel.resetEmulator()
+         }
+ 
+@@ -275,10 +291,12 @@
+         onOverlaysCleared = {
+             disableScreenTimeOut()
+             presentation?.setPauseOverlayVisibility(false)
++            autoFluteController.setOverlaysPresent(false)
+         },
+         onOverlaysPresent = {
+             enableScreenTimeOut()
+             presentation?.setPauseOverlayVisibility(true)
++            autoFluteController.setOverlaysPresent(true)
+         }
+     )
+ 
+@@ -321,7 +339,9 @@
+         emulatorMotionManager = EmulatorMotionManager(this, lifecycleScope, connectedControllerManager)
+         frameRenderCoordinator = FrameRenderCoordinator()
+         choreographerFrameRenderer = ChoreographerFrameRendererFactory.createFrameRenderer(frameRenderCoordinator)
+-        melonTouchHandler = MelonTouchHandler()
++        autoFluteController = AutoFluteController(lifecycleScope)
++        fluteSongStore = FluteSongStore(File(getExternalFilesDir(null) ?: filesDir, "auto_flute"))
++        melonTouchHandler = MelonTouchHandler(autoFluteController)
+         mainScreenRenderer = DSRenderer(this)
+         binding.surfaceMain.apply {
+             setRenderer(mainScreenRenderer)
+@@ -521,6 +541,7 @@
+                             activeOverlays.addActiveOverlay(EmulatorOverlay.ACHIEVEMENTS_DIALOG)
+                             showAchievementList.value = true
+                         }
++                        EmulatorUiEvent.ShowAutoFluteMenu -> showAutoFluteMenu()
+                         EmulatorUiEvent.ShowPendingSubmissionsDialog -> {
+                             activeOverlays.addActiveOverlay(EmulatorOverlay.PENDING_SUBMISSION_CONFIRM_EXIT)
+                             showPendingSubmissionsDialog.value = true
+@@ -721,6 +742,7 @@
+ 
+     override fun onResume() {
+         super.onResume()
++        autoFluteController.setActivityPaused(false)
+         choreographerFrameRenderer.startRendering()
+         emulatorMotionManager.resume()
+ 
+@@ -867,6 +889,9 @@
+                 .setTitle(R.string.pause)
+                 .setItems(options) { _, which ->
+                     val selectedOption = pauseMenu.options[which]
++                    if (selectedOption == RomPauseMenuOption.RESET) {
++                        autoFluteController.stop()
++                    }
+                     viewModel.onPauseMenuOptionSelected(selectedOption)
+                 }
+                 .setOnDismissListener {
+@@ -878,6 +903,202 @@
+                 .show()
+     }
+ 
++    // ------------------------------------------------------------------ Auto flute
++
++    private fun showAutoFluteDialog(configure: AlertDialog.Builder.() -> Unit) {
++        activeOverlays.addActiveOverlay(EmulatorOverlay.AUTO_FLUTE_DIALOG)
++        AlertDialog.Builder(this)
++            .apply(configure)
++            .setOnDismissListener {
++                activeOverlays.removeActiveOverlay(EmulatorOverlay.AUTO_FLUTE_DIALOG)
++            }
++            .setOnCancelListener {
++                viewModel.resumeEmulator()
++            }
++            .show()
++    }
++
++    private fun showAutoFluteMenu() {
++        val actions = mutableListOf<Pair<Int, () -> Unit>>()
++        when (autoFluteController.state) {
++            AutoFluteController.State.RECORDING -> {
++                actions.add(R.string.auto_flute_stop_save to {
++                    promptSaveFluteSong(autoFluteController.stopRecording())
++                })
++                actions.add(R.string.auto_flute_discard to {
++                    autoFluteController.discardRecording()
++                    viewModel.resumeEmulator()
++                })
++            }
++            AutoFluteController.State.CALIBRATING -> {
++                actions.add(R.string.auto_flute_finish_calibration to ::finishFluteCalibration)
++                actions.add(R.string.auto_flute_cancel to {
++                    autoFluteController.stop()
++                    viewModel.resumeEmulator()
++                })
++            }
++            AutoFluteController.State.CAPTURING -> {
++                actions.add(R.string.auto_flute_finish_capture to ::finishFluteSongCapture)
++                actions.add(R.string.auto_flute_cancel to {
++                    autoFluteController.stop()
++                    viewModel.resumeEmulator()
++                })
++            }
++            AutoFluteController.State.PLAYING -> {
++                actions.add(R.string.auto_flute_stop_playing to {
++                    autoFluteController.stop()
++                    viewModel.resumeEmulator()
++                })
++            }
++            AutoFluteController.State.IDLE -> {
++                actions.add(R.string.auto_flute_record to {
++                    autoFluteController.startRecording()
++                    Toast.makeText(this, R.string.auto_flute_recording_started, Toast.LENGTH_LONG).show()
++                    viewModel.resumeEmulator()
++                })
++                actions.add(R.string.auto_flute_capture to ::startFluteSongCapture)
++                actions.add(R.string.auto_flute_calibrate to {
++                    autoFluteController.startCalibration()
++                    Toast.makeText(this, R.string.auto_flute_calibration_started, Toast.LENGTH_LONG).show()
++                    viewModel.resumeEmulator()
++                })
++                actions.add(R.string.auto_flute_play to { showFluteSongPicker(R.string.auto_flute_play, ::startFlutePlayback) })
++                actions.add(R.string.auto_flute_delete to { showFluteSongPicker(R.string.auto_flute_delete, ::confirmDeleteFluteSong) })
++            }
++        }
++
++        val labels = Array(actions.size) { getString(actions[it].first) }
++        showAutoFluteDialog {
++            setTitle(R.string.auto_flute)
++            setItems(labels) { _, which -> actions[which].second() }
++        }
++    }
++
++    private fun showFluteSongPicker(titleRes: Int, onSongSelected: (FluteSong) -> Unit) {
++        val songs = fluteSongStore.getSongs()
++        if (songs.isEmpty()) {
++            Toast.makeText(this, R.string.auto_flute_no_songs, Toast.LENGTH_SHORT).show()
++            viewModel.resumeEmulator()
++            return
++        }
++
++        val labels = Array(songs.size) {
++            getString(R.string.auto_flute_song_entry, songs[it].name, songs[it].durationMs / 1000f)
++        }
++        showAutoFluteDialog {
++            setTitle(titleRes)
++            setItems(labels) { _, which -> onSongSelected(songs[which]) }
++        }
++    }
++
++    private fun startFlutePlayback(song: FluteSong) {
++        Toast.makeText(this, R.string.auto_flute_playing, Toast.LENGTH_SHORT).show()
++        viewModel.resumeEmulator()
++        autoFluteController.play(song)
++    }
++
++    private fun confirmDeleteFluteSong(song: FluteSong) {
++        showAutoFluteDialog {
++            setMessage(getString(R.string.auto_flute_delete_confirm, song.name))
++            setPositiveButton(R.string.yes) { _, _ ->
++                fluteSongStore.delete(song)
++                viewModel.resumeEmulator()
++            }
++            setNegativeButton(R.string.no) { _, _ -> viewModel.resumeEmulator() }
++        }
++    }
++
++    private fun startFluteSongCapture() {
++        if (fluteSongStore.loadCalibration() == null) {
++            Toast.makeText(this, R.string.auto_flute_calibration_needed, Toast.LENGTH_LONG).show()
++            viewModel.resumeEmulator()
++            return
++        }
++
++        autoFluteController.startSongCapture()
++        Toast.makeText(this, R.string.auto_flute_capture_started, Toast.LENGTH_LONG).show()
++        viewModel.resumeEmulator()
++    }
++
++    private fun finishFluteCalibration() {
++        val capture = autoFluteController.finishCalibration()
++        if (capture == null) {
++            Toast.makeText(this, R.string.auto_flute_calibration_failed, Toast.LENGTH_LONG).show()
++            viewModel.resumeEmulator()
++            return
++        }
++
++        Toast.makeText(this, R.string.auto_flute_analyzing, Toast.LENGTH_SHORT).show()
++        lifecycleScope.launch {
++            val calibration = withContext(Dispatchers.Default) {
++                val notes = PitchAnalyzer.analyze(capture.pcm)
++                FluteCalibration.fromPerformance(capture.events, capture.firstEventOffsetMs, notes)
++            }
++
++            if (calibration == null) {
++                Toast.makeText(this@EmulatorActivity, R.string.auto_flute_calibration_failed, Toast.LENGTH_LONG).show()
++            } else {
++                fluteSongStore.saveCalibration(calibration)
++                Toast.makeText(this@EmulatorActivity, getString(R.string.auto_flute_calibration_done, calibration.points.size), Toast.LENGTH_SHORT).show()
++            }
++            viewModel.resumeEmulator()
++        }
++    }
++
++    private fun finishFluteSongCapture() {
++        val pcm = autoFluteController.finishSongCapture()
++        val calibration = fluteSongStore.loadCalibration()
++        if (pcm == null || calibration == null) {
++            Toast.makeText(this, R.string.auto_flute_no_notes, Toast.LENGTH_LONG).show()
++            viewModel.resumeEmulator()
++            return
++        }
++
++        Toast.makeText(this, R.string.auto_flute_analyzing, Toast.LENGTH_SHORT).show()
++        lifecycleScope.launch {
++            val events = withContext(Dispatchers.Default) {
++                FluteSongBuilder.build(PitchAnalyzer.analyze(pcm), calibration)
++            }
++
++            if (events.isEmpty()) {
++                Toast.makeText(this@EmulatorActivity, R.string.auto_flute_no_notes, Toast.LENGTH_LONG).show()
++                viewModel.resumeEmulator()
++            } else {
++                promptSaveFluteSong(events)
++            }
++        }
++    }
++
++    private fun promptSaveFluteSong(events: List<FluteEvent>?) {
++        if (events == null) {
++            Toast.makeText(this, R.string.auto_flute_nothing_recorded, Toast.LENGTH_SHORT).show()
++            viewModel.resumeEmulator()
++            return
++        }
++
++        val nameInput = EditText(this).apply {
++            setSingleLine()
++            setText(getString(R.string.auto_flute_default_song_name, fluteSongStore.getSongs().size + 1))
++            selectAll()
++        }
++        val container = FrameLayout(this).apply {
++            val padding = (20 * resources.displayMetrics.density).toInt()
++            setPadding(padding, padding / 2, padding, 0)
++            addView(nameInput)
++        }
++
++        showAutoFluteDialog {
++            setTitle(R.string.auto_flute_name_title)
++            setView(container)
++            setPositiveButton(R.string.ok) { _, _ ->
++                fluteSongStore.save(nameInput.text.toString(), events)
++                Toast.makeText(this@EmulatorActivity, R.string.auto_flute_saved, Toast.LENGTH_SHORT).show()
++                viewModel.resumeEmulator()
++            }
++            setNegativeButton(R.string.cancel) { _, _ -> viewModel.resumeEmulator() }
++        }
++    }
++
+     private fun disableScreenTimeOut() {
+         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+     }
+@@ -1015,6 +1236,7 @@
+ 
+     override fun onPause() {
+         super.onPause()
++        autoFluteController.setActivityPaused(true)
+         enableScreenTimeOut()
+         choreographerFrameRenderer.stopRendering()
+         emulatorMotionManager.pause()
+@@ -1041,6 +1263,7 @@
+ 
+     override fun onDestroy() {
+         super.onDestroy()
++        autoFluteController.stop()
+         emulatorMotionManager.stop()
+         frameRenderCoordinator.stop()
+         presentation?.dismiss()
+diff -ruN a/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorViewModel.kt b/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorViewModel.kt
+--- a/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorViewModel.kt	2026-11-05 05:59:03.000000000 +0530
++++ b/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorViewModel.kt	2026-11-07 09:59:05.833824044 +0530
+@@ -119,6 +119,9 @@
+     private val sessionCoroutineScope = EmulatorSessionCoroutineScope()
+     private var raSessionJob: Job? = null
+ 
++    // Game code of the ROM currently being run. Used to enable game-specific features
++    private var romGameCode: String? = null
++
+     private val _emulatorState = MutableStateFlow<EmulatorState>(EmulatorState.Uninitialized)
+     val emulatorState = _emulatorState.asStateFlow()
+ 
+@@ -251,7 +254,9 @@
+         startObservingLayoutForRom(rom)
+         startRetroAchievementsSession(rom)
+ 
+-        val cheats = getRomInfo(rom)?.let { getRomEnabledCheats(it) } ?: emptyList()
++        val romInfo = getRomInfo(rom)
++        romGameCode = romInfo?.gameCode
++        val cheats = romInfo?.let { getRomEnabledCheats(it) } ?: emptyList()
+         val result = emulatorManager.loadRom(rom, cheats)
+         when (result) {
+             is RomLaunchResult.LaunchFailedRomNotFound,
+@@ -452,6 +457,7 @@
+                             }
+                         }
+                     }
++                    RomPauseMenuOption.AUTO_FLUTE -> _uiEvent.tryEmit(EmulatorUiEvent.ShowAutoFluteMenu)
+                     RomPauseMenuOption.VIEW_ACHIEVEMENTS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowAchievementList)
+                     RomPauseMenuOption.RESET -> resetEmulator()
+                     RomPauseMenuOption.EXIT -> exitEmulator(force = false)
+@@ -999,11 +1005,19 @@
+             RomPauseMenuOption.REWIND -> settingsRepository.isRewindEnabled() && emulatorSession.areSaveStateLoadsAllowed()
+             RomPauseMenuOption.LOAD_STATE -> emulatorSession.areSaveStateLoadsAllowed()
+             RomPauseMenuOption.CHEATS -> emulatorSession.areCheatsEnabled()
++            RomPauseMenuOption.AUTO_FLUTE -> isSpiritTracks(romGameCode)
+             RomPauseMenuOption.VIEW_ACHIEVEMENTS -> emulatorSession.areRetroAchievementsEnabled()
+             else -> true
+         }
+     }
+ 
++    /**
++     * The Legend of Zelda: Spirit Tracks. BKIE = USA/AUS, BKIP = Europe, BKIJ = Japan.
++     */
++    private fun isSpiritTracks(gameCode: String?): Boolean {
++        return gameCode == "BKIE" || gameCode == "BKIP" || gameCode == "BKIJ"
++    }
++
+     private fun ensureEmulatorIsRunning(): Flow<Unit> {
+         return _emulatorState.filter { it.isRunning() }.take(1).map { }
+     }
+diff -ruN a/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/AutoFluteController.kt b/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/AutoFluteController.kt
+--- a/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/AutoFluteController.kt	1970-01-01 05:30:00.000000000 +0530
++++ b/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/AutoFluteController.kt	2026-11-07 10:05:31.447001762 +0530
+@@ -0,0 +1,320 @@
++package me.magnum.melonds.ui.emulator.autoflute
++
++import android.os.SystemClock
++import kotlinx.coroutines.CoroutineScope
++import kotlinx.coroutines.Job
++import kotlinx.coroutines.delay
++import kotlinx.coroutines.launch
++import me.magnum.melonds.MelonEmulator
++import me.magnum.melonds.domain.model.Input
++
++/**
++ * Records and replays flute performances (e.g. the Spirit Flute in Zelda: Spirit Tracks).
++ *
++ * A performance is the path of the stylus over the touch screen. While replaying, the stylus path is injected as
++ * touch input and the emulated microphone is switched to "blowing" for as long as the stylus is down, which is what
++ * the flute needs to produce sound.
++ *
++ * Time is measured on a clock that stops while the emulator is paused (pause menu, dialogs, app in background), so
++ * that recordings don't contain pauses and playback doesn't skip ahead while the emulator is not running.
++ *
++ * Must be used from the main thread.
++ */
++class AutoFluteController(private val scope: CoroutineScope) {
++    enum class State {
++        IDLE,
++        /** The player is playing a song by hand to save it */
++        RECORDING,
++        /** The player is touching every pipe once so that the app learns which position makes which pitch */
++        CALIBRATING,
++        /** The game's audio is being recorded while a character plays a song */
++        CAPTURING,
++        PLAYING,
++    }
++
++    /**
++     * Result of a calibration run. [firstEventOffsetMs] is when the first stylus event happened, measured from
++     * the start of the audio capture.
++     */
++    class CalibrationCapture(val events: List<FluteEvent>, val firstEventOffsetMs: Long, val pcm: ShortArray)
++
++    companion object {
++        // Gives the player time to get back to the game before the first note
++        private const val PLAYBACK_LEAD_IN_MS = 600L
++
++        // Upper bound for audio captures. Memory use is about 5.8 MB per minute
++        private const val MAX_CAPTURE_SECONDS = 120
++
++        private const val MIC_MODE_DISABLED = 0
++        private const val MIC_MODE_SILENCE = 1
++        private const val MIC_MODE_BLOW = 2
++    }
++
++    var state = State.IDLE
++        private set
++
++    val isPlaying: Boolean get() = state == State.PLAYING
++    val isRecording: Boolean get() = state == State.RECORDING
++
++    private val isRecordingStylus: Boolean get() = state == State.RECORDING || state == State.CALIBRATING
++
++    /** Invoked on the main thread whenever playback finishes by itself or is stopped. */
++    var onPlaybackFinished: (() -> Unit)? = null
++
++    // Pause-aware clock
++    private var overlaysPresent = false
++    private var activityPaused = false
++    private var pausedSince = -1L
++    private var totalPausedMs = 0L
++
++    // Recording
++    private val recordedEvents = mutableListOf<FluteEvent>()
++    private var recordingStartTime = -1L
++    private var recordingBeginTime = 0L
++    private var stylusDown = false
++    private var lastX = -1
++    private var lastY = -1
++
++    // Playback
++    private var playbackJob: Job? = null
++    private var playbackStylusDown = false
++
++    fun setOverlaysPresent(present: Boolean) {
++        overlaysPresent = present
++        updateClockPaused()
++    }
++
++    fun setActivityPaused(paused: Boolean) {
++        activityPaused = paused
++        updateClockPaused()
++    }
++
++    private fun updateClockPaused() {
++        val shouldBePaused = overlaysPresent || activityPaused
++        val real = SystemClock.elapsedRealtime()
++        if (shouldBePaused && pausedSince < 0) {
++            pausedSince = real
++        } else if (!shouldBePaused && pausedSince >= 0) {
++            totalPausedMs += real - pausedSince
++            pausedSince = -1
++        }
++    }
++
++    private fun now(): Long {
++        val real = SystemClock.elapsedRealtime()
++        val currentPause = if (pausedSince >= 0) real - pausedSince else 0L
++        return real - totalPausedMs - currentPause
++    }
++
++    // ---------------------------------------------------------------- Recording
++
++    fun startRecording() {
++        beginStylusRecording(State.RECORDING)
++    }
++
++    private fun beginStylusRecording(newState: State) {
++        stop()
++        recordedEvents.clear()
++        recordingStartTime = -1L
++        recordingBeginTime = now()
++        stylusDown = false
++        lastX = -1
++        lastY = -1
++        state = newState
++    }
++
++    /**
++     * Stops recording and returns the recorded events, or null if nothing was played.
++     */
++    fun stopRecording(): List<FluteEvent>? {
++        if (state != State.RECORDING) return null
++
++        if (stylusDown) {
++            addRecordedEvent(FluteEvent.Type.UP, lastX, lastY)
++            stylusDown = false
++        }
++        state = State.IDLE
++        return recordedEvents.toList().takeIf { it.isNotEmpty() }
++    }
++
++    fun discardRecording() {
++        if (state == State.RECORDING) {
++            state = State.IDLE
++            recordedEvents.clear()
++        }
++    }
++
++    // ---------------------------------------------------------------- Calibration and audio capture
++
++    fun startCalibration() {
++        beginStylusRecording(State.CALIBRATING)
++        MelonEmulator.startAudioCapture(MAX_CAPTURE_SECONDS)
++        // While calibrating, the game only hears blowing when the stylus is down so that the device's microphone
++        // (and any background noise) can't influence the recorded pitches
++        MelonEmulator.setAutoMicMode(MIC_MODE_SILENCE)
++    }
++
++    fun finishCalibration(): CalibrationCapture? {
++        if (state != State.CALIBRATING) return null
++
++        if (stylusDown) {
++            addRecordedEvent(FluteEvent.Type.UP, lastX, lastY)
++            stylusDown = false
++        }
++        state = State.IDLE
++        MelonEmulator.setAutoMicMode(MIC_MODE_DISABLED)
++        val pcm = MelonEmulator.stopAudioCapture()
++
++        val events = recordedEvents.toList()
++        if (events.isEmpty()) return null
++        return CalibrationCapture(events, recordingStartTime - recordingBeginTime, pcm)
++    }
++
++    fun startSongCapture() {
++        stop()
++        state = State.CAPTURING
++        MelonEmulator.startAudioCapture(MAX_CAPTURE_SECONDS)
++    }
++
++    /**
++     * Stops capturing the game's audio and returns the captured samples (mono, 48 kHz).
++     */
++    fun finishSongCapture(): ShortArray? {
++        if (state != State.CAPTURING) return null
++        state = State.IDLE
++        return MelonEmulator.stopAudioCapture()
++    }
++
++    // Called by the touch input handler. These are real user inputs
++
++    fun onStylusDown(x: Int, y: Int) {
++        if (!isRecordingStylus) return
++        if (state == State.CALIBRATING) MelonEmulator.setAutoMicMode(MIC_MODE_BLOW)
++        stylusDown = true
++        lastX = x
++        lastY = y
++        addRecordedEvent(FluteEvent.Type.DOWN, x, y)
++    }
++
++    fun onStylusMove(x: Int, y: Int) {
++        if (!isRecordingStylus || !stylusDown) return
++        if (x == lastX && y == lastY) return
++        lastX = x
++        lastY = y
++        addRecordedEvent(FluteEvent.Type.MOVE, x, y)
++    }
++
++    fun onStylusUp() {
++        if (!isRecordingStylus || !stylusDown) return
++        if (state == State.CALIBRATING) MelonEmulator.setAutoMicMode(MIC_MODE_SILENCE)
++        stylusDown = false
++        addRecordedEvent(FluteEvent.Type.UP, lastX, lastY)
++    }
++
++    private fun addRecordedEvent(type: FluteEvent.Type, x: Int, y: Int) {
++        val currentTime = now()
++        if (recordingStartTime < 0) {
++            // The song starts at the first stylus contact so that any idle time before it isn't recorded
++            recordingStartTime = currentTime
++        }
++        recordedEvents.add(FluteEvent(currentTime - recordingStartTime, type, x, y))
++    }
++
++    // ---------------------------------------------------------------- Playback
++
++    fun play(song: FluteSong, speed: Float = 1f) {
++        stop()
++        if (song.events.isEmpty()) return
++
++        state = State.PLAYING
++        playbackJob = scope.launch {
++            val self = coroutineContext[Job]
++            try {
++                // From now on the game only hears what the auto flute decides to play
++                MelonEmulator.setAutoMicMode(MIC_MODE_SILENCE)
++
++                val startTime = now() + PLAYBACK_LEAD_IN_MS
++                for (event in song.events) {
++                    val dueTime = startTime + (event.timeMs / speed).toLong()
++                    while (true) {
++                        val remaining = dueTime - now()
++                        if (remaining <= 0) break
++                        delay(remaining.coerceIn(1L, 10L))
++                    }
++                    applyPlaybackEvent(event)
++                }
++
++                // Hold the final state for a moment so that the last note isn't cut short
++                delay(100)
++            } finally {
++                // If stop() or a new play() replaced this job, they have already cleaned up. Don't clobber their state
++                if (playbackJob === self) {
++                    finishPlayback()
++                }
++            }
++        }
++    }
++
++    private fun finishPlayback() {
++        playbackJob = null
++        releasePlaybackInput()
++        state = State.IDLE
++        onPlaybackFinished?.invoke()
++    }
++
++    private fun applyPlaybackEvent(event: FluteEvent) {
++        when (event.type) {
++            FluteEvent.Type.DOWN -> {
++                playbackStylusDown = true
++                MelonEmulator.onInputDown(Input.TOUCHSCREEN)
++                MelonEmulator.onScreenTouch(event.x, event.y)
++                MelonEmulator.setAutoMicMode(MIC_MODE_BLOW)
++            }
++            FluteEvent.Type.MOVE -> {
++                if (playbackStylusDown) {
++                    MelonEmulator.onScreenTouch(event.x, event.y)
++                }
++            }
++            FluteEvent.Type.UP -> {
++                releasePlaybackStylus()
++                MelonEmulator.setAutoMicMode(MIC_MODE_SILENCE)
++            }
++        }
++    }
++
++    private fun releasePlaybackStylus() {
++        if (playbackStylusDown) {
++            playbackStylusDown = false
++            MelonEmulator.onScreenRelease()
++            MelonEmulator.onInputUp(Input.TOUCHSCREEN)
++        }
++    }
++
++    private fun releasePlaybackInput() {
++        releasePlaybackStylus()
++        MelonEmulator.setAutoMicMode(MIC_MODE_DISABLED)
++    }
++
++    /**
++     * Stops playback or discards whatever is being recorded or captured.
++     */
++    fun stop() {
++        when (state) {
++            State.PLAYING -> {
++                playbackJob?.cancel()
++                finishPlayback()
++            }
++            State.RECORDING -> discardRecording()
++            State.CALIBRATING -> {
++                state = State.IDLE
++                MelonEmulator.setAutoMicMode(MIC_MODE_DISABLED)
++                MelonEmulator.stopAudioCapture()
++            }
++            State.CAPTURING -> {
++                state = State.IDLE
++                MelonEmulator.stopAudioCapture()
++            }
++            State.IDLE -> { /* Nothing to do */ }
++        }
++    }
++}
+diff -ruN a/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/FluteCalibration.kt b/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/FluteCalibration.kt
+--- a/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/FluteCalibration.kt	1970-01-01 05:30:00.000000000 +0530
++++ b/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/FluteCalibration.kt	2026-11-07 10:04:31.656868513 +0530
+@@ -0,0 +1,150 @@
++package me.magnum.melonds.ui.emulator.autoflute
++
++import kotlin.math.abs
++
++/**
++ * A spot on the touch screen and the pitch the flute produces there.
++ */
++data class FluteTouchPoint(
++    val x: Int,
++    val y: Int,
++    val semitone: Double,
++)
++
++/**
++ * Knows which touch screen position produces which pitch. This is learnt by having the player touch every pipe of
++ * the flute once while the game's audio is recorded.
++ */
++class FluteCalibration(val points: List<FluteTouchPoint>) {
++
++    companion object {
++        // Pitches closer than this are considered to be the same pipe
++        private const val SAME_PIPE_TOLERANCE = 0.5
++
++        // Window in which a note in the audio is matched to a stylus touch. Covers audio output latency
++        private const val MATCH_SLACK_MS = 150L
++
++        private const val MIN_PIPES = 2
++
++        /**
++         * Builds a calibration from a performance in which each pipe was touched at least once.
++         *
++         * @param events the stylus events of the performance
++         * @param eventsOffsetMs time of the first stylus event on the audio capture's timeline
++         * @param notes the notes detected in the audio capture
++         * @return the calibration, or null if fewer than two distinct pipes could be identified
++         */
++        fun fromPerformance(events: List<FluteEvent>, eventsOffsetMs: Long, notes: List<DetectedNote>): FluteCalibration? {
++            val pairs = mutableListOf<FluteTouchPoint>()
++
++            for (touch in splitTouches(events)) {
++                val start = touch.startMs + eventsOffsetMs
++                val end = touch.endMs + eventsOffsetMs
++
++                val note = notes.maxByOrNull { overlap(start - MATCH_SLACK_MS, end + MATCH_SLACK_MS, it.startMs, it.endMs) }
++                if (note == null || overlap(start - MATCH_SLACK_MS, end + MATCH_SLACK_MS, note.startMs, note.endMs) <= 0) continue
++
++                pairs.add(FluteTouchPoint(median(touch.xs), median(touch.ys), note.semitone))
++            }
++
++            // Several touches of the same pipe are merged into one
++            val merged = mutableListOf<MutableList<FluteTouchPoint>>()
++            for (pair in pairs.sortedBy { it.semitone }) {
++                val group = merged.lastOrNull()
++                if (group != null && abs(pair.semitone - group.last().semitone) <= SAME_PIPE_TOLERANCE) {
++                    group.add(pair)
++                } else {
++                    merged.add(mutableListOf(pair))
++                }
++            }
++
++            val points = merged.map { group ->
++                FluteTouchPoint(
++                    x = group.map { it.x }.average().toInt(),
++                    y = group.map { it.y }.average().toInt(),
++                    semitone = group.map { it.semitone }.average(),
++                )
++            }
++
++            return if (points.size >= MIN_PIPES) FluteCalibration(points) else null
++        }
++
++        private class Touch(val startMs: Long, var endMs: Long, val xs: MutableList<Int>, val ys: MutableList<Int>)
++
++        private fun splitTouches(events: List<FluteEvent>): List<Touch> {
++            val touches = mutableListOf<Touch>()
++            var current: Touch? = null
++            for (event in events) {
++                when (event.type) {
++                    FluteEvent.Type.DOWN -> {
++                        current = Touch(event.timeMs, event.timeMs, mutableListOf(event.x), mutableListOf(event.y))
++                    }
++                    FluteEvent.Type.MOVE -> current?.let {
++                        it.endMs = event.timeMs
++                        it.xs.add(event.x)
++                        it.ys.add(event.y)
++                    }
++                    FluteEvent.Type.UP -> current?.let {
++                        it.endMs = event.timeMs
++                        touches.add(it)
++                        current = null
++                    }
++                }
++            }
++            return touches
++        }
++
++        private fun overlap(aStart: Long, aEnd: Long, bStart: Long, bEnd: Long): Long {
++            return maxOf(0L, minOf(aEnd, bEnd) - maxOf(aStart, bStart))
++        }
++
++        private fun median(values: List<Int>): Int = values.sorted()[values.size / 2]
++    }
++
++    /**
++     * Finds the touch point whose pitch matches [semitone] best. The game's characters may play in a different octave
++     * than the flute, so pitches are compared by note name first and by octave distance second.
++     */
++    fun closestPoint(semitone: Double): FluteTouchPoint {
++        return points.minWith(
++            compareBy<FluteTouchPoint> { roundedDistance(pitchClassDistance(it.semitone, semitone)) }
++                .thenBy { abs(it.semitone - semitone) }
++        )
++    }
++
++    private fun pitchClassDistance(a: Double, b: Double): Double {
++        val diff = ((a - b) % 12.0 + 12.0) % 12.0
++        return minOf(diff, 12.0 - diff)
++    }
++
++    // Avoids picking a pipe over another because of tiny tuning differences
++    private fun roundedDistance(distance: Double): Double = Math.round(distance * 2) / 2.0
++}
++
++/**
++ * Turns notes detected in audio into stylus events that play them on the flute.
++ */
++object FluteSongBuilder {
++    // The game needs to see the stylus lift between two notes to start a new note
++    private const val MIN_RELEASE_GAP_MS = 40L
++
++    fun build(notes: List<DetectedNote>, calibration: FluteCalibration): List<FluteEvent> {
++        if (notes.isEmpty()) return emptyList()
++
++        val origin = notes.first().startMs
++        val events = mutableListOf<FluteEvent>()
++        notes.forEachIndexed { index, note ->
++            val point = calibration.closestPoint(note.semitone)
++            val start = note.startMs - origin
++            var end = note.endMs - origin
++            val nextStart = notes.getOrNull(index + 1)?.let { it.startMs - origin }
++            if (nextStart != null && end > nextStart - MIN_RELEASE_GAP_MS) {
++                end = maxOf(start + 1, nextStart - MIN_RELEASE_GAP_MS)
++            }
++
++            events.add(FluteEvent(start, FluteEvent.Type.DOWN, point.x, point.y))
++            events.add(FluteEvent(end, FluteEvent.Type.UP, point.x, point.y))
++        }
++        return events
++    }
++}
+diff -ruN a/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/FluteSong.kt b/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/FluteSong.kt
+--- a/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/FluteSong.kt	1970-01-01 05:30:00.000000000 +0530
++++ b/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/FluteSong.kt	2026-11-07 09:58:14.243634891 +0530
+@@ -0,0 +1,27 @@
++package me.magnum.melonds.ui.emulator.autoflute
++
++/**
++ * A single stylus event of a recorded flute performance. [timeMs] is relative to the first event of the song.
++ * Coordinates are in DS touch screen space (0..255, 0..191).
++ */
++data class FluteEvent(
++    val timeMs: Long,
++    val type: Type,
++    val x: Int,
++    val y: Int,
++) {
++    enum class Type {
++        DOWN,
++        MOVE,
++        UP,
++    }
++}
++
++data class FluteSong(
++    val id: String,
++    val name: String,
++    val events: List<FluteEvent>,
++) {
++    val durationMs: Long
++        get() = events.lastOrNull()?.timeMs ?: 0L
++}
+diff -ruN a/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/FluteSongStore.kt b/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/FluteSongStore.kt
+--- a/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/FluteSongStore.kt	1970-01-01 05:30:00.000000000 +0530
++++ b/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/FluteSongStore.kt	2026-11-07 10:05:45.825443553 +0530
+@@ -0,0 +1,87 @@
++package me.magnum.melonds.ui.emulator.autoflute
++
++import org.json.JSONArray
++import org.json.JSONObject
++import java.io.File
++
++/**
++ * Stores flute songs as small JSON files, one per song:
++ *
++ * ```
++ * { "version": 1, "name": "Song of Healing", "events": [[timeMs, type, x, y], ...] }
++ * ```
++ * where `type` is 0 = stylus down, 1 = stylus move, 2 = stylus up. The files can be copied between devices.
++ */
++class FluteSongStore(private val directory: File) {
++    private companion object {
++        const val CALIBRATION_FILE = "calibration.dat"
++    }
++
++    fun getSongs(): List<FluteSong> {
++        val files = directory.listFiles { file -> file.isFile && file.extension == "json" } ?: return emptyList()
++        return files.mapNotNull { file -> runCatching { readSong(file) }.getOrNull() }.sortedBy { it.name.lowercase() }
++    }
++
++    fun save(name: String, events: List<FluteEvent>): FluteSong {
++        directory.mkdirs()
++
++        val baseName = name.replace(Regex("[^A-Za-z0-9 _-]"), "_").trim().ifEmpty { "song" }
++        var id = baseName
++        var suffix = 2
++        while (File(directory, "$id.json").exists()) {
++            id = "$baseName ($suffix)"
++            suffix++
++        }
++
++        val song = FluteSong(id, name.trim().ifEmpty { baseName }, events)
++        File(directory, "$id.json").writeText(toJson(song).toString())
++        return song
++    }
++
++    fun delete(song: FluteSong) {
++        File(directory, "${song.id}.json").delete()
++    }
++
++    /**
++     * Pipe calibration (which touch position makes which pitch). Not stored as .json so it isn't mistaken for a song.
++     */
++    fun loadCalibration(): FluteCalibration? {
++        return runCatching {
++            val pipes = JSONObject(File(directory, CALIBRATION_FILE).readText()).getJSONArray("pipes")
++            val points = List(pipes.length()) {
++                val p = pipes.getJSONArray(it)
++                FluteTouchPoint(p.getInt(0).coerceIn(0, 255), p.getInt(1).coerceIn(0, 191), p.getDouble(2))
++            }
++            points.takeIf { it.isNotEmpty() }?.let { FluteCalibration(it) }
++        }.getOrNull()
++    }
++
++    fun saveCalibration(calibration: FluteCalibration) {
++        directory.mkdirs()
++        val pipes = JSONArray()
++        calibration.points.forEach { pipes.put(JSONArray().put(it.x).put(it.y).put(it.semitone)) }
++        File(directory, CALIBRATION_FILE).writeText(JSONObject().put("version", 1).put("pipes", pipes).toString())
++    }
++
++    private fun readSong(file: File): FluteSong {
++        val json = JSONObject(file.readText())
++        val eventsJson = json.getJSONArray("events")
++        val types = FluteEvent.Type.entries
++        val events = List(eventsJson.length()) {
++            val e = eventsJson.getJSONArray(it)
++            FluteEvent(e.getLong(0), types[e.getInt(1)], e.getInt(2).coerceIn(0, 255), e.getInt(3).coerceIn(0, 191))
++        }
++        return FluteSong(file.nameWithoutExtension, json.optString("name", file.nameWithoutExtension), events)
++    }
++
++    private fun toJson(song: FluteSong): JSONObject {
++        val events = JSONArray()
++        song.events.forEach {
++            events.put(JSONArray().put(it.timeMs).put(it.type.ordinal).put(it.x).put(it.y))
++        }
++        return JSONObject()
++            .put("version", 1)
++            .put("name", song.name)
++            .put("events", events)
++    }
++}
+diff -ruN a/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/PitchAnalyzer.kt b/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/PitchAnalyzer.kt
+--- a/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/PitchAnalyzer.kt	1970-01-01 05:30:00.000000000 +0530
++++ b/app/src/main/java/me/magnum/melonds/ui/emulator/autoflute/PitchAnalyzer.kt	2026-11-07 10:04:31.652917573 +0530
+@@ -0,0 +1,159 @@
++package me.magnum.melonds.ui.emulator.autoflute
++
++import kotlin.math.abs
++import kotlin.math.ln
++
++/**
++ * A single note found in an audio recording. [semitone] is the pitch in semitones relative to A4 (440 Hz).
++ */
++data class DetectedNote(
++    val startMs: Long,
++    val endMs: Long,
++    val semitone: Double,
++) {
++    val durationMs: Long get() = endMs - startMs
++}
++
++/**
++ * Monophonic pitch tracker (YIN algorithm) that turns a recording of someone playing a melody into a list of notes.
++ */
++object PitchAnalyzer {
++    private const val DECIMATION = 4
++    private const val WINDOW = 512
++    private const val HOP = 240
++    private const val MIN_TAU = 6
++    private const val MAX_TAU = 60
++    private const val YIN_THRESHOLD = 0.15
++    private const val MIN_NOTE_FRAMES = 3
++    private const val MAX_GAP_FRAMES = 1
++    private const val MAX_PITCH_DEVIATION = 0.7
++
++    /**
++     * @param pcm mono 16 bit samples
++     * @param sampleRate sample rate of [pcm]. Must be a multiple of 4
++     */
++    fun analyze(pcm: ShortArray, sampleRate: Int = 48000): List<DetectedNote> {
++        val rate = sampleRate / DECIMATION
++        val samples = decimate(pcm)
++        val frameCount = (samples.size - WINDOW - MAX_TAU - 1) / HOP + 1
++        if (frameCount <= 0) return emptyList()
++
++        // Loudness of every frame. Frames that are much quieter than the loud parts are treated as silence
++        val rms = FloatArray(frameCount) { frameRms(samples, it * HOP) }
++        val sortedRms = rms.sortedArray()
++        val reference = sortedRms[(frameCount * 0.9f).toInt().coerceAtMost(frameCount - 1)]
++        val gate = maxOf(reference * 0.15f, 30f)
++
++        val pitches = DoubleArray(frameCount) { Double.NaN }
++        val diff = DoubleArray(MAX_TAU + 2)
++        val cmnd = DoubleArray(MAX_TAU + 2)
++        for (frame in 0 until frameCount) {
++            if (rms[frame] < gate) continue
++            val frequency = estimateFrequency(samples, frame * HOP, rate, diff, cmnd)
++            if (frequency > 0.0) {
++                pitches[frame] = 12.0 * ln(frequency / 440.0) / ln(2.0)
++            }
++        }
++
++        return segment(pitches, rate)
++    }
++
++    private fun decimate(pcm: ShortArray): FloatArray {
++        val out = FloatArray(pcm.size / DECIMATION)
++        for (i in out.indices) {
++            var sum = 0f
++            for (k in 0 until DECIMATION) sum += pcm[i * DECIMATION + k]
++            out[i] = sum / DECIMATION
++        }
++        return out
++    }
++
++    private fun frameRms(samples: FloatArray, start: Int): Float {
++        var sum = 0.0
++        for (i in start until start + WINDOW) sum += samples[i] * samples[i]
++        return Math.sqrt(sum / WINDOW).toFloat()
++    }
++
++    /**
++     * YIN pitch estimate for the frame starting at [start]. Returns 0 if the frame is not clearly pitched.
++     */
++    private fun estimateFrequency(samples: FloatArray, start: Int, rate: Int, diff: DoubleArray, cmnd: DoubleArray): Double {
++        for (tau in 1..MAX_TAU + 1) {
++            var sum = 0.0
++            for (j in 0 until WINDOW) {
++                val delta = samples[start + j] - samples[start + j + tau]
++                sum += delta * delta
++            }
++            diff[tau] = sum
++        }
++
++        cmnd[0] = 1.0
++        var running = 0.0
++        for (tau in 1..MAX_TAU + 1) {
++            running += diff[tau]
++            cmnd[tau] = if (running > 0.0) diff[tau] * tau / running else 1.0
++        }
++
++        var tau = MIN_TAU
++        while (tau <= MAX_TAU) {
++            if (cmnd[tau] < YIN_THRESHOLD) {
++                // Follow the dip down to its bottom
++                while (tau + 1 <= MAX_TAU && cmnd[tau + 1] < cmnd[tau]) tau++
++                val refined = parabolicInterpolation(cmnd, tau)
++                return rate / refined
++            }
++            tau++
++        }
++        return 0.0
++    }
++
++    private fun parabolicInterpolation(values: DoubleArray, index: Int): Double {
++        val a = values[index - 1]
++        val b = values[index]
++        val c = values[index + 1]
++        val denominator = a - 2 * b + c
++        if (denominator == 0.0) return index.toDouble()
++        return index + 0.5 * (a - c) / denominator
++    }
++
++    private fun segment(pitches: DoubleArray, rate: Int): List<DetectedNote> {
++        val notes = mutableListOf<DetectedNote>()
++        var firstFrame = -1
++        var lastFrame = -1
++        val current = mutableListOf<Double>()
++
++        fun frameTimeMs(frame: Int): Long = ((frame * HOP + WINDOW / 2) * 1000L) / rate
++
++        fun closeNote() {
++            if (firstFrame >= 0 && current.size >= MIN_NOTE_FRAMES) {
++                val sorted = current.sorted()
++                val median = sorted[sorted.size / 2]
++                val halfHop = HOP * 500L / rate
++                notes.add(DetectedNote(frameTimeMs(firstFrame) - halfHop, frameTimeMs(lastFrame) + halfHop, median))
++            }
++            firstFrame = -1
++            lastFrame = -1
++            current.clear()
++        }
++
++        for (frame in pitches.indices) {
++            val pitch = pitches[frame]
++            if (pitch.isNaN()) continue
++
++            if (firstFrame >= 0) {
++                val median = current.sorted()[current.size / 2]
++                val gap = frame - lastFrame - 1
++                if (gap > MAX_GAP_FRAMES || abs(pitch - median) > MAX_PITCH_DEVIATION) {
++                    closeNote()
++                }
++            }
++
++            if (firstFrame < 0) firstFrame = frame
++            lastFrame = frame
++            current.add(pitch)
++        }
++        closeNote()
++
++        return notes
++    }
++}
+diff -ruN a/app/src/main/java/me/magnum/melonds/ui/emulator/input/MelonTouchHandler.kt b/app/src/main/java/me/magnum/melonds/ui/emulator/input/MelonTouchHandler.kt
+--- a/app/src/main/java/me/magnum/melonds/ui/emulator/input/MelonTouchHandler.kt	2026-11-05 05:59:03.000000000 +0530
++++ b/app/src/main/java/me/magnum/melonds/ui/emulator/input/MelonTouchHandler.kt	2026-11-07 09:58:58.830104559 +0530
+@@ -3,25 +3,41 @@
+ import me.magnum.melonds.MelonEmulator
+ import me.magnum.melonds.domain.model.Input
+ import me.magnum.melonds.domain.model.Point
++import me.magnum.melonds.ui.emulator.autoflute.AutoFluteController
+ 
+-class MelonTouchHandler : IInputListener {
++class MelonTouchHandler(private val autoFluteController: AutoFluteController? = null) : IInputListener {
+     private var isLidClosed = false
++    private var isTouching = false
+ 
+     override fun onKeyPress(key: Input) {
+         if (key == Input.HINGE) {
+             handleHingePress()
+         } else {
++            if (key == Input.TOUCHSCREEN) {
++                // Touching the screen while the auto flute is playing takes over control from it
++                autoFluteController?.takeIf { it.isPlaying }?.stop()
++            }
+             MelonEmulator.onInputDown(key)
+         }
+     }
+ 
+     override fun onKeyReleased(key: Input) {
+         if (key != Input.HINGE) {
++            if (key == Input.TOUCHSCREEN) {
++                isTouching = false
++                autoFluteController?.onStylusUp()
++            }
+             MelonEmulator.onInputUp(key)
+         }
+     }
+ 
+     override fun onTouch(point: Point) {
++        if (isTouching) {
++            autoFluteController?.onStylusMove(point.x, point.y)
++        } else {
++            isTouching = true
++            autoFluteController?.onStylusDown(point.x, point.y)
++        }
+         MelonEmulator.onScreenTouch(point.x, point.y)
+     }
+ 
+diff -ruN a/app/src/main/java/me/magnum/melonds/ui/emulator/model/EmulatorOverlay.kt b/app/src/main/java/me/magnum/melonds/ui/emulator/model/EmulatorOverlay.kt
+--- a/app/src/main/java/me/magnum/melonds/ui/emulator/model/EmulatorOverlay.kt	2026-11-05 05:59:03.000000000 +0530
++++ b/app/src/main/java/me/magnum/melonds/ui/emulator/model/EmulatorOverlay.kt	2026-11-07 09:58:58.830287971 +0530
+@@ -10,4 +10,5 @@
+     SWITCH_NEW_ROM_DIALOG,
+     ACHIEVEMENTS_DIALOG,
+     PENDING_SUBMISSION_CONFIRM_EXIT,
++    AUTO_FLUTE_DIALOG,
+ }
+\ No newline at end of file
+diff -ruN a/app/src/main/java/me/magnum/melonds/ui/emulator/model/EmulatorUiEvent.kt b/app/src/main/java/me/magnum/melonds/ui/emulator/model/EmulatorUiEvent.kt
+--- a/app/src/main/java/me/magnum/melonds/ui/emulator/model/EmulatorUiEvent.kt	2026-11-05 05:59:03.000000000 +0530
++++ b/app/src/main/java/me/magnum/melonds/ui/emulator/model/EmulatorUiEvent.kt	2026-11-07 09:58:58.830450295 +0530
+@@ -20,5 +20,6 @@
+     }
+     data object ShowAchievementList : EmulatorUiEvent()
+     data object ShowPendingSubmissionsDialog : EmulatorUiEvent()
++    data object ShowAutoFluteMenu : EmulatorUiEvent()
+     data object CloseEmulator : EmulatorUiEvent()
+ }
+\ No newline at end of file
+diff -ruN a/app/src/main/java/me/magnum/melonds/ui/emulator/rom/RomPauseMenuOption.kt b/app/src/main/java/me/magnum/melonds/ui/emulator/rom/RomPauseMenuOption.kt
+--- a/app/src/main/java/me/magnum/melonds/ui/emulator/rom/RomPauseMenuOption.kt	2026-11-05 05:59:03.000000000 +0530
++++ b/app/src/main/java/me/magnum/melonds/ui/emulator/rom/RomPauseMenuOption.kt	2026-11-07 09:58:58.830791984 +0530
+@@ -9,6 +9,7 @@
+     LOAD_STATE(R.string.load_state),
+     REWIND(R.string.rewind),
+     CHEATS(R.string.cheats),
++    AUTO_FLUTE(R.string.auto_flute),
+     VIEW_ACHIEVEMENTS(R.string.achievements),
+     RESET(R.string.reset),
+     EXIT(R.string.exit)
+diff -ruN a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+--- a/app/src/main/res/values/strings.xml	2026-11-05 05:59:03.000000000 +0530
++++ b/app/src/main/res/values/strings.xml	2026-11-07 10:05:45.826062674 +0530
+@@ -279,6 +279,34 @@
+     <string name="show_leaderboard_indicators_summary">Shows on-screen indicators when a leaderboard attempt is in progress</string>
+ 
+     <string name="cheats">Cheats</string>
++    <string name="auto_flute">Auto Flute</string>
++    <string name="auto_flute_record">Record a new song</string>
++    <string name="auto_flute_play">Play a song</string>
++    <string name="auto_flute_delete">Delete a song</string>
++    <string name="auto_flute_stop_save">Stop and save recording</string>
++    <string name="auto_flute_discard">Discard recording</string>
++    <string name="auto_flute_stop_playing">Stop playing</string>
++    <string name="auto_flute_recording_started">Recording. Open the Spirit Flute and play your song. Then open the pause menu > Auto Flute to save it.</string>
++    <string name="auto_flute_nothing_recorded">Nothing was recorded</string>
++    <string name="auto_flute_name_title">Song name</string>
++    <string name="auto_flute_default_song_name">Song %1$d</string>
++    <string name="auto_flute_saved">Song saved</string>
++    <string name="auto_flute_playing">Playing. Open the Spirit Flute first. Touch the screen to take over.</string>
++    <string name="auto_flute_no_songs">No songs saved yet. Record one first.</string>
++    <string name="auto_flute_song_entry">%1$s (%2$.1f s)</string>
++    <string name="auto_flute_calibrate">Calibrate flute pipes</string>
++    <string name="auto_flute_capture">Capture a song from the game</string>
++    <string name="auto_flute_finish_calibration">Finish calibration</string>
++    <string name="auto_flute_finish_capture">Finish capture and create song</string>
++    <string name="auto_flute_cancel">Cancel</string>
++    <string name="auto_flute_calibration_started">Calibrating. Open the Spirit Flute and touch every pipe once, for about half a second each. Then open the pause menu > Auto Flute to finish.</string>
++    <string name="auto_flute_calibration_done">Calibrated %1$d pipes</string>
++    <string name="auto_flute_calibration_failed">Couldn\'t tell the pipes apart. Make sure game sound is on, and touch each pipe separately for about half a second.</string>
++    <string name="auto_flute_calibration_needed">Calibrate the flute pipes first</string>
++    <string name="auto_flute_capture_started">Capturing game audio. Let the character play the song (keep other sounds quiet), then open the pause menu > Auto Flute to finish.</string>
++    <string name="auto_flute_no_notes">No notes were detected. Make sure game sound is on and the song was clearly audible.</string>
++    <string name="auto_flute_analyzing">Analyzing audio…</string>
++    <string name="auto_flute_delete_confirm">Delete \"%1$s\"?</string>
+     <string name="cheats_summary">Enable &amp; import cheat codes</string>
+     <string name="enable_cheats">Enable cheats</string>
+     <string name="cheats_database">Cheats database (XML format)</string>

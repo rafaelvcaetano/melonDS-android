@@ -2,6 +2,7 @@
 #include "types.h"
 #include "Platform.h"
 #include "SPU.h"
+#include "MelonDSAudio.h"
 
 using namespace melonDS;
 
@@ -36,6 +37,9 @@ OboeCallback::onAudioReady(oboe::AudioStream *stream, void *audioData, int32_t n
         memset(audioData, 0, len * sizeof(s16) * 2);
         return oboe::DataCallbackResult::Continue;
     }
+
+    // Tap the audio before volume scaling is applied so that captures don't depend on the user's volume setting
+    MelonDSAndroid::captureAudio((const int16_t*) audioData, num_in);
 
     if (_volume < 256)
     {

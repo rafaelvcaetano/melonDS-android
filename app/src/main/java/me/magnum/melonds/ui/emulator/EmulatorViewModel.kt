@@ -119,6 +119,9 @@ class EmulatorViewModel @Inject constructor(
     private val sessionCoroutineScope = EmulatorSessionCoroutineScope()
     private var raSessionJob: Job? = null
 
+    // Game code of the ROM currently being run. Used to enable game-specific features
+    private var romGameCode: String? = null
+
     private val _emulatorState = MutableStateFlow<EmulatorState>(EmulatorState.Uninitialized)
     val emulatorState = _emulatorState.asStateFlow()
 
@@ -251,7 +254,9 @@ class EmulatorViewModel @Inject constructor(
         startObservingLayoutForRom(rom)
         startRetroAchievementsSession(rom)
 
-        val cheats = getRomInfo(rom)?.let { getRomEnabledCheats(it) } ?: emptyList()
+        val romInfo = getRomInfo(rom)
+        romGameCode = romInfo?.gameCode
+        val cheats = romInfo?.let { getRomEnabledCheats(it) } ?: emptyList()
         val result = emulatorManager.loadRom(rom, cheats)
         when (result) {
             is RomLaunchResult.LaunchFailedRomNotFound,
@@ -452,6 +457,7 @@ class EmulatorViewModel @Inject constructor(
                             }
                         }
                     }
+                    RomPauseMenuOption.AUTO_FLUTE -> _uiEvent.tryEmit(EmulatorUiEvent.ShowAutoFluteMenu)
                     RomPauseMenuOption.VIEW_ACHIEVEMENTS -> _uiEvent.tryEmit(EmulatorUiEvent.ShowAchievementList)
                     RomPauseMenuOption.RESET -> resetEmulator()
                     RomPauseMenuOption.EXIT -> exitEmulator(force = false)
@@ -999,9 +1005,17 @@ class EmulatorViewModel @Inject constructor(
             RomPauseMenuOption.REWIND -> settingsRepository.isRewindEnabled() && emulatorSession.areSaveStateLoadsAllowed()
             RomPauseMenuOption.LOAD_STATE -> emulatorSession.areSaveStateLoadsAllowed()
             RomPauseMenuOption.CHEATS -> emulatorSession.areCheatsEnabled()
+            RomPauseMenuOption.AUTO_FLUTE -> isSpiritTracks(romGameCode)
             RomPauseMenuOption.VIEW_ACHIEVEMENTS -> emulatorSession.areRetroAchievementsEnabled()
             else -> true
         }
+    }
+
+    /**
+     * The Legend of Zelda: Spirit Tracks. BKIE = USA/AUS, BKIP = Europe, BKIJ = Japan.
+     */
+    private fun isSpiritTracks(gameCode: String?): Boolean {
+        return gameCode == "BKIE" || gameCode == "BKIP" || gameCode == "BKIJ"
     }
 
     private fun ensureEmulatorIsRunning(): Flow<Unit> {
