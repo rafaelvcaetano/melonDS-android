@@ -36,15 +36,15 @@ fun CheatInFolderItem(
     onClick: () -> Unit,
 ) {
     var showCheatOptions by remember { mutableStateOf(false) }
+    val hasOptions = onEditClick != null || onDeleteClick != null
 
     Row(
         modifier = modifier
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(32.dp),
+            .padding(start = 16.dp, top = 12.dp, end = if (hasOptions) 0.dp else 16.dp, bottom = 12.dp),
     ) {
         Checkbox(
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = 4.dp, end = 32.dp),
             checked = cheatInFolder.cheat.enabled,
             onCheckedChange = null,
         )
@@ -79,7 +79,7 @@ fun CheatInFolderItem(
             }
         }
 
-        if (onEditClick != null || onDeleteClick != null) {
+        if (hasOptions) {
             CheatOptionsMenu(
                 expanded = showCheatOptions,
                 onExpandedChange = { showCheatOptions = it },
@@ -101,6 +101,23 @@ private fun PreviewCheatInFolderItem() {
                 folderName = "Best cheats",
             ),
             onClick = { },
+        )
+    }
+}
+
+@MelonPreviewSet
+@Composable
+private fun PreviewCheatInFolderItemWithOptions() {
+    MelonTheme {
+        CheatInFolderItem(
+            modifier = Modifier.fillMaxWidth(),
+            cheatInFolder = CheatInFolder(
+                cheat = Cheat(0, 0, "Some random cheat", "Press some buttons to activate this cheat. What does it do?", "", false),
+                folderName = "Best cheats",
+            ),
+            onClick = { },
+            onEditClick = { },
+            onDeleteClick = { },
         )
     }
 }

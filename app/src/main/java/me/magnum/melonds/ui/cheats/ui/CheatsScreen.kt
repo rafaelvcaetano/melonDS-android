@@ -4,21 +4,24 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.ProvideTextStyle
 import androidx.compose.material.Scaffold
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.SnackbarResult
@@ -41,21 +44,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.ProvideTextStyle
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
@@ -63,14 +62,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.serialization.ExperimentalSerializationApi
 import me.magnum.melonds.R
 import me.magnum.melonds.ui.cheats.CheatsNavigation
 import me.magnum.melonds.ui.cheats.CheatsViewModel
 import me.magnum.melonds.ui.cheats.model.CheatsScreenUiState
 
-@OptIn(ExperimentalSerializationApi::class)
 @Composable
 fun CheatsScreen(
     viewModel: CheatsViewModel,
@@ -81,20 +79,13 @@ fun CheatsScreen(
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route?.substringBefore("/")
     val isSearchRoute = currentRoute == CheatsNavigation.Search.serializer().descriptor.serialName
-    val searchFolderName = if (currentRoute == CheatsNavigation.FolderCheats.serializer().descriptor.serialName) {
-        currentBackStackEntry?.toRoute<CheatsNavigation.FolderCheats>()?.folderName
-    } else {
-        null
-    }
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
-    var searchFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(""))
-    }
-    val searchQuery = searchFieldValue.text
     val isSearchVisible = isSearchActive || isSearchRoute
     val searchFocusRequester = remember { FocusRequester() }
     LaunchedEffect(isSearchVisible) {
-        if (isSearchVisible) searchFocusRequester.requestFocus()
+        if (isSearchVisible) {
+            searchFocusRequester.requestFocus()
+        }
     }
     val keyboardController = LocalSoftwareKeyboardController.current
     val showEnabledCheatsButton = remember(currentRoute) {
@@ -110,8 +101,6 @@ fun CheatsScreen(
             else -> null
         }
     }
-    // Start inset for the title when there is a navigation icon provided (copied from AppBar.kt)
-    val titleIconModifier = Modifier.fillMaxHeight().width(68.dp)
     val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState)
@@ -119,7 +108,7 @@ fun CheatsScreen(
     val navigateBack = {
         if (isSearchActive) {
             isSearchActive = false
-            searchFieldValue = TextFieldValue("")
+            viewModel.clearSearchQuery()
         } else if (navController.previousBackStackEntry == null) {
             // The first screen (the loading screen) is not considered as an entry. So, previousBackStackEntry will be null
             viewModel.commitCheatChanges()
@@ -170,14 +159,16 @@ fun CheatsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         if (isSearchVisible) {
+                            val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+
                             TextField(
                                 modifier = Modifier.weight(1f).focusRequester(searchFocusRequester),
-                                value = searchFieldValue,
+                                value = searchQuery,
                                 onValueChange = { value ->
-                                    searchFieldValue = value
-                                    val query = value.text
-                                    if (query.isNotEmpty() && !isSearchRoute) {
-                                        navController.navigate(CheatsNavigation.Search(query, searchFolderName)) {
+                                    viewModel.setSearchQuery(value)
+                                    if (value.isNotEmpty() && !isSearchRoute) {
+                                        val isInsideFolder = currentRoute == CheatsNavigation.FolderCheats.serializer().descriptor.serialName
+                                        navController.navigate(CheatsNavigation.Search(searchOnlyInCurrentFolder = isInsideFolder)) {
                                             launchSingleTop = true
                                         }
                                     }
@@ -190,9 +181,11 @@ fun CheatsScreen(
                                 },
                                 leadingIcon = {
                                     IconButton(onClick = {
-                                        if (isSearchRoute) navController.navigateUp()
+                                        if (isSearchRoute) {
+                                            navController.navigateUp()
+                                        }
                                         isSearchActive = false
-                                        searchFieldValue = TextFieldValue("")
+                                        viewModel.clearSearchQuery()
                                     }) {
                                         Icon(
                                             imageVector = Icons.Default.Close,
@@ -213,7 +206,7 @@ fun CheatsScreen(
                                 ),
                             )
                         } else {
-                            Row(titleIconModifier, verticalAlignment = Alignment.CenterVertically) {
+                            Row(Modifier.fillMaxHeight().width(68.dp), verticalAlignment = Alignment.CenterVertically) {
                                 CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
                                     IconButton(onClick = { navigateBack() }) {
                                         Icon(
@@ -239,7 +232,7 @@ fun CheatsScreen(
                             ) {
                                 CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
                                     IconButton(onClick = {
-                                        searchFieldValue = TextFieldValue("")
+                                        viewModel.clearSearchQuery()
                                         isSearchActive = true
                                     }) {
                                         Icon(
@@ -295,9 +288,6 @@ fun CheatsScreen(
                     onFolderClick = { viewModel.setSelectedFolder(it) },
                     onAddFolder = { viewModel.addFolder(it) },
                 )
-                BackHandler {
-                    navigateBack()
-                }
             }
             composable<CheatsNavigation.FolderCheats> {
                 val cheats by viewModel.folderCheats.collectAsStateWithLifecycle(CheatsScreenUiState.Loading())
@@ -306,7 +296,7 @@ fun CheatsScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = padding,
                     cheats = cheats,
-                    onCheatClick = { viewModel.toggleCheat(it) },
+                    onCheatClick = viewModel::toggleCheat,
                     onAddNewCheat = viewModel::addNewCheat,
                     onUpdateCheat = viewModel::updateCheat,
                     onDeleteCheatClick = {
@@ -322,33 +312,21 @@ fun CheatsScreen(
                         viewModel.deleteCheat(it)
                     },
                 )
-                BackHandler {
-                    navigateBack()
-                }
             }
-            composable<CheatsNavigation.Search> { backStackEntry ->
-                val searchRoute = backStackEntry.toRoute<CheatsNavigation.Search>()
-                val searchResultsFlow = remember(searchQuery, searchRoute.folderName) {
-                    viewModel.searchCheats(searchQuery, searchRoute.folderName)
+            composable<CheatsNavigation.Search> {
+                val searchRoute = it.toRoute<CheatsNavigation.Search>()
+                val searchResultsFlow = remember(searchRoute.searchOnlyInCurrentFolder) {
+                    viewModel.getFilteredCheatsFlow(searchRoute.searchOnlyInCurrentFolder).map { CheatsScreenUiState.Ready(it) }
                 }
                 val searchResults by searchResultsFlow.collectAsStateWithLifecycle(CheatsScreenUiState.Loading())
+                val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
 
                 CheatSearchScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = padding,
                     searchResults = searchResults,
                     query = searchQuery,
-                    onBack = {
-                        if (searchFieldValue.text.isNotEmpty()) {
-                            // 1st back: just clear the field, stay on the search screen
-                            searchFieldValue = TextFieldValue("")
-                        } else {
-                            // 2nd back: dismiss the search screen
-                            navController.navigateUp()
-                            isSearchActive = false
-                        }
-                    },
-                    onCheatClick = { viewModel.toggleCheat(it) },
+                    onCheatClick = viewModel::toggleCheat,
                     onUpdateCheat = viewModel::updateCheat,
                     onDeleteCheatClick = { folder, cheat ->
                         coroutineScope.launch {
@@ -363,6 +341,17 @@ fun CheatsScreen(
                         viewModel.deleteCheat(cheat, folder)
                     },
                 )
+
+                BackHandler {
+                    if (searchQuery.isNotEmpty()) {
+                        // 1st back: just clear the field, stay on the search screen
+                        viewModel.clearSearchQuery()
+                    } else {
+                        // 2nd back: dismiss the search screen
+                        navController.navigateUp()
+                        isSearchActive = false
+                    }
+                }
             }
             composable<CheatsNavigation.EnabledCheats> {
                 val cheats by viewModel.selectedGameCheats.collectAsStateWithLifecycle(CheatsScreenUiState.Loading())

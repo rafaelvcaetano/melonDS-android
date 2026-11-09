@@ -1,7 +1,5 @@
 package me.magnum.melonds.ui.cheats.ui
 
-import android.util.Log
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -25,8 +23,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.Cheat
-import me.magnum.melonds.domain.model.CheatInFolder
 import me.magnum.melonds.domain.model.CheatFolder
+import me.magnum.melonds.domain.model.CheatInFolder
 import me.magnum.melonds.ui.cheats.model.CheatFormDialogState
 import me.magnum.melonds.ui.cheats.model.CheatSubmissionForm
 import me.magnum.melonds.ui.cheats.model.CheatsScreenUiState
@@ -39,7 +37,6 @@ fun CheatSearchScreen(
     contentPadding: PaddingValues,
     searchResults: CheatsScreenUiState<List<Pair<CheatFolder, Cheat>>>,
     query: String,
-    onBack: () -> Unit,
     onCheatClick: (Cheat) -> Unit,
     onUpdateCheat: (Cheat, CheatSubmissionForm) -> Unit,
     onDeleteCheatClick: (CheatFolder, Cheat) -> Unit,
@@ -98,8 +95,4 @@ fun CheatSearchScreen(
             cheatFormDialogState = CheatFormDialogState.Hidden
         },
     )
-
-    BackHandler {
-        onBack()
-    }
 }

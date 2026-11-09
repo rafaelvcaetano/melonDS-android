@@ -7,8 +7,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -108,29 +108,6 @@ class CheatsViewModel @Inject constructor(
         }.shareIn(viewModelScope, started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 1000L), replay = 1)
     }
 
-    fun searchCheats(
-        query: String,
-        folderName: String?,
-    ): Flow<CheatsScreenUiState<List<Pair<CheatFolder, Cheat>>>> = folders
-        .map { folderState ->
-            when (folderState) {
-                is CheatsScreenUiState.Loading -> CheatsScreenUiState.Loading()
-                is CheatsScreenUiState.Ready -> {
-                    val results = folderState.data.asSequence()
-                        .filter { folderName == null || it.name == folderName }
-                        .flatMap { folder ->
-                            val folderMatches = query.isNotBlank() && folder.name.contains(query, ignoreCase = true)
-                            folder.cheats.asSequence()
-                                .filter { query.isBlank() || folderMatches || it.name.contains(query, ignoreCase = true) }
-                                .map { cheat -> folder to cheat }
-                        }
-                        .toList()
-                    CheatsScreenUiState.Ready(results)
-                }
-            }
-        }
-        .flowOn(Dispatchers.Default)
-
     val folderCheats by lazy {
         selectedCheatFolder.filterNotNull()
             .flatMapLatest { cheatsRepository.getFolderCheats(it) }
@@ -209,6 +186,9 @@ class CheatsViewModel @Inject constructor(
 
     private val _cheatChangesCommittedEvent = Channel<Boolean>(Channel.CONFLATED)
     val cheatChangesCommittedEvent = _cheatChangesCommittedEvent.receiveAsFlow()
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
 
     fun setSelectedGame(game: Game) {
         savedStateHandle[KEY_SELECTED_GAME] = GameParcelable.fromGame(game)
@@ -322,6 +302,43 @@ class CheatsViewModel @Inject constructor(
 
     fun openEnabledCheats() {
         _openEnabledCheatsEvent.trySend(Unit)
+    }
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun clearSearchQuery() {
+        _searchQuery.value = ""
+    }
+
+    fun getFilteredCheatsFlow(searchOnlyInCurrentFolder: Boolean): Flow<List<Pair<CheatFolder, Cheat>>> {
+        val foldersFlow = folders.map {
+            when (it) {
+                is CheatsScreenUiState.Loading -> emptyList()
+                is CheatsScreenUiState.Ready -> it.data
+            }
+        }
+
+        return combine(foldersFlow, _searchQuery, selectedCheatFolder) { folders, query, selectedCheatFolder ->
+            folders.let { it ->
+                if (searchOnlyInCurrentFolder) {
+                    val currentFolderId = selectedCheatFolder?.id
+                    val selectedFolder = it.firstOrNull { it.id == currentFolderId }
+                    listOfNotNull(selectedFolder)
+                } else {
+                    it
+                }
+            }.flatMap { folder ->
+                folder.cheats.map { folder to it }
+            }.filter {
+                if (searchOnlyInCurrentFolder) {
+                    it.second.name.contains(query, ignoreCase = true)
+                } else {
+                    it.first.name.contains(query, ignoreCase = true) || it.second.name.contains(query, ignoreCase = true)
+                }
+            }
+        }.flowOn(Dispatchers.Default)
     }
 
     fun commitCheatChanges() {
