@@ -8,6 +8,7 @@ abstract class FrontendInputHandler : IInputListener {
         when (key) {
             Input.PAUSE -> onPausePressed()
             Input.FAST_FORWARD -> onFastForwardPressed()
+            Input.FAST_FORWARD_HOLD -> onFastForwardHoldPressed()
             Input.MICROPHONE -> onMicrophonePressed()
             Input.TOGGLE_SOFT_INPUT -> onSoftInputTogglePressed()
             Input.RESET -> onResetPressed()
@@ -20,6 +21,10 @@ abstract class FrontendInputHandler : IInputListener {
     }
 
     override fun onKeyReleased(key: Input) {
+        when (key) {
+            Input.FAST_FORWARD_HOLD -> onFastForwardHoldReleased()
+            else -> {}
+        }
     }
 
     override fun onTouch(point: Point) {
@@ -27,6 +32,8 @@ abstract class FrontendInputHandler : IInputListener {
 
     abstract fun onPausePressed()
     abstract fun onFastForwardPressed()
+    abstract fun onFastForwardHoldPressed()
+    abstract fun onFastForwardHoldReleased()
     abstract fun onMicrophonePressed()
     abstract fun onSoftInputTogglePressed()
     abstract fun onResetPressed()
