@@ -3,6 +3,7 @@ package me.magnum.melonds.ui.romdetails.ui
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import me.magnum.melonds.R
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.contracts.FilePickerContract
+import me.magnum.melonds.domain.model.RomInfo
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
@@ -40,11 +42,14 @@ import me.magnum.melonds.ui.common.component.dialog.rememberTextInputDialogState
 import me.magnum.melonds.ui.common.preference.ActionLauncherItem
 import me.magnum.melonds.ui.common.preference.SingleChoiceItem
 import me.magnum.melonds.ui.layouts.LayoutSelectorActivity
+import me.magnum.melonds.ui.romdetails.model.RomCheatSummary
 import me.magnum.melonds.ui.romdetails.model.RomConfigUiModel
 import me.magnum.melonds.ui.romdetails.model.RomConfigUiState
 import me.magnum.melonds.ui.romdetails.model.RomConfigUpdateEvent
 import me.magnum.melonds.ui.romdetails.model.RomGbaSlotConfigUiModel
 import me.magnum.melonds.ui.theme.MelonTheme
+import me.magnum.melonds.ui.cheats.CheatsActivity
+import me.magnum.melonds.parcelables.RomInfoParcelable
 import java.util.Date
 import java.util.UUID
 
@@ -62,6 +67,7 @@ fun RomConfigUi(
             modifier = modifier,
             contentPadding = contentPadding,
             rom = rom,
+            romInfo = romConfigUiState.romInfo,
             romConfig = romConfigUiState.romConfigUiModel,
             onConfigUpdate = onConfigUpdate,
         )
@@ -83,6 +89,7 @@ private fun Content(
     modifier: Modifier,
     contentPadding: PaddingValues,
     rom: Rom,
+    romInfo: RomInfo?,
     romConfig: RomConfigUiModel,
     onConfigUpdate: (RomConfigUpdateEvent) -> Unit,
 ) {
@@ -198,6 +205,26 @@ private fun Content(
             }
         }
 
+        // Register for a result so the cheat count refreshes after CheatsActivity commits changes on exit.
+        val cheatsLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            onConfigUpdate(RomConfigUpdateEvent.CheatActivityReturned)
+        }
+        ActionLauncherItem(
+            name = stringResource(id = R.string.label_rom_config_cheats),
+            value = romConfig.cheatSummary?.let {
+                stringResource(id = R.string.cheat_count_summary, it.enabled, it.total)
+            } ?: stringResource(id = R.string.info_loading),
+            onLaunchAction = {
+                if (romInfo != null) {
+                    cheatsLauncher.launch(Intent(context, CheatsActivity::class.java).apply {
+                        putExtra(CheatsActivity.KEY_ROM_INFO, RomInfoParcelable.fromRomInfo(romInfo))
+                    })
+                } else {
+                    Toast.makeText(context, R.string.rom_info_unavailable, Toast.LENGTH_LONG).show()
+                }
+            },
+        )
+
         Spacer(Modifier.height(contentPadding.calculateBottomPadding()))
     }
 }
@@ -223,7 +250,8 @@ private fun PreviewRomConfigUi() {
             romConfigUiState = RomConfigUiState.Ready(
                 RomConfigUiModel(
                     layoutName = "Default",
-                    gbaSlotConfig = RomGbaSlotConfigUiModel(type = RomGbaSlotConfigUiModel.Type.GbaRom)
+                    gbaSlotConfig = RomGbaSlotConfigUiModel(type = RomGbaSlotConfigUiModel.Type.GbaRom),
+                    cheatSummary = RomCheatSummary(100, 25),
                 ),
             ),
             onConfigUpdate = { },

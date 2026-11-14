@@ -323,6 +323,9 @@
     <string name="rom_settings">Rom settings</string> <!-- Accessibility string. Should not use acronyms -->
     <string name="label_rom_config_console">Boot system</string>
     <string name="label_rom_config_custom_name">ROM display name</string>
+    <string name="label_rom_config_cheats">Manage cheats</string>
+    <string name="cheat_count_summary">%1$d enabled / %2$d available</string>
+    <string name="rom_info_unavailable">Could not read ROM information.</string>
     <string name="label_rom_config_gba_slot">GBA slot</string>
     <string name="label_rom_config_gba_rom_path">GBA ROM path</string>
     <string name="label_rom_config_gba_save_path">GBA save path</string>

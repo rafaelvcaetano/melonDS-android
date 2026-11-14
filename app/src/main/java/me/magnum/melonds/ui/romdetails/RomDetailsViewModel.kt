@@ -6,11 +6,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import me.magnum.melonds.common.Permission
 import me.magnum.melonds.common.UriPermissionManager
+import me.magnum.melonds.common.romprocessors.RomFileProcessorFactory
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.domain.model.rom.config.RomGbaSlotConfig
@@ -31,6 +33,7 @@ class RomDetailsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val romIconProvider: RomIconProvider,
     private val uriPermissionManager: UriPermissionManager,
+    private val romFileProcessorFactory: RomFileProcessorFactory,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -38,21 +41,28 @@ class RomDetailsViewModel @Inject constructor(
     val rom = _rom.asStateFlow()
 
     private val _romConfig = MutableStateFlow(_rom.value.config)
+    private val _uiStateFlow = MutableStateFlow<RomConfigUiState>(RomConfigUiState.Loading)
 
     val romConfigUiState by lazy {
-        val uiStateFlow = MutableStateFlow<RomConfigUiState>(RomConfigUiState.Loading)
-        viewModelScope.launch {
-            _romConfig.map {
-                romDetailsUiMapper.mapRomConfigToUi(it)
-            }.collect {
-                uiStateFlow.value = RomConfigUiState.Ready(it)
-            }
-        }
+        refreshRomConfigUiState()
+        _uiStateFlow.asStateFlow()
+    }
 
-        uiStateFlow.asStateFlow()
+    // separate function set up here to refresh cheat count in RomDetailsScreen
+    fun refreshRomConfigUiState() {
+        viewModelScope.launch {
+            val romInfo = getRomInfo()
+            val configUiModel = romDetailsUiMapper.mapRomConfigToUi(_romConfig.value, romInfo)
+            _uiStateFlow.value = RomConfigUiState.Ready(configUiModel, romInfo)
+        }
     }
 
     fun onRomConfigUpdateEvent(event: RomConfigUpdateEvent) {
+        if (event == RomConfigUpdateEvent.CheatActivityReturned) {
+            refreshRomConfigUiState()
+            return
+        }
+
         val currentRomConfig = _romConfig.value
         val newRomConfig = when(event) {
             is RomConfigUpdateEvent.RuntimeConsoleUpdate -> currentRomConfig.copy(runtimeConsoleType = event.newRuntimeConsole)
@@ -80,12 +90,14 @@ class RomDetailsViewModel @Inject constructor(
                 }
             }
             is RomConfigUpdateEvent.CustomNameUpdate -> currentRomConfig.copy(customName = event.customName)
+            RomConfigUpdateEvent.CheatActivityReturned -> null
         }
 
         newRomConfig?.let { newConfig ->
             _romConfig.value = newConfig
             _rom.update { it.copy(config = newConfig) }
             saveRomConfig(newConfig)
+            refreshRomConfigUiState()
         }
     }
 
@@ -93,6 +105,10 @@ class RomDetailsViewModel @Inject constructor(
         val romIconBitmap = romIconProvider.getRomIcon(rom)
         val iconFiltering = settingsRepository.getRomIconFiltering()
         return RomIcon(romIconBitmap, iconFiltering)
+    }
+
+    suspend fun getRomInfo() = withContext(Dispatchers.IO) {
+        romFileProcessorFactory.getFileRomProcessorForDocument(_rom.value.uri)?.getRomInfo(_rom.value)
     }
 
     private fun saveRomConfig(newConfig: RomConfig) {
