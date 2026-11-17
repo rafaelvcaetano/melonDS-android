@@ -172,8 +172,8 @@ class InternalLayoutsRepository(private val context: Context, private val gson: 
             name = context.getString(R.string.default_layout_name),
             type = LayoutConfiguration.LayoutType.DEFAULT,
             orientation = LayoutConfiguration.LayoutOrientation.FOLLOW_SYSTEM,
-            useCustomOpacity = false,
-            opacity = 50,
+            useCustomOpacity = true,
+            opacity = 70,
             layoutVariants = emptyMap(),
         )
     }

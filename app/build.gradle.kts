@@ -57,6 +57,11 @@ android {
         }
         getByName("debug") {
             applicationIdSuffix = ".dev"
+            externalNativeBuild {
+                cmake {
+                    arguments("-DCMAKE_BUILD_TYPE=Release")
+                }
+            }
         }
     }
 

@@ -20,7 +20,6 @@ import me.magnum.melonds.domain.model.layout.UILayoutVariant
 import me.magnum.melonds.domain.model.ui.Orientation
 import me.magnum.melonds.impl.ScreenUnitsConverter
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 class DefaultLayoutProvider(
     private val context: Context,
@@ -174,24 +173,19 @@ class DefaultLayoutProvider(
         val safeWidth = width - safeLeft - safeRight
         val safeHeight = height - safeTop - safeBottom
 
-        val largeButtonsSize = screenUnitsConverter.dpToPixels(140f).toInt()
-        val lrButtonsSize = screenUnitsConverter.dpToPixels(50f).toInt()
-        val smallButtonsSize = screenUnitsConverter.dpToPixels(40f).toInt()
+        // Visual hierarchy: primary > secondary > utility
+        val largeButtonsSize = screenUnitsConverter.dpToPixels(160f).toInt()  // D-pad, ABXY
+        val lrButtonsSize = screenUnitsConverter.dpToPixels(54f).toInt()       // L/R (index-finger sized)
+        val smallButtonsSize = screenUnitsConverter.dpToPixels(48f).toInt()    // SELECT, START
+        val tinyButtonsSize = screenUnitsConverter.dpToPixels(42f).toInt()     // utility icons
         val spacing4dp = screenUnitsConverter.dpToPixels(4f).toInt()
+        val margin8dp = screenUnitsConverter.dpToPixels(8f).toInt()
 
+        // Screens: letterboxed at correct DS aspect ratio, centered in safe area
         val screenComponents = if (singleScreenComponent == null) {
-            var topScreenWidth = (safeWidth * 0.66f).roundToInt()
-            var topScreenHeight = (topScreenWidth / consoleAspectRatio).toInt()
-            if (topScreenHeight > safeHeight) {
-                topScreenWidth = (safeHeight * consoleAspectRatio).toInt()
-                topScreenHeight = safeHeight
-            }
-
-            val topScreenView = Rect(safeLeft, safeTop, topScreenWidth, topScreenHeight)
-            val bottomScreenWidth = safeWidth - topScreenWidth
-            val bottomScreenHeight = (bottomScreenWidth / consoleAspectRatio).toInt()
-            val bottomScreenView = Rect(safeLeft + topScreenWidth, safeTop, bottomScreenWidth, bottomScreenHeight)
-
+            val screenArea = centerScreenIn(safeWidth, safeHeight)
+            val topScreenView = Rect(screenArea.x + safeLeft, screenArea.y + safeTop, screenArea.width, screenArea.height)
+            val bottomScreenView = Rect(screenArea.x + safeLeft, screenArea.y + safeTop, screenArea.width, screenArea.height)
             arrayOf(
                 PositionedLayoutComponent(topScreenView, LayoutComponent.TOP_SCREEN),
                 PositionedLayoutComponent(bottomScreenView, LayoutComponent.BOTTOM_SCREEN),
@@ -202,22 +196,42 @@ class DefaultLayoutProvider(
             arrayOf(PositionedLayoutComponent(offsetScreen, singleScreenComponent))
         }
 
-        val dpadView = Rect(safeLeft, height - safeBottom - largeButtonsSize, largeButtonsSize, largeButtonsSize)
-        val buttonsView = Rect(width - safeRight - largeButtonsSize, height - safeBottom - largeButtonsSize, largeButtonsSize, largeButtonsSize)
+        // Ergonomic: thumb center at 68% of screen height (lower-middle, natural resting position)
+        val primaryButtonTop = (height * 0.68f).toInt() - largeButtonsSize / 2
+
+        // D-pad: left side, 8dp from safe edge — sits in the black letterbox bar beside the game
+        val dpadView = Rect(safeLeft + margin8dp, primaryButtonTop, largeButtonsSize, largeButtonsSize)
+
+        // ABXY: mirrored on the right side
+        val buttonsView = Rect(width - safeRight - largeButtonsSize - margin8dp, primaryButtonTop, largeButtonsSize, largeButtonsSize)
+
+        // L/R: top corners, smaller for index-finger tap, 8dp inset
+        val buttonL = Rect(safeLeft + margin8dp, safeTop + margin8dp, lrButtonsSize, lrButtonsSize)
+        val buttonR = Rect(width - safeRight - lrButtonsSize - margin8dp, safeTop + margin8dp, lrButtonsSize, lrButtonsSize)
+
+        // SELECT below D-pad, START below ABXY — left/right thumb accessible without moving
+        val secondaryButtonTop = height - safeBottom - smallButtonsSize - margin8dp
+        val selectView = Rect(dpadView.x + largeButtonsSize / 2 - smallButtonsSize / 2, secondaryButtonTop, smallButtonsSize, smallButtonsSize)
+        val startView = Rect(buttonsView.x + largeButtonsSize / 2 - smallButtonsSize / 2, secondaryButtonTop, smallButtonsSize, smallButtonsSize)
+
+        // Utility buttons: top center, evenly spaced
+        val utilityTotalWidth = tinyButtonsSize * 4 + spacing4dp * 3
+        val utilityStartX = (width - utilityTotalWidth) / 2
+        val utilityY = safeTop + margin8dp
 
         return ScreenLayout(
             listOf(
                 *screenComponents,
                 PositionedLayoutComponent(dpadView, LayoutComponent.DPAD),
                 PositionedLayoutComponent(buttonsView, LayoutComponent.BUTTONS),
-                PositionedLayoutComponent(Rect(safeLeft, safeTop, lrButtonsSize, lrButtonsSize), LayoutComponent.BUTTON_L),
-                PositionedLayoutComponent(Rect(width - safeRight - lrButtonsSize, safeTop, lrButtonsSize, lrButtonsSize), LayoutComponent.BUTTON_R),
-                PositionedLayoutComponent(Rect((width - spacing4dp) / 2 - smallButtonsSize, height - safeBottom - smallButtonsSize, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_SELECT),
-                PositionedLayoutComponent(Rect((width + spacing4dp) / 2, height - safeBottom - smallButtonsSize, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_START),
-                PositionedLayoutComponent(Rect(width / 2 - (smallButtonsSize * 2.0 + spacing4dp * 1.5).toInt(), safeTop, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_HINGE),
-                PositionedLayoutComponent(Rect(width / 2 - smallButtonsSize - (spacing4dp / 2.0).toInt(), safeTop, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT),
-                PositionedLayoutComponent(Rect(width / 2 + (spacing4dp / 2.0).toInt(), safeTop, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_MICROPHONE_TOGGLE),
-                PositionedLayoutComponent(Rect(width / 2 + smallButtonsSize + (spacing4dp * 1.5).toInt(), safeTop, smallButtonsSize, smallButtonsSize), LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE),
+                PositionedLayoutComponent(buttonL, LayoutComponent.BUTTON_L),
+                PositionedLayoutComponent(buttonR, LayoutComponent.BUTTON_R),
+                PositionedLayoutComponent(selectView, LayoutComponent.BUTTON_SELECT),
+                PositionedLayoutComponent(startView, LayoutComponent.BUTTON_START),
+                PositionedLayoutComponent(Rect(utilityStartX, utilityY, tinyButtonsSize, tinyButtonsSize), LayoutComponent.BUTTON_HINGE),
+                PositionedLayoutComponent(Rect(utilityStartX + tinyButtonsSize + spacing4dp, utilityY, tinyButtonsSize, tinyButtonsSize), LayoutComponent.BUTTON_TOGGLE_SOFT_INPUT),
+                PositionedLayoutComponent(Rect(utilityStartX + (tinyButtonsSize + spacing4dp) * 2, utilityY, tinyButtonsSize, tinyButtonsSize), LayoutComponent.BUTTON_MICROPHONE_TOGGLE),
+                PositionedLayoutComponent(Rect(utilityStartX + (tinyButtonsSize + spacing4dp) * 3, utilityY, tinyButtonsSize, tinyButtonsSize), LayoutComponent.BUTTON_FAST_FORWARD_TOGGLE),
             )
         )
     }

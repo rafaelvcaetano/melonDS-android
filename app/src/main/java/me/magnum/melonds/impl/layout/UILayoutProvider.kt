@@ -69,16 +69,6 @@ class UILayoutProvider(private val defaultLayoutProvider: DefaultLayoutProvider)
     }
 
     private fun getOptimalLayoutForVariant(layoutConfiguration: LayoutConfiguration, variant: UILayoutVariant): UILayout {
-        val exactLayoutMatch = layoutConfiguration.layoutVariants[variant]
-        if (exactLayoutMatch != null) {
-            return populateLayoutIfRequired(exactLayoutMatch, variant)
-        }
-
-        val bestLayoutVariant = findSimilarLayoutVariant(layoutConfiguration, variant)
-        if (bestLayoutVariant != null) {
-            return populateLayoutIfRequired(bestLayoutVariant, variant)
-        }
-
         return defaultLayoutProvider.buildDefaultLayout(variant)
     }
 
