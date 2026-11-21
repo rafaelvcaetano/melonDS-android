@@ -11,4 +11,5 @@ data class RomConfigUiModel(
     val layoutName: String? = null,
     val gbaSlotConfig: RomGbaSlotConfigUiModel = RomGbaSlotConfigUiModel(),
     val customName: String? = null,
+    val cheatSummary: RomCheatSummary? = null,
 )
