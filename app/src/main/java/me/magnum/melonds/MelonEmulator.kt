@@ -135,6 +135,23 @@ object MelonEmulator {
 
     external fun setMicrophoneEnabled(enabled: Boolean)
 
+    /**
+     * Overrides the microphone input fed to the emulated console. Used by the auto flute.
+     * @param mode 0 = disabled (normal microphone behaviour), 1 = silence, 2 = blowing
+     */
+    external fun setAutoMicMode(mode: Int)
+
+    /**
+     * Starts capturing the game's audio output (mono, 48 kHz). Audio is only captured while the game is running
+     * and sound output is enabled.
+     */
+    external fun startAudioCapture(maxSeconds: Int)
+
+    /**
+     * Stops the audio capture and returns the captured mono 48 kHz samples.
+     */
+    external fun stopAudioCapture(): ShortArray
+
     external fun updateEmulatorConfiguration(emulatorConfiguration: EmulatorConfiguration)
 
     external fun updateMotionData(ax: Float, ay: Float, az: Float, rx: Float, ry: Float, rz: Float)

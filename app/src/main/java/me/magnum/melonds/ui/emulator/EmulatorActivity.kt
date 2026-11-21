@@ -15,6 +15,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -46,9 +48,11 @@ import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.R
 import me.magnum.melonds.common.PermissionHandler
@@ -75,6 +79,13 @@ import me.magnum.melonds.parcelables.RomInfoParcelable
 import me.magnum.melonds.parcelables.RomParcelable
 import me.magnum.melonds.ui.cheats.CheatsActivity
 import me.magnum.melonds.ui.common.rom.EmulatorLaunchValidatorDelegate
+import me.magnum.melonds.ui.emulator.autoflute.AutoFluteController
+import me.magnum.melonds.ui.emulator.autoflute.FluteCalibration
+import me.magnum.melonds.ui.emulator.autoflute.FluteEvent
+import me.magnum.melonds.ui.emulator.autoflute.FluteSongBuilder
+import me.magnum.melonds.ui.emulator.autoflute.PitchAnalyzer
+import me.magnum.melonds.ui.emulator.autoflute.FluteSong
+import me.magnum.melonds.ui.emulator.autoflute.FluteSongStore
 import me.magnum.melonds.ui.emulator.component.EmulatorOverlayTracker
 import me.magnum.melonds.ui.emulator.input.ConnectedControllerManager
 import me.magnum.melonds.ui.emulator.input.EmulatorMotionManager
@@ -98,6 +109,7 @@ import me.magnum.melonds.ui.emulator.render.ChoreographerFrameRendererFactory
 import me.magnum.melonds.ui.emulator.render.ExternalPresentation
 import me.magnum.melonds.ui.emulator.render.FrameRenderCoordinator
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
+import me.magnum.melonds.ui.emulator.rom.RomPauseMenuOption
 import me.magnum.melonds.ui.emulator.rom.SaveStateAdapter
 import me.magnum.melonds.ui.emulator.ui.AchievementListDialog
 import me.magnum.melonds.ui.emulator.ui.AchievementUpdatesUi
@@ -106,6 +118,7 @@ import me.magnum.melonds.ui.emulator.ui.RewindWindowUi
 import me.magnum.melonds.ui.layouteditor.model.LayoutTarget
 import me.magnum.melonds.ui.settings.SettingsActivity
 import me.magnum.melonds.ui.theme.MelonTheme
+import java.io.File
 import java.text.SimpleDateFormat
 import javax.inject.Inject
 
@@ -193,6 +206,8 @@ class EmulatorActivity : AppCompatActivity() {
     private lateinit var frameRenderCoordinator: FrameRenderCoordinator
     private lateinit var choreographerFrameRenderer: ChoreographerFrameRenderer
     private lateinit var mainScreenRenderer: DSRenderer
+    private lateinit var autoFluteController: AutoFluteController
+    private lateinit var fluteSongStore: FluteSongStore
     private lateinit var melonTouchHandler: MelonTouchHandler
     private lateinit var nativeInputListener: INativeInputListener
     private val frontendInputHandler = object : FrontendInputHandler() {
@@ -225,6 +240,7 @@ class EmulatorActivity : AppCompatActivity() {
         }
 
         override fun onResetPressed() {
+            autoFluteController.stop()
             viewModel.resetEmulator()
         }
 
@@ -275,10 +291,12 @@ class EmulatorActivity : AppCompatActivity() {
         onOverlaysCleared = {
             disableScreenTimeOut()
             presentation?.setPauseOverlayVisibility(false)
+            autoFluteController.setOverlaysPresent(false)
         },
         onOverlaysPresent = {
             enableScreenTimeOut()
             presentation?.setPauseOverlayVisibility(true)
+            autoFluteController.setOverlaysPresent(true)
         }
     )
 
@@ -321,7 +339,9 @@ class EmulatorActivity : AppCompatActivity() {
         emulatorMotionManager = EmulatorMotionManager(this, lifecycleScope, connectedControllerManager)
         frameRenderCoordinator = FrameRenderCoordinator()
         choreographerFrameRenderer = ChoreographerFrameRendererFactory.createFrameRenderer(frameRenderCoordinator)
-        melonTouchHandler = MelonTouchHandler()
+        autoFluteController = AutoFluteController(lifecycleScope)
+        fluteSongStore = FluteSongStore(File(getExternalFilesDir(null) ?: filesDir, "auto_flute"))
+        melonTouchHandler = MelonTouchHandler(autoFluteController)
         mainScreenRenderer = DSRenderer(this)
         binding.surfaceMain.apply {
             setRenderer(mainScreenRenderer)
@@ -521,6 +541,7 @@ class EmulatorActivity : AppCompatActivity() {
                             activeOverlays.addActiveOverlay(EmulatorOverlay.ACHIEVEMENTS_DIALOG)
                             showAchievementList.value = true
                         }
+                        EmulatorUiEvent.ShowAutoFluteMenu -> showAutoFluteMenu()
                         EmulatorUiEvent.ShowPendingSubmissionsDialog -> {
                             activeOverlays.addActiveOverlay(EmulatorOverlay.PENDING_SUBMISSION_CONFIRM_EXIT)
                             showPendingSubmissionsDialog.value = true
@@ -721,6 +742,7 @@ class EmulatorActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        autoFluteController.setActivityPaused(false)
         choreographerFrameRenderer.startRendering()
         emulatorMotionManager.resume()
 
@@ -867,6 +889,9 @@ class EmulatorActivity : AppCompatActivity() {
                 .setTitle(R.string.pause)
                 .setItems(options) { _, which ->
                     val selectedOption = pauseMenu.options[which]
+                    if (selectedOption == RomPauseMenuOption.RESET) {
+                        autoFluteController.stop()
+                    }
                     viewModel.onPauseMenuOptionSelected(selectedOption)
                 }
                 .setOnDismissListener {
@@ -876,6 +901,202 @@ class EmulatorActivity : AppCompatActivity() {
                     viewModel.resumeEmulator()
                 }
                 .show()
+    }
+
+    // ------------------------------------------------------------------ Auto flute
+
+    private fun showAutoFluteDialog(configure: AlertDialog.Builder.() -> Unit) {
+        activeOverlays.addActiveOverlay(EmulatorOverlay.AUTO_FLUTE_DIALOG)
+        AlertDialog.Builder(this)
+            .apply(configure)
+            .setOnDismissListener {
+                activeOverlays.removeActiveOverlay(EmulatorOverlay.AUTO_FLUTE_DIALOG)
+            }
+            .setOnCancelListener {
+                viewModel.resumeEmulator()
+            }
+            .show()
+    }
+
+    private fun showAutoFluteMenu() {
+        val actions = mutableListOf<Pair<Int, () -> Unit>>()
+        when (autoFluteController.state) {
+            AutoFluteController.State.RECORDING -> {
+                actions.add(R.string.auto_flute_stop_save to {
+                    promptSaveFluteSong(autoFluteController.stopRecording())
+                })
+                actions.add(R.string.auto_flute_discard to {
+                    autoFluteController.discardRecording()
+                    viewModel.resumeEmulator()
+                })
+            }
+            AutoFluteController.State.CALIBRATING -> {
+                actions.add(R.string.auto_flute_finish_calibration to ::finishFluteCalibration)
+                actions.add(R.string.auto_flute_cancel to {
+                    autoFluteController.stop()
+                    viewModel.resumeEmulator()
+                })
+            }
+            AutoFluteController.State.CAPTURING -> {
+                actions.add(R.string.auto_flute_finish_capture to ::finishFluteSongCapture)
+                actions.add(R.string.auto_flute_cancel to {
+                    autoFluteController.stop()
+                    viewModel.resumeEmulator()
+                })
+            }
+            AutoFluteController.State.PLAYING -> {
+                actions.add(R.string.auto_flute_stop_playing to {
+                    autoFluteController.stop()
+                    viewModel.resumeEmulator()
+                })
+            }
+            AutoFluteController.State.IDLE -> {
+                actions.add(R.string.auto_flute_record to {
+                    autoFluteController.startRecording()
+                    Toast.makeText(this, R.string.auto_flute_recording_started, Toast.LENGTH_LONG).show()
+                    viewModel.resumeEmulator()
+                })
+                actions.add(R.string.auto_flute_capture to ::startFluteSongCapture)
+                actions.add(R.string.auto_flute_calibrate to {
+                    autoFluteController.startCalibration()
+                    Toast.makeText(this, R.string.auto_flute_calibration_started, Toast.LENGTH_LONG).show()
+                    viewModel.resumeEmulator()
+                })
+                actions.add(R.string.auto_flute_play to { showFluteSongPicker(R.string.auto_flute_play, ::startFlutePlayback) })
+                actions.add(R.string.auto_flute_delete to { showFluteSongPicker(R.string.auto_flute_delete, ::confirmDeleteFluteSong) })
+            }
+        }
+
+        val labels = Array(actions.size) { getString(actions[it].first) }
+        showAutoFluteDialog {
+            setTitle(R.string.auto_flute)
+            setItems(labels) { _, which -> actions[which].second() }
+        }
+    }
+
+    private fun showFluteSongPicker(titleRes: Int, onSongSelected: (FluteSong) -> Unit) {
+        val songs = fluteSongStore.getSongs()
+        if (songs.isEmpty()) {
+            Toast.makeText(this, R.string.auto_flute_no_songs, Toast.LENGTH_SHORT).show()
+            viewModel.resumeEmulator()
+            return
+        }
+
+        val labels = Array(songs.size) {
+            getString(R.string.auto_flute_song_entry, songs[it].name, songs[it].durationMs / 1000f)
+        }
+        showAutoFluteDialog {
+            setTitle(titleRes)
+            setItems(labels) { _, which -> onSongSelected(songs[which]) }
+        }
+    }
+
+    private fun startFlutePlayback(song: FluteSong) {
+        Toast.makeText(this, R.string.auto_flute_playing, Toast.LENGTH_SHORT).show()
+        viewModel.resumeEmulator()
+        autoFluteController.play(song)
+    }
+
+    private fun confirmDeleteFluteSong(song: FluteSong) {
+        showAutoFluteDialog {
+            setMessage(getString(R.string.auto_flute_delete_confirm, song.name))
+            setPositiveButton(R.string.yes) { _, _ ->
+                fluteSongStore.delete(song)
+                viewModel.resumeEmulator()
+            }
+            setNegativeButton(R.string.no) { _, _ -> viewModel.resumeEmulator() }
+        }
+    }
+
+    private fun startFluteSongCapture() {
+        if (fluteSongStore.loadCalibration() == null) {
+            Toast.makeText(this, R.string.auto_flute_calibration_needed, Toast.LENGTH_LONG).show()
+            viewModel.resumeEmulator()
+            return
+        }
+
+        autoFluteController.startSongCapture()
+        Toast.makeText(this, R.string.auto_flute_capture_started, Toast.LENGTH_LONG).show()
+        viewModel.resumeEmulator()
+    }
+
+    private fun finishFluteCalibration() {
+        val capture = autoFluteController.finishCalibration()
+        if (capture == null) {
+            Toast.makeText(this, R.string.auto_flute_calibration_failed, Toast.LENGTH_LONG).show()
+            viewModel.resumeEmulator()
+            return
+        }
+
+        Toast.makeText(this, R.string.auto_flute_analyzing, Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            val calibration = withContext(Dispatchers.Default) {
+                val notes = PitchAnalyzer.analyze(capture.pcm)
+                FluteCalibration.fromPerformance(capture.events, capture.firstEventOffsetMs, notes)
+            }
+
+            if (calibration == null) {
+                Toast.makeText(this@EmulatorActivity, R.string.auto_flute_calibration_failed, Toast.LENGTH_LONG).show()
+            } else {
+                fluteSongStore.saveCalibration(calibration)
+                Toast.makeText(this@EmulatorActivity, getString(R.string.auto_flute_calibration_done, calibration.points.size), Toast.LENGTH_SHORT).show()
+            }
+            viewModel.resumeEmulator()
+        }
+    }
+
+    private fun finishFluteSongCapture() {
+        val pcm = autoFluteController.finishSongCapture()
+        val calibration = fluteSongStore.loadCalibration()
+        if (pcm == null || calibration == null) {
+            Toast.makeText(this, R.string.auto_flute_no_notes, Toast.LENGTH_LONG).show()
+            viewModel.resumeEmulator()
+            return
+        }
+
+        Toast.makeText(this, R.string.auto_flute_analyzing, Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            val events = withContext(Dispatchers.Default) {
+                FluteSongBuilder.build(PitchAnalyzer.analyze(pcm), calibration)
+            }
+
+            if (events.isEmpty()) {
+                Toast.makeText(this@EmulatorActivity, R.string.auto_flute_no_notes, Toast.LENGTH_LONG).show()
+                viewModel.resumeEmulator()
+            } else {
+                promptSaveFluteSong(events)
+            }
+        }
+    }
+
+    private fun promptSaveFluteSong(events: List<FluteEvent>?) {
+        if (events == null) {
+            Toast.makeText(this, R.string.auto_flute_nothing_recorded, Toast.LENGTH_SHORT).show()
+            viewModel.resumeEmulator()
+            return
+        }
+
+        val nameInput = EditText(this).apply {
+            setSingleLine()
+            setText(getString(R.string.auto_flute_default_song_name, fluteSongStore.getSongs().size + 1))
+            selectAll()
+        }
+        val container = FrameLayout(this).apply {
+            val padding = (20 * resources.displayMetrics.density).toInt()
+            setPadding(padding, padding / 2, padding, 0)
+            addView(nameInput)
+        }
+
+        showAutoFluteDialog {
+            setTitle(R.string.auto_flute_name_title)
+            setView(container)
+            setPositiveButton(R.string.ok) { _, _ ->
+                fluteSongStore.save(nameInput.text.toString(), events)
+                Toast.makeText(this@EmulatorActivity, R.string.auto_flute_saved, Toast.LENGTH_SHORT).show()
+                viewModel.resumeEmulator()
+            }
+            setNegativeButton(R.string.cancel) { _, _ -> viewModel.resumeEmulator() }
+        }
     }
 
     private fun disableScreenTimeOut() {
@@ -1015,6 +1236,7 @@ class EmulatorActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        autoFluteController.setActivityPaused(true)
         enableScreenTimeOut()
         choreographerFrameRenderer.stopRendering()
         emulatorMotionManager.pause()
@@ -1041,6 +1263,7 @@ class EmulatorActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        autoFluteController.stop()
         emulatorMotionManager.stop()
         frameRenderCoordinator.stop()
         presentation?.dismiss()

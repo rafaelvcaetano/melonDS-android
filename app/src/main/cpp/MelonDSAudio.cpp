@@ -3,8 +3,26 @@
 #include "mic_blow.h"
 #include "OboeCallback.h"
 #include <oboe/Oboe.h>
+#include <atomic>
+#include <mutex>
+#include <vector>
+#include <cstdint>
 
 #define MIC_BUFFER_SIZE 2048
+
+// Auto flute override. Written from the UI thread, read from the emulation thread.
+// 0 = disabled (normal microphone behaviour)
+// 1 = engaged, silent (game hears no input regardless of the configured mic source)
+// 2 = engaged, blowing (game hears the built-in blow sample regardless of the configured mic source)
+std::atomic<int> autoMicMode{0};
+
+// Game audio capture (used to transcribe songs played by in-game characters).
+// Holds mono 48 kHz samples. Written from the audio thread, read once capture stops.
+#define CAPTURE_SAMPLE_RATE 48000
+std::mutex captureMutex;
+std::vector<int16_t> captureBuffer;
+size_t captureMaxSamples = 0;
+std::atomic<bool> captureActive{false};
 
 std::weak_ptr<MelonDSAndroid::MelonInstance> activeInstance;
 
@@ -168,10 +186,60 @@ namespace MelonDSAndroid
             micInputStream->requestStop();
     }
 
+    void startAudioCapture(int maxSeconds)
+    {
+        std::lock_guard<std::mutex> lock(captureMutex);
+        captureMaxSamples = (size_t) CAPTURE_SAMPLE_RATE * maxSeconds;
+        captureBuffer.clear();
+        captureBuffer.reserve(captureMaxSamples);
+        captureActive.store(true);
+    }
+
+    void captureAudio(const int16_t* stereoSamples, int frames)
+    {
+        if (!captureActive.load(std::memory_order_relaxed))
+            return;
+
+        // Never block the audio thread. If the lock is taken (capture is being stopped) just skip this chunk
+        std::unique_lock<std::mutex> lock(captureMutex, std::try_to_lock);
+        if (!lock.owns_lock())
+            return;
+
+        size_t room = captureMaxSamples - captureBuffer.size();
+        size_t count = (size_t) frames < room ? (size_t) frames : room;
+        for (size_t i = 0; i < count; i++)
+            captureBuffer.push_back((int16_t) (((int) stereoSamples[i * 2] + (int) stereoSamples[i * 2 + 1]) / 2));
+    }
+
+    std::vector<int16_t> stopAudioCapture()
+    {
+        captureActive.store(false);
+        std::lock_guard<std::mutex> lock(captureMutex);
+        std::vector<int16_t> result = std::move(captureBuffer);
+        captureBuffer = std::vector<int16_t>();
+        return result;
+    }
+
+    void setAutoMicMode(int mode)
+    {
+        autoMicMode.store(mode, std::memory_order_relaxed);
+    }
+
     int readMic(s16* data, int maxlength)
     {
         int micSource = actualMicSource;
-        if (!isMicInputEnabled)
+        int autoMode = autoMicMode.load(std::memory_order_relaxed);
+        if (autoMode == 2)
+        {
+            // Auto flute is blowing. Use the built-in blow sample (source 1)
+            micSource = 1;
+        }
+        else if (autoMode == 1)
+        {
+            // Auto flute is engaged but between notes. Feed silence so that a real microphone can't interfere
+            micSource = 0;
+        }
+        else if (!isMicInputEnabled)
         {
             micSource = 0;
         }
