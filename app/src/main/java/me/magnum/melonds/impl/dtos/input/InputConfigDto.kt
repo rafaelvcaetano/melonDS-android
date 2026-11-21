@@ -27,6 +27,7 @@ data class InputConfigDto(
         class Key(
             override val deviceId: Int?,
             @SerialName("keyCode") val keyCode: Int,
+            @SerialName("modifierKeyCodes") val modifierKeyCodes: List<Int> = emptyList(),
         ) : AssignmentDto()
 
         @Serializable
@@ -44,12 +45,12 @@ data class InputConfigDto(
                 input = inputConfig.input,
                 assignment = when (inputConfig.assignment) {
                     is InputConfig.Assignment.None -> AssignmentDto.None
-                    is InputConfig.Assignment.Key -> AssignmentDto.Key(inputConfig.assignment.deviceId, inputConfig.assignment.keyCode)
+                    is InputConfig.Assignment.Key -> AssignmentDto.Key(inputConfig.assignment.deviceId, inputConfig.assignment.keyCode, inputConfig.assignment.modifierKeyCodes)
                     is InputConfig.Assignment.Axis -> AssignmentDto.Axis(inputConfig.assignment.deviceId, inputConfig.assignment.axisCode, inputConfig.assignment.direction)
                 },
                 altAssignment = when (inputConfig.altAssignment) {
                     is InputConfig.Assignment.None -> AssignmentDto.None
-                    is InputConfig.Assignment.Key -> AssignmentDto.Key(inputConfig.altAssignment.deviceId, inputConfig.altAssignment.keyCode)
+                    is InputConfig.Assignment.Key -> AssignmentDto.Key(inputConfig.altAssignment.deviceId, inputConfig.altAssignment.keyCode, inputConfig.altAssignment.modifierKeyCodes)
                     is InputConfig.Assignment.Axis -> AssignmentDto.Axis(inputConfig.altAssignment.deviceId, inputConfig.altAssignment.axisCode, inputConfig.altAssignment.direction)
                 }
             )
@@ -61,12 +62,12 @@ data class InputConfigDto(
             input = input,
             assignment = when (assignment) {
                 is AssignmentDto.None -> InputConfig.Assignment.None
-                is AssignmentDto.Key -> InputConfig.Assignment.Key(assignment.deviceId, assignment.keyCode)
+                is AssignmentDto.Key -> InputConfig.Assignment.Key(assignment.deviceId, assignment.keyCode, assignment.modifierKeyCodes)
                 is AssignmentDto.Axis -> InputConfig.Assignment.Axis(assignment.deviceId, assignment.axisCode, assignment.direction)
             },
             altAssignment = when (altAssignment) {
                 is AssignmentDto.None -> InputConfig.Assignment.None
-                is AssignmentDto.Key -> InputConfig.Assignment.Key(altAssignment.deviceId, altAssignment.keyCode)
+                is AssignmentDto.Key -> InputConfig.Assignment.Key(altAssignment.deviceId, altAssignment.keyCode, altAssignment.modifierKeyCodes)
                 is AssignmentDto.Axis -> InputConfig.Assignment.Axis(altAssignment.deviceId, altAssignment.axisCode, altAssignment.direction)
             }
         )

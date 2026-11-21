@@ -8,7 +8,10 @@ data class InputConfig(
 
     sealed class Assignment(open val deviceId: Int?) {
         data object None : Assignment(null)
-        data class Key(override val deviceId: Int?, val keyCode: Int) : Assignment(deviceId)
+        data class Key(override val deviceId: Int?, val keyCode: Int, val modifierKeyCodes: List<Int> = emptyList()) : Assignment(deviceId) {
+            val keyCodes: List<Int>
+                get() = modifierKeyCodes + keyCode
+        }
         data class Axis(override val deviceId: Int?, val axisCode: Int, val direction: Direction) : Assignment(deviceId) {
             enum class Direction {
                 POSITIVE,
