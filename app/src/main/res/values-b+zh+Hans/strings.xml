@@ -277,7 +277,7 @@
     <string name="enable_cheats">启用金手指</string>
     <string name="cheats_database">金手指数据库（XML 格式）</string>
     <string name="import_cheats">导入金手指</string>
-    <string name="import_cheats_summary">从数据库文件导入金手指代码以使其可用。目前仅支持 XML 数据库。之前导入的任何金手指都将被删除。</string>
+    <string name="import_cheats_summary">从数据库文件导入金手指代码以使其可用。支持 XML 和 usrcheat.dat 数据库。之前导入的任何金手指都将被删除。</string>
     <string name="rom_shortcut">ROM 快捷方式</string>
 
     <string name="firmware_nickname">昵称</string>
