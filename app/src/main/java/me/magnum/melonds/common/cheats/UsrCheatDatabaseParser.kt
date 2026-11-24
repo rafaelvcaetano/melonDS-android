@@ -243,7 +243,7 @@ class UsrCheatDatabaseParser : CheatDatabaseParser {
     }
 
     private fun isFolder(flags: Int): Boolean {
-        return flags == FLAG_FOLDER || flags == FLAG_FOLDER_ONE_HOT
+        return flags and FLAG_FOLDER != 0
     }
 
     private fun parseCheat(reader: ByteArrayReader, cheatDatabase: CheatDatabase, charset: Charset): Cheat? {
